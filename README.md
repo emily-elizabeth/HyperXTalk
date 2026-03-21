@@ -55,3 +55,8 @@ done
 find "$MACBIN" -name "*.app" -exec codesign --force --deep --sign - {} \;
 echo "Done signing."
 ```
+
+Build the installer
+```
+python3 build_installer.py
+```
