@@ -1,0 +1,7 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/emily-elizabethhoward/Developer/HyperXTalk/_build/mac/Debug/installer-stub'
+relocations:
+  - { offset: 0x27, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x1000008D0, symSize: 0x1F4 }
+  - { offset: 0x7C, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x1000008D0, symSize: 0x1F4 }
+...
