@@ -1,0 +1,538 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		13F64473FD3124BFE33846BC /* libexpat */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = E551731C0EB3EC41FE17FF8C /* Build configuration list for PBXAggregateTarget "libexpat" */;
+			buildPhases = (
+			);
+			dependencies = (
+			);
+			name = libexpat;
+			productName = libexpat;
+		};
+		39C17AC574366B9530F5C029 /* libexpat (host) */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 6400B6724DF06921D10B506B /* Build configuration list for PBXAggregateTarget "libexpat (host)" */;
+			buildPhases = (
+			);
+			dependencies = (
+			);
+			name = "libexpat (host)";
+			productName = "libexpat (host)";
+		};
+		FF3C14CE7AE3BD905EF2985F /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 0F679320B9F2E6E203B352C8 /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				D574CEF59EFF284C751C3BDC /* PBXTargetDependency */,
+				CE1431CE9E95F0B7D5A38C46 /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXContainerItemProxy section */
+		45C81116886B220B4B3B91E5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 57C0644D72C590E42F395C45 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 39C17AC574366B9530F5C029;
+			remoteInfo = "libexpat (host)";
+		};
+		D7F703A8EE8BD3B36F4857AE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 57C0644D72C590E42F395C45 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 13F64473FD3124BFE33846BC;
+			remoteInfo = libexpat;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		008CC82BAAB77C832F1F03B8 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../config/android-settings.gypi"; sourceTree = "<group>"; };
+		0672FF4459AC2DCBD00C80DA /* iasciitab.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = iasciitab.h; sourceTree = "<group>"; };
+		06BE2579688416F59EE640AF /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../../config/version.gypi; sourceTree = "<group>"; };
+		0E38BC347362411EA10F8CD0 /* asiitab.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = asiitab.h; sourceTree = "<group>"; };
+		0F4E0743E994A66D9EC8DF9F /* xmltok_ns.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xmltok_ns.c; sourceTree = "<group>"; };
+		1428B209132E98983BCFBB5E /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		20EA8E50D8D1D9E160655E4A /* libexpat.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libexpat.gyp; sourceTree = "<group>"; };
+		292B37079E65962EBB4DC3A9 /* internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = internal.h; sourceTree = "<group>"; };
+		2A569605D9C03EBD5896689D /* xmltok.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xmltok.c; sourceTree = "<group>"; };
+		2B906069F8A2E3813AB5492E /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../../config/win32.gypi; sourceTree = "<group>"; };
+		3B449768E0055E13C7A9EE49 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../../config/target_os.gypi; sourceTree = "<group>"; };
+		3C2100D9C79176F9C3792576 /* xmltok.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xmltok.h; sourceTree = "<group>"; };
+		3D8006320A1DE147DE819B09 /* xmlrole.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xmlrole.h; sourceTree = "<group>"; };
+		47D1E0BDE9D0EECF0CB1FF6D /* utf8tab.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = utf8tab.h; sourceTree = "<group>"; };
+		4CBFAC7C862FC892A8E1A679 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../../config/configurations.gypi; sourceTree = "<group>"; };
+		67082B9074946B48B881084D /* xmlrole.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xmlrole.c; sourceTree = "<group>"; };
+		683EBC5ECD32CD881E88FE1E /* xmltok_impl.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xmltok_impl.h; sourceTree = "<group>"; };
+		687871E37EA3E96130D7C132 /* xmlparse.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xmlparse.c; sourceTree = "<group>"; };
+		77035F9D4F157CBF950FA084 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../config/ios.gypi; sourceTree = "<group>"; };
+		85061AEB21D4D6F74E8B0DD8 /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../../config/thirdparty.gypi; sourceTree = "<group>"; };
+		8E23EAC8745EEE413156EA65 /* expat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = expat.h; sourceTree = "<group>"; };
+		9258D9E633DA25F5C3C0A770 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../../common.gypi; sourceTree = "<group>"; };
+		93741E6711C9E507696BEC9C /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		941BF7E38E74C134290955BB /* expat_external.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = expat_external.h; sourceTree = "<group>"; };
+		A6FECE57B804A2D6E5816E65 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../../config/crosscompile.gypi; sourceTree = "<group>"; };
+		A9E5DCE217BAA31B281A24FA /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		ABF3CB4B931CAEE2B5B1DE13 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../../config/exclusions.gypi; sourceTree = "<group>"; };
+		AE3462A1B1104C93EA12DDC3 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../config/emscripten.gypi; sourceTree = "<group>"; };
+		B0DEAE945F1ACB298C50FA8D /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../../config/arch.gypi; sourceTree = "<group>"; };
+		B5E93A014090F8B75EEA0708 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../../config/yacc.gypi; sourceTree = "<group>"; };
+		B9BDD4F7312EB51CA1516FEB /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../config/android.gypi; sourceTree = "<group>"; };
+		BE4F89162832B82B08D9C713 /* ascii.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ascii.h; sourceTree = "<group>"; };
+		C3FA8C69ABE6A3A5833C76EC /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../../config/mac.gypi; sourceTree = "<group>"; };
+		D2309A017085B49A6F09F5C1 /* expat_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = expat_config.h; sourceTree = "<group>"; };
+		DD5E019D87427455601B8FA3 /* xmltok_impl.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xmltok_impl.c; sourceTree = "<group>"; };
+		ED2665BA6AAFF253F96577C8 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../../config/linux.gypi; sourceTree = "<group>"; };
+		EEC128606EF9754F524D7AD4 /* latin1tab.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = latin1tab.h; sourceTree = "<group>"; };
+		EFDC5FE00798DA9109120075 /* nametab.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nametab.h; sourceTree = "<group>"; };
+		F85361EFC09EFB2643AABA26 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../../config/perl.gypi; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		273E424D97CB67CD6549E6B5 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				BE4F89162832B82B08D9C713 /* ascii.h */,
+				0E38BC347362411EA10F8CD0 /* asiitab.h */,
+				8E23EAC8745EEE413156EA65 /* expat.h */,
+				941BF7E38E74C134290955BB /* expat_external.h */,
+				0672FF4459AC2DCBD00C80DA /* iasciitab.h */,
+				292B37079E65962EBB4DC3A9 /* internal.h */,
+				EEC128606EF9754F524D7AD4 /* latin1tab.h */,
+				EFDC5FE00798DA9109120075 /* nametab.h */,
+				47D1E0BDE9D0EECF0CB1FF6D /* utf8tab.h */,
+				687871E37EA3E96130D7C132 /* xmlparse.c */,
+				67082B9074946B48B881084D /* xmlrole.c */,
+				3D8006320A1DE147DE819B09 /* xmlrole.h */,
+				2A569605D9C03EBD5896689D /* xmltok.c */,
+				3C2100D9C79176F9C3792576 /* xmltok.h */,
+				DD5E019D87427455601B8FA3 /* xmltok_impl.c */,
+				683EBC5ECD32CD881E88FE1E /* xmltok_impl.h */,
+				0F4E0743E994A66D9EC8DF9F /* xmltok_ns.c */,
+			);
+			path = lib;
+			sourceTree = "<group>";
+		};
+		2F7EF9D4A34FA2281B5D2F6D /* ../.. */ = {
+			isa = PBXGroup;
+			children = (
+				93741E6711C9E507696BEC9C /* version */,
+			);
+			path = ../..;
+			sourceTree = "<group>";
+		};
+		A5964F5A351A925B67AA0114 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				2F7EF9D4A34FA2281B5D2F6D /* ../.. */,
+				273E424D97CB67CD6549E6B5 /* lib */,
+				D2309A017085B49A6F09F5C1 /* expat_config.h */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		D89806D136F3E70A59F507E2 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				008CC82BAAB77C832F1F03B8 /* android-settings.gypi */,
+				B9BDD4F7312EB51CA1516FEB /* android.gypi */,
+				B0DEAE945F1ACB298C50FA8D /* arch.gypi */,
+				9258D9E633DA25F5C3C0A770 /* common.gypi */,
+				4CBFAC7C862FC892A8E1A679 /* configurations.gypi */,
+				A6FECE57B804A2D6E5816E65 /* crosscompile.gypi */,
+				1428B209132E98983BCFBB5E /* emscripten-settings.gypi */,
+				AE3462A1B1104C93EA12DDC3 /* emscripten.gypi */,
+				ABF3CB4B931CAEE2B5B1DE13 /* exclusions.gypi */,
+				77035F9D4F157CBF950FA084 /* ios.gypi */,
+				20EA8E50D8D1D9E160655E4A /* libexpat.gyp */,
+				A9E5DCE217BAA31B281A24FA /* linux-settings.gypi */,
+				ED2665BA6AAFF253F96577C8 /* linux.gypi */,
+				C3FA8C69ABE6A3A5833C76EC /* mac.gypi */,
+				F85361EFC09EFB2643AABA26 /* perl.gypi */,
+				3B449768E0055E13C7A9EE49 /* target_os.gypi */,
+				85061AEB21D4D6F74E8B0DD8 /* thirdparty.gypi */,
+				06BE2579688416F59EE640AF /* version.gypi */,
+				2B906069F8A2E3813AB5492E /* win32.gypi */,
+				B5E93A014090F8B75EEA0708 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		F0DFE92FED8C46E6BF9A65D3 = {
+			isa = PBXGroup;
+			children = (
+				A5964F5A351A925B67AA0114 /* Source */,
+				D89806D136F3E70A59F507E2 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		57C0644D72C590E42F395C45 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = CCD2692FF615D1F64EC8968F /* Build configuration list for PBXProject "libexpat" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = F0DFE92FED8C46E6BF9A65D3;
+			projectDirPath = ../../../../thirdparty/libexpat;
+			projectRoot = "";
+			targets = (
+				FF3C14CE7AE3BD905EF2985F /* All */,
+				13F64473FD3124BFE33846BC /* libexpat */,
+				39C17AC574366B9530F5C029 /* libexpat (host) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXTargetDependency section */
+		CE1431CE9E95F0B7D5A38C46 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 39C17AC574366B9530F5C029 /* libexpat (host) */;
+			targetProxy = 45C81116886B220B4B3B91E5 /* PBXContainerItemProxy */;
+		};
+		D574CEF59EFF284C751C3BDC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 13F64473FD3124BFE33846BC /* libexpat */;
+			targetProxy = D7F703A8EE8BD3B36F4857AE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1A6CE8246348D99D2E2EF141 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					HAVE_EXPAT_CONFIG_H,
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					.,
+					lib,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = libexpat;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+		2A0D6E823F37A1062CD818A9 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 93741E6711C9E507696BEC9C /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		2B0ACB01B315E619F39601A7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					HAVE_EXPAT_CONFIG_H,
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					.,
+					lib,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "libexpat (host)";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		59E27CD2E0A2FB62F7C99A5C /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					HAVE_EXPAT_CONFIG_H,
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					.,
+					lib,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "libexpat (host)";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+		6B8BCD0B8D2B3145397354DA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					HAVE_EXPAT_CONFIG_H,
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					.,
+					lib,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = libexpat;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		84DD11703C2ED1C468979532 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					HAVE_EXPAT_CONFIG_H,
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					.,
+					lib,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "libexpat (host)";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		870FC867848B1CF097B2CD15 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 93741E6711C9E507696BEC9C /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		9A5234688BDE967481F8BFC3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		9D43D762B1BBA2555F3A4D52 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		B3E0644507162E775AC59DF9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					HAVE_EXPAT_CONFIG_H,
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					.,
+					lib,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = libexpat;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		C6B2B8DA69270AFB47C2D6CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 93741E6711C9E507696BEC9C /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		FCD70F7364F39D46722A43CB /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Fast;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0F679320B9F2E6E203B352C8 /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9A5234688BDE967481F8BFC3 /* Debug */,
+				FCD70F7364F39D46722A43CB /* Fast */,
+				9D43D762B1BBA2555F3A4D52 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		6400B6724DF06921D10B506B /* Build configuration list for PBXAggregateTarget "libexpat (host)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				84DD11703C2ED1C468979532 /* Debug */,
+				59E27CD2E0A2FB62F7C99A5C /* Fast */,
+				2B0ACB01B315E619F39601A7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		CCD2692FF615D1F64EC8968F /* Build configuration list for PBXProject "libexpat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C6B2B8DA69270AFB47C2D6CD /* Debug */,
+				2A0D6E823F37A1062CD818A9 /* Fast */,
+				870FC867848B1CF097B2CD15 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		E551731C0EB3EC41FE17FF8C /* Build configuration list for PBXAggregateTarget "libexpat" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B3E0644507162E775AC59DF9 /* Debug */,
+				1A6CE8246348D99D2E2EF141 /* Fast */,
+				6B8BCD0B8D2B3145397354DA /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 57C0644D72C590E42F395C45 /* Project object */;
+}

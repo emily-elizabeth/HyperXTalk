@@ -1,0 +1,26 @@
+Name: colon
+
+Type: constant
+
+Syntax: colon
+
+Summary:
+Equivalent to the : <character> (ASCII 58).
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Example:
+replace slash with colon in tPath
+
+Description:
+Use the <colon> <constant (glossary)> as an easier-to-read replacement for ":"
+
+References: constant (glossary), character (keyword),
+itemDelimiter (property)
+
+Tags: text processing
+

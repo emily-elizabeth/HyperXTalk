@@ -1,0 +1,86 @@
+Library: com.livecode.library.diff
+
+Type: library
+
+Title: Unified Diff Library
+
+Author: LiveCode
+
+Version: 1.0.0
+
+Description: Text comparison library, handling differences in unified diff format
+
+
+Name: DiffCompare
+
+Type: function
+
+Syntax: DiffCompare(<pFrom>,<pTo>,<pContext>)
+
+Summary: Produce a diff representing the changes between two text strings
+
+Description: Compare two strings, producing a string representing the changes between them in unified-diff format.
+
+Example: 
+
+Parameters: 
+
+pFrom: The original source string. The produced diff will describe how to transform this string.
+
+pTo: The updated source string. This will be compared to pFrom to produce the output diff.
+
+pContext: The number of unchanged lines to include before / after each change in the diff.
+
+Returns: A string representing the changes between pFrom and pTo in unified diff format.
+
+
+
+
+Name: DiffPatch
+
+Type: function
+
+Syntax: DiffPatch(<pSource>,<pDiff>)
+
+Summary: Patch a string with a previously computed diff.
+
+Description: Apply the diff to the source string, returning an updated string with the diff changes applied.
+
+Example: 
+
+Parameters: 
+
+pSource: The original string
+
+pDiff: The diff representing changes to apply to pSource
+
+Returns: An updated version of pSource with the changes from pDiff applied.
+
+
+
+
+Name: DiffCompareFiles
+
+Type: function
+
+Syntax: DiffCompareFiles(<pFrom>,<pTo>,<pContext>)
+
+Summary: Produce a diff representing the changes between two text files
+
+Description: Compare two files, producing a string representing the changes between them in unified-diff format.
+
+Example: 
+
+Parameters: 
+
+pFrom: The original source file. The produced diff will describe how to transform the contents of this file.
+
+pTo: The updated source file. This will be compared to pFrom to produce the output diff.
+
+pContext: The number of unchanged lines to include before / after each change in the diff.
+
+Returns: A string representing the changes between pFrom and pTo in unified diff format.
+
+
+
+

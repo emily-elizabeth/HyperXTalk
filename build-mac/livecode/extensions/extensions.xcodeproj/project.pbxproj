@@ -1,0 +1,2393 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		6B30A47D43D6DE589C7A7D9C /* cross-platform-extension-dependencies */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 8976D8E40B728DA2B71E5BF3 /* Build configuration list for PBXAggregateTarget "cross-platform-extension-dependencies" */;
+			buildPhases = (
+			);
+			dependencies = (
+				3CA1FB0BCFCAD279B6710549 /* PBXTargetDependency */,
+				5EDF156670F8ACFB7AF2F02F /* PBXTargetDependency */,
+			);
+			name = "cross-platform-extension-dependencies";
+			productName = "cross-platform-extension-dependencies";
+		};
+		801C634E2786B854D171C9B2 /* lcb-extensions */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 886E12A93489A9FCC01AE508 /* Build configuration list for PBXAggregateTarget "lcb-extensions" */;
+			buildPhases = (
+				51BDFE09B444BD652589BB5C /* Action "build_extensions" */,
+			);
+			dependencies = (
+				4561E93CD3FF4A8B93EC7347 /* PBXTargetDependency */,
+				AE15D3172EDB789A838734F6 /* PBXTargetDependency */,
+				8174CA9443C3985BC814ACA1 /* PBXTargetDependency */,
+				D13D56880796FAD651E41350 /* PBXTargetDependency */,
+				39334C1A4CB16BC4862586C2 /* PBXTargetDependency */,
+			);
+			name = "lcb-extensions";
+			productName = "lcb-extensions";
+		};
+		8C4FB33E150DD8D54720A170 /* extensions */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = CD3B181FA87696BDC96412AF /* Build configuration list for PBXAggregateTarget "extensions" */;
+			buildPhases = (
+			);
+			dependencies = (
+				0009768BAA634363F3590FAA /* PBXTargetDependency */,
+				974D0D3468BBD3AA4C161A4B /* PBXTargetDependency */,
+				E754B7A299CE5776842EDD84 /* PBXTargetDependency */,
+			);
+			name = extensions;
+			productName = extensions;
+		};
+		D3BB2169B83BB62299E7A244 /* lcs-extensions */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 138ACCBD0C2D422B6C48DC01 /* Build configuration list for PBXAggregateTarget "lcs-extensions" */;
+			buildPhases = (
+				D23FCBCA2BD88F099B34123D /* Rule "build_script_extension" */,
+			);
+			dependencies = (
+				D8A1FF61442B330F7AFBE154 /* PBXTargetDependency */,
+				028520A6EA7C6B0A3F06B2F5 /* PBXTargetDependency */,
+				AD81FB49C7CC34A039063822 /* PBXTargetDependency */,
+			);
+			name = "lcs-extensions";
+			productName = "lcs-extensions";
+		};
+		EE3CB1FCE1D95D76EB90DAAE /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 594A93D1342921DBD67FE63E /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				C657EBCC4E4C95F036B1F4E6 /* PBXTargetDependency */,
+				13EB58B5295B066DFAC3A8E3 /* PBXTargetDependency */,
+				4B0F8D68BED3D10DEC697271 /* PBXTargetDependency */,
+				BF1C6346FEFC91C2DD88A315 /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXContainerItemProxy section */
+		0D51B5572E269B5C9695CF94 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5639D219F8700C49E7040060 /* revzip.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7236F38A185AADDD53C3DE13;
+			remoteInfo = "external-revzip";
+		};
+		1C3AAF5E3C152EFA7879DAF4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5F2AF10051ED786F313D001D /* engine.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 17B4A71571D0DFF589ECC199;
+			remoteInfo = standalone;
+		};
+		1C6B5CFD2AE5B796C66B1CA2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5639D219F8700C49E7040060 /* revzip.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 20F8EE089A3BF5437195864B;
+			remoteInfo = "external-revzip-server";
+		};
+		25592215698A6D3B08FFA7CE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1654C1EED1C9603C1F29A39 /* revxml.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 46F70A78DA18633439FCA665;
+			remoteInfo = "external-revxml-server";
+		};
+		280A11F492ECA20E5BDB4B44 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 665D0B93AD1E5609725B9ADA /* tz.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 7E0D9D1B4B1EE013D7F08937;
+			remoteInfo = tz;
+		};
+		2FE746F8026DA17E41FCFEED /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D874E23AA3C1A8E51E893F81 /* lc-compile.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E7EE606C361A5A65304CBA3B;
+			remoteInfo = "lc-compile";
+		};
+		41BA75DB9B43E7E95E186F4B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1654C1EED1C9603C1F29A39 /* revxml.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 67F71A554D74475AF95E74A7;
+			remoteInfo = "external-revxml";
+		};
+		43B94B30D0F4AF7C55886214 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD69D82C1119E05703E98E74 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 801C634E2786B854D171C9B2;
+			remoteInfo = "lcb-extensions";
+		};
+		4F3A8E08208C03EFC9371FEC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1654C1EED1C9603C1F29A39 /* revxml.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 20010E9C8F0106A6D66F45DD;
+			remoteInfo = "external-revxml-server";
+		};
+		4FEA1584A610D105B6AFB34B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD69D82C1119E05703E98E74 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 801C634E2786B854D171C9B2;
+			remoteInfo = "lcb-extensions";
+		};
+		61B7048E5A92EACB1F5AACDB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5F2AF10051ED786F313D001D /* engine.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 62DB8B91FBA6B16BF9E37E83;
+			remoteInfo = development;
+		};
+		77E18A671FA579DC3127625F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD69D82C1119E05703E98E74 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6B30A47D43D6DE589C7A7D9C;
+			remoteInfo = "cross-platform-extension-dependencies";
+		};
+		83A76FE8F6AE54074F8EC5BE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5F2AF10051ED786F313D001D /* engine.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = ADFE0A0C9A417EB0BC7CB852;
+			remoteInfo = server;
+		};
+		8B986C9C4CEB9D0D60DE3E72 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5639D219F8700C49E7040060 /* revzip.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 72B669D6C28092E099C54A06;
+			remoteInfo = "external-revzip-server";
+		};
+		8E6F6F4E2F3424C89EA2CC64 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 665D0B93AD1E5609725B9ADA /* tz.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BC978889A7F415F2F9E79577;
+			remoteInfo = "zic-build";
+		};
+		8F33043B1DADDEC929666C10 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD69D82C1119E05703E98E74 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D3BB2169B83BB62299E7A244;
+			remoteInfo = "lcs-extensions";
+		};
+		917772B92086DB1EDB0D14CB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 665D0B93AD1E5609725B9ADA /* tz.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6AEB1D4197F51FF9CC8F7137;
+			remoteInfo = "libtz-build";
+		};
+		954D7FCE0920C0C30F5157D8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1654C1EED1C9603C1F29A39 /* revxml.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 20010E9C8F0106A6D66F45DD;
+			remoteInfo = "external-revxml-server";
+		};
+		9DA882EC517AD472768C89FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5F2AF10051ED786F313D001D /* engine.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 5ADADA5638ECDF332D860ECE;
+			remoteInfo = installer;
+		};
+		9F761C75AB0ADACC518684F3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5639D219F8700C49E7040060 /* revzip.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 72B669D6C28092E099C54A06;
+			remoteInfo = "external-revzip-server";
+		};
+		A39870916862DAE50A5B5010 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5F2AF10051ED786F313D001D /* engine.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = ADFE0A0C9A417EB0BC7CB852;
+			remoteInfo = server;
+		};
+		B4349B562F6D081A737A5C74 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD69D82C1119E05703E98E74 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8C4FB33E150DD8D54720A170;
+			remoteInfo = extensions;
+		};
+		C1BD759375E2E6C8C350C354 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1B490F120CB32CD427EBC8F8 /* inih.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DD4BC30A453C45DF86C84E1A;
+			remoteInfo = "inih-build";
+		};
+		C3D2802033DDA276BBA442C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1B490F120CB32CD427EBC8F8 /* inih.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 2CD88C1E62A4183B7E3CE791;
+			remoteInfo = inih;
+		};
+		D31A93772F04F7E229D4EDF9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3858BA09E5AFD721B160BEF9 /* lcb-modules.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 701C59E0E34330CA566CF755;
+			remoteInfo = engine_lcb_modules;
+		};
+		D453815F921CCE592B0D818C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD69D82C1119E05703E98E74 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6B30A47D43D6DE589C7A7D9C;
+			remoteInfo = "cross-platform-extension-dependencies";
+		};
+		ED4DF20A6DB2F9271F47E7CE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD69D82C1119E05703E98E74 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D3BB2169B83BB62299E7A244;
+			remoteInfo = "lcs-extensions";
+		};
+		EFA2B2B2415D6F53C3221013 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5F2AF10051ED786F313D001D /* engine.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 767DFB8435A651483D953EDE;
+			remoteInfo = "server (host)";
+		};
+		FE812397994287E58FE2967B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5F2AF10051ED786F313D001D /* engine.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7832BFE0045DADF1B7CDB3ED;
+			remoteInfo = server;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		04FA25B2422B6A6D22927BB9 /* spinner.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = spinner.lcb; sourceTree = "<group>"; };
+		055458572DDDDCC68F999E70 /* macbutton.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = macbutton.lcb; sourceTree = "<group>"; };
+		080E694909697B21303227BC /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
+		09BBEEE465D5021FFCF76AE1 /* browser.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = browser.lcb; sourceTree = "<group>"; };
+		0B5168780FF8BD27A6072E72 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
+		0DFF35EE4F3605887977959B /* mactextfield.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = mactextfield.lcb; sourceTree = "<group>"; };
+		0E37E41408C430EFBD419CCC /* header.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = header.lcb; sourceTree = "<group>"; };
+		10979F4F3FD0C77032B4EE1E /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../config/thirdparty.gypi; sourceTree = "<group>"; };
+		1B490F120CB32CD427EBC8F8 /* inih.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = inih.xcodeproj; path = "../build-mac/livecode/extensions/libraries/ini/inih/inih.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		1F23813895200306E7711728 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
+		21917864C1F1F484ACA70D28 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
+		22A99291FE52BCE3C1B3B1E3 /* diff.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = diff.livecodescript; sourceTree = "<group>"; };
+		22FFCF6A0334944C093373FC /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		27EE243DE2BD5FE1ED7056D1 /* tile.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = tile.lcb; sourceTree = "<group>"; };
+		283803C3E4C96F1E91B8B64C /* iconpicker.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = iconpicker.lcb; sourceTree = "<group>"; };
+		2F82112B6E8CD03913908ABF /* segmented.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = segmented.lcb; sourceTree = "<group>"; };
+		326DF2741987F533E7DA17A5 /* dropbox.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = dropbox.livecodescript; sourceTree = "<group>"; };
+		36D4F652272A0476F3A6FAEF /* drawing.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = drawing.livecodescript; sourceTree = "<group>"; };
+		372CF7599537B133E133F9B9 /* extensions.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = extensions.gyp; sourceTree = "<group>"; };
+		3858BA09E5AFD721B160BEF9 /* lcb-modules.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "lcb-modules.xcodeproj"; path = "../build-mac/livecode/engine/lcb-modules.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		3AD4A0A2D59AE7259D4C0FD3 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../config/mac.gypi; sourceTree = "<group>"; };
+		3D16AE429F283B750F18EC2D /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
+		3DA66CCDC06472BA990AFF69 /* qr.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = qr.livecodescript; sourceTree = "<group>"; };
+		3E207282EFCCD076E2E901FE /* navbar.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = navbar.lcb; sourceTree = "<group>"; };
+		4011E90B37C16E678F604021 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../config/crosscompile.gypi; sourceTree = "<group>"; };
+		44B569C2506789883EF047AF /* getopt.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = getopt.livecodescript; sourceTree = "<group>"; };
+		455247FC6F3AC97908036005 /* drawing.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = drawing.livecodescript; sourceTree = "<group>"; };
+		46DD4DF41426A49C4CABC0E7 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
+		555B8EE189BAA80C3B123D56 /* qr.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = qr.livecodescript; sourceTree = "<group>"; };
+		5639D219F8700C49E7040060 /* revzip.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = revzip.xcodeproj; path = "../build-mac/livecode/revzip/revzip.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		5A05AE250F52E6BF026436B3 /* androidbgaudio.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = androidbgaudio.lcb; sourceTree = "<group>"; };
+		5A999D571B85865F41898D26 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		5D17D4497EB432D571E0F8E6 /* android-utils.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "android-utils.lcb"; sourceTree = "<group>"; };
+		5F2AF10051ED786F313D001D /* engine.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = engine.xcodeproj; path = "../build-mac/livecode/engine/engine.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		5FA63CA1E7F3C75C4E921C9E /* androidfield.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = androidfield.lcb; sourceTree = "<group>"; };
+		6390F4DB7E5A4051B07069E1 /* notarealfile.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = notarealfile.txt; sourceTree = "<group>"; };
+		6630AAAA7A41190BC4C1B84C /* oauth2.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = oauth2.livecodescript; sourceTree = "<group>"; };
+		665D0B93AD1E5609725B9ADA /* tz.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = tz.xcodeproj; path = "../build-mac/livecode/extensions/libraries/timezone/tz/tz.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		67D82F9574CC3363FA04FF82 /* androidbutton.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = androidbutton.lcb; sourceTree = "<group>"; };
+		68CE496FDB7D061CFBEEC390 /* html5button.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = html5button.lcb; sourceTree = "<group>"; };
+		68E5C703E02E896682648F2A /* clock.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = clock.lcb; sourceTree = "<group>"; };
+		694A126C7EFFE2EDF57A4C2A /* androidaudiorecorder.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = androidaudiorecorder.lcb; sourceTree = "<group>"; };
+		6A00D3F08D6DA867A02A6561 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
+		6BBA71530A6FB2322423DA56 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../config/win32.gypi; sourceTree = "<group>"; };
+		6BC75C0AE7CB027A66739C09 /* treeview.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = treeview.lcb; sourceTree = "<group>"; };
+		6E07C42613B40C44DAB99E40 /* gradientrampeditor.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = gradientrampeditor.lcb; sourceTree = "<group>"; };
+		711F5E47E4304D6C6516ED98 /* graph.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = graph.lcb; sourceTree = "<group>"; };
+		7146F95DAFE7DDEED0526911 /* getopt.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = getopt.livecodescript; sourceTree = "<group>"; };
+		75BB35F2E7ACCD89B8A5E859 /* paletteactions.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = paletteactions.lcb; sourceTree = "<group>"; };
+		765821DBB4089580B0A3762D /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		765E8F681BC4847B7439B525 /* mime.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = mime.livecodescript; sourceTree = "<group>"; };
+		7773F11FBB3F66418D32360F /* dropbox.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = dropbox.livecodescript; sourceTree = "<group>"; };
+		7F940EB15373CD01CB51193F /* toast.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = toast.lcb; sourceTree = "<group>"; };
+		7FC0AFFE4D48942412596A52 /* widget-utils.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "widget-utils.lcb"; sourceTree = "<group>"; };
+		8078AFEC7148FCF021ECBF8E /* extension-utils.lc */ = {isa = PBXFileReference; lastKnownFileType = text; path = "extension-utils.lc"; sourceTree = "<group>"; };
+		89545630F983E25F7AB3DFDF /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
+		8C33398F99668CE3C1500204 /* objectrepository.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = objectrepository.lcb; sourceTree = "<group>"; };
+		8D5EE74F252A66951B4B0EA0 /* switchbutton.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = switchbutton.lcb; sourceTree = "<group>"; };
+		8E82C92B4D99AB33D39D36E4 /* oauth2.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = oauth2.livecodescript; sourceTree = "<group>"; };
+		9BBF5F91BBE92417E91E0E3B /* scriptitems.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = scriptitems.lcb; sourceTree = "<group>"; };
+		A1654C1EED1C9603C1F29A39 /* revxml.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = revxml.xcodeproj; path = "../build-mac/livecode/revxml/revxml.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		A4ACC73C6515F992560A5DF6 /* messageauthentication.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = messageauthentication.livecodescript; sourceTree = "<group>"; };
+		A7ED9D9FA3A4ECB37BFD973A /* json.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = json.lcb; sourceTree = "<group>"; };
+		AACFA46176C9B05F38CD26C5 /* diff.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = diff.livecodescript; sourceTree = "<group>"; };
+		AB3EDF9EABE9AFE4EA4B5B84 /* canvas.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = canvas.lcb; sourceTree = "<group>"; };
+		AC1A3DD93DB06E605B0186F8 /* iconsvg.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = iconsvg.lcb; sourceTree = "<group>"; };
+		AE03F16E1C381E853E5909B6 /* extension-utils.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = "extension-utils.livecodescript"; sourceTree = "<group>"; };
+		AF74F4305B443D6612A680C9 /* svgpath.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = svgpath.lcb; sourceTree = "<group>"; };
+		B28F90BE45D0E1FE780D759F /* httpd.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = httpd.livecodescript; sourceTree = "<group>"; };
+		C2E83828E4A1938AE59C81E5 /* extension-utils.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = "extension-utils.livecodescript"; sourceTree = "<group>"; };
+		CA25D9A296BC16CE4571F8E7 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
+		D0FD89D96D8C1BBD1D80A969 /* mime.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = mime.livecodescript; sourceTree = "<group>"; };
+		D3E35F27FB4C94214782C1E4 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../config/configurations.gypi; sourceTree = "<group>"; };
+		D4E223F8347D820C4C9AB902 /* httpd.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = httpd.livecodescript; sourceTree = "<group>"; };
+		D7ACDA2EC9C141BF4D626EA5 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../config/version.gypi; sourceTree = "<group>"; };
+		D874E23AA3C1A8E51E893F81 /* lc-compile.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "lc-compile.xcodeproj"; path = "../build-mac/livecode/toolchain/lc-compile/lc-compile.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		DE508F1F93C39DEB0A854BDC /* ini.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = ini.lcb; sourceTree = "<group>"; };
+		EBC76BE81EA572A18D0C0830 /* macstatusmenu.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = macstatusmenu.lcb; sourceTree = "<group>"; };
+		F0AB51543817E71EA6A9A182 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
+		F219DAD7D08F70804B48B951 /* iosbutton.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = iosbutton.lcb; sourceTree = "<group>"; };
+		F6ECDDAAAF475C70A02EAFCE /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
+		FCEF34BEEF0960AAE10B75F4 /* timezone.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = timezone.lcb; sourceTree = "<group>"; };
+		FD1902DD7900153856FBAFBD /* messageauthentication.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = messageauthentication.livecodescript; sourceTree = "<group>"; };
+		FE24F75B5AC47222FC3F7C1D /* colorswatch.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = colorswatch.lcb; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		083BA2D5A447156EE6A896C7 /* browser */ = {
+			isa = PBXGroup;
+			children = (
+				09BBEEE465D5021FFCF76AE1 /* browser.lcb */,
+			);
+			path = browser;
+			sourceTree = "<group>";
+		};
+		0BCC969BD7CB2CF8C53558B6 /* script-libraries */ = {
+			isa = PBXGroup;
+			children = (
+				4B1019EAF4E5ECCCBED8506F /* diff */,
+				2E6C906E550AB98D11FE96B1 /* drawing */,
+				62B11DB0B211D1A8FED60C8A /* dropbox */,
+				B71450A919CDE184AC8B5A02 /* extension-utils */,
+				FE7EBD3F9E3D954E2E1E493B /* getopt */,
+				B78591878BB3AAA4CF0B4D54 /* httpd */,
+				D1F996D02F305B2D98FE9AA1 /* messageauthentication */,
+				D8A284D9A8CE6AC331A7C7AA /* mime */,
+				B1748DB52650EAF304C2D423 /* oauth2 */,
+				43F123D3AD4C1A812F740707 /* qr */,
+			);
+			path = "script-libraries";
+			sourceTree = "<group>";
+		};
+		145EA4B78DABF400869B9600 /* scriptitems */ = {
+			isa = PBXGroup;
+			children = (
+				9BBF5F91BBE92417E91E0E3B /* scriptitems.lcb */,
+			);
+			path = scriptitems;
+			sourceTree = "<group>";
+		};
+		17AB9B1312E4750AE50CA29C /* com.livecode.library.oauth2 */ = {
+			isa = PBXGroup;
+			children = (
+				6630AAAA7A41190BC4C1B84C /* oauth2.livecodescript */,
+			);
+			path = com.livecode.library.oauth2;
+			sourceTree = "<group>";
+		};
+		1D2C256ED3AF73DF1D76FBC6 /* gradientrampeditor */ = {
+			isa = PBXGroup;
+			children = (
+				6E07C42613B40C44DAB99E40 /* gradientrampeditor.lcb */,
+			);
+			path = gradientrampeditor;
+			sourceTree = "<group>";
+		};
+		1DC552E4698CA42F0730C28C /* modules */ = {
+			isa = PBXGroup;
+			children = (
+				FA1E132CCC741594ADE65026 /* android-utils */,
+				145EA4B78DABF400869B9600 /* scriptitems */,
+				3F56DC6339B4FBC04883B9B9 /* widget-utils */,
+			);
+			path = modules;
+			sourceTree = "<group>";
+		};
+		2E6C906E550AB98D11FE96B1 /* drawing */ = {
+			isa = PBXGroup;
+			children = (
+				455247FC6F3AC97908036005 /* drawing.livecodescript */,
+			);
+			path = drawing;
+			sourceTree = "<group>";
+		};
+		2E905DCC6106EB57BEF2A4A7 /* com.livecode.library.diff */ = {
+			isa = PBXGroup;
+			children = (
+				22A99291FE52BCE3C1B3B1E3 /* diff.livecodescript */,
+			);
+			path = com.livecode.library.diff;
+			sourceTree = "<group>";
+		};
+		2FB4128D447A9EC9D6CDF773 /* widgets */ = {
+			isa = PBXGroup;
+			children = (
+				D3889045BA3450373BCB1342 /* androidbutton */,
+				BF94B64CE8C36F2B03172614 /* androidfield */,
+				083BA2D5A447156EE6A896C7 /* browser */,
+				B851E5E16DE2DEF460F04ED2 /* clock */,
+				C8F1A1EE6204E2404C93E78B /* colorswatch */,
+				1D2C256ED3AF73DF1D76FBC6 /* gradientrampeditor */,
+				C7599FA7D3D29D72FD050C15 /* graph */,
+				63543A57472E5F130DEC836B /* header */,
+				F3E54FFB17E90EAAE41143D5 /* html5button */,
+				BF3E25D4ACDC6CA616BD7ADE /* iconpicker */,
+				F3C692ED8067D603960C7DB9 /* iosbutton */,
+				F471FAFA7F9C9F2D19AA4C00 /* macbutton */,
+				FE222E37403694B56CD26021 /* mactextfield */,
+				B9E029C458414C67972B119A /* navbar */,
+				FD12978AD42605F571EF5B60 /* paletteactions */,
+				E537B6F34B041661FA6E7647 /* segmented */,
+				73238705B4A200752A202761 /* spinner */,
+				6E035215B082F2D4DE8008D3 /* svgpath */,
+				7683D4FB20852B9E2767DB2A /* switchbutton */,
+				A7D36F019FCE7C3E602A9943 /* tile */,
+				6D53959924D927002224D5C0 /* treeview */,
+			);
+			path = widgets;
+			sourceTree = "<group>";
+		};
+		3A6144ACA15A44D24952664C /* macstatusmenu */ = {
+			isa = PBXGroup;
+			children = (
+				EBC76BE81EA572A18D0C0830 /* macstatusmenu.lcb */,
+			);
+			path = macstatusmenu;
+			sourceTree = "<group>";
+		};
+		3F56DC6339B4FBC04883B9B9 /* widget-utils */ = {
+			isa = PBXGroup;
+			children = (
+				7FC0AFFE4D48942412596A52 /* widget-utils.lcb */,
+			);
+			path = "widget-utils";
+			sourceTree = "<group>";
+		};
+		43F123D3AD4C1A812F740707 /* qr */ = {
+			isa = PBXGroup;
+			children = (
+				3DA66CCDC06472BA990AFF69 /* qr.livecodescript */,
+			);
+			path = qr;
+			sourceTree = "<group>";
+		};
+		47D49C2DB72D20CF18C46C7A = {
+			isa = PBXGroup;
+			children = (
+				8C5F7931EAA70EB93AE9740C /* Source */,
+				A1EF15F52C81855B78B3E1DD /* Projects */,
+				DC878380667BED3ABDB11736 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		4B1019EAF4E5ECCCBED8506F /* diff */ = {
+			isa = PBXGroup;
+			children = (
+				AACFA46176C9B05F38CD26C5 /* diff.livecodescript */,
+			);
+			path = diff;
+			sourceTree = "<group>";
+		};
+		53A835F3A0C8C300BAD662B8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		62B11DB0B211D1A8FED60C8A /* dropbox */ = {
+			isa = PBXGroup;
+			children = (
+				326DF2741987F533E7DA17A5 /* dropbox.livecodescript */,
+			);
+			path = dropbox;
+			sourceTree = "<group>";
+		};
+		63543A57472E5F130DEC836B /* header */ = {
+			isa = PBXGroup;
+			children = (
+				0E37E41408C430EFBD419CCC /* header.lcb */,
+			);
+			path = header;
+			sourceTree = "<group>";
+		};
+		6A638E2266F7C42004D040E7 /* com.livecode.library.messageauthentication */ = {
+			isa = PBXGroup;
+			children = (
+				FD1902DD7900153856FBAFBD /* messageauthentication.livecodescript */,
+			);
+			path = com.livecode.library.messageauthentication;
+			sourceTree = "<group>";
+		};
+		6AE5A8033C2084AAABCAEA42 /* com.livecode.library.httpd */ = {
+			isa = PBXGroup;
+			children = (
+				B28F90BE45D0E1FE780D759F /* httpd.livecodescript */,
+			);
+			path = com.livecode.library.httpd;
+			sourceTree = "<group>";
+		};
+		6D4F91978D5F973AB18E2876 /* libraries */ = {
+			isa = PBXGroup;
+			children = (
+				CDCE1BBBD29AB31CDB485C56 /* androidaudiorecorder */,
+				FB47283D3A119DA738E9551C /* androidbgaudio */,
+				E821D02578CB81C23B1731A9 /* canvas */,
+				7045E98444D8ED188924CA43 /* iconsvg */,
+				BCB58FCE91D48A1A19F31D8E /* ini */,
+				82F4A7FC27905018637EDCFD /* json */,
+				3A6144ACA15A44D24952664C /* macstatusmenu */,
+				96AC3424D5160F898744D5A8 /* objectrepository */,
+				EF048964F9D832D12E51B4E7 /* timezone */,
+				9723A1D233AFF3BB94B5AA3C /* toast */,
+			);
+			path = libraries;
+			sourceTree = "<group>";
+		};
+		6D53959924D927002224D5C0 /* treeview */ = {
+			isa = PBXGroup;
+			children = (
+				6BC75C0AE7CB027A66739C09 /* treeview.lcb */,
+			);
+			path = treeview;
+			sourceTree = "<group>";
+		};
+		6E035215B082F2D4DE8008D3 /* svgpath */ = {
+			isa = PBXGroup;
+			children = (
+				AF74F4305B443D6612A680C9 /* svgpath.lcb */,
+			);
+			path = svgpath;
+			sourceTree = "<group>";
+		};
+		7045E98444D8ED188924CA43 /* iconsvg */ = {
+			isa = PBXGroup;
+			children = (
+				AC1A3DD93DB06E605B0186F8 /* iconsvg.lcb */,
+			);
+			path = iconsvg;
+			sourceTree = "<group>";
+		};
+		7266BBBA680580B8D6BE7C2F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				94561ABED0B51F312C01D963 /* zic */,
+				2122BC3380F7DFD60E6CCBE5 /* tz.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		73238705B4A200752A202761 /* spinner */ = {
+			isa = PBXGroup;
+			children = (
+				04FA25B2422B6A6D22927BB9 /* spinner.lcb */,
+			);
+			path = spinner;
+			sourceTree = "<group>";
+		};
+		7683D4FB20852B9E2767DB2A /* switchbutton */ = {
+			isa = PBXGroup;
+			children = (
+				8D5EE74F252A66951B4B0EA0 /* switchbutton.lcb */,
+			);
+			path = switchbutton;
+			sourceTree = "<group>";
+		};
+		781B120A2BA31EDAD034615C /* com.livecode.library.qr */ = {
+			isa = PBXGroup;
+			children = (
+				555B8EE189BAA80C3B123D56 /* qr.livecodescript */,
+			);
+			path = com.livecode.library.qr;
+			sourceTree = "<group>";
+		};
+		7D19E026758C886C07B274B1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				141B0B12DA7481E5E154BE8A /* revzip.bundle */,
+				708FEB028C573EC64B93D172 /* server-revzip.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8026E6C5FDADEABB09DECDC0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				347E2431756DB064A1F7A8A0 /* revxml.bundle */,
+				90565A4930EBFD7408BAA6A6 /* server-revxml.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		82F4A7FC27905018637EDCFD /* json */ = {
+			isa = PBXGroup;
+			children = (
+				A7ED9D9FA3A4ECB37BFD973A /* json.lcb */,
+			);
+			path = json;
+			sourceTree = "<group>";
+		};
+		8417B4B265FD71C4442C8753 /* com.livecode.library.drawing */ = {
+			isa = PBXGroup;
+			children = (
+				36D4F652272A0476F3A6FAEF /* drawing.livecodescript */,
+			);
+			path = com.livecode.library.drawing;
+			sourceTree = "<group>";
+		};
+		8BA0CAA3917B4DA2073CFB14 /* com.livecode.library.extension-utils */ = {
+			isa = PBXGroup;
+			children = (
+				AE03F16E1C381E853E5909B6 /* extension-utils.livecodescript */,
+			);
+			path = "com.livecode.library.extension-utils";
+			sourceTree = "<group>";
+		};
+		8C5F7931EAA70EB93AE9740C /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				FAE473DD255136C9E5E1D437 /* .. */,
+				A9CA42319CA817D0BE14A385 /* BUILT_PRODUCTS_DIR */,
+				6D4F91978D5F973AB18E2876 /* libraries */,
+				1DC552E4698CA42F0730C28C /* modules */,
+				0BCC969BD7CB2CF8C53558B6 /* script-libraries */,
+				2FB4128D447A9EC9D6CDF773 /* widgets */,
+				6390F4DB7E5A4051B07069E1 /* notarealfile.txt */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		9142D55E905F46A84F9ABE09 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7B3DE852C6F32313DBAB0890 /* inih.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9348B2A3537ADAEF1D954B02 /* com.livecode.library.dropbox */ = {
+			isa = PBXGroup;
+			children = (
+				7773F11FBB3F66418D32360F /* dropbox.livecodescript */,
+			);
+			path = com.livecode.library.dropbox;
+			sourceTree = "<group>";
+		};
+		96AC3424D5160F898744D5A8 /* objectrepository */ = {
+			isa = PBXGroup;
+			children = (
+				8C33398F99668CE3C1500204 /* objectrepository.lcb */,
+			);
+			path = objectrepository;
+			sourceTree = "<group>";
+		};
+		9723A1D233AFF3BB94B5AA3C /* toast */ = {
+			isa = PBXGroup;
+			children = (
+				7F940EB15373CD01CB51193F /* toast.lcb */,
+			);
+			path = toast;
+			sourceTree = "<group>";
+		};
+		A1EF15F52C81855B78B3E1DD /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				5F2AF10051ED786F313D001D /* engine.xcodeproj */,
+				1B490F120CB32CD427EBC8F8 /* inih.xcodeproj */,
+				D874E23AA3C1A8E51E893F81 /* lc-compile.xcodeproj */,
+				3858BA09E5AFD721B160BEF9 /* lcb-modules.xcodeproj */,
+				A1654C1EED1C9603C1F29A39 /* revxml.xcodeproj */,
+				5639D219F8700C49E7040060 /* revzip.xcodeproj */,
+				665D0B93AD1E5609725B9ADA /* tz.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		A7D36F019FCE7C3E602A9943 /* tile */ = {
+			isa = PBXGroup;
+			children = (
+				27EE243DE2BD5FE1ED7056D1 /* tile.lcb */,
+			);
+			path = tile;
+			sourceTree = "<group>";
+		};
+		A9CA42319CA817D0BE14A385 /* BUILT_PRODUCTS_DIR */ = {
+			isa = PBXGroup;
+			children = (
+				2E905DCC6106EB57BEF2A4A7 /* com.livecode.library.diff */,
+				8417B4B265FD71C4442C8753 /* com.livecode.library.drawing */,
+				9348B2A3537ADAEF1D954B02 /* com.livecode.library.dropbox */,
+				8BA0CAA3917B4DA2073CFB14 /* com.livecode.library.extension-utils */,
+				C3C459746097412376BCB0EC /* com.livecode.library.getopt */,
+				6AE5A8033C2084AAABCAEA42 /* com.livecode.library.httpd */,
+				6A638E2266F7C42004D040E7 /* com.livecode.library.messageauthentication */,
+				C9CA4CBD6A6F6C503E4D5982 /* com.livecode.library.mime */,
+				17AB9B1312E4750AE50CA29C /* com.livecode.library.oauth2 */,
+				781B120A2BA31EDAD034615C /* com.livecode.library.qr */,
+			);
+			name = BUILT_PRODUCTS_DIR;
+			path = packaged_extensions;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B1748DB52650EAF304C2D423 /* oauth2 */ = {
+			isa = PBXGroup;
+			children = (
+				8E82C92B4D99AB33D39D36E4 /* oauth2.livecodescript */,
+			);
+			path = oauth2;
+			sourceTree = "<group>";
+		};
+		B352F99CDBA62D44FFE2E5AC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B71450A919CDE184AC8B5A02 /* extension-utils */ = {
+			isa = PBXGroup;
+			children = (
+				F01286269A3840B681234F96 /* resources */,
+				C2E83828E4A1938AE59C81E5 /* extension-utils.livecodescript */,
+			);
+			path = "extension-utils";
+			sourceTree = "<group>";
+		};
+		B78591878BB3AAA4CF0B4D54 /* httpd */ = {
+			isa = PBXGroup;
+			children = (
+				D4E223F8347D820C4C9AB902 /* httpd.livecodescript */,
+			);
+			path = httpd;
+			sourceTree = "<group>";
+		};
+		B851E5E16DE2DEF460F04ED2 /* clock */ = {
+			isa = PBXGroup;
+			children = (
+				68E5C703E02E896682648F2A /* clock.lcb */,
+			);
+			path = clock;
+			sourceTree = "<group>";
+		};
+		B9E029C458414C67972B119A /* navbar */ = {
+			isa = PBXGroup;
+			children = (
+				3E207282EFCCD076E2E901FE /* navbar.lcb */,
+			);
+			path = navbar;
+			sourceTree = "<group>";
+		};
+		BCB58FCE91D48A1A19F31D8E /* ini */ = {
+			isa = PBXGroup;
+			children = (
+				DE508F1F93C39DEB0A854BDC /* ini.lcb */,
+			);
+			path = ini;
+			sourceTree = "<group>";
+		};
+		BF3E25D4ACDC6CA616BD7ADE /* iconpicker */ = {
+			isa = PBXGroup;
+			children = (
+				283803C3E4C96F1E91B8B64C /* iconpicker.lcb */,
+			);
+			path = iconpicker;
+			sourceTree = "<group>";
+		};
+		BF94B64CE8C36F2B03172614 /* androidfield */ = {
+			isa = PBXGroup;
+			children = (
+				5FA63CA1E7F3C75C4E921C9E /* androidfield.lcb */,
+			);
+			path = androidfield;
+			sourceTree = "<group>";
+		};
+		C3C459746097412376BCB0EC /* com.livecode.library.getopt */ = {
+			isa = PBXGroup;
+			children = (
+				44B569C2506789883EF047AF /* getopt.livecodescript */,
+			);
+			path = com.livecode.library.getopt;
+			sourceTree = "<group>";
+		};
+		C7599FA7D3D29D72FD050C15 /* graph */ = {
+			isa = PBXGroup;
+			children = (
+				711F5E47E4304D6C6516ED98 /* graph.lcb */,
+			);
+			path = graph;
+			sourceTree = "<group>";
+		};
+		C8F1A1EE6204E2404C93E78B /* colorswatch */ = {
+			isa = PBXGroup;
+			children = (
+				FE24F75B5AC47222FC3F7C1D /* colorswatch.lcb */,
+			);
+			path = colorswatch;
+			sourceTree = "<group>";
+		};
+		C9CA4CBD6A6F6C503E4D5982 /* com.livecode.library.mime */ = {
+			isa = PBXGroup;
+			children = (
+				D0FD89D96D8C1BBD1D80A969 /* mime.livecodescript */,
+			);
+			path = com.livecode.library.mime;
+			sourceTree = "<group>";
+		};
+		CDCE1BBBD29AB31CDB485C56 /* androidaudiorecorder */ = {
+			isa = PBXGroup;
+			children = (
+				694A126C7EFFE2EDF57A4C2A /* androidaudiorecorder.lcb */,
+			);
+			path = androidaudiorecorder;
+			sourceTree = "<group>";
+		};
+		D1F996D02F305B2D98FE9AA1 /* messageauthentication */ = {
+			isa = PBXGroup;
+			children = (
+				A4ACC73C6515F992560A5DF6 /* messageauthentication.livecodescript */,
+			);
+			path = messageauthentication;
+			sourceTree = "<group>";
+		};
+		D3012E4ADCA2C2DBF476C6DC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				34BA445F7749044493BCEE2E /* server-community */,
+				86A442137C3CFC0F19CD7589 /* server-community-host */,
+				9A2E91D7C49C4BB09CA651D5 /* Standalone-Community.app */,
+				AC1EBAA327542CF49DACAAE0 /* Installer.app */,
+				AC8F3107B1FAA53F576C4F6F /* LiveCode-Community.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D3889045BA3450373BCB1342 /* androidbutton */ = {
+			isa = PBXGroup;
+			children = (
+				67D82F9574CC3363FA04FF82 /* androidbutton.lcb */,
+			);
+			path = androidbutton;
+			sourceTree = "<group>";
+		};
+		D8A284D9A8CE6AC331A7C7AA /* mime */ = {
+			isa = PBXGroup;
+			children = (
+				765E8F681BC4847B7439B525 /* mime.livecodescript */,
+			);
+			path = mime;
+			sourceTree = "<group>";
+		};
+		DC878380667BED3ABDB11736 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				1F23813895200306E7711728 /* android-settings.gypi */,
+				6A00D3F08D6DA867A02A6561 /* android.gypi */,
+				3D16AE429F283B750F18EC2D /* arch.gypi */,
+				F0AB51543817E71EA6A9A182 /* common.gypi */,
+				D3E35F27FB4C94214782C1E4 /* configurations.gypi */,
+				4011E90B37C16E678F604021 /* crosscompile.gypi */,
+				5A999D571B85865F41898D26 /* emscripten-settings.gypi */,
+				080E694909697B21303227BC /* emscripten.gypi */,
+				F6ECDDAAAF475C70A02EAFCE /* exclusions.gypi */,
+				372CF7599537B133E133F9B9 /* extensions.gyp */,
+				0B5168780FF8BD27A6072E72 /* ios.gypi */,
+				765821DBB4089580B0A3762D /* linux-settings.gypi */,
+				21917864C1F1F484ACA70D28 /* linux.gypi */,
+				3AD4A0A2D59AE7259D4C0FD3 /* mac.gypi */,
+				46DD4DF41426A49C4CABC0E7 /* perl.gypi */,
+				89545630F983E25F7AB3DFDF /* target_os.gypi */,
+				10979F4F3FD0C77032B4EE1E /* thirdparty.gypi */,
+				D7ACDA2EC9C141BF4D626EA5 /* version.gypi */,
+				6BBA71530A6FB2322423DA56 /* win32.gypi */,
+				CA25D9A296BC16CE4571F8E7 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		E537B6F34B041661FA6E7647 /* segmented */ = {
+			isa = PBXGroup;
+			children = (
+				2F82112B6E8CD03913908ABF /* segmented.lcb */,
+			);
+			path = segmented;
+			sourceTree = "<group>";
+		};
+		E821D02578CB81C23B1731A9 /* canvas */ = {
+			isa = PBXGroup;
+			children = (
+				AB3EDF9EABE9AFE4EA4B5B84 /* canvas.lcb */,
+			);
+			path = canvas;
+			sourceTree = "<group>";
+		};
+		EF048964F9D832D12E51B4E7 /* timezone */ = {
+			isa = PBXGroup;
+			children = (
+				FCEF34BEEF0960AAE10B75F4 /* timezone.lcb */,
+			);
+			path = timezone;
+			sourceTree = "<group>";
+		};
+		F01286269A3840B681234F96 /* resources */ = {
+			isa = PBXGroup;
+			children = (
+				8078AFEC7148FCF021ECBF8E /* extension-utils.lc */,
+			);
+			path = resources;
+			sourceTree = "<group>";
+		};
+		F3C692ED8067D603960C7DB9 /* iosbutton */ = {
+			isa = PBXGroup;
+			children = (
+				F219DAD7D08F70804B48B951 /* iosbutton.lcb */,
+			);
+			path = iosbutton;
+			sourceTree = "<group>";
+		};
+		F3E54FFB17E90EAAE41143D5 /* html5button */ = {
+			isa = PBXGroup;
+			children = (
+				68CE496FDB7D061CFBEEC390 /* html5button.lcb */,
+			);
+			path = html5button;
+			sourceTree = "<group>";
+		};
+		F471FAFA7F9C9F2D19AA4C00 /* macbutton */ = {
+			isa = PBXGroup;
+			children = (
+				055458572DDDDCC68F999E70 /* macbutton.lcb */,
+			);
+			path = macbutton;
+			sourceTree = "<group>";
+		};
+		FA1E132CCC741594ADE65026 /* android-utils */ = {
+			isa = PBXGroup;
+			children = (
+				5D17D4497EB432D571E0F8E6 /* android-utils.lcb */,
+			);
+			path = "android-utils";
+			sourceTree = "<group>";
+		};
+		FAE473DD255136C9E5E1D437 /* .. */ = {
+			isa = PBXGroup;
+			children = (
+				22FFCF6A0334944C093373FC /* version */,
+			);
+			path = ..;
+			sourceTree = "<group>";
+		};
+		FB47283D3A119DA738E9551C /* androidbgaudio */ = {
+			isa = PBXGroup;
+			children = (
+				5A05AE250F52E6BF026436B3 /* androidbgaudio.lcb */,
+			);
+			path = androidbgaudio;
+			sourceTree = "<group>";
+		};
+		FD12978AD42605F571EF5B60 /* paletteactions */ = {
+			isa = PBXGroup;
+			children = (
+				75BB35F2E7ACCD89B8A5E859 /* paletteactions.lcb */,
+			);
+			path = paletteactions;
+			sourceTree = "<group>";
+		};
+		FE222E37403694B56CD26021 /* mactextfield */ = {
+			isa = PBXGroup;
+			children = (
+				0DFF35EE4F3605887977959B /* mactextfield.lcb */,
+			);
+			path = mactextfield;
+			sourceTree = "<group>";
+		};
+		FE7EBD3F9E3D954E2E1E493B /* getopt */ = {
+			isa = PBXGroup;
+			children = (
+				7146F95DAFE7DDEED0526911 /* getopt.livecodescript */,
+			);
+			path = getopt;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		BD69D82C1119E05703E98E74 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 464ECD35C4DC1549D6416596 /* Build configuration list for PBXProject "extensions" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 47D49C2DB72D20CF18C46C7A;
+			projectDirPath = ../../../extensions;
+			projectReferences = (
+				{
+					ProductGroup = D3012E4ADCA2C2DBF476C6DC /* Products */;
+					ProjectRef = 5F2AF10051ED786F313D001D /* engine.xcodeproj */;
+				},
+				{
+					ProductGroup = 9142D55E905F46A84F9ABE09 /* Products */;
+					ProjectRef = 1B490F120CB32CD427EBC8F8 /* inih.xcodeproj */;
+				},
+				{
+					ProductGroup = 53A835F3A0C8C300BAD662B8 /* Products */;
+					ProjectRef = D874E23AA3C1A8E51E893F81 /* lc-compile.xcodeproj */;
+				},
+				{
+					ProductGroup = B352F99CDBA62D44FFE2E5AC /* Products */;
+					ProjectRef = 3858BA09E5AFD721B160BEF9 /* lcb-modules.xcodeproj */;
+				},
+				{
+					ProductGroup = 8026E6C5FDADEABB09DECDC0 /* Products */;
+					ProjectRef = A1654C1EED1C9603C1F29A39 /* revxml.xcodeproj */;
+				},
+				{
+					ProductGroup = 7D19E026758C886C07B274B1 /* Products */;
+					ProjectRef = 5639D219F8700C49E7040060 /* revzip.xcodeproj */;
+				},
+				{
+					ProductGroup = 7266BBBA680580B8D6BE7C2F /* Products */;
+					ProjectRef = 665D0B93AD1E5609725B9ADA /* tz.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				EE3CB1FCE1D95D76EB90DAAE /* All */,
+				8C4FB33E150DD8D54720A170 /* extensions */,
+				D3BB2169B83BB62299E7A244 /* lcs-extensions */,
+				801C634E2786B854D171C9B2 /* lcb-extensions */,
+				6B30A47D43D6DE589C7A7D9C /* cross-platform-extension-dependencies */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		141B0B12DA7481E5E154BE8A /* revzip.bundle */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = revzip.bundle;
+			remoteRef = 0D51B5572E269B5C9695CF94 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		2122BC3380F7DFD60E6CCBE5 /* tz.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = tz.dylib;
+			remoteRef = 917772B92086DB1EDB0D14CB /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		347E2431756DB064A1F7A8A0 /* revxml.bundle */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = revxml.bundle;
+			remoteRef = 41BA75DB9B43E7E95E186F4B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		34BA445F7749044493BCEE2E /* server-community */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = "server-community";
+			remoteRef = FE812397994287E58FE2967B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		708FEB028C573EC64B93D172 /* server-revzip.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = "server-revzip.dylib";
+			remoteRef = 1C6B5CFD2AE5B796C66B1CA2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		7B3DE852C6F32313DBAB0890 /* inih.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = inih.dylib;
+			remoteRef = C1BD759375E2E6C8C350C354 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		86A442137C3CFC0F19CD7589 /* server-community-host */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = "server-community-host";
+			remoteRef = EFA2B2B2415D6F53C3221013 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		90565A4930EBFD7408BAA6A6 /* server-revxml.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = "server-revxml.dylib";
+			remoteRef = 25592215698A6D3B08FFA7CE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		94561ABED0B51F312C01D963 /* zic */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = zic;
+			remoteRef = 8E6F6F4E2F3424C89EA2CC64 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		9A2E91D7C49C4BB09CA651D5 /* Standalone-Community.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = "Standalone-Community.app";
+			remoteRef = 1C3AAF5E3C152EFA7879DAF4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		AC1EBAA327542CF49DACAAE0 /* Installer.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = Installer.app;
+			remoteRef = 9DA882EC517AD472768C89FE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		AC8F3107B1FAA53F576C4F6F /* LiveCode-Community.app */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.application;
+			path = "LiveCode-Community.app";
+			remoteRef = 61B7048E5A92EACB1F5AACDB /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		51BDFE09B444BD652589BB5C /* Action "build_extensions" */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"script-libraries/extension-utils/resources/extension-utils.lc",
+				"modules/widget-utils/widget-utils.lcb",
+				"modules/android-utils/android-utils.lcb",
+				modules/scriptitems/scriptitems.lcb,
+				libraries/androidbgaudio/androidbgaudio.lcb,
+				libraries/androidaudiorecorder/androidaudiorecorder.lcb,
+				libraries/toast/toast.lcb,
+				libraries/canvas/canvas.lcb,
+				libraries/iconsvg/iconsvg.lcb,
+				libraries/json/json.lcb,
+				libraries/objectrepository/objectrepository.lcb,
+				libraries/ini/ini.lcb,
+				libraries/timezone/timezone.lcb,
+				libraries/macstatusmenu/macstatusmenu.lcb,
+				widgets/androidbutton/androidbutton.lcb,
+				widgets/androidfield/androidfield.lcb,
+				widgets/html5button/html5button.lcb,
+				widgets/macbutton/macbutton.lcb,
+				widgets/mactextfield/mactextfield.lcb,
+				widgets/iosbutton/iosbutton.lcb,
+				widgets/browser/browser.lcb,
+				widgets/clock/clock.lcb,
+				widgets/graph/graph.lcb,
+				widgets/header/header.lcb,
+				widgets/iconpicker/iconpicker.lcb,
+				widgets/navbar/navbar.lcb,
+				widgets/paletteactions/paletteactions.lcb,
+				widgets/segmented/segmented.lcb,
+				widgets/svgpath/svgpath.lcb,
+				widgets/switchbutton/switchbutton.lcb,
+				widgets/treeview/treeview.lcb,
+				widgets/colorswatch/colorswatch.lcb,
+				widgets/gradientrampeditor/gradientrampeditor.lcb,
+				widgets/tile/tile.lcb,
+				widgets/spinner/spinner.lcb,
+			);
+			name = "Action \"build_extensions\"";
+			outputPaths = (
+				notarealfile.txt,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo note: \"Building extensions\"\nexec \"${BUILT_PRODUCTS_DIR}/server-community\" script-libraries/extension-utils/resources/extension-utils.lc \"${not_a_real_variable}buildlcbextensions\" ../ide-support/revdocsparser.livecodescript \"${BUILT_PRODUCTS_DIR}/packaged_extensions\" \"${not_a_real_variable}false\" \"${BUILT_PRODUCTS_DIR}/lc-compile\" \"${BUILT_PRODUCTS_DIR}/modules/lci\" \"${not_a_real_variable}\" modules/widget-utils/widget-utils.lcb modules/android-utils/android-utils.lcb modules/scriptitems/scriptitems.lcb libraries/androidbgaudio/androidbgaudio.lcb libraries/androidaudiorecorder/androidaudiorecorder.lcb libraries/toast/toast.lcb libraries/canvas/canvas.lcb libraries/iconsvg/iconsvg.lcb libraries/json/json.lcb libraries/objectrepository/objectrepository.lcb libraries/ini/ini.lcb libraries/timezone/timezone.lcb libraries/macstatusmenu/macstatusmenu.lcb widgets/androidbutton/androidbutton.lcb widgets/androidfield/androidfield.lcb widgets/html5button/html5button.lcb widgets/macbutton/macbutton.lcb widgets/mactextfield/mactextfield.lcb widgets/iosbutton/iosbutton.lcb widgets/browser/browser.lcb widgets/clock/clock.lcb widgets/graph/graph.lcb widgets/header/header.lcb widgets/iconpicker/iconpicker.lcb widgets/navbar/navbar.lcb widgets/paletteactions/paletteactions.lcb widgets/segmented/segmented.lcb widgets/svgpath/svgpath.lcb widgets/switchbutton/switchbutton.lcb widgets/treeview/treeview.lcb widgets/colorswatch/colorswatch.lcb widgets/gradientrampeditor/gradientrampeditor.lcb widgets/tile/tile.lcb widgets/spinner/spinner.lcb\nexit 1\n";
+			showEnvVarsInLog = 0;
+		};
+		D23FCBCA2BD88F099B34123D /* Rule "build_script_extension" */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"script-libraries/extension-utils/extension-utils.livecodescript",
+				"script-libraries/oauth2/oauth2.livecodescript",
+				"script-libraries/getopt/getopt.livecodescript",
+				"script-libraries/mime/mime.livecodescript",
+				"script-libraries/drawing/drawing.livecodescript",
+				"script-libraries/dropbox/dropbox.livecodescript",
+				"script-libraries/diff/diff.livecodescript",
+				"script-libraries/messageauthentication/messageauthentication.livecodescript",
+				"script-libraries/httpd/httpd.livecodescript",
+				"script-libraries/qr/qr.livecodescript",
+			);
+			name = "Rule \"build_script_extension\"";
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/packaged_extensions/com.livecode.library.extension-utils/extension-utils.livecodescript",
+				"$(BUILT_PRODUCTS_DIR)/packaged_extensions/com.livecode.library.oauth2/oauth2.livecodescript",
+				"$(BUILT_PRODUCTS_DIR)/packaged_extensions/com.livecode.library.getopt/getopt.livecodescript",
+				"$(BUILT_PRODUCTS_DIR)/packaged_extensions/com.livecode.library.mime/mime.livecodescript",
+				"$(BUILT_PRODUCTS_DIR)/packaged_extensions/com.livecode.library.drawing/drawing.livecodescript",
+				"$(BUILT_PRODUCTS_DIR)/packaged_extensions/com.livecode.library.dropbox/dropbox.livecodescript",
+				"$(BUILT_PRODUCTS_DIR)/packaged_extensions/com.livecode.library.diff/diff.livecodescript",
+				"$(BUILT_PRODUCTS_DIR)/packaged_extensions/com.livecode.library.messageauthentication/messageauthentication.livecodescript",
+				"$(BUILT_PRODUCTS_DIR)/packaged_extensions/com.livecode.library.httpd/httpd.livecodescript",
+				"$(BUILT_PRODUCTS_DIR)/packaged_extensions/com.livecode.library.qr/qr.livecodescript",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "JOB_COUNT=\"$(/usr/sbin/sysctl -n hw.ncpu)\"\nif [ \"${JOB_COUNT}\" -gt 4 ]; then\n  JOB_COUNT=4\nfi\nexec xcrun make -f \"${PROJECT_FILE_PATH}/lcs_extensions_build_script_extension.make\" -j \"${JOB_COUNT}\"\nexit 1\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0009768BAA634363F3590FAA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6B30A47D43D6DE589C7A7D9C /* cross-platform-extension-dependencies */;
+			targetProxy = D453815F921CCE592B0D818C /* PBXContainerItemProxy */;
+		};
+		028520A6EA7C6B0A3F06B2F5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "external-revzip-server";
+			targetProxy = 9F761C75AB0ADACC518684F3 /* PBXContainerItemProxy */;
+		};
+		13EB58B5295B066DFAC3A8E3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D3BB2169B83BB62299E7A244 /* lcs-extensions */;
+			targetProxy = ED4DF20A6DB2F9271F47E7CE /* PBXContainerItemProxy */;
+		};
+		39334C1A4CB16BC4862586C2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "external-revxml-server";
+			targetProxy = 4F3A8E08208C03EFC9371FEC /* PBXContainerItemProxy */;
+		};
+		3CA1FB0BCFCAD279B6710549 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = inih;
+			targetProxy = C3D2802033DDA276BBA442C9 /* PBXContainerItemProxy */;
+		};
+		4561E93CD3FF4A8B93EC7347 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "lc-compile";
+			targetProxy = 2FE746F8026DA17E41FCFEED /* PBXContainerItemProxy */;
+		};
+		4B0F8D68BED3D10DEC697271 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 801C634E2786B854D171C9B2 /* lcb-extensions */;
+			targetProxy = 43B94B30D0F4AF7C55886214 /* PBXContainerItemProxy */;
+		};
+		5EDF156670F8ACFB7AF2F02F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = tz;
+			targetProxy = 280A11F492ECA20E5BDB4B44 /* PBXContainerItemProxy */;
+		};
+		8174CA9443C3985BC814ACA1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = server;
+			targetProxy = 83A76FE8F6AE54074F8EC5BE /* PBXContainerItemProxy */;
+		};
+		974D0D3468BBD3AA4C161A4B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D3BB2169B83BB62299E7A244 /* lcs-extensions */;
+			targetProxy = 8F33043B1DADDEC929666C10 /* PBXContainerItemProxy */;
+		};
+		AD81FB49C7CC34A039063822 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "external-revxml-server";
+			targetProxy = 954D7FCE0920C0C30F5157D8 /* PBXContainerItemProxy */;
+		};
+		AE15D3172EDB789A838734F6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = engine_lcb_modules;
+			targetProxy = D31A93772F04F7E229D4EDF9 /* PBXContainerItemProxy */;
+		};
+		BF1C6346FEFC91C2DD88A315 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6B30A47D43D6DE589C7A7D9C /* cross-platform-extension-dependencies */;
+			targetProxy = 77E18A671FA579DC3127625F /* PBXContainerItemProxy */;
+		};
+		C657EBCC4E4C95F036B1F4E6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8C4FB33E150DD8D54720A170 /* extensions */;
+			targetProxy = B4349B562F6D081A737A5C74 /* PBXContainerItemProxy */;
+		};
+		D13D56880796FAD651E41350 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "external-revzip-server";
+			targetProxy = 8B986C9C4CEB9D0D60DE3E72 /* PBXContainerItemProxy */;
+		};
+		D8A1FF61442B330F7AFBE154 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = server;
+			targetProxy = A39870916862DAE50A5B5010 /* PBXContainerItemProxy */;
+		};
+		E754B7A299CE5776842EDD84 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 801C634E2786B854D171C9B2 /* lcb-extensions */;
+			targetProxy = 4FEA1584A610D105B6AFB34B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0210F3563EDD14057E9607F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../prebuilt/include;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = extensions;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		05B6BC0D9D5B3EE8E2BBD33E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../prebuilt/include;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "lcs-extensions";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		1FB2808A26864D6C27C975C1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../prebuilt/include;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "lcb-extensions";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		205EF614F1B20E5066787578 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		2350CAADCA7D83DE835BBCD2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		51085820E07CD7EE5A721D32 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../prebuilt/include;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "lcs-extensions";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		5C9E702CDC16754F3165373D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../prebuilt/include;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = extensions;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		602314671709F9F8D8EE1116 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "cross-platform-extension-dependencies";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		678B248771B6B59259E09370 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../prebuilt/include;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "lcb-extensions";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		70DAB77439387FE61156AD96 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 22FFCF6A0334944C093373FC /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		7D7080160AF358CF40D35724 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "cross-platform-extension-dependencies";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		80F44784C6DDCF2DCF721C43 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../prebuilt/include;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = extensions;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		A8B315A4DC4ECE3FCEF6403B /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "cross-platform-extension-dependencies";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		B653E7B85E17764993BDF4D8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 22FFCF6A0334944C093373FC /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		CEF5BC742403C5886E446230 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 22FFCF6A0334944C093373FC /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		D4951EBE7C7CBD4236F2E910 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Fast;
+		};
+		ED8CC844DA8652F40758F98F /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../prebuilt/include;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "lcb-extensions";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		F1E114595E17A46AEC38BE2C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = ../prebuilt/include;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "lcs-extensions";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		138ACCBD0C2D422B6C48DC01 /* Build configuration list for PBXAggregateTarget "lcs-extensions" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				05B6BC0D9D5B3EE8E2BBD33E /* Debug */,
+				51085820E07CD7EE5A721D32 /* Fast */,
+				F1E114595E17A46AEC38BE2C /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		464ECD35C4DC1549D6416596 /* Build configuration list for PBXProject "extensions" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEF5BC742403C5886E446230 /* Debug */,
+				70DAB77439387FE61156AD96 /* Fast */,
+				B653E7B85E17764993BDF4D8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		594A93D1342921DBD67FE63E /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				205EF614F1B20E5066787578 /* Debug */,
+				D4951EBE7C7CBD4236F2E910 /* Fast */,
+				2350CAADCA7D83DE835BBCD2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		886E12A93489A9FCC01AE508 /* Build configuration list for PBXAggregateTarget "lcb-extensions" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1FB2808A26864D6C27C975C1 /* Debug */,
+				ED8CC844DA8652F40758F98F /* Fast */,
+				678B248771B6B59259E09370 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		8976D8E40B728DA2B71E5BF3 /* Build configuration list for PBXAggregateTarget "cross-platform-extension-dependencies" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7D7080160AF358CF40D35724 /* Debug */,
+				A8B315A4DC4ECE3FCEF6403B /* Fast */,
+				602314671709F9F8D8EE1116 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		CD3B181FA87696BDC96412AF /* Build configuration list for PBXAggregateTarget "extensions" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0210F3563EDD14057E9607F5 /* Debug */,
+				80F44784C6DDCF2DCF721C43 /* Fast */,
+				5C9E702CDC16754F3165373D /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BD69D82C1119E05703E98E74 /* Project object */;
+}

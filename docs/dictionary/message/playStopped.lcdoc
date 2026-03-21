@@ -1,0 +1,58 @@
+Name: playStopped
+
+Type: message
+
+Syntax: playStopped
+
+Summary:
+Sent to a <player> when it stops playing.
+
+Associations: player
+
+Introduced: 1.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+on playStopped 
+  hide the target
+  show button "Start Playing"
+end playStopped
+
+Description:
+Handle the <playStopped> <message> if you want to perform a task when a
+movie or sound finishes playing.
+
+The <playStopped> <message> is sent when the movie or sound reaches its
+end when playing forwards, the movie or sound reaches its beginning if it 
+is playing backwards, or when a play stop <command> <execute|executes>. 
+If the user pauses the movie or sound, the <playPaused> <message> is sent 
+instead.
+
+When an audio clip or video clip is playing, a temporary player is
+created for it. When the clip is finished, the <playStopped> <message>
+is sent to it.
+
+>*Note:* The <playStopped> <message> is sent when a <card(keyword)>
+> containing the <player(keyword)> closes and when the 
+> player's <filename> is changed. If the <player(object)> is hidden, or
+> the movie or sound is not currently running, the message will still be
+> sent. To prevent a playStopped <handler> from being <execute|executed>
+> inappropriately, set the <lockMessages> to true before changing the
+> <filename> or switching <card(object)|cards>:
+
+    lock messages -- prevent sending playStopped
+    set the filename of me to newFile
+    unlock messages
+
+
+References: start (command), play (command), handler (glossary),
+player (glossary), message (glossary), command (glossary),
+execute (glossary), card (keyword), player (keyword),
+playPaused (message), card (object), player (object), 
+filename (property), lockMessages (property), filename (property)
+
+Tags: multimedia
+

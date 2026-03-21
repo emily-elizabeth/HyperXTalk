@@ -1,0 +1,22 @@
+<package version="0.0">
+  <name>com.livecode.library.json</name>
+  <title>JSON Library</title>
+  <author>LiveCode</author>
+  <version>2.0.0</version>
+  <license>community</license>
+  <type>library</type>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.char"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.byte"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.codeunit"/>
+  <requires name="com.livecode.math"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.typeconvert"/>
+  <handler name="JsonImport" parameters="in string" return="optional any"/>
+  <handler name="JsonExport" parameters="in optional any" return="string"/>
+</package>

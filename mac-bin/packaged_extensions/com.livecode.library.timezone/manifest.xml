@@ -1,0 +1,19 @@
+<package version="0.0">
+  <name>com.livecode.library.timezone</name>
+  <title>Time zone Library</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <license>community</license>
+  <type>library</type>
+  <requires name="com.livecode.foreign"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.engine"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.typeconvert"/>
+  <handler name="ToUniversalTime" parameters="in UInt64,in string" return="UInt64"/>
+  <handler name="FromUniversalTime" parameters="in UInt64,in string" return="UInt64"/>
+  <handler name="TimeZones" parameters="" return="string"/>
+</package>

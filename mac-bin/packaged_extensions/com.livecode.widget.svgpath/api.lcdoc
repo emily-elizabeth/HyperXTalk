@@ -1,0 +1,209 @@
+Library: com.livecode.widget.svgpath
+
+Type: widget
+
+Summary:
+This widget displays an SVG path as an icon.  It has a default state and a
+"highlighted" state.
+
+author: LiveCode
+
+version: 2.1.1
+
+
+Name: highlight
+
+Type: property
+
+Syntax: set the highlight of <widget> to {true|false}
+get the highlight of <widget>
+
+Summary: `true` if the SVG path is highlighted; `false` otherwise
+
+Description:
+Use the `highlight` property to test or control whether the SVG path is
+displayed as highlighted or not.
+
+
+
+Name: iconPath
+
+Type: property
+
+Syntax: set the iconPath of <widget> to <pSVGPath>
+get the iconPath of <widget>
+
+Summary: The path data displayed by the SVG path widget.
+
+Parameters: 
+
+pSVGPath: A string containing valid SVG path syntax.
+
+Example:
+-- Create a filled triangle
+set the iconPath of widget "SVG Icon" to "M150 0 L75 200 L225 200 Z"
+
+Description:
+The SVG path string to be displayed by the SVG path widget.
+
+See https://www.w3.org/TR/SVG/paths.html#PathData for the SVG path data
+specification.
+
+
+
+Name: scaledWidth
+
+Type: property
+
+Syntax: get the scaledWidth of <widget>
+
+Summary: The width of the bounding rect of the SVG path, in fractional pixels.
+
+Description:
+If the <maintainAspectRatio> of the SVG path is `true`, then the <scaledWidth>
+of the object will return the width of the bounding rect of the SVG path.
+Otherwise, it will return the width of the widget.
+
+Related: scaledHeight(property), maintainAspectRatio(property)
+
+
+
+
+Name: scaledHeight
+
+Type: property
+
+Syntax: get the scaledHeight of <widget>
+
+Summary: The height of the bounding rect of the SVG path, in fractional pixels.
+
+Description:
+If the <maintainAspectRatio> of the SVG path is `true`, then the <scaledHeight>
+of the object will return the height of the bounding rect of the SVG path.
+Otherwise, it will return the height of the widget.
+
+Related: scaledWidth(property), maintainAspectRatio(property)
+
+
+
+
+Name: angle
+
+Type: property
+
+Syntax: set the angle of <widget> to <pAngle>
+get the angle of <widget>
+
+Summary: The angle of rotation of the SVG path, in degrees clockwise.
+
+Description:
+The <angle> property controls the angle of rotation of for the SVG path
+around the centre of the path's bounding box.  The rotation is in clockwise
+degrees.
+
+
+
+Name: iconName
+
+Type: property
+
+Syntax: get the iconName of <widget>
+
+Example: put the iconName of widget "SVG Icon"
+
+Summary: The name of the currently chosen icon.
+
+Description:
+use the <IconName> to get the name of the currently chosen icon.
+
+You can get a list of available predefined path names by running
+`put iconNames()` in the Message Box.
+
+
+
+Name: maintainAspectRatio
+
+Type: property
+
+Syntax: set the maintainAspectRatio of <widget> to {true|false}
+get the maintainAspectRatio of <widget>
+
+Summary: Whether the SVG path maintains its aspect ratio when resized.
+
+Description:
+If the <maintainAspectRatio> of the SVG path is `true`, the icon will be its
+maximum size within its bounds while maintaining the original ratio of width
+to height. If `false`, it will stretch to fit the extent of its bounds.
+
+
+
+Name: flipped
+
+Type: property
+
+Syntax: set the flipped of <widget> to {true|false}
+get the flipped of <widget>
+
+Summary: `true` if the SVG path is flipped top-to-bottom; `false` otherwise
+
+Description: When <flipped> is set to `true`, the SVG path is drawn upside down.
+
+
+
+
+Name: iconPresetName
+
+Type: property
+
+Syntax: set the iconPresetName of <widget> to <pIconName>
+get the iconPresetName of <widget>
+
+Summary: A predefined SVG icon path names.
+
+Parameters: 
+
+pIconName: The name of the icon to display.
+
+Example: set the iconPresetName of widget "SVG Icon" to "thumbs up"
+
+Description:
+Use the <iconPresetName> property to set the icon of the widget to one of the
+predefined graphics provided by the "IconSVG" library.
+
+You can get a list of available predefined path names by running
+`put iconNames()` in the Message Box.
+
+
+
+Name: fillRule
+
+Type: property
+
+Syntax: set the fillRule of <widget> to <pRule>
+get the fillRule of <widget>
+
+Parameters: 
+
+pRule:
+The fill rule to be used.
+- "non-zero": Fill regions encircled at least once by the path.
+- "even odd": Fill regions encircled an even number of times by the path.
+
+Summary: The fill rule to be used when rendering the SVG path.
+
+Description:
+Use the <fillRule> property to set the fill rule to be used for the widget.
+You may need to adjust it to ensure that paths that cross themselves, and paths
+that are made up of overlapping subpaths, are filled correctly.
+
+The areas enclosed by the path are each filled or not filled depending on the
+fill rule used and the number of times the path loops around them.  When the
+path goes around a region clockwise, it adds 1 to number of encirclements.
+When it goes around a region anticlockwise, it subtracs 1 from the number of
+encirclements.
+
+See https://www.w3.org/TR/SVG/painting.html#FillRuleProperty for examples of
+the "non-zero" and "even odd" fill rules.
+
+
+

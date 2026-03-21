@@ -1,0 +1,722 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		CE56948758AAAE9D57434FE7 /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 808E481B8411B140A6A852E0 /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				F9E1E154AE586283BA253399 /* PBXTargetDependency */,
+				DC3A49C80E4DAF920A9758DF /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		03A64D2DEBE7928EC5779B10 /* pcre16_ucd.c in Sources */ = {isa = PBXBuildFile; fileRef = E2CE7EBD14E35E6D71F739D8 /* pcre16_ucd.c */; };
+		07C926E711ADA2A201C1D8B9 /* pcre16_jit_compile.c in Sources */ = {isa = PBXBuildFile; fileRef = 282672328E161CD2BBB9AA3C /* pcre16_jit_compile.c */; };
+		0DFA9EBE829E588460733FB0 /* pcre16_dfa_exec.c in Sources */ = {isa = PBXBuildFile; fileRef = 51D8C37F0F433E50F6A8C02A /* pcre16_dfa_exec.c */; };
+		1352BC09EBA5400DE14BB8C8 /* pcre16_version.c in Sources */ = {isa = PBXBuildFile; fileRef = 9099762149CBB98BBA03A105 /* pcre16_version.c */; };
+		13D116A8D23F5C5CBE515CDD /* pcre16_tables.c in Sources */ = {isa = PBXBuildFile; fileRef = DE7052FBFDE695E19B7669D6 /* pcre16_tables.c */; };
+		13ECEB51D24072F3C11914DF /* pcre16_study.c in Sources */ = {isa = PBXBuildFile; fileRef = E14E9E481D538E3CBA902BF1 /* pcre16_study.c */; };
+		16944FCBB438CB7B18172FEC /* pcre16_config.c in Sources */ = {isa = PBXBuildFile; fileRef = 8FC762FEED40FA1D9B4D2733 /* pcre16_config.c */; };
+		1946506843AC0F920461FD55 /* pcre16_exec.c in Sources */ = {isa = PBXBuildFile; fileRef = 30FAD925A53FE1E8C6BD20A1 /* pcre16_exec.c */; };
+		1E7E1F8A67F1B38D05709DA8 /* pcre16_jit_compile.c in Sources */ = {isa = PBXBuildFile; fileRef = 282672328E161CD2BBB9AA3C /* pcre16_jit_compile.c */; };
+		1EE4A5F98037A25E15DFCCF9 /* pcre16_ucd.c in Sources */ = {isa = PBXBuildFile; fileRef = E2CE7EBD14E35E6D71F739D8 /* pcre16_ucd.c */; };
+		29CB112AEB5D606459EB6E4A /* pcre16_chartables.c in Sources */ = {isa = PBXBuildFile; fileRef = 99E4678256B97FCD9ADF3A77 /* pcre16_chartables.c */; };
+		2C59D7F1689C8B4A03FFA95F /* pcre16_string_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA363F101FA9F79092ED846 /* pcre16_string_utils.c */; };
+		3D1C2923246907B3C26DB3B1 /* pcre16_maketables.c in Sources */ = {isa = PBXBuildFile; fileRef = E5F84FE73832BE0AB7AEDA7D /* pcre16_maketables.c */; };
+		5350D6CA52D80452B5D16B0A /* pcre16_globals.c in Sources */ = {isa = PBXBuildFile; fileRef = 6AD197F2395B9D4F08849FD5 /* pcre16_globals.c */; };
+		53970C06FA4A64AFE3C86443 /* pcre16_ord2utf16.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AC67535DE0D564658141090 /* pcre16_ord2utf16.c */; };
+		53FCBD714D3431D9A5DB5331 /* pcre16_newline.c in Sources */ = {isa = PBXBuildFile; fileRef = 19AAD5D545897D294999CD3D /* pcre16_newline.c */; };
+		585D5F2242B42C09C8069922 /* pcre16_xclass.c in Sources */ = {isa = PBXBuildFile; fileRef = AD2611DDBB1F4AE47817952F /* pcre16_xclass.c */; };
+		644EE4B86FEA9B585DD11A86 /* pcre16_version.c in Sources */ = {isa = PBXBuildFile; fileRef = 9099762149CBB98BBA03A105 /* pcre16_version.c */; };
+		6692214F8C93795C308BF1F5 /* pcre16_fullinfo.c in Sources */ = {isa = PBXBuildFile; fileRef = 07F998D4C119DB9FB7FA8FBB /* pcre16_fullinfo.c */; };
+		78EDD8A9579AE2E774D30ECD /* pcre16_config.c in Sources */ = {isa = PBXBuildFile; fileRef = 8FC762FEED40FA1D9B4D2733 /* pcre16_config.c */; };
+		7BD8A8EF6D2A43189730032C /* pcre16_dfa_exec.c in Sources */ = {isa = PBXBuildFile; fileRef = 51D8C37F0F433E50F6A8C02A /* pcre16_dfa_exec.c */; };
+		81249D04779FF59AAD56BF87 /* pcre16_chartables.c in Sources */ = {isa = PBXBuildFile; fileRef = 99E4678256B97FCD9ADF3A77 /* pcre16_chartables.c */; };
+		8328AB5307AFEFB43854D046 /* pcre16_compile.c in Sources */ = {isa = PBXBuildFile; fileRef = 874AE1F202E546065EAD1F29 /* pcre16_compile.c */; };
+		8D28613159CF4671C4DD5F9C /* pcre16_byte_order.c in Sources */ = {isa = PBXBuildFile; fileRef = 959CAEFF2137F5DD1218DD95 /* pcre16_byte_order.c */; };
+		9B33F003E9E88D1F63BC2679 /* pcre16_study.c in Sources */ = {isa = PBXBuildFile; fileRef = E14E9E481D538E3CBA902BF1 /* pcre16_study.c */; };
+		9C8C0CF20AD1BAD78E106B58 /* pcre16_get.c in Sources */ = {isa = PBXBuildFile; fileRef = 172B576D430D7A84364355A7 /* pcre16_get.c */; };
+		A715D7FD881277283B6B4D7E /* pcre16_xclass.c in Sources */ = {isa = PBXBuildFile; fileRef = AD2611DDBB1F4AE47817952F /* pcre16_xclass.c */; };
+		AA427698553F7293CAC5ED72 /* pcre16_get.c in Sources */ = {isa = PBXBuildFile; fileRef = 172B576D430D7A84364355A7 /* pcre16_get.c */; };
+		AC8500394023452EB2255947 /* pcre16_refcount.c in Sources */ = {isa = PBXBuildFile; fileRef = 265E25E047CFEABA18F5306E /* pcre16_refcount.c */; };
+		B82D7CB0EE73C59ED452B1BA /* pcre16_byte_order.c in Sources */ = {isa = PBXBuildFile; fileRef = 959CAEFF2137F5DD1218DD95 /* pcre16_byte_order.c */; };
+		BCA8015333913BF38FF1195D /* pcre16_valid_utf16.c in Sources */ = {isa = PBXBuildFile; fileRef = 3EC4D7CE10B0EA47CAAF21C3 /* pcre16_valid_utf16.c */; };
+		C1C022A53FD9BAEB2F3C13BD /* pcre16_string_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA363F101FA9F79092ED846 /* pcre16_string_utils.c */; };
+		C90513DD1224F1B009E4143F /* pcre16_ord2utf16.c in Sources */ = {isa = PBXBuildFile; fileRef = 9AC67535DE0D564658141090 /* pcre16_ord2utf16.c */; };
+		C97B8164218A785B901B6668 /* pcre16_exec.c in Sources */ = {isa = PBXBuildFile; fileRef = 30FAD925A53FE1E8C6BD20A1 /* pcre16_exec.c */; };
+		CD56100303FBD70CCFF1D64D /* pcre16_maketables.c in Sources */ = {isa = PBXBuildFile; fileRef = E5F84FE73832BE0AB7AEDA7D /* pcre16_maketables.c */; };
+		CEF3B87463F9455297BA0CEC /* pcre16_refcount.c in Sources */ = {isa = PBXBuildFile; fileRef = 265E25E047CFEABA18F5306E /* pcre16_refcount.c */; };
+		DB4536D6371E00DF85976B23 /* pcre16_fullinfo.c in Sources */ = {isa = PBXBuildFile; fileRef = 07F998D4C119DB9FB7FA8FBB /* pcre16_fullinfo.c */; };
+		E239D2E30F1616B91B3F7BF9 /* pcre16_compile.c in Sources */ = {isa = PBXBuildFile; fileRef = 874AE1F202E546065EAD1F29 /* pcre16_compile.c */; };
+		E8E52B054F9BD5BED4AE8F8C /* pcre16_newline.c in Sources */ = {isa = PBXBuildFile; fileRef = 19AAD5D545897D294999CD3D /* pcre16_newline.c */; };
+		EC7BFB2E49018D4DCCB09738 /* pcre16_tables.c in Sources */ = {isa = PBXBuildFile; fileRef = DE7052FBFDE695E19B7669D6 /* pcre16_tables.c */; };
+		ECF012E93E1E737B9EF62AD8 /* pcre16_globals.c in Sources */ = {isa = PBXBuildFile; fileRef = 6AD197F2395B9D4F08849FD5 /* pcre16_globals.c */; };
+		F9313FC111EDCFA17C8F49D1 /* pcre16_valid_utf16.c in Sources */ = {isa = PBXBuildFile; fileRef = 3EC4D7CE10B0EA47CAAF21C3 /* pcre16_valid_utf16.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B1062C123A7D7480802D4E6F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE975529D6E357A3006A0A2E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AE8C9EBD1129A4B5BCD9088F;
+			remoteInfo = libpcre;
+		};
+		F53AF4D9AB9D05395568B704 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE975529D6E357A3006A0A2E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 58133D462E231A5B6B1C3646;
+			remoteInfo = "libpcre (host)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0612A04DD6A16C462A376694 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../config/emscripten.gypi; sourceTree = "<group>"; };
+		07F998D4C119DB9FB7FA8FBB /* pcre16_fullinfo.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_fullinfo.c; sourceTree = "<group>"; };
+		13433E717CB0F3E0A430E470 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../../config/mac.gypi; sourceTree = "<group>"; };
+		13FFE3646D602E202F4730A4 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../../config/exclusions.gypi; sourceTree = "<group>"; };
+		172B576D430D7A84364355A7 /* pcre16_get.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_get.c; sourceTree = "<group>"; };
+		187C55EE57E484B01D9CD350 /* ucp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ucp.h; sourceTree = "<group>"; };
+		19AAD5D545897D294999CD3D /* pcre16_newline.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_newline.c; sourceTree = "<group>"; };
+		1B6300ECFB9E6C2F766ED0A9 /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../../config/thirdparty.gypi; sourceTree = "<group>"; };
+		1F6A3D5A88733DA33762C548 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../../config/crosscompile.gypi; sourceTree = "<group>"; };
+		265E25E047CFEABA18F5306E /* pcre16_refcount.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_refcount.c; sourceTree = "<group>"; };
+		282672328E161CD2BBB9AA3C /* pcre16_jit_compile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_jit_compile.c; sourceTree = "<group>"; };
+		2EA363F101FA9F79092ED846 /* pcre16_string_utils.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_string_utils.c; sourceTree = "<group>"; };
+		30FAD925A53FE1E8C6BD20A1 /* pcre16_exec.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_exec.c; sourceTree = "<group>"; };
+		3EC4D7CE10B0EA47CAAF21C3 /* pcre16_valid_utf16.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_valid_utf16.c; sourceTree = "<group>"; };
+		43AE2E4348FD22C5C4DE49A5 /* pcreposix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pcreposix.h; sourceTree = "<group>"; };
+		508E1CDF1BAFF22D087B3AB3 /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		51D8C37F0F433E50F6A8C02A /* pcre16_dfa_exec.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_dfa_exec.c; sourceTree = "<group>"; };
+		5DAE39F8F6AC5466A75AF0D5 /* libpcre.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libpcre.gyp; sourceTree = "<group>"; };
+		628F157D1C7656F5D8218DAE /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../../config/yacc.gypi; sourceTree = "<group>"; };
+		65BC71486205E4A2B83AFA7B /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		6AD197F2395B9D4F08849FD5 /* pcre16_globals.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_globals.c; sourceTree = "<group>"; };
+		6CEA4F9BC46F55B30BCC04DF /* pcre_internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pcre_internal.h; sourceTree = "<group>"; };
+		70A4029923C3824411139E9B /* libpcre.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpcre.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		874AE1F202E546065EAD1F29 /* pcre16_compile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_compile.c; sourceTree = "<group>"; };
+		89C7055DF612F5CE0FCF0831 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../config/ios.gypi; sourceTree = "<group>"; };
+		8FC762FEED40FA1D9B4D2733 /* pcre16_config.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_config.c; sourceTree = "<group>"; };
+		9099762149CBB98BBA03A105 /* pcre16_version.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_version.c; sourceTree = "<group>"; };
+		959CAEFF2137F5DD1218DD95 /* pcre16_byte_order.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_byte_order.c; sourceTree = "<group>"; };
+		99E4678256B97FCD9ADF3A77 /* pcre16_chartables.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_chartables.c; sourceTree = "<group>"; };
+		9AC67535DE0D564658141090 /* pcre16_ord2utf16.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_ord2utf16.c; sourceTree = "<group>"; };
+		9E2781BD1DC9A5A2A6CBCD82 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		AD2611DDBB1F4AE47817952F /* pcre16_xclass.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_xclass.c; sourceTree = "<group>"; };
+		B184E9F8F009BA90CA860F83 /* libpcre (host).a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libpcre (host).a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BA2AF4A23F7A1501B6E3E49C /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../../config/arch.gypi; sourceTree = "<group>"; };
+		C455F1DFD2048DF2F2962412 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		CE3DE17FF3285A2E23F0729E /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../../config/configurations.gypi; sourceTree = "<group>"; };
+		D4FC24157A00286E3C35487D /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../../common.gypi; sourceTree = "<group>"; };
+		D5A0607EB21BE46093AD018F /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../../config/linux.gypi; sourceTree = "<group>"; };
+		D92073245B381D7ABE7B79D4 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../../config/version.gypi; sourceTree = "<group>"; };
+		DE7052FBFDE695E19B7669D6 /* pcre16_tables.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_tables.c; sourceTree = "<group>"; };
+		E14E9E481D538E3CBA902BF1 /* pcre16_study.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_study.c; sourceTree = "<group>"; };
+		E15C1D890800680EBA76F0E9 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../config/android.gypi; sourceTree = "<group>"; };
+		E2CE7EBD14E35E6D71F739D8 /* pcre16_ucd.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_ucd.c; sourceTree = "<group>"; };
+		E5F84FE73832BE0AB7AEDA7D /* pcre16_maketables.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pcre16_maketables.c; sourceTree = "<group>"; };
+		E668236C039A20C3661E85D0 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../../config/target_os.gypi; sourceTree = "<group>"; };
+		E6DDB7E6EA7217BBDF0DFC7B /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../../config/win32.gypi; sourceTree = "<group>"; };
+		FCDB83AEA85BAE529D14E457 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../config/android-settings.gypi"; sourceTree = "<group>"; };
+		FD1FA2EA5F8994159D18C115 /* pcre.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pcre.h; sourceTree = "<group>"; };
+		FE54A6C026F80D63949350BA /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../../config/perl.gypi; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5DB74FA363BC238D91E18D16 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AE3490A2EFC2320F3715FDFA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		41BC2C6474845C5E2A5A2B98 /* ../.. */ = {
+			isa = PBXGroup;
+			children = (
+				508E1CDF1BAFF22D087B3AB3 /* version */,
+			);
+			path = ../..;
+			sourceTree = "<group>";
+		};
+		8DA625D90A029927F7547C02 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				FD1FA2EA5F8994159D18C115 /* pcre.h */,
+				43AE2E4348FD22C5C4DE49A5 /* pcreposix.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		8F7D93A8816BF64819B4483E = {
+			isa = PBXGroup;
+			children = (
+				BDAA3822CE00D48B85821306 /* Source */,
+				93DB007CB3AEF3CEAA619224 /* Products */,
+				93B54C610382248C94BB87FA /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		93B54C610382248C94BB87FA /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				FCDB83AEA85BAE529D14E457 /* android-settings.gypi */,
+				E15C1D890800680EBA76F0E9 /* android.gypi */,
+				BA2AF4A23F7A1501B6E3E49C /* arch.gypi */,
+				D4FC24157A00286E3C35487D /* common.gypi */,
+				CE3DE17FF3285A2E23F0729E /* configurations.gypi */,
+				1F6A3D5A88733DA33762C548 /* crosscompile.gypi */,
+				C455F1DFD2048DF2F2962412 /* emscripten-settings.gypi */,
+				0612A04DD6A16C462A376694 /* emscripten.gypi */,
+				13FFE3646D602E202F4730A4 /* exclusions.gypi */,
+				89C7055DF612F5CE0FCF0831 /* ios.gypi */,
+				5DAE39F8F6AC5466A75AF0D5 /* libpcre.gyp */,
+				65BC71486205E4A2B83AFA7B /* linux-settings.gypi */,
+				D5A0607EB21BE46093AD018F /* linux.gypi */,
+				13433E717CB0F3E0A430E470 /* mac.gypi */,
+				FE54A6C026F80D63949350BA /* perl.gypi */,
+				E668236C039A20C3661E85D0 /* target_os.gypi */,
+				1B6300ECFB9E6C2F766ED0A9 /* thirdparty.gypi */,
+				D92073245B381D7ABE7B79D4 /* version.gypi */,
+				E6DDB7E6EA7217BBDF0DFC7B /* win32.gypi */,
+				628F157D1C7656F5D8218DAE /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		93DB007CB3AEF3CEAA619224 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				70A4029923C3824411139E9B /* libpcre.a */,
+				B184E9F8F009BA90CA860F83 /* libpcre (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B6DEB0F4B3426784FCB76552 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				9E2781BD1DC9A5A2A6CBCD82 /* config.h */,
+				959CAEFF2137F5DD1218DD95 /* pcre16_byte_order.c */,
+				99E4678256B97FCD9ADF3A77 /* pcre16_chartables.c */,
+				874AE1F202E546065EAD1F29 /* pcre16_compile.c */,
+				8FC762FEED40FA1D9B4D2733 /* pcre16_config.c */,
+				51D8C37F0F433E50F6A8C02A /* pcre16_dfa_exec.c */,
+				30FAD925A53FE1E8C6BD20A1 /* pcre16_exec.c */,
+				07F998D4C119DB9FB7FA8FBB /* pcre16_fullinfo.c */,
+				172B576D430D7A84364355A7 /* pcre16_get.c */,
+				6AD197F2395B9D4F08849FD5 /* pcre16_globals.c */,
+				282672328E161CD2BBB9AA3C /* pcre16_jit_compile.c */,
+				E5F84FE73832BE0AB7AEDA7D /* pcre16_maketables.c */,
+				19AAD5D545897D294999CD3D /* pcre16_newline.c */,
+				9AC67535DE0D564658141090 /* pcre16_ord2utf16.c */,
+				265E25E047CFEABA18F5306E /* pcre16_refcount.c */,
+				2EA363F101FA9F79092ED846 /* pcre16_string_utils.c */,
+				E14E9E481D538E3CBA902BF1 /* pcre16_study.c */,
+				DE7052FBFDE695E19B7669D6 /* pcre16_tables.c */,
+				E2CE7EBD14E35E6D71F739D8 /* pcre16_ucd.c */,
+				3EC4D7CE10B0EA47CAAF21C3 /* pcre16_valid_utf16.c */,
+				9099762149CBB98BBA03A105 /* pcre16_version.c */,
+				AD2611DDBB1F4AE47817952F /* pcre16_xclass.c */,
+				6CEA4F9BC46F55B30BCC04DF /* pcre_internal.h */,
+				187C55EE57E484B01D9CD350 /* ucp.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		BDAA3822CE00D48B85821306 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				41BC2C6474845C5E2A5A2B98 /* ../.. */,
+				8DA625D90A029927F7547C02 /* include */,
+				B6DEB0F4B3426784FCB76552 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		58133D462E231A5B6B1C3646 /* libpcre (host) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AE3540C1486D1427FF0B565 /* Build configuration list for PBXNativeTarget "libpcre (host)" */;
+			buildPhases = (
+				FBE4C5CBDCCB4F0412FBE483 /* Sources */,
+				AE3490A2EFC2320F3715FDFA /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "libpcre (host)";
+			productName = "pcre (host)";
+			productReference = B184E9F8F009BA90CA860F83 /* libpcre (host).a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		AE8C9EBD1129A4B5BCD9088F /* libpcre */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 098FF5C35C98C6F6F4407134 /* Build configuration list for PBXNativeTarget "libpcre" */;
+			buildPhases = (
+				005DA9FB5D643504C6303945 /* Sources */,
+				5DB74FA363BC238D91E18D16 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = libpcre;
+			productName = pcre;
+			productReference = 70A4029923C3824411139E9B /* libpcre.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CE975529D6E357A3006A0A2E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 8B9D4FDBC72680C1A648A391 /* Build configuration list for PBXProject "libpcre" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 8F7D93A8816BF64819B4483E;
+			projectDirPath = ../../../../thirdparty/libpcre;
+			projectRoot = "";
+			targets = (
+				CE56948758AAAE9D57434FE7 /* All */,
+				AE8C9EBD1129A4B5BCD9088F /* libpcre */,
+				58133D462E231A5B6B1C3646 /* libpcre (host) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		005DA9FB5D643504C6303945 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B82D7CB0EE73C59ED452B1BA /* pcre16_byte_order.c in Sources */,
+				81249D04779FF59AAD56BF87 /* pcre16_chartables.c in Sources */,
+				8328AB5307AFEFB43854D046 /* pcre16_compile.c in Sources */,
+				78EDD8A9579AE2E774D30ECD /* pcre16_config.c in Sources */,
+				0DFA9EBE829E588460733FB0 /* pcre16_dfa_exec.c in Sources */,
+				1946506843AC0F920461FD55 /* pcre16_exec.c in Sources */,
+				DB4536D6371E00DF85976B23 /* pcre16_fullinfo.c in Sources */,
+				AA427698553F7293CAC5ED72 /* pcre16_get.c in Sources */,
+				5350D6CA52D80452B5D16B0A /* pcre16_globals.c in Sources */,
+				1E7E1F8A67F1B38D05709DA8 /* pcre16_jit_compile.c in Sources */,
+				CD56100303FBD70CCFF1D64D /* pcre16_maketables.c in Sources */,
+				E8E52B054F9BD5BED4AE8F8C /* pcre16_newline.c in Sources */,
+				53970C06FA4A64AFE3C86443 /* pcre16_ord2utf16.c in Sources */,
+				AC8500394023452EB2255947 /* pcre16_refcount.c in Sources */,
+				C1C022A53FD9BAEB2F3C13BD /* pcre16_string_utils.c in Sources */,
+				13ECEB51D24072F3C11914DF /* pcre16_study.c in Sources */,
+				EC7BFB2E49018D4DCCB09738 /* pcre16_tables.c in Sources */,
+				1EE4A5F98037A25E15DFCCF9 /* pcre16_ucd.c in Sources */,
+				F9313FC111EDCFA17C8F49D1 /* pcre16_valid_utf16.c in Sources */,
+				644EE4B86FEA9B585DD11A86 /* pcre16_version.c in Sources */,
+				585D5F2242B42C09C8069922 /* pcre16_xclass.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FBE4C5CBDCCB4F0412FBE483 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D28613159CF4671C4DD5F9C /* pcre16_byte_order.c in Sources */,
+				29CB112AEB5D606459EB6E4A /* pcre16_chartables.c in Sources */,
+				E239D2E30F1616B91B3F7BF9 /* pcre16_compile.c in Sources */,
+				16944FCBB438CB7B18172FEC /* pcre16_config.c in Sources */,
+				7BD8A8EF6D2A43189730032C /* pcre16_dfa_exec.c in Sources */,
+				C97B8164218A785B901B6668 /* pcre16_exec.c in Sources */,
+				6692214F8C93795C308BF1F5 /* pcre16_fullinfo.c in Sources */,
+				9C8C0CF20AD1BAD78E106B58 /* pcre16_get.c in Sources */,
+				ECF012E93E1E737B9EF62AD8 /* pcre16_globals.c in Sources */,
+				07C926E711ADA2A201C1D8B9 /* pcre16_jit_compile.c in Sources */,
+				3D1C2923246907B3C26DB3B1 /* pcre16_maketables.c in Sources */,
+				53FCBD714D3431D9A5DB5331 /* pcre16_newline.c in Sources */,
+				C90513DD1224F1B009E4143F /* pcre16_ord2utf16.c in Sources */,
+				CEF3B87463F9455297BA0CEC /* pcre16_refcount.c in Sources */,
+				2C59D7F1689C8B4A03FFA95F /* pcre16_string_utils.c in Sources */,
+				9B33F003E9E88D1F63BC2679 /* pcre16_study.c in Sources */,
+				13D116A8D23F5C5CBE515CDD /* pcre16_tables.c in Sources */,
+				03A64D2DEBE7928EC5779B10 /* pcre16_ucd.c in Sources */,
+				BCA8015333913BF38FF1195D /* pcre16_valid_utf16.c in Sources */,
+				1352BC09EBA5400DE14BB8C8 /* pcre16_version.c in Sources */,
+				A715D7FD881277283B6B4D7E /* pcre16_xclass.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DC3A49C80E4DAF920A9758DF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 58133D462E231A5B6B1C3646 /* libpcre (host) */;
+			targetProxy = F53AF4D9AB9D05395568B704 /* PBXContainerItemProxy */;
+		};
+		F9E1E154AE586283BA253399 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AE8C9EBD1129A4B5BCD9088F /* libpcre */;
+			targetProxy = B1062C123A7D7480802D4E6F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		058254E174CCBF40B80E389D /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"HAVE_CONFIG_H=1",
+					"PCRE_STATIC=1",
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "pcre (host)";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+		2259A9D819B9251028813A9D /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 508E1CDF1BAFF22D087B3AB3 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		38D79EC021A47481398B4B14 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"HAVE_CONFIG_H=1",
+					"PCRE_STATIC=1",
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "pcre (host)";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		46A6B38A5F4EE2B978B6DF74 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"HAVE_CONFIG_H=1",
+					"PCRE_STATIC=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = pcre;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		64007619480C654194969230 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 508E1CDF1BAFF22D087B3AB3 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		6BE081237C30E09383885CEB /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Fast;
+		};
+		9C60744C3A755533016BDC09 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"HAVE_CONFIG_H=1",
+					"PCRE_STATIC=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = pcre;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		BCB4637832B0BD1F9FFF79DE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"HAVE_CONFIG_H=1",
+					"PCRE_STATIC=1",
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "pcre (host)";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		BE7762E31AD2ACD64C40FB49 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 508E1CDF1BAFF22D087B3AB3 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		CD4AE4A734F91CAE2DDD2FF8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		F19A7A732E32C650665C8DFF /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"HAVE_CONFIG_H=1",
+					"PCRE_STATIC=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = pcre;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+		F4298C79F5C531D1ACF37778 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		098FF5C35C98C6F6F4407134 /* Build configuration list for PBXNativeTarget "libpcre" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				46A6B38A5F4EE2B978B6DF74 /* Debug */,
+				F19A7A732E32C650665C8DFF /* Fast */,
+				9C60744C3A755533016BDC09 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		1AE3540C1486D1427FF0B565 /* Build configuration list for PBXNativeTarget "libpcre (host)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BCB4637832B0BD1F9FFF79DE /* Debug */,
+				058254E174CCBF40B80E389D /* Fast */,
+				38D79EC021A47481398B4B14 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		808E481B8411B140A6A852E0 /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F4298C79F5C531D1ACF37778 /* Debug */,
+				6BE081237C30E09383885CEB /* Fast */,
+				CD4AE4A734F91CAE2DDD2FF8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		8B9D4FDBC72680C1A648A391 /* Build configuration list for PBXProject "libpcre" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				64007619480C654194969230 /* Debug */,
+				2259A9D819B9251028813A9D /* Fast */,
+				BE7762E31AD2ACD64C40FB49 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CE975529D6E357A3006A0A2E /* Project object */;
+}

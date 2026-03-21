@@ -1,0 +1,36 @@
+<package version="0.0">
+  <name>com.livecode.library.iconsvg</name>
+  <title>Icon SVG Library</title>
+  <author>LiveCode</author>
+  <version>1.2.0</version>
+  <license>community</license>
+  <type>library</type>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.sort"/>
+  <requires name="com.livecode.byte"/>
+  <requires name="com.livecode.char"/>
+  <requires name="com.livecode.typeconvert"/>
+  <metadata key="_ide">true</metadata>
+  <handler name="iconNames" parameters="" return="string"/>
+  <handler name="iconList" parameters="" return="list"/>
+  <handler name="iconFamilies" parameters="" return="string"/>
+  <handler name="iconNamesForFamily" parameters="in string" return="string"/>
+  <handler name="iconListForFamily" parameters="in string" return="list"/>
+  <handler name="iconSVGPathFromName" parameters="in string" return="string"/>
+  <handler name="iconCodepointFromName" parameters="in string" return="string"/>
+  <handler name="iconArrayMatchingInAllFamilies" parameters="in string" return="array"/>
+  <handler name="iconListMatching" parameters="in string" return="list"/>
+  <handler name="iconData" parameters="" return="array"/>
+  <handler name="iconDataForFamily" parameters="in string" return="array"/>
+  <handler name="addIcon" parameters="in string,in string,in string" return="nothing"/>
+  <handler name="addIconFamily" parameters="in string,in array" return="nothing"/>
+  <handler name="getCurrentIconFamily" parameters="" return="string"/>
+  <handler name="setCurrentIconFamily" parameters="in string" return="nothing"/>
+  <handler name="deleteIconFamily" parameters="in string" return="nothing"/>
+</package>

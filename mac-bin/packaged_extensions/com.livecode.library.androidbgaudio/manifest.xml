@@ -1,0 +1,26 @@
+<package version="0.0">
+  <name>com.livecode.library.androidbgaudio</name>
+  <title>Android Background Audio</title>
+  <author>LiveCode</author>
+  <version>0.0.0</version>
+  <os>android</os>
+  <license>community</license>
+  <type>library</type>
+  <requires name="com.livecode.java"/>
+  <requires name="com.livecode.foreign"/>
+  <requires name="com.livecode.library.androidutils"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.byte"/>
+  <requires name="com.livecode.char"/>
+  <requires name="com.livecode.array"/>
+  <handler name="androidStartAudioPlayingInBackground" parameters="in string" return="nothing"/>
+  <handler name="androidStopAudioPlayingInBackground" parameters="" return="nothing"/>
+  <handler name="androidPauseAudioPlayingInBackground" parameters="" return="nothing"/>
+  <handler name="androidResumeAudioPlayingInBackground" parameters="" return="nothing"/>
+  <handler name="androidIsAudioPlayingInBackground" parameters="" return="boolean"/>
+</package>

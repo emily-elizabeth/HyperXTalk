@@ -1,0 +1,82 @@
+Name: revVideoGrabDialog
+
+Type: command
+
+Syntax: revVideoGrabDialog [<settingsType>]
+
+Summary:
+Displays a dialog box for configuring <VFW|Video for Windows> <video capture>.
+
+Associations: video library
+
+Introduced: 2.0
+
+Deprecated: 9.0
+
+OS: windows
+
+Platforms: desktop
+
+Security: disk, privacy
+
+Example:
+revVideoGrabDialog
+
+Example:
+revVideoGrabDialog "format"
+
+Example:
+revVideoGrabDialog the label of button "Dialog Type"
+
+Parameters:
+settingsType (enum):
+-   compression: Settings for compression when recording video
+-   format: Video format, dimensions, and image depth
+-   display: Appearance of previewed video in the video grabber
+-   source: Video input channels and hue, contrast, and saturation settings 
+-   video: Pops up the video compression choice dialog for the videograbber 
+-   audio: Pops up the audio compression choice dialog for the videograbber 
+
+
+Description:
+Use the <revVideoGrabDialog> <command> to specify settings for use with
+the <video grabber>.
+
+You must use the revInitializeVideoGrabber <command> to open the 
+<video grabber> before you can use the <revVideoGrabDialog> <command>.
+
+Use the <settingsType> <parameter> to specify which <dialog box> you
+want to show.
+
+>*Note:* Some video camera drivers don't support some <settingsType>
+> values. 
+
+>*Important:*  The <revVideoGrabDialog> <command> is part of the 
+> <Video library>. To ensure that the <command> works in a 
+> <standalone application>, you must include this 
+> <LiveCode custom library|custom library> when you create your 
+> <standalone application|standalone>. In the Inclusions pane of the 
+> <Standalone Application Settings> window, make sure the
+> "Video Grabber" 
+> library checkbox is checked.
+
+Changes:
+The use of <QuickTime> was deprecated in version 8.1 of LiveCode with
+new defaults for <dontUseQT> and <dontUseQTEffects> as true on all
+systems apart from pre OS X 10.8. The Windows build of LiveCode no
+longer supports any <QuickTime> features and setting the <dontUseQT> and
+<dontUseQTEffects> will have no effect.
+
+Support for the "Video Grabber" library on Mac OS X ended in LiveCode
+9.0.
+
+References: revVideoGrabSettings (command), command (glossary),
+video capture (glossary), VFW (glossary),
+Standalone Application Settings (glossary), QuickTime (glossary),
+statement (glossary), standalone application (glossary),
+parameter (glossary), video grabber (glossary), dialog box (glossary),
+LiveCode custom library (glossary), Video library (library),
+dontUseQT (property), dontUseQTEffects (property)
+
+Tags: multimedia
+

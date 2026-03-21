@@ -1,0 +1,667 @@
+/*
+Copyright (C) 2015-2016 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
+/**
+This widget consists of an analogue clock. The clock has day and night style displays which
+are used depending on the time. The period interpreted as day by the clock is controlled by
+a pair of constants kStartDay and kEndDay, currently set at 6 and 20 respectively. Thus the
+clock will display in night style between the hours of 8pm and 6am. The style of the clock,
+can be controlled by setting the appropriate colors of the different components. For daytime
+this is through the dayNumberColor, dayHourHandColor, dayMinuteHandColor, daySecondHandColor
+and dayFaceColor properties. There are equivalent properties for the night style. The time
+displayed by the clock can differ from the current system local time by setting the timeZone
+property, an integer which adjusts the time displayed relative to universal time (UTC).
+*/
+
+-- declaring extension as widget, followed by identifier
+widget com.livecode.widget.clock
+--
+
+-- dependency declarations
+use com.livecode.canvas
+use com.livecode.widget
+use com.livecode.engine
+use com.livecode.math
+use com.livecode.library.widgetutils
+--
+
+-- adding metadata to ensure the extension displays correctly in livecode
+metadata title is "Clock"
+metadata author is "LiveCode"
+metadata version is "1.1.0"
+metadata preferredSize is "76,76"
+metadata svgicon is "M31.7,0C14.2,0,0,14.2,0,31.7s14.2,31.7,31.7,31.7s31.7-14.2,31.7-31.7S49.2,0,31.7,0z M30.2,3.2h2.8v7.3h-2.8V3.2zM10.4,33.1H3.1v-2.8h7.3V33.1z M12.5,52.9l-2-2l5.2-5.2l2,2L12.5,52.9z M15.7,17.7l-5.2-5.2l2-2l5.2,5.2L15.7,17.7z M33.1,60.2h-2.8v-7.3h2.8V60.2z M42.3,45.4L31.8,34.9c0,0-0.1,0-0.1,0c-1.7,0-3-1.3-3-3c0-1.1,0.6-2.1,1.6-2.6V12.9h2.8v16.3c0.9,0.5,1.6,1.5,1.6,2.6c0,0.2,0,0.4-0.1,0.5L45,42.8L42.3,45.4z M50.8,52.9l-5.2-5.2l2-2l5.2,5.2L50.8,52.9z M47.7,17.7l-2-2l5.2-5.2l2,2L47.7,17.7z M52.9,33.1v-2.8h7.3v2.8H52.9z"
+
+metadata timeZone.default is ""
+--
+
+-- property declarations
+/**
+Whether the clock's current display is in "day" mode.
+
+Syntax: get the isDay of <widget>
+
+Value(boolean): True if the widget is in "day" mode; false otherwise
+
+Description:
+The <isDay> property indicates whether the clock widget is using its
+"day" mode or "night" mode.  Its value depends on the current time,
+and is read-only.
+*/
+property isDay 			get mIsDay
+metadata isDay.user_visible is "false"
+
+/**
+Syntax: set the timeZone of <widget> to <pOffset>
+Syntax: get the timeZone of <widget>
+
+Summary: The time zone offset from UTC, in seconds, or the empty string
+
+Description:
+The <timeZone> is used to allow the clock widget to display a time other than
+the local time.  If the <timeZone> is empty, then the clock displays the local
+time.  Otherwise, the <timeZone> should be the number of seconds different from
+UTC that the clock should display.
+*/
+property timeZone		get mTimeZone		set setTimeZone
+metadata timeZone.editor is "com.livecode.pi.timezone"
+metadata timeZone.label is "Timezone"
+
+/**
+Syntax: set the dayNumberColor of <widget> to <color>
+Syntax: get the dayNumberColor of <widget>
+
+Summary: Determines the color of the numbers on the clock during the day
+
+Description:
+Use the <dayNumberColor> property to get or set the text color of the numbers
+on the face of the clock during the day. To determine if the clock is
+displaying its daytime or night-time colors use the read-only property
+<isDay>.
+*/
+property dayNumberColor get mDayNumberColor set setDayNumberColor
+metadata dayNumberColor.editor is "com.livecode.pi.colorwithalpha"
+metadata dayNumberColor.default is "0,0,0,255"
+metadata dayNumberColor.section is "Colors"
+metadata dayNumberColor.label is "Number color (day)"
+
+/**
+Syntax: set the nightNumberColor of <widget> to <color>
+Syntax: get the nightNumberColor of <widget>
+
+Summary: Determines the color of the numbers on the clock during the night
+
+Description:
+Use the <nightNumberColor> property to get or set the text color of the numbers
+on the face of the clock during the night. To determine if the clock is
+displaying its daytime or night-time colors use the read-only property
+<isDay>.
+*/
+property nightNumberColor get mNightNumberColor set setNightNumberColor
+metadata nightNumberColor.editor is "com.livecode.pi.colorwithalpha"
+metadata nightNumberColor.default is "255,255,255,255"
+metadata nightNumberColor.section is "Colors"
+metadata nightNumberColor.label is "Number color (night)"
+
+/**
+Syntax: set the dayHourHandColor of <widget> to <color>
+Syntax: get the dayHourHandColor of <widget>
+
+Summary: Determines the color of the hour hand on the clock during the day
+
+Description:
+Use the <dayHourHandColor> property to get or set the color of the hour
+hand of the clock during the day. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+*/
+property dayHourHandColor get mDayHourHandColor set setDayHourHandColor
+metadata dayHourHandColor.editor is "com.livecode.pi.colorwithalpha"
+metadata dayHourHandColor.default is "0,0,0,255"
+metadata dayHourHandColor.section is "Colors"
+metadata dayHourHandColor.label is "Hour hand color (day)"
+
+/**
+Syntax: set the nightHourHandColor of <widget> to <color>
+Syntax: get the nightHourHandColor of <widget>
+
+Summary: Determines the color of the hour hand on the clock during the night
+
+Description:
+Use the <nightHourHandColor> property to get or set the color of the hour
+hand of the clock during the night. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+*/
+property nightHourHandColor get mNightHourHandColor set setNightHourHandColor
+metadata nightHourHandColor.editor is "com.livecode.pi.colorwithalpha"
+metadata nightHourHandColor.default is "255,255,255,255"
+metadata nightHourHandColor.section is "Colors"
+metadata nightHourHandColor.label is "Hour hand color (night)"
+
+/**
+Syntax: set the dayMinuteHandColor of <widget> to <color>
+Syntax: get the dayMinuteHandColor of <widget>
+
+Summary: Determines the color of the minute hand on the clock during the day
+
+Description:
+Use the <dayMinuteHandColor> property to get or set the color of the minute
+hand of the clock during the day. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+*/
+property dayMinuteHandColor get mDayMinuteHandColor set setDayMinuteHandColor
+metadata dayMinuteHandColor.editor is "com.livecode.pi.colorwithalpha"
+metadata dayMinuteHandColor.default is "0,0,0,255"
+metadata dayMinuteHandColor.section is "Colors"
+metadata dayMinuteHandColor.label is "Minute hand color (day)"
+
+/**
+Syntax: set the nightMinuteHandColor of <widget> to <color>
+Syntax: get the nightMinuteHandColor of <widget>
+
+Summary: Determines the color of the minute hand on the clock during the night
+
+Description:
+Use the <nightMinuteHandColor> property to get or set the color of the minute
+hand of the clock during the night. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+*/
+property nightMinuteHandColor get mNightMinuteHandColor set setNightMinuteHandColor
+metadata nightMinuteHandColor.editor is "com.livecode.pi.colorwithalpha"
+metadata nightMinuteHandColor.default is "255,255,255,255"
+metadata nightMinuteHandColor.section is "Colors"
+metadata nightMinuteHandColor.label is "Minute hand color (night)"
+
+/**
+Syntax: set the daySecondHandColor of <widget> to <color>
+Syntax: get the daySecondHandColor of <widget>
+
+Summary: Determines the color of the second hand on the clock during the day
+
+Description:
+Use the <daySecondHandColor> property to get or set the color of the second
+hand of the clock during the day. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+*/
+property daySecondHandColor get mDaySecondHandColor set setDaySecondHandColor
+metadata daySecondHandColor.editor is "com.livecode.pi.colorwithalpha"
+metadata daySecondHandColor.default is "255,0,0,255"
+metadata daySecondHandColor.section is "Colors"
+metadata daySecondHandColor.label is "Second hand color (day)"
+
+/**
+Syntax: set the nightSecondHandColor of <widget> to <color>
+Syntax: get the nightSecondHandColor of <widget>
+
+Summary: Determines the color of the second hand on the clock during the night
+
+Description:
+Use the <nightSecondHandColor> property to get or set the color of the second
+hand of the clock during the night. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+*/
+property nightSecondHandColor get mNightSecondHandColor set setNightSecondHandColor
+metadata nightSecondHandColor.editor is "com.livecode.pi.colorwithalpha"
+metadata nightSecondHandColor.default is "255,0,0,255"
+metadata nightSecondHandColor.section is "Colors"
+metadata nightSecondHandColor.label is "Second hand color (night)"
+
+/**
+Syntax: set the dayFaceColor of <widget> to <color>
+Syntax: get the dayFaceColor of <widget>
+
+Summary: Determines the color of the face of the clock during the day
+
+Description:
+Use the <dayFaceColor> property to get or set the color of the face
+of the clock during the day. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+*/
+property dayFaceColor get mDayFaceColor set setDayFaceColor
+metadata dayFaceColor.editor is "com.livecode.pi.colorwithalpha"
+metadata dayFaceColor.default is "224,224,224,64"
+metadata dayFaceColor.section is "Colors"
+metadata dayFaceColor.label is "Face color (day)"
+
+/**
+Syntax: set the nightFaceColor of <widget> to <color>
+Syntax: get the nightFaceColor of <widget>
+
+Summary: Determines the color of the face of the clock during the night
+
+Description:
+Use the <nightFaceColor> property to get or set the color of the face
+of the clock during the night. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+*/
+property nightFaceColor get mNightFaceColor set setNightFaceColor
+metadata nightFaceColor.editor is "com.livecode.pi.colorwithalpha"
+metadata nightFaceColor.default is "0,0,0,255"
+metadata nightFaceColor.section is "Colors"
+metadata nightFaceColor.label is "Face color (night)"
+
+
+--
+
+-- private instance variables
+private variable mIsDay			as Boolean
+private variable mTimeZone		as optional Number
+private variable mCurrentTime 	as List
+private variable mRadius as Number
+private variable mCentre as List
+private variable mFontSize 		as Real
+private variable mDayNumberColor as String
+private variable mNightNumberColor as String
+private variable mDayHourHandColor as String
+private variable mNightHourHandColor as String
+private variable mDayMinuteHandColor as String
+private variable mNightMinuteHandColor as String
+private variable mDaySecondHandColor as String
+private variable mNightSecondHandColor as String
+private variable mDayFaceColor as String
+private variable mNightFaceColor as String
+--
+
+-- constants
+constant kStartDay is 6
+constant kEndDay is 20
+constant kWhite is "255,255,255,255"
+constant kBlack is "0,0,0,255"
+constant kRed is "255,0,0,255"
+--
+
+public handler OnSave(out rProperties as Array)
+	put the empty array into rProperties
+
+	put mTimeZone into rProperties["timeZone"]
+	put mDayNumberColor into rProperties["dayNumberColor"]
+	put mNightNumberColor into rProperties["nightNumberColor"]
+	put mDayHourHandColor into rProperties["dayHourHandColor"]
+	put mNightHourHandColor into rProperties["nightHourHandColor"]
+	put mDayMinuteHandColor into rProperties["dayMinuteHandColor"]
+	put mNightMinuteHandColor into rProperties["nightMinuteHandColor"]
+	put mDaySecondHandColor into rProperties["daySecondHandColor"]
+	put mNightSecondHandColor into rProperties["nightSecondHandColor"]
+	put mDayFaceColor into rProperties["dayFaceColor"]
+	put mNightFaceColor into rProperties["nightFaceColor"]
+end handler
+
+public handler OnLoad(in pProperties as Array)
+	put pProperties["timeZone"] into mTimeZone
+
+	--these properties were added in version 1.1.0
+	if "dayNumberColor" is among the keys of pProperties then
+		put pProperties["dayNumberColor"] into mDayNumberColor
+	end if
+	if "nightNumberColor" is among the keys of pProperties then
+		put pProperties["nightNumberColor"] into mNightNumberColor
+	end if
+	if "dayHourHandColor" is among the keys of pProperties then
+		put pProperties["dayHourHandColor"] into mDayHourHandColor
+	end if
+	if "nightHourHandColor" is among the keys of pProperties then
+		put pProperties["nightHourHandColor"] into mNightHourHandColor
+	end if
+	if "dayMinuteHandColor" is among the keys of pProperties then
+		put pProperties["dayMinuteHandColor"] into mDayMinuteHandColor
+	end if
+	if "nightMinuteHandColor" is among the keys of pProperties then
+		put pProperties["nightMinuteHandColor"] into mNightMinuteHandColor
+	end if
+	if "daySecondHandColor" is among the keys of pProperties then
+		put pProperties["daySecondHandColor"] into mDaySecondHandColor
+	end if
+	if "nightSecondHandColor" is among the keys of pProperties then
+		put pProperties["nightSecondHandColor"] into mNightSecondHandColor
+	end if
+	if "dayFaceColor" is among the keys of pProperties then
+		put pProperties["dayFaceColor"] into mDayFaceColor
+	end if
+	if "nightFaceColor" is among the keys of pProperties then
+		put pProperties["nightFaceColor"] into mNightFaceColor
+	end if
+end handler
+
+-- called when widget is created
+public handler OnCreate()
+	put nothing into mTimeZone
+	put false into mIsDay
+	put [0,0,0] into mCurrentTime
+	put 12 into mFontSize
+	put kBlack into mDayNumberColor
+	put kWhite into mNightNumberColor
+	put kBlack into mDayHourHandColor
+	put kWhite into mNightHourHandColor
+	put kBlack into mDayMinuteHandColor
+	put kWhite into mNightMinuteHandColor
+	put kRed into mDaySecondHandColor
+	put kRed into mNightSecondHandColor
+	put "224,224,224,64" into mDayFaceColor
+	put kBlack into mNightFaceColor
+end handler
+
+public handler OnOpen()
+	put getTimeComponents() into mCurrentTime
+	schedule timer in computeNextTimer() seconds
+end handler
+
+-- called whenever LiveCode needs to redraw the widget
+public handler OnPaint()
+	updateGeometry()
+
+	-- draw the face of the clock
+    set the paint of this canvas to getPaint("clock face")
+    fill getPath("clock face") on this canvas
+    --
+
+    -- draw the outer circle nub in the middle to cover the ends of the hands
+    set the paint of this canvas to getPaint("outer nub")
+    fill getPath("outer nub") on this canvas
+    --
+
+	 save state of this canvas
+	 translate this canvas by mCentre
+
+    -- draw the numbers
+    set the paint of this canvas to getPaint("numbers")
+   	set the font of this canvas to font "Helvetica-Light" at size mFontSize
+
+   	variable tX as Integer
+   	variable tX_string as String
+   	variable tLabel as String
+
+   	repeat with tX from 1 up to 12
+   		put tX formatted as string into tX_string
+   		if tX < 10 then
+   			put the first char of tX_string into tLabel
+   		else
+   			put char 1 to 2 of tX_string into tLabel
+   		end if
+   		fill text tLabel at center of getTextRect(tX) on this canvas
+   	end repeat
+    --
+
+    -- draw the minute hand
+    -- rotate canvas so that minute hand is assumed to be pointing up
+    save state of this canvas
+    set the stroke width of this canvas to getStrokeWidth("minute hand")
+    set the paint of this canvas to getPaint("minute hand")
+
+    variable tMinuteHand as Path
+    put getPath("minute hand") into tMinuteHand
+
+    rotate this canvas by 6*(element 2 of mCurrentTime)
+    stroke tMinuteHand on this canvas
+    restore state of this canvas
+    --
+
+    -- draw the hour hand
+    -- rotate canvas so that hour hand is assumed to be pointing up
+    save state of this canvas
+    set the stroke width of this canvas to getStrokeWidth("hour hand")
+    set the paint of this canvas to getPaint("hour hand")
+
+    variable tHourHand as Path
+    put getPath("hour hand") into tHourHand
+
+    rotate this canvas by 30*((element 1 of mCurrentTime) + (element 2 of mCurrentTime/60)) --mikey added fractional hour
+    stroke tHourHand on this canvas
+    restore state of this canvas
+    --
+
+    -- draw the second hand in red
+    -- rotate canvas so that second hand is assumed to be pointing up
+    save state of this canvas
+    set the stroke width of this canvas to getStrokeWidth("second hand")
+    set the paint of this canvas to getPaint("second hand")
+
+    variable tSecondHand as Path
+    put getPath("second hand") into tSecondHand
+
+    rotate this canvas by 6*(element 3 of mCurrentTime)
+  	stroke tSecondHand on this canvas
+    restore state of this canvas
+    --
+
+	 restore state of this canvas
+
+    -- draw the inner circle nub in the middle to cover the ends of the second hand
+    set the paint of this canvas to getPaint("inner nub")
+    fill getPath ("inner nub") on this canvas
+    --
+
+end handler
+
+handler getTimeComponents() returns List
+	-- Fetch the local date.
+    -- This a list in the form [day, month, year, hours, minutes, seconds, gmt_offset]
+    variable tDate as List
+    put the local date into tDate
+
+    -- We only want the time, so delete the first 3 elements.
+    delete element 1 to 3 of tDate
+
+    -- Adjust for the timezone.
+    --
+    -- N.b. we use the local date and translate the timezone because
+    -- the clock widget doesn't yet know how to account for timezones
+    -- with differing daylight savings time transitions.
+
+	-- Estimate the correction needed to get to GMT.  This won't
+	-- work properly for timezones with a GMT offset that isn't a
+	-- whole number of hours (e.g. North Korea).
+	if mTimeZone is not nothing then
+		variable tGmtOffset as Number
+		variable tTimeAsSeconds as Number
+		put tDate[1] * 3600 + tDate[2] * 60 + tDate[3] into tTimeAsSeconds
+
+		subtract tDate[-1] from tTimeAsSeconds
+		add mTimeZone to tTimeAsSeconds
+
+		put tTimeAsSeconds mod 86400 into tTimeAsSeconds
+
+		put the trunc of (tTimeAsSeconds / 3600) into tDate[1]
+		put tTimeAsSeconds mod 3600 into tTimeAsSeconds
+
+		put the trunc of (tTimeAsSeconds / 60) into tDate[2]
+		put tTimeAsSeconds mod 60 into tTimeAsSeconds
+
+		put tTimeAsSeconds into tDate[3]
+	end if
+
+    -- Compute whether it is 'day' or 'night'
+	if tDate[1] > kStartDay and tdate[1] < kEndDay then
+		put true into mIsDay
+	else
+		put false into mIsDay
+	end if
+
+	return tDate
+end handler
+
+handler computeNextTimer() returns Number
+    get the universal time
+    return 1 - (the result - the floor of the result)
+end handler
+
+public handler OnTimer()
+	-- the seconds have changed so fetch the new time
+	put getTimeComponents() into mCurrentTime
+	redraw all
+	schedule timer in computeNextTimer() seconds
+end handler
+
+private handler getPaint(in pObject as String) returns Paint
+
+	if pObject is "clock face" then
+		if mIsDay is true then
+			return solid paint with stringToColor(mDayFaceColor)
+		else
+			return solid paint with stringToColor(mNightFaceColor)
+		end if
+
+	else if pObject is "minute hand" or pObject is "outer nub" then
+		if mIsDay is true then
+			return solid paint with stringToColor(mDayMinuteHandColor)
+		else
+			return solid paint with stringToColor(mNightMinuteHandColor)
+		end if
+
+	else if pObject is "second hand" or pObject is "inner nub" then
+		if mIsDay is true then
+			return solid paint with stringToColor(mDaySecondHandColor)
+		else
+			return solid paint with stringToColor(mNightSecondHandColor)
+		end if
+
+	else if pObject is "numbers" then
+		if mIsDay is true then
+			return solid paint with stringToColor(mDayNumberColor)
+		else
+			return solid paint with stringToColor(mNightNumberColor)
+		end if
+
+	else if pObject is "hour hand" then
+		if mIsDay is true then
+			return solid paint with stringToColor(mDayHourHandColor)
+		else
+			return solid paint with stringToColor(mNightHourHandColor)
+		end if
+
+	end if
+end handler
+
+private handler updateGeometry() returns nothing
+	put (the minimum of my width and my height) / 2 into mRadius
+	put [my width / 2, my height / 2] into mCentre
+	put mRadius / 5 into mFontSize
+end handler
+
+private handler getPath(in pString as String) returns Path
+
+	if pString is "clock face" then
+		return circle path centered at point mCentre with radius mRadius
+
+	else if pString is "second hand" or pString is "minute hand" then
+		return line path from point [0, 0] to point [0, -0.7*mRadius]
+
+	else if pString is "hour hand" then
+		return line path from point [0,0] to point [0, -0.45*mRadius]
+
+	else if pString is "outer nub" then
+		return circle path centered at point mCentre with radius (0.06*mRadius)
+
+	else if pString is "inner nub" then
+		return circle path centered at point mCentre with radius (0.02*mRadius)
+
+	end if
+end handler
+
+private handler getTextRect(in pNumber as Number) returns Rectangle
+	variable tAngle as Number
+	variable tX as Number
+	variable tY as Number
+
+	put pNumber mod 12 into tAngle
+	multiply tAngle by (pi/6)
+
+	put -cos(tAngle) * (mRadius - mFontSize) into tY
+	put sin(tAngle) * (mRadius - mFontSize) into tX
+
+	return rectangle [tX, tY, tX, tY]
+end handler
+
+private handler getStrokeWidth(in pHand as String) returns Real
+	if pHand is "minute hand" or pHand is "hour hand" then
+		return (my width/2)*0.03
+
+	else if pHand is "second hand" then
+		return (my width/2)*0.015
+
+	end if
+end handler
+
+public handler setTimeZone(in pTimeZone as optional Number) returns nothing
+	if not (pTimeZone is a number) then
+		if pTimeZone is not nothing then
+			throw "The timeZone offset must be an integer or empty"
+		end if
+	end if
+
+	put pTimeZone into mTimeZone
+	put getTimeComponents() into mCurrentTime
+	redraw all
+end handler
+
+public handler setDayNumberColor(in pColor as String)
+	put pColor into mDayNumberColor
+	redraw all
+end handler
+
+public handler setNightNumberColor(in pColor as String)
+	put pColor into mNightNumberColor
+	redraw all
+end handler
+
+public handler setDayHourHandColor(in pColor as String)
+	put pColor into mDayHourHandColor
+	redraw all
+end handler
+
+public handler setNightHourHandColor(in pColor as String)
+	put pColor into mNightHourHandColor
+	redraw all
+end handler
+
+public handler setDayMinuteHandColor(in pColor as String)
+	put pColor into mDayMinuteHandColor
+	redraw all
+end handler
+
+public handler setNightMinuteHandColor(in pColor as String)
+	put pColor into mNightMinuteHandColor
+	redraw all
+end handler
+
+public handler setDaySecondHandColor(in pColor as String)
+	put pColor into mDaySecondHandColor
+	redraw all
+end handler
+
+public handler setNightSecondHandColor(in pColor as String)
+	put pColor into mNightSecondHandColor
+	redraw all
+end handler
+
+public handler setDayFaceColor(in pColor as String)
+	put pColor into mDayFaceColor
+	redraw all
+end handler
+
+public handler setNightFaceColor(in pColor as String)
+	put pColor into mNightFaceColor
+	redraw all
+end handler
+
+end widget

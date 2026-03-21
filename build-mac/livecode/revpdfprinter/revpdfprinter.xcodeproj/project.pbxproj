@@ -1,0 +1,815 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		017FAE3EA9DE9DBC8DE72F52 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ECD214C09AD68167C619AA63 /* CoreText.framework */; };
+		0CB7225FF162B8DB35314A0A /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D8B82DEE938D7D92FED24F1E /* libExternal.a */; };
+		255A2AC94195674EC4A915E8 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 78C2A39602551689C3623B1C /* ApplicationServices.framework */; };
+		6BE580AE765EFC51BB9E1B81 /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6309249B3FC86E2BB00C87FF /* libz.a */; };
+		9819E59B8057ADB728E65E9E /* revpdfprinter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27BA522D420B95C091D82113 /* revpdfprinter.cpp */; };
+		A8F8F147C3763F68E56C601C /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B8CD0E5ADFC8749278A1BC4F /* CoreGraphics.framework */; };
+		C0C86361519079CE39787A7D /* revpdfprinter_coretext.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3B2B383C217DAFC0E7DAF458 /* revpdfprinter_coretext.mm */; };
+		E2910EE83B9B502CC3B85596 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A139A5FD15AE12E8866B199 /* CoreServices.framework */; };
+		FB4B9AE097EE1AD02866294F /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 435B32317440873FA0271AB7 /* libCore.a */; };
+		FD16FBB17432E0BDEF7619AF /* libcairo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E93695BAE1552748C475DEDA /* libcairo.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		12CB11A3F46AB85C2D21AF4F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6C2C517F4BAF4E5FFDE3598B /* libexternal.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7DAF95721375FEF9FB6262D6;
+			remoteInfo = "libExternal (host)";
+		};
+		1381B564DD5A23E75BA25332 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A604551FE45503A41A5CDA83 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		18D8426BBA545843FDCFF6D3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E9591EF5A556B7E059C685B /* libcore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 065138166E84E87D0D2F7187;
+			remoteInfo = "libCore (host)";
+		};
+		31849A2FB26F1059A664E8DD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A604551FE45503A41A5CDA83 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F4FCA251AA01455DCCCF79CF;
+			remoteInfo = thirdparty_prebuilt_z;
+		};
+		55CA82897F08FF967800FA7A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E626DEB643A946D6B8938D16 /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		6BB904AF2124F5F2BCD0A7FD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E9591EF5A556B7E059C685B /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		8FBCFB10A60DBCFB1DC90AF1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6C2C517F4BAF4E5FFDE3598B /* libexternal.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 73AD7E038E4E1683AE423BFC;
+			remoteInfo = libExternal;
+		};
+		BF380AF599798EEDE7C20D31 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E626DEB643A946D6B8938D16 /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+		E5AB3CE090FA59BD1DA8B506 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6C2C517F4BAF4E5FFDE3598B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		EF37EE8255B024CCDCAA6FB4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 8E9591EF5A556B7E059C685B /* libcore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DD44348CE0FC9FD8CA3DC4E0;
+			remoteInfo = libCore;
+		};
+		F24D63783C863AA6E14FF15E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A604551FE45503A41A5CDA83 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = A78D557AF1BA94AE82901C51;
+			remoteInfo = thirdparty_prebuilt_cairo;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		049674E038B04FE58579A817 /* revpdfprinter_osx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = revpdfprinter_osx.cpp; sourceTree = "<group>"; };
+		0A139A5FD15AE12E8866B199 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		12D24C963F85E26C414AA436 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../config/version.gypi; sourceTree = "<group>"; };
+		12E4F227146A28843CBBC86B /* revpdfprinter_w32.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = revpdfprinter_w32.cpp; sourceTree = "<group>"; };
+		1D1F07516A5F47CB3ADF2149 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
+		23636D593507ED812471F29F /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../config/crosscompile.gypi; sourceTree = "<group>"; };
+		27BA522D420B95C091D82113 /* revpdfprinter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = revpdfprinter.cpp; sourceTree = "<group>"; };
+		2C281D298E082F316D9BBC1E /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		391E232E3B667C61EB81DC66 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../config/win32.gypi; sourceTree = "<group>"; };
+		3B2B383C217DAFC0E7DAF458 /* revpdfprinter_coretext.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = revpdfprinter_coretext.mm; sourceTree = "<group>"; };
+		4A0EA4757BD033460F403BDE /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../config/thirdparty.gypi; sourceTree = "<group>"; };
+		4B65A525B126310F717E40BA /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		51F7D4F7E506FC8A46C52C42 /* revpdfprinter.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = revpdfprinter.gyp; sourceTree = "<group>"; };
+		54F877438555BE9A44BF7200 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
+		5765CD1895EB08F507460943 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
+		626EDED54DC556658EE3826F /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
+		6309249B3FC86E2BB00C87FF /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = ../prebuilt/lib/mac/libz.a; sourceTree = "<group>"; };
+		6A3AD33502C2B7DFAFA2ACC4 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
+		6C2C517F4BAF4E5FFDE3598B /* libexternal.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libexternal.xcodeproj; path = "../build-mac/livecode/libexternal/libexternal.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		78C2A39602551689C3623B1C /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
+		7A6D1F01010C84946DF79053 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		8E9591EF5A556B7E059C685B /* libcore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libcore.xcodeproj; path = "../build-mac/livecode/libcore/libcore.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		919E2EC610C648A70592BE0F /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
+		9F6CBAE8421F6A2C13A5EC8C /* revpdfprinter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = revpdfprinter.h; sourceTree = "<group>"; };
+		A604551FE45503A41A5CDA83 /* thirdparty.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = thirdparty.xcodeproj; path = "../build-mac/livecode/prebuilt/thirdparty.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		A830C793F832988466F33247 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
+		B075B00AB7A4CC6EEF9696E8 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
+		B7E4B6C3D1E12BB7F3AA64D1 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../config/configurations.gypi; sourceTree = "<group>"; };
+		B8CD0E5ADFC8749278A1BC4F /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		BA4F32353748300648A465A9 /* revpdfprinter_lnx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = revpdfprinter_lnx.cpp; sourceTree = "<group>"; };
+		C005B00F33F1F4B5EF399E97 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
+		C090D492A310A44B2CA4561A /* revpdfprinter_android.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = revpdfprinter_android.cpp; sourceTree = "<group>"; };
+		D70F2D4AF88E4F9C59D3380D /* revpdfprinter_ios.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = revpdfprinter_ios.mm; sourceTree = "<group>"; };
+		D7152FC23E6EDE30B7302303 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
+		DADE7F8750FBB5D97E92868B /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
+		E626DEB643A946D6B8938D16 /* fetch.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = fetch.xcodeproj; path = "../build-mac/livecode/prebuilt/fetch.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		E93695BAE1552748C475DEDA /* libcairo.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcairo.a; path = ../prebuilt/lib/mac/libcairo.a; sourceTree = "<group>"; };
+		EB126D4E856F90E9B7846D2C /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../config/mac.gypi; sourceTree = "<group>"; };
+		ECD214C09AD68167C619AA63 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
+		EDBD37A89120F0754471B804 /* revpdfprinter.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = revpdfprinter.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		6B36B2FEBECE569AD11593A9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FB4B9AE097EE1AD02866294F /* libCore.a in Frameworks */,
+				0CB7225FF162B8DB35314A0A /* libExternal.a in Frameworks */,
+				017FAE3EA9DE9DBC8DE72F52 /* CoreText.framework in Frameworks */,
+				E2910EE83B9B502CC3B85596 /* CoreServices.framework in Frameworks */,
+				FD16FBB17432E0BDEF7619AF /* libcairo.a in Frameworks */,
+				255A2AC94195674EC4A915E8 /* ApplicationServices.framework in Frameworks */,
+				A8F8F147C3763F68E56C601C /* CoreGraphics.framework in Frameworks */,
+				6BE580AE765EFC51BB9E1B81 /* libz.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		00E89A3B0F527ED92A4C1A61 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D8B82DEE938D7D92FED24F1E /* libExternal.a */,
+				28169E2435FF687520DDBA68 /* libExternal (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		052795EB765C220CB91A73B9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				EDBD37A89120F0754471B804 /* revpdfprinter.bundle */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1139B3B3D42AA314B97CBC5D /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				919E2EC610C648A70592BE0F /* android-settings.gypi */,
+				5765CD1895EB08F507460943 /* android.gypi */,
+				626EDED54DC556658EE3826F /* arch.gypi */,
+				C005B00F33F1F4B5EF399E97 /* common.gypi */,
+				B7E4B6C3D1E12BB7F3AA64D1 /* configurations.gypi */,
+				23636D593507ED812471F29F /* crosscompile.gypi */,
+				7A6D1F01010C84946DF79053 /* emscripten-settings.gypi */,
+				D7152FC23E6EDE30B7302303 /* emscripten.gypi */,
+				1D1F07516A5F47CB3ADF2149 /* exclusions.gypi */,
+				B075B00AB7A4CC6EEF9696E8 /* ios.gypi */,
+				2C281D298E082F316D9BBC1E /* linux-settings.gypi */,
+				6A3AD33502C2B7DFAFA2ACC4 /* linux.gypi */,
+				EB126D4E856F90E9B7846D2C /* mac.gypi */,
+				54F877438555BE9A44BF7200 /* perl.gypi */,
+				51F7D4F7E506FC8A46C52C42 /* revpdfprinter.gyp */,
+				DADE7F8750FBB5D97E92868B /* target_os.gypi */,
+				4A0EA4757BD033460F403BDE /* thirdparty.gypi */,
+				12D24C963F85E26C414AA436 /* version.gypi */,
+				391E232E3B667C61EB81DC66 /* win32.gypi */,
+				A830C793F832988466F33247 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		2D8FDA32894A5134141815B8 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				27BA522D420B95C091D82113 /* revpdfprinter.cpp */,
+				9F6CBAE8421F6A2C13A5EC8C /* revpdfprinter.h */,
+				C090D492A310A44B2CA4561A /* revpdfprinter_android.cpp */,
+				3B2B383C217DAFC0E7DAF458 /* revpdfprinter_coretext.mm */,
+				D70F2D4AF88E4F9C59D3380D /* revpdfprinter_ios.mm */,
+				BA4F32353748300648A465A9 /* revpdfprinter_lnx.cpp */,
+				049674E038B04FE58579A817 /* revpdfprinter_osx.cpp */,
+				12E4F227146A28843CBBC86B /* revpdfprinter_w32.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		3ADA8F2F7A41BBC21C4CA076 /* .. */ = {
+			isa = PBXGroup;
+			children = (
+				4B65A525B126310F717E40BA /* version */,
+			);
+			path = ..;
+			sourceTree = "<group>";
+		};
+		40358BB7DD104B3ADC925E3E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		668BA9D1EBFAFC08234A2C7A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				78C2A39602551689C3623B1C /* ApplicationServices.framework */,
+				B8CD0E5ADFC8749278A1BC4F /* CoreGraphics.framework */,
+				0A139A5FD15AE12E8866B199 /* CoreServices.framework */,
+				ECD214C09AD68167C619AA63 /* CoreText.framework */,
+				E93695BAE1552748C475DEDA /* libcairo.a */,
+				6309249B3FC86E2BB00C87FF /* libz.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		C5F643DAD96B3B2587A5928E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				435B32317440873FA0271AB7 /* libCore.a */,
+				F82636337FE9757190F26B6F /* libCore (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CDD8669C3A66AE25CA65FB4D /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				E626DEB643A946D6B8938D16 /* fetch.xcodeproj */,
+				8E9591EF5A556B7E059C685B /* libcore.xcodeproj */,
+				6C2C517F4BAF4E5FFDE3598B /* libexternal.xcodeproj */,
+				A604551FE45503A41A5CDA83 /* thirdparty.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		E411F9AD5704B9552919BE1D /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				3ADA8F2F7A41BBC21C4CA076 /* .. */,
+				2D8FDA32894A5134141815B8 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		EA1F88762F9DD07FD3506973 = {
+			isa = PBXGroup;
+			children = (
+				E411F9AD5704B9552919BE1D /* Source */,
+				CDD8669C3A66AE25CA65FB4D /* Projects */,
+				668BA9D1EBFAFC08234A2C7A /* Frameworks */,
+				052795EB765C220CB91A73B9 /* Products */,
+				1139B3B3D42AA314B97CBC5D /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		EFB93C2A0857456051E54F2D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3CA43BB6D94D98075558BDBB /* external-revpdfprinter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 472684FB5EB5CC0F691BE3FD /* Build configuration list for PBXNativeTarget "external-revpdfprinter" */;
+			buildPhases = (
+				D38DA8B0EDE064CD1638A079 /* Sources */,
+				6B36B2FEBECE569AD11593A9 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				313D589C65C25BFA360BF6AD /* PBXTargetDependency */,
+				D991709EC3EE9B2AC4CD4D07 /* PBXTargetDependency */,
+				917BC064F9018F70EB964DF4 /* PBXTargetDependency */,
+				2045C823D77043DCB960DFE3 /* PBXTargetDependency */,
+				416E4293AC51E62E59693F44 /* PBXTargetDependency */,
+				36E281DC31F08640C2DB2F5C /* PBXTargetDependency */,
+				718FA5F62C2DD17AACDDBA9A /* PBXTargetDependency */,
+			);
+			name = "external-revpdfprinter";
+			productName = revpdfprinter;
+			productReference = EDBD37A89120F0754471B804 /* revpdfprinter.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EF668CFD9D45374EB94C64DB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 49FC40FD6115EB37C6C60132 /* Build configuration list for PBXProject "revpdfprinter" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = EA1F88762F9DD07FD3506973;
+			projectDirPath = ../../../revpdfprinter;
+			projectReferences = (
+				{
+					ProductGroup = EFB93C2A0857456051E54F2D /* Products */;
+					ProjectRef = E626DEB643A946D6B8938D16 /* fetch.xcodeproj */;
+				},
+				{
+					ProductGroup = C5F643DAD96B3B2587A5928E /* Products */;
+					ProjectRef = 8E9591EF5A556B7E059C685B /* libcore.xcodeproj */;
+				},
+				{
+					ProductGroup = 00E89A3B0F527ED92A4C1A61 /* Products */;
+					ProjectRef = 6C2C517F4BAF4E5FFDE3598B /* libexternal.xcodeproj */;
+				},
+				{
+					ProductGroup = 40358BB7DD104B3ADC925E3E /* Products */;
+					ProjectRef = A604551FE45503A41A5CDA83 /* thirdparty.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				3CA43BB6D94D98075558BDBB /* external-revpdfprinter */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		28169E2435FF687520DDBA68 /* libExternal (host).a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libExternal (host).a";
+			remoteRef = 12CB11A3F46AB85C2D21AF4F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		435B32317440873FA0271AB7 /* libCore.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libCore.a;
+			remoteRef = EF37EE8255B024CCDCAA6FB4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D8B82DEE938D7D92FED24F1E /* libExternal.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libExternal.a;
+			remoteRef = 8FBCFB10A60DBCFB1DC90AF1 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F82636337FE9757190F26B6F /* libCore (host).a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libCore (host).a";
+			remoteRef = 18D8426BBA545843FDCFF6D3 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D38DA8B0EDE064CD1638A079 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9819E59B8057ADB728E65E9E /* revpdfprinter.cpp in Sources */,
+				C0C86361519079CE39787A7D /* revpdfprinter_coretext.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2045C823D77043DCB960DFE3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_z;
+			targetProxy = 31849A2FB26F1059A664E8DD /* PBXContainerItemProxy */;
+		};
+		313D589C65C25BFA360BF6AD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = 6BB904AF2124F5F2BCD0A7FD /* PBXContainerItemProxy */;
+		};
+		36E281DC31F08640C2DB2F5C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = BF380AF599798EEDE7C20D31 /* PBXContainerItemProxy */;
+		};
+		416E4293AC51E62E59693F44 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = 1381B564DD5A23E75BA25332 /* PBXContainerItemProxy */;
+		};
+		718FA5F62C2DD17AACDDBA9A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = 55CA82897F08FF967800FA7A /* PBXContainerItemProxy */;
+		};
+		917BC064F9018F70EB964DF4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_cairo;
+			targetProxy = F24D63783C863AA6E14FF15E /* PBXContainerItemProxy */;
+		};
+		D991709EC3EE9B2AC4CD4D07 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = E5AB3CE090FA59BD1DA8B506 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1DF019974F41860BFA2181B1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXPORTED_SYMBOLS_FILE = revpdfprinter.exports;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../engine/include,
+					../libcore/include,
+					../libexternal/include,
+					../thirdparty/libcairo/src,
+				);
+				INFOPLIST_FILE = "rsrc/revpdfprinter-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revpdfprinter;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Release;
+		};
+		33086F60277E07A5E87F89AF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXPORTED_SYMBOLS_FILE = revpdfprinter.exports;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../engine/include,
+					../libcore/include,
+					../libexternal/include,
+					../thirdparty/libcairo/src,
+				);
+				INFOPLIST_FILE = "rsrc/revpdfprinter-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revpdfprinter;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Debug;
+		};
+		7ED609B1272B0401CE8DEB1E /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXPORTED_SYMBOLS_FILE = revpdfprinter.exports;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../engine/include,
+					../libcore/include,
+					../libexternal/include,
+					../thirdparty/libcairo/src,
+				);
+				INFOPLIST_FILE = "rsrc/revpdfprinter-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revpdfprinter;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Fast;
+		};
+		AAC55F8EFA55DFF4AA9E2F2D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4B65A525B126310F717E40BA /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		B7A39FE16EE9CB7F00F254DB /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4B65A525B126310F717E40BA /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		D363A540A488BB34B1483588 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4B65A525B126310F717E40BA /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		472684FB5EB5CC0F691BE3FD /* Build configuration list for PBXNativeTarget "external-revpdfprinter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				33086F60277E07A5E87F89AF /* Debug */,
+				7ED609B1272B0401CE8DEB1E /* Fast */,
+				1DF019974F41860BFA2181B1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		49FC40FD6115EB37C6C60132 /* Build configuration list for PBXProject "revpdfprinter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AAC55F8EFA55DFF4AA9E2F2D /* Debug */,
+				D363A540A488BB34B1483588 /* Fast */,
+				B7A39FE16EE9CB7F00F254DB /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = EF668CFD9D45374EB94C64DB /* Project object */;
+}

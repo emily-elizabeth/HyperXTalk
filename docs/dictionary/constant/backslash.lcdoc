@@ -1,0 +1,25 @@
+Name: backslash
+
+Type: constant
+
+Syntax: backslash
+
+Summary:
+Equivalent to the \ <character> (ASCII 92).
+
+Introduced: 2.0
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Example:
+put theDrive & backslash & theNode into windowsStylePath
+
+Description:
+Use the <backslash> <constant> as an easier-to-read replacement for "\". 
+
+References: constant (command), slash (constant), character (keyword)
+
+Tags: text processing
+

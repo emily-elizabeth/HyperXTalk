@@ -1,0 +1,51 @@
+Library: com.livecode.library.ini
+
+Type: library
+
+Summary: This library provides support for parsing INI files.
+
+Tags: INI, Library
+
+version: 1.0.0
+
+author: LiveCode
+
+
+Name: iniToArray
+
+Type: handler
+
+Syntax: iniToArray(<pIniString>)
+
+Summary: Parse INI text into a LiveCode value.
+
+pIniString: String containing the content of an INI file
+
+Returns: An array
+
+Description:
+<iniToArray> is used to convert data encoded in INI format into a LiveCode
+array. The resulting array will be multi-dimensional with each INI file
+section a parent key containing an array of key, value pairs. Key, value
+pairs that are not in a section are root array elements. 
+
+For example the file:
+
+    foo = bar
+    [section]
+    baz = 1
+
+Will create an array where the following statements are true:
+
+    array["foo"] is "bar"
+    array["section"]["baz"] is 1
+
+Tags: INI
+
+
+Parameters:
+:
+
+
+
+

@@ -1,0 +1,249 @@
+Library: com.livecode.library.widgetutils
+
+Type: module
+
+Summary: A library of utility handlers for functions commonly needed by widgets.
+
+version: 1.0.0
+
+author: LiveCode
+
+
+Name: colorToString
+
+Type: handler
+
+Syntax: colorToString(<pColor>,<pIncludeAlpha>)
+
+Summary: Converts a color to a string representing the color
+
+Parameters: 
+
+pColor: A value of type com.livecode.canvas.Color
+
+pIncludeAlpha: Whether to include the alpha value in the string or not
+
+Example:
+property widgetColor 	get getColor
+metadata widgetColor.editor is "com.livecode.pi.colorwithalpha"
+
+private variable mColor as Color
+
+public handler OnSave(out rProperties as Array)
+	put colorToString(mColor, true) into rProperties["color with alpha"]
+end handler
+
+public handler getColor() returns String
+	-- the editor used for the widgetColor property expects the alpha value to be included
+	return colorToString(mColor, true)
+end handler
+
+Example: log colorToString(color [0.4,0.4,0.4,0.4])			-- logs "102,102,102,102"
+
+Description:
+Use the <colorToString> handler when logging colors, returning them to LiveCode script 
+via a property getter, or serialising them in the widget's stored properties array for saving.
+
+
+
+Name: stringToColor
+
+Type: handler
+
+Syntax: stringToColor(<pString>)
+
+Summary: Converts a string to a color
+
+Parameters: 
+
+pString: A comma delimited string representing a color in RGB / RGBA format
+
+Example:
+property widgetColor 	get getColor	set setColor
+metadata widgetColor.editor is "com.livecode.pi.colorwithalpha"
+
+private variable mColor as Color
+
+public handler OnLoad(in pProperties as Array)
+	setColor(pProperties["color"])
+end handler
+
+public handler setColor(in pColor as String)
+	put stringToColor(pColor) into mColor
+	redraw all
+end handler
+
+Description:
+Use the <stringToColor> handler when receiving colors from LiveCode script 
+via a property setter, or from the widget's stored properties array when loading.
+
+
+
+Name: intToString
+
+Type: handler
+
+Syntax: intToString(<pNumber>)
+
+Summary: Formats an integer as a string
+
+Parameters: 
+
+pNumber: The integer to format
+
+Example:
+log 5 formatted as string 			-- logs 5.000000
+log intToString(5)						 -- logs 5
+
+Description:
+<intToString> formats an integer as a string, removing the decimal place and any zeros
+thereafter.
+
+
+
+Name: placeholderIcon
+
+Type: handler
+
+Syntax: placeholderIcon(<pOS>)
+
+Summary: Returns a placeholder icon for a given operating system
+
+Parameters: 
+
+pOS:
+The operating system.
+- "mac"
+- "ios"
+- "android"
+- "windows"
+- "linux"
+- "emscripten"
+
+Description:
+Use <placeholderIcon> to fetch an SVG icon that can be
+used as the placeholder image for a widget that is native to, and
+therefore only available on, a given operating system.
+
+
+
+Name: stripZeros
+
+Type: handler
+
+Syntax: stripZeros(<pString>)
+
+Summary: Removes any superfluous zeros and decimal places.
+
+Parameters: 
+
+pString: The string to remove zeros from
+
+Example:
+log stripZeros("5.0000000")			-- logs 5
+log stripZeros("5.432100")			-- logs 5.4321
+
+Description:
+Use <stripZeros> to remove any superfluous zeros and decimal places from <pString>
+which have been added by the 
+
+`tNumber formatted as string`
+
+syntax.
+
+
+
+Name: constrainPathToRect
+
+Type: handler
+
+Syntax: constrainPathToRect(<pTargetRect>,<xPath>)
+
+Summary: Scales and translates a path to fit within a rectangle
+
+Parameters: 
+
+pTargetRect: The rectangle to fit the path within
+
+xPath: The path to transform
+
+Example:
+use com.livecode.library.iconsvg
+
+public handler OnPaint() returns nothing
+	-- get the 'shopping cart' icon from the icon library
+	variable tPathString as String
+ 	put iconSVGPathFromName("shopping cart") into tPathString
+
+	-- create the path
+	variable tPath as Path
+	put path tPathString into tPath
+
+	-- scale the path to fit within the bounds of the widget
+	constrainPathToRect(my bounds, tPath)
+
+	-- fill the path
+	fill tPath on this canvas
+end handler
+
+Description:
+Scales and transforms <xPath> so that it fits within <pTargetRect> whilst maintaining its
+aspect ratio.
+
+
+
+Name: getNativeThemeName
+
+Type: handler
+
+Syntax: getNativeThemeName()
+
+Summary: Get the canonical name of the current "native" mobile theme
+
+Example:
+variable tNativeTheme as String
+put getNativeThemeName() into tNativeTheme
+
+if tNativeTheme is "android" then
+	-- Draw Android themed UI
+else
+	-- Draw iOS themed UI
+end if
+
+Description:
+Returns the name of the current theme that should be used when the theme is
+"native".
+
+Currently, this will return either "iOS" or "Android".
+
+
+
+Name: paintPlaceholderImage
+
+Type: handler
+
+Syntax: paintPlaceholderImage(<pCanvas>,<pBounds>,<pSVGIcon>,<pLabel>,<pFont>,<pColor>)
+
+Summary: Paint a placeholder image using an SVG icon and name
+
+Parameters: 
+
+pCanvas: The canvas on which to draw the placeholder
+
+pBounds: The rectangle in which to draw the placeholder on the canvas
+
+pSVGIcon: The placeholder icon to use
+
+pLabel: The label to use
+
+pFont: A font to draw the label with. If none specified, Arial 14pt is used.
+
+pColor: A color to draw the label with. If none specified, #404040 is used
+
+Description:
+Use the <paintPlaceHolder> image handler to draw a placeholder on the 
+given canvas when, for example, the widget shouldn't be displayed as 
+active in browse mode, or is not available on the current platform.
+
+
+

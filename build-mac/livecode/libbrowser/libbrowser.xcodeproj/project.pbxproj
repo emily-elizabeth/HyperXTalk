@@ -1,0 +1,938 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		0E768E10D84996BD7001E2FE /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 6249F371DF73146DA5AF949F /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				94ED5D16DC8BFE8D93EFFA60 /* PBXTargetDependency */,
+				D482996E719F8E798A65DF1B /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		0613B5F6A0F642362DE36495 /* libbrowser_value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76EB003DF7FBA69B967C6A32 /* libbrowser_value.cpp */; };
+		37AFDD6043D70927C62FB1CB /* libbrowser_osx_factories.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 80B0005E57698FE1712044CF /* libbrowser_osx_factories.cpp */; };
+		3EC9FA2BCD2BD34F48EDD401 /* libbrowser_value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 76EB003DF7FBA69B967C6A32 /* libbrowser_value.cpp */; };
+		4A5847E3709AB0A8BFB1B185 /* libbrowser_memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5C5D7E89259BDD25FE8233A9 /* libbrowser_memory.cpp */; };
+		75FC9F4F3CD0F251250ABF5A /* libbrowser_osx_webview.mm in Sources */ = {isa = PBXBuildFile; fileRef = B8A7CF64BB70EEBEC2B7EDAA /* libbrowser_osx_webview.mm */; };
+		B02361E89BD16DFEA7675B57 /* libbrowser_nsvalue.mm in Sources */ = {isa = PBXBuildFile; fileRef = C53A458BBA2EED700B2B3AD9 /* libbrowser_nsvalue.mm */; };
+		C405ECBC3980D89504651F74 /* libbrowser_memory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5C5D7E89259BDD25FE8233A9 /* libbrowser_memory.cpp */; };
+		D2AABE6F88EEB77493777498 /* libbrowser_osx_webview.mm in Sources */ = {isa = PBXBuildFile; fileRef = B8A7CF64BB70EEBEC2B7EDAA /* libbrowser_osx_webview.mm */; };
+		DC3ECD92D9AFDF5FA23CE8D7 /* libbrowser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3A39801663295A7688A0087A /* libbrowser.cpp */; };
+		DEC15E0C48848DE136ABA9F1 /* libbrowser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3A39801663295A7688A0087A /* libbrowser.cpp */; };
+		EA3451381FAC6A13A0B0FB84 /* libbrowser_osx_factories.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 80B0005E57698FE1712044CF /* libbrowser_osx_factories.cpp */; };
+		F05D6B63C95A4B7A21CBC8F1 /* libbrowser_nsvalue.mm in Sources */ = {isa = PBXBuildFile; fileRef = C53A458BBA2EED700B2B3AD9 /* libbrowser_nsvalue.mm */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		28C6BB3D00C18046C87F0380 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CBF62DEAC020D55311508FC0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8359E174E09867CAFCEB161C;
+			remoteInfo = "libbrowser (host)";
+		};
+		8C427E67150CDEBE74617AD1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CBF62DEAC020D55311508FC0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2E71B07034BE3C2C0F502B02;
+			remoteInfo = libbrowser;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		08D2A5AD942AAB75C2B6207E /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
+		0D94EE9184C865CDE138E85E /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../config/mac.gypi; sourceTree = "<group>"; };
+		13600D08F96E29AA72E7E1CD /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../config/win32.gypi; sourceTree = "<group>"; };
+		1362ED5044CBDD65FA2B3700 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
+		186BBAAE9E90A03874A22AD5 /* libbrowser_lnx_factories.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libbrowser_lnx_factories.cpp; sourceTree = "<group>"; };
+		19C0172B37CC532E91DD50B9 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../config/configurations.gypi; sourceTree = "<group>"; };
+		1BF599460030814A518444EB /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		20F75CAEE962E6757E2B70EC /* libbrowser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libbrowser.h; sourceTree = "<group>"; };
+		22CCEE42BCECAF0714530D36 /* signal_restore_posix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = signal_restore_posix.cpp; sourceTree = "<group>"; };
+		293CDEDF8A7BC56C073CF753 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
+		2E98F05FF36430D6A6B409AC /* libbrowser_win.rc */ = {isa = PBXFileReference; lastKnownFileType = text; path = libbrowser_win.rc; sourceTree = "<group>"; };
+		39B78F6807505768282EB998 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		3A05777719AE47EB249D7B73 /* libbrowser_nsvalue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libbrowser_nsvalue.h; sourceTree = "<group>"; };
+		3A13CF15683FB9F1211130D6 /* libbrowser_wkwebview.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = libbrowser_wkwebview.mm; sourceTree = "<group>"; };
+		3A39801663295A7688A0087A /* libbrowser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libbrowser.cpp; sourceTree = "<group>"; };
+		3C5501D1139520CC0467C3F1 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
+		46754C9A1663227B31016E1A /* libbrowser_cef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libbrowser_cef.h; sourceTree = "<group>"; };
+		48770670C1632EE334B47A4B /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../config/thirdparty.gypi; sourceTree = "<group>"; };
+		50D0C7D1AAB96C1ACAF184C1 /* libbrowser.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libbrowser.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		596F4135912A879BDA1B4A42 /* libbrowser (host).a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libbrowser (host).a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5C5D7E89259BDD25FE8233A9 /* libbrowser_memory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libbrowser_memory.cpp; sourceTree = "<group>"; };
+		76EB003DF7FBA69B967C6A32 /* libbrowser_value.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libbrowser_value.cpp; sourceTree = "<group>"; };
+		7C7DA80C0B1BF368A1A1F339 /* libbrowser_ios_factories.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libbrowser_ios_factories.cpp; sourceTree = "<group>"; };
+		7E3CFA17EC66DAB8419B5E07 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../config/version.gypi; sourceTree = "<group>"; };
+		80B0005E57698FE1712044CF /* libbrowser_osx_factories.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libbrowser_osx_factories.cpp; sourceTree = "<group>"; };
+		8549A1146A19F62C8DE4C42B /* libbrowser.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libbrowser.gyp; sourceTree = "<group>"; };
+		88674830D0F837D9FEBF6B0C /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../config/crosscompile.gypi; sourceTree = "<group>"; };
+		94FFE55B50861226B265EE5B /* libbrowser_android.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libbrowser_android.cpp; sourceTree = "<group>"; };
+		95D5069128455A3248E873D2 /* libbrowser_cef.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libbrowser_cef.cpp; sourceTree = "<group>"; };
+		9E03FB390254126060170DC1 /* libbrowser_cef_lnx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libbrowser_cef_lnx.cpp; sourceTree = "<group>"; };
+		A7AC8C08F8F23547EAF9D2C8 /* libbrowser_cef_win.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libbrowser_cef_win.cpp; sourceTree = "<group>"; };
+		A9CA37F85DE2E79E5E6B9A08 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
+		AC396249921026AE9E0466BD /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
+		B2CD5F1891092B8A43A583AD /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
+		B8A7CF64BB70EEBEC2B7EDAA /* libbrowser_osx_webview.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = libbrowser_osx_webview.mm; sourceTree = "<group>"; };
+		BDEA12280524694B0D2ED5DD /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
+		C0241DC7769A52AE31A8402D /* libbrowser_internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libbrowser_internal.h; sourceTree = "<group>"; };
+		C07CEA39EA10D321B8D1FADE /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		C53A458BBA2EED700B2B3AD9 /* libbrowser_nsvalue.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = libbrowser_nsvalue.mm; sourceTree = "<group>"; };
+		C99C052132DD27AA70E71A4D /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
+		CFA05BE33D2AA0B0469E66CA /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
+		CFE9712BB745D2E3B0482F58 /* libbrowser_win_factories.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = libbrowser_win_factories.cpp; sourceTree = "<group>"; };
+		D6B2A19E4260EFB2D1B03A4C /* libbrowser_win.rc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libbrowser_win.rc.h; sourceTree = "<group>"; };
+		DADD2952149120A232CC33EF /* libbrowser_osx_webview.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libbrowser_osx_webview.h; sourceTree = "<group>"; };
+		F0602186FFD119C092210F6B /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
+		F71498BD35D499D296708668 /* libbrowser_wkwebview.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libbrowser_wkwebview.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1E09D0A839E063F751E5B821 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		243AD0D7A399DBDBB4715A34 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0B12345773B7F11BEAF3D23E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				50D0C7D1AAB96C1ACAF184C1 /* libbrowser.a */,
+				596F4135912A879BDA1B4A42 /* libbrowser (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5614A17E8E39AC2B4074DA65 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				3A39801663295A7688A0087A /* libbrowser.cpp */,
+				94FFE55B50861226B265EE5B /* libbrowser_android.cpp */,
+				95D5069128455A3248E873D2 /* libbrowser_cef.cpp */,
+				46754C9A1663227B31016E1A /* libbrowser_cef.h */,
+				9E03FB390254126060170DC1 /* libbrowser_cef_lnx.cpp */,
+				A7AC8C08F8F23547EAF9D2C8 /* libbrowser_cef_win.cpp */,
+				C0241DC7769A52AE31A8402D /* libbrowser_internal.h */,
+				7C7DA80C0B1BF368A1A1F339 /* libbrowser_ios_factories.cpp */,
+				186BBAAE9E90A03874A22AD5 /* libbrowser_lnx_factories.cpp */,
+				5C5D7E89259BDD25FE8233A9 /* libbrowser_memory.cpp */,
+				3A05777719AE47EB249D7B73 /* libbrowser_nsvalue.h */,
+				C53A458BBA2EED700B2B3AD9 /* libbrowser_nsvalue.mm */,
+				80B0005E57698FE1712044CF /* libbrowser_osx_factories.cpp */,
+				DADD2952149120A232CC33EF /* libbrowser_osx_webview.h */,
+				B8A7CF64BB70EEBEC2B7EDAA /* libbrowser_osx_webview.mm */,
+				76EB003DF7FBA69B967C6A32 /* libbrowser_value.cpp */,
+				2E98F05FF36430D6A6B409AC /* libbrowser_win.rc */,
+				D6B2A19E4260EFB2D1B03A4C /* libbrowser_win.rc.h */,
+				CFE9712BB745D2E3B0482F58 /* libbrowser_win_factories.cpp */,
+				F71498BD35D499D296708668 /* libbrowser_wkwebview.h */,
+				3A13CF15683FB9F1211130D6 /* libbrowser_wkwebview.mm */,
+				22CCEE42BCECAF0714530D36 /* signal_restore_posix.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		79EC9CE059BD6304B49D65CB = {
+			isa = PBXGroup;
+			children = (
+				83522D5432DE5DD108C05C4E /* Source */,
+				0B12345773B7F11BEAF3D23E /* Products */,
+				EA2B69BE4939306642EEE3EE /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		83522D5432DE5DD108C05C4E /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				8CAEBC73BC2C86C39C56A27A /* .. */,
+				E48D5200ABA07F9CD9174B72 /* include */,
+				5614A17E8E39AC2B4074DA65 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		8CAEBC73BC2C86C39C56A27A /* .. */ = {
+			isa = PBXGroup;
+			children = (
+				1BF599460030814A518444EB /* version */,
+			);
+			path = ..;
+			sourceTree = "<group>";
+		};
+		E48D5200ABA07F9CD9174B72 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				20F75CAEE962E6757E2B70EC /* libbrowser.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		EA2B69BE4939306642EEE3EE /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				C99C052132DD27AA70E71A4D /* android-settings.gypi */,
+				1362ED5044CBDD65FA2B3700 /* android.gypi */,
+				F0602186FFD119C092210F6B /* arch.gypi */,
+				BDEA12280524694B0D2ED5DD /* common.gypi */,
+				19C0172B37CC532E91DD50B9 /* configurations.gypi */,
+				88674830D0F837D9FEBF6B0C /* crosscompile.gypi */,
+				39B78F6807505768282EB998 /* emscripten-settings.gypi */,
+				AC396249921026AE9E0466BD /* emscripten.gypi */,
+				B2CD5F1891092B8A43A583AD /* exclusions.gypi */,
+				A9CA37F85DE2E79E5E6B9A08 /* ios.gypi */,
+				8549A1146A19F62C8DE4C42B /* libbrowser.gyp */,
+				C07CEA39EA10D321B8D1FADE /* linux-settings.gypi */,
+				293CDEDF8A7BC56C073CF753 /* linux.gypi */,
+				0D94EE9184C865CDE138E85E /* mac.gypi */,
+				08D2A5AD942AAB75C2B6207E /* perl.gypi */,
+				CFA05BE33D2AA0B0469E66CA /* target_os.gypi */,
+				48770670C1632EE334B47A4B /* thirdparty.gypi */,
+				7E3CFA17EC66DAB8419B5E07 /* version.gypi */,
+				13600D08F96E29AA72E7E1CD /* win32.gypi */,
+				3C5501D1139520CC0467C3F1 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2E71B07034BE3C2C0F502B02 /* libbrowser */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 701CE331E831EFF5ACE32019 /* Build configuration list for PBXNativeTarget "libbrowser" */;
+			buildPhases = (
+				8CF9238DC2271C75A63EF0A5 /* Sources */,
+				1E09D0A839E063F751E5B821 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = libbrowser;
+			productName = browser;
+			productReference = 50D0C7D1AAB96C1ACAF184C1 /* libbrowser.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		8359E174E09867CAFCEB161C /* libbrowser (host) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 669C6DCD90E29823871D51E5 /* Build configuration list for PBXNativeTarget "libbrowser (host)" */;
+			buildPhases = (
+				111260244B3DDB626AA2FA83 /* Sources */,
+				243AD0D7A399DBDBB4715A34 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "libbrowser (host)";
+			productName = "browser (host)";
+			productReference = 596F4135912A879BDA1B4A42 /* libbrowser (host).a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CBF62DEAC020D55311508FC0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 2803366E7E763C0A0C39049F /* Build configuration list for PBXProject "libbrowser" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 79EC9CE059BD6304B49D65CB;
+			projectDirPath = ../../../libbrowser;
+			projectRoot = "";
+			targets = (
+				0E768E10D84996BD7001E2FE /* All */,
+				2E71B07034BE3C2C0F502B02 /* libbrowser */,
+				8359E174E09867CAFCEB161C /* libbrowser (host) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		111260244B3DDB626AA2FA83 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DC3ECD92D9AFDF5FA23CE8D7 /* libbrowser.cpp in Sources */,
+				4A5847E3709AB0A8BFB1B185 /* libbrowser_memory.cpp in Sources */,
+				0613B5F6A0F642362DE36495 /* libbrowser_value.cpp in Sources */,
+				75FC9F4F3CD0F251250ABF5A /* libbrowser_osx_webview.mm in Sources */,
+				F05D6B63C95A4B7A21CBC8F1 /* libbrowser_nsvalue.mm in Sources */,
+				EA3451381FAC6A13A0B0FB84 /* libbrowser_osx_factories.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8CF9238DC2271C75A63EF0A5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DEC15E0C48848DE136ABA9F1 /* libbrowser.cpp in Sources */,
+				C405ECBC3980D89504651F74 /* libbrowser_memory.cpp in Sources */,
+				3EC9FA2BCD2BD34F48EDD401 /* libbrowser_value.cpp in Sources */,
+				D2AABE6F88EEB77493777498 /* libbrowser_osx_webview.mm in Sources */,
+				B02361E89BD16DFEA7675B57 /* libbrowser_nsvalue.mm in Sources */,
+				37AFDD6043D70927C62FB1CB /* libbrowser_osx_factories.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		94ED5D16DC8BFE8D93EFFA60 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2E71B07034BE3C2C0F502B02 /* libbrowser */;
+			targetProxy = 8C427E67150CDEBE74617AD1 /* PBXContainerItemProxy */;
+		};
+		D482996E719F8E798A65DF1B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8359E174E09867CAFCEB161C /* libbrowser (host) */;
+			targetProxy = 28C6BB3D00C18046C87F0380 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		023851F490583DB1BD857837 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1BF599460030814A518444EB /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		1E93FFD3DDF31101C0C717D2 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Fast;
+		};
+		35D556FE94277C8845E13AD2 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					../libcore/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "browser (host)";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		47649B420FB8D0EA24CDCACE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		4F493B06D23AD9C95B0BF9FB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					../libcore/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = browser;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		5BCB7F34BB6F16EA97DD988D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1BF599460030814A518444EB /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		6092009C0F017672C602CE8E /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					../libcore/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = browser;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		6C39DA8DC1D99A2DE19A942D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					../libcore/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "browser (host)";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		81A42FC132D59CA130A194BF /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1BF599460030814A518444EB /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		82336E3D91670528E59911BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					../libcore/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "browser (host)";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		9E8AE5C2DDA85E82AA22F4E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = lib;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					../libcore/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = browser;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		DB1C42C716B8A5AA1ED13FC2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2803366E7E763C0A0C39049F /* Build configuration list for PBXProject "libbrowser" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5BCB7F34BB6F16EA97DD988D /* Debug */,
+				81A42FC132D59CA130A194BF /* Fast */,
+				023851F490583DB1BD857837 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		6249F371DF73146DA5AF949F /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				47649B420FB8D0EA24CDCACE /* Debug */,
+				1E93FFD3DDF31101C0C717D2 /* Fast */,
+				DB1C42C716B8A5AA1ED13FC2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		669C6DCD90E29823871D51E5 /* Build configuration list for PBXNativeTarget "libbrowser (host)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C39DA8DC1D99A2DE19A942D /* Debug */,
+				35D556FE94277C8845E13AD2 /* Fast */,
+				82336E3D91670528E59911BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		701CE331E831EFF5ACE32019 /* Build configuration list for PBXNativeTarget "libbrowser" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4F493B06D23AD9C95B0BF9FB /* Debug */,
+				6092009C0F017672C602CE8E /* Fast */,
+				9E8AE5C2DDA85E82AA22F4E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CBF62DEAC020D55311508FC0 /* Project object */;
+}

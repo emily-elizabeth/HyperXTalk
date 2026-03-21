@@ -1,0 +1,86 @@
+Name: fullClipboardData
+
+Type: property
+
+Syntax: set the fullClipboardData[<key>] to <data>
+
+Syntax: set the fullClipboardData to empty
+
+Summary:
+Provides access to the contents of the <clipboard(glossary)>.
+
+Introduced: 8.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+lock the clipboard
+put the keys of the fullClipboardData
+unlock the clipboard
+
+Example:
+lock the clipboard
+set the fullClipboardData["text"] to "Hello, World!"
+set the fullClipboardData["html"] to "&lt;p&gt;Hello, World!&lt;/p&gt;"
+set the fullClipboardData["private"] to "MyCustomData"
+unlock the clipboard
+
+Value:
+The <fullClipboardData> pseudo-array provides access to the data on 
+the <clipboard(glossary)>. It can only be accessed while the 
+<clipboard(glossary)> is locked.
+
+Description:
+Use the <fullClipboardData> to gain access to the system 
+<clipboard(glossary)>. The keys for the <fullClipboardData> are:
+
+  - "text": plain text
+  - "rtftext": LiveCode rich text format data
+  - "htmltext": LiveCode HTML text
+  - "styledtext": array of LiveCode styled text
+  - "image": any of PNG, GIF or JPEG image. If on Windows, 
+  additionally BMP image.
+  - "png": PNG image
+  - "gif": GIF image
+  - "jpeg": JPEG image
+  - "windows bitmap": BMP image (Windows only)
+  - "windows metafile": Windows native vector graphics image (Windows 
+  only)
+  - "rtf": Rich Text Format data
+  - "html": HTML
+  - "styles": LiveCode styled text data
+  - "objects": LiveCode objects
+  - "files": List of newline-separated file paths
+  - "private": available for in-app use
+
+
+>*Note:* More keys and data types may be added in the future.
+
+If the contents of the <clipboard(glossary)> were placed there by 
+another app, the <clipboard(glossary)> will be automatically cleared 
+when written to. If you want to do this explicitly, use 
+`set the fullClipboardData to empty`.
+
+The `rtftext`, `htmltext`, `styles` and `styledtext` properties are 
+handled specially by LiveCode: adding any one of them will cause the 
+rest (plus `text`) to be automatically generated and added. You can 
+query the keys of the <fullClipboardData> to determine what types of 
+data are on the <clipboard(glossary)>. When setting the `text` property
+the clipboard (with the exception of private data) is cleared if it
+includes any of these properties. This is to allow setting plain text
+only.
+
+If you require lower-level access to the <clipboard(glossary)>, see the 
+<rawClipboardData> <property>.
+
+>*Tip:* It is good practice to lock the <clipboard(glossary)> before 
+accessing it to prevent data corruption.
+
+References: lock clipboard (command), unlock clipboard (command),
+clipboard (function), clipboard (glossary), clipboardData (property),
+rawClipboardData (property), fullDragData (property)
+
+Tags: ui, clipboard
+

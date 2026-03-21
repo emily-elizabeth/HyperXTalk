@@ -1,0 +1,224 @@
+Library: com.livecode.library.mime
+
+Type: library
+
+Title: MIME Library
+
+Version: 1.0.0
+
+Author: LiveCode
+
+Description:
+This script library implements portions of Multipurpose Internet Mail 
+Extensions (MIME) as described in RFCs 2045 - 2049. Use this library to 
+implement common data formats such as email message bodies and form 
+encoding in HTTP.
+
+Name: mimeTheMIMETypeOfExtension
+
+Type: function
+
+Syntax: mimeTheMIMETypeOfExtension(<pExtension>)
+
+Summary: Determine the MIME type for a file extension
+
+Example: put "Content-Type:" && mimeTheMIMETypeOfExtension("xls") & crlf after tHeaders
+
+Parameters: 
+
+pExtension: A file extension
+
+Description:
+The mime types listed are the default mime types in an Apache web server installation
+for a given file extension. If the file extension is not found then `application/octet-stream`
+will be returned.
+
+Returns: A mime type for the given file extension.
+
+
+
+
+Name: mimeTheExtensionsOfMIMEType
+
+Type: function
+
+Syntax: mimeTheExtensionsOfMIMEType(<pMimeType>)
+
+Summary: List extensions that match a MIME type or MIME type wildcard pattern
+
+Example: put line 1 of mimeTheExtensionsOfMIMEType("application/epub+zip") into tExtension
+
+Example: put mimeTheExtensionsOfMIMEType("image/*") into tImageExtensions
+
+Parameters: 
+
+pMIMEType: A MIME type or wildcard pattern for matching a MIME type
+
+Description:
+List the extensions associated with a given MIME type or with a MIME type matching
+a wildcard pattern.
+
+Returns: A list of extensions or empty if none were found.
+
+
+
+
+Name: mimeEncodeFieldAsMIMEMultipartDocument
+
+Type: function
+
+Syntax: mimeEncodeFieldAsMIMEMultipartDocument(<pField>)
+
+Summary: Generate multipart content from a field control
+
+Example:
+put mimeEncodeFieldAsMIMEMultipartDocument(the long id of field "email") into tBody
+SendEmail tBody
+
+Description: Parses the content of a field to create multipart content
+
+Parameters: 
+
+pField: The long id of the field to encode
+
+The result: An error message if an error was encountered
+
+It: Set to the multipart content generated from the field content
+
+
+
+
+Name: mimeEncodeForMIMETransfer
+
+Type: function
+
+Syntax: mimeEncodeForMIMETransfer(<pData>,<pEncoding>)
+
+Summary: Encode data in content transfer encoding
+
+Example:
+put tHeaders & crlf & crlf & \
+      mimeEncodeForMIMETransfer(tEmailBody, "quoted-printable") into tContentA[1]
+
+Parameters: 
+
+pData:
+The data to be encoded. If the parameter is not binary data then it will
+be encoded to binary as UTF-8 encoded text before encoding with the
+requested form. 
+
+pEncoding:
+The encoding to return the data in
+- "quoted-printable": Quoted printable encoding. Most likely used for text with many ASCII characters
+- "base64": Base 64 encoding
+
+Description: Use the <mimeEncodeForMIMETransfer> function to encode data for transfer
+
+Returns: The encoded data
+
+References: textEncode (function)
+
+
+
+
+Name: mimeEncodeAsMIMEMultipartDocument
+
+Type: function
+
+Syntax: mimeEncodeAsMIMEMultipartDocument(<pContentA>,<pMultipartType>,<pParamA>)
+
+Summary: Build a multipart mime content type from an array of pre-encoded content
+
+Example:
+put "text/html" into tParamA["type"]
+put mimeEncodeAsMIMEMultipartDocument(tContentA, "related", tParamA) into tMailBody
+
+Description:
+This command takes an array of pre-encoded content and creates a multipart
+content type header and boundary to build a single multipart encoded value.
+
+Parameters: 
+
+pContentA:
+A numerically indexed array of pre-encoded parts including headers. If no headers are present
+a leading crlf should be present.
+
+pMultipartType: The type of multipart content. If not provided the default type will be `mixed`.
+
+pParamA: Array of key : value pairs of additional options to be included in the Content-Type header
+
+Returns: The multipart encoded content
+
+
+
+
+Name: mimeEncodeAsMIMEEmail
+
+Type: command
+
+Syntax: mimeEncodeAsMIMEEmail <pBody>,<pFrom>,<pTo>,<pCc>,<pSubject>,<pAttachmentA>
+
+Summary: Create data to be sent as an email
+
+Example:
+put mimeEncodeFieldAsMIMEMultipartDocument(the long id of field "email") into tBody
+mimeEncodeAsMIMEEmail tBody, "sales@livecode.com", field "email", , "Purchase order"
+
+local tBytes, tSettings, tResponseHeaders
+put "username" into tSettings["username"]
+put "p@$$w0rd" into tSettings["password"]
+
+local tResult
+put tsNetSmtpSync("smtps://mail.livecode.com:465", "sales@livecode.com", field "email", it, tResponseHeaders,tBytes,tSettings) into tResult
+if tResult begins with "tsneterr:" then
+   answer error "Error:" & word 2 to -1 of tResult
+end if
+
+Description: Creates the data to be sent as an email via an SMTP server
+
+Parameters: 
+
+pBody:
+The pre-encoded body of the email. See the <mimeEncodeFieldAsMIMEMultipartDocument>
+<function> for an easy way to generate the body from field content.
+
+pFrom: From email address
+
+pTo: Recipient email addresses with one per line
+
+pCc: Copy to email addresses with one per line
+
+pSubject: Email subject line
+
+pAttachmentA:
+A numerically indexed (1..N) multi-dimensional
+array. Each element describes a different attachment. The elements of
+the array may contain the following keys.
+
+- "filepath": The full path to the file. Optional if the "data" element has a value
+- "data": The file data. Optional if the "filepath" element has a value
+- "name": The file name. Optional if the "filepath" element has a value
+- "mimetype": The file mime type. Optional if the "filepath" or "name" element has an extension
+
+The result: An error message if an error was encountered
+
+It: Set to the email body including headers
+
+
+
+
+Name: mimeTheMIMEVersion
+
+Type: function
+
+Syntax: mimeTheMIMEVersion()
+
+Summary: The MIME version this implemented in the library
+
+Example: put "MIME-Version:" && mimeTheMIMEVersion() & crlf after tHeaders
+
+Description: Use the <mimeTheMIMEVersion> function create a `MIME-Version` header.
+
+
+
+

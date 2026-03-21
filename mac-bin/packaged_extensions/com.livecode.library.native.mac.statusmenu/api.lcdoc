@@ -1,0 +1,261 @@
+Library: com.livecode.library.native.mac.statusmenu
+
+Type: library
+
+Summary: Manage mac status menus
+
+Description: This library allows the creation and management of mac status menus
+
+version: 1.0.0
+
+author: LiveCode
+
+Name: macStatusMenuPick
+
+Type: message
+
+Syntax: macStatusMenuPick <pName>, <pChosenItem>
+
+OS: mac
+
+Platforms: desktop
+
+Summary: Sent when an item is picked from the menu
+
+Parameters: 
+
+pName: The name of the status menu that the item was picked from
+
+pChosenItem:
+The label of the menu item the user chose. If the menu item chosen
+is part of a submenu, the menu item label is followed by a vertical bar (|) and
+the submenu's label.
+
+Description:
+The <macStatusMenuPick> message is sent to the object that created the status
+menu using the <macStatusMenuCreate> handler.
+
+References: macStatusMenuCreate (handler)
+
+
+Name: macStatusMenuCreate
+
+Type: handler
+
+Syntax: macStatusMenuCreate(<pName>)
+
+Summary: Create a status menu
+
+OS: mac
+
+Platforms: desktop
+
+Example: macStatusMenuCreate "mymenu"
+
+Parameters: 
+
+pName: The name of the status menu to create
+
+Description:
+Use <pName> to refer to the status menu when setting properties and deleting
+the status menu.
+
+
+
+Name: macStatusMenuNames
+
+Type: handler
+
+Syntax: macStatusMenuNames()
+
+Summary: Get the names of any menus that have been created
+
+OS: mac
+
+Platforms: desktop
+
+Example:
+if "mymenu" is among the lines of macStatusMenuNames() then
+	macStatusMenuDelete "mymenu"
+end if
+
+Returns: A return delimited list of menu names.
+
+Description:
+Use macStatusMenuNames to ensure that a menu has been created before calling a
+handler that may throw an error if called with a menu that does not exist.
+
+
+
+Name: macStatusMenuSet
+
+Type: handler
+
+Syntax: macStatusMenuSet(<pName>,<pProperty>,<pValue>)
+
+Summary: Set a property on a status menu
+
+OS: mac
+
+Platforms: desktop
+
+Example:
+on EnableStatusMenu pEnabled
+   macStatusMenuSet "mymenu", "enabled", pEnabled
+   if pEnabled then
+      macStatusMenuSet "mymenu", "icon", the long id of image "enabled"
+      macStatusMenuSet "mymenu", "items", "Open" & return & "-" & return & "Settings" 
+   else
+      macStatusMenuSet "mymenu", "icon", the long id of image "disabled"
+      macStatusMenuSet "mymenu", "items", empty
+   end if
+end EnableStatusMenu
+
+Parameters: 
+
+pName: The name of a previously created status menu
+
+pProperty:
+ - "visible" - (boolean) set to false to hide the menu. Defaults to true.
+ - "enabled" - (boolean) set to false to make the menu appear disabled. Use in
+ comination with setting the items to empty so that the menu does not show when
+ the user clicks on it. Defaults to true.
+ - "tooltip" - (string) the tooltip to show over the status menu
+ - "icongravity" - (enum) one of "left", "right" or "center". Used when displaying
+ both a menu title and icon
+ - "length" - one of "square", "variable" or a number. Note "variable" mode does
+ not appear to dynamically update the width as stated in Apple documentation.
+ - "icon" - (string) the full path to an image file or a reference to an image object. If
+ the image object has its filename set it must be a full path. If it is an imported
+ image then it must be in a format supported by NSImage -initWithContentsOfFile.
+ Setting the icon to empty to clear it.
+ - "title" - (string) the title of the menu. Set to empty (the default) to only use an icon.
+ - "items" - (string) the items of is a similar format used by LiveCode menus
+
+pValue: The value as described for each property
+
+Description:
+Specify the menu items in the following form:
+
+    [<flags>] <label> ['/' <accelerator> ['|' <tag>]]
+
+Where <flags> may include:
+
+!c, !n, !m: the menu item has respectively, a check, no check, or a mixed state icon
+
+>**Note:** A difference between standard LiveCode menus and the macStatusMenu
+> library is that the radio button (!r) used in LiveCode menus is not supported,
+> however, the mixed state (!m) is. Additionally you can use the <macStatusMenuSetCustomIcon>
+> command to specify a custom icon.
+
+(: the menu item is disabled
+
+-: the menu item is replaced with a menu separator
+
+multiple tab characters: the number of tabs specifes the depth of the menu item;
+use this to create submenus 
+
+The <accelerator> can be specified as one of:
+
+char: Command key + specified char
+
+keyname:
+Named key without modifiers
+modifiers char: Specified modifiers + character
+modifiers keyname: Specified modifiers + named key
+In the accelerator, modifiers is either a space separated list of: 
+
+- 'command' or 'cmd'
+- 'control' or 'ctrl'
+- 'option' or 'opt', 'alt', 'shift'
+
+In this case the keyname/char should be separated from the list by a space
+
+Or modifiers may be a sequence of characters, including:
+
+^: Command
+@: Shift
+#: Option
+%: Control
+
+In this case no space between the sequence and keyname/char is required
+
+The following named keys are supported:
+
+F1, F2, F3, F4, ... F15,
+Left, Up, Right, Down,
+Backspace, Delete,
+Tab, Space,
+Return, Enter,
+Home, End, Escape,
+PgUp, PgDown
+
+A tag can be specified as a | character followed by a string of ASCII characters. 
+If such a tag is present then that tag will take the place of the menu label as 
+the parameter to the menuPick.
+
+A tag will only be recognised following the <accelerator>. To specify a menu tag 
+without an accelerator shortcut, an empty <accelerator> can be specified using /| 
+followed by the tag text.
+
+References: macStatusMenuSetCustomIcon (handler)
+
+
+
+
+Name: macStatusMenuDelete
+
+Type: handler
+
+Syntax: macStatusMenuDelete(<pName>)
+
+Summary: Delete a status menu
+
+OS: mac
+
+Platforms: desktop
+
+Example: macStatusMenuDelete "mymenu"
+
+Parameters: 
+
+pName: The name of a previously created status menu
+
+Description: Deleting the status menu removes it from the staus menubar
+
+
+
+
+Name: macStatusMenuSetCustomIcon
+
+Type: handler
+
+Syntax: macStatusMenuSetCustomIcon(<pCharacter>,<pImage>)
+
+Summary: Create a custom icon for use when setting menu items
+
+OS: mac
+
+Platforms: desktop
+
+Example: macStatusMenuCreate "r", the long id of image "dot"
+
+Parameters: 
+
+pCharacter:
+a single character to associate with the icon. May not be
+c, n or m as those characters are reserved
+
+pImage:
+the path to an image file or a reference to an image object. If
+it is an imported image then it must be in a format supported by
+`NSImage -initWithContentsOfFile`.
+
+Description:
+When creating the menu items the icon to use for the item is identified by `!`
+followed by a character. The builtin icons are `c` (checkmark), `n` (no checkmark)
+and `m` (mixed state). Use <macStatusMenuSetCustomIcon> to add another custom icon
+to use.
+
+
+

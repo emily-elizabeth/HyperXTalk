@@ -1,0 +1,47 @@
+Name: revXMLRPC_SetProtocol
+
+Type: command
+
+Syntax: revXMLRPC_SetProtocol <XMLRPCdocumentID>, <connProtocol>
+
+Summary:
+Sets the protocol of an <XML-RPC document> structure.
+
+Associations: xml-rpc library
+
+Introduced: 2.5
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Security: disk, process
+
+Parameters:
+XMLRPCdocumentID (integer):
+The number returned by the <revXMLRPC_CreateRequest> when you created the
+<XML-RPC> request.
+
+connProtocol (string):
+The protocol determines the type of connection that is established with
+the host. By default, <XML-RPC> uses HTTP connections, but for added
+security you can use HTTPS connections, if the host supports it.
+
+
+The result (string):
+If the <revXMLRPC_SetProtocol> <command> encounters an error, the
+<result> is set to an error message beginning with "xmlrpcerr".
+
+Description:
+Use the <revXMLRPC_SetProtocol> <command> to set the protocol that is
+used for the connection during the execution of an <XML-RPC> request.
+
+
+References: result (function), revXMLRPC_GetProtocol (function),
+revXMLRPC_CreateRequest (function),
+Standalone Application Settings (glossary),
+standalone application (glossary), command (glossary),
+XML-RPC (glossary), LiveCode custom library (glossary),
+XML-RPC library (library)
+
+Tags: networking

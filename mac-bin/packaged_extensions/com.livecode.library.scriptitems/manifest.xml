@@ -1,0 +1,22 @@
+<package version="0.0">
+  <name>com.livecode.library.scriptitems</name>
+  <title>LiveCode Script item list handling</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <license>community</license>
+  <type>module</type>
+  <requires name="com.livecode.typeconvert"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.byte"/>
+  <requires name="com.livecode.char"/>
+  <handler name="parseItemsAsStringList" parameters="in string,in optional number,in optional string" return="list"/>
+  <handler name="parseItemsAsNumberList" parameters="in string,in optional number,in optional number" return="list"/>
+  <handler name="formatStringListAsItems" parameters="in list" return="string"/>
+  <handler name="formatNumberListAsItems" parameters="in list" return="string"/>
+</package>

@@ -1,0 +1,688 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01CA550045E8783972A196E6 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2715EA68143AB71052124A7 /* CoreServices.framework */; };
+		042923775E5AB58770B03C6C /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 33C39F9017F602D13EB9F7FA /* libCore.a */; };
+		0DAA0A029305D96954F630A4 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8E491B012A83B961AF850D35 /* Carbon.framework */; };
+		200DF8B2EB42798FCFDD80AE /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9E47ACF320525F42B7996B25 /* libExternal.a */; };
+		CBBAC19CB676845F43BF6883 /* osxspeech.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 363DEF712E04E1F0DE781384 /* osxspeech.cpp */; };
+		DFFFCB64628F7C4DDA08FF38 /* revspeech.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A34FEECAA7D188F8F70731F8 /* revspeech.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		266B87FD3671B8FF3C73C528 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BC068169829C5154AFD86F08 /* libcore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 065138166E84E87D0D2F7187;
+			remoteInfo = "libCore (host)";
+		};
+		62C33421DD31244F43735311 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 943C0DBFD01B154F31084B5B /* libexternal.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 73AD7E038E4E1683AE423BFC;
+			remoteInfo = libExternal;
+		};
+		682D3865387BE4DAC3BA2C85 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BC068169829C5154AFD86F08 /* libcore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DD44348CE0FC9FD8CA3DC4E0;
+			remoteInfo = libCore;
+		};
+		893010C3C1DA4F9DAE6445C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BC068169829C5154AFD86F08 /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		A28F9A98DC884460D5A28AC8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 943C0DBFD01B154F31084B5B /* libexternal.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7DAF95721375FEF9FB6262D6;
+			remoteInfo = "libExternal (host)";
+		};
+		B826C70D7EB86B1E69EF8586 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 943C0DBFD01B154F31084B5B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		017E45ED506FF56CC3DAA43D /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		1269D471732DBA09FCEA5AF4 /* w32speech.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = w32speech.cpp; sourceTree = "<group>"; };
+		14A85B5536E7A74363913ECE /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
+		23C6594063B79E99E29C6233 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
+		2CFC168F7C9CB4B49D462BF0 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
+		363DEF712E04E1F0DE781384 /* osxspeech.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = osxspeech.cpp; sourceTree = "<group>"; };
+		3E6727054C8D9314503A1B2A /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
+		501E47CAF91009DCA367ACCE /* revspeech.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = revspeech.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		55433C463497EDED48A32AAD /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
+		6FB2AC2211607E5A6E862B15 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
+		8E491B012A83B961AF850D35 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
+		93B6E0416036F3AC5923232E /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../config/win32.gypi; sourceTree = "<group>"; };
+		943C0DBFD01B154F31084B5B /* libexternal.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libexternal.xcodeproj; path = "../build-mac/livecode/libexternal/libexternal.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		9A5975DEB8584454CEB04CD2 /* w32sapi5speech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = w32sapi5speech.h; sourceTree = "<group>"; };
+		9B9899703DE3E911A6F7BEA4 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
+		A033DB1A9320761EFA6C040B /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
+		A34FEECAA7D188F8F70731F8 /* revspeech.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = revspeech.cpp; sourceTree = "<group>"; };
+		A6AE7989ADD426623A2607DB /* osxspeech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = osxspeech.h; sourceTree = "<group>"; };
+		B5E2ADBB4F478FE49D64C584 /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		BAFE95124DD006475B80F0BB /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../config/crosscompile.gypi; sourceTree = "<group>"; };
+		BB9FCE2E2CF3CA1E5AD94343 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../config/configurations.gypi; sourceTree = "<group>"; };
+		BC068169829C5154AFD86F08 /* libcore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libcore.xcodeproj; path = "../build-mac/livecode/libcore/libcore.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		CF84A3308039DEEADD5A9F65 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../config/version.gypi; sourceTree = "<group>"; };
+		D2715EA68143AB71052124A7 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		D7E3305717E373AA71F4873F /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
+		DE8CF12839627FDDE96A15C7 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
+		E5925297714F4DC5EAE3BB19 /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../config/thirdparty.gypi; sourceTree = "<group>"; };
+		E8AF14F75068ADD104538957 /* w32sapi5speech.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = w32sapi5speech.cpp; sourceTree = "<group>"; };
+		EA69654CA3102DD776A0B547 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
+		EC841A9F5E62EAB6542663BB /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../config/mac.gypi; sourceTree = "<group>"; };
+		EF10ED82739F8634E3112A22 /* revspeech.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = revspeech.h; sourceTree = "<group>"; };
+		EF26805E98EAE66118D2089A /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		FAA9B7D1D41569FE3CD397EA /* revspeech.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = revspeech.gyp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3324A03FED3A291BB8E70055 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				042923775E5AB58770B03C6C /* libCore.a in Frameworks */,
+				200DF8B2EB42798FCFDD80AE /* libExternal.a in Frameworks */,
+				0DAA0A029305D96954F630A4 /* Carbon.framework in Frameworks */,
+				01CA550045E8783972A196E6 /* CoreServices.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0549EA9B0BE53569B10EAB5F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				33C39F9017F602D13EB9F7FA /* libCore.a */,
+				4522A57AA3B48085A21DFBB2 /* libCore (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		18CFE2F6D4F12F4ECA88DC1F /* .. */ = {
+			isa = PBXGroup;
+			children = (
+				B5E2ADBB4F478FE49D64C584 /* version */,
+			);
+			path = ..;
+			sourceTree = "<group>";
+		};
+		1C630252E22542291936C04A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8E491B012A83B961AF850D35 /* Carbon.framework */,
+				D2715EA68143AB71052124A7 /* CoreServices.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		26E72913480E9C9DD6CD25EC /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				BC068169829C5154AFD86F08 /* libcore.xcodeproj */,
+				943C0DBFD01B154F31084B5B /* libexternal.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		3229EE75E83A80E84CE51587 = {
+			isa = PBXGroup;
+			children = (
+				D51D6706CDDE19CCDD9AAF28 /* Source */,
+				26E72913480E9C9DD6CD25EC /* Projects */,
+				1C630252E22542291936C04A /* Frameworks */,
+				38336D826B0528910E99D765 /* Products */,
+				62F85C3B234B829CD12F0292 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		38336D826B0528910E99D765 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				501E47CAF91009DCA367ACCE /* revspeech.bundle */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		405E9DA2652A6ED87730CE25 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				363DEF712E04E1F0DE781384 /* osxspeech.cpp */,
+				A6AE7989ADD426623A2607DB /* osxspeech.h */,
+				A34FEECAA7D188F8F70731F8 /* revspeech.cpp */,
+				EF10ED82739F8634E3112A22 /* revspeech.h */,
+				E8AF14F75068ADD104538957 /* w32sapi5speech.cpp */,
+				9A5975DEB8584454CEB04CD2 /* w32sapi5speech.h */,
+				1269D471732DBA09FCEA5AF4 /* w32speech.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		62F85C3B234B829CD12F0292 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				A033DB1A9320761EFA6C040B /* android-settings.gypi */,
+				DE8CF12839627FDDE96A15C7 /* android.gypi */,
+				6FB2AC2211607E5A6E862B15 /* arch.gypi */,
+				9B9899703DE3E911A6F7BEA4 /* common.gypi */,
+				BB9FCE2E2CF3CA1E5AD94343 /* configurations.gypi */,
+				BAFE95124DD006475B80F0BB /* crosscompile.gypi */,
+				EF26805E98EAE66118D2089A /* emscripten-settings.gypi */,
+				D7E3305717E373AA71F4873F /* emscripten.gypi */,
+				14A85B5536E7A74363913ECE /* exclusions.gypi */,
+				23C6594063B79E99E29C6233 /* ios.gypi */,
+				017E45ED506FF56CC3DAA43D /* linux-settings.gypi */,
+				3E6727054C8D9314503A1B2A /* linux.gypi */,
+				EC841A9F5E62EAB6542663BB /* mac.gypi */,
+				EA69654CA3102DD776A0B547 /* perl.gypi */,
+				FAA9B7D1D41569FE3CD397EA /* revspeech.gyp */,
+				2CFC168F7C9CB4B49D462BF0 /* target_os.gypi */,
+				E5925297714F4DC5EAE3BB19 /* thirdparty.gypi */,
+				CF84A3308039DEEADD5A9F65 /* version.gypi */,
+				93B6E0416036F3AC5923232E /* win32.gypi */,
+				55433C463497EDED48A32AAD /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		D51D6706CDDE19CCDD9AAF28 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				18CFE2F6D4F12F4ECA88DC1F /* .. */,
+				405E9DA2652A6ED87730CE25 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		EFF578E5192A7999B80CF86C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9E47ACF320525F42B7996B25 /* libExternal.a */,
+				EE2A82763792440C5263AA86 /* libExternal (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F74A221C13A8D58475E1A9DA /* external-revspeech */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A062DECA13506CEA6100DE27 /* Build configuration list for PBXNativeTarget "external-revspeech" */;
+			buildPhases = (
+				B19E94E6F276A499F777AA74 /* Sources */,
+				3324A03FED3A291BB8E70055 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B359F916C91A1B8D8B86B48B /* PBXTargetDependency */,
+				AAB937EB37209B40E59E8D37 /* PBXTargetDependency */,
+			);
+			name = "external-revspeech";
+			productName = revspeech;
+			productReference = 501E47CAF91009DCA367ACCE /* revspeech.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		11D6D672A1EA3B921460424C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 0C6B6B190691466CA1F91255 /* Build configuration list for PBXProject "revspeech" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 3229EE75E83A80E84CE51587;
+			projectDirPath = ../../../revspeech;
+			projectReferences = (
+				{
+					ProductGroup = 0549EA9B0BE53569B10EAB5F /* Products */;
+					ProjectRef = BC068169829C5154AFD86F08 /* libcore.xcodeproj */;
+				},
+				{
+					ProductGroup = EFF578E5192A7999B80CF86C /* Products */;
+					ProjectRef = 943C0DBFD01B154F31084B5B /* libexternal.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				F74A221C13A8D58475E1A9DA /* external-revspeech */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		33C39F9017F602D13EB9F7FA /* libCore.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libCore.a;
+			remoteRef = 682D3865387BE4DAC3BA2C85 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		4522A57AA3B48085A21DFBB2 /* libCore (host).a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libCore (host).a";
+			remoteRef = 266B87FD3671B8FF3C73C528 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		9E47ACF320525F42B7996B25 /* libExternal.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libExternal.a;
+			remoteRef = 62C33421DD31244F43735311 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		EE2A82763792440C5263AA86 /* libExternal (host).a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libExternal (host).a";
+			remoteRef = A28F9A98DC884460D5A28AC8 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B19E94E6F276A499F777AA74 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CBBAC19CB676845F43BF6883 /* osxspeech.cpp in Sources */,
+				DFFFCB64628F7C4DDA08FF38 /* revspeech.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AAB937EB37209B40E59E8D37 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = B826C70D7EB86B1E69EF8586 /* PBXContainerItemProxy */;
+		};
+		B359F916C91A1B8D8B86B48B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = 893010C3C1DA4F9DAE6445C3 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		00ED787B26644AE488C6DF6D /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B5E2ADBB4F478FE49D64C584 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		5045C75D34A740525516B2D7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B5E2ADBB4F478FE49D64C584 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		6A6A7CD57B03BCE8FEDD9BAB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libcore/include,
+					../libexternal/include,
+				);
+				INFOPLIST_FILE = "rsrc/revspeech-Info.plist";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revspeech;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Debug;
+		};
+		7C0B8343E958945F5E1A16C7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libcore/include,
+					../libexternal/include,
+				);
+				INFOPLIST_FILE = "rsrc/revspeech-Info.plist";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revspeech;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Release;
+		};
+		8EF87936B29502AF3FD303AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B5E2ADBB4F478FE49D64C584 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		B2AF211A5BC72F976840F96B /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libcore/include,
+					../libexternal/include,
+				);
+				INFOPLIST_FILE = "rsrc/revspeech-Info.plist";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revspeech;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Fast;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0C6B6B190691466CA1F91255 /* Build configuration list for PBXProject "revspeech" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8EF87936B29502AF3FD303AA /* Debug */,
+				00ED787B26644AE488C6DF6D /* Fast */,
+				5045C75D34A740525516B2D7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		A062DECA13506CEA6100DE27 /* Build configuration list for PBXNativeTarget "external-revspeech" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6A6A7CD57B03BCE8FEDD9BAB /* Debug */,
+				B2AF211A5BC72F976840F96B /* Fast */,
+				7C0B8343E958945F5E1A16C7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 11D6D672A1EA3B921460424C /* Project object */;
+}

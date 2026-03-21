@@ -1,0 +1,1281 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		50434B5D56F364EE652AADAA /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = C3CC63CB19568134255B2005 /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				C4E951C24B5CD1126BD411F6 /* PBXTargetDependency */,
+				99FCA1EB83B77DD2A6F521EB /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		046ACA9025B8FD5368CFEBED /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BDB53ED91C430E4DFE10E101 /* libz.a */; };
+		0BD966CC66F9C08ACCD85643 /* revzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3C381859ED8038E5363E74E /* revzip.cpp */; };
+		1EC8BA14B862DB5BBC9B3393 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C71321F05AD9590D0E3C95AF /* CoreFoundation.framework */; };
+		71F0B94EBA6395D0B717D29C /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C71321F05AD9590D0E3C95AF /* CoreFoundation.framework */; };
+		8B5C7816D276793974079308 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E58791494B61BB39BE058051 /* CoreServices.framework */; };
+		910D06ADCCA027F58D4C72A4 /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C6B53AA6170568229FAB266 /* libCore.a */; };
+		A574F1055B6962C93F3BAEDA /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C6B53AA6170568229FAB266 /* libCore.a */; };
+		B8E428CEE77CA61EBBB31423 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E58791494B61BB39BE058051 /* CoreServices.framework */; };
+		CC7FC5B97BC56C84A07FDD8B /* libzip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CC7F3E305A912E7CD3E6147 /* libzip.a */; };
+		CE8DB30165B256216C879520 /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8651786B72FE8E51EF0029C7 /* libExternal.a */; };
+		D9BC6275E7E5663EED2C5A2B /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BDB53ED91C430E4DFE10E101 /* libz.a */; };
+		DACF4ED1C64099FD8F06B47E /* revzip.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3C381859ED8038E5363E74E /* revzip.cpp */; };
+		E2BDE983FA984E5C49F39C33 /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8651786B72FE8E51EF0029C7 /* libExternal.a */; };
+		FEA770830789E867C150DA1E /* libzip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5CC7F3E305A912E7CD3E6147 /* libzip.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		00EDCE9DC3CA14E08660F493 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C8F7D21867291E295F27E7DA /* libexternal.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 73AD7E038E4E1683AE423BFC;
+			remoteInfo = libExternal;
+		};
+		088637C9BD63B91A76D01A84 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CC3C4CA75EF0C4114BC0C18D /* libcore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 065138166E84E87D0D2F7187;
+			remoteInfo = "libCore (host)";
+		};
+		2CD0A9ECA22024FC275E433D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C8F7D21867291E295F27E7DA /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4958E4CAFF54B5E1EF2DDD62;
+			remoteInfo = "libExternal-symbol-exports";
+		};
+		5B6381031223D6AC4122C15D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C8F7D21867291E295F27E7DA /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		7FF9BADE1480FC3B467C28C5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 779D08C8ED1193A664ACEA4A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 67CFBDA4CD6283294ECBD392;
+			remoteInfo = "external-revzip";
+		};
+		826A18EAB1F3555E39589622 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C8F7D21867291E295F27E7DA /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4958E4CAFF54B5E1EF2DDD62;
+			remoteInfo = "libExternal-symbol-exports";
+		};
+		8A94B24A10859BE2A812BDCF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A46C9BF1ED7ECE581265D89A /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		927188C31E0330F513AFEBCD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A46C9BF1ED7ECE581265D89A /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F4FCA251AA01455DCCCF79CF;
+			remoteInfo = thirdparty_prebuilt_z;
+		};
+		983CC14B68FDE2B88F935757 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CC3C4CA75EF0C4114BC0C18D /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		99E55E353411E2C1B2F3325A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C6CBE18EBCE20E283C8A1B3B /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		9B272B08B4A5AA0083C7B1BE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A46C9BF1ED7ECE581265D89A /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 225D0AD0FB7FA18403A7023C;
+			remoteInfo = thirdparty_prebuilt_zip;
+		};
+		B3F6A83F7B1885AD89011FEA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A46C9BF1ED7ECE581265D89A /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 225D0AD0FB7FA18403A7023C;
+			remoteInfo = thirdparty_prebuilt_zip;
+		};
+		D0C6E4DA51EA3BB1A5E9B786 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C6CBE18EBCE20E283C8A1B3B /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+		DE905B0EC94236BBD79CB146 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A46C9BF1ED7ECE581265D89A /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		E0659815667F93C728C2E60C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C8F7D21867291E295F27E7DA /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		E13C8D7662668324C966B1D1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C6CBE18EBCE20E283C8A1B3B /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+		EBD816145A09D3C613F6377D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C6CBE18EBCE20E283C8A1B3B /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		F1E90FCEF98315AFACA09A3A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A46C9BF1ED7ECE581265D89A /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F4FCA251AA01455DCCCF79CF;
+			remoteInfo = thirdparty_prebuilt_z;
+		};
+		F358BD2437C34D7596A2F87F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 779D08C8ED1193A664ACEA4A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 72B669D6C28092E099C54A06;
+			remoteInfo = "external-revzip-server";
+		};
+		F3B070B6E9A7E7A680B3929B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CC3C4CA75EF0C4114BC0C18D /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		F42BFE8F8667900C3B871EDE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CC3C4CA75EF0C4114BC0C18D /* libcore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DD44348CE0FC9FD8CA3DC4E0;
+			remoteInfo = libCore;
+		};
+		F933866E4B5B4323EC3B297D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C8F7D21867291E295F27E7DA /* libexternal.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7DAF95721375FEF9FB6262D6;
+			remoteInfo = "libExternal (host)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		190D67D903363959D041DBA5 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
+		1D41BA070970711A01250E22 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
+		1DD1898A59A0F7B705B1D5DD /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
+		20F8EE089A3BF5437195864B /* server-revzip.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "server-revzip.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C8DDE87421BEB0831B705BD /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../config/thirdparty.gypi; sourceTree = "<group>"; };
+		2D0A7289179848EC2CC22BD1 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../config/configurations.gypi; sourceTree = "<group>"; };
+		3469C85EE8B3D4224DE2D142 /* revzip.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = revzip.gyp; sourceTree = "<group>"; };
+		3498F10F6C939A11D407C786 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../config/version.gypi; sourceTree = "<group>"; };
+		4A278863E478E77625CE4534 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
+		4BEA54CE5B865C68F8A6881C /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		515CBC0B1ABAA04C07E48EB0 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
+		581E18AB8DCCCB0CC3C51473 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
+		5CC7F3E305A912E7CD3E6147 /* libzip.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzip.a; path = ../prebuilt/lib/mac/libzip.a; sourceTree = "<group>"; };
+		61D480164F85255D334FB14D /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		6BCF5C5EB63707E2A4A1F1A9 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../config/crosscompile.gypi; sourceTree = "<group>"; };
+		7236F38A185AADDD53C3DE13 /* revzip.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = revzip.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		88F8B0B68F9782C654C0302A /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../config/win32.gypi; sourceTree = "<group>"; };
+		A0632ACB8D898DF47B0854C5 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
+		A3D0E85CD3902898AE8232D4 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../config/mac.gypi; sourceTree = "<group>"; };
+		A46C9BF1ED7ECE581265D89A /* thirdparty.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = thirdparty.xcodeproj; path = "../build-mac/livecode/prebuilt/thirdparty.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		AAFB94409761E92586884CB4 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
+		B3C381859ED8038E5363E74E /* revzip.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = revzip.cpp; sourceTree = "<group>"; };
+		BDB53ED91C430E4DFE10E101 /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = ../prebuilt/lib/mac/libz.a; sourceTree = "<group>"; };
+		C6CBE18EBCE20E283C8A1B3B /* fetch.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = fetch.xcodeproj; path = "../build-mac/livecode/prebuilt/fetch.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		C71321F05AD9590D0E3C95AF /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		C8F7D21867291E295F27E7DA /* libexternal.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libexternal.xcodeproj; path = "../build-mac/livecode/libexternal/libexternal.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		CC3C4CA75EF0C4114BC0C18D /* libcore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libcore.xcodeproj; path = "../build-mac/livecode/libcore/libcore.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		D3AC504E5F711F4B74CED8E1 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
+		E10BA6DCDB650F1491874DA7 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
+		E58791494B61BB39BE058051 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		EE9EAEA883557931AF33A0B5 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
+		FDB7707217E7A90EF3F9BC62 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BF4660663F451F3A55D00392 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E2BDE983FA984E5C49F39C33 /* libExternal.a in Frameworks */,
+				A574F1055B6962C93F3BAEDA /* libCore.a in Frameworks */,
+				1EC8BA14B862DB5BBC9B3393 /* CoreFoundation.framework in Frameworks */,
+				B8E428CEE77CA61EBBB31423 /* CoreServices.framework in Frameworks */,
+				FEA770830789E867C150DA1E /* libzip.a in Frameworks */,
+				046ACA9025B8FD5368CFEBED /* libz.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E8EB52E0EBAEEF72D0FE7DF3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE8DB30165B256216C879520 /* libExternal.a in Frameworks */,
+				910D06ADCCA027F58D4C72A4 /* libCore.a in Frameworks */,
+				71F0B94EBA6395D0B717D29C /* CoreFoundation.framework in Frameworks */,
+				8B5C7816D276793974079308 /* CoreServices.framework in Frameworks */,
+				CC7FC5B97BC56C84A07FDD8B /* libzip.a in Frameworks */,
+				D9BC6275E7E5663EED2C5A2B /* libz.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		18B80D703A742071126A4449 = {
+			isa = PBXGroup;
+			children = (
+				91262244F2FAAAB6D052E74F /* Source */,
+				3410BA72B0E2836935F229CD /* Projects */,
+				B921E606E378E09B1EB95CB3 /* Frameworks */,
+				F2F1E6DC13C5B67864BC0E7E /* Products */,
+				78B2B8A8AFE95B66498E9263 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		28789E2E9988C58493BA4CFF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8651786B72FE8E51EF0029C7 /* libExternal.a */,
+				99660329C450D1CF78AFBE2D /* libExternal (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3410BA72B0E2836935F229CD /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				C6CBE18EBCE20E283C8A1B3B /* fetch.xcodeproj */,
+				CC3C4CA75EF0C4114BC0C18D /* libcore.xcodeproj */,
+				C8F7D21867291E295F27E7DA /* libexternal.xcodeproj */,
+				A46C9BF1ED7ECE581265D89A /* thirdparty.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		4C083B2736D8D7E49ECAF5FC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		57799366CC55015179B74C7B /* .. */ = {
+			isa = PBXGroup;
+			children = (
+				4BEA54CE5B865C68F8A6881C /* version */,
+			);
+			path = ..;
+			sourceTree = "<group>";
+		};
+		5BE88124F2F94FE5741BE27A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		78B2B8A8AFE95B66498E9263 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				E10BA6DCDB650F1491874DA7 /* android-settings.gypi */,
+				4A278863E478E77625CE4534 /* android.gypi */,
+				AAFB94409761E92586884CB4 /* arch.gypi */,
+				515CBC0B1ABAA04C07E48EB0 /* common.gypi */,
+				2D0A7289179848EC2CC22BD1 /* configurations.gypi */,
+				6BCF5C5EB63707E2A4A1F1A9 /* crosscompile.gypi */,
+				FDB7707217E7A90EF3F9BC62 /* emscripten-settings.gypi */,
+				1DD1898A59A0F7B705B1D5DD /* emscripten.gypi */,
+				D3AC504E5F711F4B74CED8E1 /* exclusions.gypi */,
+				1D41BA070970711A01250E22 /* ios.gypi */,
+				61D480164F85255D334FB14D /* linux-settings.gypi */,
+				EE9EAEA883557931AF33A0B5 /* linux.gypi */,
+				A3D0E85CD3902898AE8232D4 /* mac.gypi */,
+				A0632ACB8D898DF47B0854C5 /* perl.gypi */,
+				3469C85EE8B3D4224DE2D142 /* revzip.gyp */,
+				190D67D903363959D041DBA5 /* target_os.gypi */,
+				2C8DDE87421BEB0831B705BD /* thirdparty.gypi */,
+				3498F10F6C939A11D407C786 /* version.gypi */,
+				88F8B0B68F9782C654C0302A /* win32.gypi */,
+				581E18AB8DCCCB0CC3C51473 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		91262244F2FAAAB6D052E74F /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				57799366CC55015179B74C7B /* .. */,
+				94F9075156074B5C1A0FF973 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		94F9075156074B5C1A0FF973 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				B3C381859ED8038E5363E74E /* revzip.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		96675E14E6DBD9419FF0C2BD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4C6B53AA6170568229FAB266 /* libCore.a */,
+				5C4D612F649158BA3BE0B4D7 /* libCore (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B921E606E378E09B1EB95CB3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C71321F05AD9590D0E3C95AF /* CoreFoundation.framework */,
+				E58791494B61BB39BE058051 /* CoreServices.framework */,
+				BDB53ED91C430E4DFE10E101 /* libz.a */,
+				5CC7F3E305A912E7CD3E6147 /* libzip.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		F2F1E6DC13C5B67864BC0E7E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7236F38A185AADDD53C3DE13 /* revzip.bundle */,
+				20F8EE089A3BF5437195864B /* server-revzip.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		67CFBDA4CD6283294ECBD392 /* external-revzip */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6A32F1A3C5E4AB538CD02016 /* Build configuration list for PBXNativeTarget "external-revzip" */;
+			buildPhases = (
+				59844439F045E15AAA08B137 /* Sources */,
+				E8EB52E0EBAEEF72D0FE7DF3 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F24F3C3129AACA0B1E3990AD /* PBXTargetDependency */,
+				C5C5BA1E5E6EF8F7C94A114F /* PBXTargetDependency */,
+				70ABFA05FDB9820AC16B2C74 /* PBXTargetDependency */,
+				0D3B677A02BD8F0F52CEC2ED /* PBXTargetDependency */,
+				03BBBF5C37D72E531265D93D /* PBXTargetDependency */,
+				AEE5F0FEF05C646EBBE29967 /* PBXTargetDependency */,
+				2915DF3E0AC8B34E55311A02 /* PBXTargetDependency */,
+				6C67281BCF41ECBA343A17D3 /* PBXTargetDependency */,
+			);
+			name = "external-revzip";
+			productName = revzip;
+			productReference = 7236F38A185AADDD53C3DE13 /* revzip.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
+		72B669D6C28092E099C54A06 /* external-revzip-server */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 121859B9CEE3EDBE6B6E9880 /* Build configuration list for PBXNativeTarget "external-revzip-server" */;
+			buildPhases = (
+				7CCECFCB77C2DE20EA5D5F35 /* Sources */,
+				BF4660663F451F3A55D00392 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				987D6199871C0BD7341B1987 /* PBXTargetDependency */,
+				E2F4506DB97931C46B3CA3B0 /* PBXTargetDependency */,
+				DD2FA53214CBB1A4ACA0E85C /* PBXTargetDependency */,
+				F0EFDE341157750433AE31D6 /* PBXTargetDependency */,
+				75AAA11B41E42358B019CA14 /* PBXTargetDependency */,
+				6240C92BFFFDC2B94A13B350 /* PBXTargetDependency */,
+				385380B26448579E10698576 /* PBXTargetDependency */,
+				351F648CE9C6FD103F7E97C7 /* PBXTargetDependency */,
+			);
+			name = "external-revzip-server";
+			productName = "server-revzip";
+			productReference = 20F8EE089A3BF5437195864B /* server-revzip.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		779D08C8ED1193A664ACEA4A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 68ED479CC824EA99245125EB /* Build configuration list for PBXProject "revzip" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 18B80D703A742071126A4449;
+			projectDirPath = ../../../revzip;
+			projectReferences = (
+				{
+					ProductGroup = 4C083B2736D8D7E49ECAF5FC /* Products */;
+					ProjectRef = C6CBE18EBCE20E283C8A1B3B /* fetch.xcodeproj */;
+				},
+				{
+					ProductGroup = 96675E14E6DBD9419FF0C2BD /* Products */;
+					ProjectRef = CC3C4CA75EF0C4114BC0C18D /* libcore.xcodeproj */;
+				},
+				{
+					ProductGroup = 28789E2E9988C58493BA4CFF /* Products */;
+					ProjectRef = C8F7D21867291E295F27E7DA /* libexternal.xcodeproj */;
+				},
+				{
+					ProductGroup = 5BE88124F2F94FE5741BE27A /* Products */;
+					ProjectRef = A46C9BF1ED7ECE581265D89A /* thirdparty.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				50434B5D56F364EE652AADAA /* All */,
+				67CFBDA4CD6283294ECBD392 /* external-revzip */,
+				72B669D6C28092E099C54A06 /* external-revzip-server */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		4C6B53AA6170568229FAB266 /* libCore.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libCore.a;
+			remoteRef = F42BFE8F8667900C3B871EDE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		5C4D612F649158BA3BE0B4D7 /* libCore (host).a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libCore (host).a";
+			remoteRef = 088637C9BD63B91A76D01A84 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		8651786B72FE8E51EF0029C7 /* libExternal.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libExternal.a;
+			remoteRef = 00EDCE9DC3CA14E08660F493 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		99660329C450D1CF78AFBE2D /* libExternal (host).a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libExternal (host).a";
+			remoteRef = F933866E4B5B4323EC3B297D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		59844439F045E15AAA08B137 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0BD966CC66F9C08ACCD85643 /* revzip.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7CCECFCB77C2DE20EA5D5F35 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DACF4ED1C64099FD8F06B47E /* revzip.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		03BBBF5C37D72E531265D93D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = 983CC14B68FDE2B88F935757 /* PBXContainerItemProxy */;
+		};
+		0D3B677A02BD8F0F52CEC2ED /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_z;
+			targetProxy = F1E90FCEF98315AFACA09A3A /* PBXContainerItemProxy */;
+		};
+		2915DF3E0AC8B34E55311A02 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = E13C8D7662668324C966B1D1 /* PBXContainerItemProxy */;
+		};
+		351F648CE9C6FD103F7E97C7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = EBD816145A09D3C613F6377D /* PBXContainerItemProxy */;
+		};
+		385380B26448579E10698576 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = D0C6E4DA51EA3BB1A5E9B786 /* PBXContainerItemProxy */;
+		};
+		6240C92BFFFDC2B94A13B350 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = 8A94B24A10859BE2A812BDCF /* PBXContainerItemProxy */;
+		};
+		6C67281BCF41ECBA343A17D3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = 99E55E353411E2C1B2F3325A /* PBXContainerItemProxy */;
+		};
+		70ABFA05FDB9820AC16B2C74 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_zip;
+			targetProxy = B3F6A83F7B1885AD89011FEA /* PBXContainerItemProxy */;
+		};
+		75AAA11B41E42358B019CA14 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = F3B070B6E9A7E7A680B3929B /* PBXContainerItemProxy */;
+		};
+		987D6199871C0BD7341B1987 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = 5B6381031223D6AC4122C15D /* PBXContainerItemProxy */;
+		};
+		99FCA1EB83B77DD2A6F521EB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 72B669D6C28092E099C54A06 /* external-revzip-server */;
+			targetProxy = F358BD2437C34D7596A2F87F /* PBXContainerItemProxy */;
+		};
+		AEE5F0FEF05C646EBBE29967 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = DE905B0EC94236BBD79CB146 /* PBXContainerItemProxy */;
+		};
+		C4E951C24B5CD1126BD411F6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 67CFBDA4CD6283294ECBD392 /* external-revzip */;
+			targetProxy = 7FF9BADE1480FC3B467C28C5 /* PBXContainerItemProxy */;
+		};
+		C5C5BA1E5E6EF8F7C94A114F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "libExternal-symbol-exports";
+			targetProxy = 2CD0A9ECA22024FC275E433D /* PBXContainerItemProxy */;
+		};
+		DD2FA53214CBB1A4ACA0E85C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_zip;
+			targetProxy = 9B272B08B4A5AA0083C7B1BE /* PBXContainerItemProxy */;
+		};
+		E2F4506DB97931C46B3CA3B0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "libExternal-symbol-exports";
+			targetProxy = 826A18EAB1F3555E39589622 /* PBXContainerItemProxy */;
+		};
+		F0EFDE341157750433AE31D6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_z;
+			targetProxy = 927188C31E0330F513AFEBCD /* PBXContainerItemProxy */;
+		};
+		F24F3C3129AACA0B1E3990AD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = E0659815667F93C728C2E60C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1ABCC3B91328371BF82A343A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		335FB4E1B1626863E8DCC531 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../libexternal/include,
+					../thirdparty/libzip/include,
+					../thirdparty/libz/include,
+				);
+				INFOPLIST_FILE = "rsrc/revzip-info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-revzip";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		5B9E3B8FB4ACC1872B645DA3 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../libexternal/include,
+					../thirdparty/libzip/include,
+					../thirdparty/libz/include,
+				);
+				INFOPLIST_FILE = "rsrc/revzip-info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-revzip";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		6106686D6EF04D8B87B06B40 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../libexternal/include,
+					../thirdparty/libzip/include,
+					../thirdparty/libz/include,
+				);
+				INFOPLIST_FILE = "rsrc/revzip-info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revzip;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Fast;
+		};
+		789FB058DB10CC057A9ADF57 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4BEA54CE5B865C68F8A6881C /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		968184FE11D05A64C40DCC8E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../libexternal/include,
+					../thirdparty/libzip/include,
+					../thirdparty/libz/include,
+				);
+				INFOPLIST_FILE = "rsrc/revzip-info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revzip;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Debug;
+		};
+		AB1B2FA2CA446E33FF9D7BA8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../libexternal/include,
+					../thirdparty/libzip/include,
+					../thirdparty/libz/include,
+				);
+				INFOPLIST_FILE = "rsrc/revzip-info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revzip;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Release;
+		};
+		B1226E57040C6E45B960EB7F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		B9C865A10F6D55E9B9780193 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../libexternal/include,
+					../thirdparty/libzip/include,
+					../thirdparty/libz/include,
+				);
+				INFOPLIST_FILE = "rsrc/revzip-info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-revzip";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		C6CAC2DACF3B239FD6914AC0 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Fast;
+		};
+		E2538F4E331064D6250CA022 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4BEA54CE5B865C68F8A6881C /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		E9CED8414D7C69077109586C /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4BEA54CE5B865C68F8A6881C /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		121859B9CEE3EDBE6B6E9880 /* Build configuration list for PBXNativeTarget "external-revzip-server" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B9C865A10F6D55E9B9780193 /* Debug */,
+				5B9E3B8FB4ACC1872B645DA3 /* Fast */,
+				335FB4E1B1626863E8DCC531 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		68ED479CC824EA99245125EB /* Build configuration list for PBXProject "revzip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				789FB058DB10CC057A9ADF57 /* Debug */,
+				E9CED8414D7C69077109586C /* Fast */,
+				E2538F4E331064D6250CA022 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		6A32F1A3C5E4AB538CD02016 /* Build configuration list for PBXNativeTarget "external-revzip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				968184FE11D05A64C40DCC8E /* Debug */,
+				6106686D6EF04D8B87B06B40 /* Fast */,
+				AB1B2FA2CA446E33FF9D7BA8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		C3CC63CB19568134255B2005 /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B1226E57040C6E45B960EB7F /* Debug */,
+				C6CAC2DACF3B239FD6914AC0 /* Fast */,
+				1ABCC3B91328371BF82A343A /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 779D08C8ED1193A664ACEA4A /* Project object */;
+}

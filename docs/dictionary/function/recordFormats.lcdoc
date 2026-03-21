@@ -1,0 +1,22 @@
+Name: recordFormats
+
+Type: function
+
+Syntax: the recordFormats
+
+Syntax: recordFormats()
+
+Summary: Returns a list of available record formats
+
+Introduced: 9.0
+
+Platforms: desktop, server
+
+Description:
+Use the <recordFormats> <function> to obtain a list of the supported 
+<recordFormat> values for storing audio data after using the 
+<record sound> <command>. 
+
+References: record sound (command), command (glossary), 
+function (glossary), recordFormat (property), 
+recordCompressionTypes (function)

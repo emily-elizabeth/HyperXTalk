@@ -1,0 +1,24 @@
+Name: script only stack
+
+Type: glossary
+
+Description:
+A <script only stack> is a <stack> whose on-disk representation is just 
+a <text file> with a header line:
+
+	script "StackName"
+	
+and, optionally with a <behavior> <stack> reference:
+
+	script "StackName" with behavior "BehaviorName"
+
+Anything else in the file is the <script> of the <script only stack>.
+If a stack is script only, its <scriptOnly> property will return true:
+
+    if the scriptOnly of stack "StackName" is true then...
+
+References: text file (glossary), stack (glossary), script (property), 
+behavior (property), scriptOnly (property)
+
+Tags: objects
+

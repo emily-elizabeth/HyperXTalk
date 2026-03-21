@@ -1,0 +1,16 @@
+Name: handler
+
+Synonyms: handler
+
+Type: glossary
+
+Description:
+A group of <LiveCode> <statement|statements> that begin with an <on>,
+<function>, <setProp>, or <getProp> <statement> and end with an <end>
+<statement>. The basic unit of the <LiveCode|LiveCode> language.
+
+References: on (control structure), setProp (control structure),
+getProp (control structure), statement (glossary), LiveCode (glossary),
+function (glossary), end (keyword)
+
+Tags: messages

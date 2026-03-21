@@ -1,0 +1,457 @@
+Library: com.livecode.widget.navbar
+
+Type: widget
+
+Summary:
+The navigation bar widget is intended for use in mobile apps for
+switching between cards, although there are many other possible uses.
+
+The widget displays a row of navigation items.  Each of these has a
+<itemNames|name>, which identifies it.  Depending on the selected
+<itemStyle>, the items may display a <itemLabels|label>,
+<itemIcons|icon>, or both.  All of the navigation item data is
+available as a single array via the <itemArray> property.
+
+At any time, zero or one of the navigation items may be
+<hilitedItemName|highlighted>.  This is useful, for example, for
+indicating the current card.  When the user clicks one of the
+navigation items, the widget sends a <hiliteChanged> message.
+
+References:
+hiliteChanged(message), hilitedItemName(property),
+itemArray(property), itemIcons(property), itemLabels(property),
+itemNames(property), itemStyle(property)
+
+author: LiveCode
+
+version: 2.1.0
+
+Name: hiliteChanged
+
+Type: message
+
+Syntax: hiliteChanged
+
+Summary: Sent when a navigation item is selected
+
+Example:
+on hiliteChanged
+	go card the hilitedItemName of me
+end hiliteChanged
+
+Description:
+The <hiliteChanged> message is sent when the highlighted navigation
+item changes, either by clicking on the navigation bar or by setting
+the <hilitedItem> or <hilitedItemName> properties.
+
+References: hilitedItem (property), hilitedItemName (property)
+
+Name: hiliteColor
+
+Type: Property
+
+Syntax: get the hiliteColor of <widget>
+
+Syntax: set the hiliteColor of <widget> to <color>
+
+Summary: The color of the highlighted navigation item
+
+Description:
+The <hiliteColor> is used to draw the icon and/or label of the
+navigation item that is <hilitedItemName|currently highlighted>.
+
+Related: hilitedItemName(property)
+
+Name: foreColor
+
+Type: property
+
+Syntax: get the foreColor of <widget>
+
+Syntax: set the foreColor of <widget> to <color>
+
+Summary: The color of the navigation items that are not highlighted
+
+Description:
+The <foreColor> is used to draw the icons and/or labels of the
+navigation items that are not <hilitedItemName|currently highlighted>.
+
+Related: hilitedItemName(property)
+
+Name: backColor
+
+Type: property
+
+Syntax: get the backColor of <widget>
+
+Syntax: set the backColor of <widget> to <color>
+
+Summary: The color of the navigation bar background
+
+Description:
+When the navigation bar has an <opaque> background, it is filled with
+the <backColor>.
+
+Related: opaque(property)
+
+Name: borderColor
+
+Type: property
+
+Syntax: get the borderColor of <widget>
+
+Syntax: set the borderColor of <widget> to <color>
+
+Summary: The color of the navigation bar border
+
+Description: The top border of the navigation bar is drawn using the <borderColor>.
+
+Related: showBorder(property)
+
+
+Name: showBorder
+
+Type: property
+
+Syntax: get the showBorder of <widget>
+
+Syntax: set the showBorder of <widget> to {true | false}
+
+Summary: Whether there is a dividing line at the top of the widget
+
+Description:
+When the <showBorder> property is `true`, the navigation bar has a
+dividing line along its top edge.
+
+Related: borderColor(property)
+
+
+
+
+Name: hilitedItemName
+
+Type: property
+
+Syntax: get the hilitedItemName of <widget>
+
+Syntax: set the hilitedItemName of <widget> to <pName>
+
+Summary: The name of the highlighted navigation item
+
+Value: The name of the navigation item that is highlighted.
+
+Description:
+The <hilitedItemName> is the name of the currently-highlighted navigation
+item.  If nothing is highlighted, the value is an empty string.
+
+References: hilitedItem (property)
+
+
+
+
+Name: opaque
+
+Type: property
+
+Syntax: get the opaque of <widget>
+
+Syntax: set the opaque of <widget> to {true | false}
+
+Summary: Whether the background of the widget is filled
+
+Description:
+If the <opaque> property is `true`, the background of the navigation
+bar is filled with the <backColor>.  If it is `false` the background
+is transparent.
+
+References: backColor(property)
+
+
+
+
+Name: itemIcons
+
+Type: property
+
+Syntax: get the itemIcons of <widget>
+
+Syntax: set the itemIcons of <widget> to <icons>
+
+Summary: The normal-state icons for the navigation items
+
+Value: A comma-delimited list of icon names.
+
+Description:
+The names of the icons displayed by the navigation items when not
+highlighted.
+
+Each icon name must be one of the graphics supplied by the "IconSVG"
+library.  You can get a list of available predefined path names by running
+`put iconNames()` in the Message Box.  See the 
+<com.livecode.library.iconsvg|Icon SVG Library>
+documentation for handlers to manage user icon families.
+
+Setting the <itemIcons> can add items to the navigation bar.  If the
+new value of the <itemIcons> has more items than the navigation bar,
+as many new navigation items as necessary are created and added to the
+end of the navigation bar, using a default <itemNames|name>,
+<itemLabels|label> and <hilitedItemIcons|highlighted icon>.
+
+If the new value of the <itemIcons> has fewer items than the
+navigation bar, the remaining navigation items have their icons reset
+to the default icon.
+
+References:
+hilitedItemIcons(property), itemLabels(property),
+itemNames(property),  com.livecode.library.iconsvg (library)
+
+
+
+Name: itemStyle
+
+Type: property
+
+Syntax: get the itemStyle of <widget>
+
+Syntax: set the itemStyle of <widget> to <style>
+
+Summary: The style with which navigation items are displayed
+
+Value:
+The display style
+- "icons": display icons only
+- "text": display names only
+- "both": display icons and names
+
+Description:
+The <itemStyle> property determines whether navigation items are
+displayed with icons, with labels, or with icons positioned below
+labels.
+
+Related:
+hilitedItemIcons (property), itemIcons (property),
+itemLabels(property)
+
+
+
+Name: hilitedItemIcons
+
+Type: property
+
+Syntax: get the hilitedItemIcons of <widget>
+
+Syntax: set the hilitedItemIcons of <widget> to <icons>
+
+Summary: The highlighted-state icons for the navigation icons
+
+Value: A comma-delimited list of icon names.
+
+Description:
+The names of the icons displayed by the navigation items when
+highlighted.
+
+Each icon name must be one of the graphics supplied by the "IconSVG"
+library.  You can get a list of available predefined path names by running
+`put iconNames()` in the Message Box.  See the 
+<com.livecode.library.iconsvg|Icon SVG Library>
+documentation for handlers to manage user icon families.
+
+Setting the <hilitedItemIcons> can add items to the navigation bar.
+If the new value of the <hilitedItemIcons> has more items than the
+navigation bar, as many new navigation items as necessary are created
+and added to the end of the navigation bar, using a default
+<itemNames|name>, <itemLabels|label> and <itemIcons|normal icon>.
+
+If the new value of the <hilitedItemIcons> has fewer items than the
+navigation bar, the remaining navigation items have their
+highlighted-state icons reset to the default icon.
+
+References:
+itemIcons(property), itemLabels(property), itemNames(property),
+com.livecode.library.iconsvg (library)
+
+
+
+Name: itemNames
+
+Type: property
+
+Syntax: get the itemNames of <widget>
+
+Syntax: set the itemNames of <widget> to <names>
+
+Summary: The names of the navigation items
+
+Value: A comma-delimited list of navigation item names.
+
+Description:
+The names of the navigation items of the widget.  These are the names
+used internally to identify each navigation item, rather than the
+<itemLabels> displayed to the user.
+
+Setting the <itemNames> can add or remove items to the navigation bar.
+
+If the new value of the <itemNames> has more items than the navigation
+bar, as many new navigation items as necessary are created and added
+to the end of the navigation bar, using the default label and icons.
+
+If the new value of the <itemNames> has fewer items than the
+navigation bar, items are removed from the end of the navigation bar
+as required.
+
+It is not possible to re-order the navigation items by setting the
+<itemNames>.
+
+References: itemLabels(property)
+
+
+
+
+Name: desiredHeight
+
+Type: property
+
+Syntax: get the desiredHeight of <widget>
+
+Summary: The optimal height for the widget
+
+Example:
+create widget as "com.livecode.widget.navbar"
+set the height of it to the desiredHeight of it
+
+Description:
+**Note:** This feature is currently **experimental** and may change or
+be removed in future versions.
+
+Returns the preferred height for widget, calculated from its current
+state.
+
+
+
+Name: hilitedItem
+
+Type: property
+
+Syntax: get the hilitedItem of <widget>
+
+Syntax: set the hilitedItem of <widget> to <itemNumber>
+
+Summary: The index of the highlighted navigation item
+
+Value: The item number of the navigation item that is highlighted.
+
+Description:
+The <hilitedItem> is the item number of the currently-highlighted navigation
+item.  It can be used as a key into the <itemArray>.
+
+Setting 0 will cause nothing to be highlighted.
+
+Related: hilitedItemName (property)
+
+References: itemArray(property)
+
+
+
+
+Name: editMode
+
+Type: property
+
+Syntax: get the editMode of <widget>
+
+Syntax: set the editMode of <widget> to {true | false}
+
+Summary: Whether the widget is in edit mode
+
+Description:
+**Note:** This feature is currently **experimental** and may change or
+be removed in future versions.
+
+When the <editMode> is enabled, the navigation items' icons can be
+changed by clicking on the outlined regions, and new items can be added
+with the add button.
+
+
+
+Name: itemArray
+
+Type: property
+
+Syntax: get the itemArray of <widget>
+
+Syntax: set the itemArray of <widget> to <array>
+
+Summary: The full navigation item data.
+
+Value: An array containing all the navigation data.
+
+Description:
+The <itemArray> is a numerically keyed array.  Each element of the
+array contains an array describing the name, label and icons of the
+navigation item at that index.
+
+The <itemArray> can be used to access and modify all of the navigation
+data at once, rather than setting the <itemNames>, <itemLabels>,
+<itemIcons> and <hilitedItemIcons> individually.
+
+The structure of the <itemArray> is:
+
+```
+{ key (integer): The index of the navigation item
+	value (array): The array containing the data for the item at this index
+	{ key : "label"
+		value (string): The label of this item
+		key : "name"
+		value (string): The name of this item
+		key : "icon_name"
+		value (string) : The name of the icon to display when the item is not highlighted
+		key : "hilited_icon_name"
+		value (string) : The name of the icon to display when the item is highlighted
+	}
+}
+```
+
+Any individual keys ("label", "icon_name", "hilited_icon_name") missing when
+setting the <itemArray> will be added, and set to their defaults - "circle" for
+the icons, and "New Item" for the label.
+
+**Note:** When setting the <itemArray>, an error will be thrown if the
+new value is not a numerically-keyed array.
+
+Related:
+hilitedItemIcons(property), itemIcons(property),
+itemLabels(property), itemNames(property)
+
+
+
+Name: itemLabels
+
+Type: property
+
+Syntax: get the itemLabels of <widget>
+
+Syntax: set the itemLabels of <widget> to <labels>
+
+Summary: The labels of the navigation items
+
+Value: A comma-delimited list of labels.
+
+Description:
+The display labels for the navigation items of the widget.
+
+Setting the <itemLabels> can add items to the navigation bar.  If the
+new value of the <itemLabels> has more items than the navigation bar,
+as many new navigation items as necessary are created and added to the
+end of the navigation bar, using a default <itemNames|name>,
+<itemIcons|icon> and <hilitedItemIcons|highlighted icon>.
+
+If the new value of the <itemLabels> has fewer items than the
+navigation bar, the remaining navigation items have their labels reset
+to the default icon.
+
+References:
+hilitedItemIcons (property), itemIcons (property),
+itemNames(property)
+
+
+

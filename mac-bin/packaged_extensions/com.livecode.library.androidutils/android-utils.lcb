@@ -1,0 +1,340 @@
+/*
+Copyright (C) 2018 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
+/**
+A library of utility handlers for functions commonly needed by Android widgets.
+*/
+
+module com.livecode.library.androidutils
+
+use com.livecode.foreign
+use com.livecode.java
+use com.livecode.canvas
+use com.livecode.library.widgetutils
+
+metadata version is "1.0.0"
+metadata author is "LiveCode"
+metadata title is "Android Utilities"
+metadata os is "android"
+
+private handler ColorComponentToInt(in pComponent as Real) returns Integer
+    multiply pComponent by 255
+    round pComponent
+    return pComponent
+end handler
+
+__safe foreign handler _JNI_GetColorFromARGB(in pA as JInt, in pR as JInt, in pG as JInt, in pB as JInt) returns JInt \
+	binds to "java:android.graphics.Color>argb(IIII)I!static"
+
+/**
+Summary: Convert a color string to an integer for Android
+
+Parameters:
+pString: The color string
+
+Description:
+Use the <StringToAndroidColor> handler to convert a string representing
+a color to an integer that can be used with Android color APIs.
+*/
+public handler StringToAndroidColor(in pString as String) returns Integer
+    variable tColor as Color
+    put stringToColor(pString) into tColor
+
+    variable tA as Integer
+    variable tR as Integer
+    variable tG as Integer
+    variable tB as Integer
+    put ColorComponentToInt(the alpha of tColor) into tA
+    put ColorComponentToInt(the red of tColor) into tR
+    put ColorComponentToInt(the green of tColor) into tG
+    put ColorComponentToInt(the blue of tColor) into tB
+
+    return _JNI_GetColorFromARGB(tA,tR,tG,tB)
+end handler
+
+__safe foreign handler _JNI_GetAndroidEngine() returns JObject \
+	binds to "java:com.runrev.android.Engine>getEngine()Lcom/runrev/android/Engine;!static"
+__safe foreign handler _JNI_GetEngineContext(in pEngine as JObject) returns JObject \
+	binds to "java:android.view.View>getContext()Landroid/content/Context;"
+
+/**
+Summary: Get the application Context
+
+Example:
+	__safe foreign handler _JNI_CreateButton(in pContext as JObject) returns JObject \
+		binds to "java:android.widget.Button>new(Landroid/content/Context;)?ui"
+
+	handler NativeButtonView() returns JObject
+		return _JNI_CreateButton(ApplicationContext())
+	end handler
+
+Description:
+Use the <ApplicationContext> handler to fetch the current application's
+Context object.
+*/
+public handler ApplicationContext() returns JObject
+	return _JNI_GetEngineContext(_JNI_GetAndroidEngine())
+end handler
+
+private foreign handler MCAndroidCheckRuntimePermission(in pPermission as String) \
+	returns CBool binds to "<builtin>"
+
+/**
+Summary:
+Displays a dialog showing a permission request for <pPermission>. If a user
+has already granted permission for <pPermission>, this function does nothing.
+
+Returns true if permission <pPermission> has been granted by the user.
+
+Parameters:
+pPermission (enum):
+The name of the permission to request.
+
+-   "android.permission.READ_CALENDAR": permission to allow an application to read the device's calendar.
+-   "android.permission.WRITE_CALENDAR": permission to allow an application to write to the device's calendar.
+-   "android.permission.CAMERA": permission to allow an application to access the device's camera.
+-   "android.permission.ACCESS_COARSE_LOCATION": permission to allow an application to access the device's coarse location.
+-   "android.permission.ACCESS_FINE_LOCATION": permission to allow an application to access the device's fine location.
+-   "android.permission.READ_CONTACTS": permission to allow an application to read data from the device's contacts.
+-   "android.permission.WRITE_CONTACTS": permission to allow an application to write date to the device's contacts.
+-   "android.permission.GET_ACCOUNTS": permission to allow an application to access to the list of accounts in the Accounts Service.
+-   "android.permission.RECORD_AUDIO": permission to allow an application to allow an application to record audio.
+-   "android.permission.READ_EXTERNAL_STORAGE": permission to allow an application to read data from the device's external storage.
+-   "android.permission.WRITE_EXTERNAL_STORAGE": permission to allow an application to write data to the device's external storage.
+-   "android.permission.READ_PHONE_STATE": permission to allow an application to access phone state, including the phone number of the device, current cellular network information, the status of any ongoing calls, and a list of any PhoneAccounts registered on the device.
+-   "android.permission.READ_PHONE_NUMBERS": permission to allow an application to access the device's phone number(s).
+-   "android.permission.CALL_PHONE": permission to allow an application to initiate a phone call without going through the Dialer user interface for the user to confirm the call.
+-   "android.permission.ANSWER_PHONE_CALLS": permission to allow an application to answer an incoming phone call.
+-   "android.permission.READ_CALL_LOG": permission to allow an application to read the user's call log.
+-   "android.permission.WRITE_CALL_LOG": permission to allow an application to write to the user's call log.
+-   "android.permission.ADD_VOICEMAIL": permission to allow an application to add voicemails into the system.
+-   "android.permission.USE_SIP": permission to allow an application to use SIP service.
+-   "android.permission.PROCESS_OUTGOING_CALLS": permission to allow an application to see the number being dialed during an outgoing call with the option to redirect the call to a different number or abort the call altogether.
+-   "android.permission.SEND_SMS": permission to allow an application to send SMS messages.
+-   "android.permission.RECEIVE_SMS": permission to allow an application to receive SMS messages
+-   "android.permission.READ_SMS": permission to allow an application to read SMS messages.
+-   "android.permission.RECEIVE_WAP_PUSH": permission to allow an application to receive WAP push messages.
+-   "android.permission.RECEIVE_MMS": permission to allow an application to receive MMS messages.
+-   "android.permission.BODY_SENSORS": permission to allow an application to access data from sensors that the user uses to measure what is happening inside his/her body, such as heart rate.
+
+Returns(boolean):
+True if permission has been granted, false otherwise.
+
+Description:
+Use the <AndroidRequestPermission> command to request permission for
+<pPermission> from the user.
+
+>*Note:* Permission names are case sensitive.
+*/
+public handler AndroidRequestPermission(in pPermission as String) returns Boolean
+	variable tHasPermission as Boolean
+	unsafe
+		MCAndroidCheckRuntimePermission(pPermission)
+		put MCAndroidHasPermission(pPermission) into tHasPermission
+	end unsafe
+	return tHasPermission
+end handler
+
+private foreign handler MCAndroidCheckPermissionExists(in pPermission as String) \
+	returns CBool binds to "<builtin>"
+
+/**
+Summary:
+Returns true if <pPermission> is a valid Android permission name
+
+Parameters:
+pPermission (string):
+The name of the permission to check.
+
+Returns(boolean):
+True if <pPermission> is a valid Android permission name, false otherwise.
+
+Description:
+Use the <AndroidPermissionExists> function to check if <pPermission> is a valid
+Android permission name.
+
+>*Note:* Permission names are case sensitive.
+*/
+public handler AndroidPermissionExists(in pPermission as String) returns Boolean
+	variable tPermissionExists as Boolean
+	unsafe
+		put MCAndroidCheckPermissionExists(pPermission) into tPermissionExists
+	end unsafe
+	return tPermissionExists
+end handler
+
+private foreign handler MCAndroidHasPermission(in pPermission as String) \
+	returns CBool binds to "<builtin>"
+
+/**
+Summary:
+Returns true if permission <pPermission> has been granted by the user.
+
+Parameters:
+pPermission (enum):
+The name of the permission to request.
+
+-   "android.permission.READ_CALENDAR": permission to allow an application to read the device's calendar.
+-   "android.permission.WRITE_CALENDAR": permission to allow an application to write to the device's calendar.
+-   "android.permission.CAMERA": permission to allow an application to access the device's camera.
+-   "android.permission.ACCESS_COARSE_LOCATION": permission to allow an application to access the device's coarse location.
+-   "android.permission.ACCESS_FINE_LOCATION": permission to allow an application to access the device's fine location.
+-   "android.permission.READ_CONTACTS": permission to allow an application to read data from the device's contacts.
+-   "android.permission.WRITE_CONTACTS": permission to allow an application to write date to the device's contacts.
+-   "android.permission.GET_ACCOUNTS": permission to allow an application to access to the list of accounts in the Accounts Service.
+-   "android.permission.RECORD_AUDIO": permission to allow an application to allow an application to record audio.
+-   "android.permission.READ_EXTERNAL_STORAGE": permission to allow an application to read data from the device's external storage.
+-   "android.permission.WRITE_EXTERNAL_STORAGE": permission to allow an application to write data to the device's external storage.
+-   "android.permission.READ_PHONE_STATE": permission to allow an application to access phone state, including the phone number of the device, current cellular network information, the status of any ongoing calls, and a list of any PhoneAccounts registered on the device.
+-   "android.permission.READ_PHONE_NUMBERS": permission to allow an application to access the device's phone number(s).
+-   "android.permission.CALL_PHONE": permission to allow an application to initiate a phone call without going through the Dialer user interface for the user to confirm the call.
+-   "android.permission.ANSWER_PHONE_CALLS": permission to allow an application to answer an incoming phone call.
+-   "android.permission.READ_CALL_LOG": permission to allow an application to read the user's call log.
+-   "android.permission.WRITE_CALL_LOG": permission to allow an application to write to the user's call log.
+-   "android.permission.ADD_VOICEMAIL": permission to allow an application to add voicemails into the system.
+-   "android.permission.USE_SIP": permission to allow an application to use SIP service.
+-   "android.permission.PROCESS_OUTGOING_CALLS": permission to allow an application to see the number being dialed during an outgoing call with the option to redirect the call to a different number or abort the call altogether.
+-   "android.permission.SEND_SMS": permission to allow an application to send SMS messages.
+-   "android.permission.RECEIVE_SMS": permission to allow an application to receive SMS messages
+-   "android.permission.READ_SMS": permission to allow an application to read SMS messages.
+-   "android.permission.RECEIVE_WAP_PUSH": permission to allow an application to receive WAP push messages.
+-   "android.permission.RECEIVE_MMS": permission to allow an application to receive MMS messages.
+-   "android.permission.BODY_SENSORS": permission to allow an application to access data from sensors that the user uses to measure what is happening inside his/her body, such as heart rate.
+
+Returns(boolean):
+True if permission has been granted, false otherwise.
+
+Description:
+Use the <AndroidHasPermission> function to find out if permission
+<pPermission> has been granted by the user.
+
+>*Note:* Permission names are case sensitive.
+*/
+public handler AndroidHasPermission(in pPermission as String) returns Boolean
+	variable tHasPermission as Boolean
+	unsafe
+		put MCAndroidHasPermission(pPermission) into tHasPermission
+	end unsafe
+	return tHasPermission
+end handler
+
+public handler type OnPauseHandler() returns nothing
+public handler type OnResumeHandler() returns nothing
+
+__safe foreign handler _JNI_Engine_LifecycleListener(in pListener as Array) returns JObject \
+    binds to "java:com.runrev.android.Engine$LifecycleListener>interface()"
+__safe foreign handler _JNI_Engine_RegisterLifecycleListener(in pSelf as JObject, in pListener as JObject) returns JBoolean \
+    binds to "java:com.runrev.android.Engine>registerLifecycleListener(Lcom/runrev/android/Engine$LifecycleListener;)Z"
+__safe foreign handler _JNI_Engine_UnregisterLifecycleListener(in pSelf as JObject, in pListener as JObject) returns JBoolean \
+    binds to "java:com.runrev.android.Engine>unregisterLifecycleListener(Lcom/runrev/android/Engine$LifecycleListener;)Z"
+
+/**
+Summary:
+Register handlers to be called when on application lifecycle events.
+
+Parameters:
+pPauseHandler: The handler to be called when the application is paused
+pResumeHandler: The handler to be called when the application is resumed
+
+Returns:
+A listener object that wraps the registered handlers.
+
+Example:
+private variable mLifecycleListener as optional JObject
+
+public handler OnOpen() returns nothing
+    put AndroidRegisterLifecycleListener(OnMyWidgetPaused, OnMyWidgetResumed) into mLifecycleListener
+end handler
+
+public handler OnClose() returns nothing
+    AndroidUnregisterLifecycleListener(mLifecycleListener)
+    put nothing into mLifecycleListener
+end handler
+
+private handler OnMyWidgetPaused() returns nothing
+    -- Perform pause actions
+end handler
+
+private handler OnMyWidgetResumed() returns nothing
+    -- Perform resume actions
+end handler
+
+Description:
+Use the <AndroidRegisterLifecycleListener> handler to register handlers to
+application lifecycle events. The handler <pPauseHandler> will be called when
+the application is paused and enters into the background. The handler
+<pResumeHandler> will be called when the application is resumed and returns from
+the background.
+
+A listener object will be returned that wraps the registered handlers and can be
+used with <AndroidUnregisterLifecycleListener> to cancel the registration.
+*/
+public handler AndroidRegisterLifecycleListener(in pPauseHandler as OnPauseHandler, in pResumeHandler as OnResumeHandler) returns JObject
+    variable tEngine as JObject
+    put _JNI_GetAndroidEngine() into tEngine
+
+    variable tLifecycleListenerHandler as Array
+    put { \
+        "OnPause": pPauseHandler, \
+        "OnResume": pResumeHandler \
+    } into tLifecycleListenerHandler
+
+    variable tLifecycleListener as JObject
+    put _JNI_Engine_LifecycleListener(tLifecycleListenerHandler) \
+        into tLifecycleListener
+
+    _JNI_Engine_RegisterLifecycleListener(tEngine, tLifecycleListener)
+    return tLifecycleListener
+end handler
+
+/**
+Summary:
+Unregister an object that is listening on application lifecycle events.
+
+Parameters:
+pListener: The listener object to be unregistered
+
+Returns:
+True if the listener object was previously registered and has been successfully
+unregistered.
+
+Example:
+private variable mLifecycleListener as optional JObject
+
+public handler OnOpen() returns nothing
+    put AndroidRegisterLifecycleListener(OnMyWidgetPaused, OnMyWidgetResumed) into mLifecycleListener
+end handler
+
+public handler OnClose() returns nothing
+    AndroidUnregisterLifecycleListener(mLifecycleListener)
+    put nothing into mLifecycleListener
+end handler
+
+Description:
+Use the <AndroidUnregisterLifecycleListener> handler to unregister an object
+created with <AndroidRegisterLifecycleListener> that is listening to application
+lifecycle events. This will have the effect that any handlers that the listener
+object is wrapping will no longer be called.
+*/
+public handler AndroidUnregisterLifecycleListener(in pListener as JObject) returns Boolean
+    variable tEngine as JObject
+    put _JNI_GetAndroidEngine() into tEngine
+
+    return _JNI_Engine_UnregisterLifecycleListener(tEngine, pListener)
+end handler
+
+end module

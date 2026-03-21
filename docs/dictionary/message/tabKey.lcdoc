@@ -1,0 +1,35 @@
+Name: tabKey
+
+Type: message
+
+Syntax: tabKey
+
+Summary:
+Sent when the user presses the Tab key.
+
+Introduced: 1.0
+
+Associations: card, field
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+on tabKey -- go forward in stack on tab, backward on shift-tab
+  if the shiftKey is down then go previous card
+  else go next card
+end tabKey
+
+Description:
+Handle the <tabKey> <message> when you want to perform an action (such
+as going to the next <card>) when the user presses the Tab key.
+
+The message is sent to the active (focused) control, or to the current
+card if no control is focused.
+
+References: focus (command), message (glossary), card (keyword),
+tabStops (property), tabGroupBehavior (property), autoTab (property)
+
+Tags: ui
+

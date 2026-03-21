@@ -1,0 +1,1 @@
+# Don't store iconified stack rect

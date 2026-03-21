@@ -1,0 +1,69 @@
+Name: call
+
+Type: command
+
+Syntax: call <handlerName> [of <objectRef>]
+
+Summary:
+<execute|Executes> the specified <handler> in any <object(glossary)|object's>
+<script>. 
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server
+
+Example:
+call "mouseUp"
+
+Example:
+call "mouseUp" of button 1 of card 1
+
+Parameters:
+handlerName:
+Any handler in the script of the specified object, along with
+any parameters that handler requires, separated by commas. The entire 
+handler including parameters must be enclosed in quotes.
+
+objectRef:
+Any <object reference>. If no object is specified, LiveCode uses
+the current object.
+
+Description:
+Use the <call> <command> to use a <handler> that's not in the normal 
+<message path>.
+
+The <call> <command> sends a <handler> <message> to the 
+<object(glossary)>. If the <script> of the <object(glossary)> doesn't 
+<trap> the <handler> <message>, the <message> is <pass|passed> to the 
+next <object(glossary)> in the <object(glossary)|object's> <message path>.
+
+When executing a <handler> invoked by the <call> <command> the <defaultStack> 
+remains the same as it was when the <call> <command> was issued. Therefore 
+any <object reference|object references> in the called <handler> are evaluated 
+in the context of the <call> <command> that invoked the handler.  For example,
+button 3 may commonly refer to button 3 of the current card of the stack
+from which the target <handler> was called.
+
+This differs from the <send> <command> which temporarily changes the 
+context so that <object reference|object references> are evaluated 
+in the context of the <object(glossary)> containing the target <handler>.
+
+>*Tip:* If a <handler> contains complex <parameter|parameters>, 
+especially if some <parameter|parameters> contain 
+<double quote|double quotes>, it may be simpler to put the <message> 
+name and <parameter|parameters> into a <variable>, then use the name of 
+the <variable> in the <call> <statement>.
+
+References: command (glossary), defaultStack (property), do (command), 
+double quote (glossary), execute (glossary), handler (glossary), 
+insert script (command), message (glossary), 
+message path (glossary), object (glossary), 
+object reference (glossary), parameter (glossary), 
+params (function), pass (control structure), pass (glossary), 
+script (property), send (command), start using (command), 
+statement (glossary), trap (glossary), value (function), 
+variable (glossary)
+
+Tags: messages

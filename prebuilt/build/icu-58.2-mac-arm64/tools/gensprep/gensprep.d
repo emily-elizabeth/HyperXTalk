@@ -1,0 +1,36 @@
+gensprep.d gensprep.o gensprep.ao: \
+  ../../../icu-58.2/source/tools/gensprep/gensprep.c \
+  ../../../icu-58.2/source/common/cmemory.h \
+  ../../../icu-58.2/source/common/unicode/utypes.h \
+  ../../../icu-58.2/source/common/unicode/umachine.h \
+  ../../../icu-58.2/source/common/unicode/ptypes.h \
+  ../../../icu-58.2/source/common/unicode/platform.h \
+  ../../../icu-58.2/source/common/unicode/uconfig.h \
+  ../../../icu-58.2/source/common/unicode/uvernum.h \
+  ../../../icu-58.2/source/common/unicode/urename.h \
+  ../../../icu-58.2/source/common/unicode/uversion.h \
+  ../../../icu-58.2/source/common/unicode/utf.h \
+  ../../../icu-58.2/source/common/unicode/utf8.h \
+  ../../../icu-58.2/source/common/unicode/utf16.h \
+  ../../../icu-58.2/source/common/unicode/utf_old.h \
+  ../../../icu-58.2/source/common/unicode/localpointer.h \
+  ../../../icu-58.2/source/common/cstring.h \
+  ../../../icu-58.2/source/tools/gensprep/../toolutil/unewdata.h \
+  ../../../icu-58.2/source/common/unicode/udata.h \
+  ../../../icu-58.2/source/tools/gensprep/../toolutil/uoptions.h \
+  ../../../icu-58.2/source/tools/gensprep/../toolutil/uparse.h \
+  ../../../icu-58.2/source/common/sprpimpl.h \
+  ../../../icu-58.2/source/common/unicode/ustring.h \
+  ../../../icu-58.2/source/common/unicode/putil.h \
+  ../../../icu-58.2/source/common/unicode/uiter.h \
+  ../../../icu-58.2/source/common/unicode/parseerr.h \
+  ../../../icu-58.2/source/common/unicode/usprep.h \
+  ../../../icu-58.2/source/common/utrie.h \
+  ../../../icu-58.2/source/common/udataswp.h \
+  ../../../icu-58.2/source/common/ubidi_props.h \
+  ../../../icu-58.2/source/common/unicode/uset.h \
+  ../../../icu-58.2/source/common/unicode/uchar.h \
+  ../../../icu-58.2/source/common/putilimp.h \
+  ../../../icu-58.2/source/common/uset_imp.h \
+  ../../../icu-58.2/source/common/unicode/uclean.h \
+  ../../../icu-58.2/source/tools/gensprep/gensprep.h

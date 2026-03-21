@@ -1,0 +1,464 @@
+Library: com.livecode.widget.headerbar
+
+Type: widget
+
+Summary:
+A header bar intended for use by mobile apps.
+
+The header bar has a <label(property)>, which is displayed as its
+title, along with a set of actions.  Each action has a
+<itemNames|name>, which is used to identify it internally, and an
+<itemIcons|icon> and <itemLabels|label> which are displayed (depending
+on the chosen <itemStyle>).  One of the actions can optionally be
+displayed to the left of the header bar's title, when the
+<firstItemLeft> property is enabled.
+
+The header bar widget provides two theme modes, one for Android apps
+and one for iOS apps.  By default, it automatically selects the
+appropriate one depending on which platform it is running on.  To
+temporarily select a non-default different appearance, set the
+<theme(property)> property.
+
+The header bar widget works well when paired with the navigation bar
+widget.
+
+References:
+firstItemLeft (property), itemIcons (property),
+	itemLabels (property), itemNames (property),
+	itemStyle (property), label (property), theme (property)
+
+author: LiveCode
+
+version: 2.0.0
+
+Name: mouseUp
+
+Type: message
+
+Syntax: mouseUp
+
+Summary: Sent when the header bar is clicked
+
+Example:
+on mouseUp
+   local tActionName
+   put the mouseAction of the target into tActionName
+   if tActionName is not empty then
+      answer merge("The [[tActionName]] action was clicked")
+   else
+      answer "Try clicking on an action"
+   end if
+end mouseUp
+
+Description: The <mouseUp> message is sent when the header bar is clicked.
+
+Related: mouseAction (property)
+
+Name: foreColor
+
+Type: property
+
+Syntax: get the foreColor of <widget>
+
+Syntax: set the foreColor of <widget> to <pColor>
+
+Summary: The text color
+
+Description:
+The <foreColor> property controls the color of the header bar's
+<label|title text>.
+
+Related: label (property)
+
+Name: backColor
+
+Type: property
+
+Syntax: get the backColor of <widget>
+
+Syntax: set the backColor of <widget> to <pColor>
+
+Summary: The background color
+
+Description:
+The <backColor> property controls the color of the header bar's
+background.
+
+Related: opaque (property)
+
+Name: hiliteColor
+
+Type: property
+
+Syntax: get the hiliteColor of <widget>
+
+Syntax: set the hiliteColor of <widget> to <pColor>
+
+Summary: The color of the actions' icons and text
+
+Description:
+The <hiliteColor> property controls the color of the text and icons of
+the header bar's actions.
+
+Related:
+itemIcons (property), hilitedItemIcons (property),
+	itemLabels (property), itemStyle (property)
+
+Name: borderColor
+
+Type: property
+
+Syntax: get the borderColor of <widget>
+
+Syntax: set the borderColor of <widget> to <pColor>
+
+Summary: The border color
+
+Description:
+The <borderColor> property controls the color of the header bar's
+border.
+
+Related: showBorder (property)
+
+
+Name: showBorder
+
+Type: property
+
+Syntax: get the showBorder of <widget>
+
+Syntax: set the showBorder of <widget> to {true | false}
+
+Summary: Whether the header bar has a dividing line at the bottom
+
+Description:
+If the <showBorder> property is `true`, a dividing line at the bottom
+of the header bar is drawn using the <borderColor>.
+
+References: borderColor (property)
+
+
+
+
+Name: opaque
+
+Type: property
+
+Syntax: get the opaque of <widget>
+
+Syntax: set the opaque of <widget> to {true | false}
+
+Summary: Whether the background of the header bar is filled
+
+Description:
+If the <opaque> property is `true`, the background of the header bar
+is filled with the <backColor>.
+
+References: backColor (property)
+
+
+
+
+Name: itemIcons
+
+Type: property
+
+Syntax: get the itemIcons of <widget>
+
+Syntax: set the itemIcons of <widget> to <iconNames>
+
+Summary: The icons for actions when not highlighted.
+
+Value: A comma delimited list of icon names.
+
+Description:
+The icons of the header bar actions.  These are the icons displayed by
+each action when not currently highlighted.
+
+Each icon name must be one of the predefined graphics provided by the "IconSVG"
+library.  You can get a list of available predefined path names by running
+`put iconNames()` in the Message Box.
+
+If you set the <itemIcons> to a string that has more items than the
+current number of actions, the header bar will automatically create a
+new header action with a default label and name.
+
+However, setting the <itemIcons> to a string that has _fewer_ items
+than the current number of actions doesn't remove an action; it just
+resets any further actions to the default icon.
+
+Related: itemArray (property), hilitedItemIcons (property)
+
+
+
+
+Name: itemStyle
+
+Type: property
+
+Syntax: get the itemStyle of <widget>
+
+Syntax: set the itemStyle of <widget> to <actionStyle>
+
+Summary: The display style for header actions.
+
+Value:
+The way that actions are displayed.
+- "icons": Show the icons
+- "text": Show the labels
+
+Description:
+Determines whether header bar actions are displayed with their icons
+or their labels.
+
+Related: firstItemLeft(property)
+
+
+
+
+Name: firstItemLeft
+
+Type: property
+
+Syntax: get the firstItemLeft of <widget>
+
+Syntax: set the firstItemLeft of <widget> to { true | false }
+
+Summary: Whether to display the first action on the left
+
+Description:
+If the <firstItemLeft> property is `true`, then the first action in the
+<itemArray> is displayed on the left hand side of the header bar.
+
+**Note:** In some <theme|themes>, the first action always has its
+label displayed when <firstItemLeft> is `true`.  If you don't want
+this to happen, you can set the action's <itemLabels|label> to the
+empty string.
+
+References: itemArray (property), theme (property), itemLabels (property)
+
+
+
+
+Name: itemNames
+
+Type: property
+
+Syntax: get the itemNames of <widget>
+
+Syntax: set the itemNames of <widget> to <names>
+
+Summary: The identifying names for header actions.
+
+Value: A comma-delimited list of action names
+
+Description:
+The names of the header bar actions.
+
+The <itemNames> are used to identify the header bar actions, but are
+not ever displayed by the header bar.  Use the <itemLabels> to control
+the text displayed for each action.
+
+Related: itemArray (property), itemLabels (property)
+
+
+
+
+Name: hilitedItemIcons
+
+Type: property
+
+Syntax: get the hilitedItemIcons of <widget>
+
+Syntax: set the hilitedItemIcons of <widget> to <iconNames>
+
+Summary: The icons for actions when highlighted.
+
+Value: A comma delimited list of icon names.
+
+Description:
+The icons of the header bar actions.  These are the icons displayed by
+each action when highlighted.
+
+Each icon name must be one of the predefined graphics provided by the "IconSVG"
+library.  You can get a list of available predefined path names by running
+`put iconNames()` in the Message Box.
+
+If you set the <hilitedItemIcons> to a string that has more items than the
+current number of actions, the header bar will automatically create a
+new header action with a default label and name.
+
+However, setting the <hilitedItemIcons> to a string that has _fewer_ items
+than the current number of actions doesn't remove an action; it just
+resets any further actions to the default icon.
+
+Related: itemArray (property), itemIcons (property)
+
+
+
+
+Name: label
+
+Type: property
+
+Syntax: get the label of <widget>
+
+Syntax: set the label of <widget> to <title>
+
+Summary: The title displayed by the header bar.
+
+Value(string): The text of the title of the header bar.
+
+Description: The text displayed by the header bar as its title.
+
+Related: showLabel (property)
+
+
+
+
+Name: itemArray
+
+Type: property
+
+Syntax: get the itemArray of <widget>
+
+Syntax: set the itemArray of <widget> to <array>
+
+Summary: The full header action data.
+
+Value: An array containing all the action data
+
+Description:
+The <itemArray> is a number-indexed array that contains all of the
+information about the header widget's actions.  It combines the data
+accessible via the <itemIcons>, <hilitedItemIcons>, <itemLabels> and
+<itemNames> properties.
+
+The structure of the <itemArray> must be:
+
+```
+{
+	key (integer): The index of the navigation item
+	value (array): The array containing the data for the item at this index
+	{
+		key : "name"
+		value (string): The name of this item
+		key : "label"
+		value (string): The label of this item
+		key : "icon_name"
+		value (string) : The name of the icon to display when the item is not highlighted
+		key : "hilited_icon_name"
+		value (string) : The name of the icon to display when the item is highlighted
+	}
+}
+```
+
+References:
+itemIcons (property), hilitedItemIcons (property),
+	itemLabels (property), itemNames (property)
+
+
+
+Name: showLabel
+
+Type: property
+
+Syntax: get the showLabel of <widget>
+
+Syntax: set the showLabel of <widget> to {true | false}
+
+Summary: Whether or not to display a title
+
+Description:
+Controls whether the header bar displays the <label(property)> as a
+title (`true`) or whether no title is shown (`false`).
+
+Related: label (property)
+
+
+
+
+Name: mouseAction
+
+Type: property
+
+Syntax: get the mouseAction of <widget>
+
+Summary: The header action that the mouse pointer is currently over.
+
+Value:
+The name of the header action that the mouse pointer is currently
+over.
+
+Example:
+-- Go to the previous card when the header's "back" action is
+-- clicked.
+on mouseUp
+   if the mouseAction of the target is "back" then
+      go previous
+   end if
+end mouseUp
+
+Description:
+The <mouseAction> property contains the <itemNames|name> of the action
+that was just clicked, or empty when no action was clicked.
+
+You can read the <mouseAction> property to detect which action was
+activated when handling the <mouseUp> message.
+
+References: itemNames (property), mouseUp (message)
+
+
+
+
+Name: theme
+
+Type: property
+
+Syntax: get the theme of <widget>
+
+Syntax: set the theme of <widget> to <widgetTheme>
+
+Summary: The theme to use when drawing the header bar.
+
+Value(string): The name of a theme supported by the header bar.
+
+Description:
+The <theme> controls the general appearance of the header bar.  The
+header widget currently supports "native", "iOS" and "Android".  If
+the <theme> is set to "native", then the header widget will use either
+the "iOS" or "Android" theme depending on the platform that LiveCode
+is running on.
+
+>*Note*: The value of the <theme> property is not saved by the header
+bar. Set the <theme> property to preview the way the header bar will
+appear when used on an Android or iOS device.
+
+>*Warning*: The meaning and behaviour of the <theme> property is
+experimental and is subject to change in a future release.
+
+
+
+Name: itemLabels
+
+Type: property
+
+Syntax: get the itemLabels of <widget>
+
+Syntax: set the itemLabels of <widget> to <labels>
+
+Summary: The labels for header actions.
+
+Value: A comma-delimited list of action labels.
+
+Description:
+The labels of the header bar actions.
+
+The <itemLabels> are displayed by the header bar widget when the
+<itemStyle> is set to show text for each action.
+
+Related: itemArray (property), itemStyle (property)
+
+
+
+

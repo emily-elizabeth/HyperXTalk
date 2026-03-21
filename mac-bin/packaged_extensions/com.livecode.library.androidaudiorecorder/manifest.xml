@@ -1,0 +1,26 @@
+<package version="0.0">
+  <name>com.livecode.library.androidaudiorecorder</name>
+  <title>Android Audio Recorder</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <os>android</os>
+  <license>community</license>
+  <type>library</type>
+  <requires name="com.livecode.java"/>
+  <requires name="com.livecode.foreign"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.system"/>
+  <requires name="com.livecode.array"/>
+  <metadata key="android.permissions">RECORD_AUDIO,CAPTURE_AUDIO_OUTPUT</metadata>
+  <handler name="androidRecorderStartRecording" parameters="in string" return="nothing"/>
+  <handler name="androidRecorderStopRecording" parameters="" return="any"/>
+  <handler name="androidRecorderGetMaxAmplitude" parameters="" return="integer"/>
+  <handler name="androidRecorderSetRecordInput" parameters="in string" return="any"/>
+  <handler name="androidRecorderSetRecordCompressionType" parameters="in string" return="any"/>
+  <handler name="androidRecorderSetRecordFormat" parameters="in string" return="any"/>
+</package>

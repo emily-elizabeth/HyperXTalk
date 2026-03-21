@@ -1,0 +1,105 @@
+Library: com.livecode.widget.iconpicker
+
+Type: widget
+
+Summary: This widget is an icon picker, using icons from the iconSVG library.
+
+author: LiveCode
+
+version: 1.0.3
+
+
+Name: iconSize
+
+Type: property
+
+Syntax: set the iconSize of <widget> to pSize
+get the iconSize of <widget>
+
+Summary: The width and height of the rectangles in which the icons are rendered
+
+Value: A two-item list with the width and height of the rect in which the icons are rendered
+
+
+
+
+Name: selectedIcon
+
+Type: property
+
+Syntax: set the selectedIcon of <widget> to pIcon
+get the selectedIcon of <widget>
+
+Summary: The selected icon name
+
+Value: An icon name, from the IconSVG library
+
+
+
+
+Name: filterString
+
+Type: property
+
+Syntax: set the filterString of <widget> to pString
+get the filterString of <widget>
+
+
+Summary: Filters the list of icons to display according to a string
+
+
+
+Name: preferredSize
+
+Type: property
+
+Syntax: get the preferredSize of <widget>
+
+Summary: The preferred size of the widget.
+
+Value:
+A two-item list with the width and height needed to display the widget
+with the current display preferences.
+
+Description:
+The <preferredSize> property is used when the icon widget is popped up
+using the 'popup widget' syntax
+
+
+
+Name: showFrameBorder
+
+Type: property
+
+Syntax: set the showFrameBorder of <widget> to {true | false}
+get the showFrameBorder of <widget>
+
+
+Summary: Whether the icon picker has a border or not
+
+
+
+Name: showSelectedElement
+
+Type: property
+
+Syntax: set the showSelectedElement of <widget> to {true | false}
+get the showSelectedElement of <widget>
+
+
+Summary: Controls whether a title bar is drawn displaying the currently selected icon
+
+
+
+Name: showNames
+
+Type: property
+
+Syntax: set the showNames of <widget> to {true | false}
+get the showNames of <widget>
+
+
+Summary: Whether to display the names of the icons or not
+
+
+

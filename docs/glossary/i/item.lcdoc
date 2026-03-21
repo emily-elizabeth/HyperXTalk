@@ -1,0 +1,16 @@
+Name: item
+
+Synonyms: item
+
+Type: glossary
+
+Description:
+A <chunk> of text that is <delimit|delimited> by the <character> in the
+<itemDelimiter> <property>. (By default, the item <delimiter> is a
+comma.) 
+
+References: property (glossary), character (glossary), delimit (glossary),
+delimiter (glossary), chunk (glossary), itemDelimiter (property)
+
+Tags: text processing
+

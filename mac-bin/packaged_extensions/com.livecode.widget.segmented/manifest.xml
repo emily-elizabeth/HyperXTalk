@@ -1,0 +1,129 @@
+<package version="0.0">
+  <name>com.livecode.widget.segmented</name>
+  <title>Segmented Control</title>
+  <author>LiveCode</author>
+  <version>1.2.0</version>
+  <license>community</license>
+  <type>widget</type>
+  <requires name="com.livecode.canvas"/>
+  <requires name="com.livecode.library.widgetutils"/>
+  <requires name="com.livecode.library.iconsvg"/>
+  <requires name="com.livecode.library.scriptitems"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.widget"/>
+  <requires name="com.livecode.engine"/>
+  <requires name="com.livecode.mathfoundation"/>
+  <requires name="com.livecode.math"/>
+  <requires name="com.livecode.char"/>
+  <requires name="com.livecode.typeconvert"/>
+  <requires name="com.livecode.byte"/>
+  <metadata key="svgicon">M72.6,0H7.7C3.4,0,0,3.4,0,7.7v14c0,4.2,3.4,7.7,7.7,7.7h64.9c4.2,0,7.7-3.4,7.7-7.7v-14C80.2,3.4,76.8,0,72.6,0z M7.8,13.5h8v2.3h-8V13.5z M19.7,20.6h-12v-2.3h12V20.6z M19.7,11h-12V8.8h12V11z M27.8,25.5h-1V3.8h1V25.5z M46.1,20.6h-12v-2.3h12V20.6zM36.1,15.7v-2.3h8v2.3H36.1z M46.1,11h-12V8.8h12V11z M54.4,25.5h-1V3.8h1V25.5z M72.7,20.6h-12v-2.3h12V20.6z M72.7,15.7h-8v-2.3h8V15.7z M72.7,11h-12V8.8h12V11z</metadata>
+  <metadata key="preferredSize">200,32</metadata>
+  <metadata key="_ide">true</metadata>
+  <metadata key="foregroundColor.editor">com.livecode.pi.color</metadata>
+  <metadata key="foregroundColor.default">0,0,0</metadata>
+  <metadata key="foregroundColor.section">Colors</metadata>
+  <metadata key="foregroundColor.label">Segment Label Color</metadata>
+  <metadata key="backgroundColor.editor">com.livecode.pi.color</metadata>
+  <metadata key="backgroundColor.default">244,244,244</metadata>
+  <metadata key="backgroundColor.section">Colors</metadata>
+  <metadata key="backgroundColor.label">Segment color</metadata>
+  <metadata key="hiliteColor.editor">com.livecode.pi.color</metadata>
+  <metadata key="hiliteColor.default">10,95,244</metadata>
+  <metadata key="hiliteColor.section">Colors</metadata>
+  <metadata key="hiliteColor.label">Selected segment color</metadata>
+  <metadata key="borderColor.editor">com.livecode.pi.color</metadata>
+  <metadata key="borderColor.default">109,109,109</metadata>
+  <metadata key="borderColor.section">Colors</metadata>
+  <metadata key="borderColor.label">Border color</metadata>
+  <property name="hilitedTextColor" get="string" set="string"/>
+  <metadata key="hilitedTextColor.editor">com.livecode.pi.color</metadata>
+  <metadata key="hilitedTextColor.default">255,255,255</metadata>
+  <metadata key="hilitedTextColor.section">Colors</metadata>
+  <metadata key="hilitedTextColor.label">Hilited segment label color</metadata>
+  <metadata key="themeClass.default">list</metadata>
+  <metadata key="themeClass.user_visible">false</metadata>
+  <property name="horizontal" get="boolean" set="boolean"/>
+  <metadata key="horizontal.editor">com.livecode.pi.boolean</metadata>
+  <metadata key="horizontal.default">true</metadata>
+  <metadata key="horizontal.label">Horizontal</metadata>
+  <handler name="OnSave" parameters="out array" return="any"/>
+  <handler name="OnLoad" parameters="in array" return="any"/>
+  <handler name="OnCreate" parameters="" return="any"/>
+  <handler name="OnPaint" parameters="" return="any"/>
+  <handler name="OnGeometryChanged" parameters="" return="any"/>
+  <handler name="OnClick" parameters="" return="nothing"/>
+  <property name="itemCount" get="integer" set="number"/>
+  <metadata key="itemCount.editor">com.livecode.pi.integer</metadata>
+  <metadata key="itemCount.step">1</metadata>
+  <metadata key="itemCount.min">1</metadata>
+  <metadata key="itemCount.label">Number of segments</metadata>
+  <property name="itemNames" get="string" set="string"/>
+  <metadata key="itemNames.editor">com.livecode.pi.editorList</metadata>
+  <metadata key="itemNames.subeditor">com.livecode.pi.string</metadata>
+  <metadata key="itemNames.delimiter">,</metadata>
+  <metadata key="itemNames.default">segment1,segment2,segment3</metadata>
+  <metadata key="itemNames.label">Segment names</metadata>
+  <property name="itemLabels" get="string" set="string"/>
+  <metadata key="itemLabels.editor">com.livecode.pi.editorList</metadata>
+  <metadata key="itemLabels.subeditor">com.livecode.pi.string</metadata>
+  <metadata key="itemLabels.delimiter">,</metadata>
+  <metadata key="itemLabels.default">Label 1,Label 2,Label 3</metadata>
+  <metadata key="itemLabels.label">Segment labels</metadata>
+  <property name="itemIcons" get="string" set="string"/>
+  <metadata key="itemIcons.label">Segment Icons</metadata>
+  <metadata key="itemIcons.editor">com.livecode.pi.editorlist</metadata>
+  <metadata key="itemIcons.subeditor">com.livecode.pi.svgicon</metadata>
+  <metadata key="itemIcons.delimiter">,</metadata>
+  <metadata key="itemIcons.default">align left,align center,align right</metadata>
+  <metadata key="itemIcons.section">Icons</metadata>
+  <property name="hilitedItemIcons" get="string" set="string"/>
+  <metadata key="hilitedItemIcons.label">Hilited segment icons</metadata>
+  <metadata key="hilitedItemIcons.editor">com.livecode.pi.editorlist</metadata>
+  <metadata key="hilitedItemIcons.subeditor">com.livecode.pi.svgicon</metadata>
+  <metadata key="hilitedItemIcons.delimiter">,</metadata>
+  <metadata key="hilitedItemIcons.default">align left,align center,align right</metadata>
+  <metadata key="hilitedItemIcons.section">Icons</metadata>
+  <property name="itemMinExtents" get="string" set="string"/>
+  <metadata key="itemMinExtents.editor">com.livecode.pi.editorList</metadata>
+  <metadata key="itemMinExtents.subeditor">com.livecode.pi.number</metadata>
+  <metadata key="itemMinExtents.delimiter">,</metadata>
+  <metadata key="itemMinExtents.default">50,50,50</metadata>
+  <metadata key="itemMinExtents.label">Minimum segment widths</metadata>
+  <property name="multipleHilites" get="boolean" set="boolean"/>
+  <metadata key="multipleHilites.default">false</metadata>
+  <metadata key="multipleHilites.label">Hilite multiple segments</metadata>
+  <property name="toggleHilites" get="boolean" set="boolean"/>
+  <metadata key="toggleHilites.editor">com.livecode.pi.boolean</metadata>
+  <metadata key="toggleHilites.default">true</metadata>
+  <metadata key="toggleHilites.section">Basic</metadata>
+  <metadata key="toggleHilites.label">Clicking toggles highlight</metadata>
+  <property name="showBorder" get="boolean" set="boolean"/>
+  <metadata key="showBorder.default">true</metadata>
+  <property name="itemStyle" get="string" set="string"/>
+  <metadata key="itemStyle.editor">com.livecode.pi.enum</metadata>
+  <metadata key="itemStyle.options">text,icons</metadata>
+  <metadata key="itemStyle.default">text</metadata>
+  <metadata key="itemStyle.label">Display style</metadata>
+  <property name="hilitedItems" get="string" set="string"/>
+  <metadata key="hilitedItems.editor">com.livecode.pi.string</metadata>
+  <metadata key="hilitedItems.default"></metadata>
+  <metadata key="hilitedItems.label">Hilited segment indices</metadata>
+  <property name="hilitedItemNames" get="string" set="string"/>
+  <metadata key="hilitedItemNames.editor">com.livecode.pi.string</metadata>
+  <metadata key="hilitedItemNames.default"></metadata>
+  <metadata key="hilitedItemNames.label">Hilited segment names</metadata>
+  <handler name="SetHorizontal" parameters="in boolean" return="nothing"/>
+  <property name="cornerRadius" get="real" set="number"/>
+  <metadata key="cornerRadius.editor">com.livecode.pi.number</metadata>
+  <metadata key="cornerRadius.default">15</metadata>
+  <metadata key="cornerRadius.section">Basic</metadata>
+  <metadata key="cornerRadius.label">Corner Radius</metadata>
+  <handler name="setCornerRadius" parameters="in number" return="nothing"/>
+</package>

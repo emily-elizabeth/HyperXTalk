@@ -1,0 +1,132 @@
+<package version="0.0">
+  <name>com.livecode.widget.native.android.field</name>
+  <title>Android Native Field</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <os>android</os>
+  <license>community</license>
+  <type>widget</type>
+  <requires name="com.livecode.java"/>
+  <requires name="com.livecode.library.androidutils"/>
+  <requires name="com.livecode.foreign"/>
+  <requires name="com.livecode.canvas"/>
+  <requires name="com.livecode.library.scriptitems"/>
+  <requires name="com.livecode.library.widgetutils"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.system"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.widget"/>
+  <requires name="com.livecode.engine"/>
+  <requires name="com.livecode.bitwise"/>
+  <requires name="com.livecode.byte"/>
+  <requires name="com.livecode.char"/>
+  <requires name="com.livecode.mathfoundation"/>
+  <metadata key="svgicon">M28.06,4.95a.34.34,0,1,1,.34.34A.34.34,0,0,1,28.06,4.95Zm-3.45.34a.34.34,0,1,0-.34-.34A.34.34,0,0,0,24.6,5.29ZM36.25,2V17.24a2,2,0,0,1-2,2H2a2,2,0,0,1-2-2V2A2,2,0,0,1,2,0h32.3A2,2,0,0,1,36.25,2ZM22.39,6.8h8.23a3.76,3.76,0,0,0-2.1-3.31l.65-1.17a.13.13,0,0,0-.05-.18l-.06,0a.13.13,0,0,0-.11.07l-.66,1.19a4.43,4.43,0,0,0-3.56,0l-.66-1.19a.13.13,0,1,0-.23.13l.65,1.17A3.76,3.76,0,0,0,22.39,6.8ZM9.57,2.57H5v1.5H6.53v11H5v1.5H9.57v-1.5H8v-11H9.57ZM22,7.89a.92.92,0,0,0-1.84,0v3.84a.92.92,0,1,0,1.84,0Zm8.57-.76H22.39v6a1,1,0,0,0,1,1H24v2a.92.92,0,1,0,1.84,0v-2h1.23v2a.92.92,0,1,0,1.84,0v-2h.66a1,1,0,0,0,1-1Zm2.19.76a.92.92,0,0,0-1.84,0v3.84a.92.92,0,1,0,1.84,0Z</metadata>
+  <property name="text" get="string" set="string"/>
+  <metadata key="text.section">Contents</metadata>
+  <metadata key="text.user_visible">true</metadata>
+  <metadata key="text.default"></metadata>
+  <property name="fieldTextColor" get="string" set="string"/>
+  <metadata key="fieldTextColor.editor">com.livecode.pi.colorwithalpha</metadata>
+  <metadata key="fieldTextColor.label">Text color</metadata>
+  <metadata key="fieldTextColor.default">0,0,0,255</metadata>
+  <metadata key="fieldTextColor.section">Colors</metadata>
+  <metadata key="textSize.dummy"></metadata>
+  <property name="textAlign" get="string" set="string"/>
+  <metadata key="textAlign.default">left</metadata>
+  <property name="verticalTextAlign" get="string" set="string"/>
+  <metadata key="verticalTextAlign.options">top,middle,bottom</metadata>
+  <metadata key="verticalTextAlign.editor">com.livecode.pi.enum</metadata>
+  <metadata key="verticalTextAlign.section">Text</metadata>
+  <metadata key="verticalTextAlign.label">Vertical text align</metadata>
+  <metadata key="verticalTextAlign.default">top</metadata>
+  <property name="autoCapitalizationType" get="string" set="string"/>
+  <metadata key="autoCapitalizationType.editor">com.livecode.pi.enum</metadata>
+  <metadata key="autoCapitalizationType.options">none,words,sentences,all characters</metadata>
+  <metadata key="autoCapitalizationType.default">none</metadata>
+  <metadata key="autoCapitalizationType.label">Auto capitalization type</metadata>
+  <property name="autoCorrectionType" get="string" set="string"/>
+  <metadata key="autoCorrectionType.editor">com.livecode.pi.enum</metadata>
+  <metadata key="autoCorrectionType.options">default,no,yes</metadata>
+  <metadata key="autoCorrectionType.default">default</metadata>
+  <metadata key="autoCorrectionType.label">Auto correction type</metadata>
+  <property name="keyboardType" get="string" set="string"/>
+  <metadata key="keyboardType.editor">com.livecode.pi.enum</metadata>
+  <metadata key="keyboardType.options">default,alphabet,numeric,URL,number,phone,contact,email,decimal</metadata>
+  <metadata key="keyboardType.label">Keyboard type</metadata>
+  <property name="returnKeyType" get="string" set="string"/>
+  <metadata key="returnKeyType.editor">com.livecode.pi.enum</metadata>
+  <metadata key="returnKeyType.options">default,none,go,search,send,next,done,previous</metadata>
+  <metadata key="returnKeyType.default">default</metadata>
+  <metadata key="returnKeyType.label">Return key type</metadata>
+  <property name="contentType" get="string" set="string"/>
+  <metadata key="contentType.editor">com.livecode.pi.enum</metadata>
+  <metadata key="contentType.options">plain,password</metadata>
+  <metadata key="contentType.default">plain</metadata>
+  <metadata key="contentType.label">Content type</metadata>
+  <property name="multiline" get="boolean" set="boolean"/>
+  <metadata key="multiline.label">Multi-line</metadata>
+  <property name="editable" get="boolean" set="boolean"/>
+  <metadata key="editable.label">Editable</metadata>
+  <property name="dataDetectorTypes" get="string" set="string"/>
+  <metadata key="dataDetectorTypes.editor">com.livecode.pi.set</metadata>
+  <metadata key="dataDetectorTypes.options">phone number,link,email,address</metadata>
+  <metadata key="dataDetectorTypes.label">Data detector types</metadata>
+  <property name="scrollingEnabled" get="boolean" set="boolean"/>
+  <metadata key="scrollingEnabled.label">Scrolling enabled</metadata>
+  <property name="passReturnKey" get="boolean" set="boolean"/>
+  <metadata key="passReturnKey.label">Return key adds new line</metadata>
+  <metadata key="passReturnKey.default">true</metadata>
+  <property name="focused" get="boolean" set="boolean"/>
+  <metadata key="focused.user_visible">false</metadata>
+  <property name="selectedRange" get="string" set="string"/>
+  <metadata key="selectedRange.user_visible">false</metadata>
+  <handler name="OnSave" parameters="out array" return="any"/>
+  <handler name="OnLoad" parameters="in array" return="any"/>
+  <handler name="OnCreate" parameters="" return="any"/>
+  <handler name="OnOpen" parameters="" return="any"/>
+  <handler name="OnClose" parameters="" return="any"/>
+  <handler name="OnParentPropertyChanged" parameters="" return="any"/>
+  <handler name="View_clearFocus" parameters="in JObject" return="nothing"/>
+  <handler name="View_requestFocus" parameters="in JObject" return="boolean"/>
+  <handler name="View_isFocused" parameters="in JObject" return="boolean"/>
+  <handler name="SetMultiLine" parameters="in boolean" return="any"/>
+  <handler name="GetMultiLine" parameters="" return="boolean"/>
+  <handler name="SetKeyboardType" parameters="in string" return="any"/>
+  <handler name="GetKeyboardType" parameters="" return="string"/>
+  <handler name="SetEnabled" parameters="in boolean" return="any"/>
+  <handler name="GetEnabled" parameters="" return="boolean"/>
+  <handler name="SetEditable" parameters="in boolean" return="nothing"/>
+  <handler name="GetEditable" parameters="" return="boolean"/>
+  <handler name="SetText" parameters="in string" return="any"/>
+  <handler name="GetText" parameters="" return="string"/>
+  <handler name="SetTextColor" parameters="in string" return="any"/>
+  <handler name="GetTextColor" parameters="" return="string"/>
+  <handler name="GetTextSize" parameters="" return="integer"/>
+  <handler name="SetDataDetectorTypes" parameters="in string" return="any"/>
+  <handler name="GetDataDetectorTypes" parameters="" return="string"/>
+  <handler name="SetHorizontalTextAlign" parameters="in string" return="any"/>
+  <handler name="GetHorizontalTextAlign" parameters="" return="string"/>
+  <handler name="SetVerticalTextAlign" parameters="in string" return="any"/>
+  <handler name="GetVerticalTextAlign" parameters="" return="string"/>
+  <handler name="SetSelectedRange" parameters="in string" return="any"/>
+  <handler name="GetSelectedRange" parameters="" return="string"/>
+  <handler name="GetContentType" parameters="" return="string"/>
+  <handler name="SetContentType" parameters="in string" return="any"/>
+  <handler name="GetAutoCorrectionType" parameters="" return="string"/>
+  <handler name="SetAutoCorrectionType" parameters="in string" return="any"/>
+  <handler name="GetAutoCapitalizationType" parameters="" return="string"/>
+  <handler name="SetAutoCapitalizationType" parameters="in string" return="any"/>
+  <handler name="SetReturnKeyType" parameters="in string" return="any"/>
+  <handler name="GetReturnKeyType" parameters="" return="string"/>
+  <handler name="SetScrollingEnabled" parameters="in boolean" return="any"/>
+  <handler name="GetScrollingEnabled" parameters="" return="boolean"/>
+  <handler name="SetFocused" parameters="in boolean" return="any"/>
+  <handler name="GetFocused" parameters="" return="boolean"/>
+  <handler name="OnPaint" parameters="" return="any"/>
+</package>

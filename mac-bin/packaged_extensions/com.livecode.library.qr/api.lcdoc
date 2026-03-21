@@ -1,0 +1,139 @@
+Library: com.livecode.library.qr
+
+Type: library
+
+Title: QR Code Generator
+
+Version: 2.0.0
+
+Author: LiveCode
+
+Description:
+The QR Code Generator library for LiveCode generates QR codes
+according to the ISO international standard (ISO/IEC18004).
+
+'QR Code' is a registered trademark of DENSO WAVE INCORPORATED.
+
+All versions (1 - 40) and all error correction levels
+(L, M, Q, H) are supported.
+
+SVGIcon: M384 1024L384 1152 256 1152 256 1024 384 1024ZM384 256L384 384 256 384 256 256 384 256ZM1152 256L1152 384 1024 384 1024 256 1152 256ZM128 1279L512 1279 512 896 128 896 128 1279ZM128 512L512 512 512 128 128 128 128 512ZM896 512L1280 512 1280 128 896 128 896 512ZM640 768L640 1408 0 1408 0 768 640 768ZM1152 1280L1152 1408 1024 1408 1024 1280 1152 1280ZM1408 1280L1408 1408 1280 1408 1280 1280 1408 1280ZM1408 768L1408 1152 1024 1152 1024 1024 896 1024 896 1408 768 1408 768 768 1152 768 1152 896 1280 896 1280 768 1408 768ZM640 0L640 640 0 640 0 0 640 0ZM1408 0L1408 640 768 640 768 0 1408 0Z
+
+Tags: barcode
+
+
+Name: qrCreate
+
+Type: command
+
+Syntax: qrCreate <pImg>,<pData>,<pECC>,<pSize>,<pMask>,<pMinVersion>,<pMaxVersion>
+
+Summary: Create a QR code
+
+Example: qrCreate "MyImage", "QR data", "M", 3
+
+Example:
+--creating QR Code with ECC level M, Size 3, Mask 7 and version 14
+qrCreate "MyImage", "QR data", "M", 3, 7, 14, 14
+
+Example:
+-- example how to use qrCreate with LiveCode server
+qrCreate "!", tData, tECC, tSize
+put the result into tData
+if tData begins with "Error" then
+   put tData
+else
+   # line 1 of the result contains some info
+   # the remaining lines contain the png image data
+   put line 1 of tData into tInfo
+   delete line 1 of tData
+
+   put "&lt;b&gt;Qr code info&lt;/b&gt;&lt;br/&gt;" & LF
+   put "Version: " & item 1 of tInfo & "&lt;br/&gt;" & LF
+   put "ECC: " & item 2 of tInfo & "&lt;br/&gt;" & LF
+   put "Mode: " & item 3 of tInfo & "&lt;br/&gt;" & LF
+   put "Mask: " & item 4 of tInfo & "&lt;br/&gt;" & LF
+
+   # show the image
+   put base64Encode(tData) into tData
+   replace LF with empty in tData
+   put "&lt;img src='data:image/png;base64," & tData & "'/&gt;&lt;br/&gt;" & LF
+end if
+
+Description: Set the text of an image to a QR code or get the PMG data of the QR code image.
+
+Parameters: 
+
+pImg:
+The name of an image object on the card, a filename or the special code "!" which
+will return the image data in the result.
+
+pData: The data to be encoded.
+
+pECC:
+The error correction level
+
+- "L" : 7% error correction
+- "M" : 15% error correction
+- "Q" : 25% error correction
+- "H" : 30% error correction
+
+pSize:
+Module size you can make the code larger/smaller.  You can also just
+rescale the image after the code has been created.
+
+pMask:
+An integer value between 0 and 7. When encoding a QR code, there are
+eight mask patterns that you can use to change the outputted matrix.
+Each mask pattern changes the bits according to their coordinates in
+the QR matrix. The purpose of a mask pattern is to make the QR code
+easier for a QR scanner to read.
+
+pMinVersion:
+An integer value between 1 and 40. It must be lower or equal to pMaxVersion.
+If pMinVersion is not specified then the default value of 1 is used.
+
+pMaxVersion:
+An integer value between 1 and 40. It must be higher or equal to pMinVersion.
+If pMaxVersion is not specified then the default value of 40 is used.
+
+The result:
+If successful, the first line of the result will be the following values: 
+- QR version
+- ECC
+- Mode
+- Mask
+- Image size with quiet zone (based on module size 1)
+
+If there was an error the result will contain "Error:" and then an error
+description.
+
+If the special character '!' is used for pImg, then the result also
+contains the raw output of a png image.  You can use this data, for example,
+with LiveCode server to generate QR codes on web pages.
+
+
+
+Name: qrSetColors
+
+Type: command
+
+Syntax: qrSetColors <pForeground>,<pBackground>
+
+Summary: Set colors other than the default black and white
+
+Example: qrSetColors "Blue", "Yellow"
+
+Parameters: 
+
+pForeground: A color name or RGB triplet
+
+pBackground: A color name or RGB triplet
+
+Description:
+Optionally use colors other than black and white there must be a high
+enough contrast between colors for scanning the foreground color
+should be darker than the background color.
+
+
+

@@ -1,0 +1,63 @@
+Name: decrypt using rsa
+
+Type: command
+
+Syntax: decrypt <message> using rsa with {public | private} key <key> [and passphrase <passphrase>]
+
+Summary:
+Used to decrypt a file or string with RSA public or private keys 
+and an optional passphrase.
+
+Introduced: 4.6
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Security: network
+
+Example:
+decrypt tMessage using rsa with public key tPublicKey
+
+Example:
+decrypt field 1 using rsa with private key tPrivateKey
+
+Parameters:
+key:
+The key to be used for the decryption, in PEM format
+
+passphrase:
+An optional passphrase
+
+message:
+The message to be decrypted
+
+Description:
+Use the <decrypt using rsa> command to decrypt a message using RSA
+public key encryption.
+
+To decode a message that a sender has encrypted with its corresponding
+public key, use the form:
+
+    decrypt tMessage with private key tPrivateKey
+
+As a verify operation to ensure that a message has been encoded with the 
+corresponding private key and it has come from one of its holders, 
+use the form:
+
+    decrypt tMessage with public key tPublicKey
+
+> **Generating key pairs - **
+> Public-private key pairs can be generated using the OpenSSL suite of
+> command-line tools. For example: openssl genrsa -out private_key.pem 512
+> openssl rsa -pubout -in private_key.pem -out public_key.pem
+> Will generate a key pair of size 512-bits, placing the private key in
+> private_key.pem and the public key in public_key.pem.
+
+For more information on these utilities see
+https://www.openssl.org/docs/manmaster/man1/rsa.html and
+https://www.openssl.org/docs/manmaster/man1/genrsa.html.
+
+References: decrypt (command), encrypt (command),
+encrypt using rsa (command)
+

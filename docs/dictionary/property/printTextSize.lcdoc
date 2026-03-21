@@ -1,0 +1,30 @@
+Name: printTextSize
+
+Type: property
+
+Syntax: set the printTextSize to <fontSize>
+
+Summary:
+Has no effect and is included in <LiveCode> for compatibility with
+imported <HyperCard> stacks.
+
+Introduced: 1.0
+
+Platforms: desktop, server
+
+Security: printing
+
+Description:
+In HyperCard, the <printTextSize> <property> specifies the font size of
+printed text. In LiveCode, only <card(object)|cards> can be printed, and
+the size of text on the <card(keyword)> is determined by the <textSize>
+<property> of the <object|objects> that display text.
+
+By default, the value of <printTextSize> is 14. A <handler> can set the
+<property>, but the new setting has no effect.
+
+References: print (command), object (glossary), property (glossary),
+handler (glossary), LiveCode (glossary), HyperCard (glossary),
+card (keyword), card (object), scriptTextSize (property),
+textSize (property)
+

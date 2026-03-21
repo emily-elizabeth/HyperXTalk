@@ -1,0 +1,40 @@
+Name: mobileAdDelete
+
+Type: command
+
+Syntax: mobileAdDelete <ad>
+
+Summary:
+Delete a given ad.
+
+Introduced: 5.5
+
+OS: ios, android
+
+Platforms: mobile
+
+Example:
+mobileAdDelete "Ad1"
+
+Parameters:
+ad:
+The name of the loaded ad to delete.
+
+The result:
+-   empty: If successful.
+-   "not registered with service": if you did not register your app 
+id using <mobileAdRegister> before calling <mobileAdCreate>. 
+-   "ad already exists": if an ad of the given name already exists.
+-   "could not create ad": if the ad could not be created. This is 
+the case, if the app does not have Internet permissions or the 
+registered app key is not valid.
+
+
+Description:
+Use the <mobileAdDelete> command to delete a given ad.
+
+Use this command to delete an ad that was created earlier.
+
+References: mobileAdCreate (command), mobileAdRegister (command),
+mobileAds (function)
+

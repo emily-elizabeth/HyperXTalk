@@ -1,0 +1,48 @@
+Library: com.livecode.widget.spinner
+
+Type: widget
+
+Summary:
+This widget is a spinner or activity indicator. Spinners provide visual
+feedback to users use when performing an activity for an unknown
+duration such as processing a large amount of data or presenting a
+complex user interface.
+
+author: LiveCode
+
+version: 0.0.0
+
+
+Name: markerCount
+
+Type: property
+
+Syntax: set the markerCount of <widget> to <markers>
+get the markerCount of <widget>
+
+Summary: The number of markers to display in the spinner
+
+Value: The number of markers to display around the circle
+
+Description: The markerCount is an integer greater than 4. The default value is 8.
+
+
+
+
+Name: scaleMarkers
+
+Type: property
+
+Syntax: set the scaleMarkers of <widget> to { true | false }
+get the scaleMarkers of <widget>
+
+Summary: Whether to scale the markers to or maintain a constant size
+
+Value: True if markers should be scaled; false otherwise
+
+Description:
+If true, the markers will be scaled as in addition to changing
+transparency. The default value is true.
+
+
+

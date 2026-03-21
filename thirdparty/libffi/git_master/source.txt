@@ -1,0 +1,2 @@
+origin: https://github.com/atgreen/libffi
+commit: ee718066f763b65d1888f9cc7155d3a1880f80e9

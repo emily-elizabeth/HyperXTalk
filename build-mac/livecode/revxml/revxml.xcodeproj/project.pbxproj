@@ -1,0 +1,1347 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		75D53409B73696C29E93E531 /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 538C00D53BDEAB3EE7437992 /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				03D01C5F11291808F12F2763 /* PBXTargetDependency */,
+				A6F86EA709862D53AFC00BF0 /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		0BED15909FD68DCB6D516C1C /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A5F5DA6791541FACA733444 /* libCore.a */; };
+		10E4BB0DDF9DB473EBE079C2 /* libxml.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 05747518CA5A8187B27102EE /* libxml.a */; };
+		27F90AC44141A9186F28D28E /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A5F5DA6791541FACA733444 /* libCore.a */; };
+		3409667BA2EDB8A7F5A9CA5D /* xmlattribute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1531780CB7EA533C20D3FEE /* xmlattribute.cpp */; };
+		38141162C5DCE4A133CD674E /* revxml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CB911EC743B1C559FC7721DF /* revxml.cpp */; };
+		4A6BC0F4102FCC77A3CD3342 /* libxml.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 05747518CA5A8187B27102EE /* libxml.a */; };
+		57C58F3DC9BBCA02E0AC98D1 /* revxml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CB911EC743B1C559FC7721DF /* revxml.cpp */; };
+		756759632ADEFD7813293B2F /* xmlelement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A659E064179770D2D9D63616 /* xmlelement.cpp */; };
+		77A95A45A27248B0A2B280A8 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1025EC0B452557FEADBECE87 /* CoreServices.framework */; };
+		7AC4AADDE277D36D52578FAE /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1025EC0B452557FEADBECE87 /* CoreServices.framework */; };
+		8511BFDBCBBF4C0C504A5AC5 /* libxslt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 18985EED950BCC7A78913AFE /* libxslt.a */; };
+		A2A2C58679C06CC202670704 /* libxslt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 18985EED950BCC7A78913AFE /* libxslt.a */; };
+		B8BF43C904EBA0E9A2A1C872 /* xmldoc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB9AE0C885937A3F011A994E /* xmldoc.cpp */; };
+		C26A80D735B8FDB9C41E7300 /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C76F0B31496D6F64C95A5D5 /* libExternal.a */; };
+		CE61135924D96A5A6939CF3A /* xmldoc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB9AE0C885937A3F011A994E /* xmldoc.cpp */; };
+		D025A82CDD0FD30756B0741A /* xmlelement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A659E064179770D2D9D63616 /* xmlelement.cpp */; };
+		E82C634101D2555E0487973F /* xmlattribute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1531780CB7EA533C20D3FEE /* xmlattribute.cpp */; };
+		EFD17F945659F440E40EAD64 /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C76F0B31496D6F64C95A5D5 /* libExternal.a */; };
+		F9493BE7B354E8C2ADBA2BA4 /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A5A5B70D6D3570470C3787F /* libz.a */; };
+		FC0A4FD7EC34667E577D7C4F /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2A5A5B70D6D3570470C3787F /* libz.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		047CBA0C7F1E3769369C5102 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 37E0649E9478E598FC5FAF45 /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		0E6329D01586FB6020E07F47 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5A14619DEE5D6BCCCE23F682 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E4BFDFF27A05E0880353644D;
+			remoteInfo = thirdparty_prebuilt_xslt;
+		};
+		114BE1267F7C2D662186B448 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7A03890D1CB5E11067F38002 /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		2C0897E0F389930725AA60F5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C49EF1CCA1DD3E055FD973F4 /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4958E4CAFF54B5E1EF2DDD62;
+			remoteInfo = "libExternal-symbol-exports";
+		};
+		35870A840A5D21F2402AFDDA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5A14619DEE5D6BCCCE23F682 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F4FCA251AA01455DCCCF79CF;
+			remoteInfo = thirdparty_prebuilt_z;
+		};
+		3A5487B9430E31FBD6C2D88D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 37E0649E9478E598FC5FAF45 /* libcore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 065138166E84E87D0D2F7187;
+			remoteInfo = "libCore (host)";
+		};
+		3BE082E37FFAD06454BEDFA3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5A14619DEE5D6BCCCE23F682 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 2A6A3FD8BE1F9B1169BCA5BA;
+			remoteInfo = thirdparty_prebuilt_xml;
+		};
+		468F382A093B56C83490B218 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C49EF1CCA1DD3E055FD973F4 /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4958E4CAFF54B5E1EF2DDD62;
+			remoteInfo = "libExternal-symbol-exports";
+		};
+		524FB044706B2F90355CEC57 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7A03890D1CB5E11067F38002 /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+		544111E5056A642914068BE3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5A14619DEE5D6BCCCE23F682 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F4FCA251AA01455DCCCF79CF;
+			remoteInfo = thirdparty_prebuilt_z;
+		};
+		6EAF137E03D7165962286ABC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 188C7B9EF3C1F69298CEC076 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 20010E9C8F0106A6D66F45DD;
+			remoteInfo = "external-revxml-server";
+		};
+		71183BDBC6DDFB7E35535124 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7A03890D1CB5E11067F38002 /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		76C4B4203554D9F9D4AE646D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 188C7B9EF3C1F69298CEC076 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0E3FD8F31FA44F39F2E9E4AB;
+			remoteInfo = "external-revxml";
+		};
+		7B431F6EA0B1BFF3C8D51D90 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C49EF1CCA1DD3E055FD973F4 /* libexternal.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7DAF95721375FEF9FB6262D6;
+			remoteInfo = "libExternal (host)";
+		};
+		7FFDBFD49601CA7BCFD47506 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 37E0649E9478E598FC5FAF45 /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		892EAEB8C39D00D3BDC8B6DB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5A14619DEE5D6BCCCE23F682 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E4BFDFF27A05E0880353644D;
+			remoteInfo = thirdparty_prebuilt_xslt;
+		};
+		8D0BE40128D4CFA9CD16B6F1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5A14619DEE5D6BCCCE23F682 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		96F8C9CAC258CC7E31161CC9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5A14619DEE5D6BCCCE23F682 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		B9B4E00A0532A0C7CFF869E1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C49EF1CCA1DD3E055FD973F4 /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		C98D1FCB4FCF13EB9B5997D2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 37E0649E9478E598FC5FAF45 /* libcore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DD44348CE0FC9FD8CA3DC4E0;
+			remoteInfo = libCore;
+		};
+		DBF572BC96F1F512EBD36DA1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5A14619DEE5D6BCCCE23F682 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 2A6A3FD8BE1F9B1169BCA5BA;
+			remoteInfo = thirdparty_prebuilt_xml;
+		};
+		E7EBAFABB8C9120653920B45 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C49EF1CCA1DD3E055FD973F4 /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		ED761947B1E648420191C002 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C49EF1CCA1DD3E055FD973F4 /* libexternal.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 73AD7E038E4E1683AE423BFC;
+			remoteInfo = libExternal;
+		};
+		F7AB80DB16630493B9B80E05 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7A03890D1CB5E11067F38002 /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		01175788D2D75E6F608802FC /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		05747518CA5A8187B27102EE /* libxml.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxml.a; path = ../prebuilt/lib/mac/libxml.a; sourceTree = "<group>"; };
+		1025EC0B452557FEADBECE87 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		18435C61F5BCC610824ADCEF /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../config/version.gypi; sourceTree = "<group>"; };
+		18985EED950BCC7A78913AFE /* libxslt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxslt.a; path = ../prebuilt/lib/mac/libxslt.a; sourceTree = "<group>"; };
+		1AA6DBE9F271F2AB73DFB1C4 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
+		2A5A5B70D6D3570470C3787F /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = ../prebuilt/lib/mac/libz.a; sourceTree = "<group>"; };
+		31D05D805EE6AA9119610879 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
+		37E0649E9478E598FC5FAF45 /* libcore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libcore.xcodeproj; path = "../build-mac/livecode/libcore/libcore.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		4694B191D533F975092499BD /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
+		46F70A78DA18633439FCA665 /* server-revxml.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "server-revxml.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5A14619DEE5D6BCCCE23F682 /* thirdparty.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = thirdparty.xcodeproj; path = "../build-mac/livecode/prebuilt/thirdparty.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		67F71A554D74475AF95E74A7 /* revxml.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = revxml.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		6AB285B336086A9210061C51 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
+		6D84D409B035CD2578ABEBA5 /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../config/thirdparty.gypi; sourceTree = "<group>"; };
+		6EC701D7FC7B7098FA6E40D9 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
+		774AD024987298B04540892B /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		7A03890D1CB5E11067F38002 /* fetch.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = fetch.xcodeproj; path = "../build-mac/livecode/prebuilt/fetch.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		7C17DBD4B81A7C82B122C72E /* revxml.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = revxml.gyp; sourceTree = "<group>"; };
+		897D54DA34071D6AADD641B3 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
+		8EB6B68380B622D21D5B5F88 /* cxml.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cxml.h; sourceTree = "<group>"; };
+		8FE23919FCA306E319515C4E /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
+		9D27A45EA08778F9B55565C0 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../config/configurations.gypi; sourceTree = "<group>"; };
+		A659E064179770D2D9D63616 /* xmlelement.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = xmlelement.cpp; sourceTree = "<group>"; };
+		AB9AE0C885937A3F011A994E /* xmldoc.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = xmldoc.cpp; sourceTree = "<group>"; };
+		B1531780CB7EA533C20D3FEE /* xmlattribute.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = xmlattribute.cpp; sourceTree = "<group>"; };
+		BB96AC6F5B804AAAEE6A940F /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
+		C4059CC2BB58173B8365B128 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../config/mac.gypi; sourceTree = "<group>"; };
+		C49EF1CCA1DD3E055FD973F4 /* libexternal.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libexternal.xcodeproj; path = "../build-mac/livecode/libexternal/libexternal.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		C6745B291DD0F1C92B45DA1E /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
+		CB911EC743B1C559FC7721DF /* revxml.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = revxml.cpp; sourceTree = "<group>"; };
+		D4288F125B8EAAA9975C4B87 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../config/crosscompile.gypi; sourceTree = "<group>"; };
+		D5336EB272663B20C6A97394 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../config/win32.gypi; sourceTree = "<group>"; };
+		D6122C76B2C0333D60C401CF /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		E0CF1446143E7EC0E47FB9BC /* revxml.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = revxml.h; sourceTree = "<group>"; };
+		EC76801AD2AEAA46A2DE1CD3 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
+		FE058EE6239ABDAD8DCF9E89 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		162FC45F73749C24BE3DCF4B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EFD17F945659F440E40EAD64 /* libExternal.a in Frameworks */,
+				0BED15909FD68DCB6D516C1C /* libCore.a in Frameworks */,
+				77A95A45A27248B0A2B280A8 /* CoreServices.framework in Frameworks */,
+				10E4BB0DDF9DB473EBE079C2 /* libxml.a in Frameworks */,
+				A2A2C58679C06CC202670704 /* libxslt.a in Frameworks */,
+				FC0A4FD7EC34667E577D7C4F /* libz.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E23867E624896AA989D69695 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C26A80D735B8FDB9C41E7300 /* libExternal.a in Frameworks */,
+				27F90AC44141A9186F28D28E /* libCore.a in Frameworks */,
+				7AC4AADDE277D36D52578FAE /* CoreServices.framework in Frameworks */,
+				4A6BC0F4102FCC77A3CD3342 /* libxml.a in Frameworks */,
+				8511BFDBCBBF4C0C504A5AC5 /* libxslt.a in Frameworks */,
+				F9493BE7B354E8C2ADBA2BA4 /* libz.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0D9BDE52245A1608DA0C9F93 /* .. */ = {
+			isa = PBXGroup;
+			children = (
+				774AD024987298B04540892B /* version */,
+			);
+			path = ..;
+			sourceTree = "<group>";
+		};
+		10BF514220E7802EDBB05D93 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		132F7168C985D651BE38333E /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				4694B191D533F975092499BD /* android-settings.gypi */,
+				1AA6DBE9F271F2AB73DFB1C4 /* android.gypi */,
+				31D05D805EE6AA9119610879 /* arch.gypi */,
+				897D54DA34071D6AADD641B3 /* common.gypi */,
+				9D27A45EA08778F9B55565C0 /* configurations.gypi */,
+				D4288F125B8EAAA9975C4B87 /* crosscompile.gypi */,
+				01175788D2D75E6F608802FC /* emscripten-settings.gypi */,
+				6AB285B336086A9210061C51 /* emscripten.gypi */,
+				EC76801AD2AEAA46A2DE1CD3 /* exclusions.gypi */,
+				6EC701D7FC7B7098FA6E40D9 /* ios.gypi */,
+				D6122C76B2C0333D60C401CF /* linux-settings.gypi */,
+				C6745B291DD0F1C92B45DA1E /* linux.gypi */,
+				C4059CC2BB58173B8365B128 /* mac.gypi */,
+				8FE23919FCA306E319515C4E /* perl.gypi */,
+				7C17DBD4B81A7C82B122C72E /* revxml.gyp */,
+				FE058EE6239ABDAD8DCF9E89 /* target_os.gypi */,
+				6D84D409B035CD2578ABEBA5 /* thirdparty.gypi */,
+				18435C61F5BCC610824ADCEF /* version.gypi */,
+				D5336EB272663B20C6A97394 /* win32.gypi */,
+				BB96AC6F5B804AAAEE6A940F /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		1459AA03CC57976C28B4E86F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		28723704C3EE19D5F25D86EA /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3A5F5DA6791541FACA733444 /* libCore.a */,
+				530F3880AFB15FB37617E393 /* libCore (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		602DA19712755CC3212595A8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6C76F0B31496D6F64C95A5D5 /* libExternal.a */,
+				6B5A90B3E7CAB0D3C2D69123 /* libExternal (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7F26B62D1BDA991CC94F1129 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1025EC0B452557FEADBECE87 /* CoreServices.framework */,
+				05747518CA5A8187B27102EE /* libxml.a */,
+				18985EED950BCC7A78913AFE /* libxslt.a */,
+				2A5A5B70D6D3570470C3787F /* libz.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		834D213CFDF5D56415AA935B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				67F71A554D74475AF95E74A7 /* revxml.bundle */,
+				46F70A78DA18633439FCA665 /* server-revxml.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		ABA38BAAC14DE4D2123C4131 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				0D9BDE52245A1608DA0C9F93 /* .. */,
+				F229779A678DE14DB87E7E61 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		AC46855CC1A7FB789488FA68 = {
+			isa = PBXGroup;
+			children = (
+				ABA38BAAC14DE4D2123C4131 /* Source */,
+				BF582DD442C8F8DCE31A978E /* Projects */,
+				7F26B62D1BDA991CC94F1129 /* Frameworks */,
+				834D213CFDF5D56415AA935B /* Products */,
+				132F7168C985D651BE38333E /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		BF582DD442C8F8DCE31A978E /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				7A03890D1CB5E11067F38002 /* fetch.xcodeproj */,
+				37E0649E9478E598FC5FAF45 /* libcore.xcodeproj */,
+				C49EF1CCA1DD3E055FD973F4 /* libexternal.xcodeproj */,
+				5A14619DEE5D6BCCCE23F682 /* thirdparty.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		F229779A678DE14DB87E7E61 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				8EB6B68380B622D21D5B5F88 /* cxml.h */,
+				CB911EC743B1C559FC7721DF /* revxml.cpp */,
+				E0CF1446143E7EC0E47FB9BC /* revxml.h */,
+				B1531780CB7EA533C20D3FEE /* xmlattribute.cpp */,
+				AB9AE0C885937A3F011A994E /* xmldoc.cpp */,
+				A659E064179770D2D9D63616 /* xmlelement.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0E3FD8F31FA44F39F2E9E4AB /* external-revxml */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A03B3C34B8CA4F5FD01D92A4 /* Build configuration list for PBXNativeTarget "external-revxml" */;
+			buildPhases = (
+				8BFD9EE3F8526F10DFB783D0 /* Sources */,
+				162FC45F73749C24BE3DCF4B /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5B3564DD519D59022B2D2AC7 /* PBXTargetDependency */,
+				3D54B198D44427C5E7615A21 /* PBXTargetDependency */,
+				A7CE0D53F357F617790AAAAA /* PBXTargetDependency */,
+				E7EB7543E3848E8ABF5175F0 /* PBXTargetDependency */,
+				B77CD1A7418F5470986F5FA8 /* PBXTargetDependency */,
+				D994CEA73672CD4D964425B7 /* PBXTargetDependency */,
+				152C4E44427F5B2C8A8C3588 /* PBXTargetDependency */,
+				A0C3814C7C91865091FC5113 /* PBXTargetDependency */,
+				63B42899F1866455E091C8E9 /* PBXTargetDependency */,
+			);
+			name = "external-revxml";
+			productName = revxml;
+			productReference = 67F71A554D74475AF95E74A7 /* revxml.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
+		20010E9C8F0106A6D66F45DD /* external-revxml-server */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5C15A5236CA82E43B98FAAA3 /* Build configuration list for PBXNativeTarget "external-revxml-server" */;
+			buildPhases = (
+				438F47D52520CF1680DF6B6D /* Sources */,
+				E23867E624896AA989D69695 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				30C73A60268AAD01318ACD7F /* PBXTargetDependency */,
+				4E595A04D4D40167F359542C /* PBXTargetDependency */,
+				301839D716DFA75CA381D063 /* PBXTargetDependency */,
+				D06607602A45B23057C1D2BA /* PBXTargetDependency */,
+				277E384BE1BF7D97748BB13E /* PBXTargetDependency */,
+				40B1A095FCDFFD78AFFCE46E /* PBXTargetDependency */,
+				6692F5108DA8A3B9B062C085 /* PBXTargetDependency */,
+				13ED27AC693418FB9CC1451D /* PBXTargetDependency */,
+				C23C04D51C52411F1D069CC1 /* PBXTargetDependency */,
+			);
+			name = "external-revxml-server";
+			productName = "server-revxml";
+			productReference = 46F70A78DA18633439FCA665 /* server-revxml.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		188C7B9EF3C1F69298CEC076 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 3A05F362F134E16218E26986 /* Build configuration list for PBXProject "revxml" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = AC46855CC1A7FB789488FA68;
+			projectDirPath = ../../../revxml;
+			projectReferences = (
+				{
+					ProductGroup = 10BF514220E7802EDBB05D93 /* Products */;
+					ProjectRef = 7A03890D1CB5E11067F38002 /* fetch.xcodeproj */;
+				},
+				{
+					ProductGroup = 28723704C3EE19D5F25D86EA /* Products */;
+					ProjectRef = 37E0649E9478E598FC5FAF45 /* libcore.xcodeproj */;
+				},
+				{
+					ProductGroup = 602DA19712755CC3212595A8 /* Products */;
+					ProjectRef = C49EF1CCA1DD3E055FD973F4 /* libexternal.xcodeproj */;
+				},
+				{
+					ProductGroup = 1459AA03CC57976C28B4E86F /* Products */;
+					ProjectRef = 5A14619DEE5D6BCCCE23F682 /* thirdparty.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				75D53409B73696C29E93E531 /* All */,
+				0E3FD8F31FA44F39F2E9E4AB /* external-revxml */,
+				20010E9C8F0106A6D66F45DD /* external-revxml-server */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		3A5F5DA6791541FACA733444 /* libCore.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libCore.a;
+			remoteRef = C98D1FCB4FCF13EB9B5997D2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		530F3880AFB15FB37617E393 /* libCore (host).a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libCore (host).a";
+			remoteRef = 3A5487B9430E31FBD6C2D88D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6B5A90B3E7CAB0D3C2D69123 /* libExternal (host).a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libExternal (host).a";
+			remoteRef = 7B431F6EA0B1BFF3C8D51D90 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		6C76F0B31496D6F64C95A5D5 /* libExternal.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libExternal.a;
+			remoteRef = ED761947B1E648420191C002 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		438F47D52520CF1680DF6B6D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				57C58F3DC9BBCA02E0AC98D1 /* revxml.cpp in Sources */,
+				E82C634101D2555E0487973F /* xmlattribute.cpp in Sources */,
+				CE61135924D96A5A6939CF3A /* xmldoc.cpp in Sources */,
+				756759632ADEFD7813293B2F /* xmlelement.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8BFD9EE3F8526F10DFB783D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				38141162C5DCE4A133CD674E /* revxml.cpp in Sources */,
+				3409667BA2EDB8A7F5A9CA5D /* xmlattribute.cpp in Sources */,
+				B8BF43C904EBA0E9A2A1C872 /* xmldoc.cpp in Sources */,
+				D025A82CDD0FD30756B0741A /* xmlelement.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		03D01C5F11291808F12F2763 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0E3FD8F31FA44F39F2E9E4AB /* external-revxml */;
+			targetProxy = 76C4B4203554D9F9D4AE646D /* PBXContainerItemProxy */;
+		};
+		13ED27AC693418FB9CC1451D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = F7AB80DB16630493B9B80E05 /* PBXContainerItemProxy */;
+		};
+		152C4E44427F5B2C8A8C3588 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = 96F8C9CAC258CC7E31161CC9 /* PBXContainerItemProxy */;
+		};
+		277E384BE1BF7D97748BB13E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_z;
+			targetProxy = 35870A840A5D21F2402AFDDA /* PBXContainerItemProxy */;
+		};
+		301839D716DFA75CA381D063 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_xml;
+			targetProxy = DBF572BC96F1F512EBD36DA1 /* PBXContainerItemProxy */;
+		};
+		30C73A60268AAD01318ACD7F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = B9B4E00A0532A0C7CFF869E1 /* PBXContainerItemProxy */;
+		};
+		3D54B198D44427C5E7615A21 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "libExternal-symbol-exports";
+			targetProxy = 468F382A093B56C83490B218 /* PBXContainerItemProxy */;
+		};
+		40B1A095FCDFFD78AFFCE46E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = 7FFDBFD49601CA7BCFD47506 /* PBXContainerItemProxy */;
+		};
+		4E595A04D4D40167F359542C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "libExternal-symbol-exports";
+			targetProxy = 2C0897E0F389930725AA60F5 /* PBXContainerItemProxy */;
+		};
+		5B3564DD519D59022B2D2AC7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = E7EBAFABB8C9120653920B45 /* PBXContainerItemProxy */;
+		};
+		63B42899F1866455E091C8E9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = 71183BDBC6DDFB7E35535124 /* PBXContainerItemProxy */;
+		};
+		6692F5108DA8A3B9B062C085 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = 8D0BE40128D4CFA9CD16B6F1 /* PBXContainerItemProxy */;
+		};
+		A0C3814C7C91865091FC5113 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = 524FB044706B2F90355CEC57 /* PBXContainerItemProxy */;
+		};
+		A6F86EA709862D53AFC00BF0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 20010E9C8F0106A6D66F45DD /* external-revxml-server */;
+			targetProxy = 6EAF137E03D7165962286ABC /* PBXContainerItemProxy */;
+		};
+		A7CE0D53F357F617790AAAAA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_xml;
+			targetProxy = 3BE082E37FFAD06454BEDFA3 /* PBXContainerItemProxy */;
+		};
+		B77CD1A7418F5470986F5FA8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_z;
+			targetProxy = 544111E5056A642914068BE3 /* PBXContainerItemProxy */;
+		};
+		C23C04D51C52411F1D069CC1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = 114BE1267F7C2D662186B448 /* PBXContainerItemProxy */;
+		};
+		D06607602A45B23057C1D2BA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_xslt;
+			targetProxy = 0E6329D01586FB6020E07F47 /* PBXContainerItemProxy */;
+		};
+		D994CEA73672CD4D964425B7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = 047CBA0C7F1E3769369C5102 /* PBXContainerItemProxy */;
+		};
+		E7EB7543E3848E8ABF5175F0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_xslt;
+			targetProxy = 892EAEB8C39D00D3BDC8B6DB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0F8215AF74DEBDF349F784A0 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				EXPORTED_SYMBOLS_FILE = revxml.exports;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libxml/include,
+					../thirdparty/libxslt/include,
+					../thirdparty/libz/include,
+				);
+				INFOPLIST_FILE = "rsrc/revxml-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-revxml";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		0FF4BA9C5534AFFC32047933 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXPORTED_SYMBOLS_FILE = revxml.exports;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libxml/include,
+					../thirdparty/libxslt/include,
+					../thirdparty/libz/include,
+				);
+				INFOPLIST_FILE = "rsrc/revxml-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revxml;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Fast;
+		};
+		183FF9AAD018EB7E73D207DB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				EXPORTED_SYMBOLS_FILE = revxml.exports;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libxml/include,
+					../thirdparty/libxslt/include,
+					../thirdparty/libz/include,
+				);
+				INFOPLIST_FILE = "rsrc/revxml-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-revxml";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		2FA1354154911F68EFC385F2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				EXPORTED_SYMBOLS_FILE = revxml.exports;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libxml/include,
+					../thirdparty/libxslt/include,
+					../thirdparty/libz/include,
+				);
+				INFOPLIST_FILE = "rsrc/revxml-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-revxml";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		3EF07BFC539A1D5BBA88539E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		46F6E6DB03189246DE8369B1 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 774AD024987298B04540892B /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		55C779400164460EFF896417 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXPORTED_SYMBOLS_FILE = revxml.exports;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libxml/include,
+					../thirdparty/libxslt/include,
+					../thirdparty/libz/include,
+				);
+				INFOPLIST_FILE = "rsrc/revxml-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revxml;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Debug;
+		};
+		59EFB2384AB8BD3C87E71858 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 774AD024987298B04540892B /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		663C4532D7962F40948DB41C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		66C918C3ABD9E8EDE707A6AE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXPORTED_SYMBOLS_FILE = revxml.exports;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libxml/include,
+					../thirdparty/libxslt/include,
+					../thirdparty/libz/include,
+				);
+				INFOPLIST_FILE = "rsrc/revxml-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revxml;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Release;
+		};
+		698D5DB19E8FB25D8F209758 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 774AD024987298B04540892B /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		9B7F11672B3DFCB90DEF0B42 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Fast;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3A05F362F134E16218E26986 /* Build configuration list for PBXProject "revxml" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				59EFB2384AB8BD3C87E71858 /* Debug */,
+				46F6E6DB03189246DE8369B1 /* Fast */,
+				698D5DB19E8FB25D8F209758 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		538C00D53BDEAB3EE7437992 /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3EF07BFC539A1D5BBA88539E /* Debug */,
+				9B7F11672B3DFCB90DEF0B42 /* Fast */,
+				663C4532D7962F40948DB41C /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		5C15A5236CA82E43B98FAAA3 /* Build configuration list for PBXNativeTarget "external-revxml-server" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2FA1354154911F68EFC385F2 /* Debug */,
+				0F8215AF74DEBDF349F784A0 /* Fast */,
+				183FF9AAD018EB7E73D207DB /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		A03B3C34B8CA4F5FD01D92A4 /* Build configuration list for PBXNativeTarget "external-revxml" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55C779400164460EFF896417 /* Debug */,
+				0FF4BA9C5534AFFC32047933 /* Fast */,
+				66C918C3ABD9E8EDE707A6AE /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 188C7B9EF3C1F69298CEC076 /* Project object */;
+}

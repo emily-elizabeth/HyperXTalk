@@ -1,0 +1,118 @@
+<package version="0.0">
+  <name>com.livecode.widget.treeview</name>
+  <title>Tree View</title>
+  <author>LiveCode</author>
+  <version>2.4.1</version>
+  <license>community</license>
+  <type>widget</type>
+  <requires name="com.livecode.canvas"/>
+  <requires name="com.livecode.library.widgetutils"/>
+  <requires name="com.livecode.foreign"/>
+  <requires name="com.livecode.widget"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.typeconvert"/>
+  <requires name="com.livecode.engine"/>
+  <requires name="com.livecode.mathfoundation"/>
+  <requires name="com.livecode.char"/>
+  <requires name="com.livecode.math"/>
+  <requires name="com.livecode.sort"/>
+  <requires name="com.livecode.byte"/>
+  <metadata key="svgicon">M152.4,249.7c-6.4,0-11.8,4.3-13.5,10.1h-10v-26.7h10c1.7,5.8,7.1,10.1,13.5,10.1c7.8,0,14.1-6.3,14.1-14.1s-6.3-14.1-14.1-14.1c-6.4,0-11.8,4.3-13.5,10.1h-10v-16.1c8.4-1.8,14.8-9.3,14.8-18.3c0-10.4-8.4-18.8-18.8-18.8s-18.8,8.4-18.8,18.8c0,9,6.3,16.5,14.7,18.3v58.8h18c1.7,5.8,7.1,10.1,13.5,10.1c7.8,0,14.1-6.3,14.1-14.1S160.2,249.7,152.4,249.7z M128.7,202h-7.5v-7.5h-7.5V187h7.5v-7.5h7.5v7.5h7.5v7.5h-7.5V202z</metadata>
+  <metadata key="_ide">true</metadata>
+  <property name="arrayData" get="array" set="array"/>
+  <metadata key="arrayData.label">Array data</metadata>
+  <property name="foldState" get="array" set="array"/>
+  <metadata key="foldState.user_visible">false</metadata>
+  <property name="hilitedElement" get="string" set="string"/>
+  <metadata key="hilitedElement.label">Hilited element</metadata>
+  <property name="hilitedElementFoldState" get="string" set="string"/>
+  <metadata key="hilitedElementFoldState.user_visible">false</metadata>
+  <property name="hilitedElementIsFolded" get="boolean" set="boolean"/>
+  <metadata key="hilitedElementIsFolded.user_visible">false</metadata>
+  <property name="hiliteNewElement" get="boolean" set="boolean"/>
+  <metadata key="hiliteNewElement.label">Hilite new element</metadata>
+  <property name="scrollHilitedElementIntoView" get="boolean" set="boolean"/>
+  <metadata key="scrollHilitedElementIntoView.label">Scroll hilited element into view</metadata>
+  <property name="autoFoldStateReset" get="boolean" set="boolean"/>
+  <metadata key="autoFoldStateReset.label">Automatically reset fold state when array data is set</metadata>
+  <metadata key="foregroundColor.default">50,50,50</metadata>
+  <metadata key="foregroundColor.label">Text color</metadata>
+  <metadata key="backgroundColor.default">244,244,244</metadata>
+  <metadata key="backgroundColor.label">Row background color</metadata>
+  <metadata key="hiliteColor.default">10,95,244</metadata>
+  <metadata key="hiliteColor.label">Selected row color</metadata>
+  <metadata key="borderColor.default">109,109,109</metadata>
+  <metadata key="borderColor.label">Border color</metadata>
+  <property name="sortOrder" get="string" set="string"/>
+  <metadata key="sortOrder.editor">com.livecode.pi.enum</metadata>
+  <metadata key="sortOrder.options">ascending,descending</metadata>
+  <metadata key="sortOrder.label">Sort order</metadata>
+  <property name="sortType" get="string" set="string"/>
+  <metadata key="sortType.editor">com.livecode.pi.enum</metadata>
+  <metadata key="sortType.options">text,numeric</metadata>
+  <metadata key="sortType.label">Sort type</metadata>
+  <property name="pathDelimiter" get="string" set="string"/>
+  <metadata key="pathDelimiter.label">Path delimiter</metadata>
+  <metadata key="pathDelimiter.default">,</metadata>
+  <property name="alternateRowBackgrounds" get="boolean" set="boolean"/>
+  <metadata key="alternateRowBackgrounds.label">Alternate row backgrounds</metadata>
+  <property name="showBorder" get="boolean" set="boolean"/>
+  <metadata key="showBorder.label">Show border</metadata>
+  <property name="showHover" get="boolean" set="boolean"/>
+  <metadata key="showHover.label">Show hover row</metadata>
+  <property name="readOnly" get="boolean" set="boolean"/>
+  <metadata key="readOnly.label">Read only</metadata>
+  <property name="arrayStyle" get="boolean" set="boolean"/>
+  <metadata key="arrayStyle.label">Array style</metadata>
+  <property name="charsToTrimFromKey" get="integer" set="integer"/>
+  <metadata key="charsToTrimFromKey.label">Key chars to trim</metadata>
+  <property name="formattedHeight" get="real"/>
+  <metadata key="formattedHeight.user_visible">false</metadata>
+  <property name="scroll" get="real" set="real"/>
+  <metadata key="scroll.user_visible">false</metadata>
+  <property name="textHeight" get="real" set="real"/>
+  <metadata key="textHeight.label">Text Height</metadata>
+  <metadata key="textHeight.default">0</metadata>
+  <property name="iconHeight" get="integer" set="integer"/>
+  <metadata key="iconHeight.label">Icon Height</metadata>
+  <metadata key="iconHeight.default">10</metadata>
+  <property name="vScrollbar" get="boolean" set="boolean"/>
+  <metadata key="vScrollbar.editor">com.livecode.pi.boolean</metadata>
+  <metadata key="vScrollbar.default">true</metadata>
+  <metadata key="vScrollbar.label">Vertical scrollbar</metadata>
+  <property name="showValues" get="boolean" set="boolean"/>
+  <metadata key="showValues.label">Show values</metadata>
+  <property name="showSeparator" get="boolean" set="boolean"/>
+  <metadata key="showSeparator.label">Show separator</metadata>
+  <property name="separatorRatio" get="number" set="number"/>
+  <metadata key="separatorRatio.editor">com.livecode.pi.number</metadata>
+  <metadata key="separatorRatio.step">0.05</metadata>
+  <metadata key="separatorRatio.min">0</metadata>
+  <metadata key="separatorRatio.max">1</metadata>
+  <metadata key="separatorRatio.label">Separator ratio</metadata>
+  <metadata key="themeClass.default">list</metadata>
+  <metadata key="themeClass.user_visible">false</metadata>
+  <handler name="OnCreate" parameters="" return="nothing"/>
+  <handler name="OnSave" parameters="out array" return="any"/>
+  <handler name="OnLoad" parameters="in array" return="any"/>
+  <handler name="OnPaint" parameters="" return="nothing"/>
+  <handler name="OnMouseDown" parameters="" return="nothing"/>
+  <handler name="OnMouseMove" parameters="" return="nothing"/>
+  <handler name="onMouseLeave" parameters="" return="nothing"/>
+  <handler name="OnMouseUp" parameters="" return="nothing"/>
+  <handler name="OnMouseCancel" parameters="" return="nothing"/>
+  <handler name="OnMouseScroll" parameters="in real,in real" return="nothing"/>
+  <handler name="OnClick" parameters="" return="nothing"/>
+  <handler name="OnGeometryChanged" parameters="" return="any"/>
+  <handler name="initialiseScrollbar" parameters="" return="any"/>
+  <handler name="paintScrollbar" parameters="in Canvas" return="any"/>
+  <handler name="checkScrollbarMouseDown" parameters="" return="any"/>
+  <handler name="scrollbarMouseUp" parameters="" return="any"/>
+  <handler name="scrollbarWidth" parameters="" return="real"/>
+</package>

@@ -1,0 +1,28 @@
+Name: standard
+
+Type: keyword
+
+Syntax: standard
+
+Summary:
+Used with the <style> <property> to indicate a <button> that looks and
+behaves like a standard <button> for the current <platform>.
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Example:
+set the style of button "Cancel" to standard
+
+Description:
+Use the <standard> <keyword> to create a <button> that looks like a
+standard dialog-box button.
+
+References: platform (function), property (glossary), keyword (glossary),
+button (keyword), style (property)
+
+Tags: ui
+

@@ -1,0 +1,615 @@
+Library: com.livecode.widget.treeview
+
+Type: widget
+
+Summary: A widget to display array data in a tree view
+
+author: LiveCode
+
+version: 2.4.1
+
+Name: hiliteChanged
+
+Type: message
+
+Syntax: hiliteChanged
+
+Summary: Sent when an element is hilited
+
+Description:
+The <hiliteChanged> message is sent to the widget's script object when a row of the 
+widget's display is clicked on, causing that row to be highlighted. Use the <hilitedElement>
+property to fetch the row's associated array keys.
+
+References:
+hilitedElement (property)
+
+A widget to display array data in a tree view
+
+Name: dataChanged
+
+Type: message
+
+Syntax: dataChanged
+
+Summary: Sent when the arrayData of the widget changes
+
+Description:
+The <dataChanged> message is sent to the widget's script object when the underlying
+<arrayData> of the tree view changes.
+
+References: arrayData (property)
+
+Name: actionInspect
+
+Type: message
+
+Syntax: actionInspect <pPath>
+
+Summary: Sent when an the inspect icon is clicked in read only mode
+
+Parameters: 
+
+pPath: The path to the clicked element
+
+Description:
+The actionInspect message is sent to the widget's script object when the inspect icon is clicked on.
+The inspect icon appears when the value string of a particular array element contains a newline character,
+or if it is too large to fit in the space provided. The <pPath> parameter contains the path to the 
+element whose icon was clicked.
+
+Name: actionDoubleClick
+
+Type: message
+
+Syntax: actionDoubleClick <pPath>
+
+Summary: Sent when a leaf node of the tree view is double-clicked.
+
+Parameters: 
+
+pPath: The path to the clicked element
+
+Description:
+The actionDoubleClick message is sent to the widget's script object when a row of the widget
+is double-clicked. The <pPath> parameter contains the path to the element whose row was clicked.
+
+Name: formattedHeightChanged
+
+Type: message
+
+Syntax: formattedHeightChanged
+
+Summary: Sent when the formatted height of the displayed data changes.
+
+Description:
+The formattedHeightChanged message is sent to the widget's script object when
+the formatted height of the displayed data changes.  This is useful when
+using a mobileScroller to control the widget view.
+
+Name: scroll
+
+Type: property
+
+Syntax: get the vScroll of <widget>
+
+Syntax: get the scroll of <widget>
+
+Syntax: set the scroll of <widget> to <pScroll>
+
+Summary: Vertical scroll position of the widget
+
+Parameters: 
+
+pScroll: Vertical scroll position of the widget
+
+Description:
+Use the <scroll> property to get or set the scroll position of
+the widget.
+
+
+
+Name: sortType
+
+Type: property
+
+Syntax: get the sortType of <widget>
+
+Syntax: set the sortType of <widget> to <pType>
+
+Summary: Manipulates the type of ordering in which elements of the tree view are displayed.
+
+Parameters: 
+
+pType:
+The type of ordering to use in displaying elements of the tree view.
+- "text": Display in alphabetical order of the keys
+- "numeric": Display in numeric order of the keys. This is the default
+
+Description:
+Use the <sortType> property to use text or numeric comparison when ordering the keys of the <arrayData>
+of the tree view widget.
+
+References: sortOrder (property)
+
+
+
+
+Name: vScrollbar
+
+Type: property
+
+Syntax: set the vScrollbar of <widget> to <pEnabled>
+get the vScrollbar of <widget>
+
+Summary: Controls the visibility of the browser's vertical scrollbar.
+
+Value(boolean): `true` if the vertical scrollbar should be enabled and displayed; 
+`false` otherwise.
+
+Description:
+Use the <vScrollbar> property to control the visibility of the widget's
+vertical scrollbar
+
+
+
+Name: alternateRowBackgrounds
+
+Type: property
+
+Syntax: get the alternateRowBackgrounds of <widget>
+
+Syntax: set the alternateRowBackgrounds of <widget> to {true|false}
+
+Summary: Whether the alternate rows of the widget have different backgrounds or not.
+
+Description: Use the alternateRowBackgrounds property if you want to more clearly distinguish the rows displayed by the widget.
+
+
+
+
+Name: showValues
+
+Type: property
+
+Syntax: get the showValues of <widget>
+
+Syntax: set the showValues of <widget> to {true|false}
+
+Summary: Whether the values are displayed or not
+
+Description:
+Use the <showValues> property to display or hide the values of the <arrayData>  
+of the tree view widget.  This setting will be useful when using the
+widget as a menu for navigation purposes.
+
+Hiding values effectively hides the separator as well.
+
+Related: showSeparator (property)
+
+
+
+
+Name: pathDelimiter
+
+Type: property
+
+Syntax: get the pathDelimiter of <widget>
+
+Syntax: set the pathDelimiter of <widget> to <pType>
+
+Summary: Manipulates the separator between the elements of the array viewer
+
+Description:
+Use the <pathDelimiter> property as the separator between the elements describing
+a path in the tree view widget.
+
+
+
+Name: sortOrder
+
+Type: property
+
+Syntax: get the sortOrder of <widget>
+
+Syntax: set the sortOrder of <widget> to <pOrder>
+
+Summary: Manipulates the order in which elements of the tree view are displayed, with respect to the current <sortType>.
+
+Parameters: 
+
+pOrder:
+The order in which to display elements of the tree view.
+- "ascending": Display from first to last in the order. This is the default
+- "descending": Display from last to first in the order.
+
+Description:
+Use the <sortOrder> property to display the elements of the tree view in ascending or descending order of the
+keys of its <arrayData>, given the current <sortType>.
+
+References: arrayData (property), sortType (property)
+
+
+
+
+Name: hilitedElementIsFolded
+
+Type: property
+
+Syntax: get the hilitedElementIsFolded of <widget>
+
+Syntax: set the hilitedElementIsFolded of <widget> to {true|false}
+
+Summary: Determine if the selected element is folded
+
+Description:
+Value is true if the selected element is folded.  False is returned in
+all other cases including when nothing is selected and when a leaf node is
+selected.  When setting the fold state, attempts to set the value for a leaf 
+node will have no effect.  Setting the fold state when no element is selected 
+has no effect.
+
+
+
+Name: iconHeight
+
+Type: property
+
+Syntax: get the iconHeight of <widget>
+
+Syntax: set the iconHeight of <widget> to <pIconHeight>
+
+Summary: Custom icon height for the widget
+
+Parameters: 
+
+pIconHeight: Custom icon height for the widget
+
+Description:
+Use the <iconHeight> property to set a custom icon size for
+the widget.  The default value is 10.
+
+
+
+Name: foldState
+
+Type: property
+
+Syntax: get the foldState of <widget>
+
+Syntax: set the foldState of <widget> to <pFoldState>
+
+Summary: The fold state of the array being displayed by the widget
+
+Parameters: 
+
+pFoldState: The fold state data.  See description for details.
+
+Description:
+The foldState is the fold state currently being displayed by the tree view widget.
+
+The fold state array only contains elements of the data array where the
+value is a subarray.  The value for each `folded` key must be a boolean.
+Only the unfolded keys need to be specified.
+
+```
+	[key1]
+		["folded"]
+		["array"]
+			[subkey1]
+				["folded"]
+	[key2]
+		["folded"]
+```
+
+Setting the foldState to empty will fold all keys.
+
+
+
+Name: showSeparator
+
+Type: property
+
+Syntax: get the showSeparator of <widget>
+
+Syntax: set the showSeparator of <widget> to {true|false}
+
+Summary: Whether the separator bar between keys and values is showing or not
+
+Description:
+Use the <showSeparator> property to display the keys and values of the <arrayData>  
+of the tree view widget in columns separated by a movable divide.
+
+Related: separatorRatio (property)
+
+
+
+
+Name: hilitedElementFoldState
+
+Type: property
+
+Syntax: get the hilitedElementFoldState of <widget>
+
+Syntax: set the hilitedElementFoldState of <widget> to <pFoldState>
+
+Summary: Get/set the fold state of the selected element
+
+Parameters: 
+
+pFoldState:
+The fold state of the selected element.
+- "folded": Sub-array for the selected element is hidden.
+- "unfolded": Sub-array for the selected element is visible.
+- "leaf": Selected element is a leaf node.  This value may not be set.
+
+Description:
+<pFoldState> is the fold state of the selected element.  When setting
+the fold state, attempts to set the value for a leaf node will have no
+effect.  Setting the fold state when no element is selected has no effect.
+
+
+
+Name: arrayData
+
+Type: property
+
+Syntax: get the arrayData of <widget>
+
+Syntax: set the arrayData of <widget> to <pArray>
+
+Summary: The array being displayed by the widget
+
+Parameters: 
+
+pArray: The array data.
+
+Description: The arrayData is the data currently being displayed by the tree view widget.
+
+
+
+
+Name: separatorRatio
+
+Type: property
+
+Syntax: get the separatorRatio of <widget>
+
+Syntax: set the separatorRatio of <widget> to {true|false}
+
+Summary: Manipulates the size of the arrayData view columns.
+
+Description:
+Use the <separatorRatio> property to display the keys and values of the <arrayData>  
+of the tree view widget in columns separated by a movable divide.
+
+The <separatorRatio> is the size of the first column as a ratio of the total view area.
+
+Related: showSeparator (property)
+
+
+
+
+Name: hiliteNewElement
+
+Type: property
+
+Syntax: get the hiliteNewElement of <widget>
+
+Syntax: set the hiliteNewElement of <widget> to {true|false}
+
+Summary: Automatically select new elements when created interactively.
+
+Description:
+If the <readOnly> property is false and the <hiliteNewElement> property is true,
+then when new array elements are added, they will be automatically selected.
+
+References: readOnly (property)
+
+
+
+
+Name: scrollHilitedElementIntoView
+
+Type: property
+
+Syntax: get the scrollHilitedElementIntoView of <widget>
+
+Syntax: set the scrollHilitedElementIntoView of <widget> to {true|false}
+
+Summary: Automatically scroll selected row into view.
+
+Description:
+If the <scrollHilitedElementIntoView> property is true, then when the 
+<hilitedElement> property changes the view will be scrolled such that the 
+selected row is visible.
+
+References: hilitedElement (property)
+
+
+
+
+Name: charsToTrimFromKey
+
+Type: property
+
+Syntax: get the charsToTrimFromKey of <widget>
+
+Syntax: set the charsToTrimFromKey of <widget> to <pChars>
+
+Summary: The number of leading characters to trim from the key for display.
+
+Parameters: 
+
+pChars: Number of leading characters to trim from the key.
+
+Description:
+The <charsToTrimFromKey> property controls the number of leading characters that 
+are removed from the keys of the <arrayData> of the widget.  This allows
+a custom sort where the sort portion of the key is not displayed.
+
+With <charsToTrimFromKey> set to 2, the following array:
+```
+	[1 CCC]
+	[2 BBB]
+	[3 AAA]
+```
+
+Would display in the widget as:
+```
+[CCC]
+[BBB]
+[AAA]
+```
+
+References: arrayData (property)
+
+
+
+
+Name: showHover
+
+Type: property
+
+Syntax: get the showHover of <widget>
+
+Syntax: set the showHover of <widget> to {true|false}
+
+Summary: Whether the widget has a hover row displayed or not.
+
+Description:
+Use the <showHover> property to show or hide the hover row of the widget 
+object.
+
+
+
+Name: autoFoldStateReset
+
+Type: property
+
+Syntax: get the autoFoldStateReset of <widget>
+
+Syntax: set the autoFoldStateReset of <widget> to {true|false}
+
+Summary: Automatically reset fold state when array data is set.
+
+Description:
+Use the <autoFoldStateReset> property to determine if the fold state is
+reset (tree is completely folded) when the <arrayData> property is set.
+
+References: arrayData (property)
+
+
+
+
+Name: formattedHeight
+
+Type: property
+
+Syntax: get the formattedHeight of <widget>
+
+Summary: Height of the data displayed by the widget
+
+Description:
+Use the <formattedHeight> property to get the height of the data displayed
+by the widget in the current fold state.
+
+
+
+Name: arrayStyle
+
+Type: property
+
+Syntax: get the arrayStyle of <widget>
+
+Syntax: set the arrayStyle of <widget> to {true|false}
+
+Summary: Whether the tree view should display its contents in array style or as a standard tree view.
+
+Description:
+The <arrayStyle> property controls whether the keys of the <arrayData> of the widget are displayed with
+square brackets around them or not.
+
+References: arrayData (property)
+
+
+
+
+Name: hilitedElement
+
+Type: property
+
+Syntax: get the hilitedElement of <widget>
+
+Syntax: set the hilitedElement of <widget> to <pPath>
+
+Summary: Select the row corresponding to <pPath>
+
+Parameters: 
+
+pPath: A comma delimited list of array keys.
+
+Description:
+<pPath> is a list of the keys which determine the row to be selected. For example, if tArray is the arrayData
+of the widget, to select a row corresponding to tArray["key1"]["subkey2"]["subsubkey5"], simply execute
+
+``` set the hilitedElement of widget "Array Viewer" to "key1,subkey2,subsubkey5" ```
+
+Setting to an invalid path or to `empty` will unselect the currently selected row.
+
+
+
+Name: showBorder
+
+Type: property
+
+Syntax: get the showBorder of <widget>
+
+Syntax: set the showBorder of <widget> to {true|false}
+
+Summary: Whether the widget has a border or not.
+
+Description:
+Use the <showBorder> property to show or hide the bounds of the widget 
+object.
+
+
+
+Name: readOnly
+
+Type: property
+
+Syntax: get the readOnly of <widget>
+
+Syntax: set the readOnly of <widget> to {true|false}
+
+Summary: Whether the options to modify elements of the underlying array are present or not.
+
+Description:
+The <readOnly> property controls whether the widget presents the option to add elements to arrays or not.
+If false, the first row of the widget is always "Add new element", and when rows are hovered over, icons
+appear at the right to enable the removal of that element, or the addition of a new subelement.
+
+
+
+Name: textHeight
+
+Type: property
+
+Syntax: get the textHeight of <widget>
+
+Syntax: set the textHeight of <widget> to <pTextHeight>
+
+Summary: Custom text height for the widget
+
+Parameters: 
+
+pTextHeight: Custom text height for the widget
+
+Description:
+Use the <textHeight> property to set a custom text (row) height for
+the widget.  The default value is 0 which will use the calculated height
+based on the currently selected font and size.
+
+
+

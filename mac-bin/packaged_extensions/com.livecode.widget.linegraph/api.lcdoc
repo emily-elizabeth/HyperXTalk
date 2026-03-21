@@ -1,0 +1,240 @@
+Library: com.livecode.widget.linegraph
+
+Type: widget
+
+Summary:
+A configurable line graph widget.
+
+The graph has labelled axes and allows multiple lines to be displayed.
+
+- Load comma-delimited data into the graph with the <graphData> property
+- Set the <graphColors> to control the color of each line in the graph
+- Call out a specific point on the graph by setting the
+  <hilitedCoordinates>
+
+References: graphData(property), graphColors(property), hilitedCoordinates(property)
+
+author: LiveCode
+
+version: 1.2.0
+
+
+Name: showLines
+
+Type: property
+
+Syntax: set the showLines of <widget> to { true | false }
+get the showLines of <widget>
+
+Summary: Whether chart lines are displayed
+
+Value: True if lines should be shown; false otherwise
+
+Description: If true, the graph widget will draw graph lines on the graph.
+
+Related: markerStyles (property), markerScale (property)
+
+
+
+
+Name: graphColors
+
+Type: property
+
+Syntax: set the graphColors of <widget> to <pColors>
+get the graphColors of <widget>
+
+Summary: The colors for drawing lines on the graph
+
+Value: A line-delimited list of the colors for each line on the graph
+
+Example:
+local tVar
+put "255,0,155,255\n155,100,255,255\n100,255,100,255" into tVar
+replace "\n" with return in tVar
+set the graphColors of widget "My Graph" to tVar
+
+Description:
+The <graphColors> are the colors of each line in the graph widget.
+
+Each line of the <graphColors> should be a comma delimited list with
+four items.  The items are the red, green, blue, and alpha (opacity)
+components of the line color.
+
+
+
+Name: markerScale
+
+Type: property
+
+Syntax: set the markerScale of <widget> to <real>
+get the markerScale of <widget>
+
+Summary: A scale factor to apply to markers
+
+Value: A scale factor to apply to markers
+
+Description: The default scale factor is 1 which corresponds to an 8x8 point marker.
+
+Related: markerStyles (property), showLines (property)
+
+
+
+
+Name: graphXLines
+
+Type: property
+
+Syntax: set the graphXLines of <widget> to { true | false }
+get the graphXLines of <widget>
+
+Summary: Whether horizontal grid lines are displayed
+
+Value: True if grid lines should be shown; false otherwise
+
+Description:
+If true, the graph widget will draw horizontal grid lines on the
+graph.  The number and spacing of the grid lines is determined
+automatically.
+
+Related: graphYLines (property)
+
+
+
+
+Name: hilitedCoordinates
+
+Type: property
+
+Syntax: set the hilitedCoordinates of <widget> to { <point> | empty }
+get the hilitedCoordinates of <widget>
+
+Summary: The coordinates of a highlighted point on the graph
+
+Value: The comma-delimited coordinates of a point, or empty.
+
+Description:
+If the <hilitedCoordinates> of the graph widget is not empty, then the
+widget will highlight the specified coordinates with a dot and dashed
+horizontal and vertical lines.
+
+>*Note:* If the x-axis values in the graph data are non-numeric,
+>then the x-value of the point set must match one of those values.
+
+Related: hilitedCoordinatesColor (property)
+
+
+
+
+Name: markerStyles
+
+Type: property
+
+Syntax: set the markerStyles of <widget> to { <string> | empty }
+get the markerStyles of <widget>
+
+Summary: Set the marker style for each data series
+
+Summary: The marker styles for drawing vertices on the graph
+
+Value:
+A line-delimited list of the marker styles for each line
+on the graph
+
+Description:
+The <markerStyles> are the marker styles of each line in the graph
+widget.
+
+If set to empty then no markers will be shown and
+showLines will be set to true. Available marker styles may be one of:
+
+- "filled circle"
+- "filled square"
+- "filled diamond"
+- "circle"
+- "square"
+- "diamond"
+- any icon name from the svg icon library
+
+By default the markerStyles will repeat in the following order:
+
+- "filled circle"
+- "filled square"
+- "filled diamond"
+- "circle"
+- "square"
+- "diamond"
+
+Related: showLines (property), markerScale (property)
+
+
+
+
+Name: graphData
+
+Type: property
+
+Syntax: set the graphData of <widget> to <pData>
+get the graphData of <widget>
+
+Summary: The data displayed by the graph.
+
+Value: A line delimited list of the data for each point on the x-axis.
+
+Example:
+    local tVar
+    put "mon,1000,300,0\ntue,720,340,123\nwed,889,400,80\nthu,800,360,10\nfri,1000,301,234\nsat,964,400,200\nsun,1000,500,0" into tVar
+    replace "\n" with return in tVar
+    set the graphData of widget "My Graph" to tVar
+
+Description:
+The <graphData> is the data to be displayed by the graph widget.
+
+Each line of the <graphData> should be a a comma delimited list.  The
+first item of each line is the label for that point on the x-axis.
+The second and following items are the values for each series of data
+to plot.
+
+
+
+Name: hilitedCoordinatesColor
+
+Type: property
+
+Syntax: set the hilitedCoordinatesColor of <widget> to <color>
+get the hilitedCoordinatesColor of <widget>
+
+Summary: The color for drawing the highlighted point
+
+Value: Any string which is a valid color, including RGBA values.
+
+Description:
+If the widget currently has some <hilitedCoordinates|highlighted
+coordinates> set, the <hilitedCoordinatesColor> determines the color
+used to draw the highlighting dot and lines.
+
+Related: hilitedCoordinates (property)
+
+
+
+
+Name: graphYLines
+
+Type: property
+
+Syntax: set the graphYLines of <widget> to { true | false }
+get the graphYLines of <widget>
+
+Summary: Whether vertical grid lines are displayed
+
+Value: True if grid lines should be shown; false otherwise
+
+Description:
+If true, the graph widget will draw vertical grid lines on the graph.
+The number and spacing of the grid lines is determined automatically.
+
+Related: graphXLines (property)
+
+
+
+

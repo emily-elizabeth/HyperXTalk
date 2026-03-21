@@ -1,0 +1,97 @@
+<package version="0.0">
+  <name>com.livecode.widget.linegraph</name>
+  <title>Line Graph</title>
+  <author>LiveCode</author>
+  <version>1.2.0</version>
+  <license>community</license>
+  <type>widget</type>
+  <requires name="com.livecode.canvas"/>
+  <requires name="com.livecode.library.widgetutils"/>
+  <requires name="com.livecode.library.iconsvg"/>
+  <requires name="com.livecode.widget"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.typeconvert"/>
+  <requires name="com.livecode.char"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.math"/>
+  <requires name="com.livecode.mathfoundation"/>
+  <requires name="com.livecode.byte"/>
+  <metadata key="preferredSize">300,175</metadata>
+  <metadata key="svgicon">M50.6,27.2h-2.2v-3.3l0.8-0.5l-0.2-0.3h2.9v-1h-3.5v-5h3.5v-1h-3.5v-5h3.5v-1h-3.5v-5h3.5v-1h-3.5V1.8h-1v2.4h-10V1.8h-1v2.4h-10V1.8h-1v2.4h-10V1.8h-1v2.4H5V2.5C5,1.1,3.9,0,2.5,0S0,1.1,0,2.5v29.7h50.6c1.4,0,2.5-1.1,2.5-2.5C53.1,28.4,52,27.2,50.6,27.2z M47.4,27.2h-10v-4.1h8l1.2,1.9l0.8-0.5V27.2z M15.4,15.2l1.4,0.9h-1.4V15.2z M14.4,17.1v5h-4.2l3.6-5H14.4z M15.4,17.1h2.9l7.1,4.6v0.4h-10V17.1z M26.4,17.1h0.1l-0.1,0.2V17.1z M25.4,18.1l-1.6-1h1.6V18.1z M26.4,22l4-4.9h6v5h-10V22z M37.4,17.1h4.2l3.2,5h-7.4V17.1z M37.4,16.1v-5h0.4l3.2,5H37.4z M36.4,10.1h-0.1l0.1-0.2V10.1z M36.4,11.1v5h-5.1l4.2-5H36.4z M27.4,16.1h-1v-5h5.1L27.4,16.1z M25.4,16.1h-3.1l-6.9-4.5v-0.5h10V16.1z M14.4,11.3l-3.5,4.9H5v-5h9.4V11.3z M10.1,17.1l-3.6,5H5v-5H10.1z M5.7,23.1l-0.7,1v-1H5.7z M9.5,23.1h4.9v4.1H6.5L9.5,23.1z M15.4,23.1h10v4.1h-10V23.1z M26.4,23.1h10v4.1h-10V23.1z M47.4,20.7l-2.3-3.6h2.3V20.7z M47.4,16.1h-2.9l-3.2-5h6.1V16.1z M47.4,10.1h-6.7l-3.2-5h9.9V10.1z M36.4,5.1v0.1l-4,4.9h-6v-5H36.4z M25.4,5.1v5h-10v-5H25.4z M14.4,5.1v5H5v-5H14.4z</metadata>
+  <property name="graphData" get="string" set="string"/>
+  <metadata key="graphData.editor">com.livecode.pi.text</metadata>
+  <metadata key="graphData.default">mon,1000,300,0
+tue,720,340,123
+wed,889,400,80
+thu,800,360,10
+fri,1000,301,234
+sat,964,400,200
+sun,1000,500,0</metadata>
+  <metadata key="graphData.label">Data (CSV)</metadata>
+  <property name="graphColors" get="string" set="string"/>
+  <metadata key="graphColors.editor">com.livecode.pi.editorList</metadata>
+  <metadata key="graphColors.subeditor">com.livecode.pi.color</metadata>
+  <metadata key="graphColors.delimiter">
+</metadata>
+  <metadata key="graphColors.default">255,0,155,255
+155,100,255,255
+100,255,100,255</metadata>
+  <metadata key="graphColors.label">Line colors</metadata>
+  <metadata key="graphColors.section">Colors</metadata>
+  <property name="graphXLines" get="boolean" set="boolean"/>
+  <metadata key="graphXLines.default">true</metadata>
+  <metadata key="graphXLines.label">Horizontal grid lines </metadata>
+  <property name="graphYLines" get="boolean" set="boolean"/>
+  <metadata key="graphYLines.default">true</metadata>
+  <metadata key="graphYLines.label">Vertical grid lines</metadata>
+  <property name="showLines" get="boolean" set="boolean"/>
+  <metadata key="showLines.default">true</metadata>
+  <metadata key="showLines.label">Show graph lines</metadata>
+  <metadata key="showLines.section">Basic</metadata>
+  <property name="markerStyles" get="string" set="string"/>
+  <metadata key="markerStyles.default">filled circle
+filled square
+filled diamond</metadata>
+  <metadata key="markerStyles.editor">com.livecode.pi.text</metadata>
+  <metadata key="markerStyles.label">Marker styles</metadata>
+  <property name="markerScale" get="real" set="real"/>
+  <metadata key="markerScale.default">1</metadata>
+  <metadata key="markerScale.editor">com.livecode.pi.number</metadata>
+  <metadata key="markerScale.step">0.05</metadata>
+  <metadata key="markerScale.min">0</metadata>
+  <metadata key="markerScale.max">5</metadata>
+  <metadata key="markerScale.label">Marker scale</metadata>
+  <property name="hilitedCoordinates" get="string" set="string"/>
+  <metadata key="hilitedCoordinates.default"></metadata>
+  <metadata key="hilitedCoordinates.label">Hilited coordinates</metadata>
+  <property name="hilitedCoordinatesColor" get="string" set="string"/>
+  <metadata key="hilitedCoordinatesColor.default">0,0,0,255</metadata>
+  <metadata key="hilitedCoordinatesColor.label">Hilited coordinates color</metadata>
+  <metadata key="hilitedCoordinatesColor.editor">com.livecode.pi.colorWithAlpha</metadata>
+  <metadata key="hilitedCoordinatesColor.section">Colors</metadata>
+  <handler name="OnCreate" parameters="" return="nothing"/>
+  <handler name="OnPaint" parameters="" return="nothing"/>
+  <handler name="OnSave" parameters="out array" return="any"/>
+  <handler name="OnLoad" parameters="in array" return="any"/>
+  <handler name="setData" parameters="in string" return="nothing"/>
+  <handler name="setColors" parameters="in string" return="nothing"/>
+  <handler name="setXLinesVisibility" parameters="in boolean" return="nothing"/>
+  <handler name="setYLinesVisibility" parameters="in boolean" return="nothing"/>
+  <handler name="SetLineVisibility" parameters="in boolean" return="nothing"/>
+  <handler name="GetMarkerStyles" parameters="" return="string"/>
+  <handler name="SetMarkerStyles" parameters="in string" return="nothing"/>
+  <handler name="SetMarkerScale" parameters="in real" return="nothing"/>
+  <handler name="EnsureMarkerStyles" parameters="" return="nothing"/>
+  <handler name="GetHilitedCoordinates" parameters="" return="string"/>
+  <handler name="SetHilitedCoordinates" parameters="in string" return="nothing"/>
+  <handler name="SetHilitedCoordinatesColor" parameters="in string" return="any"/>
+  <handler name="getColors" parameters="" return="string"/>
+  <handler name="getData" parameters="" return="string"/>
+  <handler name="getPaint" parameters="in any,in any" return="Paint"/>
+  <handler name="OnGeometryChanged" parameters="" return="any"/>
+</package>

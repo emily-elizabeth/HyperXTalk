@@ -1,0 +1,513 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		09725B13B2490DA5BD95725E /* functions.c in Sources */ = {isa = PBXBuildFile; fileRef = FEF70DF2D3122328763476B9 /* functions.c */; };
+		1B00C93195B11EF4890D7EF4 /* extensions.c in Sources */ = {isa = PBXBuildFile; fileRef = 2890559184B300C100A9CE21 /* extensions.c */; };
+		29DAC89A28E0FF7CAF1BBA44 /* variables.c in Sources */ = {isa = PBXBuildFile; fileRef = 43ABB60D37876BDD6EB3C726 /* variables.c */; };
+		2AE4A128924D0ADA9765F971 /* attrvt.c in Sources */ = {isa = PBXBuildFile; fileRef = B8FAFABB33024D12937F14C6 /* attrvt.c */; };
+		2D0067A25E562D8DF200B552 /* imports.c in Sources */ = {isa = PBXBuildFile; fileRef = DC5E86B5EE359270E6A6B6E7 /* imports.c */; };
+		3BA2991A452E861CFF8EF965 /* documents.c in Sources */ = {isa = PBXBuildFile; fileRef = 278521518960BCC52654CD12 /* documents.c */; };
+		3DC1F981381408BE1E5721B7 /* xslt.c in Sources */ = {isa = PBXBuildFile; fileRef = 7379E664A54409AE43110FFF /* xslt.c */; };
+		553CCC758330F0957E31FF9B /* keys.c in Sources */ = {isa = PBXBuildFile; fileRef = 230BB62651E4BC1559AC43ED /* keys.c */; };
+		5831C2651A6EE75943E2A249 /* pattern.c in Sources */ = {isa = PBXBuildFile; fileRef = 8EED2AE5D5C107D9138B506B /* pattern.c */; };
+		5D1A49BA513BC03B855E929B /* templates.c in Sources */ = {isa = PBXBuildFile; fileRef = 6869F9753590107B6A06A0FB /* templates.c */; };
+		67D3BBFDE927AD30A6B1B7B6 /* xsltutils.c in Sources */ = {isa = PBXBuildFile; fileRef = 7D537B6EE7F46CAF075028F2 /* xsltutils.c */; };
+		716997AED51A038C3190D3C6 /* transform.c in Sources */ = {isa = PBXBuildFile; fileRef = 01BCEBF0E54575AE56F95D55 /* transform.c */; };
+		8D248E3492A61A41DF261156 /* security.c in Sources */ = {isa = PBXBuildFile; fileRef = FE86843283D59CFDFCFA15B7 /* security.c */; };
+		8D2B05CFDA4DD8F99D17EEEF /* extra.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CFE970AA47899C3C0E3A504 /* extra.c */; };
+		9186EAB51A849F22124E97F7 /* xsltlocale.c in Sources */ = {isa = PBXBuildFile; fileRef = 706F728E917AC4AA83A95317 /* xsltlocale.c */; };
+		AA636ADF35C3CDC6A164B371 /* preproc.c in Sources */ = {isa = PBXBuildFile; fileRef = 60E9967F6D91AF64B26202DE /* preproc.c */; };
+		D8C3ABF17EE87DC25A8CA0EA /* numbers.c in Sources */ = {isa = PBXBuildFile; fileRef = 24B5C0876BAF5750C9C714F2 /* numbers.c */; };
+		D955AD09E9D379AA4511A80C /* namespaces.c in Sources */ = {isa = PBXBuildFile; fileRef = 63D29EE14CEDD99C3568F2CD /* namespaces.c */; };
+		FE90569FEDD12C862B53FFAA /* attributes.c in Sources */ = {isa = PBXBuildFile; fileRef = 7830FE228488170C6BC9BAC9 /* attributes.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		01BCEBF0E54575AE56F95D55 /* transform.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = transform.c; sourceTree = "<group>"; };
+		0248EB5B79879792A1D20722 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../config/android-settings.gypi"; sourceTree = "<group>"; };
+		085516B084B378E6019E1C92 /* xslt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xslt.h; sourceTree = "<group>"; };
+		0FC69276A45724858BC60837 /* xsltutils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xsltutils.h; sourceTree = "<group>"; };
+		1154944954AE1D11903423B4 /* trio.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = trio.h; sourceTree = "<group>"; };
+		17831F72DD815A2230FE7509 /* libxslt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = libxslt.h; sourceTree = "<group>"; };
+		1C88713C71AB6AEB5A419665 /* xsltexports.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xsltexports.h; sourceTree = "<group>"; };
+		1E6086353B34FF2C25E8A4EE /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../config/ios.gypi; sourceTree = "<group>"; };
+		230BB62651E4BC1559AC43ED /* keys.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = keys.c; sourceTree = "<group>"; };
+		24B5C0876BAF5750C9C714F2 /* numbers.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = numbers.c; sourceTree = "<group>"; };
+		278521518960BCC52654CD12 /* documents.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = documents.c; sourceTree = "<group>"; };
+		2890559184B300C100A9CE21 /* extensions.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = extensions.c; sourceTree = "<group>"; };
+		34F639559E166B00D7BDC88E /* attributes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = attributes.h; sourceTree = "<group>"; };
+		3522EB0034BD2385A558722A /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../config/emscripten.gypi; sourceTree = "<group>"; };
+		3547BD1A59D47AD718790C07 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		3CE694920B7E88658C5D67D0 /* win32config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = win32config.h; sourceTree = "<group>"; };
+		3CFE970AA47899C3C0E3A504 /* extra.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = extra.c; sourceTree = "<group>"; };
+		3D186AE0C9502EE3A6BE8743 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../../config/arch.gypi; sourceTree = "<group>"; };
+		3EECC2155CA6B705107B480D /* numbersInternals.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = numbersInternals.h; sourceTree = "<group>"; };
+		406907CFC8B425BD58E59B3A /* documents.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = documents.h; sourceTree = "<group>"; };
+		43ABB60D37876BDD6EB3C726 /* variables.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = variables.c; sourceTree = "<group>"; };
+		4C0CE5305389EFDBB21025E2 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../../config/mac.gypi; sourceTree = "<group>"; };
+		4DC1E705867A0AEBCA0D4721 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../../config/configurations.gypi; sourceTree = "<group>"; };
+		51C546538A1D288762EBC477 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../../config/perl.gypi; sourceTree = "<group>"; };
+		528A27083B8032888F9ED111 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../../config/linux.gypi; sourceTree = "<group>"; };
+		60E9967F6D91AF64B26202DE /* preproc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = preproc.c; sourceTree = "<group>"; };
+		63D29EE14CEDD99C3568F2CD /* namespaces.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = namespaces.c; sourceTree = "<group>"; };
+		6869F9753590107B6A06A0FB /* templates.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = templates.c; sourceTree = "<group>"; };
+		6C0DCCBD9BD19392E82364F6 /* namespaces.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = namespaces.h; sourceTree = "<group>"; };
+		6CE82BB9DBA577C456B6B57D /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../../config/target_os.gypi; sourceTree = "<group>"; };
+		6DE4252CC998D0428180EEFB /* xsltInternals.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xsltInternals.h; sourceTree = "<group>"; };
+		6F80B906B9ED981F82DA07DB /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		706F728E917AC4AA83A95317 /* xsltlocale.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xsltlocale.c; sourceTree = "<group>"; };
+		7379E664A54409AE43110FFF /* xslt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xslt.c; sourceTree = "<group>"; };
+		74FF8CD3CD7FF95E62BF3C15 /* variables.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = variables.h; sourceTree = "<group>"; };
+		7830FE228488170C6BC9BAC9 /* attributes.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = attributes.c; sourceTree = "<group>"; };
+		7AB3032F625D8C020CEF28A0 /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		7CA9A55F25FA831C6147723B /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../../config/crosscompile.gypi; sourceTree = "<group>"; };
+		7D537B6EE7F46CAF075028F2 /* xsltutils.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xsltutils.c; sourceTree = "<group>"; };
+		8497046D8020F599D97E9882 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../../config/yacc.gypi; sourceTree = "<group>"; };
+		87FAA5924283ADE906793C47 /* extra.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = extra.h; sourceTree = "<group>"; };
+		8EED2AE5D5C107D9138B506B /* pattern.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pattern.c; sourceTree = "<group>"; };
+		94E2B04683EF36EE92CDAA6F /* functions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = functions.h; sourceTree = "<group>"; };
+		9854505ACBA3D3A69CE41B80 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../../common.gypi; sourceTree = "<group>"; };
+		A0A358EF804F6B0A51B3A419 /* libxslt.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libxslt.gyp; sourceTree = "<group>"; };
+		AAA718FA8817512643BC109C /* xsltwin32config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xsltwin32config.h; sourceTree = "<group>"; };
+		B42E004F8971AF8AA1B6F506 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../config/android.gypi; sourceTree = "<group>"; };
+		B716141BFEF6AD980E19AA1D /* libxslt.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libxslt.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		B8FAFABB33024D12937F14C6 /* attrvt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = attrvt.c; sourceTree = "<group>"; };
+		BA6F4C2AE974167782298F17 /* security.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = security.h; sourceTree = "<group>"; };
+		BD10918356B8843C96FD4E8E /* xsltconfig.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xsltconfig.h; sourceTree = "<group>"; };
+		C074B89D38C7815EE11870CA /* extensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = extensions.h; sourceTree = "<group>"; };
+		C51B6D42E6AD734A4A9DE6E0 /* preproc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = preproc.h; sourceTree = "<group>"; };
+		C88672C88082D9362ED38A5B /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../../config/exclusions.gypi; sourceTree = "<group>"; };
+		D0442B95D136F0861E175F55 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../../config/version.gypi; sourceTree = "<group>"; };
+		D0FC3118048A03C67B666F8A /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../../config/thirdparty.gypi; sourceTree = "<group>"; };
+		D27C3491CF600153ABB72A68 /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		DC5E86B5EE359270E6A6B6E7 /* imports.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = imports.c; sourceTree = "<group>"; };
+		DE0DD2570B3CF5D7E098F394 /* templates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = templates.h; sourceTree = "<group>"; };
+		E12CB0325EE7094E59B6B7C3 /* imports.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = imports.h; sourceTree = "<group>"; };
+		E4BE01C8BB8A3CB27C9B93BE /* transform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = transform.h; sourceTree = "<group>"; };
+		E8B59485A1F2C1B5EA088BB6 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../../config/win32.gypi; sourceTree = "<group>"; };
+		ED9884E876BCBEF8B2A7EBFF /* xsltlocale.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xsltlocale.h; sourceTree = "<group>"; };
+		F41F2EC870D735C07F59EEE4 /* keys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = keys.h; sourceTree = "<group>"; };
+		F772ACCA6830A501C795A377 /* pattern.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pattern.h; sourceTree = "<group>"; };
+		FDA0266287AC8EAAE8412E80 /* triodef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = triodef.h; sourceTree = "<group>"; };
+		FE86843283D59CFDFCFA15B7 /* security.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = security.c; sourceTree = "<group>"; };
+		FEF70DF2D3122328763476B9 /* functions.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = functions.c; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		05374A004AB6DDB4EBCD224A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		07C3824D60DEC12F65F70ADE = {
+			isa = PBXGroup;
+			children = (
+				168EB32D89BE89B453ABE2CB /* Source */,
+				E5564D7F0B901F4A6BDC88B6 /* Products */,
+				1A910421BDFDD12E5B20C31D /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		168EB32D89BE89B453ABE2CB /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				559CD9C7B7EE7453AD0D8932 /* ../.. */,
+				31F54E5DE01B404D39BAF360 /* include/libxslt */,
+				31B9BD57CFF6217AFFEE2016 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		1A910421BDFDD12E5B20C31D /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				0248EB5B79879792A1D20722 /* android-settings.gypi */,
+				B42E004F8971AF8AA1B6F506 /* android.gypi */,
+				3D186AE0C9502EE3A6BE8743 /* arch.gypi */,
+				9854505ACBA3D3A69CE41B80 /* common.gypi */,
+				4DC1E705867A0AEBCA0D4721 /* configurations.gypi */,
+				7CA9A55F25FA831C6147723B /* crosscompile.gypi */,
+				3547BD1A59D47AD718790C07 /* emscripten-settings.gypi */,
+				3522EB0034BD2385A558722A /* emscripten.gypi */,
+				C88672C88082D9362ED38A5B /* exclusions.gypi */,
+				1E6086353B34FF2C25E8A4EE /* ios.gypi */,
+				A0A358EF804F6B0A51B3A419 /* libxslt.gyp */,
+				D27C3491CF600153ABB72A68 /* linux-settings.gypi */,
+				528A27083B8032888F9ED111 /* linux.gypi */,
+				4C0CE5305389EFDBB21025E2 /* mac.gypi */,
+				51C546538A1D288762EBC477 /* perl.gypi */,
+				6CE82BB9DBA577C456B6B57D /* target_os.gypi */,
+				D0FC3118048A03C67B666F8A /* thirdparty.gypi */,
+				D0442B95D136F0861E175F55 /* version.gypi */,
+				E8B59485A1F2C1B5EA088BB6 /* win32.gypi */,
+				8497046D8020F599D97E9882 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		31B9BD57CFF6217AFFEE2016 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				7830FE228488170C6BC9BAC9 /* attributes.c */,
+				B8FAFABB33024D12937F14C6 /* attrvt.c */,
+				278521518960BCC52654CD12 /* documents.c */,
+				2890559184B300C100A9CE21 /* extensions.c */,
+				3CFE970AA47899C3C0E3A504 /* extra.c */,
+				FEF70DF2D3122328763476B9 /* functions.c */,
+				DC5E86B5EE359270E6A6B6E7 /* imports.c */,
+				230BB62651E4BC1559AC43ED /* keys.c */,
+				63D29EE14CEDD99C3568F2CD /* namespaces.c */,
+				24B5C0876BAF5750C9C714F2 /* numbers.c */,
+				8EED2AE5D5C107D9138B506B /* pattern.c */,
+				60E9967F6D91AF64B26202DE /* preproc.c */,
+				FE86843283D59CFDFCFA15B7 /* security.c */,
+				6869F9753590107B6A06A0FB /* templates.c */,
+				01BCEBF0E54575AE56F95D55 /* transform.c */,
+				43ABB60D37876BDD6EB3C726 /* variables.c */,
+				7379E664A54409AE43110FFF /* xslt.c */,
+				706F728E917AC4AA83A95317 /* xsltlocale.c */,
+				7D537B6EE7F46CAF075028F2 /* xsltutils.c */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		31F54E5DE01B404D39BAF360 /* include/libxslt */ = {
+			isa = PBXGroup;
+			children = (
+				34F639559E166B00D7BDC88E /* attributes.h */,
+				6F80B906B9ED981F82DA07DB /* config.h */,
+				406907CFC8B425BD58E59B3A /* documents.h */,
+				C074B89D38C7815EE11870CA /* extensions.h */,
+				87FAA5924283ADE906793C47 /* extra.h */,
+				94E2B04683EF36EE92CDAA6F /* functions.h */,
+				E12CB0325EE7094E59B6B7C3 /* imports.h */,
+				F41F2EC870D735C07F59EEE4 /* keys.h */,
+				17831F72DD815A2230FE7509 /* libxslt.h */,
+				6C0DCCBD9BD19392E82364F6 /* namespaces.h */,
+				3EECC2155CA6B705107B480D /* numbersInternals.h */,
+				F772ACCA6830A501C795A377 /* pattern.h */,
+				C51B6D42E6AD734A4A9DE6E0 /* preproc.h */,
+				BA6F4C2AE974167782298F17 /* security.h */,
+				DE0DD2570B3CF5D7E098F394 /* templates.h */,
+				E4BE01C8BB8A3CB27C9B93BE /* transform.h */,
+				1154944954AE1D11903423B4 /* trio.h */,
+				FDA0266287AC8EAAE8412E80 /* triodef.h */,
+				74FF8CD3CD7FF95E62BF3C15 /* variables.h */,
+				3CE694920B7E88658C5D67D0 /* win32config.h */,
+				085516B084B378E6019E1C92 /* xslt.h */,
+				6DE4252CC998D0428180EEFB /* xsltInternals.h */,
+				BD10918356B8843C96FD4E8E /* xsltconfig.h */,
+				1C88713C71AB6AEB5A419665 /* xsltexports.h */,
+				ED9884E876BCBEF8B2A7EBFF /* xsltlocale.h */,
+				0FC69276A45724858BC60837 /* xsltutils.h */,
+				AAA718FA8817512643BC109C /* xsltwin32config.h */,
+			);
+			path = include/libxslt;
+			sourceTree = "<group>";
+		};
+		559CD9C7B7EE7453AD0D8932 /* ../.. */ = {
+			isa = PBXGroup;
+			children = (
+				7AB3032F625D8C020CEF28A0 /* version */,
+			);
+			path = ../..;
+			sourceTree = "<group>";
+		};
+		E5564D7F0B901F4A6BDC88B6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B716141BFEF6AD980E19AA1D /* libxslt.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BAEACE5452101B9F9B6F94D4 /* libxslt */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3D9E0D1D1D603043634BE123 /* Build configuration list for PBXNativeTarget "libxslt" */;
+			buildPhases = (
+				22AD20BB18BE9132E0D0D866 /* Sources */,
+				05374A004AB6DDB4EBCD224A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = libxslt;
+			productName = xslt;
+			productReference = B716141BFEF6AD980E19AA1D /* libxslt.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7A19D59F449DF98956840252 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 6A432FEDB7136BE9AADF567D /* Build configuration list for PBXProject "libxslt" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 07C3824D60DEC12F65F70ADE;
+			projectDirPath = ../../../../thirdparty/libxslt;
+			projectRoot = "";
+			targets = (
+				BAEACE5452101B9F9B6F94D4 /* libxslt */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		22AD20BB18BE9132E0D0D866 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE90569FEDD12C862B53FFAA /* attributes.c in Sources */,
+				2AE4A128924D0ADA9765F971 /* attrvt.c in Sources */,
+				3BA2991A452E861CFF8EF965 /* documents.c in Sources */,
+				1B00C93195B11EF4890D7EF4 /* extensions.c in Sources */,
+				8D2B05CFDA4DD8F99D17EEEF /* extra.c in Sources */,
+				09725B13B2490DA5BD95725E /* functions.c in Sources */,
+				2D0067A25E562D8DF200B552 /* imports.c in Sources */,
+				553CCC758330F0957E31FF9B /* keys.c in Sources */,
+				D955AD09E9D379AA4511A80C /* namespaces.c in Sources */,
+				D8C3ABF17EE87DC25A8CA0EA /* numbers.c in Sources */,
+				5831C2651A6EE75943E2A249 /* pattern.c in Sources */,
+				AA636ADF35C3CDC6A164B371 /* preproc.c in Sources */,
+				8D248E3492A61A41DF261156 /* security.c in Sources */,
+				5D1A49BA513BC03B855E929B /* templates.c in Sources */,
+				716997AED51A038C3190D3C6 /* transform.c in Sources */,
+				29DAC89A28E0FF7CAF1BBA44 /* variables.c in Sources */,
+				3DC1F981381408BE1E5721B7 /* xslt.c in Sources */,
+				9186EAB51A849F22124E97F7 /* xsltlocale.c in Sources */,
+				67D3BBFDE927AD30A6B1B7B6 /* xsltutils.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2ADD033B2C324B63E56578D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"LIBXML_STATIC=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					include/libxslt,
+					src,
+					../libxml/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = xslt;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		961B43AB3998AC562562C00D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7AB3032F625D8C020CEF28A0 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		C0539F0A10F9DF7ACEE98DD3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7AB3032F625D8C020CEF28A0 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		C3C70064CD437E873F35D8C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"LIBXML_STATIC=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					include/libxslt,
+					src,
+					../libxml/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = xslt;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		D4E595F61A09FEF662E1B9B9 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7AB3032F625D8C020CEF28A0 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		E44422FB00D72745D1728E47 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"LIBXML_STATIC=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					include/libxslt,
+					src,
+					../libxml/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = xslt;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3D9E0D1D1D603043634BE123 /* Build configuration list for PBXNativeTarget "libxslt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C3C70064CD437E873F35D8C9 /* Debug */,
+				E44422FB00D72745D1728E47 /* Fast */,
+				2ADD033B2C324B63E56578D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		6A432FEDB7136BE9AADF567D /* Build configuration list for PBXProject "libxslt" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				961B43AB3998AC562562C00D /* Debug */,
+				D4E595F61A09FEF662E1B9B9 /* Fast */,
+				C0539F0A10F9DF7ACEE98DD3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7A19D59F449DF98956840252 /* Project object */;
+}

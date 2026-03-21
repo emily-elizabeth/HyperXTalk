@@ -1,0 +1,60 @@
+Name: request
+
+Type: command
+
+Syntax: request <expression> {of | from} {program | application} <programAddress>
+
+Summary:
+The <request> data gets information from another application via 
+<Apple Event|Apple Events>.
+
+Introduced: 1.0
+
+OS: mac
+
+Platforms: desktop, server
+
+Example:
+request "the hilite of button 3" from program "HyperCard"
+
+Example:
+request field "Appname" from program "Ozone:Geek Paradise:FileMaker"
+
+Parameters:
+expression:
+The string you're asking the other application to evaluate. Its exact
+format and meaning depends on the other application.
+
+programAddress:
+The AppleTalk address of the other program. The AppleTalk address
+consists of three parts, separated by colons: the zone the other
+computer is in, the name of the computer, and the name of the target
+program. If the other computer is in the same zone as yours, you can
+omit the zone. If the other program is running on the same computer, you
+can omit both the zone and the computer name.
+
+It:
+The <request> <command> sends an eval <Apple Event> to the
+<programAddress>. If the program supports this <Apple Event>, it
+evaluates the expression and sends the result back to LiveCode, which
+places it in the <it> <variable>.
+
+The result:
+If the program sends back an error message, it is placed in the result 
+<function>.
+
+Description:
+Use the <request> <command> to obtain data from another application via
+the eval <Apple Event>.
+
+For more information about Apple events, refer to the section entitled
+"Apple Events Sent by the Mac OS" in the technical documentation section
+located on [Apple's website]
+(https://developer.apple.com/documentation/coreservices/apple_events).
+
+References: send to program (command), function (control structure),
+command (glossary), variable (glossary), Apple Event (glossary),
+it (keyword)
+
+Tags: networking
+

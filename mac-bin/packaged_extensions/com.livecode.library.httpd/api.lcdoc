@@ -1,0 +1,133 @@
+Library: com.livecode.library.httpd
+
+Type: library
+
+Title: HTTPD Library
+
+Version: 1.0.0
+
+Author: LiveCode
+
+Description: Handle HTTP requests in your application
+
+
+Name: httpdStop
+
+Type: command
+
+Syntax: httpdStop <pPorts>
+
+Summary: Stop a HTTP server
+
+Description:
+Stop all or some HTTP servers by closing the socket and deleting
+server metadata.
+
+Parameters: 
+
+pPorts:
+A return delimited list of server ports to stop. If empty all servers are
+stopped.
+
+
+
+Name: httpdResponse
+
+Type: command
+
+Syntax: httpdResponse <pSocketID>,<pResponseCode>,<pContent>,<pHeaders>
+
+Summary: Respond to a HTTP request
+
+Example:
+on mouseUp
+   httpdStart "NewRequest", 12345, "My Server"
+   launch url ("http://localhost:" & it)
+end mouseUp
+
+on NewRequest pSocketID, pRequest
+   local tPath
+   put the effective filename of me into tPath
+   set the itemDelimiter to slash
+
+   put "files/" & pRequest["resource"] into the last item of tPath
+
+   if there is a file tPath then
+      local tData
+      put url ("binfile:" & tPath) into tData
+      httpdResponse pSocketID, 200, tData
+   else
+      -- not found
+      httpdResponse pSocketID, 404
+   end if
+end NewRequest
+
+Description: Handle the callback set when starting the server and respond to the request according to your requirements.
+
+Parameters: 
+
+pSocketID: The socket ID sent to the request callback
+
+pResponseCode: A HTTP response code. See [here](https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) for more detail.
+
+pContent: This is the content to respond to the request with.
+
+pHeaders: Any additional headers to send with the response. Content-Length, Server, Date and Connection are set by default.
+
+
+
+
+Name: httpdStart
+
+Type: command
+
+Syntax: httpdStart <pCallback>,<pPort>,<pServerName>
+
+Summary: Start a HTTP server
+
+Example:
+on mouseUp
+   httpdStart "NewRequest", 12345, "My Server"
+   launch url ("http://localhost:" & it)
+end mouseUp
+
+on NewRequest pSocketID, pRequest
+   httpdResponse pSocketID, 200
+end NewRequest
+
+Description:
+Start a HTTP server. Once started any HTTP requests to the server will
+result in a callback to the caller with the message specified with pCallback.
+
+If the callback will have two parameters. The socket ID of the request. And an
+array describing the request. The array has the following keys:
+
+- "method": The HTTP request method
+- "resource": The request resource path e.g /images/foo.gif
+- "parameters": For GET requests with parameters or application/x-www-form-urlencoded encoded
+this key will be an array of parameters
+- "headers": An array of request headers
+- "content": The request body (empty for application/x-www-form-urlencoded)
+
+Parameters: 
+
+pCallback:
+A handler name to be sent to the caller when a new HTTP request
+is handled by the server.
+
+pPort:
+The port to accept HTTP requests on. If empty then port 8080 will be
+used and if the accept command fails with 8080 an available ephemeral
+port will be used. If pPort is 0 an available ephemeral port will be
+used.
+
+pServerName: Optional server name defaults to `LiveCode`
+
+The result: An error string if an error occurred
+
+It:
+The port the server was started on. Use this if pPort was empty or 0 to
+determine which port was used.
+
+
+

@@ -1,0 +1,22 @@
+<package version="0.0">
+  <name>com.livecode.library.androidutils</name>
+  <title>Android Utilities</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <os>android</os>
+  <license>community</license>
+  <type>module</type>
+  <requires name="com.livecode.foreign"/>
+  <requires name="com.livecode.java"/>
+  <requires name="com.livecode.canvas"/>
+  <requires name="com.livecode.library.widgetutils"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.mathfoundation"/>
+  <handler name="StringToAndroidColor" parameters="in string" return="integer"/>
+  <handler name="ApplicationContext" parameters="" return="JObject"/>
+  <handler name="AndroidRequestPermission" parameters="in string" return="boolean"/>
+  <handler name="AndroidPermissionExists" parameters="in string" return="boolean"/>
+  <handler name="AndroidHasPermission" parameters="in string" return="boolean"/>
+  <handler name="AndroidRegisterLifecycleListener" parameters="in OnPauseHandler,in OnResumeHandler" return="JObject"/>
+  <handler name="AndroidUnregisterLifecycleListener" parameters="in JObject" return="boolean"/>
+</package>

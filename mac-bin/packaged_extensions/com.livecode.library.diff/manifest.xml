@@ -1,0 +1,8 @@
+<package version="0.0">
+  <name>com.livecode.library.diff</name>
+  <title>Unified Diff Library</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <type>library</type>
+  <license>community</license>
+</package>

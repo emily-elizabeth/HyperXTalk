@@ -1,0 +1,45 @@
+Name: browserNewUrlWindow
+
+Synonyms: xbrowser_newurlwindow
+
+Type: message
+
+Syntax: browserNewUrlWindow <pInstanceId>, <pUrl>
+
+Syntax: XBrowser_NewUrlWindow <pUrl>, <pInstanceId>
+
+Summary:
+Sent when a url has been opened in a new window.
+
+Introduced: 2.8.1
+
+OS: mac, windows
+
+Platforms: desktop
+
+Security: network
+
+Example:
+on browserNewUrlWindow pInstanceId, pUrl
+  go stack (the owner of me)
+end browserNewUrlWindow
+
+Parameters:
+pInstanceId:
+The integer identifier of the browser object
+
+pUrl:
+The url that has opened in a new window
+
+Description:
+The <browserNewUrlWindow> message is sent to the current card of a stack
+containing a browser object when the browser object has opened a url in
+a new window.
+
+>*Note:* For general information on using the browser library, see the
+> notes in the <revBrowserOpen> <function> reference.
+
+References: revBrowserSet (command), revBrowserOpen (function),
+function (glossary), browserNewInstance (message),
+browserBeforeNavigate (message)
+

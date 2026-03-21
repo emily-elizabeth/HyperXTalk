@@ -1,0 +1,25 @@
+Name: eight
+
+Type: constant
+
+Syntax: eight
+
+Summary:
+Equivalent to the number 8.
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Example:
+set the bottomMargin of the target to eight
+
+Description:
+Use the <eight> <constant> when it is easier to read than the numeral 8. 
+
+References: constant (command), hand (constant), eighth (keyword)
+
+Tags: math
+

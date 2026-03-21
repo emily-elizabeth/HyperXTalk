@@ -1,0 +1,45 @@
+Name: securityCategories
+
+Type: property
+
+Syntax: put the securityCategories
+
+Summary:
+Returns a list of security categories that can be set in the engine.
+
+Introduced: 6.1.3
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Example:
+put the securityCategories
+
+Description:
+Use the <securityCategories> <property> to get a list of all the
+supported security categories. Returned values are:
+
+  * disk - accessing files
+  * network - using sockets and url commands
+  * process - running external processes such as shell and open process
+  * registryRead - reading from the system registry (windows only)
+  * registryWrite - writing to the system registry (windows only)
+  * printing - access to the system printer
+  * privacy - taking snapshots of the screen and recording sounds
+  * applescript - receiving apple events
+  * doalternate - use of the 'do ... as ...' alternate language
+    execution feature
+  * external - loading externals
+  * extension - loading extensions from file or data. Extensions included when
+  building a standalone are not restricted.
+
+Changes:
+In version 9.5 the extension category was added to restrict loading of
+extensions.
+
+References: launch (command), property (glossary),
+securityPermissions (property), secureMode (property), load extension (command)
+
+Tags: file system
+

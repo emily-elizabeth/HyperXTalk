@@ -1,0 +1,15 @@
+Name: setProp handler
+
+Synonyms: setprop handler
+
+Type: glossary
+
+Description:
+A <LiveCode> <handler> you write that defines optional actions when a
+<custom property's> <value> is set. SetProp <handler|handlers> begin
+with the <setProp> <control structure>.
+
+References: setProp (control structure), handler (glossary),
+LiveCode (glossary), value (glossary), control structure (glossary),
+custom property (property)
+

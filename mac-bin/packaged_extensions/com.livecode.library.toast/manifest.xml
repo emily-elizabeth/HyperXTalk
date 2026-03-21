@@ -1,0 +1,23 @@
+<package version="0.0">
+  <name>com.livecode.library.toast</name>
+  <title>Toast Notification Library</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <os>android</os>
+  <license>community</license>
+  <type>library</type>
+  <requires name="com.livecode.java"/>
+  <requires name="com.livecode.foreign"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.math"/>
+  <requires name="com.livecode.mathfoundation"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.system"/>
+  <handler name="mobileToast" parameters="in string,in any" return="nothing"/>
+  <handler name="mobileToastCancel" parameters="" return="any"/>
+</package>

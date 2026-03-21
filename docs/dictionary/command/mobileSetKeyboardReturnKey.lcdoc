@@ -1,0 +1,63 @@
+Name: mobileSetKeyboardReturnKey
+
+Synonyms: iphoneSetKeyboardReturnKey
+
+Type: command
+
+Syntax: mobileSetKeyboardReturnKey <returnKey>
+
+Summary:
+Configures the type of return key displayed on the keyboard.
+
+Introduced: 4.5.3
+
+Changes: LiveCode 9.5 added support for android
+
+OS: ios, android
+
+Platforms: mobile
+
+Example:
+mobileSetKeyboardReturnKey "alphabet"
+
+Example:
+mobileSetKeyboardReturnKey "numeric"
+
+Parameters:
+returnKey (enum):
+Specifies what the return key function is.
+
+-   default: the normal return key
+-   go: the 'Go' return key
+-   google: the 'Google' return key (iOS only)
+-   join: the 'Join' return key (iOS only)
+-   next: the 'Next' return key
+-   route: the 'Route' return key (iOS only)
+-   search: the 'Search' return key
+-   send: the 'Send' return key
+-   yahoo: the 'Yahoo' return key (iOS only)
+-   done: the 'Done' return key
+-   emergency call: the 'emergency call' return key (iOS only)
+
+
+Description:
+Use the mobileSetKeyboardReturnKey command to configure the type of
+return key displayed on the keyboard.
+
+The <mobileSetKeyboardReturnKey> command configures the type of return
+key displayed on the keyboard
+
+The return key type setting takes effect the next time the keyboard is
+shown - it does not affect the currently displaying keyboard, if any. If
+you wish to configure the keyboard options based on the field that is
+being focused, simply use the commands in an <openField> handler of the
+given field. The keyboard is only shown after this handler returns, so
+it is the ideal time to configure it.
+
+>**Note:** If a field has a non-empty <returnKeyType> that value will override
+> the the value set by <mobileSetKeyboardReturnKey>.
+
+References: mobileSetKeyboardType (command),
+keyboardDeactivated (message), keyboardActivated (message),
+openField (message), returnKeyType (property)
+

@@ -1,0 +1,44 @@
+Name: md5Digest
+
+Type: function
+
+Syntax: the md5Digest of <message>
+
+Syntax: md5Digest(<message>)
+
+Summary:
+Computes a MD5 cryptographic message digest.
+
+Introduced: 1.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+get the md5Digest of "LiveCode"
+
+Example:
+put textEncode("Message to verify", "UTF-8") into tMessage
+get md5Digest(tMessage)
+
+Parameters:
+message(data): A <binary data> string.
+
+Returns:
+Returns the message digest of the <message> as a 16 <byte> 
+<binary data> string.
+
+Description:
+Compute a message digest of <message> using the MD5 cryptographic
+hash function.
+
+> *Warning:* Serious flaws have been found in the MD5 hash algorithm
+> that make it unsuitable to use for security-critical purposes.
+> Unless you need backwards compatibility with existing systems, use
+> one of the other algorithms available with the <messageDigest> <function>
+
+References: sha1Digest (function), messageDigest (function),
+	byte (glossary), function (glossary)
+
+Tags: math

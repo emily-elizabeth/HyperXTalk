@@ -1,0 +1,459 @@
+Library: com.livecode.widget.browser
+
+Type: widget
+
+Summary:
+This widget displays web content within a native web browser view.
+
+The browser widget can display HTML content generated in LiveCode, or
+fetch content over the Internet.  It supports JavaScript and allows
+for interaction between LiveCode scripts and JavaScript code.
+
+The [browser SVG icon](https://www.iconfinder.com/icons/309064/browser_globe_international_internet_web_world_icon)
+is copyright © Ivan Boyko, and is licensed under the terms of the
+[Creative Commons Attribution 3.0 Unported License](https://creativecommons.org/licenses/by/3.0/).
+
+author: LiveCode
+
+version: 1.0.0
+
+Name: browserDocumentLoadBegin
+
+Type: message
+
+Syntax: browserDocumentLoadBegin <pUrl>
+
+Summary: Sent when a document begins loading in the browser.
+
+Parameters: 
+
+pUrl(string): The URL of the loading document.
+
+Description:
+The <browserDocumentLoadBegin> message is sent to the widget's script 
+object when a new document begins to load in the browser. This will 
+happen whenever the browser navigates to a new page. The <pUrl> 
+parameter contains the URL of the loading document.
+
+Name: browserDocumentLoadComplete
+
+Type: message
+
+Syntax: browserDocumentLoadComplete <pUrl>
+
+Summary: Sent when a document has completed loading in the browser.
+
+Parameters: 
+
+pUrl(string): The URL of the loaded document.
+
+Description:
+The <browserDocumentLoadComplete> message is sent to the widget's script 
+object when a new document has completed loading in the browser. The 
+<pUrl> parameter contains the URL of the loaded document.
+
+Name: browserDocumentLoadFailed
+
+Type: message
+
+Syntax: browserDocumentLoadFailed <pUrl>, <pError>
+
+Summary: Sent when a document has failed to load in the browser.
+
+Parameters: 
+
+pUrl(string): The URL of the document.
+
+pError(string): An error message describing the reason for the failure.
+
+Description:
+The <browserDocumentLoadFailed> message is sent to the widget's script 
+object when a new document has failed to load in the browser. The <pUrl> 
+parameter contains the URL of the document, and the <pError> parameter 
+gives the reason for the failure.
+
+Name: browserFrameDocumentLoadBegin
+
+Type: message
+
+Syntax: browserFrameDocumentLoadBegin <pUrl>
+
+Summary: Sent when a document begins loading in a frame of the browser.
+
+Parameters: 
+
+pUrl(string): The URL of the loading document.
+
+Description:
+The <browserFrameDocumentLoadBegin> message is sent to the widget's 
+script object when a new document begins to load in a frame of the 
+browser. This will happen whenever the browser navigates to a new page 
+with multiple frames. The <pUrl> parameter contains the URL of the 
+loading document.
+
+Name: browserFrameDocumentLoadComplete
+
+Type: message
+
+Syntax: browserFrameDocumentLoadComplete <pUrl>
+
+Summary: Sent when a document has completed loading in a frame of the browser.
+
+Parameters: 
+
+pUrl(string): The URL of the loaded document.
+
+Description:
+The <browserFrameDocumentLoadComplete> message is sent to the widget's 
+script object when a new document has completed loading in a frame of 
+the browser. The <pUrl> parameter contains the URL of the loaded 
+document.
+
+Name: browserFrameDocumentLoadFailed
+
+Type: message
+
+Syntax: browserFrameDocumentLoadFailed <pUrl>, <pError>
+
+Summary:
+Sent when a document has failed to load in a frame of the
+browser.
+
+Parameters: 
+
+pUrl(string): The URL of the document.
+
+pError(string): An error message describing the reason for the failure.
+
+Description:
+The <browserFrameDocumentLoadFailed> message is sent to the widget's 
+script object when a new document has failed to load in a frame of the 
+browser. The <pUrl> parameter contains the URL of the document, and the 
+<pError> parameter gives the reason for the failure.
+
+Name: browserNavigateBegin
+
+Type: message
+
+Syntax: browserNavigateBegin <pUrl>
+
+Summary: Sent when the browser begins navigation to a new page.
+
+Parameters: 
+
+pUrl(string): The URL of the new page.
+
+Description:
+The <browserNavigateBegin> message is sent to the widget's script object 
+when the browser begins navigation to a new page. This can be triggered 
+by launching a URL in the browser, or clicking a link within the 
+browser. The <pUrl> parameter contains the URL of the new page.
+
+Name: browserNavigateComplete
+
+Type: message
+
+Syntax: browserNavigateComplete <pUrl>
+
+Summary: Sent when the browser successfully navigates to a new page.
+
+Parameters: 
+
+pUrl(string): The URL of the new page.
+
+Description:
+The <browserNavigateComplete> message is sent to the widget's script 
+object when the browser successfully navigates to a new page. The <pUrl> 
+parameter contains the URL of the new page.
+
+Name: browserNavigateFailed
+
+Type: message
+
+Syntax: browserNavigateFailed <pUrl>, <pError>
+
+Summary: Sent when the browser has failed to navigate to a new page.
+
+Parameters: 
+
+pUrl(string): The URL of the document.
+
+pError(string): An error message describing the reason for the failure.
+
+Description:
+The <browserNavigateFailed> message is sent to the widget's script 
+object when the browser has failed to navigate to a new page. The <pUrl> 
+parameter contains the URL of the new page, and the <pError> parameter 
+gives the reason for the failure.
+
+Name: browserUnhandledLoadRequest
+
+Type: message
+
+Syntax: browserUnhandledLoadRequest <pUrl>
+
+Summary: Sent when the browser is unable to handle a load request.
+
+Parameters: 
+
+pUrl(string): The URL of the request.
+
+Description:
+The <browserUnhandledLoadRequest> message is sent to the widget's script 
+object when the browser is unable to load a URL, typically due to an 
+unrecognised URL scheme. The <pUrl> parameter contains the URL of the 
+unhandled request.
+
+Name: browserProgressChanged
+
+Type: message
+
+Syntax: browserProgressChanged <pUrl>, <pProgress>
+
+Summary: Sent when the load progress of the current document changes.
+
+Parameters: 
+
+pUrl(string): The URL of the loading document.
+
+pProgress(number): The percentage of the document loaded.
+
+Description:
+The <browserProgressChanged> message is sent to the widget's script
+object when a the loading progress of the current document changes. The <pUrl>
+parameter contains the URL of the loading document. The <pProgress> parameter
+contains the percentage (between 0 and 100) of the document loaded.
+
+Name: htmlText
+
+Type: property
+
+Syntax: set the htmlText of <widget> to <pHtmlText>
+get the htmlText of <widget>
+
+Summary: The HTML text of the content displayed by the browser.
+
+Parameters: 
+
+pHtmlText(string): A string containing HTML data to be displayed by the
+browser.
+
+Example:
+-- Render a web page in the browser by specifying custom HTML
+-- content
+local tHTML
+put "<html><head><title>My Page Title</title></head>" & \
+	  "<body>My Page Contents</body></html>" into tHTML
+set the htmlText of widget "myBrowser" to tHTML
+
+Description:
+The <htmlText> is the HTML representation of the content displayed in 
+the browser.
+
+*Note:* When the <htmlText> has been set, the <URL> property will be
+empty. When the <URL> property is not empty, the <htmlText> will
+contain the source of the current URL displayed in the browser.
+
+References: URL (property)
+
+
+
+
+Name: allowUserInteraction
+
+Type: property
+
+Syntax: set the allowUserInteraction of <widget> to <allowInteraction>
+get the allowUserInteraction of <widget>
+
+Summary: Controls whether the browser responds to user interaction.
+
+Value(boolean): `true` if the browser should respond to user interaction;
+`false` otherwise.
+
+Description:
+Use the <allowUserInteraction> property to control if the browser should respond
+to user interaction.
+
+
+
+Name: userAgent
+
+Type: property
+
+Syntax: set the userAgent of <widget> to <pUserAgent>
+get the userAgent of <widget>
+
+OS: mac,windows,linux,android,ios
+
+Summary: The identifier sent by the browser when fetching content from remote URLs.
+
+Value(string): A suitable HTTP user agent string.
+
+Example:
+-- Set a custom User-Agent header. The remote web server may
+-- be configured to deliver custom content for browsers using
+-- this User-Agent.
+set the userAgent of widget "myBrowser" to "myAppEmbeddedBrowser"
+launch url "https://myexampleserver.com/content.html" in widget "myBrowser"
+
+Description:
+The <userAgent> is the identifier sent by the browser when fetching
+content from remote HTTP servers.
+
+The <userAgent> must conform to the requirements for the `User-Agent`
+header described in the HTTP specification.  See [RFC 2616, section
+14.43](https://tools.ietf.org/html/rfc2616#section-14.43).
+
+
+
+Name: javascriptHandlers
+
+Type: property
+
+Syntax: set the javascriptHandlers of <widget> to <pHanderList>
+get the javascriptHandlers of <widget>
+
+Summary: A list of LiveCode handlers that are made available to JavaScript calls within the browser.
+
+Value(string): A return-separated list of handler names.
+
+Example:
+-- Define a handler to respond to javascript calls.
+on myJSHandler pMessage, pValue
+	-- Do appropriate actions here.
+	-- ...
+end myJSHandler
+
+-- Set up the browser javascript handler list
+-- This code goes in a suitable setup handler
+set the javascriptHandlers to "myJSHandler" & return & "myOtherJSHandler"
+
+// Calling the handler from JavaScript within the browser
+liveCode.myJSHandler("myMessage", 12345);
+
+Description:
+The <javascriptHandlers> is a list of LiveCode handlers that are made
+available to JavaScript calls within the browser. The handlers will
+appear as methods attached to a global `liveCode` object. You can call
+these methods as you would any other JavaScript function and pass
+whatever parameters you require.
+
+>*Warning:* Setting the <javascriptHandlers> property gives JavaScript
+running within the Web browser permission to execute parts of your
+application through the handlers you choose to expose. If using this
+feature, make sure that you have complete control over the webpages
+which you load into the browser widget, and consider using HTTPS to
+ensure that third-parties cannot inject malicious code into them.
+
+
+
+Name: vScrollbar
+
+Type: property
+
+Syntax: set the vScrollbar of <widget> to <pEnabled>
+get the vScrollbar of <widget>
+
+Summary: Controls the visibility of the browser's vertical scrollbar.
+
+Value(boolean): `true` if the vertical scrollbar should be enabled and displayed; 
+`false` otherwise.
+
+Description:
+Use the <vScrollbar> property to control the visibility of the browser's
+vertical scrollbar
+
+References: hScrollbar (property)
+
+
+
+
+Name: URL
+
+Type: property
+
+Syntax: set the URL of <widget> to <pUrl>
+get the URL of <widget>
+
+Summary: The URL displayed by the browser.
+
+Parameters: 
+
+pUrl(string): A string specifying a URL.
+
+Example:
+-- Navigate to livecode.com by setting the url property,
+-- keeping a copy of the previous URL
+local tOldUrl
+put the URL of widget "myBrowser" into tOldUrl
+set the URL of widget "myBrowser" to "https://livecode.com"
+
+Description:
+The <URL> is the URL of the content be displayed in the browser.
+
+>*Note:* The <URL> must be a standards-compliant URL.  In particular, 
+> `file:` URLs must be of the form `file://<absolute path>`, and the 
+> path should be URL-encoded.  
+> See [RFC 1738, section 2.2](https://tools.ietf.org/html/rfc1738#section-2.2).
+
+>*Note:* The <URL> reflects the currently displaying page in the 
+> browser, and will change when navigating to another page. Setting the 
+> htmlText will result in the <URL> being empty.
+
+>*Note:* Setting the <URL> won't necessarily cause resources to be
+> reloaded unless URLs of the resources explicitly change. However, 
+> you can force the browser widget to reload a page using 
+> `do "location.reload()" in widget "browser"` after setting the url.
+
+>*Note:* Setting the <URL> to empty will clear the currently loaded 
+> page, resulting in a blank page being displayed and the <URL> and 
+> <htmlText> of the widget being empty.
+
+References: htmlText (property)
+
+
+
+
+Name: hScrollbar
+
+Type: property
+
+Syntax: set the hScrollbar of <widget> to <pEnabled>
+get the hScrollbar of <widget>
+
+Summary: Controls the visibility of the browser's horizontal scrollbar.
+
+Value(boolean): `true` if the horizontal scrollbar should be enabled and displayed; 
+`false` otherwise.
+
+Description:
+Use the <hScrollbar> property to control the visibility of the browser's
+horizontal scrollbar
+
+References: vScrollbar (property)
+
+
+
+
+Name: isSecure
+
+Type: property
+
+Syntax: get the isSecure of <widget>
+
+Summary:
+Indicates if all resources in the current document have been loaded
+through securely encrypted connections.
+
+Value(boolean): `true` if all resources in the current document have been loaded through
+securely encrypted connections;
+`false` otherwise.
+
+Description:
+Use the <isSecure> property to determine if all resources in the current
+document have been loaded through securely encrypted connections. If the current
+document is still loading, this will return false
+
+
+

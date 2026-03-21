@@ -1,0 +1,491 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0D43C06BC5674C303F1369DC /* noblock.c in Sources */ = {isa = PBXBuildFile; fileRef = 73FF696FD368C56B51B371B3 /* noblock.c */; };
+		2BC57C64814404A93908ED39 /* inet_net_ntop.c in Sources */ = {isa = PBXBuildFile; fileRef = DE60C44DA2442F5CE086DE80 /* inet_net_ntop.c */; };
+		3B6864CDABE32EE1E5B4D4B0 /* pgstrcasecmp.c in Sources */ = {isa = PBXBuildFile; fileRef = FFCCBF8787BCBA2522400A69 /* pgstrcasecmp.c */; };
+		3F7D8C087599374FD3F0A655 /* fe-exec.c in Sources */ = {isa = PBXBuildFile; fileRef = 696ED9D8F1A175B2E44D5598 /* fe-exec.c */; };
+		4D5C408A4D693A318022D5D7 /* fe-protocol3.c in Sources */ = {isa = PBXBuildFile; fileRef = 8F518CABF2518D61E72E52C7 /* fe-protocol3.c */; };
+		531F3B1AC5A4EC551D08B47F /* pqsignal.c in Sources */ = {isa = PBXBuildFile; fileRef = 6EF448F60B23F5CE82D7E388 /* pqsignal.c */; };
+		5736717D1E1EC851F15F82C7 /* fe-print.c in Sources */ = {isa = PBXBuildFile; fileRef = FD44566BFBE90F751174A49F /* fe-print.c */; };
+		6BFEEFA83D8DE860405B9841 /* chklocale.c in Sources */ = {isa = PBXBuildFile; fileRef = 5F3A23F1EFDCB3655001735E /* chklocale.c */; };
+		6F850779667F928537F145B7 /* pqexpbuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 9B22B68E6E7A718C2F1D0B4F /* pqexpbuffer.c */; };
+		7B1F21063478FEAD93196C74 /* libpq-events.c in Sources */ = {isa = PBXBuildFile; fileRef = 392D03173DBD01B69B86C782 /* libpq-events.c */; };
+		7EDE3C77B5B2929825BE4571 /* fe-secure.c in Sources */ = {isa = PBXBuildFile; fileRef = DE8F94BA16F83820C32D0ED7 /* fe-secure.c */; };
+		7F6A15DB525348275B0C2291 /* getpeereid.c in Sources */ = {isa = PBXBuildFile; fileRef = 5EBB667DA8AABBF91C8D7C3C /* getpeereid.c */; };
+		92470EFD23612A087D38B3D9 /* fe-lobj.c in Sources */ = {isa = PBXBuildFile; fileRef = 7EE4A8FF1324EBBEBDA2F006 /* fe-lobj.c */; };
+		966A92A9C5AD6E05471AC292 /* encnames.c in Sources */ = {isa = PBXBuildFile; fileRef = D1D908C0EE0ED22B4711AF46 /* encnames.c */; };
+		9FE281F65B6CD1056E0F16CF /* wchar.c in Sources */ = {isa = PBXBuildFile; fileRef = 2227FD15AED0DD0EB551CEE6 /* wchar.c */; };
+		B7DE33C36079E974B3128C61 /* fe-auth.c in Sources */ = {isa = PBXBuildFile; fileRef = D1456D1AAF17DF2372FCC7D9 /* fe-auth.c */; };
+		BEAF1F39823F58578E60C3BF /* ip.c in Sources */ = {isa = PBXBuildFile; fileRef = CACCA6D9C4AAEF68676EFDB2 /* ip.c */; };
+		C81295FEFF3396030EBDD496 /* fe-protocol2.c in Sources */ = {isa = PBXBuildFile; fileRef = 98F14F37BA1471F94C789088 /* fe-protocol2.c */; };
+		D29D5FCB792373BEF1D5DFF4 /* fe-connect.c in Sources */ = {isa = PBXBuildFile; fileRef = B9B63D61450C5D81475D8CED /* fe-connect.c */; };
+		DC67289353D087BE93C78C78 /* pgsleep.c in Sources */ = {isa = PBXBuildFile; fileRef = 0A600634241E807B7FF68A62 /* pgsleep.c */; };
+		E5204675F39D7F6E400EBFB6 /* thread.c in Sources */ = {isa = PBXBuildFile; fileRef = F1FCC60F4EAB76A17B8C6B73 /* thread.c */; };
+		EC3932DA575AC08A76D9DB8A /* fe-misc.c in Sources */ = {isa = PBXBuildFile; fileRef = 76505C545A70590EA1F5E1E6 /* fe-misc.c */; };
+		FE2583405757D3054DE33785 /* md5.c in Sources */ = {isa = PBXBuildFile; fileRef = CD6DD6E2FCF40648C4930310 /* md5.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0A600634241E807B7FF68A62 /* pgsleep.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pgsleep.c; sourceTree = "<group>"; };
+		0FB2034179F9B87ED23F26FC /* pg_config_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pg_config_ext.h; sourceTree = "<group>"; };
+		124CA797EB9ABE0F1E771DE2 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../../config/win32.gypi; sourceTree = "<group>"; };
+		13207001D2C10ABC1A5D282C /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../config/android.gypi; sourceTree = "<group>"; };
+		1C1F9F5DA76D95E4ED333B9C /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../../config/crosscompile.gypi; sourceTree = "<group>"; };
+		2227FD15AED0DD0EB551CEE6 /* wchar.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = wchar.c; sourceTree = "<group>"; };
+		307D2C8AD64B9D9E013CAAF8 /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		392D03173DBD01B69B86C782 /* libpq-events.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "libpq-events.c"; sourceTree = "<group>"; };
+		3E419109AFF510488250D4D1 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../../common.gypi; sourceTree = "<group>"; };
+		417822888C7ECE4536043BFF /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../../config/linux.gypi; sourceTree = "<group>"; };
+		44DA08F42E54DE68F217D287 /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../../config/thirdparty.gypi; sourceTree = "<group>"; };
+		586500FFB0C7D24E363A4C40 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../config/emscripten.gypi; sourceTree = "<group>"; };
+		5CBAB85E01076343AB121477 /* pg_config.linux.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pg_config.linux.h; sourceTree = "<group>"; };
+		5DDA93DE9A515658CEC846FD /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../config/android-settings.gypi"; sourceTree = "<group>"; };
+		5EBB667DA8AABBF91C8D7C3C /* getpeereid.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = getpeereid.c; sourceTree = "<group>"; };
+		5F3A23F1EFDCB3655001735E /* chklocale.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = chklocale.c; sourceTree = "<group>"; };
+		696ED9D8F1A175B2E44D5598 /* fe-exec.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "fe-exec.c"; sourceTree = "<group>"; };
+		6EF448F60B23F5CE82D7E388 /* pqsignal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pqsignal.c; sourceTree = "<group>"; };
+		70844B2AEF8D9377C7B27D8E /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../../config/configurations.gypi; sourceTree = "<group>"; };
+		722677926B96936FDC152ADE /* strlcpy.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = strlcpy.c; sourceTree = "<group>"; };
+		73FF696FD368C56B51B371B3 /* noblock.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = noblock.c; sourceTree = "<group>"; };
+		76505C545A70590EA1F5E1E6 /* fe-misc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "fe-misc.c"; sourceTree = "<group>"; };
+		798F6954A07E43C2E6B1899A /* libpq.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpq.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		7EE4A8FF1324EBBEBDA2F006 /* fe-lobj.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "fe-lobj.c"; sourceTree = "<group>"; };
+		7FB350EF12988A2863FEE490 /* pg_config.mac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pg_config.mac.h; sourceTree = "<group>"; };
+		80B159142E9F026B30626BE7 /* libpq-fe.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "libpq-fe.h"; sourceTree = "<group>"; };
+		82C5688D25DB955A21A9021C /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../../config/perl.gypi; sourceTree = "<group>"; };
+		8CC0B2F95CFFE6224F105C2E /* pg_config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pg_config.h; sourceTree = "<group>"; };
+		8F518CABF2518D61E72E52C7 /* fe-protocol3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "fe-protocol3.c"; sourceTree = "<group>"; };
+		900BA2ACB04A24F90462A920 /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		98F14F37BA1471F94C789088 /* fe-protocol2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "fe-protocol2.c"; sourceTree = "<group>"; };
+		9A6AC5C1199675B9C813BD62 /* postgres_ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = postgres_ext.h; sourceTree = "<group>"; };
+		9B22B68E6E7A718C2F1D0B4F /* pqexpbuffer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pqexpbuffer.c; sourceTree = "<group>"; };
+		9F2D3CF1578695BE340609DF /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../../config/yacc.gypi; sourceTree = "<group>"; };
+		B398913754288F91EA48113A /* libpq.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libpq.gyp; sourceTree = "<group>"; };
+		B9B63D61450C5D81475D8CED /* fe-connect.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "fe-connect.c"; sourceTree = "<group>"; };
+		BD7703F685116F102E1310C0 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		BEE1AA15A479A5BC7223D1CC /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../../config/arch.gypi; sourceTree = "<group>"; };
+		C320AEFD2DB718BED58A299A /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../../config/exclusions.gypi; sourceTree = "<group>"; };
+		C8D60451817C8AB0970779CA /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../../config/version.gypi; sourceTree = "<group>"; };
+		CACCA6D9C4AAEF68676EFDB2 /* ip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ip.c; sourceTree = "<group>"; };
+		CD6DD6E2FCF40648C4930310 /* md5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = md5.c; sourceTree = "<group>"; };
+		D1456D1AAF17DF2372FCC7D9 /* fe-auth.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "fe-auth.c"; sourceTree = "<group>"; };
+		D1D908C0EE0ED22B4711AF46 /* encnames.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = encnames.c; sourceTree = "<group>"; };
+		D3DB1FC48CB4F1C7C4B8E19C /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../../config/target_os.gypi; sourceTree = "<group>"; };
+		DCD98452BBDA1D3038DB5F13 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../../config/mac.gypi; sourceTree = "<group>"; };
+		DE60C44DA2442F5CE086DE80 /* inet_net_ntop.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = inet_net_ntop.c; sourceTree = "<group>"; };
+		DE8F94BA16F83820C32D0ED7 /* fe-secure.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "fe-secure.c"; sourceTree = "<group>"; };
+		E3AC1825E0AAE0A7B5572C72 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../config/ios.gypi; sourceTree = "<group>"; };
+		F1FCC60F4EAB76A17B8C6B73 /* thread.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = thread.c; sourceTree = "<group>"; };
+		F4B4DC82DC42C8CEF9094A62 /* pg_config.win32.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pg_config.win32.h; sourceTree = "<group>"; };
+		FD44566BFBE90F751174A49F /* fe-print.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "fe-print.c"; sourceTree = "<group>"; };
+		FFCCBF8787BCBA2522400A69 /* pgstrcasecmp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pgstrcasecmp.c; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F32E3E3E395EF6DBF98DC16A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		085CABB210CE52B112FE71D6 /* ../.. */ = {
+			isa = PBXGroup;
+			children = (
+				307D2C8AD64B9D9E013CAAF8 /* version */,
+			);
+			path = ../..;
+			sourceTree = "<group>";
+		};
+		34E137C1E971642B9A3CC8D8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				798F6954A07E43C2E6B1899A /* libpq.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5F727ADEEF21A7BE390AE3C1 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				80B159142E9F026B30626BE7 /* libpq-fe.h */,
+				0FB2034179F9B87ED23F26FC /* pg_config_ext.h */,
+				9A6AC5C1199675B9C813BD62 /* postgres_ext.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		697293DBE96FB288F4123456 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				5F3A23F1EFDCB3655001735E /* chklocale.c */,
+				D1D908C0EE0ED22B4711AF46 /* encnames.c */,
+				D1456D1AAF17DF2372FCC7D9 /* fe-auth.c */,
+				B9B63D61450C5D81475D8CED /* fe-connect.c */,
+				696ED9D8F1A175B2E44D5598 /* fe-exec.c */,
+				7EE4A8FF1324EBBEBDA2F006 /* fe-lobj.c */,
+				76505C545A70590EA1F5E1E6 /* fe-misc.c */,
+				FD44566BFBE90F751174A49F /* fe-print.c */,
+				98F14F37BA1471F94C789088 /* fe-protocol2.c */,
+				8F518CABF2518D61E72E52C7 /* fe-protocol3.c */,
+				DE8F94BA16F83820C32D0ED7 /* fe-secure.c */,
+				5EBB667DA8AABBF91C8D7C3C /* getpeereid.c */,
+				DE60C44DA2442F5CE086DE80 /* inet_net_ntop.c */,
+				CACCA6D9C4AAEF68676EFDB2 /* ip.c */,
+				392D03173DBD01B69B86C782 /* libpq-events.c */,
+				CD6DD6E2FCF40648C4930310 /* md5.c */,
+				73FF696FD368C56B51B371B3 /* noblock.c */,
+				8CC0B2F95CFFE6224F105C2E /* pg_config.h */,
+				5CBAB85E01076343AB121477 /* pg_config.linux.h */,
+				7FB350EF12988A2863FEE490 /* pg_config.mac.h */,
+				F4B4DC82DC42C8CEF9094A62 /* pg_config.win32.h */,
+				0A600634241E807B7FF68A62 /* pgsleep.c */,
+				FFCCBF8787BCBA2522400A69 /* pgstrcasecmp.c */,
+				9B22B68E6E7A718C2F1D0B4F /* pqexpbuffer.c */,
+				6EF448F60B23F5CE82D7E388 /* pqsignal.c */,
+				722677926B96936FDC152ADE /* strlcpy.c */,
+				F1FCC60F4EAB76A17B8C6B73 /* thread.c */,
+				2227FD15AED0DD0EB551CEE6 /* wchar.c */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		6EA32C3DDD6698A39C0FA511 = {
+			isa = PBXGroup;
+			children = (
+				9472AB128AEFD3E678B79969 /* Source */,
+				34E137C1E971642B9A3CC8D8 /* Products */,
+				6F1F9D538C88B7A25CA4C140 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		6F1F9D538C88B7A25CA4C140 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				5DDA93DE9A515658CEC846FD /* android-settings.gypi */,
+				13207001D2C10ABC1A5D282C /* android.gypi */,
+				BEE1AA15A479A5BC7223D1CC /* arch.gypi */,
+				3E419109AFF510488250D4D1 /* common.gypi */,
+				70844B2AEF8D9377C7B27D8E /* configurations.gypi */,
+				1C1F9F5DA76D95E4ED333B9C /* crosscompile.gypi */,
+				BD7703F685116F102E1310C0 /* emscripten-settings.gypi */,
+				586500FFB0C7D24E363A4C40 /* emscripten.gypi */,
+				C320AEFD2DB718BED58A299A /* exclusions.gypi */,
+				E3AC1825E0AAE0A7B5572C72 /* ios.gypi */,
+				B398913754288F91EA48113A /* libpq.gyp */,
+				900BA2ACB04A24F90462A920 /* linux-settings.gypi */,
+				417822888C7ECE4536043BFF /* linux.gypi */,
+				DCD98452BBDA1D3038DB5F13 /* mac.gypi */,
+				82C5688D25DB955A21A9021C /* perl.gypi */,
+				D3DB1FC48CB4F1C7C4B8E19C /* target_os.gypi */,
+				44DA08F42E54DE68F217D287 /* thirdparty.gypi */,
+				C8D60451817C8AB0970779CA /* version.gypi */,
+				124CA797EB9ABE0F1E771DE2 /* win32.gypi */,
+				9F2D3CF1578695BE340609DF /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		9472AB128AEFD3E678B79969 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				085CABB210CE52B112FE71D6 /* ../.. */,
+				5F727ADEEF21A7BE390AE3C1 /* include */,
+				697293DBE96FB288F4123456 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A92C2194441C45BA132EABD8 /* libpq */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 12F599A77051BD4E9625DBD4 /* Build configuration list for PBXNativeTarget "libpq" */;
+			buildPhases = (
+				D7191ECB336A7AE56CDA0BA7 /* Sources */,
+				F32E3E3E395EF6DBF98DC16A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = libpq;
+			productName = pq;
+			productReference = 798F6954A07E43C2E6B1899A /* libpq.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9916D1190EB1BB4265066B1E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = B0BEF364113D73767D7426F4 /* Build configuration list for PBXProject "libpq" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 6EA32C3DDD6698A39C0FA511;
+			projectDirPath = ../../../../thirdparty/libpq;
+			projectRoot = "";
+			targets = (
+				A92C2194441C45BA132EABD8 /* libpq */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D7191ECB336A7AE56CDA0BA7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6BFEEFA83D8DE860405B9841 /* chklocale.c in Sources */,
+				966A92A9C5AD6E05471AC292 /* encnames.c in Sources */,
+				B7DE33C36079E974B3128C61 /* fe-auth.c in Sources */,
+				D29D5FCB792373BEF1D5DFF4 /* fe-connect.c in Sources */,
+				3F7D8C087599374FD3F0A655 /* fe-exec.c in Sources */,
+				92470EFD23612A087D38B3D9 /* fe-lobj.c in Sources */,
+				EC3932DA575AC08A76D9DB8A /* fe-misc.c in Sources */,
+				5736717D1E1EC851F15F82C7 /* fe-print.c in Sources */,
+				C81295FEFF3396030EBDD496 /* fe-protocol2.c in Sources */,
+				4D5C408A4D693A318022D5D7 /* fe-protocol3.c in Sources */,
+				7EDE3C77B5B2929825BE4571 /* fe-secure.c in Sources */,
+				7F6A15DB525348275B0C2291 /* getpeereid.c in Sources */,
+				2BC57C64814404A93908ED39 /* inet_net_ntop.c in Sources */,
+				BEAF1F39823F58578E60C3BF /* ip.c in Sources */,
+				7B1F21063478FEAD93196C74 /* libpq-events.c in Sources */,
+				FE2583405757D3054DE33785 /* md5.c in Sources */,
+				0D43C06BC5674C303F1369DC /* noblock.c in Sources */,
+				DC67289353D087BE93C78C78 /* pgsleep.c in Sources */,
+				3B6864CDABE32EE1E5B4D4B0 /* pgstrcasecmp.c in Sources */,
+				6F850779667F928537F145B7 /* pqexpbuffer.c in Sources */,
+				531F3B1AC5A4EC551D08B47F /* pqsignal.c in Sources */,
+				E5204675F39D7F6E400EBFB6 /* thread.c in Sources */,
+				9FE281F65B6CD1056E0F16CF /* wchar.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1BB91C2D6EAE1C337DF40775 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 307D2C8AD64B9D9E013CAAF8 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		577F154AB352808CC995F739 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 307D2C8AD64B9D9E013CAAF8 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		62B1E9756A1C1AF2BD95698D /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					HAVE_CONFIG_H,
+					"OPENSSL_API_COMPAT=0x10000100L",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../../prebuilt/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = pq;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+		8A53EBACD3478BA851827F10 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					HAVE_CONFIG_H,
+					"OPENSSL_API_COMPAT=0x10000100L",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../../prebuilt/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = pq;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		A3F46AA0FE2E06B265CDCF3D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					HAVE_CONFIG_H,
+					"OPENSSL_API_COMPAT=0x10000100L",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../../prebuilt/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = pq;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		EFE2DA30B1366E74528ED4EA /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 307D2C8AD64B9D9E013CAAF8 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		12F599A77051BD4E9625DBD4 /* Build configuration list for PBXNativeTarget "libpq" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A3F46AA0FE2E06B265CDCF3D /* Debug */,
+				62B1E9756A1C1AF2BD95698D /* Fast */,
+				8A53EBACD3478BA851827F10 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		B0BEF364113D73767D7426F4 /* Build configuration list for PBXProject "libpq" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				577F154AB352808CC995F739 /* Debug */,
+				EFE2DA30B1366E74528ED4EA /* Fast */,
+				1BB91C2D6EAE1C337DF40775 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9916D1190EB1BB4265066B1E /* Project object */;
+}

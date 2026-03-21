@@ -1,0 +1,62 @@
+Name: mouseDoubleUp
+
+Type: message
+
+Syntax: mouseDoubleUp <pButtonNumber>
+
+Summary:
+Sent when the <mouse button> is released at the end of a <double-click>.
+
+Associations: stack, card, field, button, graphic, scrollbar, player,
+image
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android,html5
+
+Platforms: desktop, server, mobile
+
+Example:
+on mouseDoubleUp theMouseButton 
+  if theMouseButton is 3 then
+    answer file "Please choose a file to open."
+  else 
+    pass mouseDoubleUp
+  end if
+end mouseDoubleUp
+
+Parameters:
+pButtonNumber (enum): Specifies which mouse button was pressed:
+- "1": the left button on systems with a multi-button mouse and the mouse button on Mac OS systems with a single-button mouse.
+- "2": the middle button on systems with a three-button mouse.
+- "3": the right button on systems with a multi-button mouse and Control-click on Mac OS systems with a single-button mouse.
+
+Description:
+Handle the <mouseDoubleUp> <message> to perform an action when the user
+<double-click|double-clicks>. 
+
+The <mouseDoubleUp> <message> is sent to the <control> that was
+<double-click|double-clicked>, or to the <card> if no <control> was
+under the <mouse pointer>.
+
+If a tool other than the <Browse tool> is being used, no <mouseDoubleUp>
+<message> is sent. If an <unlock|unlocked> <field> is clicked with
+<mouse button> 1 or 2, no <mouseDoubleUp> <message> is sent.
+
+The <doubleClickInterval> and <doubleClickDelta> <properties> determine
+what LiveCode accepts as a <double-click|double click>.
+
+>*Note:*  If the user clicks a transparent <pixel> in an <image>,
+> the <mouseDoubleUp> <message> is sent to the <object(glossary)> behind
+> the <image>, not to the <image>.
+
+References: answer file (command), click (command), pass (control structure),
+Browse tool (glossary), card (glossary), clickLoc (function), 
+control (glossary), double-click (glossary), doubleClickDelta (property), 
+doubleClickInterval (property), field (glossary), image (glossary), 
+message (glossary), mouse (function), mouse button (glossary), 
+mouse pointer (glossary), mouseDoubleDown (message), object (glossary), 
+pixel (glossary), properties (property), unlock (glossary)
+
+Tags: ui
+

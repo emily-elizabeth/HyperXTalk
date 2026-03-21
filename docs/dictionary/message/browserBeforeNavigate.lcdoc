@@ -1,0 +1,57 @@
+Name: browserBeforeNavigate
+
+Synonyms: xbrowser_beforenavigate
+
+Type: message
+
+Syntax: browserBeforeNavigate <pInstanceID>, <pUrl>
+
+Syntax: XBrowser_BeforeNavigate <pUrl>, <pInstanceId>
+
+Summary:
+Sent before a browser navigates to a new url.
+
+Introduced: 2.8.1
+
+OS: mac, windows
+
+Platforms: desktop
+
+Security: network
+
+Example:
+on browserBeforeNavigate pInstanceId, pUrl
+  put pUrl into field "Browser Address" \
+        of group ("Browser" && pInstanceId) of me
+end browserBeforeNavigate
+
+Parameters:
+pInstanceID:
+The integer identifier of a browser object
+
+pUrl:
+The new url that the browser is about to navigate to
+
+Description:
+The <browserBeforeNavigate> message is sent to a the current card of the
+stack containing a browser object when the browser object is about to
+navigate to a new url, ie a change in url in the target browser has been
+requested but not yet actioned.
+
+If the target is the main frame of the browser (e.g. the html page
+containing the "FRAMESET" declaration), then the <browserBeforeNavigate>
+message is sent, otherwise the <browserBeforeNavigateFrame> <message> is
+sent instead
+
+To prevent the navigatation from occurring, set the global variable
+<browserCancel> to true.
+
+>*Note:* For general information on using the browser library, see the
+> notes in the <revBrowserOpen> <function> reference.
+
+References: revBrowserNavigate (command),
+revBrowserOpen (function), function (glossary), browserCancel (glossary),
+browserNewUrlWindow (message), browserDownloadRequest (message),
+browserBeforeNavigateFrame (message),
+message (glossary)
+

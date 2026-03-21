@@ -1,0 +1,97 @@
+<package version="0.0">
+  <name>com.livecode.widget.clock</name>
+  <title>Clock</title>
+  <author>LiveCode</author>
+  <version>1.1.0</version>
+  <license>community</license>
+  <type>widget</type>
+  <requires name="com.livecode.canvas"/>
+  <requires name="com.livecode.library.widgetutils"/>
+  <requires name="com.livecode.math"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.widget"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.char"/>
+  <requires name="com.livecode.date"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.mathfoundation"/>
+  <metadata key="preferredSize">76,76</metadata>
+  <metadata key="svgicon">M31.7,0C14.2,0,0,14.2,0,31.7s14.2,31.7,31.7,31.7s31.7-14.2,31.7-31.7S49.2,0,31.7,0z M30.2,3.2h2.8v7.3h-2.8V3.2zM10.4,33.1H3.1v-2.8h7.3V33.1z M12.5,52.9l-2-2l5.2-5.2l2,2L12.5,52.9z M15.7,17.7l-5.2-5.2l2-2l5.2,5.2L15.7,17.7z M33.1,60.2h-2.8v-7.3h2.8V60.2z M42.3,45.4L31.8,34.9c0,0-0.1,0-0.1,0c-1.7,0-3-1.3-3-3c0-1.1,0.6-2.1,1.6-2.6V12.9h2.8v16.3c0.9,0.5,1.6,1.5,1.6,2.6c0,0.2,0,0.4-0.1,0.5L45,42.8L42.3,45.4z M50.8,52.9l-5.2-5.2l2-2l5.2,5.2L50.8,52.9z M47.7,17.7l-2-2l5.2-5.2l2,2L47.7,17.7z M52.9,33.1v-2.8h7.3v2.8H52.9z</metadata>
+  <metadata key="timeZone.default"></metadata>
+  <property name="isDay" get="boolean"/>
+  <metadata key="isDay.user_visible">false</metadata>
+  <property name="timeZone" get="optional number" set="optional number"/>
+  <metadata key="timeZone.editor">com.livecode.pi.timezone</metadata>
+  <metadata key="timeZone.label">Timezone</metadata>
+  <property name="dayNumberColor" get="string" set="string"/>
+  <metadata key="dayNumberColor.editor">com.livecode.pi.colorwithalpha</metadata>
+  <metadata key="dayNumberColor.default">0,0,0,255</metadata>
+  <metadata key="dayNumberColor.section">Colors</metadata>
+  <metadata key="dayNumberColor.label">Number color (day)</metadata>
+  <property name="nightNumberColor" get="string" set="string"/>
+  <metadata key="nightNumberColor.editor">com.livecode.pi.colorwithalpha</metadata>
+  <metadata key="nightNumberColor.default">255,255,255,255</metadata>
+  <metadata key="nightNumberColor.section">Colors</metadata>
+  <metadata key="nightNumberColor.label">Number color (night)</metadata>
+  <property name="dayHourHandColor" get="string" set="string"/>
+  <metadata key="dayHourHandColor.editor">com.livecode.pi.colorwithalpha</metadata>
+  <metadata key="dayHourHandColor.default">0,0,0,255</metadata>
+  <metadata key="dayHourHandColor.section">Colors</metadata>
+  <metadata key="dayHourHandColor.label">Hour hand color (day)</metadata>
+  <property name="nightHourHandColor" get="string" set="string"/>
+  <metadata key="nightHourHandColor.editor">com.livecode.pi.colorwithalpha</metadata>
+  <metadata key="nightHourHandColor.default">255,255,255,255</metadata>
+  <metadata key="nightHourHandColor.section">Colors</metadata>
+  <metadata key="nightHourHandColor.label">Hour hand color (night)</metadata>
+  <property name="dayMinuteHandColor" get="string" set="string"/>
+  <metadata key="dayMinuteHandColor.editor">com.livecode.pi.colorwithalpha</metadata>
+  <metadata key="dayMinuteHandColor.default">0,0,0,255</metadata>
+  <metadata key="dayMinuteHandColor.section">Colors</metadata>
+  <metadata key="dayMinuteHandColor.label">Minute hand color (day)</metadata>
+  <property name="nightMinuteHandColor" get="string" set="string"/>
+  <metadata key="nightMinuteHandColor.editor">com.livecode.pi.colorwithalpha</metadata>
+  <metadata key="nightMinuteHandColor.default">255,255,255,255</metadata>
+  <metadata key="nightMinuteHandColor.section">Colors</metadata>
+  <metadata key="nightMinuteHandColor.label">Minute hand color (night)</metadata>
+  <property name="daySecondHandColor" get="string" set="string"/>
+  <metadata key="daySecondHandColor.editor">com.livecode.pi.colorwithalpha</metadata>
+  <metadata key="daySecondHandColor.default">255,0,0,255</metadata>
+  <metadata key="daySecondHandColor.section">Colors</metadata>
+  <metadata key="daySecondHandColor.label">Second hand color (day)</metadata>
+  <property name="nightSecondHandColor" get="string" set="string"/>
+  <metadata key="nightSecondHandColor.editor">com.livecode.pi.colorwithalpha</metadata>
+  <metadata key="nightSecondHandColor.default">255,0,0,255</metadata>
+  <metadata key="nightSecondHandColor.section">Colors</metadata>
+  <metadata key="nightSecondHandColor.label">Second hand color (night)</metadata>
+  <property name="dayFaceColor" get="string" set="string"/>
+  <metadata key="dayFaceColor.editor">com.livecode.pi.colorwithalpha</metadata>
+  <metadata key="dayFaceColor.default">224,224,224,64</metadata>
+  <metadata key="dayFaceColor.section">Colors</metadata>
+  <metadata key="dayFaceColor.label">Face color (day)</metadata>
+  <property name="nightFaceColor" get="string" set="string"/>
+  <metadata key="nightFaceColor.editor">com.livecode.pi.colorwithalpha</metadata>
+  <metadata key="nightFaceColor.default">0,0,0,255</metadata>
+  <metadata key="nightFaceColor.section">Colors</metadata>
+  <metadata key="nightFaceColor.label">Face color (night)</metadata>
+  <handler name="OnSave" parameters="out array" return="any"/>
+  <handler name="OnLoad" parameters="in array" return="any"/>
+  <handler name="OnCreate" parameters="" return="any"/>
+  <handler name="OnOpen" parameters="" return="any"/>
+  <handler name="OnPaint" parameters="" return="any"/>
+  <handler name="OnTimer" parameters="" return="any"/>
+  <handler name="setTimeZone" parameters="in optional number" return="nothing"/>
+  <handler name="setDayNumberColor" parameters="in string" return="any"/>
+  <handler name="setNightNumberColor" parameters="in string" return="any"/>
+  <handler name="setDayHourHandColor" parameters="in string" return="any"/>
+  <handler name="setNightHourHandColor" parameters="in string" return="any"/>
+  <handler name="setDayMinuteHandColor" parameters="in string" return="any"/>
+  <handler name="setNightMinuteHandColor" parameters="in string" return="any"/>
+  <handler name="setDaySecondHandColor" parameters="in string" return="any"/>
+  <handler name="setNightSecondHandColor" parameters="in string" return="any"/>
+  <handler name="setDayFaceColor" parameters="in string" return="any"/>
+  <handler name="setNightFaceColor" parameters="in string" return="any"/>
+</package>

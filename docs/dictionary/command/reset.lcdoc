@@ -1,0 +1,47 @@
+Name: reset
+
+Type: command
+
+Syntax: reset [the] template{<objectType>}
+
+Summary:
+<return|Returns> the specified <template> <object(glossary)> to its
+<default> settings.
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Example:
+reset the templateGraphic
+
+Example:
+reset the templateStack
+
+Parameters:
+objectType:
+One of LiveCode's objects: stack, group, card, field, button, graphic,
+image, scrollbar, player, audioClip, videoClip, or EPS.
+
+Description:
+Use the <reset> <command> to change a <template> <object(glossary)> back
+to its <default|defaults> after you have changed it temporarily.
+
+Change the <property|properties> of <template> <object|objects> temporarily 
+to easily create a number of <object|objects> of that type with the property 
+settings you want.
+
+>*Note:* The LiveCode development environment makes changes to <template>
+> <object|objects> when it creates new <object|objects>. This means that 
+> <object|objects> you create in the development environment may not have the 
+> same property settings as <object|objects> you create in a 
+> <standalone application>.
+
+References: reset paint (command), object (glossary), template (glossary),
+default (glossary), command (glossary), property (glossary), return (glossary),
+standalone application (glossary), templateScrollbar (keyword), default (keyword)
+
+Tags: objects
+

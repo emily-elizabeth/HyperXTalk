@@ -1,0 +1,21 @@
+<package version="0.0">
+  <name>com.livecode.library.objectrepository</name>
+  <title>Object Repository Library</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <license>community</license>
+  <type>library</type>
+  <requires name="com.livecode.engine"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.type"/>
+  <metadata key="userVisible">false</metadata>
+  <handler name="objectRepositoryStore" parameters="in string" return="string"/>
+  <handler name="objectRepositoryRetrieve" parameters="in string" return="string"/>
+  <handler name="objectRepositoryRemove" parameters="in string" return="nothing"/>
+  <handler name="objectRepositoryFlush" parameters="" return="nothing"/>
+</package>

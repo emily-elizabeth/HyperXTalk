@@ -1,0 +1,32 @@
+Name: empty
+
+Type: constant
+
+Syntax: empty
+
+Summary:
+Equivalent to nothing, the empty <string> "".
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Example:
+put empty into field "Results" -- clears the field
+
+Description:
+Use the <empty> <constant> as an easier-to-read substitute for a
+<quoted> <string> with nothing inside the quotes, "".
+
+Putting <empty> into a <field> or <variable> clears it.
+
+Putting <empty> into a nonexistent <variable> creates the <variable>
+with no content.
+
+References: constant (command), delete variable (command),
+quoted (glossary), variable (glossary), string (keyword), field (keyword)
+
+Tags: text processing
+

@@ -1,0 +1,48 @@
+Name: revXMLRPC_Error
+
+Type: function
+
+Syntax: revXMLRPC_Error(<XMLRPCdocumentID>)
+
+Summary:
+If an error occurred during the execution of an <XML-RPC> request, this
+function returns the error.
+
+Associations: xml-rpc library
+
+Introduced: 2.5
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Security: disk, process
+
+Example:
+local tError
+put revXMLRPC_Error(tRequest) into tError
+
+Parameters:
+XMLRPCdocumentID (integer):
+The number returned by the revXMLRPC_CreateRequest function when you
+created the <XML-RPC> request.
+
+Returns (string):
+If the <revXMLRPC_Error> function encounters
+an error, it returns an error message starting with "xmlrpcerr" .. If no
+error was encountered during the execution of the <XML-RPC> request, you
+can retrieve the XML-RPC document ID of the response, by calling the
+<revXMLRPC_GetResponse> function.
+
+Description:
+Use the <revXMLRPC_Error> <function> to check if an error occurred
+during the execution of an <XML-RPC> request.
+
+
+References: revXMLRPC_GetResponse (function),
+LiveCode custom library (glossary),
+Standalone Application Settings (glossary),
+standalone application (glossary), function (glossary),
+XML-RPC (glossary), XML-RPC library (library)
+
+Tags: networking

@@ -1,0 +1,546 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		F1A056471F770E215897BB03 /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 5BF34A47D15D3CA3BFCD3C81 /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				9422FA53D70DFF4EEB28997A /* PBXTargetDependency */,
+				5B8889F79500C89CE6036EF0 /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		36901BB77EEE0653FE388036 /* grts.c in Sources */ = {isa = PBXBuildFile; fileRef = A9FD76757CB185EBE0F855D2 /* grts.c */; };
+		DDAD309D7EB61834D3DB1985 /* grts.c in Sources */ = {isa = PBXBuildFile; fileRef = A9FD76757CB185EBE0F855D2 /* grts.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AFDC060A47D098D1EF58F0B4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6859B20A796292F63E04474D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3EBCC85CA32A89C1CD396839;
+			remoteInfo = grts;
+		};
+		B60D8EB8D951F72D3C3D0696 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6859B20A796292F63E04474D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BFC00FCB72669E8CB894A7C5;
+			remoteInfo = "grts (host)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		040BA6382F82D28704089693 /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		0B93C27CDB45BFC512931DEF /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../../../config/exclusions.gypi; sourceTree = "<group>"; };
+		0F64374B464A3F13223672D9 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../../config/android.gypi; sourceTree = "<group>"; };
+		10453272CB6F5C87557CCC22 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../../../config/version.gypi; sourceTree = "<group>"; };
+		2DDF73E4E7592155DE40E3A4 /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../../../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		32BEC430BCF2423BCF1C1183 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../../config/emscripten.gypi; sourceTree = "<group>"; };
+		536D29DE8F185BAB0A2FDB23 /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../../../config/thirdparty.gypi; sourceTree = "<group>"; };
+		5E1C21327BE7F74C48B010B8 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../../../config/crosscompile.gypi; sourceTree = "<group>"; };
+		66A80874B4D8E8AF7F30A0DE /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../../config/android-settings.gypi"; sourceTree = "<group>"; };
+		6E659BDB0C8C8ED6BA6BC65F /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../../../config/win32.gypi; sourceTree = "<group>"; };
+		79BDFE56DFEDC099FAB9DA31 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../../../config/target_os.gypi; sourceTree = "<group>"; };
+		9264874082A200D3A285DA2A /* grts.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = grts.gyp; sourceTree = "<group>"; };
+		95F72B47D1C396F832DC2E20 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../../config/ios.gypi; sourceTree = "<group>"; };
+		9EDC6E3F2F8667C17404AFD0 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../../../config/linux.gypi; sourceTree = "<group>"; };
+		A59E0B0C4EAA2A11D9ACA9DB /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		A9FD76757CB185EBE0F855D2 /* grts.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = grts.c; sourceTree = "<group>"; };
+		B402041D6D6AFFEE5F55660B /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../../../common.gypi; sourceTree = "<group>"; };
+		BF6868A1CDEF1DA3C03F54B0 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../../../config/mac.gypi; sourceTree = "<group>"; };
+		D4302D70280561C09216E66A /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../../../config/perl.gypi; sourceTree = "<group>"; };
+		E2E5E29CE76305A9426AFFFD /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../../../config/arch.gypi; sourceTree = "<group>"; };
+		ED2A3D093FCF55D56F13AFB4 /* libgrts.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libgrts.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		FA3B1D69E9A4ED58C15B0947 /* libgrts-host.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgrts-host.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		FC8D4338C5E2F5F085A27E99 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../../../config/configurations.gypi; sourceTree = "<group>"; };
+		FD396F3DAE61ABD37F335427 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../../../config/yacc.gypi; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		077CFEEE7B5DF83B4D1EB10E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F12FE808EF081268EEC494CD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		05972C33905B417B8BB2D295 /* ../../.. */ = {
+			isa = PBXGroup;
+			children = (
+				040BA6382F82D28704089693 /* version */,
+			);
+			path = ../../..;
+			sourceTree = "<group>";
+		};
+		37F2E221A9E09ACB6760BDEE = {
+			isa = PBXGroup;
+			children = (
+				F8254F0F7B90A90D60BE66A5 /* Source */,
+				972D1717E5C522C3858960BB /* Products */,
+				7DE79E6B5A008E0C7C66BC59 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		7DE79E6B5A008E0C7C66BC59 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				66A80874B4D8E8AF7F30A0DE /* android-settings.gypi */,
+				0F64374B464A3F13223672D9 /* android.gypi */,
+				E2E5E29CE76305A9426AFFFD /* arch.gypi */,
+				B402041D6D6AFFEE5F55660B /* common.gypi */,
+				FC8D4338C5E2F5F085A27E99 /* configurations.gypi */,
+				5E1C21327BE7F74C48B010B8 /* crosscompile.gypi */,
+				A59E0B0C4EAA2A11D9ACA9DB /* emscripten-settings.gypi */,
+				32BEC430BCF2423BCF1C1183 /* emscripten.gypi */,
+				0B93C27CDB45BFC512931DEF /* exclusions.gypi */,
+				9264874082A200D3A285DA2A /* grts.gyp */,
+				95F72B47D1C396F832DC2E20 /* ios.gypi */,
+				2DDF73E4E7592155DE40E3A4 /* linux-settings.gypi */,
+				9EDC6E3F2F8667C17404AFD0 /* linux.gypi */,
+				BF6868A1CDEF1DA3C03F54B0 /* mac.gypi */,
+				D4302D70280561C09216E66A /* perl.gypi */,
+				79BDFE56DFEDC099FAB9DA31 /* target_os.gypi */,
+				536D29DE8F185BAB0A2FDB23 /* thirdparty.gypi */,
+				10453272CB6F5C87557CCC22 /* version.gypi */,
+				6E659BDB0C8C8ED6BA6BC65F /* win32.gypi */,
+				FD396F3DAE61ABD37F335427 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		972D1717E5C522C3858960BB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				ED2A3D093FCF55D56F13AFB4 /* libgrts.a */,
+				FA3B1D69E9A4ED58C15B0947 /* libgrts-host.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F8254F0F7B90A90D60BE66A5 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				05972C33905B417B8BB2D295 /* ../../.. */,
+				A9FD76757CB185EBE0F855D2 /* grts.c */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3EBCC85CA32A89C1CD396839 /* grts */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 079B2E349CF356E1FEA17FE7 /* Build configuration list for PBXNativeTarget "grts" */;
+			buildPhases = (
+				86B706FA3E2F1E79E4F7293A /* Sources */,
+				077CFEEE7B5DF83B4D1EB10E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = grts;
+			productName = grts;
+			productReference = ED2A3D093FCF55D56F13AFB4 /* libgrts.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		BFC00FCB72669E8CB894A7C5 /* grts (host) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 10906E0C9CAE3B302DA41796 /* Build configuration list for PBXNativeTarget "grts (host)" */;
+			buildPhases = (
+				27976E4C70F18A85251D5150 /* Sources */,
+				F12FE808EF081268EEC494CD /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "grts (host)";
+			productName = "grts-host";
+			productReference = FA3B1D69E9A4ED58C15B0947 /* libgrts-host.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6859B20A796292F63E04474D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 5048ECA3C3FC9C0D0C6FA653 /* Build configuration list for PBXProject "grts" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 37F2E221A9E09ACB6760BDEE;
+			projectDirPath = ../../../../../toolchain/gentle/gentle;
+			projectRoot = "";
+			targets = (
+				F1A056471F770E215897BB03 /* All */,
+				3EBCC85CA32A89C1CD396839 /* grts */,
+				BFC00FCB72669E8CB894A7C5 /* grts (host) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		27976E4C70F18A85251D5150 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				36901BB77EEE0653FE388036 /* grts.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		86B706FA3E2F1E79E4F7293A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DDAD309D7EB61834D3DB1985 /* grts.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5B8889F79500C89CE6036EF0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BFC00FCB72669E8CB894A7C5 /* grts (host) */;
+			targetProxy = B60D8EB8D951F72D3C3D0696 /* PBXContainerItemProxy */;
+		};
+		9422FA53D70DFF4EEB28997A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3EBCC85CA32A89C1CD396839 /* grts */;
+			targetProxy = AFDC060A47D098D1EF58F0B4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		10E92F7E658FD526336602F7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 040BA6382F82D28704089693 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		12C9D0A59506EDFFCD0478D8 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 040BA6382F82D28704089693 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		163EFAB6155CB49CC3DA4011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		3566B44D909FBC4066D4BD8F /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 040BA6382F82D28704089693 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		58C84AF8FA05446F707B0450 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		65DEE8B3C72E8A4BB16ABBCE /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Fast;
+		};
+		757AED013D04637E31F6F3A0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = c89;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "grts-host";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		A22D2F6815BE48A49B06C372 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = c89;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = grts;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		A8D07AF3EF2ACE69FAF13B1C /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = c89;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = grts;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+		F3FC7571678945F00D01D7FD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = c89;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "grts-host";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		F9E71A09BEC0FD70096FA813 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = c89;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "grts-host";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+		FD2E268129B242419B428C8E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_C_LANGUAGE_STANDARD = c89;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = grts;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		079B2E349CF356E1FEA17FE7 /* Build configuration list for PBXNativeTarget "grts" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FD2E268129B242419B428C8E /* Debug */,
+				A8D07AF3EF2ACE69FAF13B1C /* Fast */,
+				A22D2F6815BE48A49B06C372 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		10906E0C9CAE3B302DA41796 /* Build configuration list for PBXNativeTarget "grts (host)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				757AED013D04637E31F6F3A0 /* Debug */,
+				F9E71A09BEC0FD70096FA813 /* Fast */,
+				F3FC7571678945F00D01D7FD /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		5048ECA3C3FC9C0D0C6FA653 /* Build configuration list for PBXProject "grts" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				10E92F7E658FD526336602F7 /* Debug */,
+				12C9D0A59506EDFFCD0478D8 /* Fast */,
+				3566B44D909FBC4066D4BD8F /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		5BF34A47D15D3CA3BFCD3C81 /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				163EFAB6155CB49CC3DA4011 /* Debug */,
+				65DEE8B3C72E8A4BB16ABBCE /* Fast */,
+				58C84AF8FA05446F707B0450 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 6859B20A796292F63E04474D /* Project object */;
+}

@@ -1,0 +1,52 @@
+<package version="0.0">
+  <name>com.livecode.widget.switchbutton</name>
+  <title>Switch Button</title>
+  <author>LiveCode</author>
+  <version>2.0.0</version>
+  <license>community</license>
+  <type>widget</type>
+  <requires name="com.livecode.canvas"/>
+  <requires name="com.livecode.library.widgetutils"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.widget"/>
+  <requires name="com.livecode.engine"/>
+  <requires name="com.livecode.char"/>
+  <metadata key="preferredSize">64,48</metadata>
+  <metadata key="svgicon">M47.3,0H18.5C8.3,0,0,8.3,0,18.5v0C0,28.7,8.3,37,18.5,37h28.8c10.2,0,18.5-8.3,18.5-18.5v0C65.8,8.3,57.5,0,47.3,0zM19.8,33.5c-8.3,0-15-6.7-15-15c0-8.3,6.7-15,15-15s15,6.7,15,15C34.8,26.8,28,33.5,19.8,33.5z</metadata>
+  <metadata key="backgroundColor.editor">com.livecode.pi.color</metadata>
+  <metadata key="backgroundColor.default">244,244,244</metadata>
+  <metadata key="backgroundcolor.section">Colors</metadata>
+  <metadata key="backgroundColor.label">Background color</metadata>
+  <metadata key="hiliteColor.editor">com.livecode.pi.color</metadata>
+  <metadata key="hiliteColor.default">10,95,244</metadata>
+  <metadata key="hilitecolor.section">Colors</metadata>
+  <metadata key="hiliteColor.label">Hilite color</metadata>
+  <metadata key="borderColor.editor">com.livecode.pi.color</metadata>
+  <metadata key="borderColor.default">109,109,109</metadata>
+  <metadata key="bordercolor.section">Colors</metadata>
+  <metadata key="borderColor.label">Border color</metadata>
+  <property name="theme" get="string" set="string"/>
+  <metadata key="theme.editor">com.livecode.pi.enum</metadata>
+  <metadata key="theme.options">native,iOS,Android</metadata>
+  <metadata key="theme.default">native</metadata>
+  <metadata key="theme.label">Theme</metadata>
+  <property name="highlight" get="boolean" set="boolean"/>
+  <metadata key="highlight.default">false</metadata>
+  <metadata key="highlight.label">Hilited</metadata>
+  <property name="showBorder" get="boolean" set="boolean"/>
+  <metadata key="showBorder.default">true</metadata>
+  <handler name="OnSave" parameters="out array" return="any"/>
+  <handler name="OnLoad" parameters="in array" return="any"/>
+  <handler name="OnCreate" parameters="" return="nothing"/>
+  <handler name="OnPaint" parameters="" return="nothing"/>
+  <handler name="OnMouseMove" parameters="" return="nothing"/>
+  <handler name="OnMouseDown" parameters="" return="nothing"/>
+  <handler name="OnMouseUp" parameters="" return="nothing"/>
+  <handler name="OnMouseRelease" parameters="" return="nothing"/>
+</package>

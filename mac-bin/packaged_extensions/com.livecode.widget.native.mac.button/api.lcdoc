@@ -1,0 +1,44 @@
+Library: com.livecode.widget.native.mac.button
+
+Type: widget
+
+Summary: This widget is a native push button on Mac.
+
+version: 1.0.0
+
+author: LiveCode
+
+os: mac
+
+Name: enabled
+
+Type: property
+
+Syntax: set the enabled of <widget> to {true | false}
+get the enabled of <widget>
+
+Summary: Whether the button is active and responds to user action
+
+Description:
+Use the <enabled> property to enable or disable the native button. When
+disabled, the button has a greyed out appearance and does not accept 
+clicks or touches.
+
+Name: label
+
+Type: property
+
+Syntax: set the label of <widget> to <pLabel>
+get the label of <widget>
+
+Summary: The label displayed by the button.
+
+Value: The string to use as the button label
+
+Example:     set the label of widget "Mac Button" to "Click me!"
+
+Description: The <label> property is the label displayed by the button.
+
+
+
+

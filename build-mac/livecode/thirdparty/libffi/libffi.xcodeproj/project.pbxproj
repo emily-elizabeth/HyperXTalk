@@ -1,0 +1,600 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		4DF30D42CD229244E76E1012 /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 6E3D9CD2CF6F910CD1E53A8E /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				7664BE92D086D2B5274D2B41 /* PBXTargetDependency */,
+				E673354DDC22574ED140D131 /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		05F89DA5DD8453B3D3C37970 /* debug.c in Sources */ = {isa = PBXBuildFile; fileRef = 2194A7843472D335F6BF09D3 /* debug.c */; };
+		17353DB7761A3D9469FA4384 /* darwin64.S in Sources */ = {isa = PBXBuildFile; fileRef = 8DFE20033396FFDA1156F0C6 /* darwin64.S */; };
+		19BBD222BDF0C7F289524767 /* types.c in Sources */ = {isa = PBXBuildFile; fileRef = A8F76611CCAEBC23C11DBD2D /* types.c */; };
+		251DE46CACF070A773AF9446 /* darwin.S in Sources */ = {isa = PBXBuildFile; fileRef = 22939330DAABE9070E886E00 /* darwin.S */; };
+		69D1DFB488E83A80B7976BEB /* raw_api.c in Sources */ = {isa = PBXBuildFile; fileRef = 67B6A8A5A932263CE7BEA5DE /* raw_api.c */; };
+		9AF9707F70F2100774885B12 /* prep_cif.c in Sources */ = {isa = PBXBuildFile; fileRef = ACCE01A5A4AFF44F6B4DF562 /* prep_cif.c */; };
+		B5D8FD84ABD76FEBA2132B84 /* ffi64.c in Sources */ = {isa = PBXBuildFile; fileRef = 56E8E09C47685F886B3CDA0D /* ffi64.c */; };
+		CE157D30AF94FFD2DA638603 /* ffi.c in Sources */ = {isa = PBXBuildFile; fileRef = 8BFA06FB9FF3405673276835 /* ffi.c */; };
+		D6D74D6C0C09F9BC1683DF9D /* win32.S in Sources */ = {isa = PBXBuildFile; fileRef = B510D96E8FF6C7C0A8D312FB /* win32.S */; };
+		E65C3A45F50A2CD55F55B363 /* java_raw_api.c in Sources */ = {isa = PBXBuildFile; fileRef = 17651E939C4D8C95A434840E /* java_raw_api.c */; };
+		F49583C92F4A22484F703AC8 /* closures.c in Sources */ = {isa = PBXBuildFile; fileRef = 0C208FCC50DC20814D69E7BF /* closures.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		87ED72E0AC301EC9CF5DEA58 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4BCF9E06C6DB1D30B53424DC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6A020F44BAB7A8B22A1F70A7;
+			remoteInfo = "libffi (host)";
+		};
+		F822891FFC2F5A259A6AEA74 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4BCF9E06C6DB1D30B53424DC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0870FB2E0E04E7036F6F0711;
+			remoteInfo = libffi;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		047A97324AAA4175556F3284 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../../config/win32.gypi; sourceTree = "<group>"; };
+		0C208FCC50DC20814D69E7BF /* closures.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = closures.c; sourceTree = "<group>"; };
+		17651E939C4D8C95A434840E /* java_raw_api.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = java_raw_api.c; sourceTree = "<group>"; };
+		1C14FD4BFA342D1A45D1EC45 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../config/emscripten.gypi; sourceTree = "<group>"; };
+		2194A7843472D335F6BF09D3 /* debug.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = debug.c; sourceTree = "<group>"; };
+		22939330DAABE9070E886E00 /* darwin.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = darwin.S; sourceTree = "<group>"; };
+		28BE78F63E172CF4B2A22A0B /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../../config/thirdparty.gypi; sourceTree = "<group>"; };
+		43CC0868598E1046DC8ED485 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../../config/yacc.gypi; sourceTree = "<group>"; };
+		56E8E09C47685F886B3CDA0D /* ffi64.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ffi64.c; sourceTree = "<group>"; };
+		645951BC26A67C475C1CB939 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../config/android-settings.gypi"; sourceTree = "<group>"; };
+		67B6A8A5A932263CE7BEA5DE /* raw_api.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = raw_api.c; sourceTree = "<group>"; };
+		6F67169996C73F013B565E04 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../../common.gypi; sourceTree = "<group>"; };
+		84F7C685608629ED126C93BD /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		8BFA06FB9FF3405673276835 /* ffi.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ffi.c; sourceTree = "<group>"; };
+		8DFE20033396FFDA1156F0C6 /* darwin64.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = darwin64.S; sourceTree = "<group>"; };
+		973A46D6867410701CC71DFA /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../../config/configurations.gypi; sourceTree = "<group>"; };
+		9E061AC5F76A9BD3B01EBD7F /* libffi.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libffi.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		A49FF7790475813EF524F74E /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../config/android.gypi; sourceTree = "<group>"; };
+		A8F76611CCAEBC23C11DBD2D /* types.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = types.c; sourceTree = "<group>"; };
+		ACC531938B83B4982144B43A /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../../config/perl.gypi; sourceTree = "<group>"; };
+		ACCE01A5A4AFF44F6B4DF562 /* prep_cif.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = prep_cif.c; sourceTree = "<group>"; };
+		AD00AF09BBB13DED1895F6BF /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../../config/exclusions.gypi; sourceTree = "<group>"; };
+		AEAA6DB003D78553F058B49F /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		B507A4261C83FE03D375204F /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../config/ios.gypi; sourceTree = "<group>"; };
+		B510D96E8FF6C7C0A8D312FB /* win32.S */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = win32.S; sourceTree = "<group>"; };
+		BB13C25CA2B0D8057F9B8BA9 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../../config/linux.gypi; sourceTree = "<group>"; };
+		BFE06FE08AD44D84D7B8DC18 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../../config/target_os.gypi; sourceTree = "<group>"; };
+		CAA5215A3A46DFC7E069955A /* libffi.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libffi.gyp; sourceTree = "<group>"; };
+		D3825D3C2B77D4F105107276 /* libffi-host.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libffi-host.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D74F0EDEED6E5F0ECDFEDF2C /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../../config/arch.gypi; sourceTree = "<group>"; };
+		D91EEC3518A62EDF2F5D88C8 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../../config/crosscompile.gypi; sourceTree = "<group>"; };
+		DD0B99274170AF361F422504 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		F6D58E75AD5B4AE5ECADDC94 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../../config/version.gypi; sourceTree = "<group>"; };
+		F796FF9C4785BA823DB55865 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../../config/mac.gypi; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		089DEA5775FD2AE9A7CAFAF6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B16D6339A8250FB173865A80 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0ABE3538669C091D281BE841 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				B04DEEC95BAAB9B0D57ECEE6 /* x86 */,
+				0C208FCC50DC20814D69E7BF /* closures.c */,
+				2194A7843472D335F6BF09D3 /* debug.c */,
+				17651E939C4D8C95A434840E /* java_raw_api.c */,
+				ACCE01A5A4AFF44F6B4DF562 /* prep_cif.c */,
+				67B6A8A5A932263CE7BEA5DE /* raw_api.c */,
+				A8F76611CCAEBC23C11DBD2D /* types.c */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		1735E9DD9E0DA39A653C4151 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				F62CBF81459BE7A08BF9E17E /* ../.. */,
+				0ABE3538669C091D281BE841 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		34B8501326BF45DD5AE80DD6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9E061AC5F76A9BD3B01EBD7F /* libffi.a */,
+				D3825D3C2B77D4F105107276 /* libffi-host.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		767E88597F3BC112815F58F2 = {
+			isa = PBXGroup;
+			children = (
+				1735E9DD9E0DA39A653C4151 /* Source */,
+				34B8501326BF45DD5AE80DD6 /* Products */,
+				EF6FE024B283BF59C6B58894 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		B04DEEC95BAAB9B0D57ECEE6 /* x86 */ = {
+			isa = PBXGroup;
+			children = (
+				22939330DAABE9070E886E00 /* darwin.S */,
+				8DFE20033396FFDA1156F0C6 /* darwin64.S */,
+				8BFA06FB9FF3405673276835 /* ffi.c */,
+				56E8E09C47685F886B3CDA0D /* ffi64.c */,
+				B510D96E8FF6C7C0A8D312FB /* win32.S */,
+			);
+			path = x86;
+			sourceTree = "<group>";
+		};
+		EF6FE024B283BF59C6B58894 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				645951BC26A67C475C1CB939 /* android-settings.gypi */,
+				A49FF7790475813EF524F74E /* android.gypi */,
+				D74F0EDEED6E5F0ECDFEDF2C /* arch.gypi */,
+				6F67169996C73F013B565E04 /* common.gypi */,
+				973A46D6867410701CC71DFA /* configurations.gypi */,
+				D91EEC3518A62EDF2F5D88C8 /* crosscompile.gypi */,
+				DD0B99274170AF361F422504 /* emscripten-settings.gypi */,
+				1C14FD4BFA342D1A45D1EC45 /* emscripten.gypi */,
+				AD00AF09BBB13DED1895F6BF /* exclusions.gypi */,
+				B507A4261C83FE03D375204F /* ios.gypi */,
+				CAA5215A3A46DFC7E069955A /* libffi.gyp */,
+				AEAA6DB003D78553F058B49F /* linux-settings.gypi */,
+				BB13C25CA2B0D8057F9B8BA9 /* linux.gypi */,
+				F796FF9C4785BA823DB55865 /* mac.gypi */,
+				ACC531938B83B4982144B43A /* perl.gypi */,
+				BFE06FE08AD44D84D7B8DC18 /* target_os.gypi */,
+				28BE78F63E172CF4B2A22A0B /* thirdparty.gypi */,
+				F6D58E75AD5B4AE5ECADDC94 /* version.gypi */,
+				047A97324AAA4175556F3284 /* win32.gypi */,
+				43CC0868598E1046DC8ED485 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		F62CBF81459BE7A08BF9E17E /* ../.. */ = {
+			isa = PBXGroup;
+			children = (
+				84F7C685608629ED126C93BD /* version */,
+			);
+			path = ../..;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0870FB2E0E04E7036F6F0711 /* libffi */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1C28DD026BA6D20639CF3750 /* Build configuration list for PBXNativeTarget "libffi" */;
+			buildPhases = (
+				4B79510FF9489F062AE0E0A4 /* Sources */,
+				089DEA5775FD2AE9A7CAFAF6 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = libffi;
+			productName = libffi;
+			productReference = 9E061AC5F76A9BD3B01EBD7F /* libffi.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		6A020F44BAB7A8B22A1F70A7 /* libffi (host) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2B6DE08E79213B998AEA55CD /* Build configuration list for PBXNativeTarget "libffi (host)" */;
+			buildPhases = (
+				C8ED08FD62C3F57C6D8A47F0 /* Sources */,
+				B16D6339A8250FB173865A80 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "libffi (host)";
+			productName = "libffi-host";
+			productReference = D3825D3C2B77D4F105107276 /* libffi-host.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4BCF9E06C6DB1D30B53424DC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 3F201194C1F59D42B3C6746B /* Build configuration list for PBXProject "libffi" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 767E88597F3BC112815F58F2;
+			projectDirPath = ../../../../thirdparty/libffi;
+			projectRoot = "";
+			targets = (
+				4DF30D42CD229244E76E1012 /* All */,
+				0870FB2E0E04E7036F6F0711 /* libffi */,
+				6A020F44BAB7A8B22A1F70A7 /* libffi (host) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4B79510FF9489F062AE0E0A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C8ED08FD62C3F57C6D8A47F0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				251DE46CACF070A773AF9446 /* darwin.S in Sources */,
+				17353DB7761A3D9469FA4384 /* darwin64.S in Sources */,
+				CE157D30AF94FFD2DA638603 /* ffi.c in Sources */,
+				B5D8FD84ABD76FEBA2132B84 /* ffi64.c in Sources */,
+				D6D74D6C0C09F9BC1683DF9D /* win32.S in Sources */,
+				F49583C92F4A22484F703AC8 /* closures.c in Sources */,
+				05F89DA5DD8453B3D3C37970 /* debug.c in Sources */,
+				E65C3A45F50A2CD55F55B363 /* java_raw_api.c in Sources */,
+				9AF9707F70F2100774885B12 /* prep_cif.c in Sources */,
+				69D1DFB488E83A80B7976BEB /* raw_api.c in Sources */,
+				19BBD222BDF0C7F289524767 /* types.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7664BE92D086D2B5274D2B41 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0870FB2E0E04E7036F6F0711 /* libffi */;
+			targetProxy = F822891FFC2F5A259A6AEA74 /* PBXContainerItemProxy */;
+		};
+		E673354DDC22574ED140D131 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6A020F44BAB7A8B22A1F70A7 /* libffi (host) */;
+			targetProxy = 87ED72E0AC301EC9CF5DEA58 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0ACA0F6492C050FBD0530CBE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		0F023A549EB89AEEBC7AF38D /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 84F7C685608629ED126C93BD /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		13D2AF0277FB3E46BD0D7634 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Fast;
+		};
+		6F344DB0D6FC9E8B624DB6AF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		71C299B9EFB44F49EDB5317B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 84F7C685608629ED126C93BD /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		83299B62EBD5685A903EEA6D /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 84F7C685608629ED126C93BD /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		86D76DBD33BCC1428AA82B5B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = "";
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = ./include_darwin;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "libffi-host";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		871AA378F21B7B8B237AB54B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = "";
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = ./include_darwin;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "libffi-host";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		AC28815C28002F2F7FD51077 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = "";
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = /opt/homebrew/Cellar/libffi/3.5.2/include;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = libffi;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		B0CBE2FA836A4A1EA870420F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = "";
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = /opt/homebrew/Cellar/libffi/3.5.2/include;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = libffi;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		DDAC148F2849959EAAC86236 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = "";
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = /opt/homebrew/Cellar/libffi/3.5.2/include;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = libffi;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+		FE9CA2AC7B4B9B14B2E5BAB2 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = "";
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = ./include_darwin;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "libffi-host";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1C28DD026BA6D20639CF3750 /* Build configuration list for PBXNativeTarget "libffi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B0CBE2FA836A4A1EA870420F /* Debug */,
+				DDAC148F2849959EAAC86236 /* Fast */,
+				AC28815C28002F2F7FD51077 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		2B6DE08E79213B998AEA55CD /* Build configuration list for PBXNativeTarget "libffi (host)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				86D76DBD33BCC1428AA82B5B /* Debug */,
+				FE9CA2AC7B4B9B14B2E5BAB2 /* Fast */,
+				871AA378F21B7B8B237AB54B /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		3F201194C1F59D42B3C6746B /* Build configuration list for PBXProject "libffi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				71C299B9EFB44F49EDB5317B /* Debug */,
+				83299B62EBD5685A903EEA6D /* Fast */,
+				0F023A549EB89AEEBC7AF38D /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		6E3D9CD2CF6F910CD1E53A8E /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6F344DB0D6FC9E8B624DB6AF /* Debug */,
+				13D2AF0277FB3E46BD0D7634 /* Fast */,
+				0ACA0F6492C050FBD0530CBE /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4BCF9E06C6DB1D30B53424DC /* Project object */;
+}

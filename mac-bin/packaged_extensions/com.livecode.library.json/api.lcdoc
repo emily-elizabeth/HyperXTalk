@@ -1,0 +1,78 @@
+Library: com.livecode.library.json
+
+Type: library
+
+Summary:
+This library provides support for generating and parsing JavaScript
+Object Notation (JSON) data.  See also <http://json.org> and
+<https://tools.ietf.org/html/rfc7159>.
+
+Tags: JSON, Library
+
+version: 2.0.0
+
+author: LiveCode
+
+
+Name: JsonImport
+
+Type: handler
+
+Syntax: JsonImport(<pJson>)
+
+Summary: Parse JSON text into a LiveCode value.
+
+pJson: String containing JSON text
+
+Returns: The top level value.  The type depends on the JSON content.
+
+Description:
+<JsonImport> is used to convert data encoded in JSON format into a LiveCode
+value.  It parses <pJson> and returns the first top-level value found.  If any
+syntax errors are found in <pJson>, an error is thrown.
+
+The return value may be any of the following types, depending on the content
+of the file:
+
+* Array (for a JSON object)
+* List  (for a JSON array)
+* String (for a JSON string)
+* Number (for any JSON number)
+* Boolean (for JSON `true` or `false`)
+* nothing (for JSON `null`)
+
+Tags: JSON
+
+
+Parameters:
+:
+
+
+
+
+Name: JsonExport
+
+Type: handler
+
+Syntax: JsonExport(<pValue>)
+
+Summary: Format a LiveCode value as JSON text
+
+pValue: A LiveCode value (Array, List, String, Number, Boolean, or nothing)
+
+Returns: A string containing JSON-formatted text.
+
+Description:
+<JsonExport> is used to convert a LiveCode value into data encoded in JSON
+format.  If <pValue> is of a type that cannot be converted to JSON, an error is
+thrown.
+
+Tags: JSON
+
+
+Parameters:
+:
+
+
+
+

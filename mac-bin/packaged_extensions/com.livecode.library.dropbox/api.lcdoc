@@ -1,0 +1,3901 @@
+Library: com.livecode.library.dropbox
+
+Type: library
+
+Title: Dropbox Library
+
+Author: LiveCode
+
+Version: 2.0.0
+
+SVGIcon: M402 717L896 1022 554 1307 64 988ZM1388 1272L1388 1380 898 1673 898 1674 897 1673 896 1674 896 1673 407 1380 407 1272 554 1368 896 1084 896 1082 897 1083 898 1082 898 1084 1241 1368ZM554 128L896 413 402 717 64 447ZM1390 717L1728 988 1239 1307 896 1022ZM1239 128L1728 447 1390 717 896 413Z
+
+Description:
+Implements the Dropbox v2 API.
+Doesn't include business pro API.
+
+Name: dropboxUploadSessionStart
+
+Type: command
+
+Syntax: dropboxUploadSessionStart <pAccessToken>, <pData>, [<pCallback>]
+
+Summary:
+Upload sessions allow you to upload a single file in one or more requests, for example where the size of the
+file is greater than 150 MB.
+
+Description:
+This call starts a new upload session with the given data. You can then use 
+dropboxUploadSessionAppend with the returned session id to add more data and 
+dropboxUploadSessionFinish to save all the data to a file in Dropbox. 
+
+> *Note:* A single request should not upload more than 150 MB of file contents.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pData: The binary file data
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"session_id": "1234faaf0678bcde"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxGetFolderMetadata
+
+Type: command
+
+Syntax: dropboxGetFolderMetadata <pAccessToken>, <pSharedFolderId>, [<pActions>, <pCallback>]
+
+Summary: Returns shared folder metadata by its folder ID.
+
+Description:
+Apps must have full Dropbox access to use this endpoint.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSharedFolderID: The ID for the shared folder.
+
+pActions:
+This is a return delimited list indicating whether the returned folder data will
+include a boolean value FolderPermission.allow that describes whether the current user can 
+perform the folder action on the folder. This field is optional.
+
+Actions that may be taken on shared folders. The value will be one of the following datatypes.
+New values may be introduced as our API evolves.
+
+- "change_options": Change folder options, such as who can be invited to join the folder.
+- "edit_contents": Change or edit contents of the folder.
+- "invite_editor": Invite a user or group to join the folder with read and write permission.
+- "invite_viewer": Invite a user or group to join the folder with read permission.
+- "invite_viewer_no_comment": Invite a user or group to join the folder with read permission but no comment permissions.
+- "relinquish_membership": Relinquish one's own membership in the folder.
+- "unmount": Unmount the folder.
+- "unshare": Stop sharing this folder.
+- "leave_a_copy": Keep a copy of the contents upon leaving or being kicked from the folder.
+- "share_link": This action is deprecated. Use create_link instead.
+- "create_link": Create a shared link for folder.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"access_type": {
+".tag": "owner"
+},
+"is_team_folder": false,
+"policy": {
+"acl_update_policy": {
+".tag": "owner"
+},
+"shared_link_policy": {
+".tag": "anyone"
+},
+"member_policy": {
+".tag": "anyone"
+},
+"resolved_member_policy": {
+".tag": "team"
+}
+},
+"name": "dir",
+"shared_folder_id": "84528192421",
+"time_invited": "2016-01-20T00:00:00Z",
+"preview_url": "https://www.dropbox.com/scl/fo/fir9vjelf",
+"path_lower": "/dir",
+"permissions": []
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxCreateSharedLinkWithSettings
+
+Type: command
+
+Syntax: dropboxCreateSharedLinkWithSettings <pAccessToken>, <pPath>, [<pSettings>, <pCallback>]
+
+Summary: Create a shared link with custom settings
+
+Description:
+If no settings are given then the default visibility is RequestedVisibility.public 
+(The resolved visibility, though, may depend on other aspects such as team and 
+shared folder settings).
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: The path to be shared by the shared link
+
+pSettings:
+````
+{
+"requested_visibility" (enum): The requested access for this shared link. This field is optional.
+
+- "public": Anyone who has received the link can access it. No login required.
+- "team_only": Only members of the same team can access the link. Login is required.
+- "password": A link-specific password is required to access the link. Login is not required.
+"link_password": If requested_visibility is password this is needed to specify the password to access the link. This field is optional.
+"expires": format="%Y-%m-%dT%H:%M:%SZ" - Expiration time of the shared link. By default the link won't expire. This field is optional.
+}
+````
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": "file",
+"url": "https://www.dropbox.com/s/2sn712vy1ovegw8/Prime_Numbers.txt?dl=0",
+"name": "Prime_Numbers.txt",
+"link_permissions": {
+"can_revoke": false,
+"resolved_visibility": {
+".tag": "public"
+},
+"revoke_failure_reason": {
+".tag": "owner_only"
+}
+},
+"client_modified": "2015-05-12T15:50:38Z",
+"server_modified": "2015-05-12T15:50:38Z",
+"rev": "a1c10ce0dd78",
+"size": 7212,
+"id": "id:a4ayc_80_OEAAAAAAAAAXw",
+"path_lower": "/homework/math/prime_numbers.txt",
+"team_member_info": {
+"team_info": {
+"id": "dbtid:AAFdgehTzw7WlXhZJsbGCLePe8RvQGYDr-I",
+"name": "Acme, Inc."
+},
+"display_name": "Roger Rabbit",
+"member_id": "dbmid:abcd1234"
+}
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxMountFolder
+
+Type: command
+
+Syntax: dropboxMountFolder <pAccessToken>, <pSharedFolderId>, [<pCallback>]
+
+Summary: The current user mounts the designated folder.
+
+Description:
+Mount a shared folder for a user after they have been added as a member. Once 
+mounted, the shared folder will appear in their Dropbox.
+Apps must have full Dropbox access to use this endpoint.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSharedFolderId: The ID of the shared folder to mount.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"access_type": {
+".tag": "owner"
+},
+"is_team_folder": false,
+"policy": {
+"acl_update_policy": {
+".tag": "owner"
+},
+"shared_link_policy": {
+".tag": "anyone"
+},
+"member_policy": {
+".tag": "anyone"
+},
+"resolved_member_policy": {
+".tag": "team"
+}
+},
+"name": "dir",
+"shared_folder_id": "84528192421",
+"time_invited": "2016-01-20T00:00:00Z",
+"preview_url": "https://www.dropbox.com/scl/fo/fir9vjelf",
+"path_lower": "/dir",
+"permissions": []
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxUnmountFolder
+
+Type: command
+
+Syntax: dropboxUnmountFolder <pAccessToken>, <pSharedFolderId>, [<pCallback>]
+
+Summary: The current user unmounts the designated folder. 
+
+Description:
+The user can re-mount the folder at a later time using dropboxMountFolder.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSharedFolderID: The ID for the shared folder.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function.
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxGetSpaceUsage
+
+Type: command
+
+Syntax: dropboxGetSpaceUsage <pAccessToken>, [<pCallback>]
+
+Summary: Get the space usage information for the current user's account.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"used": 314159265,
+"allocation": {
+".tag": "individual",
+"allocated": 10000000000
+}
+}
+````
+
+
+
+Name: dropboxGetThumbnail
+
+Type: command
+
+Syntax: dropboxGetThumbnail <pAccessToken>, <pPath>, <pFormat>, <pSize>, [<pCallback>]
+
+Summary: Get a thumbnail for an image.
+
+Description:
+This method currently supports files with the following file extensions:
+jpg, jpeg, png, tiff, tif, gif and bmp. Photos that are larger than 20MB in
+size won't be converted to a thumbnail.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: Path in the user's Dropbox to be deleted.
+
+pFormat:
+The format for the thumbnail image
+
+- "jpeg"
+- "png"
+
+pSize:
+The value will be one of the following datatypes:
+
+- "w32h32": 32 by 32 px.
+- "w64h64": 64 by 64 px.
+- "w128h128": 128 by 128 px.
+- "w640h480": 640 by 480 px.
+- "w1024h768": 1024 by 768 px.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will contain the data of the thumbnail image.
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxGetPreview
+
+Type: command
+
+Syntax: dropboxGetPreview <pAccessToken>, <pPath>, [<pCallback>]
+
+Summary: Get a preview for a file.
+
+Description:
+Currently previews are only generated for the files with the following extensions: 
+.doc, .docx, .docm, .ppt, .pps, .ppsx, .ppsm, .pptx, .pptm, .xls, .xlsx, .xlsm, .rtf.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: Path in the user's Dropbox to be deleted.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will contain the data of the preview PDF.
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxRestore
+
+Type: command
+
+Syntax: dropboxRestore <pAccessToken>, <pPath>, <pRevision>, [<pCallback>]
+
+Summary: Restore a file to a specific revision.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: Path in the user's Dropbox to be restored.
+
+pRevision: The revision to restore for the file.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"name": "Prime_Numbers.txt",
+"id": "id:a4ayc_80_OEAAAAAAAAAXw",
+"client_modified": "2015-05-12T15:50:38Z",
+"server_modified": "2015-05-12T15:50:38Z",
+"rev": "a1c10ce0dd78",
+"size": 7212,
+"path_lower": "/homework/math/prime_numbers.txt",
+"path_display": "/Homework/math/Prime_Numbers.txt",
+"sharing_info": {
+"read_only": true,
+"parent_shared_folder_id": "84528192421",
+"modified_by": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+},
+"property_groups": [
+{
+"template_id": "ptid:1a5n2i6d3OYEAAAAAAAAAYa",
+"fields": [
+{
+"name": "Security Policy",
+"value": "Confidential"
+}
+]
+}
+],
+"has_explicit_shared_members": false
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxSearch
+
+Type: command
+
+Syntax: dropboxSearch <pAccessToken>, <pPath>, <pQuery>, <pStart>, <pMaxResults>, <pMode>, [<pCallback>]
+
+Summary: Searches for files and folders.
+
+Description:
+> *Note:* Recent changes may not immediately be reflected in search results due
+> to a short delay in indexing.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: Path in the user's Dropbox to be searched.
+
+pQuery:
+The string to search for. The search string is split on spaces into multiple tokens.
+For file name searching, the last token is used for prefix matching (i.e. "bat c" matches 
+"bat cave" but not "batman car").
+
+pStart:
+The starting index within the search results (used for paging). The default
+for this field is 0.
+
+pMaxResults: The maximum number of search results to return. The default for this field is 100.
+
+pMode:
+The search mode. Note that searching file content is only available for Dropbox Business accounts.
+
+- "filename"
+- "filename_and_content"
+- "deleted_filename"
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"matches": [
+{
+"match_type": {
+".tag": "content"
+},
+"metadata": {
+".tag": "file",
+"name": "Prime_Numbers.txt",
+"id": "id:a4ayc_80_OEAAAAAAAAAXw",
+"client_modified": "2015-05-12T15:50:38Z",
+"server_modified": "2015-05-12T15:50:38Z",
+"rev": "a1c10ce0dd78",
+"size": 7212,
+"path_lower": "/homework/math/prime_numbers.txt",
+"path_display": "/Homework/math/Prime_Numbers.txt",
+"sharing_info": {
+"read_only": true,
+"parent_shared_folder_id": "84528192421",
+"modified_by": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+},
+"property_groups": [
+{
+"template_id": "ptid:1a5n2i6d3OYEAAAAAAAAAYa",
+"fields": [
+{
+"name": "Security Policy",
+"value": "Confidential"
+}
+]
+}
+],
+"has_explicit_shared_members": false
+}
+}
+],
+"more": false,
+"start": 1
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxListRevisions
+
+Type: command
+
+Syntax: dropboxListRevisions <pAccessToken>, <pPath>, <pLimit>, [<pCallback>]
+
+Summary: Return revisions of a file.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: The path to the file you want to see the revisions of.
+
+pLimit: The maximum number of revision entries returned. The default for this field is 10.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"is_deleted": false,
+"entries": [
+{
+"name": "Prime_Numbers.txt",
+"id": "id:a4ayc_80_OEAAAAAAAAAXw",
+"client_modified": "2015-05-12T15:50:38Z",
+"server_modified": "2015-05-12T15:50:38Z",
+"rev": "a1c10ce0dd78",
+"size": 7212,
+"path_lower": "/homework/math/prime_numbers.txt",
+"path_display": "/Homework/math/Prime_Numbers.txt",
+"sharing_info": {
+"read_only": true,
+"parent_shared_folder_id": "84528192421",
+"modified_by": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+},
+"property_groups": [
+{
+"template_id": "ptid:1a5n2i6d3OYEAAAAAAAAAYa",
+"fields": [
+{
+"name": "Security Policy",
+"value": "Confidential"
+}
+]
+}
+],
+"has_explicit_shared_members": false
+}
+]
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxGetMetadata
+
+Type: command
+
+Syntax: dropboxGetMetadata <pAccessToken>, <pPath>, <pIncludeMediaInfo>, [<pCallback>]
+
+Summary: Returns the metadata for a file or folder.
+
+Description:
+>*Note:* Metadata for the root folder is unsupported.
+
+If the path is a folder, then a folderMetadata json is returned.
+If the path is a file then a fileMetadata json is returned.
+If the path is a file or folder that has been deleted, then a deletedMetadata json is returned.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: Path to a file or folder in the user's Dropbox to be queried
+
+pIncludeMediaInfo:
+If true, FileMetadata.media_info is set for photo and
+video. The default for this field is False.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": string,
+"name": string,
+"id": string,
+"client_modified": string,
+"server_modified": string,
+"rev": string,
+"size": integer,
+"path_lower": string,
+"path_display": string,
+"sharing_info": {
+"read_only": boolean,
+"parent_shared_folder_id": string,
+"modified_by": string
+},
+"property_groups": [
+{
+"template_id": string,
+"fields": [
+{
+"name": string,
+"value": string
+}
+]
+}
+],
+"has_explicit_shared_members": boolean
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxListFoldersContinue
+
+Type: command
+
+Syntax: dropboxListFoldersContinue <pAccessToken>, <pCursor>, [<pCallback>]
+
+Summary: Once a cursor has been retrieved from dropboxListFolders, use this to paginate through all shared folder members.
+
+Description:
+Apps must have full Dropbox access to use this endpoint.
+
+If a cursor is present then use the value with dropboxListFolderMembersContinue to obtain
+more results.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pCursor: The cursor returned by your last call to dropboxListFolders or dropboxListFoldersContinue.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"entries": [
+{
+"access_type": {
+".tag": "owner"
+},
+"is_team_folder": false,
+"policy": {
+"acl_update_policy": {
+".tag": "owner"
+},
+"shared_link_policy": {
+".tag": "anyone"
+},
+"member_policy": {
+".tag": "anyone"
+},
+"resolved_member_policy": {
+".tag": "team"
+}
+},
+"name": "dir",
+"shared_folder_id": "84528192421",
+"time_invited": "2016-01-20T00:00:00Z",
+"preview_url": "https://www.dropbox.com/scl/fo/fir9vjelf",
+"path_lower": "/dir",
+"permissions": []
+}
+],
+"cursor": "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxGetAccount
+
+Type: command
+
+Syntax: dropboxGetAccount <pAccessToken>, <pUserAccountID>, [<pCallback>]
+
+Summary: Get information about a user's account.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pUserAccountID: The user's unique Dropbox ID
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"account_id": string,
+"name": {
+"given_name": string,
+"surname": string,
+"familiar_name": string,
+"display_name": string,
+"abbreviated_name": string
+},
+"email": string,
+"email_verified": boolean,
+"disabled": boolean,
+"is_teammate": boolean,
+"profile_photo_url": string
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxRelinquishFolderMembership
+
+Type: command
+
+Syntax: dropboxRelinquishFolderMembership <pAccessToken>, <pSharedFolderId>, <pLeaveACopy>, [<pCallback>]
+
+Summary: The current user relinquishes their membership in the designated shared folder and will no longer have access to the folder.
+
+Description:
+A folder owner cannot relinquish membership in their own folder.
+This will run synchronously if leave_a_copy is false, and asynchronously if leave_a_copy 
+is true. Apps must have full Dropbox access to use this endpoint.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSharedFolderId: The ID for the shared folder.
+
+pLeaveACopy:
+Keep a copy of the folder's contents upon relinquishing membership. The default
+for this field is False.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": "complete"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxUnshareFolder
+
+Type: command
+
+Syntax: dropboxUnshareFolder <pAccessToken>, <pSharedFolderId>, <pLeaveACopy>, [<pCallback>]
+
+Summary: Allows a shared folder owner to unshare the folder.
+
+Description:
+You'll need to call droboxCheckJobStatus to determine if the action has completed successfully.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSharedFolderID: The ID for the shared folder.
+
+pLeaveACopy:
+If true, members of this shared folder will get a copy of this folder after
+it's unshared. Otherwise, it will be removed from their Dropbox. The current user, who is an owner, 
+will always retain their copy. The default for this field is False.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": "complete"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxUpdateFolderPolicy
+
+Type: command
+
+Syntax: dropboxUpdateFolderPolicy <pAccessToken>, <pSharedFolderId>, <pMemberPolicy>, <pAclUpdatePolicy>, <pSharedLinkPolicy>, [<pCallback>]
+
+Summary: Update the sharing policies for a shared folder.
+
+Description:
+User must have AccessLevel.owner access to the shared folder to update its policies.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSharedFolderID: The ID for the shared folder.
+
+pMemberPolicy:
+Who can be a member of this shared folder. Only applicable if the current user is on a team. The default for this union is anyone.
+
+- "anyone": Anyone can become a member.
+- "team": Only a teammate can become a member.
+
+pAclUpdatePolicy:
+Who can add and remove members of this shared folder. The default for this union is owner.
+Policy governing who can change a shared folder's access control list (ACL). In other words, who can add, remove, or change the privileges of members. The value will be one of the following datatypes. New values may be introduced as our API evolves.
+
+- "owner": Only the owner can update the ACL.
+- "editors": Any editor can update the ACL. This may be further restricted to editors on the same team.
+
+pSharedLinkPolicy:
+The policy to apply to shared links created for content inside this shared folder. The current
+user must be on a team to set this policy to SharedLinkPolicy.members. The default for this union is anyone.
+Policy governing who can view shared links. The value will be one of the following datatypes. New values may be 
+introduced as our API evolves.
+
+- "anyone": Links can be shared with anyone.
+- "members": Links can only be shared among members of the shared folder.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"access_type": {
+".tag": "owner"
+},
+"is_team_folder": false,
+"policy": {
+"acl_update_policy": {
+".tag": "owner"
+},
+"shared_link_policy": {
+".tag": "anyone"
+},
+"member_policy": {
+".tag": "anyone"
+},
+"resolved_member_policy": {
+".tag": "team"
+}
+},
+"name": "dir",
+"shared_folder_id": "84528192421",
+"time_invited": "2016-01-20T00:00:00Z",
+"preview_url": "https://www.dropbox.com/scl/fo/fir9vjelf",
+"path_lower": "/dir",
+"permissions": []
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxCheckJobStatus
+
+Type: command
+
+Syntax: dropboxCheckJobStatus <pAccessToken>, <pAsyncJobId>, [<pCallback>]
+
+Summary: Returns the status of an asynchronous job.
+
+Description:
+Apps must have full Dropbox access to use this endpoint.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pAsyncJobID:
+Id of the asynchronous job. This is the value of a response returned
+from the method that launched the job.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": "in_progress"
+}
+````
+
+The tag will be one of:
+
+- in_progress - The asynchronous job is still in progress.
+- complete - The asynchronous job has finished.
+- failed - The asynchronous job returned an error.
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxUpload
+
+Type: command
+
+Syntax: dropboxUpload <pAccessToken>, <pPath>, <pMode>, <pAutorename>, <pMute>, <pData>, [<pCallback>]
+
+Summary: Create a new file with the contents provided in the request.
+
+Description:
+> *Note:* Do not use this to upload a file larger than 150 MB. Instead, create an upload 
+> session with dropboxUploadSessionStart.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: Path in the user's Dropbox to upload to.
+
+pMode:
+Selects what to do if the file already exists. The default for this union is add.
+
+- "add": Do not overwrite an existing file if there is a conflict. The autorename strategy is 
+to append a number to the file name. For example, "document.txt" might become "document (2).txt".
+- "overwrite": Always overwrite the existing file. The autorename strategy is the same as it is for add.
+- "update": Overwrite if the given "rev" matches the existing file's "rev". The autorename 
+strategy is to append the string "conflicted copy" to the file name. For example, "document.txt" 
+might become "document (conflicted copy).txt" or "document (Panda's conflicted copy).txt".
+
+pAutoRename:
+If there's a conflict, as determined by mode, have the Dropbox server try to autorename
+the file to avoid conflict. The default for this field is False.
+
+pMute:
+Normally, users are made aware of any file modifications in their Dropbox account via
+notifications in the client software. If true, this tells the clients that this modification 
+shouldn't result in a user notification. The default for this field is False
+
+pData: The binary file data
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"name": "Prime_Numbers.txt",
+"id": "id:a4ayc_80_OEAAAAAAAAAXw",
+"client_modified": "2015-05-12T15:50:38Z",
+"server_modified": "2015-05-12T15:50:38Z",
+"rev": "a1c10ce0dd78",
+"size": 7212,
+"path_lower": "/homework/math/prime_numbers.txt",
+"path_display": "/Homework/math/Prime_Numbers.txt",
+"sharing_info": {
+"read_only": true,
+"parent_shared_folder_id": "84528192421",
+"modified_by": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+},
+"property_groups": [
+{
+"template_id": "ptid:1a5n2i6d3OYEAAAAAAAAAYa",
+"fields": [
+{
+"name": "Security Policy",
+"value": "Confidential"
+}
+]
+}
+],
+"has_explicit_shared_members": false
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxListFolderMembers
+
+Type: command
+
+Syntax: dropboxListFolderMembers <pAccessToken>, <pSharedFolderId>, [<pActions>, <pLimit>, <pCallback>]
+
+Summary: Returns shared folder membership by its folder ID.
+
+Description:
+Apps must have full Dropbox access to use this endpoint.
+
+If a cursor is present then use the value with dropboxListFolderMembersContinue to obtain
+more results.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSharedFolderId: The ID for the shared folder.
+
+pActions:
+This is a list indicating whether each returned member will include a boolean value
+MemberPermission.allow that describes whether the current user can perform the member Aaction on
+the member. This field is optional.
+
+Actions that may be taken on members of a shared folder. The value will be one of the following 
+datatypes. New values may be introduced as our API evolves.
+
+- "leave_a_copy": Allow the member to keep a copy of the folder when removing.
+- "make_editor": Make the member an editor of the folder.
+- "make_owner": Make the member an owner of the folder.
+- "make_viewer": Make the member a viewer of the folder.
+- "make_viewer_no_comment": Make the member a viewer of the folder without commenting permissions.
+- "remove": Remove the member from the folder.
+
+pLimit:
+The maximum number of results that include members, groups and invitees to return per request.
+The default for this field is 1000.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"users": [
+{
+"access_type": {
+".tag": "owner"
+},
+"user": {
+"account_id": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc",
+"same_team": true,
+"team_member_id": "dbmid:abcd1234"
+},
+"permissions": [],
+"is_inherited": false
+}
+],
+"groups": [
+{
+"access_type": {
+".tag": "editor"
+},
+"group": {
+"group_name": "Test group",
+"group_id": "g:e2db7665347abcd600000000001a2b3c",
+"group_management_type": {
+".tag": "user_managed"
+},
+"group_type": {
+".tag": "user_managed"
+},
+"is_member": false,
+"is_owner": false,
+"same_team": true,
+"member_count": 10
+},
+"permissions": [],
+"is_inherited": false
+}
+],
+"invitees": [
+{
+"access_type": {
+".tag": "viewer"
+},
+"invitee": {
+".tag": "email",
+"email": "jessica@example.com"
+},
+"permissions": [],
+"is_inherited": false
+}
+],
+"cursor": "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxListFolderMembersContinue
+
+Type: command
+
+Syntax: dropboxListFolderMembersContinue <pAccessToken>, <pCursor>, [<pCallback>]
+
+Summary: Once a cursor has been retrieved from dropboxListFolderMembers, use this to paginate through all shared folder members.
+
+Description:
+Apps must have full Dropbox access to use this endpoint.
+
+If a cursor is present then use the value with dropboxListFolderMembersContinue to obtain
+more results.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pCursor: The cursor returned by your last call to dropboxListFolderMembers or dropboxListFolderMembersContinue.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"users": [
+{
+"access_type": {
+".tag": "owner"
+},
+"user": {
+"account_id": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc",
+"same_team": true,
+"team_member_id": "dbmid:abcd1234"
+},
+"permissions": [],
+"is_inherited": false
+}
+],
+"groups": [
+{
+"access_type": {
+".tag": "editor"
+},
+"group": {
+"group_name": "Test group",
+"group_id": "g:e2db7665347abcd600000000001a2b3c",
+"group_management_type": {
+".tag": "user_managed"
+},
+"group_type": {
+".tag": "user_managed"
+},
+"is_member": false,
+"is_owner": false,
+"same_team": true,
+"member_count": 10
+},
+"permissions": [],
+"is_inherited": false
+}
+],
+"invitees": [
+{
+"access_type": {
+".tag": "viewer"
+},
+"invitee": {
+".tag": "email",
+"email": "jessica@example.com"
+},
+"permissions": [],
+"is_inherited": false
+}
+],
+"cursor": "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxCheckShareJobStatus
+
+Type: command
+
+Syntax: dropboxCheckShareJobStatus <pAccessToken>, <pAsyncJobId>, [<pCallback>]
+
+Summary: Returns the status of an asynchronous job for sharing a folder.
+
+Description:
+Apps must have full Dropbox access to use this endpoint.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pAsyncJobID:
+Id of the asynchronous job. This is the value of a response returned
+from the method that launched the job.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": "in_progress"
+}
+````
+
+The tag will be one of:
+
+- in_progress - The asynchronous job is still in progress.
+- complete - The asynchronous job has finished.
+- failed - The asynchronous job returned an error.
+
+If complete the JSON includes the metadata of the shared folder:
+
+````
+{
+".tag": "complete",
+"access_type": {
+".tag": "owner"
+},
+"is_team_folder": false,
+"policy": {
+"acl_update_policy": {
+".tag": "owner"
+},
+"shared_link_policy": {
+".tag": "anyone"
+},
+"member_policy": {
+".tag": "anyone"
+},
+"resolved_member_policy": {
+".tag": "team"
+}
+},
+"name": "dir",
+"shared_folder_id": "84528192421",
+"time_invited": "2016-01-20T00:00:00Z",
+"preview_url": "https://www.dropbox.com/scl/fo/fir9vjelf",
+"path_lower": "/dir",
+"permissions": []
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxListFolder
+
+Type: command
+
+Syntax: dropboxListFolder <pAccessToken>, <pPath>, <pRecursive>, <pIncludeMediaInfo>, [<pCallback>]
+
+Summary: Starts returning the contents of a folder. 
+
+Description:
+If the result's ListFolderResult.has_more field is true, call list_folder/continue with 
+the returned ListFolderResult.cursor to retrieve more entries.
+
+If you're using ListFolderArg.recursive set to true to keep a local cache of the contents
+of a Dropbox account, iterate through each entry in order and process them as follows to
+keep your local state in sync:
+
+- For each FileMetadata, store the new entry at the given path in your local state. 
+If the required parent folders don't exist yet, create them. If there's already something
+else at the given path, replace it and remove all its children.
+- For each FolderMetadata, store the new entry at the given path in your local state. If the
+required parent folders don't exist yet, create them. If there's already something else at 
+the given path, replace it but leave the children as they are. Check the new entry's 
+FolderSharingInfo.read_only and set all its children's read-only statuses to match.
+- For each DeletedMetadata, if your local state has something at the given path, remove it and 
+all its children. If there's nothing at the given path, ignore this entry.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: Path in the user's Dropbox to be deleted.
+
+pRecursive:
+If true, the list folder operation will be applied recursively to all subfolders and
+the response will contain contents of all subfolders. The default for this field is False.
+
+pIncludeMediaInfo:
+If true, FileMetadata.media_info is set for photo and
+video. The default for this field is False.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"entries": [
+{
+".tag": "file",
+"name": "Prime_Numbers.txt",
+"id": "id:a4ayc_80_OEAAAAAAAAAXw",
+"client_modified": "2015-05-12T15:50:38Z",
+"server_modified": "2015-05-12T15:50:38Z",
+"rev": "a1c10ce0dd78",
+"size": 7212,
+"path_lower": "/homework/math/prime_numbers.txt",
+"path_display": "/Homework/math/Prime_Numbers.txt",
+"sharing_info": {
+"read_only": true,
+"parent_shared_folder_id": "84528192421",
+"modified_by": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+},
+"property_groups": [
+{
+"template_id": "ptid:1a5n2i6d3OYEAAAAAAAAAYa",
+"fields": [
+{
+"name": "Security Policy",
+"value": "Confidential"
+}
+]
+}
+],
+"has_explicit_shared_members": false
+},
+{
+".tag": "folder",
+"name": "math",
+"id": "id:a4ayc_80_OEAAAAAAAAAXz",
+"path_lower": "/homework/math",
+"path_display": "/Homework/math",
+"sharing_info": {
+"read_only": false,
+"parent_shared_folder_id": "84528192421",
+"traverse_only": false,
+"no_access": false
+},
+"property_groups": [
+{
+"template_id": "ptid:1a5n2i6d3OYEAAAAAAAAAYa",
+"fields": [
+{
+"name": "Security Policy",
+"value": "Confidential"
+}
+]
+}
+]
+}
+],
+"cursor": "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu",
+"has_more": false
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxUploadSessionFinish
+
+Type: command
+
+Syntax: dropboxUploadSessionFinish <pAccessToken>, <pSession>, <pOffset>, <pPath>, <pMode>, <pAutorename>, <pMute>, <pData>, [<pCallback>]
+
+Summary: Finish an upload session and save the uploaded data to the given file path.
+
+Description:
+> *Note:* A single request should not upload more than 150 MB of file contents.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSession: A session ID as returned by dropboxUploadSessionStart.
+
+pOffset:
+The amount of data that has been uploaded so far. We use this to
+make sure upload data isn't lost or duplicated in the event of a network error.
+
+pPath: Path in the user's Dropbox to upload to.
+
+pMode:
+Selects what to do if the file already exists. The default for this union is add.
+
+- "add": Do not overwrite an existing file if there is a conflict. The autorename strategy is 
+to append a number to the file name. For example, "document.txt" might become "document (2).txt".
+- "overwrite": Always overwrite the existing file. The autorename strategy is the same as it is for add.
+- "update": Overwrite if the given "rev" matches the existing file's "rev". The autorename 
+strategy is to append the string "conflicted copy" to the file name. For example, "document.txt" 
+might become "document (conflicted copy).txt" or "document (Panda's conflicted copy).txt".
+
+pAutoRename:
+If there's a conflict, as determined by mode, have the Dropbox server try to autorename
+the file to avoid conflict. The default for this field is False.
+
+pMute:
+Normally, users are made aware of any file modifications in their Dropbox account via
+notifications in the client software. If true, this tells the clients that this modification 
+shouldn't result in a user notification. The default for this field is False
+
+pData: The binary file data
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"name": "Prime_Numbers.txt",
+"id": "id:a4ayc_80_OEAAAAAAAAAXw",
+"client_modified": "2015-05-12T15:50:38Z",
+"server_modified": "2015-05-12T15:50:38Z",
+"rev": "a1c10ce0dd78",
+"size": 7212,
+"path_lower": "/homework/math/prime_numbers.txt",
+"path_display": "/Homework/math/Prime_Numbers.txt",
+"sharing_info": {
+"read_only": true,
+"parent_shared_folder_id": "84528192421",
+"modified_by": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+},
+"property_groups": [
+{
+"template_id": "ptid:1a5n2i6d3OYEAAAAAAAAAYa",
+"fields": [
+{
+"name": "Security Policy",
+"value": "Confidential"
+}
+]
+}
+],
+"has_explicit_shared_members": false
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxRemoveFolderMember
+
+Type: command
+
+Syntax: dropboxRemoveFolderMember <pAccessToken>, <pSharedFolderId>, <pMember>, <pLeaveACopy>, [<pCallback>]
+
+Summary: Allows an owner or editor (if the ACL update policy allows) of a shared folder to remove another member.
+
+Description:
+Apps must have full Dropbox access to use this endpoint.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSharedFolderId: The ID for the shared folder.
+
+pMember:
+An array with either an email key or a dropbox_id key to identify the
+member to remove
+
+pLeaveACopy:
+Keep a copy of the folder's contents upon relinquishing membership. The default
+for this field is False.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": "complete"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxRevokeSharedLink
+
+Type: command
+
+Syntax: dropboxRevokeSharedLink <pAccessToken>, <pURL>, [<pCallback>]
+
+Summary: Revoke a shared link.
+
+Description:
+Note that even after revoking a shared link to a file, the file may be accessible if there are shared 
+links leading to any of the file parent folders. To list all shared links that enable access to a specific 
+file, you can use the list_shared_links with the file as the ListSharedLinksArg.path argument.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pURL: URL of the shared link.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If an error occurred the JSON string will be in
+the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxDownload
+
+Type: command
+
+Syntax: dropboxDownload <pAccessToken>, <pPath>, [<pCallback>]
+
+Summary: Download a file from a user's Dropbox.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: Path in the user's Dropbox to be download.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be the binary data of the file.
+
+If an error occurred it will be a JSON string in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxCopy
+
+Type: command
+
+Syntax: dropboxCopy <pAccessToken>, <pPathFrom>, <pPathTo>, <pAllowSharedFolder>, <pAutoRename>, [<pCallback>]
+
+Summary:
+Copy a file or folder to a different location in the user's Dropbox.
+If the source path is a folder all its contents will be copied.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPathFrom: Path in the user's Dropbox to be copied.
+
+pPathTo: Path in the user's Dropbox that is the destination.
+
+pAllowSharedFolder: If true, copy will copy contents in shared folder, otherwise RelocationError.cant_copy_shared_folder will be returned if pFromPath contains shared folder. The default for this field is false.
+
+pAutoRename: If there's a conflict, have the Dropbox server try to autorename the file to avoid the conflict. The default for this field is false.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": string,
+"name": string,
+"id": string,
+"client_modified": string,
+"server_modified": string,
+"rev": string,
+"size": integer,
+"path_lower": string,
+"path_display": string,
+"sharing_info": {
+"read_only": boolean,
+"parent_shared_folder_id": string,
+"modified_by": string
+},
+"property_groups": [
+{
+"template_id": string,
+"fields": [
+{
+"name": string,
+"value": string
+}
+]
+}
+],
+"has_explicit_shared_members": boolean
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxCreateFolder
+
+Type: command
+
+Syntax: dropboxCreateFolder <pAccessToken>, <pPath>, <pAutoRename>, [<pCallback>]
+
+Summary: Create a folder at a given path.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: Path in the user's Dropbox to be created.
+
+pAutoRename: If there's a conflict, have the Dropbox server try to autorename the file to avoid the conflict. The default for this field is false.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"name": string,
+"id": string,
+"path_lower": string,
+"path_display": string,
+"sharing_info": {
+"read_only": boolean,
+"parent_shared_folder_id": string,
+"traverse_only": boolean,
+"no_access": boolean
+},
+"property_groups": [
+{
+"template_id": string,
+"fields": [
+{
+"name": string,
+"value": string
+}
+]
+}
+]
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxDelete
+
+Type: command
+
+Syntax: dropboxDelete <pAccessToken>, <pPath>, [<pCallback>]
+
+Summary: Delete the file or folder at a given path.
+
+Description:
+If the path is a folder, all its contents will be deleted too.
+A successful response indicates that the file or folder was deleted. The returned
+metadata will be the corresponding FileMetadata or FolderMetadata for the item at
+time of deletion, and not a DeletedMetadata object.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: Path in the user's Dropbox to be deleted.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": string,
+"name": string,
+"id": string,
+"client_modified": string,
+"server_modified": string,
+"rev": string,
+"size": integer,
+"path_lower": string,
+"path_display": string,
+"sharing_info": {
+"read_only": boolean,
+"parent_shared_folder_id": string,
+"modified_by": string
+},
+"property_groups": [
+{
+"template_id": string,
+"fields": [
+{
+"name": string,
+"value": string
+}
+]
+}
+],
+"has_explicit_shared_members": boolean
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxGetAccountBatch
+
+Type: command
+
+Syntax: dropboxGetAccountBatch <pAccessToken>, <pUserAccountIDs>, [<pCallback>]
+
+Summary: Get information about multiple user accounts. At most 300 accounts may be queried per request.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pUserAccountIDs: A return delimited list of unique Dropbox IDs.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+[
+{
+"account_id": string,
+"name": {
+"given_name": string,
+"surname": string,
+"familiar_name": string,
+"display_name": string,
+"abbreviated_name": string
+},
+"email": string,
+"email_verified": boolean,
+"disabled": boolean,
+"is_teammate": boolean,
+"profile_photo_url": string
+}
+]
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxAddFolderMember
+
+Type: command
+
+Syntax: dropboxAddFolderMember <pAccessToken>, <pSharedFolderId>, <pMembers>, <pQuiet>, <pCustomMessage>, [<pCallback>]
+
+Summary: Allows an owner or editor (if the ACL update policy allows) of a shared folder to add another member.
+
+Description:
+For the new member to get access to all the functionality for this folder, you will need 
+to call dropboxMountFolder on their behalf. Apps must have full Dropbox access to use 
+this endpoint.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSharedFolderId: The ID for the shared folder.
+
+pMembers:
+The intended list of members to add. Added members will
+receive invites to join the shared folder.
+
+````
+[
+{
+"email" : email address of member (optional if dropbox_id is set)
+"drobox_id" : a unique dropbox user id
+"access_level" (enum): 
+- "owner" : The collaborator is the owner of the shared folder. Owners can 
+view and edit the shared folder as well as set the folder's policies using 
+update_folder_policy.
+- "editor: The collaborator can both view and edit the shared folder.
+- "viewer": The collaborator can only view the shared folder.
+- "viewer_no_comment": The collaborator can only view the shared folder 
+and does not have any access to comments.
+}
+]
+````
+
+pQuiet:
+Whether added members should be notified via email and
+device notifications of their invite. The default for this field is False.
+
+pCustomMessage: Optional message to display to added members in their invitation.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If an error occurred the JSON string will be in
+the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxListFolders
+
+Type: command
+
+Syntax: dropboxListFolders <pAccessToken>, [<pActions>, <pLimit>, <pCallback>]
+
+Summary: Return the list of all shared folders the current user has access to.
+
+Description:
+Apps must have full Dropbox access to use this endpoint.
+
+If a cursor is present then use the value with dropboxListFolderMembersContinue to obtain
+more results.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pActions:
+This is a return delimited list indicating whether the returned folder data will
+include a boolean value FolderPermission.allow that describes whether the current user can 
+perform the folder action on the folder. This field is optional.
+
+Actions that may be taken on shared folders. The value will be one of the following datatypes.
+New values may be introduced as our API evolves.
+
+- "change_options": Change folder options, such as who can be invited to join the folder.
+- "edit_contents": Change or edit contents of the folder.
+- "invite_editor": Invite a user or group to join the folder with read and write permission.
+- "invite_viewer": Invite a user or group to join the folder with read permission.
+- "invite_viewer_no_comment": Invite a user or group to join the folder with read permission but no comment permissions.
+- "relinquish_membership": Relinquish one's own membership in the folder.
+- "unmount": Unmount the folder.
+- "unshare": Stop sharing this folder.
+- "leave_a_copy": Keep a copy of the contents upon leaving or being kicked from the folder.
+- "share_link": This action is deprecated. Use create_link instead.
+- "create_link": Create a shared link for folder.
+
+pLimit:
+The maximum number of results that include members, groups and invitees to return per request.
+The default for this field is 1000.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"entries": [
+{
+"access_type": {
+".tag": "owner"
+},
+"is_team_folder": false,
+"policy": {
+"acl_update_policy": {
+".tag": "owner"
+},
+"shared_link_policy": {
+".tag": "anyone"
+},
+"member_policy": {
+".tag": "anyone"
+},
+"resolved_member_policy": {
+".tag": "team"
+}
+},
+"name": "dir",
+"shared_folder_id": "84528192421",
+"time_invited": "2016-01-20T00:00:00Z",
+"preview_url": "https://www.dropbox.com/scl/fo/fir9vjelf",
+"path_lower": "/dir",
+"permissions": []
+}
+],
+"cursor": "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxListSharedLinks
+
+Type: command
+
+Syntax: dropboxListSharedLinks <pAccessToken>, [<pPath>, <pDirectOnly>, <pCursor>, <pCallback>]
+
+Summary: List shared links of this user.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath:
+If no path is given, returns a list of all shared links for the current user.
+If a non-empty path is given, returns a list of all shared links that allow access 
+to the given path - direct links to the given path and links to parent folders of 
+the given path.
+
+pDirectOnly: Links to parent folders can be suppressed by setting direct_only to true.
+
+pCursor: The cursor returned by your last call to list_shared_links. This field is optional.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"links": [
+{
+".tag": "file",
+"url": "https://www.dropbox.com/s/2sn712vy1ovegw8/Prime_Numbers.txt?dl=0",
+"name": "Prime_Numbers.txt",
+"link_permissions": {
+"can_revoke": false,
+"resolved_visibility": {
+".tag": "public"
+},
+"revoke_failure_reason": {
+".tag": "owner_only"
+}
+},
+"client_modified": "2015-05-12T15:50:38Z",
+"server_modified": "2015-05-12T15:50:38Z",
+"rev": "a1c10ce0dd78",
+"size": 7212,
+"id": "id:a4ayc_80_OEAAAAAAAAAXw",
+"path_lower": "/homework/math/prime_numbers.txt",
+"team_member_info": {
+"team_info": {
+"id": "dbtid:AAFdgehTzw7WlXhZJsbGCLePe8RvQGYDr-I",
+"name": "Acme, Inc."
+},
+"display_name": "Roger Rabbit",
+"member_id": "dbmid:abcd1234"
+}
+}
+],
+"has_more": true,
+"cursor": "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxModifySharedLinkSettings
+
+Type: command
+
+Syntax: dropboxModifySharedLinkSettings <pAccessToken>, <pUrl>, [<pSettings>, <pRemoveExpiration>, <pCallback>]
+
+Summary: Modify the shared link's settings.
+
+Description:
+If the requested visibility conflict with the shared links policy of the team or the shared folder 
+(in case the linked file is part of a shared folder) then the LinkPermissions.resolved_visibility 
+of the returned SharedLinkMetadata will reflect the actual visibility of the shared link and the 
+LinkPermissions.requested_visibility will reflect the requested visibility.
+
+If no settings are given then the default visibility is RequestedVisibility.public 
+(The resolved visibility, though, may depend on other aspects such as team and 
+shared folder settings).
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pURL: URL of the shared link to change its settings
+
+pSettings:
+````
+{
+"requested_visibility" (enum): The requested access for this shared link. This field is optional.
+
+- "public": Anyone who has received the link can access it. No login required.
+- "team_only": Only members of the same team can access the link. Login is required.
+- "password": A link-specific password is required to access the link. Login is not required.
+"link_password": If requested_visibility is password this is needed to specify the password to access the link. This field is optional.
+"expires": format="%Y-%m-%dT%H:%M:%SZ" - Expiration time of the shared link. By default the link won't expire. This field is optional.
+}
+````
+
+pRemoveExpiration:
+f set to true, removes the expiration of the shared link.
+The default for this field is False.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": "file",
+"url": "https://www.dropbox.com/s/2sn712vy1ovegw8/Prime_Numbers.txt?dl=0",
+"name": "Prime_Numbers.txt",
+"link_permissions": {
+"can_revoke": false,
+"resolved_visibility": {
+".tag": "public"
+},
+"revoke_failure_reason": {
+".tag": "owner_only"
+}
+},
+"client_modified": "2015-05-12T15:50:38Z",
+"server_modified": "2015-05-12T15:50:38Z",
+"rev": "a1c10ce0dd78",
+"size": 7212,
+"id": "id:a4ayc_80_OEAAAAAAAAAXw",
+"path_lower": "/homework/math/prime_numbers.txt",
+"team_member_info": {
+"team_info": {
+"id": "dbtid:AAFdgehTzw7WlXhZJsbGCLePe8RvQGYDr-I",
+"name": "Acme, Inc."
+},
+"display_name": "Roger Rabbit",
+"member_id": "dbmid:abcd1234"
+}
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxPermanentlyDelete
+
+Type: command
+
+Syntax: dropboxPermanentlyDelete <pAccessToken>, <pPath>, [<pCallback>]
+
+Summary: Permanently delete the file or folder at a given path.
+
+Description:
+> *Note:* This endpoint is only available for Dropbox Indy apps.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: Path in the user's Dropbox to be deleted.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function.
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxListMountableFolders
+
+Type: command
+
+Syntax: dropboxListMountableFolders <pAccessToken>, [<pActions>, <pLimit>, <pCallback>]
+
+Summary: Return the list of all shared folders the current user can mount or unmount.
+
+Description:
+Apps must have full Dropbox access to use this endpoint.
+
+If a cursor is present then use the value with dropboxListMountableFoldersContinue to obtain
+more results.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pActions:
+This is a return delimited list indicating whether the returned folder data will
+include a boolean value FolderPermission.allow that describes whether the current user can 
+perform the folder action on the folder. This field is optional.
+
+Actions that may be taken on shared folders. The value will be one of the following datatypes.
+New values may be introduced as our API evolves.
+
+- "change_options": Change folder options, such as who can be invited to join the folder.
+- "edit_contents": Change or edit contents of the folder.
+- "invite_editor": Invite a user or group to join the folder with read and write permission.
+- "invite_viewer": Invite a user or group to join the folder with read permission.
+- "invite_viewer_no_comment": Invite a user or group to join the folder with read permission but no comment permissions.
+- "relinquish_membership": Relinquish one's own membership in the folder.
+- "unmount": Unmount the folder.
+- "unshare": Stop sharing this folder.
+- "leave_a_copy": Keep a copy of the contents upon leaving or being kicked from the folder.
+- "share_link": This action is deprecated. Use create_link instead.
+- "create_link": Create a shared link for folder.
+
+pLimit:
+The maximum number of results that include members, groups and invitees to return per request.
+The default for this field is 1000.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"entries": [
+{
+"access_type": {
+".tag": "owner"
+},
+"is_team_folder": false,
+"policy": {
+"acl_update_policy": {
+".tag": "owner"
+},
+"shared_link_policy": {
+".tag": "anyone"
+},
+"member_policy": {
+".tag": "anyone"
+},
+"resolved_member_policy": {
+".tag": "team"
+}
+},
+"name": "dir",
+"shared_folder_id": "84528192421",
+"time_invited": "2016-01-20T00:00:00Z",
+"preview_url": "https://www.dropbox.com/scl/fo/fir9vjelf",
+"path_lower": "/dir",
+"permissions": []
+}
+],
+"cursor": "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxMove
+
+Type: command
+
+Syntax: dropboxMove <pAccessToken>, <pPathFrom>, <pPathTo>, <pAllowSharedFolder>, <pAutoRename>, [<pCallback>]
+
+Summary: Move a file or folder to a different location in the user's Dropbox.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPathFrom: Path in the user's Dropbox to be moved.
+
+pPathTo: Path in the user's Dropbox that is the destination.
+
+pAllowSharedFolder: If true, copy will copy contents in shared folder, otherwise RelocationError.cant_copy_shared_folder will be returned if pFromPath contains shared folder. The default for this field is false.
+
+pAutoRename: If there's a conflict, have the Dropbox server try to autorename the file to avoid the conflict. The default for this field is false.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": "file",
+"name": "Prime_Numbers.txt",
+"id": "id:a4ayc_80_OEAAAAAAAAAXw",
+"client_modified": "2015-05-12T15:50:38Z",
+"server_modified": "2015-05-12T15:50:38Z",
+"rev": "a1c10ce0dd78",
+"size": 7212,
+"path_lower": "/homework/math/prime_numbers.txt",
+"path_display": "/Homework/math/Prime_Numbers.txt",
+"sharing_info": {
+"read_only": true,
+"parent_shared_folder_id": "84528192421",
+"modified_by": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+},
+"property_groups": [
+{
+"template_id": "ptid:1a5n2i6d3OYEAAAAAAAAAYa",
+"fields": [
+{
+"name": "Security Policy",
+"value": "Confidential"
+}
+]
+}
+],
+"has_explicit_shared_members": false
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxListFolderLongPoll
+
+Type: command
+
+Syntax: dropboxListFolderLongPoll <pCursor>, <pTimeout>, [<pCallback>]
+
+Summary: A longpoll endpoint to wait for changes on an account.
+
+Description:
+In conjunction with dropboxListFolderContinue, this call gives you a low-latency way to monitor an account
+for file changes. The connection will block until there are changes available or a timeout occurs.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pCursor:
+A cursor as returned by dropboxListFolder or dropboxListFolderContinue. Cursors retrieved
+by setting ListFolderArg.include_media_info to true are not supported.
+
+pTimeOut:
+A timeout in seconds. The request will block for at most this length of time, plus up to
+90 seconds of random jitter added to avoid the thundering herd problem. Care should be taken when
+using this parameter, as some network infrastructure does not support long timeouts. The default for
+this field is 30.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"changes": true
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxGetSharedLinkFile
+
+Type: command
+
+Syntax: dropboxGetSharedLinkFile <pAccessToken>, <pUrl>, [<pPath>, <pLinkPassword>, <pCallback>]
+
+Summary: Download the shared link's file from a user's Dropbox.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pURL: URL of the shared link
+
+pPath:
+If the shared link is to a folder, this parameter can be used to retrieve the metadata
+for a specific file or sub-folder in this folder. A relative path should be used. This field is optional.
+
+pLinkPassword: If the shared link has a password, this parameter can be used. This field is optional.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be the binary data of the file.
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxUpdateFolderMember
+
+Type: command
+
+Syntax: dropboxUpdateFolderMember <pAccessToken>, <pSharedFolderId>, <pMember>, <pAccessLevel>, [<pCallback>]
+
+Summary: Allows an owner or editor of a shared folder to update another member's permissions.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSharedFolderID: The ID for the shared folder.
+
+pMember:
+An array with either an email key or a dropbox_id key to identify the
+member to remove
+
+pAccessLevel:
+The new access level for member. Defines the access levels for collaborators.
+The value will be one of the following datatypes. New values may be introduced as our API evolves.
+
+- "editor": The collaborator can both view and edit the shared folder.
+- "viewer": The collaborator can only view the shared folder.
+- "viewer_no_comment": The collaborator can only view the shared folder and does not have any access to comments.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string that contains information about a member's 
+access level to content after an operation.
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxGetSharedLinkMetadata
+
+Type: command
+
+Syntax: dropboxGetSharedLinkMetadata <pAccessToken>, <pUrl>, [<pPath>, <pLinkPassword>, <pCallback>]
+
+Summary: Get the shared link's metadata.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pURL: URL of the shared link
+
+pPath:
+If the shared link is to a folder, this parameter can be used to retrieve the metadata
+for a specific file or sub-folder in this folder. A relative path should be used. This field is optional.
+
+pLinkPassword: If the shared link has a password, this parameter can be used. This field is optional.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": "file",
+"url": "https://www.dropbox.com/s/2sn712vy1ovegw8/Prime_Numbers.txt?dl=0",
+"name": "Prime_Numbers.txt",
+"link_permissions": {
+"can_revoke": false,
+"resolved_visibility": {
+".tag": "public"
+},
+"revoke_failure_reason": {
+".tag": "owner_only"
+}
+},
+"client_modified": "2015-05-12T15:50:38Z",
+"server_modified": "2015-05-12T15:50:38Z",
+"rev": "a1c10ce0dd78",
+"size": 7212,
+"id": "id:a4ayc_80_OEAAAAAAAAAXw",
+"path_lower": "/homework/math/prime_numbers.txt",
+"team_member_info": {
+"team_info": {
+"id": "dbtid:AAFdgehTzw7WlXhZJsbGCLePe8RvQGYDr-I",
+"name": "Acme, Inc."
+},
+"display_name": "Roger Rabbit",
+"member_id": "dbmid:abcd1234"
+}
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxListFolderContinue
+
+Type: command
+
+Syntax: dropboxListFolderContinue <pAccessToken>, <pCursor>, [<pCallback>]
+
+Summary:
+Once a cursor has been retrieved from list_folder, use this to paginate through all files and
+retrieve updates to the folder, following the same rules as documented for list folder.
+
+Description:
+If the result's ListFolderResult.has_more field is true, call list_folder/continue with 
+the returned ListFolderResult.cursor to retrieve more entries.
+
+If you're using ListFolderArg.recursive set to true to keep a local cache of the contents
+of a Dropbox account, iterate through each entry in order and process them as follows to
+keep your local state in sync:
+
+- For each FileMetadata, store the new entry at the given path in your local state. 
+If the required parent folders don't exist yet, create them. If there's already something
+else at the given path, replace it and remove all its children.
+- For each FolderMetadata, store the new entry at the given path in your local state. If the
+required parent folders don't exist yet, create them. If there's already something else at 
+the given path, replace it but leave the children as they are. Check the new entry's 
+FolderSharingInfo.read_only and set all its children's read-only statuses to match.
+- For each DeletedMetadata, if your local state has something at the given path, remove it and 
+all its children. If there's nothing at the given path, ignore this entry.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pCursor: The cursor returned by your last call to list folder or list folder continue.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"entries": [
+{
+".tag": "file",
+"name": "Prime_Numbers.txt",
+"id": "id:a4ayc_80_OEAAAAAAAAAXw",
+"client_modified": "2015-05-12T15:50:38Z",
+"server_modified": "2015-05-12T15:50:38Z",
+"rev": "a1c10ce0dd78",
+"size": 7212,
+"path_lower": "/homework/math/prime_numbers.txt",
+"path_display": "/Homework/math/Prime_Numbers.txt",
+"sharing_info": {
+"read_only": true,
+"parent_shared_folder_id": "84528192421",
+"modified_by": "dbid:AAH4f99T0taONIb-OurWxbNQ6ywGRopQngc"
+},
+"property_groups": [
+{
+"template_id": "ptid:1a5n2i6d3OYEAAAAAAAAAYa",
+"fields": [
+{
+"name": "Security Policy",
+"value": "Confidential"
+}
+]
+}
+],
+"has_explicit_shared_members": false
+},
+{
+".tag": "folder",
+"name": "math",
+"id": "id:a4ayc_80_OEAAAAAAAAAXz",
+"path_lower": "/homework/math",
+"path_display": "/Homework/math",
+"sharing_info": {
+"read_only": false,
+"parent_shared_folder_id": "84528192421",
+"traverse_only": false,
+"no_access": false
+},
+"property_groups": [
+{
+"template_id": "ptid:1a5n2i6d3OYEAAAAAAAAAYa",
+"fields": [
+{
+"name": "Security Policy",
+"value": "Confidential"
+}
+]
+}
+]
+}
+],
+"cursor": "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu",
+"has_more": false
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxShareFolder
+
+Type: command
+
+Syntax: dropboxShareFolder <pAccessToken>, <pPath>, <pMemberPolicy>, <pAclUpdatePolicy>, <pSharedLinkPolicy>, <pForceAsync>, [<pCallback>]
+
+Summary: Share a folder with collaborators.
+
+Description:
+Most sharing will be completed synchronously. Large folders will be completed asynchronously. To make
+testing the async case repeatable, set `ShareFolderArg.force_async`.
+If a ShareFolderLaunch.async_job_id is returned, you'll need to call check_share_job_status until the 
+action completes to get the metadata for the folder.
+Apps must have full Dropbox access to use this endpoint.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: The path to the folder to share. If it does not exist, then a new one is created.
+
+pMemberPolicy:
+Who can be a member of this shared folder. Only applicable if the current user is on a team. The default for this union is anyone.
+
+- "anyone": Anyone can become a member.
+- "team": Only a teammate can become a member.
+
+pAclUpdatePolicy:
+Who can add and remove members of this shared folder. The default for this union is owner.
+Policy governing who can change a shared folder's access control list (ACL). In other words, who can add, remove, or change the privileges of members. The value will be one of the following datatypes. New values may be introduced as our API evolves.
+
+- "owner": Only the owner can update the ACL.
+- "editors": Any editor can update the ACL. This may be further restricted to editors on the same team.
+
+pSharedLinkPolicy:
+The policy to apply to shared links created for content inside this shared folder. The current
+user must be on a team to set this policy to SharedLinkPolicy.members. The default for this union is anyone.
+Policy governing who can view shared links. The value will be one of the following datatypes. New values may be 
+introduced as our API evolves.
+
+- "anyone": Links can be shared with anyone.
+- "members": Links can only be shared among members of the shared folder.
+
+pForceAsync: Whether to force the share to happen asynchronously. The default for this field is False.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+".tag": "complete"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxTransferFolder
+
+Type: command
+
+Syntax: dropboxTransferFolder <pAccessToken>, <pSharedFolderId>, <pToDropboxId>, [<pCallback>]
+
+Summary: Transfer ownership of a shared folder to a member of the shared folder.
+
+Description:
+User must have AccessLevel.owner access to the shared folder to perform a transfer.
+Apps must have full Dropbox access to use this endpoint.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSharedFolderID: The ID for the shared folder.
+
+pToDropboxId: A account or team member ID to transfer ownership to.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxGetCurrentAccount
+
+Type: command
+
+Syntax: dropboxGetCurrentAccount <pAccessToken>, [<pCallback>]
+
+Summary: Get information about the current user's account.
+
+Description:
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"account_id": string,
+"name": {
+"given_name": string,
+"surname": string,
+"familiar_name": string,
+"display_name": string,
+"abbreviated_name": string
+},
+"email": string,
+"email_verified": boolean,
+"disabled": boolean,
+"is_teammate": boolean,
+"profile_photo_url": string
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxListMountableFoldersContinue
+
+Type: command
+
+Syntax: dropboxListMountableFoldersContinue <pAccessToken>, <pCursor>, [<pCallback>]
+
+Summary: Once a cursor has been retrieved from dropboxListMountableFolders, use this to paginate through all shared folder members.
+
+Description:
+Apps must have full Dropbox access to use this endpoint.
+
+If a cursor is present then use the value with dropboxListFolderMembersContinue to obtain
+more results.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pCursor: The cursor returned by your last call to dropboxListMountableFolders or dropboxListMountableFoldersContinue.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"entries": [
+{
+"access_type": {
+".tag": "owner"
+},
+"is_team_folder": false,
+"policy": {
+"acl_update_policy": {
+".tag": "owner"
+},
+"shared_link_policy": {
+".tag": "anyone"
+},
+"member_policy": {
+".tag": "anyone"
+},
+"resolved_member_policy": {
+".tag": "team"
+}
+},
+"name": "dir",
+"shared_folder_id": "84528192421",
+"time_invited": "2016-01-20T00:00:00Z",
+"preview_url": "https://www.dropbox.com/scl/fo/fir9vjelf",
+"path_lower": "/dir",
+"permissions": []
+}
+],
+"cursor": "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxUploadSessionAppend
+
+Type: command
+
+Syntax: dropboxUploadSessionAppend <pAccessToken>, <pSession>, <pOffset>, <pData>, [<pCallback>]
+
+Summary: Append more data to an upload session.
+
+Description:
+> *Note:* A single request should not upload more than 150 MB of file contents.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pSession: A session ID as returned by dropboxUploadSessionStart.
+
+pOffset:
+The amount of data that has been uploaded so far. We use this to
+make sure upload data isn't lost or duplicated in the event of a network error.
+
+pData: The binary file data
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. 
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+
+Name: dropboxListFolderGetLatestCursor
+
+Type: command
+
+Syntax: dropboxListFolderGetLatestCursor <pAccessToken>, <pPath>, <pRecursive>, <pIncludeMediaInfo>, [<pCallback>]
+
+Summary: A way to get a cursor for the folder's state.
+
+Description:
+Unlike dropboxListFolder, dropboxListFolderGetLatestCursor doesn't return any entries. This endpoint is 
+for app which only needs to know about new files and modifications and doesn't need to know
+about files that already exist in Dropbox. Use the returned cursor with dropboxListFolderContinue to
+obtain the entries.
+
+If the callback parameter is not empty the request will be asynchronus and
+when complete the callback will be sent to the object that accessed the API.
+The callback will be sent with three parameters:
+
+- The request ID which will be the value of the it variable after calling the command
+- The HTTP response code
+- The data returned which will be the same data as documented for the it variable in a synchronous request.
+
+Parameters: 
+
+pAccessToken: An OAuth2 Access token to access the user's account
+
+pPath: The path to the folder you want to see the contents of.
+
+pRecursive:
+If true, the list folder operation will be applied recursively to all subfolders and
+the response will contain contents of all subfolders. The default for this field is False.
+
+pIncludeMediaInfo:
+If true, FileMetadata.media_info is set for photo and
+video. The default for this field is False.
+
+pCallback:
+The handler to call when the request is complete. If empty the command
+will block until complete. Requires tsNet with LiveCode Indy License.
+
+The result: An error if the HTTP request failed
+
+It:
+For asynchronous requests it will contain a request ID. This may be used with
+tsNet's tsNetGetStatus function. If the request is synchronous and successful the it
+variable will be a UTF-8 encoded JSON string in the form:
+
+````
+{
+"cursor": "ZtkX9_EHj3x7PMkVuFIhwKYXEpwpLwyxp9vMKomUhllil9q7eWiAu"
+}
+````
+
+If an error occurred the JSON string will be in the following form:
+
+````
+{
+"error_summary": string,
+"error": {
+".tag": string
+}
+}
+````
+
+
+

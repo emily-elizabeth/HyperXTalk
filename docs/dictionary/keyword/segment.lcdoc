@@ -1,0 +1,41 @@
+Name: segment
+
+Synonyms: word
+
+Type: keyword
+
+Syntax: segment
+
+Summary:
+Designates a <space>-<delimit|delimited> or <quoted> <string> as part of a
+<chunk expression>.
+
+Introduced: 7.0
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Example:
+get last segment of the long name of this stack
+
+Description:
+Use the <segment> keyword to refer to one or more <words> in a container.
+
+A <segment> is <delimit|delimited> by one or more <space|spaces>, <tab|tabs>, 
+or <return(constant)|returns>, or enclosed by <double quote|double quotes>. 
+A single <segment> can contain multiple <characters> and multiple <item|items>, 
+but not multiple <line|lines>.
+
+>*Note:*  <segment|Segments> are <delimit|delimited> by <double quote|double quotes> ("), 
+> but not by curved quotes (“ or ”). LiveCode does not 
+> treat curved quotes as quotes.
+
+References: quoted (glossary), chunk expression (glossary), double quote (glossary), 
+delimit (glossary), string (keyword), item (keyword), character (keyword),
+characters (keyword), lines (keyword), segments (keyword),
+sentence (keyword), trueWord (keyword), line (keyword), words (keyword),
+token (keyword), paragraph (keyword), space (constant), tab (constant),
+return (constant)
+
+Tags: text processing

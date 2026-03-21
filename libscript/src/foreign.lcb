@@ -1,0 +1,103 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+ 
+ This file is part of LiveCode.
+ 
+ LiveCode is free software; you can redistribute it and/or modify it under
+ the terms of the GNU General Public License v3 as published by the Free
+ Software Foundation.
+ 
+ LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
+module com.livecode.foreign
+
+----------------------------------------------------------------
+-- Machine types
+----------------------------------------------------------------
+
+public foreign type Bool binds to "MCForeignBoolTypeInfo"
+
+public foreign type UInt8 binds to "MCForeignUInt8TypeInfo"
+public foreign type SInt8 binds to "MCForeignSInt8TypeInfo"
+public foreign type UInt16 binds to "MCForeignUInt16TypeInfo"
+public foreign type SInt16 binds to "MCForeignSInt16TypeInfo"
+public foreign type UInt32 binds to "MCForeignUInt32TypeInfo"
+public foreign type SInt32 binds to "MCForeignSInt32TypeInfo"
+public foreign type UInt64 binds to "MCForeignUInt64TypeInfo"
+public foreign type SInt64 binds to "MCForeignSInt64TypeInfo"
+
+public type Int8 is SInt8
+public type Int16 is SInt16
+public type Int32 is SInt32
+public type Int64 is SInt64
+
+public foreign type Float32 binds to "MCForeignFloatTypeInfo"
+public foreign type Float64 binds to "MCForeignDoubleTypeInfo"
+
+public foreign type Pointer binds to "MCForeignPointerTypeInfo"
+
+public foreign type UIntSize binds to "MCForeignUIntSizeTypeInfo"
+public foreign type SIntSize binds to "MCForeignSIntSizeTypeInfo"
+
+public type IntSize is SIntSize
+
+public foreign type UIntPtr binds to "MCForeignUIntPtrTypeInfo"
+public foreign type SIntPtr binds to "MCForeignSIntPtrTypeInfo"
+
+public type IntPtr is SIntPtr
+
+public foreign type NaturalUInt binds to "MCForeignNaturalUIntTypeInfo"
+public foreign type NaturalSInt binds to "MCForeignNaturalSIntTypeInfo"
+public foreign type NaturalFloat binds to "MCForeignNaturalFloatTypeInfo"
+
+----------------------------------------------------------------
+-- C types
+----------------------------------------------------------------
+
+public foreign type CBool binds to "MCForeignCBoolTypeInfo"
+public foreign type CChar binds to "MCForeignCCharTypeInfo"
+public foreign type CUChar binds to "MCForeignCUCharTypeInfo"
+public foreign type CSChar binds to "MCForeignCSCharTypeInfo"
+public foreign type CUShort binds to "MCForeignCUShortTypeInfo"
+public foreign type CSShort binds to "MCForeignCSShortTypeInfo"
+public foreign type CUInt binds to "MCForeignCUIntTypeInfo"
+public foreign type CSInt binds to "MCForeignCSIntTypeInfo"
+public foreign type CULong binds to "MCForeignCULongTypeInfo"
+public foreign type CSLong binds to "MCForeignCSLongTypeInfo"
+public foreign type CULongLong binds to "MCForeignCULongLongTypeInfo"
+public foreign type CSLongLong binds to "MCForeignCSLongLongTypeInfo"
+
+public type CShort is CSShort
+public type CInt is CSInt
+public type CLong is CSLong
+public type CLongLong is CSLongLong
+
+public type CFloat is Float32
+public type CDouble is Float64
+
+----------------------------------------------------------------
+-- LiveCode engine types
+----------------------------------------------------------------
+
+public foreign type LCSInt binds to "MCForeignSIntTypeInfo"
+public foreign type LCUInt binds to "MCForeignUIntTypeInfo"
+
+public type LCInt is LCSInt
+
+public type LCIndex is LCSInt
+public type LCUIndex is LCUInt
+
+----------------------------------------------------------------
+-- Nul-terminated string pointer types
+----------------------------------------------------------------
+
+public foreign type ZStringNative binds to "MCNativeCStringTypeInfo"
+public foreign type ZStringUTF16 binds to "MCWStringTypeInfo"
+public foreign type ZStringUTF8 binds to "MCUTF8StringTypeInfo"
+
+end module

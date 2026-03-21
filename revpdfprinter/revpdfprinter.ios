@@ -1,0 +1,6 @@
+library z
+framework CoreGraphics
+framework CoreFoundation
+framework CoreText
+framework Foundation
+

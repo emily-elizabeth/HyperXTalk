@@ -1,0 +1,73 @@
+Name: *
+
+Type: operator
+
+Syntax: <number1> * <number2>
+
+Summary:
+Multiplies two numbers or arrays containing numbers.
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android, html5
+
+Platforms: desktop, server, mobile
+
+Example:
+local thisNumber
+get 3 * 5 -- evaluates to 15
+put thisNumber * it into field "Result"
+
+Example:
+local commonFactor, tempVariable
+put (3 + commonFactor) * 4 into tempVariable
+
+Example:
+local tArray, tProductArray
+put 1 into tArray[1]
+put 2 into tArray[2]
+put tArray * 10 into tProductArray
+
+Parameters:
+number1:
+A number or an expression that evaluates to a number, or an array 
+containing numbers.
+
+number2:
+A number or an expression that evaluates to a number, or an array 
+containing numbers.
+
+Description:
+Use the <*> (times) <operator> to multiply two numbers.
+
+> *Note:* When used in complex arithmetic statements, 
+<operator|operators> like <*> follows standard rules of <precedence>.
+
+To multiply the contents of a container by a number, use the <multiply>
+<command> instead.
+
+If either <number1> or <number2> is an <array>, each of the <array>
+<element|elements> must be a number. If an <array> is
+multiplied by a number, each <element> is multiplied by the
+number. If an <array> is multiplied by an <array>, both <array|arrays>
+must have the same number of <element|elements> and the same
+dimension, and each <element> in one <array> is multiplied by
+the corresponding <element> of the other <array>.
+
+If an element of one array is empty, the <*> <operator> treats its
+contents as zero.
+
+If a math operation on finite inputs produces a non-finite output, an
+execution error is thrown. See <math operation|math operations> for more
+information.
+
+Changes:
+The option to multiply arrays was introduced in version 1.1. In previous
+versions, only single numbers could be used with the * operator.
+
+References: multiply (command), operator (glossary), array (glossary),
+command (glossary), element (glossary), / (operator),
+() (operator), precedence (glossary), math operation (glossary)
+
+Tags: math
+

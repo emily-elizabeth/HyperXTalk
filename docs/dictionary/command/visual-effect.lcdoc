@@ -1,0 +1,197 @@
+Name: visual effect
+
+Type: command
+
+Syntax: visual [effect] <effectName> [<speed>] [to <finalImage>] [with sound <audioClip>] [and <param> <value> ...]
+
+Summary:
+Adds a visual effect transition.
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android, html5
+
+Platforms: desktop, mobile
+
+Example:
+visual effect "dissolve"
+go next card
+
+Example:
+-- MacOS only.
+visual effect "CIPageCurlTransition" slow with Angle 1.0 and Radius 70 and Extent "30,30,300,300"
+go next card
+lock screen for visual effect in rect "30,30,300,300"
+go previous card
+unlock screen with visual effect "CIModTransition" with Angle -1 and Radius 70   
+
+Example:
+-- This handler in an object will cause to hide then show 
+--  with a visual effect when clicked.
+on mouseUp
+  hide me
+  show me with visual effect "iris" close slow
+end mouseUp
+
+Example:
+lock screen for visual effect
+show image "skull" 
+unlock screen with visual effect "zoom" open to inverse with sound "doom.wav"
+
+Parameters:
+effectName: One of the following. 
+(Effects work on all OSes unless otherwise noted.)
+
+- plain
+- checkerboard
+- venetian blinds
+- iris close|open
+- zoom close|in|open|out
+- wipe up|down|right|left
+- dissolve
+- push up|down|right|left
+- reveal up|down|right|left
+- shrink to bottom|to center|to top
+- stretch from bottom|from center|from top
+- scroll up|left|down|right 
+- curl up|down: (iOS only)
+- flip left|right: (iOS only); the background behind the flip is
+  taken from the background color of the current stack, i.e. the card is
+  cut out and flipped over the stack
+- an encoded <QuickTime> special effect description generated 
+by <answer effect> (see Changes below)
+- the name of a Core Image Transition Effect (MacOS/iOS only; see note below)
+
+
+speed (enum):
+If no speed is specified, the visual effect takes place at normal speed.
+
+-   very fast
+-   fast
+-   normal
+-   slow
+-   very slow
+
+
+finalImage (enum):
+
+-   gray 
+-   inverse
+-   card
+-   white
+-   black
+
+
+audioClip:
+A reference to an audio clip in an open stack, or the file path of a
+sound file. The sound is played during the transition.
+
+param: 
+The name of a Core Image effect parameter.
+
+value: 
+The value for the preceding named Core Image effect parameter.
+
+Description:
+Use the <visual effect> <command> to add a transition effect the next time
+there is a move to another <card(object)>.
+
+When you issue a <visual effect> <command>, it is stored to be used the
+next time you navigate to another <card(object)> in the same window with the
+<go>, <find>, or <pop> <command>. Usually, you place the <visual effect>
+<command> immediately before these <command|commands> in a <handler>,
+like this:
+
+    visual effect "dissolve" -- sets up the effect
+    go to card Index       -- effect is seen during the go
+
+
+However, it is not necessary to execute the navigation command
+immediately; the visual effect is stored and used the next time you
+navigate. You can even issue a <visual effect> <command> in one
+<handler> and the navigation <command> in another <handler>. All visual
+effects are cleared when all pending <handler|handlers> <exit>.
+
+The <visual effect> <command> affects only navigation within a window.
+If you want to create a transition effect when moving between <stack|stacks>,
+use the go...in window form of the go <command> :
+
+    visual effect "wipe down"
+    go stack Index in window "Part 2" -- replaces stack on screen
+
+You can issue more than one visual effect in order to stack up several
+effects. All the pending visual effects are executed in the order they
+were issued during the <card(object)> transition. This example makes 
+the <card(object)> appear to shrink and then re-expand:
+
+    visual effect "shrink" to center to black
+    visual effect "stretch" from center to card
+    go card "Showoff"
+
+
+The speed of visual effects is controlled by the setting of the
+<effectRate> <property>.
+
+To execute a <visual effect> without moving to another <card(object)>, 
+lock the screen using the `lock screen for visual effect` form of the 
+<lock screen> <command>, make any changes you want to 
+the <card(object)|card's> appearance, and use the `unlock screen with 
+visual effect` form of the <unlock screen> <command>.
+
+Visual effects do not affect the rectangle of a player whose
+<alwaysBuffer> <property> is set to false. For visual effects to be seen
+in a <player|player's> rectangle, the <player|player's> <alwaysBuffer>
+must be true.
+
+All visual effects function correctly on <stack|stacks> with a deep mask. In
+this case, the alpha channel is taken into account and moves with the
+color of the pixel. For example, a Core Image ripple effect appears to
+ripple the actual window itself, not just its contents.
+
+If either the <dontUseQT> or <dontUseQTEffects> <property> is set to
+true, only the built-in <visual effect|visual effects> can be used, 
+and the additional effects generated by the <answer effect> <command> 
+are not available.
+
+For technical information about <QuickTime> special effects, see [Apple
+Computer's QuickTime developer
+documentation](http://stpeterandpaul.ca/tiger/documentation/QuickTime/RM/EffectsTransitions/Effects/A-Intro/chapter_1000_section_1.html). 
+> *Note:* because Apple has discontinued support for <QuickTime>, this 
+> documentations may become unavailable in the future.
+
+The Core Image visual effects are only available on MacOS 10.4 and
+later. For technical information about these effects, see [Apple
+Computer' Core Image developer documentation](https://developer.apple.com/reference/coreimage) 
+and [CICategoryTransition Reference](https://developer.apple.com/library/archive/documentation/GraphicsImaging/Reference/CoreImageFilterReference/index.html#//apple_ref/doc/filter/ci/CIAccordionFoldTransition). 
+The parameters used are the APIs 'Display name' (eg, Angle) rather than the parameter 
+name (inputAngle). Each parameter is optional. The Core Image 'Time' parameter 
+is not supported. Instead use the 'speed' parameter together with 
+the <effectRate> <property> to affect the effect time.
+
+Changes:
+The ability to use <QuickTime> special effects was introduced in version
+1.1. In previous versions, only the built-in visual effects listed in
+the Parameters section were available. 
+
+From LiveCode version 8.1 for Mac, the use of <QuickTime> was deprecated with
+new defaults for <dontUseQT> and <dontUseQTEffects> being set to true on all
+systems from macOS 10.8. Additionally <QuickTime> does not include 64 bit 
+support and therefore can not be supported on macOS 64-bit builds of LiveCode.
+Also, the Windows build of LiveCode version 8.1 deprecates all <QuickTime> 
+features, so setting <dontUseQT> and <dontUseQTEffects> will have no effect.
+
+The ability to use Core Image transition effects together with the
+enhanced syntax for parameter passing was introduced in version 2.6.
+
+References: 
+alwaysBuffer (property), answer effect (command), black (keyword), 
+card (keyword), card (object), command (glossary), 
+dontUseQT (property), dontUseQTEffects (property), 
+effectRate (property), exit (glossary), find (command), go (command), 
+gray (keyword), handler (glossary), hide (command), inverse (glossary), 
+lock screen (command), multiEffect (property), player (object), 
+pop (command), property (glossary), QuickTime (glossary), 
+show (command), stack (object), unlock screen (command), 
+white (keyword)
+
+Tags: multimedia

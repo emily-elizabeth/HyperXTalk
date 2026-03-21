@@ -1,0 +1,1049 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		701C59E0E34330CA566CF755 /* engine_lcb_modules */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = EDBACD9CFC4E6E6B3BB4E749 /* Build configuration list for PBXAggregateTarget "engine_lcb_modules" */;
+			buildPhases = (
+				8E0C17C2351B7C7BEA2CC8D8 /* Action "generate_builtin_list" */,
+			);
+			dependencies = (
+				3C7E06C72C25A4BB4EF9F9C9 /* PBXTargetDependency */,
+			);
+			name = engine_lcb_modules;
+			productName = engine_lcb_modules;
+		};
+		A2585FE05AFB3E4CBE77CC67 /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = E1EAC8F4D7DADBBC7A62E122 /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				08C79957770BFD3FE5902C15 /* PBXTargetDependency */,
+				DAEC6CB74562FD6F11E717B4 /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+		E39506DD7C40B4F1DD1895D1 /* engine_lcb_modules (host) */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 258FEA2686AEC86CD5ACE76A /* Build configuration list for PBXAggregateTarget "engine_lcb_modules (host)" */;
+			buildPhases = (
+				81EBD525D6E1FE40DA450E57 /* Action "generate_builtin_list" */,
+			);
+			dependencies = (
+				85D4378A9011CB8DADBB8D39 /* PBXTargetDependency */,
+			);
+			name = "engine_lcb_modules (host)";
+			productName = "engine_lcb_modules (host)";
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXContainerItemProxy section */
+		02361CA2EB9B89686125CDEB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3DFBA1244E831B80A3E6364E /* lc-compile.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 08798FF7603F3E5777EEFABA;
+			remoteInfo = "lc-compile (host)";
+		};
+		40C11D79C69724507AD3BCA0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D4AF97590FF87EB866DCA2C8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E39506DD7C40B4F1DD1895D1;
+			remoteInfo = "engine_lcb_modules (host)";
+		};
+		D481A678947F3FEDB7B6925C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D4AF97590FF87EB866DCA2C8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 701C59E0E34330CA566CF755;
+			remoteInfo = engine_lcb_modules;
+		};
+		D58B1D156C62A79AC698C949 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3DFBA1244E831B80A3E6364E /* lc-compile.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 08798FF7603F3E5777EEFABA;
+			remoteInfo = "lc-compile (host)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0EA8B852BBC4E05D7588909A /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../config/thirdparty.gypi; sourceTree = "<group>"; };
+		0F34360180C434EBFFAED89B /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
+		2775DCD18AC7882572F36F63 /* com.livecode.type.lci */ = {isa = PBXFileReference; lastKnownFileType = text; path = com.livecode.type.lci; sourceTree = "<group>"; };
+		2A8C70AC20A8259B00EF91BC /* browser.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = browser.lcb; sourceTree = "<group>"; };
+		385707F6A0B0230507631EC1 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
+		3D028CC68A3C75BB42D5FE09 /* char.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = char.lcb; sourceTree = "<group>"; };
+		3DFBA1244E831B80A3E6364E /* lc-compile.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "lc-compile.xcodeproj"; path = "../build-mac/livecode/toolchain/lc-compile/lc-compile.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		3F938A2F439F5A865274F016 /* sort.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = sort.lcb; sourceTree = "<group>"; };
+		410BEB7869C506563109F5DF /* type.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = type.lcb; sourceTree = "<group>"; };
+		464AD0A4D478550C00F0D7DC /* engine_lcb_modules.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = engine_lcb_modules.cpp; sourceTree = "<group>"; };
+		4A3AEE38041AEEA927A83550 /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		4AE9F9D241EFBCB2C9B1AD98 /* lcb-modules.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = "lcb-modules.gyp"; sourceTree = "<group>"; };
+		4B3A5C7BD9B3529DED9822E3 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../config/mac.gypi; sourceTree = "<group>"; };
+		4D9E709D0B62C66B335DD04B /* type-convert.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "type-convert.lcb"; sourceTree = "<group>"; };
+		53899B915E362C50BE853161 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
+		5B7366F830A943B3EE0C6838 /* date.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = date.lcb; sourceTree = "<group>"; };
+		5EF25F39E4893DED6D8C74D4 /* arithmetic.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = arithmetic.lcb; sourceTree = "<group>"; };
+		5F773AAD6EB0AC8C07A3BDEB /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
+		61A8666609C91A76E97F30CB /* math.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = math.lcb; sourceTree = "<group>"; };
+		61F2D6B5C81CD24F361D3A8A /* logic.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = logic.lcb; sourceTree = "<group>"; };
+		67D6B53F5D4B46BAEE4FBF2D /* file.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = file.lcb; sourceTree = "<group>"; };
+		6D5F165C1D3A4BBAF2B74D79 /* objc.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = objc.lcb; sourceTree = "<group>"; };
+		752E7FC0F80F4E226FEECE69 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../config/win32.gypi; sourceTree = "<group>"; };
+		7DFDC34DFEAF0A79C358E131 /* stdscript-sources.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "stdscript-sources.gypi"; path = "../libscript/stdscript-sources.gypi"; sourceTree = "<group>"; };
+		801608050340A67EDD999CCD /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
+		878EF516806720A3B7F99F68 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
+		8D031FCCF71E0E394B89AE6A /* codeunit.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = codeunit.lcb; sourceTree = "<group>"; };
+		901CBA95989BA195174E121E /* assert.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = assert.lcb; sourceTree = "<group>"; };
+		91C7A0C331BB43DAADE0D092 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
+		95F698E719D1036993BF069C /* widget.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = widget.lcb; sourceTree = "<group>"; };
+		9B3E2C334378F2A32EE0C082 /* unittest.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = unittest.lcb; sourceTree = "<group>"; };
+		9B4398BE3B06FB84FBA23B83 /* math-foundation.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "math-foundation.lcb"; sourceTree = "<group>"; };
+		A51CEB6B14EADE413EE991A1 /* engine.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = engine.lcb; sourceTree = "<group>"; };
+		A68FEF77370AC8700949FAC1 /* bitwise.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = bitwise.lcb; sourceTree = "<group>"; };
+		B230F40AF8559FDB2C50028A /* foreign.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = foreign.lcb; sourceTree = "<group>"; };
+		B85AD786AD88D882C5FA3206 /* list.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = list.lcb; sourceTree = "<group>"; };
+		B8B96010272549A3B7398A79 /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		BAC33230E4FD62B45D3A1A3D /* system.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = system.lcb; sourceTree = "<group>"; };
+		BF80447DB98412FBB8703D53 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../config/version.gypi; sourceTree = "<group>"; };
+		C13D81613F903C095378E584 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
+		C391BAE33CE7BCDB4C365AD5 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../config/crosscompile.gypi; sourceTree = "<group>"; };
+		CC81E41905767FDFD9F22449 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
+		D21CF74FEC26D8F7BA04A85A /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
+		D3ADABB488B20015E9EB82EB /* canvas.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = canvas.lcb; sourceTree = "<group>"; };
+		D4ADF811FD8F00B1D3F3618F /* unittest-impl.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "unittest-impl.lcb"; sourceTree = "<group>"; };
+		D80C2D6AE47C3F980E5C5B37 /* stream.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = stream.lcb; sourceTree = "<group>"; };
+		DA320C38E25551CAE1C9F1AE /* java.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = java.lcb; sourceTree = "<group>"; };
+		DE00F823C006A3268C035402 /* array.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = array.lcb; sourceTree = "<group>"; };
+		DF6B9416507B91CC14B5526F /* string.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = string.lcb; sourceTree = "<group>"; };
+		E7718E9FAD996033154B56C0 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../config/configurations.gypi; sourceTree = "<group>"; };
+		E786FB73EBD72CB1945D26F2 /* byte.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = byte.lcb; sourceTree = "<group>"; };
+		E7D2E7BC53E8F128D536A761 /* binary.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = binary.lcb; sourceTree = "<group>"; };
+		F257A507521660F8075941EA /* engine-sources.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = "engine-sources.gypi"; sourceTree = "<group>"; };
+		FB47113B4D37A0FDDD64216C /* emscripten.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = emscripten.lcb; sourceTree = "<group>"; };
+		FBF3832494D3275A937E5498 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
+		FCE040DE2512574C238B8250 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		354615F12EB7BFC29DCEBB00 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4A7B7CFEEF53B4F3C0868996 /* libscript/src */ = {
+			isa = PBXGroup;
+			children = (
+				5EF25F39E4893DED6D8C74D4 /* arithmetic.lcb */,
+				DE00F823C006A3268C035402 /* array.lcb */,
+				901CBA95989BA195174E121E /* assert.lcb */,
+				E7D2E7BC53E8F128D536A761 /* binary.lcb */,
+				A68FEF77370AC8700949FAC1 /* bitwise.lcb */,
+				E786FB73EBD72CB1945D26F2 /* byte.lcb */,
+				3D028CC68A3C75BB42D5FE09 /* char.lcb */,
+				8D031FCCF71E0E394B89AE6A /* codeunit.lcb */,
+				5B7366F830A943B3EE0C6838 /* date.lcb */,
+				67D6B53F5D4B46BAEE4FBF2D /* file.lcb */,
+				B230F40AF8559FDB2C50028A /* foreign.lcb */,
+				DA320C38E25551CAE1C9F1AE /* java.lcb */,
+				B85AD786AD88D882C5FA3206 /* list.lcb */,
+				61F2D6B5C81CD24F361D3A8A /* logic.lcb */,
+				9B4398BE3B06FB84FBA23B83 /* math-foundation.lcb */,
+				61A8666609C91A76E97F30CB /* math.lcb */,
+				6D5F165C1D3A4BBAF2B74D79 /* objc.lcb */,
+				3F938A2F439F5A865274F016 /* sort.lcb */,
+				D80C2D6AE47C3F980E5C5B37 /* stream.lcb */,
+				DF6B9416507B91CC14B5526F /* string.lcb */,
+				BAC33230E4FD62B45D3A1A3D /* system.lcb */,
+				4D9E709D0B62C66B335DD04B /* type-convert.lcb */,
+				410BEB7869C506563109F5DF /* type.lcb */,
+				D4ADF811FD8F00B1D3F3618F /* unittest-impl.lcb */,
+				9B3E2C334378F2A32EE0C082 /* unittest.lcb */,
+			);
+			path = libscript/src;
+			sourceTree = "<group>";
+		};
+		4B38788AB92CD1C4651C6718 /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				3DFBA1244E831B80A3E6364E /* lc-compile.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		4D80DB55B7BBFF51EB7C4553 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				2A8C70AC20A8259B00EF91BC /* browser.lcb */,
+				D3ADABB488B20015E9EB82EB /* canvas.lcb */,
+				FB47113B4D37A0FDDD64216C /* emscripten.lcb */,
+				A51CEB6B14EADE413EE991A1 /* engine.lcb */,
+				95F698E719D1036993BF069C /* widget.lcb */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		55FA7B504390FEECDEC7AFCE /* .. */ = {
+			isa = PBXGroup;
+			children = (
+				4A7B7CFEEF53B4F3C0868996 /* libscript/src */,
+				4A3AEE38041AEEA927A83550 /* version */,
+			);
+			path = ..;
+			sourceTree = "<group>";
+		};
+		57A31B12C42A785543B1CE36 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				91C7A0C331BB43DAADE0D092 /* android-settings.gypi */,
+				385707F6A0B0230507631EC1 /* android.gypi */,
+				CC81E41905767FDFD9F22449 /* arch.gypi */,
+				801608050340A67EDD999CCD /* common.gypi */,
+				E7718E9FAD996033154B56C0 /* configurations.gypi */,
+				C391BAE33CE7BCDB4C365AD5 /* crosscompile.gypi */,
+				FCE040DE2512574C238B8250 /* emscripten-settings.gypi */,
+				53899B915E362C50BE853161 /* emscripten.gypi */,
+				F257A507521660F8075941EA /* engine-sources.gypi */,
+				0F34360180C434EBFFAED89B /* exclusions.gypi */,
+				D21CF74FEC26D8F7BA04A85A /* ios.gypi */,
+				4AE9F9D241EFBCB2C9B1AD98 /* lcb-modules.gyp */,
+				B8B96010272549A3B7398A79 /* linux-settings.gypi */,
+				878EF516806720A3B7F99F68 /* linux.gypi */,
+				4B3A5C7BD9B3529DED9822E3 /* mac.gypi */,
+				C13D81613F903C095378E584 /* perl.gypi */,
+				7DFDC34DFEAF0A79C358E131 /* stdscript-sources.gypi */,
+				FBF3832494D3275A937E5498 /* target_os.gypi */,
+				0EA8B852BBC4E05D7588909A /* thirdparty.gypi */,
+				BF80447DB98412FBB8703D53 /* version.gypi */,
+				752E7FC0F80F4E226FEECE69 /* win32.gypi */,
+				5F773AAD6EB0AC8C07A3BDEB /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		9DA8FA6A87A5228F34685AA5 /* Intermediates */ = {
+			isa = PBXGroup;
+			children = (
+				464AD0A4D478550C00F0D7DC /* engine_lcb_modules.cpp */,
+			);
+			name = Intermediates;
+			sourceTree = SHARED_INTERMEDIATE_DIR;
+		};
+		C45330DC0DC0A4B8B21AB441 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				55FA7B504390FEECDEC7AFCE /* .. */,
+				F588A8A42ED5DFFDF7CD019E /* BUILT_PRODUCTS_DIR */,
+				4D80DB55B7BBFF51EB7C4553 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		E4A6265C9B32EDC2A4BCC48F = {
+			isa = PBXGroup;
+			children = (
+				C45330DC0DC0A4B8B21AB441 /* Source */,
+				9DA8FA6A87A5228F34685AA5 /* Intermediates */,
+				4B38788AB92CD1C4651C6718 /* Projects */,
+				57A31B12C42A785543B1CE36 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		F588A8A42ED5DFFDF7CD019E /* BUILT_PRODUCTS_DIR */ = {
+			isa = PBXGroup;
+			children = (
+				2775DCD18AC7882572F36F63 /* com.livecode.type.lci */,
+			);
+			name = BUILT_PRODUCTS_DIR;
+			path = modules/lci;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXProject section */
+		D4AF97590FF87EB866DCA2C8 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 34F61A84B09942E22708625E /* Build configuration list for PBXProject "lcb-modules" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = E4A6265C9B32EDC2A4BCC48F;
+			projectDirPath = ../../../engine;
+			projectReferences = (
+				{
+					ProductGroup = 354615F12EB7BFC29DCEBB00 /* Products */;
+					ProjectRef = 3DFBA1244E831B80A3E6364E /* lc-compile.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				A2585FE05AFB3E4CBE77CC67 /* All */,
+				701C59E0E34330CA566CF755 /* engine_lcb_modules */,
+				E39506DD7C40B4F1DD1895D1 /* engine_lcb_modules (host) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		81EBD525D6E1FE40DA450E57 /* Action "generate_builtin_list" */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				src/canvas.lcb,
+				src/engine.lcb,
+				src/widget.lcb,
+				src/browser.lcb,
+				src/emscripten.lcb,
+				../libscript/src/arithmetic.lcb,
+				../libscript/src/array.lcb,
+				../libscript/src/assert.lcb,
+				../libscript/src/binary.lcb,
+				../libscript/src/bitwise.lcb,
+				../libscript/src/byte.lcb,
+				../libscript/src/char.lcb,
+				../libscript/src/codeunit.lcb,
+				../libscript/src/date.lcb,
+				../libscript/src/file.lcb,
+				../libscript/src/foreign.lcb,
+				../libscript/src/java.lcb,
+				../libscript/src/list.lcb,
+				../libscript/src/logic.lcb,
+				../libscript/src/math.lcb,
+				"../libscript/src/math-foundation.lcb",
+				../libscript/src/sort.lcb,
+				../libscript/src/stream.lcb,
+				../libscript/src/string.lcb,
+				../libscript/src/system.lcb,
+				../libscript/src/type.lcb,
+				"../libscript/src/type-convert.lcb",
+				../libscript/src/unittest.lcb,
+				../libscript/src/objc.lcb,
+				"../libscript/src/unittest-impl.lcb",
+			);
+			name = "Action \"generate_builtin_list\"";
+			outputPaths = (
+				"$(SHARED_INTERMEDIATE_DIR)/engine_lcb_modules.cpp",
+				"$(BUILT_PRODUCTS_DIR)/modules/lci/com.livecode.type.lci",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo note: \"Generating list of in-engine LCB modules\"\nexec \"${BUILT_PRODUCTS_DIR}/lc-compile\" --bootstrap --inputg ../toolchain/lc-compile/src/grammar.g --outputi \"${BUILT_PRODUCTS_DIR}/modules/lci\" --outputc \"${SHARED_INTERMEDIATE_DIR}/engine_lcb_modules.cpp\" src/canvas.lcb src/engine.lcb src/widget.lcb src/browser.lcb src/emscripten.lcb ../libscript/src/arithmetic.lcb ../libscript/src/array.lcb ../libscript/src/assert.lcb ../libscript/src/binary.lcb ../libscript/src/bitwise.lcb ../libscript/src/byte.lcb ../libscript/src/char.lcb ../libscript/src/codeunit.lcb ../libscript/src/date.lcb ../libscript/src/file.lcb ../libscript/src/foreign.lcb ../libscript/src/java.lcb ../libscript/src/list.lcb ../libscript/src/logic.lcb ../libscript/src/math.lcb ../libscript/src/math-foundation.lcb ../libscript/src/sort.lcb ../libscript/src/stream.lcb ../libscript/src/string.lcb ../libscript/src/system.lcb ../libscript/src/type.lcb ../libscript/src/type-convert.lcb ../libscript/src/unittest.lcb ../libscript/src/objc.lcb ../libscript/src/unittest-impl.lcb\nexit 1\n";
+			showEnvVarsInLog = 0;
+		};
+		8E0C17C2351B7C7BEA2CC8D8 /* Action "generate_builtin_list" */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				src/canvas.lcb,
+				src/engine.lcb,
+				src/widget.lcb,
+				src/browser.lcb,
+				src/emscripten.lcb,
+				../libscript/src/arithmetic.lcb,
+				../libscript/src/array.lcb,
+				../libscript/src/assert.lcb,
+				../libscript/src/binary.lcb,
+				../libscript/src/bitwise.lcb,
+				../libscript/src/byte.lcb,
+				../libscript/src/char.lcb,
+				../libscript/src/codeunit.lcb,
+				../libscript/src/date.lcb,
+				../libscript/src/file.lcb,
+				../libscript/src/foreign.lcb,
+				../libscript/src/java.lcb,
+				../libscript/src/list.lcb,
+				../libscript/src/logic.lcb,
+				../libscript/src/math.lcb,
+				"../libscript/src/math-foundation.lcb",
+				../libscript/src/sort.lcb,
+				../libscript/src/stream.lcb,
+				../libscript/src/string.lcb,
+				../libscript/src/system.lcb,
+				../libscript/src/type.lcb,
+				"../libscript/src/type-convert.lcb",
+				../libscript/src/unittest.lcb,
+				../libscript/src/objc.lcb,
+				"../libscript/src/unittest-impl.lcb",
+			);
+			name = "Action \"generate_builtin_list\"";
+			outputPaths = (
+				"$(SHARED_INTERMEDIATE_DIR)/engine_lcb_modules.cpp",
+				"$(BUILT_PRODUCTS_DIR)/modules/lci/com.livecode.type.lci",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "echo note: \"Generating list of in-engine LCB modules\"\nexec \"${BUILT_PRODUCTS_DIR}/lc-compile\" --bootstrap --inputg ../toolchain/lc-compile/src/grammar.g --outputi \"${BUILT_PRODUCTS_DIR}/modules/lci\" --outputc \"${SHARED_INTERMEDIATE_DIR}/engine_lcb_modules.cpp\" src/canvas.lcb src/engine.lcb src/widget.lcb src/browser.lcb src/emscripten.lcb ../libscript/src/arithmetic.lcb ../libscript/src/array.lcb ../libscript/src/assert.lcb ../libscript/src/binary.lcb ../libscript/src/bitwise.lcb ../libscript/src/byte.lcb ../libscript/src/char.lcb ../libscript/src/codeunit.lcb ../libscript/src/date.lcb ../libscript/src/file.lcb ../libscript/src/foreign.lcb ../libscript/src/java.lcb ../libscript/src/list.lcb ../libscript/src/logic.lcb ../libscript/src/math.lcb ../libscript/src/math-foundation.lcb ../libscript/src/sort.lcb ../libscript/src/stream.lcb ../libscript/src/string.lcb ../libscript/src/system.lcb ../libscript/src/type.lcb ../libscript/src/type-convert.lcb ../libscript/src/unittest.lcb ../libscript/src/objc.lcb ../libscript/src/unittest-impl.lcb\nexit 1\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		08C79957770BFD3FE5902C15 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 701C59E0E34330CA566CF755 /* engine_lcb_modules */;
+			targetProxy = D481A678947F3FEDB7B6925C /* PBXContainerItemProxy */;
+		};
+		3C7E06C72C25A4BB4EF9F9C9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "lc-compile (host)";
+			targetProxy = 02361CA2EB9B89686125CDEB /* PBXContainerItemProxy */;
+		};
+		85D4378A9011CB8DADBB8D39 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "lc-compile (host)";
+			targetProxy = D58B1D156C62A79AC698C949 /* PBXContainerItemProxy */;
+		};
+		DAEC6CB74562FD6F11E717B4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E39506DD7C40B4F1DD1895D1 /* engine_lcb_modules (host) */;
+			targetProxy = 40C11D79C69724507AD3BCA0 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0EF7A5200AE85F86668AFBD0 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(INTERMEDIATE_DIR)/src",
+					"$(INTERMEDIATE_DIR)/include",
+					"$(SHARED_INTERMEDIATE_DIR)/src",
+					"$(SHARED_INTERMEDIATE_DIR)/include",
+					../prebuilt/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = engine_lcb_modules;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		2D551071587F4C987AFD07D5 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(INTERMEDIATE_DIR)/src",
+					"$(INTERMEDIATE_DIR)/include",
+					"$(SHARED_INTERMEDIATE_DIR)/src",
+					"$(SHARED_INTERMEDIATE_DIR)/include",
+					../prebuilt/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "engine_lcb_modules (host)";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		3C1E4C1663C4425A94928800 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		40E9718E02F7CCCF3C3DE795 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4A3AEE38041AEEA927A83550 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		7449530CB20770DDE51A56AA /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4A3AEE38041AEEA927A83550 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		75778A3AAF8EAE1ADEBE18DC /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Fast;
+		};
+		895CDC9F8F7534B72CFD8BF6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(INTERMEDIATE_DIR)/src",
+					"$(INTERMEDIATE_DIR)/include",
+					"$(SHARED_INTERMEDIATE_DIR)/src",
+					"$(SHARED_INTERMEDIATE_DIR)/include",
+					../prebuilt/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = engine_lcb_modules;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		8DD10378596C30F08A394A6C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(INTERMEDIATE_DIR)/src",
+					"$(INTERMEDIATE_DIR)/include",
+					"$(SHARED_INTERMEDIATE_DIR)/src",
+					"$(SHARED_INTERMEDIATE_DIR)/include",
+					../prebuilt/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "engine_lcb_modules (host)";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		A0A8660DF6A1A7C010D2B031 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		CA2B17A47B321813C816EE69 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(INTERMEDIATE_DIR)/src",
+					"$(INTERMEDIATE_DIR)/include",
+					"$(SHARED_INTERMEDIATE_DIR)/src",
+					"$(SHARED_INTERMEDIATE_DIR)/include",
+					../prebuilt/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "engine_lcb_modules (host)";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		E5FEB787FD82EACE64AAD520 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(INTERMEDIATE_DIR)/src",
+					"$(INTERMEDIATE_DIR)/include",
+					"$(SHARED_INTERMEDIATE_DIR)/src",
+					"$(SHARED_INTERMEDIATE_DIR)/include",
+					../prebuilt/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = engine_lcb_modules;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		F4C3F933A09AA5C7D9613BD9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4A3AEE38041AEEA927A83550 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		258FEA2686AEC86CD5ACE76A /* Build configuration list for PBXAggregateTarget "engine_lcb_modules (host)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA2B17A47B321813C816EE69 /* Debug */,
+				2D551071587F4C987AFD07D5 /* Fast */,
+				8DD10378596C30F08A394A6C /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		34F61A84B09942E22708625E /* Build configuration list for PBXProject "lcb-modules" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F4C3F933A09AA5C7D9613BD9 /* Debug */,
+				7449530CB20770DDE51A56AA /* Fast */,
+				40E9718E02F7CCCF3C3DE795 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		E1EAC8F4D7DADBBC7A62E122 /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A0A8660DF6A1A7C010D2B031 /* Debug */,
+				75778A3AAF8EAE1ADEBE18DC /* Fast */,
+				3C1E4C1663C4425A94928800 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		EDBACD9CFC4E6E6B3BB4E749 /* Build configuration list for PBXAggregateTarget "engine_lcb_modules" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				895CDC9F8F7534B72CFD8BF6 /* Debug */,
+				0EF7A5200AE85F86668AFBD0 /* Fast */,
+				E5FEB787FD82EACE64AAD520 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D4AF97590FF87EB866DCA2C8 /* Project object */;
+}

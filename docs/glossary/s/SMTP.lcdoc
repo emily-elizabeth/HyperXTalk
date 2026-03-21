@@ -1,0 +1,12 @@
+Name: SMTP
+
+Synonyms: smtp
+
+Type: glossary
+
+Description:
+Simple Mail Transfer Protocol. Used to send email messages from one
+Internet-connected computer to another.
+
+Tags: networking
+

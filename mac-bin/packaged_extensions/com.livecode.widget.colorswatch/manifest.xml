@@ -1,0 +1,36 @@
+<package version="0.0">
+  <name>com.livecode.widget.colorswatch</name>
+  <title>Color Swatch</title>
+  <author>LiveCode</author>
+  <version>0.0.1</version>
+  <license>community</license>
+  <type>widget</type>
+  <requires name="com.livecode.canvas"/>
+  <requires name="com.livecode.library.widgetutils"/>
+  <requires name="com.livecode.math"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.widget"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.engine"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.mathfoundation"/>
+  <metadata key="preferredSize">24,24</metadata>
+  <metadata key="svgicon">M86.6,0H7.9C3.5,0,0,3.5,0,7.9v78.8c0,4.3,3.5,7.9,7.9,7.9h78.8c4.3,0,7.9-3.5,7.9-7.9V7.9C94.5,3.5,91,0,86.6,0z M23.3,81l-11-16.4h21.9L23.3,81z M81.5,81.5H47.2l0.1-34.1H13.1L13,13h68.5V81.5z</metadata>
+  <metadata key="userVisible">false</metadata>
+  <metadata key="_ide">true</metadata>
+  <property name="swatchColor" get="string" set="optional string"/>
+  <metadata key="swatchColor.editor">com.livecode.pi.colorwithalpha</metadata>
+  <metadata key="swatchColor.default">255,100,0</metadata>
+  <metadata key="swatchColor.label">Swatch Color</metadata>
+  <handler name="OnCreate" parameters="" return="nothing"/>
+  <handler name="updateConstants" parameters="" return="nothing"/>
+  <handler name="OnMouseUp" parameters="" return="nothing"/>
+  <handler name="OnPaint" parameters="" return="nothing"/>
+  <handler name="onGeometryChanged" parameters="" return="nothing"/>
+  <handler name="setColor" parameters="in optional string" return="nothing"/>
+  <handler name="getColor" parameters="" return="string"/>
+  <handler name="getPaint" parameters="in any" return="Paint"/>
+</package>

@@ -1,0 +1,61 @@
+Name: mouseLeave
+
+Type: message
+
+Syntax: mouseLeave
+
+Summary:
+Sent when the <mouse pointer> moves out of an <object(glossary)>.
+
+Associations: stack, card, field, button, graphic, scrollbar, player,
+image
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Example:
+on mouseLeave -- hide another object
+  hide field "Comments"
+end mouseLeave
+
+Description:
+Handle the <mouseLeave> <message> to update a <control> when the 
+<mouse pointer> moves outside it.
+
+The <mouseLeave> <message> is sent only when the <Browse tool> is being
+used. 
+
+If two controls overlap, a <mouseLeave> <message> is sent whenever the
+<mouse pointer> crosses outside a visible portion of a <control>. The
+<control> on the bottom receives a <mouseLeave> <message> only when the
+<mouse pointer> leaves part of the <control> that can be seen. A
+<control> that is completely hidden by another <control> on top of it
+will never receive a <mouseLeave> <message>.
+
+If the mouse button is down when the <mouse pointer> leaves the <control>,
+the <mouseLeave> <message> is sent once the mouse button has been
+released. 
+
+If a <control> is hidden (by changing its visible <property> to false or
+using the <hide> <command>), and the <mouse pointer> is over the
+<control> when it is hidden, LiveCode sends a <mouseLeave> <message> to
+the <control>.
+
+>*Note:* Take care when using both <mouseEnter> and <mouseLeave> in the
+> same <control> that an unintentional infinite <loop> may be invoked. 
+> To prevent a <loop>, use a condition in the <mouseLeave> <message> handler
+> to ensure the <mouse pointer> is still outside of the <control> or
+> in the <mouseEnter> <message> to check the <mouse pointer> is still inside
+> the <control>.
+
+References: focus (command), hide (command), mouseControl (function),
+property (glossary), Browse tool (glossary), mouse pointer (glossary),
+message (glossary), command (glossary), control (glossary),
+object (glossary), mouseWithin (message), mouseEnter (message),
+loop (glossary)
+
+Tags: ui
+

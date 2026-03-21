@@ -1,0 +1,80 @@
+Name: /
+
+Type: operator
+
+Syntax: <dividend> / <divisor>
+
+Summary:
+Divides one number by another number or one array by another array.
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android, html5
+
+Platforms: desktop, server, mobile
+
+Example:
+# Dividing a literal number by another
+local approxPi
+put 22/7 into approxPi -- approximates pi
+
+Example:
+# Dividing two variables
+local thisVariable
+get thisVariable/(thisVariable + 1)
+
+Example:
+# Dividing an array by another
+local tNumberArray, tDivisorArray, tDividedArray
+put 10 into tNumberArray[1]
+put 20 into tNumberArray[2]
+put 10 into tDivisorArray[1]
+put 5 into tDivisorArray[2]
+put tNumberArray / tDivisorArray into tDividedArray
+put tDividedArray[1] & comma & tDividedArray[2]
+# Yields 1,4
+
+Parameters:
+dividend:
+A number or an expression that
+evaluates to a number, or an array containing numbers.
+
+divisor:
+A number or an expression that
+evaluates to a number, or an array containing numbers.
+
+Description:
+Use the </> (divide) <operator> to divide one number by another.
+
+> *Note:* When used in complex arithmetic statements, 
+<operator|operators> like </> follows standard rules of <precedence>.
+
+To divide the contents of a container by a number, use the <divide>
+<command> instead.
+
+If <dividend> or <divisor> is an <array>, each of the <array>
+<element(glossary)|elements> must be a number. If an <array> is divided
+by a number, each <element(keyword)> is divided by the number. If an
+<array> is divided by an <array>, both <array|arrays> must have the same
+number of <element(glossary)|elements> and the same dimension, and each
+<element(keyword)> in one <array> is divided by the corresponding
+<element(keyword)> of the other <array>.
+
+If an element of an array is empty, the </> <operator> treats its 
+contents as zero.
+
+If a math operation on finite inputs produces a non-finite output, an
+execution error is thrown. See <math operation|math operations> for more
+information.
+
+Changes:
+The option to divide arrays was introduced in version 1.1. In previous
+versions, only single numbers could be used with the / operator.
+
+References: divide (command), operator (glossary), array (glossary),
+command (glossary), element (glossary), element (keyword),
+div (operator), precedence (glossary),
+mod (operator), * (operator), wrap (operator), math operation (glossary)
+
+Tags: math
+

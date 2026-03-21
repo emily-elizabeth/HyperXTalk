@@ -1,0 +1,54 @@
+Name: delete variable
+
+Synonyms: clear variable
+
+Type: command
+
+Syntax: delete {local | global | variable} {<variableName> | <arrayIndex>}
+
+Summary:
+Removes a <variable> contents from memory.
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Example:
+local tVariable
+delete local tVariable
+
+Example:
+global gArray
+delete global gArray[17]
+
+Parameters:
+variableName:
+The name of any local or global variable.
+
+arrayIndex (array):
+A key of an array variable. If an arrayIndex is specified instead of a
+variable name, the delete variable command removes that element of the
+array, without deleting the rest of the elements in the array.
+
+
+Description:
+Use the <delete variable> <command> to free memory used by a large
+<variable>.  The <delete variable> <command> only removes the contents 
+of the <variable>.
+
+If you delete a <key> from an <array> <variable>, that <element> of the 
+<array> no longer exists as part of the <variable>.
+
+>*Note:* <local variable|Local variables> that are used within a
+> <handler> are automatically deleted when the <handler> in which they
+> are used <exit|exits>.
+
+References: global (command), delete (command), local (command),
+globalNames (function), key (glossary), handler (glossary),
+variable (glossary), exit (glossary), local variable (glossary),
+array (glossary), command (glossary), element (keyword)
+
+Tags: properties
+

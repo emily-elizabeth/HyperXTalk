@@ -1,0 +1,59 @@
+Name: do
+
+Type: command
+
+Syntax: do <statementList> [in caller]
+
+Summary:
+<execute|Executes> a list of <statement|statements>.
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android, html5
+
+Platforms: desktop, server, mobile
+
+Example:
+do "go next card"
+
+Example:
+do "put" && tNewValue && "into tNumberOfRecords"
+-- If tNewValue is 3, this would become "put 3 into tNumberOfRecords"
+
+Example:
+do "select" && line 3 of field "Objects"
+
+Parameters:
+statementList:
+A LiveCode statement, a container with one or more statements, or a
+string that evaluates to a statement.
+
+The result:
+The <result> is affected by the LiveCode commands and functions in the 
+script in the normal way.
+
+Description:
+Use the <do> command to execute statements in a container, or to execute
+a statement that consists partly of a literal string and partly of a
+container or the return value from a function.
+
+Using the <do> <command> is slower than directly <execute|executing> the
+<command|commands>, because each <statement> must be <compile|compiled>
+every time the <do> <command> is executed.
+
+When the `do statementList in caller` form of the <do> command is
+used, the <statementList> is evaluated in the context of the handler
+where the <do> command appears.
+
+To see how to create a numbered set of variables see the dictionary
+entry for the <local> <command>.
+
+You can use the <do as alternateLanguage> variant of the <do> command
+to evaluate a <statementList> written in a non-LiveCode programming
+language.
+
+References: debugDo (command), breakpoint (command), local (command),
+call (command), result (function),
+handler (glossary), execute (glossary), statement (glossary),
+compile (glossary), command (glossary),
+message box (keyword), do as alternateLanguage (command)

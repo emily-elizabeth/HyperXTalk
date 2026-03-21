@@ -1,0 +1,8 @@
+<package version="0.0">
+  <name>com.livecode.library.oauth2</name>
+  <title>OAuth2 Library</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <type>library</type>
+  <license>community</license>
+</package>

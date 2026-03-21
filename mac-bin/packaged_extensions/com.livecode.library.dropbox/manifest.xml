@@ -1,0 +1,9 @@
+<package version="0.0">
+  <name>com.livecode.library.dropbox</name>
+  <title>Dropbox Library</title>
+  <author>LiveCode</author>
+  <version>2.0.0</version>
+  <type>library</type>
+  <license>community</license>
+  <metadata key="svgicon">M402 717L896 1022 554 1307 64 988ZM1388 1272L1388 1380 898 1673 898 1674 897 1673 896 1674 896 1673 407 1380 407 1272 554 1368 896 1084 896 1082 897 1083 898 1082 898 1084 1241 1368ZM554 128L896 413 402 717 64 447ZM1390 717L1728 988 1239 1307 896 1022ZM1239 128L1728 447 1390 717 896 413Z</metadata>
+</package>

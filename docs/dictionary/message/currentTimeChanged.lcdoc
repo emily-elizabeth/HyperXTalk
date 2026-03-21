@@ -1,0 +1,74 @@
+Name: currentTimeChanged
+
+Type: message
+
+Syntax: currentTimeChanged <pNewTime>
+
+Summary:
+Sent to a <player> when the user switches to another <frame>.
+
+Associations: player
+
+Introduced: 1.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+on currentTimeChanged theInterval -- display the time in a field
+  put theInterval into field "Time Code"
+end currentTimeChanged
+
+Parameters:
+pNewTime:
+The number of the interval where the player is after the change.
+
+Description:
+The <currentTimeChanged> message is sent while the player is playing or when 
+a user changes the current time in a player.
+
+Handle the <currentTimeChanged> message if you want to do something when
+the user changes the current time in a <player>.
+
+The user can change the current time by:
+
+- clicking the play button in the controller bar,
+- clicking in the controller bar, 
+- dragging the controller bar scroller thumb,
+- using the arrow keys when the player is the active (focused) control,
+- using the scrubber control in the controller bar. 
+ (which is revealed by clicking the arrow buttons in the controller bar
+ while holding the shift key down.)
+
+Changing the player's <currenttime> <property> property by script does not trigger 
+the sending of the <currentTimeChanged> <message>.
+
+Changing the player's <currenttime> <property> property by script does 
+not trigger the sending of the <currentTimeChanged> <message>.
+
+Starting the player by script does trigger the sending of the 
+<currentTimeChanged> <message> once it is playing.
+
+The number of intervals per second is specified by the player's
+timeScale <property>. The total number of intervals is given in the
+<player(object)|player's> <duration> <property>.
+
+The actual process of changing the player's current time is not
+triggered by the <currentTimeChanged> <message>, so <trap|trapping> the
+<message> and not allowing it to <pass> does not prevent the user from
+changing the <player(object)|player's> current time manually.
+
+Changes:
+The <pNewTime> parameter was introduced in version 2.0. In previous
+versions, the <currentTimeChanged> message did not have a parameter.
+
+References: pass (control structure), property (glossary),
+player (glossary), message (glossary), frame (glossary), trap (glossary),
+player (keyword), playStarted (message), playPaused (message),
+selectionChanged (message), player (object), callbacks (property),
+duration (property)
+
+Tags: multimedia
+
+

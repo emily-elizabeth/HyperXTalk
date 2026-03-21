@@ -1,0 +1,51 @@
+Name: &
+
+Type: operator
+
+Syntax: <string1> & <string2>
+
+Summary:
+<concatenate|Concatenates> two <string|strings>.
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android, html5
+
+Platforms: desktop, server, mobile
+
+Example:
+put "foo" & "bar" -- evaluates to "foobar"
+
+Example:
+local myVar, otherVar
+put myVar & quote & "hello" & quote into otherVar
+
+Example:
+local theData
+get offset(return & space, theData)
+
+Parameters:
+string1 (string):
+A <literal string> of <character|characters> (<delimit|delimited> with 
+<double quote|double quotes>), or <expression|expressions> that evaluate 
+to <string|strings>. 
+
+string2 (string):
+A <literal string> of <character|characters> (<delimit|delimited> with 
+<double quote|double quotes>), or <expression|expressions> that evaluate 
+to <string|strings>. 
+
+Description:
+Use the & <operator> to create a single <string> out of two or more
+parts. That is, <string2> is appended immediately after <string1> 
+with no intervening space. 
+
+
+References: character (glossary), concatenate (glossary), 
+delimit (glossary), double quote (glossary), evaluate (glossary), 
+expression (glossary), literal string (glossary), offset (function), 
+operator (glossary), quote (constant), return (constant), 
+string (glossary)
+
+Tags: text processing
+

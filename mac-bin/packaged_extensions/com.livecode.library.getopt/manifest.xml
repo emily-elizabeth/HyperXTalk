@@ -1,0 +1,8 @@
+<package version="0.0">
+  <name>com.livecode.library.getopt</name>
+  <title>Command-line Option Parser</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <type>library</type>
+  <license>community</license>
+</package>

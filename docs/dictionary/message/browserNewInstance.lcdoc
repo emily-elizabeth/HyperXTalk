@@ -1,0 +1,41 @@
+Name: browserNewInstance
+
+Synonyms: xbrowser_newinstance
+
+Type: message
+
+Syntax: browserNewInstance <pInstanceId>
+
+Syntax: XBrowser_NewInstance <pInstanceId>
+
+Summary:
+Sent when a new browser instance is created.
+
+Introduced: 2.8.1
+
+OS: mac, windows
+
+Platforms: desktop
+
+Security: network
+
+Example:
+on browserNewInstance pInstanceId
+  put pInstanceId & return after sInstances
+end browserNewInstance
+
+Parameters:
+pInstanceId:
+The integer identifier of the new browser object
+
+Description:
+The <browserNewInstance> message is sent to the current card of the
+stack when a new browser object is created in the stack's window.
+
+>*Note:* For general information on using the browser library, see the
+> notes in the <revBrowserOpen> <function> reference.
+
+References: revBrowserClose (command), revBrowserSet (command),
+revBrowserOpen (function), function (glossary),
+browserNewUrlWindow (message)
+

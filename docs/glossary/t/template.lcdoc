@@ -1,0 +1,14 @@
+Name: template
+
+Synonyms: template
+
+Type: glossary
+
+Description:
+An <object(glossary)> that serves as a model for newly created
+<object|objects> of the same type.
+
+References: object (glossary)
+
+Tags: objects
+

@@ -1,0 +1,29 @@
+<package version="0.0">
+  <name>com.livecode.library.widgetutils</name>
+  <title>Widget Utilities</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <license>community</license>
+  <type>module</type>
+  <requires name="com.livecode.canvas"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.byte"/>
+  <requires name="com.livecode.char"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.mathfoundation"/>
+  <requires name="com.livecode.typeconvert"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.system"/>
+  <handler name="constrainPathToRect" parameters="in Rectangle,inout Path" return="any"/>
+  <handler name="intToString" parameters="in number" return="string"/>
+  <handler name="stripZeros" parameters="in string" return="string"/>
+  <handler name="colorToString" parameters="in Color,in boolean" return="string"/>
+  <handler name="stringToColor" parameters="in string" return="Color"/>
+  <handler name="getNativeThemeName" parameters="" return="string"/>
+  <handler name="placeholderIcon" parameters="in string" return="string"/>
+  <handler name="paintPlaceholderImage" parameters="in Canvas,in Rectangle,in string,in string,in optional Font,in optional Color" return="any"/>
+</package>

@@ -1,0 +1,76 @@
+Name: and
+
+Type: operator
+
+Syntax: <leftValue> and <rightValue>
+
+Summary:
+Allows the construction of compound <boolean> expressions, which <evaluate> to true 
+if both <operand|operands> are true, false otherwise. 
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android, html5
+
+Platforms: desktop, server, mobile
+
+Example:
+put (1 > 0) and (1 = 0)
+-- evaluates to false
+
+Example:
+put (1 > 0) and (1 = 1) and (0 = 0)
+-- evaluates to true
+
+Example:
+local myCount
+if the shiftKey is down and myCount > 1 then exit mouseUp
+
+Parameters:
+leftValue (bool):
+leftValue is true or false, or an expression that evaluates to
+true or false.
+
+rightValue (bool):
+rightValue is true or false, or an expression that evaluates to
+true or false.
+
+
+Description:
+Use the <and> <operator> to combine two or more <logical>
+<value(glossary)|values> into a compound <boolean> <expression>. 
+
+If <leftValue> is false or <rightValue> is false, or if both <leftValue> and
+<rightValue> are false, then the <and> <operation> <evaluate|evaluates> to
+false. If <leftValue> and <rightValue> are both true, the <expression> `leftValue
+and rightValue` <evaluate|evaluates> to true. In an <expression> with more 
+than two <operand|operands>, there is an implicit grouping of the first pair, 
+so that the first pair is <evaluate|evaluated> first, then subsequent values
+are <evaluate|evaluated>. If any of the operands <evaluate|evaluates> to false, 
+the entire <expression> <evaluate|evaluates> to false. You can combine 
+the <logical> <operator|operators> <and>, <or>, and <not> 
+in an <expression>.
+
+>*Note:* LiveCode uses what is known as "short-circuit evaluation" for
+> <logical> <operator(glossary)|operators>. This means that <leftValue> is
+> <evaluate|evaluated> first. If <leftValue> is false, the <expression>
+> `leftValue and rightValue` is false regardless of what <rightValue> is (because the
+> <expression> <evaluate|evaluates> to false unless both the values are
+> true). In this case, LiveCode does not <evaluate> <rightValue>, since
+> doing so is not necessary to determine the <value(function)> of <leftValue>
+> or <rightValue>. For example, evaluating the <expression> `asin(2)` normally
+> causes an <execution error> (because 2 is not a legal <argument> for the
+> arc sine function), but <evaluate|evaluating> the <expression> 
+> `(1 = 0) and (asin(2) = 1)` does not cause an error: since `(1 = 0)` is 
+> always false, the whole statement is always false and LiveCode never tries 
+> to <evaluate> the <asin> <function>.
+
+References: argument (glossary), asin (function), bitAnd (operator), 
+boolean (glossary), evaluate (glossary), execution error (glossary), 
+expression (glossary), false (constant), function (glossary), 
+logical (glossary), not (operator), operand (glossary), 
+operation (glossary), operator (glossary), or (operator), 
+true (constant), value (function), value (glossary)
+
+Tags: math
+

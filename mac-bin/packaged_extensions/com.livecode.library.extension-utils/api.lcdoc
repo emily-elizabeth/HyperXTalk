@@ -1,0 +1,462 @@
+Library: com.livecode.library.extension-utils
+
+Type: library
+
+Title: Extension Package Handling Utilities
+
+Summary: This library provides handlers for managing livecode extension packages
+
+Version: 1.0.0
+
+
+Name: extensionFetchSourceFromFolder
+
+Type: command
+
+Syntax: extensionFetchSourceFromFolder <pFolder>,<rSource>,<rSupportFiles>,<rType>
+
+Summary: Fetch basic information about extension source from a folder
+
+Parameters: 
+
+pFolder: The folder to search
+
+rSource: The main source file found
+
+rSupportFiles: A list of supporting source files found
+
+rType:
+The type of extension.
+- "lcb": A LiveCode Builder extension
+- "lcs": A LiveCode Script extension
+
+
+
+Name: extensionPackageScriptExtension
+
+Type: command
+
+Syntax: extensionPackageScriptExtension <pSourceFolder>,<pTargetFolder>,<pRemoveSource>
+
+Summary: Package a LiveCode Script extension
+
+Parameters: 
+
+pSourceFolder: The folder containing the extension
+
+pTargetFolder: The folder to output the extension package
+
+pRemoveSource: Whether to remove the source files or not
+
+
+
+
+Name: extensionPackage
+
+Type: command
+
+Syntax: extensionPackage <pSourceFolder>,<pTargetFolder>,<pRemoveSource>
+
+Summary: Package an extension
+
+Parameters: 
+
+pSourceFolder: The folder containing the extension
+
+pTargetFolder: The output location of the package
+
+pRemoveSource: Whether to remove the source code from the package or not
+
+The result: Any error that occurred when packaging
+
+It: The location of the build package, or empty if there was an error.
+
+
+
+
+Name: extensionFindInFolder
+
+Type: command
+
+Syntax: extensionFindInFolder <pFolder>,<pIsUserFolder>,<pRecursive>,<xDataA>
+
+Summary: Find any extensions in the given folder
+
+Parameters: 
+
+pFolder: The folder to search
+
+pIsUserFolder: Whether this is a user folder or not
+
+pRecursive: Whether to search subfolders
+
+xDataA:
+An array. Details of any extensions found will be placed in the 
+array under xDataA[<type_id>][<folder>]
+
+
+
+Name: extensionDepsOrder
+
+Type: command
+
+Syntax: extensionDepsOrder <pLCCompile>,<pExtensionList>
+
+Summary: Use lc-compile to order LiveCode Builder extensions by dependency.
+
+Parameters: 
+
+pLCCompile: The path to the lc-compile program. If empty, this will be computed.
+
+pExtensionList: A list of LiveCode Builder extensions to put in dependency order
+
+The result: Any error that occurred.
+
+It: The dependency-ordered list.
+
+
+
+
+Name: extensionValidateLCEPackage
+
+Type: command
+
+Syntax: extensionValidateLCEPackage <pPackage>,<rManifestDataA>
+
+Summary: Validate an extension package
+
+Parameters: 
+
+pPackage: The .lce package to validate
+
+rManifestDataA: The basic manifest data extracted from the package
+
+The result:
+If the package was deemed invalid, the result contains the reason why 
+the package failed validation.
+
+Description:
+Use the <extensionValidateLCEPackage> command to naively validate the 
+contents of an .lce package. <extensionValidateLCEPackage> checks if 
+there is a file that looks like the main extension (either a compiled 
+LiveCode Builder module file or a LiveCode stack), that it contains a
+manifest XML file and that the manifest contains the minimum required
+information, namely the name, version, author, type, and title.
+
+The manifest information is returned in the <rManifestDataA> out 
+parameter.
+
+
+
+Name: extensionCheckModuleVersion
+
+Type: function
+
+Syntax: extensionCheckModuleVersion(<pLCCompile>,<pModule>)
+
+Summary: Check the module bytecode is the same version as a particular lc-compile
+
+Parameters: 
+
+pLCCompile: The path to the lc-compile program. If empty, this will be computed.
+
+pModule: The path to the compiled module bytecode file (.lcm)
+
+Returns:
+true if the version of lc-compile matches that of the bytecode file,
+false otherwise.
+
+
+
+Name: extensionPackageBuilderExtension
+
+Type: command
+
+Syntax: extensionPackageBuilderExtension <pSourceFolder>,<pTargetFolder>,<pRemoveSource>,<pLCCompile>,<pLCIPath>,<pExtraLCIPaths>
+
+Summary: Package a LiveCode Builder extension
+
+Parameters: 
+
+pSourceFolder: The folder containing the extension
+
+pTargetFolder: The folder to output the extension package
+
+pRemoveSource: Whether to remove the source files or not
+
+pLCCompile: The path to the lc-compile program. If empty, this will be computed.
+
+pLCIPath:
+The location of the standard library module interface files. If empty, 
+this will be computed.
+
+pExtraLCIPaths: A list of paths to look for extra module interface files.
+
+
+
+
+Name: extensionBuildPackageAndExtractLCB
+
+Type: command
+
+Syntax: extensionBuildPackageAndExtractLCB <pDocsParser>,<pTargetFolder>,<pCommercialExtension>,<pLCCompile>,<pLCIPath>,<pExtraLCIPaths>
+
+Summary: Build, package and extract LiveCode Builder extensions
+
+Parameters: 
+
+pDocsParser: The path to the docs parser script.
+
+pTargetFolder: The target folder to extract the extension to
+
+pCommercialExtension: Whether the extension source should be removed
+
+pLCCompile: The path to the lc-compile program. If empty, this will be computed.
+
+pLCIPath:
+The location of the standard library module interface files. If empty, 
+this will be computed.
+
+pExtraLCIPaths: A list of paths to look for extra module interface files.
+
+Description:
+Any parameters after <pExtraLCIPaths> are the extension sources to
+build, package and extract.
+
+
+
+Name: extensionBuildPackageAndExtract
+
+Type: command
+
+Syntax: extensionBuildPackageAndExtract <pProtectifyScript>,<pProtectifyOutput>,<pGitHash>,<pDocsParser>,<pSourceFolder>,<pSourceFileName>,<pTargetFolder>,<pCommercialExtension>,<pLCCompile>,<pLCIPath>,<pExtraLCIPaths>
+
+Summary: Build, package and extract extension
+
+Parameters: 
+
+pProtectifyScript: The path to the script that protects a livecode stack.
+
+pProtectifyOutput: The target filename for the protected livecode stack
+
+pGitHash: The hash to use when protecting the stack
+
+pDocsParser: The path to the docs parser script.
+
+pSourceFolder: The folder containing the extension
+
+pSourceFileName: The extension file name
+
+pTargetFolder: The target folder to extract the extension to
+
+pCommercialExtension: Whether the extension source should be removed
+
+pLCCompile: The path to the lc-compile program. If empty, this will be computed.
+
+pLCIPath:
+The location of the standard library module interface files. If empty, 
+this will be computed.
+
+pExtraLCIPaths: A list of paths to look for extra module interface files.
+
+
+
+
+Name: extensionOrderByDependency
+
+Type: function
+
+Syntax: extensionOrderByDependency(<pExtensions>,<pRequiresA>,<pIncludeBuiltin>)
+
+Summary: Order extensions by dependency using requires info
+
+Parameters: 
+
+pExtensions: A list of extensions to order, one per line
+
+pRequiresA:
+An array of dependencies. For each key `tExtension`, 
+`pRequiresA[tExtension]` should be a list of extensions on which 
+`tExtension` depends
+
+pIncludeBuiltin:
+Include built-in modules in dependency analysis. Defaults to false. 
+For most purposes, it is not necessary to include built-in modules.
+
+Returns:
+The list of extensions ordered by dependency according to the 
+dependency information in <pRequiresA>
+
+
+
+Name: extensionLCCompileVersion
+
+Type: function
+
+Syntax: extensionLCCompileVersion(<pLCCompile>)
+
+Summary: Return the bytecode version of a particular lc-compile
+
+Parameters: 
+
+pLCCompile: The path to the lc-compile program. If empty, this will be computed.
+
+Returns: An integer, the version of the bytecode output by <pLCCompile>
+
+
+
+
+Name: extensionCompile
+
+Type: command
+
+Syntax: extensionCompile <pLCCompile>,<pFile>,<pSupportFiles>,<pLCIPath>,<pExtraLCIPaths>,<pTargetFolder>,<pOutputFilename>
+
+Summary: Compile a LiveCode Builder extension file
+
+Parameters: 
+
+pLCCompile: The path to the lc-compile program. If empty, this will be computed.
+
+pFile: The main source file of the LCB extension
+
+pSupportFiles: A list of support files required by the main source file. These must all be named `<main_source_name>-<suffix>.lcb`
+
+pLCIPath:
+The location of the standard library module interface files. If empty, 
+this will be computed.
+
+pExtraLCIPaths: A list of paths to look for extra module interface files.
+
+pTargetFolder: The target output folder
+
+pOutputFilename: The target bytecode output filename
+
+The result: Any error that occurred.
+
+It: The dependency-ordered list.
+
+
+
+
+Name: extensionBytecodeFilename
+
+Type: function
+
+Syntax: extensionBytecodeFilename(<pLCCompile>,<pUseVersion>)
+
+Summary: Return the default bytecode output filename
+
+Parameters: 
+
+pLCCompile: The path to the lc-compile program. If empty, this will be computed.
+
+pUseVersion:
+Whether to use the bytecode version as part of the filename or not.
+Defaults to true.
+
+Returns:
+Either "module.lcm" or "module.<lc-compile_version>.lcm" depending on 
+the value of the <pUseVersion> parameter.
+
+
+
+Name: extensionFetchFolderDetails
+
+Type: function
+
+Syntax: extensionFetchFolderDetails(<pFolder>,<pParseManifest>)
+
+Summary: Fetch all the information about an extension in the given folder
+
+Parameters: 
+
+pFolder: The folder to search for an extension
+
+pParseManifest:
+Whether to parse any existing manifest file for information about the
+extension.
+
+Returns:
+An array of details about any extension found, and its assets, or empty
+if none was found.
+
+
+
+Name: extensionGenerateManifestForLCSExtension
+
+Type: command
+
+Syntax: extensionGenerateManifestForLCSExtension <pDocsParser>,<pSourceFolder>
+
+Summary: Generate manifest for LiveCode Script extension
+
+Parameters: 
+
+pDocsParser: The path to the docs parser script.
+
+pSourceFolder: The folder in which to find the lcs extension
+
+
+
+
+Name: extensionFetchMetadata
+
+Type: function
+
+Syntax: extensionFetchMetadata(<pManifestPath>)
+
+Summary: Fetch metadata from an extension manifest
+
+Parameters: 
+
+pManifestPath: The path to the manifest XML file
+
+
+
+
+Name: extensionExtractDocs
+
+Type: command
+
+Syntax: extensionExtractDocs <pDocsParser>,<pOutputDir>
+
+Summary: Extract docs from extension files
+
+Parameters: 
+
+pDocsParser:
+The path to the docs parser script. If empty, this command will do 
+nothing
+
+pOutputDir: The folder to output the extracted docs file
+
+Description:
+Use <extensionExtractDocs> to run the docs parser script on all the files which
+are parameters subsequent to <pOutputDir>
+
+
+
+Name: extensionProtectStack
+
+Type: command
+
+Syntax: extensionProtectStack <pProtectifyScript>,<pSourceFolder>,<pSourceFileName>,<pOutput>,<pGitHash>
+
+Summary: Protect a livecode stack using the provided script
+
+Parameters: 
+
+pProtectifyScript: The path to the script that protects a livecode stack.
+
+pSourceFolder: The folder containing the extension
+
+pSourceFileName: The extension file name
+
+pOutput: The target filename for the protected livecode stack
+
+pGitHash: The hash to use when protecting the stack
+
+
+
+

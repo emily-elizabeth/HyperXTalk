@@ -1,0 +1,46 @@
+Name: revXMLRPC_SetPort
+
+Type: command
+
+Syntax: revXMLRPC_SetPort <XMLRPCdocumentID>, <RPCport>
+
+Summary:
+Sets the port of an <XML-RPC document> structure.
+
+Associations: xml-rpc library
+
+Introduced: 2.5
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Security: disk, process
+
+Parameters:
+XMLRPCdocumentID (integer):
+The number returned by the <revXMLRPC_CreateRequest> when you created the
+<XML-RPC> request.
+
+RPCport (string):
+The port number you want to connect to. If you don't specify a port,
+port 80 is used. (On most systems, port 80 is used for HTTP
+connections.)
+
+The result (string):
+If the <revXMLRPC_SetPort> <command> encounters an error, the <result>
+is set to an error message beginning with "xmlrpcerr".
+
+Description:
+Use the <revXMLRPC_SetPort> <command> to set the port that is the target
+of the execution of an <XML-RPC> request.
+
+
+References: revXMLRPC_SetHost (command), revXMLRPC_GetPort (function),
+result (function), revXMLRPC_CreateRequest (function),
+LiveCode custom library (glossary), XML-RPC document(glossary),
+Standalone Application Settings (glossary),
+standalone application (glossary), command (glossary),
+XML-RPC (glossary), XML-RPC library (library)
+
+Tags: networking

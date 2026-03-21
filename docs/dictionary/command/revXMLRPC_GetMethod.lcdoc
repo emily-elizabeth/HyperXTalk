@@ -1,0 +1,46 @@
+Name: revXMLRPC_GetMethod
+
+Type: command
+
+Syntax: revXMLRPC_GetMethod(<XMLRPCdocumentID>)
+
+Summary:
+Returns the name of the method in an XML-RPC document structure.
+
+Associations: xml-rpc library
+
+Introduced: 2.5
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Security: disk, process
+
+Example:
+put revXMLRPC_GetMethod(theRequest) into theMethodName
+
+Parameters:
+XMLRPCdocumentID (integer):
+The number returned by the <revXMLRPC_CreateRequest> when you created the
+<XML-RPC> request.
+
+The result (string):
+If the <revXMLRPC_GetMethod> <command> encounters an error, the <result>
+is set to an error message beginning with "xmlrpcerr".
+
+Description:
+Use the <revXMLRPC_GetMethod> <function> to retrieve the method name to
+be called upon execution of an existing <XML-RPC document>.
+
+Where the path of the <XML-RPC document> tells the server which resource
+will handle the request, the method name tells that resource which
+method is being called specifically within that resource.
+
+
+References: revXMLRPC_SetMethod (command), revXMLRPC_GetPath (function),
+Standalone Application Settings (glossary),
+standalone application (glossary), return (glossary), function (glossary),
+XML-RPC document (glossary), LiveCode custom library (glossary),
+XML-RPC library (library), revXMLRPC_CreateRequest (function),
+XML-RPC (glossary)

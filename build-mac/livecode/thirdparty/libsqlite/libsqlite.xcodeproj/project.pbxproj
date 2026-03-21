@@ -1,0 +1,439 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1A4AC46BA44D55C289694BC1 /* gethostuuid.c in Sources */ = {isa = PBXBuildFile; fileRef = 39CFF589E534A1E726E0D8CD /* gethostuuid.c */; };
+		32A339825B0488901A5D65CD /* sqlitedataset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41C19386BA43B13A4553FA2E /* sqlitedataset.cpp */; };
+		7C52593434B6046DB7C31FCB /* qry_dat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A13CB61BDDFB8D860188FDB0 /* qry_dat.cpp */; };
+		7F18B3D5F56BE6AF2A7771BD /* sqlitedecode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9E266A13A7C459B84831A514 /* sqlitedecode.cpp */; };
+		B5B8C4E13EBECD8681BFADBD /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = F4459B9583130A5D8AA26B6B /* sqlite3.c */; };
+		DEF03B81CD74C91884D184EC /* dataset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B80554B3139477F432500E90 /* dataset.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		05C1B221D5169D54C3127FA1 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../config/emscripten.gypi; sourceTree = "<group>"; };
+		1567C784B7663E84905EA68C /* libsqlite.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libsqlite.gyp; sourceTree = "<group>"; };
+		1887E228B7F19701046270A2 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../../config/win32.gypi; sourceTree = "<group>"; };
+		23F7FF643AAAB504D1F98F7D /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../../common.gypi; sourceTree = "<group>"; };
+		2D96E28CDE480227A0D16EE7 /* dataset.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dataset.h; sourceTree = "<group>"; };
+		39CFF589E534A1E726E0D8CD /* gethostuuid.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = gethostuuid.c; sourceTree = "<group>"; };
+		41C19386BA43B13A4553FA2E /* sqlitedataset.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sqlitedataset.cpp; sourceTree = "<group>"; };
+		42BC9C49A91FCE58209D3E21 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../../config/yacc.gypi; sourceTree = "<group>"; };
+		6BBF3639832F2DD8C70ECC12 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../../config/linux.gypi; sourceTree = "<group>"; };
+		798712B84C7971E955C02A78 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		80FC16FA97D3DF508F9A71A2 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../../config/exclusions.gypi; sourceTree = "<group>"; };
+		88A8C114410E4E8589B57507 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../../config/perl.gypi; sourceTree = "<group>"; };
+		8D5F3FFA1064788E961BF83B /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		9125F2906B21DAD365B3622B /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../../config/mac.gypi; sourceTree = "<group>"; };
+		93B98A3818F19FD605FCC866 /* sqlitedataset.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sqlitedataset.h; sourceTree = "<group>"; };
+		945C35E86B802DFD8986B294 /* libsqlite.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libsqlite.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9D39BE528D5232C80366EDC5 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../config/android.gypi; sourceTree = "<group>"; };
+		9E266A13A7C459B84831A514 /* sqlitedecode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sqlitedecode.cpp; sourceTree = "<group>"; };
+		A13CB61BDDFB8D860188FDB0 /* qry_dat.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = qry_dat.cpp; sourceTree = "<group>"; };
+		A916C25C861D01580D810CF1 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../config/android-settings.gypi"; sourceTree = "<group>"; };
+		B22B2D4479226320545FE9B9 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../../config/crosscompile.gypi; sourceTree = "<group>"; };
+		B80554B3139477F432500E90 /* dataset.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dataset.cpp; sourceTree = "<group>"; };
+		BD54E44E83013AA812F09639 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../../config/configurations.gypi; sourceTree = "<group>"; };
+		C0EAE01EAB27BBC5D21AEA3E /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../../config/thirdparty.gypi; sourceTree = "<group>"; };
+		C33673414CA00DA3600BCBB8 /* sqlitedecode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sqlitedecode.h; sourceTree = "<group>"; };
+		C6BF440DE1D1B59EBA730F6C /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../config/ios.gypi; sourceTree = "<group>"; };
+		C991E2218F8AE953786AAD73 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../../config/arch.gypi; sourceTree = "<group>"; };
+		CC6F61480BE7E7D40BEFD6C6 /* sqlite3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sqlite3.h; sourceTree = "<group>"; };
+		D20C190AD7C7FFDECFE83BD4 /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		D9C9DDB78E3EEB91D04E65E5 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../../config/version.gypi; sourceTree = "<group>"; };
+		E065F176C28A7BDB0602E230 /* qry_dat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qry_dat.h; sourceTree = "<group>"; };
+		E9751C2FB06E85FD194BFA61 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../../config/target_os.gypi; sourceTree = "<group>"; };
+		F37A5412F8D6DB81F27CBF1A /* sqlite3ext.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sqlite3ext.h; sourceTree = "<group>"; };
+		F4459B9583130A5D8AA26B6B /* sqlite3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sqlite3.c; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A108C022537FAB61A97EF01F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		3D916A2545A87FC648D319CC /* ../.. */ = {
+			isa = PBXGroup;
+			children = (
+				8D5F3FFA1064788E961BF83B /* version */,
+			);
+			path = ../..;
+			sourceTree = "<group>";
+		};
+		5563974451EBBEA6D7DF7C3F /* sqlitedataset */ = {
+			isa = PBXGroup;
+			children = (
+				2D96E28CDE480227A0D16EE7 /* dataset.h */,
+				E065F176C28A7BDB0602E230 /* qry_dat.h */,
+				93B98A3818F19FD605FCC866 /* sqlitedataset.h */,
+			);
+			path = sqlitedataset;
+			sourceTree = "<group>";
+		};
+		89908957849057646FC97732 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				A916C25C861D01580D810CF1 /* android-settings.gypi */,
+				9D39BE528D5232C80366EDC5 /* android.gypi */,
+				C991E2218F8AE953786AAD73 /* arch.gypi */,
+				23F7FF643AAAB504D1F98F7D /* common.gypi */,
+				BD54E44E83013AA812F09639 /* configurations.gypi */,
+				B22B2D4479226320545FE9B9 /* crosscompile.gypi */,
+				798712B84C7971E955C02A78 /* emscripten-settings.gypi */,
+				05C1B221D5169D54C3127FA1 /* emscripten.gypi */,
+				80FC16FA97D3DF508F9A71A2 /* exclusions.gypi */,
+				C6BF440DE1D1B59EBA730F6C /* ios.gypi */,
+				1567C784B7663E84905EA68C /* libsqlite.gyp */,
+				D20C190AD7C7FFDECFE83BD4 /* linux-settings.gypi */,
+				6BBF3639832F2DD8C70ECC12 /* linux.gypi */,
+				9125F2906B21DAD365B3622B /* mac.gypi */,
+				88A8C114410E4E8589B57507 /* perl.gypi */,
+				E9751C2FB06E85FD194BFA61 /* target_os.gypi */,
+				C0EAE01EAB27BBC5D21AEA3E /* thirdparty.gypi */,
+				D9C9DDB78E3EEB91D04E65E5 /* version.gypi */,
+				1887E228B7F19701046270A2 /* win32.gypi */,
+				42BC9C49A91FCE58209D3E21 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		AA5931AFA933753186982162 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				5563974451EBBEA6D7DF7C3F /* sqlitedataset */,
+				CC6F61480BE7E7D40BEFD6C6 /* sqlite3.h */,
+				F37A5412F8D6DB81F27CBF1A /* sqlite3ext.h */,
+				C33673414CA00DA3600BCBB8 /* sqlitedecode.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		B0F4AA6B2E93E628323E4E17 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				B80554B3139477F432500E90 /* dataset.cpp */,
+				39CFF589E534A1E726E0D8CD /* gethostuuid.c */,
+				A13CB61BDDFB8D860188FDB0 /* qry_dat.cpp */,
+				F4459B9583130A5D8AA26B6B /* sqlite3.c */,
+				41C19386BA43B13A4553FA2E /* sqlitedataset.cpp */,
+				9E266A13A7C459B84831A514 /* sqlitedecode.cpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		C742CDE08C11FC612234B7A2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				945C35E86B802DFD8986B294 /* libsqlite.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		CBAF18D7C5FE0D0B13955E0D = {
+			isa = PBXGroup;
+			children = (
+				D0D15395358F7590BC56D3EA /* Source */,
+				C742CDE08C11FC612234B7A2 /* Products */,
+				89908957849057646FC97732 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		D0D15395358F7590BC56D3EA /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				3D916A2545A87FC648D319CC /* ../.. */,
+				AA5931AFA933753186982162 /* include */,
+				B0F4AA6B2E93E628323E4E17 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		42EE8AC31FB81410648FBCD8 /* libsqlite */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB04FF638244F14AAB1491CD /* Build configuration list for PBXNativeTarget "libsqlite" */;
+			buildPhases = (
+				532F74D369DF1014D028B2D9 /* Sources */,
+				A108C022537FAB61A97EF01F /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = libsqlite;
+			productName = sqlite;
+			productReference = 945C35E86B802DFD8986B294 /* libsqlite.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		FE384C4338F15BB3C5A31E02 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 0A1C157A965255A28893D8A6 /* Build configuration list for PBXProject "libsqlite" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = CBAF18D7C5FE0D0B13955E0D;
+			projectDirPath = ../../../../thirdparty/libsqlite;
+			projectRoot = "";
+			targets = (
+				42EE8AC31FB81410648FBCD8 /* libsqlite */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		532F74D369DF1014D028B2D9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DEF03B81CD74C91884D184EC /* dataset.cpp in Sources */,
+				1A4AC46BA44D55C289694BC1 /* gethostuuid.c in Sources */,
+				7C52593434B6046DB7C31FCB /* qry_dat.cpp in Sources */,
+				B5B8C4E13EBECD8681BFADBD /* sqlite3.c in Sources */,
+				32A339825B0488901A5D65CD /* sqlitedataset.cpp in Sources */,
+				7F18B3D5F56BE6AF2A7771BD /* sqlitedecode.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4166919AB2B2F66FDA170232 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					SQLITE_ENABLE_FTS3,
+					SQLITE_ENABLE_FTS3_PARENTHESIS,
+					SQLITE_ENABLE_FTS4,
+					SQLITE_ENABLE_FTS5,
+					SQLITE_ENABLE_RTREE,
+					SQLITE_ENABLE_JSON1,
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = sqlite;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		6C9A99D114047428B919BF56 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8D5F3FFA1064788E961BF83B /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		91C1668CE4E2DED93E5E449F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					SQLITE_ENABLE_FTS3,
+					SQLITE_ENABLE_FTS3_PARENTHESIS,
+					SQLITE_ENABLE_FTS4,
+					SQLITE_ENABLE_FTS5,
+					SQLITE_ENABLE_RTREE,
+					SQLITE_ENABLE_JSON1,
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = sqlite;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		B3C825799B7052CA09E0F5FC /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8D5F3FFA1064788E961BF83B /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		BBAB893762395F368256DEA9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8D5F3FFA1064788E961BF83B /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		DF93B32BC3F0012AB744DE9C /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					SQLITE_ENABLE_FTS3,
+					SQLITE_ENABLE_FTS3_PARENTHESIS,
+					SQLITE_ENABLE_FTS4,
+					SQLITE_ENABLE_FTS5,
+					SQLITE_ENABLE_RTREE,
+					SQLITE_ENABLE_JSON1,
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = sqlite;
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0A1C157A965255A28893D8A6 /* Build configuration list for PBXProject "libsqlite" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BBAB893762395F368256DEA9 /* Debug */,
+				6C9A99D114047428B919BF56 /* Fast */,
+				B3C825799B7052CA09E0F5FC /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		BB04FF638244F14AAB1491CD /* Build configuration list for PBXNativeTarget "libsqlite" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4166919AB2B2F66FDA170232 /* Debug */,
+				DF93B32BC3F0012AB744DE9C /* Fast */,
+				91C1668CE4E2DED93E5E449F /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = FE384C4338F15BB3C5A31E02 /* Project object */;
+}

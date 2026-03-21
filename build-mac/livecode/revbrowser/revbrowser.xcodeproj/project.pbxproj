@@ -1,0 +1,722 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01534EFC63177FAB81131747 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 782DC9B7E49E1A5B43F71C04 /* Cocoa.framework */; };
+		0709B4F30AE305F31561E1A6 /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 52D694311630EC183D9749D8 /* libExternal.a */; };
+		18BAE5D02BA276F67B75E30B /* osxbrowser.mm in Sources */ = {isa = PBXBuildFile; fileRef = 451F47650D1C89917DB5231C /* osxbrowser.mm */; };
+		592A100995341D616B5B6607 /* signal_restore_posix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 81DB31AC3416A60D41598DEC /* signal_restore_posix.cpp */; };
+		8FE4C23192D88158F14F217B /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2B1D2E29BE23103B3F5FC3C /* Carbon.framework */; };
+		E22B7443A0D599CBA6575474 /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 46FFB0A5FCD46D66A1E34EE6 /* libCore.a */; };
+		E6574544D581133EFC186739 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3157FE935D73B4B8FEE0876 /* WebKit.framework */; };
+		EC8DBEE2156913F0D33DA372 /* revbrowser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1C371FC159D67C3466A13E00 /* revbrowser.cpp */; };
+		F570C030D707599153A280D3 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 648FBB8F4783755E6184C0CB /* CoreServices.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1EB53B1DCB789CCF58BB1763 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F131994FEB6387AC0C7BF983 /* libexternal.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 73AD7E038E4E1683AE423BFC;
+			remoteInfo = libExternal;
+		};
+		2A1E2C65E9BF6749B28B8B40 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F131994FEB6387AC0C7BF983 /* libexternal.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7DAF95721375FEF9FB6262D6;
+			remoteInfo = "libExternal (host)";
+		};
+		524CAC0A6C76E7B2CDF279A6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F4B7F0918BD1659EE62FBCAA /* libcore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 065138166E84E87D0D2F7187;
+			remoteInfo = "libCore (host)";
+		};
+		691A13D51195ABC6924AB7F0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F4B7F0918BD1659EE62FBCAA /* libcore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DD44348CE0FC9FD8CA3DC4E0;
+			remoteInfo = libCore;
+		};
+		9D6967E50448985E34928D91 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F131994FEB6387AC0C7BF983 /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		DC407D5D012200654FB9280C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F4B7F0918BD1659EE62FBCAA /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		049F7ED03C823F86520F3AA1 /* osxbrowser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = osxbrowser.h; sourceTree = "<group>"; };
+		0565B3F4C31F55CF9DC1E579 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
+		10F7AB0EBD7FAB96329FEC1E /* w32browser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = w32browser.h; sourceTree = "<group>"; };
+		151DF7B5E7815B8B0EF4E97B /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../config/version.gypi; sourceTree = "<group>"; };
+		18F628B5FB15ECDEE5A5FC0A /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
+		1C371FC159D67C3466A13E00 /* revbrowser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = revbrowser.cpp; sourceTree = "<group>"; };
+		1FF7EFF9408E83904D42FE06 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
+		1FFB4E6A13EA088559156B2F /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../config/thirdparty.gypi; sourceTree = "<group>"; };
+		2C785F9899F18F6EC047F43E /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
+		34E0877D9A550E01A0DE0CA1 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
+		3BF76BD67E9FD5DDE3F85875 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
+		451F47650D1C89917DB5231C /* osxbrowser.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = osxbrowser.mm; sourceTree = "<group>"; };
+		4797E49349D81D15D9E4892A /* signal_restore_posix.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = signal_restore_posix.h; sourceTree = "<group>"; };
+		55629D98F70108ECE9772654 /* revbrowser.rc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = revbrowser.rc.h; sourceTree = "<group>"; };
+		5EC507E1102D10AB85FA3DA0 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../config/win32.gypi; sourceTree = "<group>"; };
+		614B04A8F86E93417275D351 /* cefbrowser_msg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cefbrowser_msg.h; sourceTree = "<group>"; };
+		6251C8C732617E4076847EDB /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
+		648FBB8F4783755E6184C0CB /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		696B3FC10133BC3F914D3FA0 /* revbrowser.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = revbrowser.gyp; sourceTree = "<group>"; };
+		6C640360D5F09E0F0C2623BC /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		782DC9B7E49E1A5B43F71C04 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		81DB31AC3416A60D41598DEC /* signal_restore_posix.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = signal_restore_posix.cpp; sourceTree = "<group>"; };
+		83C2C5B04FEC7D88E3A26EFF /* revbrowser.rc */ = {isa = PBXFileReference; lastKnownFileType = text; path = revbrowser.rc; sourceTree = "<group>"; };
+		8714C638B1465916027459D9 /* cefbrowser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cefbrowser.cpp; sourceTree = "<group>"; };
+		8901CB02D2D0C1F6682BC293 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
+		96A5A68D6B97F90E510B4BB1 /* revbrowser.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = revbrowser.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B9DEAF3E97F1A15D1D70F4D /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../config/crosscompile.gypi; sourceTree = "<group>"; };
+		A85FD38BBD062A80D17E15B8 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
+		AA3F80CB6999B5241EB10087 /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		ADFBB150BFCD9A6F7F37016C /* cefbrowser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cefbrowser.h; sourceTree = "<group>"; };
+		AF516949A02F01DF47A0F08F /* w32browser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = w32browser.cpp; sourceTree = "<group>"; };
+		B8B86DA170EDEB9D58555DF3 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../config/configurations.gypi; sourceTree = "<group>"; };
+		C968B32F0FF80008F5D615CE /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		D2B1D2E29BE23103B3F5FC3C /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
+		D4DC550B7E69C891A3D3815E /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
+		D62BA48922D66F3159708051 /* cefbrowser_lnx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cefbrowser_lnx.cpp; sourceTree = "<group>"; };
+		D8F488C045E5D012CDF66320 /* lnxbrowser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lnxbrowser.cpp; sourceTree = "<group>"; };
+		DD5D2D5DEFD7BB1F2A34273B /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
+		DFF01C3AF761FDFD4047DF4E /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../config/mac.gypi; sourceTree = "<group>"; };
+		EEA79F7427CCA288702FEF51 /* cefbrowser_w32.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cefbrowser_w32.cpp; sourceTree = "<group>"; };
+		EFA47407A342E0BA277EF99D /* revbrowser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = revbrowser.h; sourceTree = "<group>"; };
+		F131994FEB6387AC0C7BF983 /* libexternal.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libexternal.xcodeproj; path = "../build-mac/livecode/libexternal/libexternal.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		F3157FE935D73B4B8FEE0876 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		F4B7F0918BD1659EE62FBCAA /* libcore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libcore.xcodeproj; path = "../build-mac/livecode/libcore/libcore.xcodeproj"; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1495C919ECE4249808E423B0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E22B7443A0D599CBA6575474 /* libCore.a in Frameworks */,
+				0709B4F30AE305F31561E1A6 /* libExternal.a in Frameworks */,
+				F570C030D707599153A280D3 /* CoreServices.framework in Frameworks */,
+				8FE4C23192D88158F14F217B /* Carbon.framework in Frameworks */,
+				01534EFC63177FAB81131747 /* Cocoa.framework in Frameworks */,
+				E6574544D581133EFC186739 /* WebKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		03C375A4DD2612AD903C45AD /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				E1E0AB353161C2B18CC174DE /* .. */,
+				964874EECAD59B59DC950306 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		2672B7ED0D265A7162E5D294 /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				F4B7F0918BD1659EE62FBCAA /* libcore.xcodeproj */,
+				F131994FEB6387AC0C7BF983 /* libexternal.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		5961F4475544E6A5A73D39E9 = {
+			isa = PBXGroup;
+			children = (
+				03C375A4DD2612AD903C45AD /* Source */,
+				2672B7ED0D265A7162E5D294 /* Projects */,
+				6D8E349ABF0EECC1C58D8C12 /* Frameworks */,
+				78558357042EE08A82646F20 /* Products */,
+				B30BB28B36928811DF4345F0 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		67AF8F260B8134ECFA9C232B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				46FFB0A5FCD46D66A1E34EE6 /* libCore.a */,
+				CF7089EFD2033C0276361C35 /* libCore (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6D8E349ABF0EECC1C58D8C12 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D2B1D2E29BE23103B3F5FC3C /* Carbon.framework */,
+				782DC9B7E49E1A5B43F71C04 /* Cocoa.framework */,
+				648FBB8F4783755E6184C0CB /* CoreServices.framework */,
+				F3157FE935D73B4B8FEE0876 /* WebKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		6F77948D57081944C5AA0F71 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				52D694311630EC183D9749D8 /* libExternal.a */,
+				CFDA2E947C4F7622FA7F8E13 /* libExternal (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		78558357042EE08A82646F20 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				96A5A68D6B97F90E510B4BB1 /* revbrowser.bundle */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		964874EECAD59B59DC950306 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				8714C638B1465916027459D9 /* cefbrowser.cpp */,
+				ADFBB150BFCD9A6F7F37016C /* cefbrowser.h */,
+				D62BA48922D66F3159708051 /* cefbrowser_lnx.cpp */,
+				614B04A8F86E93417275D351 /* cefbrowser_msg.h */,
+				EEA79F7427CCA288702FEF51 /* cefbrowser_w32.cpp */,
+				D8F488C045E5D012CDF66320 /* lnxbrowser.cpp */,
+				049F7ED03C823F86520F3AA1 /* osxbrowser.h */,
+				451F47650D1C89917DB5231C /* osxbrowser.mm */,
+				1C371FC159D67C3466A13E00 /* revbrowser.cpp */,
+				EFA47407A342E0BA277EF99D /* revbrowser.h */,
+				83C2C5B04FEC7D88E3A26EFF /* revbrowser.rc */,
+				55629D98F70108ECE9772654 /* revbrowser.rc.h */,
+				81DB31AC3416A60D41598DEC /* signal_restore_posix.cpp */,
+				4797E49349D81D15D9E4892A /* signal_restore_posix.h */,
+				AF516949A02F01DF47A0F08F /* w32browser.cpp */,
+				10F7AB0EBD7FAB96329FEC1E /* w32browser.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		B30BB28B36928811DF4345F0 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				6251C8C732617E4076847EDB /* android-settings.gypi */,
+				3BF76BD67E9FD5DDE3F85875 /* android.gypi */,
+				DD5D2D5DEFD7BB1F2A34273B /* arch.gypi */,
+				8901CB02D2D0C1F6682BC293 /* common.gypi */,
+				B8B86DA170EDEB9D58555DF3 /* configurations.gypi */,
+				9B9DEAF3E97F1A15D1D70F4D /* crosscompile.gypi */,
+				6C640360D5F09E0F0C2623BC /* emscripten-settings.gypi */,
+				D4DC550B7E69C891A3D3815E /* emscripten.gypi */,
+				34E0877D9A550E01A0DE0CA1 /* exclusions.gypi */,
+				0565B3F4C31F55CF9DC1E579 /* ios.gypi */,
+				AA3F80CB6999B5241EB10087 /* linux-settings.gypi */,
+				18F628B5FB15ECDEE5A5FC0A /* linux.gypi */,
+				DFF01C3AF761FDFD4047DF4E /* mac.gypi */,
+				2C785F9899F18F6EC047F43E /* perl.gypi */,
+				696B3FC10133BC3F914D3FA0 /* revbrowser.gyp */,
+				A85FD38BBD062A80D17E15B8 /* target_os.gypi */,
+				1FFB4E6A13EA088559156B2F /* thirdparty.gypi */,
+				151DF7B5E7815B8B0EF4E97B /* version.gypi */,
+				5EC507E1102D10AB85FA3DA0 /* win32.gypi */,
+				1FF7EFF9408E83904D42FE06 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		E1E0AB353161C2B18CC174DE /* .. */ = {
+			isa = PBXGroup;
+			children = (
+				C968B32F0FF80008F5D615CE /* version */,
+			);
+			path = ..;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6E55CE839579E8747BB85AEA /* external-revbrowser */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B4EC85C69FCF23BFA32E67FC /* Build configuration list for PBXNativeTarget "external-revbrowser" */;
+			buildPhases = (
+				0C6727ACAD4298FD3DFD4977 /* Sources */,
+				1495C919ECE4249808E423B0 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				84089322DC3904F026D14786 /* PBXTargetDependency */,
+				7E1A23819F399B7D9912C562 /* PBXTargetDependency */,
+			);
+			name = "external-revbrowser";
+			productName = revbrowser;
+			productReference = 96A5A68D6B97F90E510B4BB1 /* revbrowser.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		764AC18E852AB1547422F841 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 9ED7AC36D37116118BC81F9D /* Build configuration list for PBXProject "revbrowser" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 5961F4475544E6A5A73D39E9;
+			projectDirPath = ../../../revbrowser;
+			projectReferences = (
+				{
+					ProductGroup = 67AF8F260B8134ECFA9C232B /* Products */;
+					ProjectRef = F4B7F0918BD1659EE62FBCAA /* libcore.xcodeproj */;
+				},
+				{
+					ProductGroup = 6F77948D57081944C5AA0F71 /* Products */;
+					ProjectRef = F131994FEB6387AC0C7BF983 /* libexternal.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				6E55CE839579E8747BB85AEA /* external-revbrowser */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		46FFB0A5FCD46D66A1E34EE6 /* libCore.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libCore.a;
+			remoteRef = 691A13D51195ABC6924AB7F0 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		52D694311630EC183D9749D8 /* libExternal.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libExternal.a;
+			remoteRef = 1EB53B1DCB789CCF58BB1763 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CF7089EFD2033C0276361C35 /* libCore (host).a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libCore (host).a";
+			remoteRef = 524CAC0A6C76E7B2CDF279A6 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		CFDA2E947C4F7622FA7F8E13 /* libExternal (host).a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libExternal (host).a";
+			remoteRef = 2A1E2C65E9BF6749B28B8B40 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0C6727ACAD4298FD3DFD4977 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				18BAE5D02BA276F67B75E30B /* osxbrowser.mm in Sources */,
+				EC8DBEE2156913F0D33DA372 /* revbrowser.cpp in Sources */,
+				592A100995341D616B5B6607 /* signal_restore_posix.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7E1A23819F399B7D9912C562 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = 9D6967E50448985E34928D91 /* PBXContainerItemProxy */;
+		};
+		84089322DC3904F026D14786 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = DC407D5D012200654FB9280C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		09842C754FF15C159FB75A6D /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C968B32F0FF80008F5D615CE /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		5DF93C1BAC52DC93FA94216C /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C968B32F0FF80008F5D615CE /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		6CC88CF7A462799DCF452A7D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C968B32F0FF80008F5D615CE /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		B00841DF51E2D39D60BBD15B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libcore/include,
+					../libexternal/include,
+				);
+				INFOPLIST_FILE = "rsrc/revbrowser-Info.plist";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+					"-undefined dynamic_lookup",
+				);
+				PRODUCT_NAME = revbrowser;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Debug;
+		};
+		CC5C7BDDB5312245CE9EF870 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libcore/include,
+					../libexternal/include,
+				);
+				INFOPLIST_FILE = "rsrc/revbrowser-Info.plist";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+					"-undefined dynamic_lookup",
+				);
+				PRODUCT_NAME = revbrowser;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Fast;
+		};
+		F0A395228DD9716E7A52B228 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libcore/include,
+					../libexternal/include,
+				);
+				INFOPLIST_FILE = "rsrc/revbrowser-Info.plist";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+					"-undefined dynamic_lookup",
+				);
+				PRODUCT_NAME = revbrowser;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9ED7AC36D37116118BC81F9D /* Build configuration list for PBXProject "revbrowser" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6CC88CF7A462799DCF452A7D /* Debug */,
+				09842C754FF15C159FB75A6D /* Fast */,
+				5DF93C1BAC52DC93FA94216C /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		B4EC85C69FCF23BFA32E67FC /* Build configuration list for PBXNativeTarget "external-revbrowser" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B00841DF51E2D39D60BBD15B /* Debug */,
+				CC5C7BDDB5312245CE9EF870 /* Fast */,
+				F0A395228DD9716E7A52B228 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 764AC18E852AB1547422F841 /* Project object */;
+}

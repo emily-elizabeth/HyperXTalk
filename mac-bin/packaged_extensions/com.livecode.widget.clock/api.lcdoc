@@ -1,0 +1,235 @@
+Library: com.livecode.widget.clock
+
+Type: widget
+
+Summary:
+This widget consists of an analogue clock. The clock has day and night style displays which
+are used depending on the time. The period interpreted as day by the clock is controlled by
+a pair of constants kStartDay and kEndDay, currently set at 6 and 20 respectively. Thus the
+clock will display in night style between the hours of 8pm and 6am. The style of the clock,
+can be controlled by setting the appropriate colors of the different components. For daytime
+this is through the dayNumberColor, dayHourHandColor, dayMinuteHandColor, daySecondHandColor
+and dayFaceColor properties. There are equivalent properties for the night style. The time
+displayed by the clock can differ from the current system local time by setting the timeZone
+property, an integer which adjusts the time displayed relative to universal time (UTC).
+
+author: LiveCode
+
+version: 1.1.0
+
+
+Name: dayHourHandColor
+
+Type: property
+
+Syntax: get the dayHourHandColor of <widget>
+
+Syntax: set the dayHourHandColor of <widget> to <color>
+
+Summary: Determines the color of the hour hand on the clock during the day
+
+Description:
+Use the <dayHourHandColor> property to get or set the color of the hour
+hand of the clock during the day. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+
+
+
+Name: nightNumberColor
+
+Type: property
+
+Syntax: get the nightNumberColor of <widget>
+
+Syntax: set the nightNumberColor of <widget> to <color>
+
+Summary: Determines the color of the numbers on the clock during the night
+
+Description:
+Use the <nightNumberColor> property to get or set the text color of the numbers
+on the face of the clock during the night. To determine if the clock is
+displaying its daytime or night-time colors use the read-only property
+<isDay>.
+
+
+
+Name: dayMinuteHandColor
+
+Type: property
+
+Syntax: get the dayMinuteHandColor of <widget>
+
+Syntax: set the dayMinuteHandColor of <widget> to <color>
+
+Summary: Determines the color of the minute hand on the clock during the day
+
+Description:
+Use the <dayMinuteHandColor> property to get or set the color of the minute
+hand of the clock during the day. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+
+
+
+Name: isDay
+
+Type: property
+
+Syntax: get the isDay of <widget>
+
+Summary: Whether the clock's current display is in "day" mode.
+
+Value: True if the widget is in "day" mode; false otherwise
+
+Description:
+The <isDay> property indicates whether the clock widget is using its
+"day" mode or "night" mode.  Its value depends on the current time,
+and is read-only.
+
+
+
+Name: nightHourHandColor
+
+Type: property
+
+Syntax: get the nightHourHandColor of <widget>
+
+Syntax: set the nightHourHandColor of <widget> to <color>
+
+Summary: Determines the color of the hour hand on the clock during the night
+
+Description:
+Use the <nightHourHandColor> property to get or set the color of the hour
+hand of the clock during the night. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+
+
+
+Name: nightMinuteHandColor
+
+Type: property
+
+Syntax: get the nightMinuteHandColor of <widget>
+
+Syntax: set the nightMinuteHandColor of <widget> to <color>
+
+Summary: Determines the color of the minute hand on the clock during the night
+
+Description:
+Use the <nightMinuteHandColor> property to get or set the color of the minute
+hand of the clock during the night. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+
+
+
+Name: daySecondHandColor
+
+Type: property
+
+Syntax: get the daySecondHandColor of <widget>
+
+Syntax: set the daySecondHandColor of <widget> to <color>
+
+Summary: Determines the color of the second hand on the clock during the day
+
+Description:
+Use the <daySecondHandColor> property to get or set the color of the second
+hand of the clock during the day. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+
+
+
+Name: nightSecondHandColor
+
+Type: property
+
+Syntax: get the nightSecondHandColor of <widget>
+
+Syntax: set the nightSecondHandColor of <widget> to <color>
+
+Summary: Determines the color of the second hand on the clock during the night
+
+Description:
+Use the <nightSecondHandColor> property to get or set the color of the second
+hand of the clock during the night. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+
+
+
+Name: dayFaceColor
+
+Type: property
+
+Syntax: get the dayFaceColor of <widget>
+
+Syntax: set the dayFaceColor of <widget> to <color>
+
+Summary: Determines the color of the face of the clock during the day
+
+Description:
+Use the <dayFaceColor> property to get or set the color of the face
+of the clock during the day. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+
+
+
+Name: dayNumberColor
+
+Type: property
+
+Syntax: get the dayNumberColor of <widget>
+
+Syntax: set the dayNumberColor of <widget> to <color>
+
+Summary: Determines the color of the numbers on the clock during the day
+
+Description:
+Use the <dayNumberColor> property to get or set the text color of the numbers
+on the face of the clock during the day. To determine if the clock is
+displaying its daytime or night-time colors use the read-only property
+<isDay>.
+
+
+
+Name: nightFaceColor
+
+Type: property
+
+Syntax: get the nightFaceColor of <widget>
+
+Syntax: set the nightFaceColor of <widget> to <color>
+
+Summary: Determines the color of the face of the clock during the night
+
+Description:
+Use the <nightFaceColor> property to get or set the color of the face
+of the clock during the night. To determine if the clock is
+displaying its daytime or night-time colors, use the read-only property
+<isDay>.
+
+
+
+Name: timeZone
+
+Type: property
+
+Syntax: get the timeZone of <widget>
+
+Syntax: set the timeZone of <widget> to <pOffset>
+
+Summary: The time zone offset from UTC, in seconds, or the empty string
+
+Description:
+The <timeZone> is used to allow the clock widget to display a time other than
+the local time.  If the <timeZone> is empty, then the clock displays the local
+time.  Otherwise, the <timeZone> should be the number of seconds different from
+UTC that the clock should display.
+
+
+

@@ -1,0 +1,4488 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		C4697F8563B8950A49B39B18 /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 40C3B678A424C8274BAD5ED2 /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				9440725AEB24DBCF5F8BC5C5 /* PBXTargetDependency */,
+				C19E87C789B9D617596FFF56 /* PBXTargetDependency */,
+				B70AEDDD950C47E2B433D927 /* PBXTargetDependency */,
+				C29BF2459FE03A5F94D0C9CC /* PBXTargetDependency */,
+				A3C8630BC8E6363604C1C648 /* PBXTargetDependency */,
+				4C5E894F8880BB089CA2B527 /* PBXTargetDependency */,
+				40C7AB5BA61D4D7E82F73468 /* PBXTargetDependency */,
+				44332143DFABB6AEAB1AEB5E /* PBXTargetDependency */,
+				291EB6669724874E2345BFEE /* PBXTargetDependency */,
+				98BF6500D5A38FE32679E44A /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		0010B1FF29D1A39487D493D7 /* database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD820279193049597D70DE74 /* database.cpp */; };
+		0059E5307D552825B081F89E /* odbc_connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E812AC123F983DDC1369EC4 /* odbc_connection.cpp */; };
+		01B2F7FD749686CD3B3F1DA4 /* revdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 469F9A9A2C2BA90C4C7AE0A9 /* revdb.cpp */; };
+		0261F4C04C75F59F8F8BB831 /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3687015EB14B22412E1350 /* libCore.a */; };
+		0567F0619821CC1602960117 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E9BC8C071D93E7C4AB26CB8 /* CoreServices.framework */; };
+		066D90A7E47D36EADC6EE833 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E9BC8C071D93E7C4AB26CB8 /* CoreServices.framework */; };
+		0D75B425E1A1B41324C0E72E /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F6FC7331FB00C09EEFBD3DC /* libExternal.a */; };
+		10E29CEDB762494983993424 /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3687015EB14B22412E1350 /* libCore.a */; };
+		1203456B4CD4023F1CD203D1 /* dbdrivercommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95E268D369EA77825705EBD2 /* dbdrivercommon.cpp */; };
+		123F1DB0644078B68553CFA4 /* database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD820279193049597D70DE74 /* database.cpp */; };
+		1678E5DAE0163DC4B7EAB0D7 /* libmysql.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 914275C1FF579940E3585033 /* libmysql.a */; };
+		1B08D2A0C494E884A5A1FDC0 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E9BC8C071D93E7C4AB26CB8 /* CoreServices.framework */; };
+		2038EC9CCF1EB4AB372258F6 /* dbsqliteapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C75520B82D9A5F2BB47E563 /* dbsqliteapi.cpp */; };
+		2046D2BAB844BBF3D683266B /* dbdrivercommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95E268D369EA77825705EBD2 /* dbdrivercommon.cpp */; };
+		227D9ECDC8CDFFD37D03E9BA /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F6FC7331FB00C09EEFBD3DC /* libExternal.a */; };
+		270567261878ED32E1E16C9F /* database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD820279193049597D70DE74 /* database.cpp */; };
+		2A4D4C03F020FA5AF9039E4F /* libsqlite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0107D76C83545DE5D3079DCE /* libsqlite.a */; };
+		2B1C7CBCCEC04CBFEB997566 /* dbsqliteapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C75520B82D9A5F2BB47E563 /* dbsqliteapi.cpp */; };
+		2D76D6431E35F70394A0C522 /* dbpostgresqlapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AD7D72DCCA4AFFA6AA47B90 /* dbpostgresqlapi.cpp */; };
+		2E240620DF71128C079776BA /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3687015EB14B22412E1350 /* libCore.a */; };
+		31A7024464AC410B2410CBDC /* odbc_cursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5600B3B5154DBEBFCF0A8ACE /* odbc_cursor.cpp */; };
+		34A20F4181020AC899199EB8 /* sqlite_cursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6D4F7E7B6D135FE5243EE5E1 /* sqlite_cursor.cpp */; };
+		377F28CE41B9487A1C5323D7 /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F6FC7331FB00C09EEFBD3DC /* libExternal.a */; };
+		396FFC558A9AF938567724E7 /* database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD820279193049597D70DE74 /* database.cpp */; };
+		3B8F03C7E0567F7581C675FB /* dbdrivercommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95E268D369EA77825705EBD2 /* dbdrivercommon.cpp */; };
+		3FFF00E80295331183F8F6C9 /* sqlite_connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BF78E438E441F315C3E41E0 /* sqlite_connection.cpp */; };
+		45212663F8A85BA061035383 /* sqlite_cursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6D4F7E7B6D135FE5243EE5E1 /* sqlite_cursor.cpp */; };
+		49C5BFDA7043B7EFD6E4AA90 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F0A70C564192B62D81471235 /* libpq.a */; };
+		4F2ADC9B2319DA3B5CD0DACE /* ssl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 271A396BADB7C3550CC373BA /* ssl.cpp */; };
+		53258FBBF78066E4CC5310F5 /* database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD820279193049597D70DE74 /* database.cpp */; };
+		53C47B1505439258B09B8131 /* libsqlite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0107D76C83545DE5D3079DCE /* libsqlite.a */; };
+		5817A8126FE988793A2417B2 /* dbodbcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A2ECA931EF824A8DF3728C0A /* dbodbcapi.cpp */; };
+		5A5C00AC69B629E033096957 /* dbdrivercommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95E268D369EA77825705EBD2 /* dbdrivercommon.cpp */; };
+		5AEAD93F52D285DB191B6CCB /* dbdrivercommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95E268D369EA77825705EBD2 /* dbdrivercommon.cpp */; };
+		5B03EB32821F0E0BA44D352B /* mysql_connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 01583E5953504088E758E841 /* mysql_connection.cpp */; };
+		5FC86880D6EA9B014A9D2779 /* dbdrivercommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95E268D369EA77825705EBD2 /* dbdrivercommon.cpp */; };
+		66A41CFBE379D96B31FCE3D5 /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3687015EB14B22412E1350 /* libCore.a */; };
+		67C31EA22B43CFB82D44EE9F /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DAD2CECA632E45EF243508FB /* libz.a */; };
+		6BEDEC657D3DC8BCF1F9CEEE /* database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD820279193049597D70DE74 /* database.cpp */; };
+		6CA09AB6EF4594BFD9C46F77 /* libmysql.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 914275C1FF579940E3585033 /* libmysql.a */; };
+		6DE6F47A5AC74B774EC470C8 /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F6FC7331FB00C09EEFBD3DC /* libExternal.a */; };
+		71AEF4BF4CFA3352BC0D2233 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E9BC8C071D93E7C4AB26CB8 /* CoreServices.framework */; };
+		767A5A5E2DBB2A714204BD4B /* dbodbcapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A2ECA931EF824A8DF3728C0A /* dbodbcapi.cpp */; };
+		776D980D17C2C370CF71910A /* dbpostgresqlapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2AD7D72DCCA4AFFA6AA47B90 /* dbpostgresqlapi.cpp */; };
+		78C4701F28A7D8C55AF97D4D /* odbc_cursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5600B3B5154DBEBFCF0A8ACE /* odbc_cursor.cpp */; };
+		807FCE407AD35711EBE572E8 /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F6FC7331FB00C09EEFBD3DC /* libExternal.a */; };
+		885BA6506254237BB7ACA126 /* database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD820279193049597D70DE74 /* database.cpp */; };
+		8BA2560B1F48B41D83AFA24A /* postgresql_cursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CF28D487474046E305401233 /* postgresql_cursor.cpp */; };
+		8CF897F7C510EF107F6F8DAE /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F6FC7331FB00C09EEFBD3DC /* libExternal.a */; };
+		8F932484A524D4763B1D71DE /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F6FC7331FB00C09EEFBD3DC /* libExternal.a */; };
+		913DCEDE76D10CC4D0D4F2C3 /* osxsupport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B905F4E02D5293807AABD424 /* osxsupport.cpp */; };
+		953A8576B330AD2E389735CB /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E9BC8C071D93E7C4AB26CB8 /* CoreServices.framework */; };
+		9A36455725F6FFCACACED1E9 /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3687015EB14B22412E1350 /* libCore.a */; };
+		9B7A8F79E1E290C012A52C31 /* libiodbc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F214785B15264CA77B48AA9C /* libiodbc.a */; };
+		A60F3511B3007F51E7F1CF41 /* sqlite_connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8BF78E438E441F315C3E41E0 /* sqlite_connection.cpp */; };
+		A78FB67799776FFE8DEF0339 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E9BC8C071D93E7C4AB26CB8 /* CoreServices.framework */; };
+		A9FA52C23E6E153090921756 /* osxsupport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B905F4E02D5293807AABD424 /* osxsupport.cpp */; };
+		AF442134E64EEF82CF3B8EA4 /* revdb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 469F9A9A2C2BA90C4C7AE0A9 /* revdb.cpp */; };
+		B0A257182107DF7F5E84CCCC /* database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD820279193049597D70DE74 /* database.cpp */; };
+		B17AA4B9FDB8A2C2297DD73F /* ssl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 271A396BADB7C3550CC373BA /* ssl.cpp */; };
+		B4834377C639C919C30B0A06 /* dbmysqlapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B95569C8181AD4D3B9C16F5 /* dbmysqlapi.cpp */; };
+		B53F0EBD3885893D400E4998 /* odbc_connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0E812AC123F983DDC1369EC4 /* odbc_connection.cpp */; };
+		B942816EA19A32492B07E13F /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E9BC8C071D93E7C4AB26CB8 /* CoreServices.framework */; };
+		BD779F3AA31664AF2AB76D50 /* libz.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DAD2CECA632E45EF243508FB /* libz.a */; };
+		C451B12BFAAEE8B29882F6EF /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3687015EB14B22412E1350 /* libCore.a */; };
+		C7C32703B3F965B28743536A /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F6FC7331FB00C09EEFBD3DC /* libExternal.a */; };
+		CA0835818CE8C17FC388B727 /* postgresql_connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B7E2706A85B2A29E80FCF37 /* postgresql_connection.cpp */; };
+		CAE919AFE5BFD244BF3399A6 /* mysql_cursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0781FCC74B38FA8C1AD1A7E9 /* mysql_cursor.cpp */; };
+		CCDCC8C3D02EAD276B4F0679 /* ssl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 271A396BADB7C3550CC373BA /* ssl.cpp */; };
+		D024DF7C99D1077F4082C70F /* dbdrivercommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95E268D369EA77825705EBD2 /* dbdrivercommon.cpp */; };
+		D14AF8CE0DA6CEAE5D501FF5 /* dbdrivercommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95E268D369EA77825705EBD2 /* dbdrivercommon.cpp */; };
+		D154F6D199FCCD9AB3D05777 /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3687015EB14B22412E1350 /* libCore.a */; };
+		D1ACA5878AB38795D2A01375 /* ssl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 271A396BADB7C3550CC373BA /* ssl.cpp */; };
+		D2FC2D43E762CE90C12700BD /* dbdrivercommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95E268D369EA77825705EBD2 /* dbdrivercommon.cpp */; };
+		D56CDF368DC0E748208A9BEF /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3687015EB14B22412E1350 /* libCore.a */; };
+		D72E036F2B56BFF830F3F92B /* libiodbc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F214785B15264CA77B48AA9C /* libiodbc.a */; };
+		D76F90DB10E31D52D23A8424 /* postgresql_cursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CF28D487474046E305401233 /* postgresql_cursor.cpp */; };
+		D8F1334AB268D0066FDD5E58 /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3687015EB14B22412E1350 /* libCore.a */; };
+		DA7C1298A5D5829ADB83942C /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E9BC8C071D93E7C4AB26CB8 /* CoreServices.framework */; };
+		DF3C8776128D58DEE40B6AC4 /* dbdrivercommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 95E268D369EA77825705EBD2 /* dbdrivercommon.cpp */; };
+		DF8B4A28B66741FC98006D06 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E9BC8C071D93E7C4AB26CB8 /* CoreServices.framework */; };
+		E04892DD598AEEC0C567D526 /* database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD820279193049597D70DE74 /* database.cpp */; };
+		E4B87B593E67F4E087384E68 /* dbmysqlapi.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5B95569C8181AD4D3B9C16F5 /* dbmysqlapi.cpp */; };
+		E58CD0AF52A8FA4CC10BE150 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E9BC8C071D93E7C4AB26CB8 /* CoreServices.framework */; };
+		E688D969015BED1D83B9B424 /* postgresql_connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B7E2706A85B2A29E80FCF37 /* postgresql_connection.cpp */; };
+		EF69053A2688BD8DBFD17A06 /* mysql_connection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 01583E5953504088E758E841 /* mysql_connection.cpp */; };
+		EFBF089C567282FC708EA6D2 /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F6FC7331FB00C09EEFBD3DC /* libExternal.a */; };
+		F11252B79C911D13807D87F4 /* mysql_cursor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0781FCC74B38FA8C1AD1A7E9 /* mysql_cursor.cpp */; };
+		FBB18C9C7A7CFBCB5EBE44D4 /* libpq.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F0A70C564192B62D81471235 /* libpq.a */; };
+		FDAE5787D1CDF728EC5185CF /* database.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD820279193049597D70DE74 /* database.cpp */; };
+		FDC50FDC397E834C8250E838 /* libExternal.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0F6FC7331FB00C09EEFBD3DC /* libExternal.a */; };
+		FF7FB3C7972CA94AAE1F7633 /* libCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3687015EB14B22412E1350 /* libCore.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		02FA74AF110B300C99084F42 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 7648DCB36BFE86E633E84E41;
+			remoteInfo = thirdparty_prebuilt_mysql;
+		};
+		06EA73ACC07F8712D479CEF3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+		070FE632AFA0B040FA35DC81 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		115511A05FAB721F695467A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86525349BC4B469CBE1A73B5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BC1033ADCBCC3F33101F2319;
+			remoteInfo = "dbodbc-server";
+		};
+		1368AF26FBC5099FF08CC0CF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		13D9DDA13B04023EFF1DD26E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		14887B006FA31F2202B29F1C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		1F5BB00C68A446D5C0895A07 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		249B4110BF7AC94BBE54CE17 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = A4D306A0D448DDAD3D0B3E84;
+			remoteInfo = thirdparty_prebuilt_sqlite;
+		};
+		25D79B7AAA3DF7A969BF2AFD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+		2600331AD728AD41055B742D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F4FCA251AA01455DCCCF79CF;
+			remoteInfo = thirdparty_prebuilt_z;
+		};
+		29B85C7C1A0C366CA0CD23EA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		2AE5FA021D624581042F147D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		2FFD11D65FBBFD088985BF85 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = A4D306A0D448DDAD3D0B3E84;
+			remoteInfo = thirdparty_prebuilt_sqlite;
+		};
+		3688681834024F505E8262C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		3EFEA8FA16CBBC9DF7C4C4CB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		3F8219831AA3EA13DFACA49F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 73AD7E038E4E1683AE423BFC;
+			remoteInfo = libExternal;
+		};
+		419254DB908513AE4B48CA96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		440746062EB9E34DC3C3C461 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		441752E2A781053FCA3D6304 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		46A4AE52512D0127AFED89E4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+		49579EAD4091F92623C5730F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E6D49E18D74FA9BA2F2018E2;
+			remoteInfo = thirdparty_prebuilt_pq;
+		};
+		5590E95E0202D3BE93A527DB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		57635A3D8A64F16EDB38AD42 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		5C684803534BBCDC01C084C3 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		64A33DC9440942D01A597DE2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		6A4E294FDAF4DFC5836E5CA6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		6EE346C6D023095FDEEEF9D5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86525349BC4B469CBE1A73B5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 90FF89D0969361CE9CA1F464;
+			remoteInfo = "dbsqlite-server";
+		};
+		708B05E7FBE1E6A9384F779D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+		727D0F374EF10DCED7E4DA59 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+		729D8AF80AD3317B02F08164 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4958E4CAFF54B5E1EF2DDD62;
+			remoteInfo = "libExternal-symbol-exports";
+		};
+		7415CA1CBC8CA50A5737D271 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		7929C6C64E2798544CA26F1C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+		79DB0E5ABC3D95BADBC811F7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+		7DAC07B72711A8B146B2EEAE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		8336C9909A4246EEA44091B4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86525349BC4B469CBE1A73B5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1E3B23ACFCD50A993001C9C9;
+			remoteInfo = dbpostgresql;
+		};
+		846F7C8CA0677686D2AB65A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		86078DE26B1427E3EBDA0DC6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DD44348CE0FC9FD8CA3DC4E0;
+			remoteInfo = libCore;
+		};
+		919DE028A6716D8DFEFA4AAA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7DAF95721375FEF9FB6262D6;
+			remoteInfo = "libExternal (host)";
+		};
+		A51B9C2A06DDEA9A38761952 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86525349BC4B469CBE1A73B5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E295F761C7088CA92DF12FC0;
+			remoteInfo = "external-revdb-server";
+		};
+		AC31D907775D2A527755F5D5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		AC82E17E6A5169074F0D82DD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = A303DB3B51F6FB39C408B109;
+			remoteInfo = thirdparty_prebuilt_iodbc;
+		};
+		AD44B4ED4ED68F1EF9EFCA0C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 4B43414E2B095285C1144194;
+			remoteInfo = fetch;
+		};
+		ADE54741AAAB7EC13D85C9CD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		B0D27D923791AF07D2582CBC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		B4A25A8516543423DCD458AB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86525349BC4B469CBE1A73B5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 13A8195ECA20A5E167ECF829;
+			remoteInfo = "dbmysql-server";
+		};
+		B7A01D0337A8507C636C376F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86525349BC4B469CBE1A73B5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1E6EB0C17EB47ED79E7C1A6;
+			remoteInfo = "dbpostgresql-server";
+		};
+		BA8994C911E2A77C58CD400C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86525349BC4B469CBE1A73B5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9BD8A4F5D80F6E3CD2155271;
+			remoteInfo = "external-revdb";
+		};
+		BF4DDE2D65EF3E5EC70568AC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		C0866CA277CDA1892CABB737 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86525349BC4B469CBE1A73B5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 83830BED1DD36CDB156D2335;
+			remoteInfo = dbmysql;
+		};
+		C1419B3DE35A3BB83591E1D0 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		CC15BFA12C61BD5CAA03A833 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		D532B16FB8B6028994B398BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F4FCA251AA01455DCCCF79CF;
+			remoteInfo = thirdparty_prebuilt_z;
+		};
+		D9E61832AD536B694E12AAD9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86525349BC4B469CBE1A73B5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F1A44E096FAED6FA68831B54;
+			remoteInfo = dbsqlite;
+		};
+		DBE55CD63D699D3362884868 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E6D49E18D74FA9BA2F2018E2;
+			remoteInfo = thirdparty_prebuilt_pq;
+		};
+		DCBCBDD4788078F729AB07B8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		E1B83FDCBF099D25C9554023 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		E40E2AC146BEC4E6C3B21FB5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+		E5913763F01D6C453A3FA8BB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		E67154DA582DD195FB67E3EB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 065138166E84E87D0D2F7187;
+			remoteInfo = "libCore (host)";
+		};
+		EAC64F52B2070C3BC58F6ED1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 7648DCB36BFE86E633E84E41;
+			remoteInfo = thirdparty_prebuilt_mysql;
+		};
+		EE0A8E4E1EF3673B01E5492C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86525349BC4B469CBE1A73B5 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D64CEA6EF940152015449146;
+			remoteInfo = dbodbc;
+		};
+		EE7BE015AEC09ACB4B14018B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		F29462C1C091568490F9144D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		F36123768A9F4CEFF8E1F98F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = A303DB3B51F6FB39C408B109;
+			remoteInfo = thirdparty_prebuilt_iodbc;
+		};
+		F386836062E2E09DB91E650F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 9F835CABCE0AEC2044D4829D;
+			remoteInfo = "fetch-mac";
+		};
+		F8C81507B0D078A71563DA47 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5425627DB78FB713EE1607BC;
+			remoteInfo = thirdparty_prebuilt_dep;
+		};
+		FD05C406CD9AD6AADA685B2F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 508956C5A09E00FD1A6ED0E2;
+			remoteInfo = libExternal;
+		};
+		FE6C22DDC28D863ED5066954 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 99FA67148CB57C328EA72891;
+			remoteInfo = libCore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0107D76C83545DE5D3079DCE /* libsqlite.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite.a; path = ../prebuilt/lib/mac/libsqlite.a; sourceTree = "<group>"; };
+		01583E5953504088E758E841 /* mysql_connection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = mysql_connection.cpp; sourceTree = "<group>"; };
+		06E258BB1CD4BA0A4FF16C67 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../config/mac.gypi; sourceTree = "<group>"; };
+		0781FCC74B38FA8C1AD1A7E9 /* mysql_cursor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = mysql_cursor.cpp; sourceTree = "<group>"; };
+		0B7E2706A85B2A29E80FCF37 /* postgresql_connection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = postgresql_connection.cpp; sourceTree = "<group>"; };
+		0C4BC7304B69F1A27DCCD2A9 /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../config/thirdparty.gypi; sourceTree = "<group>"; };
+		0CCA123FCBFB91B3EFF88722 /* database.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = database.h; sourceTree = "<group>"; };
+		0E812AC123F983DDC1369EC4 /* odbc_connection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = odbc_connection.cpp; sourceTree = "<group>"; };
+		1182FD9AE240BFA48E902D9C /* large_buffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = large_buffer.h; sourceTree = "<group>"; };
+		11C9F9026AAEB0A7FB8BB6F1 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../config/crosscompile.gypi; sourceTree = "<group>"; };
+		151E3FFA251439839FC83126 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
+		20AFFA50B967591517A59EDF /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
+		262487E62F0F50EED8BCF464 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
+		271A396BADB7C3550CC373BA /* ssl.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ssl.cpp; sourceTree = "<group>"; };
+		29AD9E2CFDF93FDF42C1D478 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
+		2AD7D72DCCA4AFFA6AA47B90 /* dbpostgresqlapi.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dbpostgresqlapi.cpp; sourceTree = "<group>"; };
+		2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libexternal.xcodeproj; path = "../build-mac/livecode/libexternal/libexternal.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = thirdparty.xcodeproj; path = "../build-mac/livecode/prebuilt/thirdparty.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		355D41147AA109242467BAF7 /* osxsupport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = osxsupport.h; sourceTree = "<group>"; };
+		381211274E2F458A6D494CF6 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
+		4535604700FA118A83FE69A6 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		4601AF35DBE001042E375277 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../config/version.gypi; sourceTree = "<group>"; };
+		469F9A9A2C2BA90C4C7AE0A9 /* revdb.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = revdb.cpp; sourceTree = "<group>"; };
+		476CCD2121787642E4719CED /* dbmysql.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = dbmysql.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		4BA0724EB7DAE9B9287B2806 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
+		4C75520B82D9A5F2BB47E563 /* dbsqliteapi.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dbsqliteapi.cpp; sourceTree = "<group>"; };
+		4E9BC8C071D93E7C4AB26CB8 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		55919DC1136FC50A356F726F /* revdb.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = revdb.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		5600B3B5154DBEBFCF0A8ACE /* odbc_cursor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = odbc_cursor.cpp; sourceTree = "<group>"; };
+		56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = fetch.xcodeproj; path = "../build-mac/livecode/prebuilt/fetch.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		5B95569C8181AD4D3B9C16F5 /* dbmysqlapi.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dbmysqlapi.cpp; sourceTree = "<group>"; };
+		5CD3B2E72124351ED32C30C1 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../config/configurations.gypi; sourceTree = "<group>"; };
+		5ED147D718B12C3CEF84E69B /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		5F1B6626D4B4B647ED16EFE7 /* dbodbc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dbodbc.h; sourceTree = "<group>"; };
+		5F4E1FA53AC98461A89A9AF1 /* dbmysql.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dbmysql.h; sourceTree = "<group>"; };
+		60857D7708309BDF356AE821 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
+		66B80A08899088862FF8A8F2 /* server-dbmysql.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "server-dbmysql.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6886AC2C362E0CC0CE80257D /* iossupport.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = iossupport.cpp; sourceTree = "<group>"; };
+		6D4F7E7B6D135FE5243EE5E1 /* sqlite_cursor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sqlite_cursor.cpp; sourceTree = "<group>"; };
+		6DE10596596515570B2C2C06 /* revdbapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = revdbapi.h; sourceTree = "<group>"; };
+		78A8BDB2E8421A33C03783AA /* dbdriver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dbdriver.h; sourceTree = "<group>"; };
+		79032949DFA7E81060121A64 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
+		79E935DA00738824719CF3E6 /* server-dbpostgresql.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "server-dbpostgresql.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7A61BAE1E26343581AFF9916 /* dbodbc.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = dbodbc.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		814F0BE337646419AE4B0232 /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		8452E3D7079A1803BDA84EA6 /* revdb.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = revdb.gyp; sourceTree = "<group>"; };
+		8A4CAF31E5D0813B760C3830 /* revdb.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = revdb.h; sourceTree = "<group>"; };
+		8BF78E438E441F315C3E41E0 /* sqlite_connection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = sqlite_connection.cpp; sourceTree = "<group>"; };
+		914275C1FF579940E3585033 /* libmysql.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmysql.a; path = ../prebuilt/lib/mac/libmysql.a; sourceTree = "<group>"; };
+		95E268D369EA77825705EBD2 /* dbdrivercommon.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dbdrivercommon.cpp; sourceTree = "<group>"; };
+		9737A360992F8B7F812FBC05 /* w32support.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = w32support.cpp; sourceTree = "<group>"; };
+		9EAD2DD53D21B114A643BBCB /* server-dbodbc.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "server-dbodbc.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A24C092262B9300D63512464 /* dbsqlite.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = dbsqlite.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2ECA931EF824A8DF3728C0A /* dbodbcapi.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dbodbcapi.cpp; sourceTree = "<group>"; };
+		AC78EB4A032EDCB3C3172A01 /* server-dbsqlite.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "server-dbsqlite.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B905F4E02D5293807AABD424 /* osxsupport.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = osxsupport.cpp; sourceTree = "<group>"; };
+		B965C96DE8848E51F1A85251 /* unxsupport.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = unxsupport.cpp; sourceTree = "<group>"; };
+		BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libcore.xcodeproj; path = "../build-mac/livecode/libcore/libcore.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		BD820279193049597D70DE74 /* database.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = database.cpp; sourceTree = "<group>"; };
+		C225EBCE97572AE4DF171F4E /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
+		C363605380675F8FF45BBF5B /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
+		CC4D44FD6E8C8AA28E1C161F /* server-revdb.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "server-revdb.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CF28D487474046E305401233 /* postgresql_cursor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = postgresql_cursor.cpp; sourceTree = "<group>"; };
+		D8994F1DA1A0FDA4A28A8DC4 /* dbcursor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dbcursor.h; sourceTree = "<group>"; };
+		DA1CB4F4F9989F042D007D8F /* unxsupport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = unxsupport.h; sourceTree = "<group>"; };
+		DAD2CECA632E45EF243508FB /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = ../prebuilt/lib/mac/libz.a; sourceTree = "<group>"; };
+		DFD3D43FAC1BE0E0072128CC /* iossupport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = iossupport.h; sourceTree = "<group>"; };
+		E0AE47D0CDA638873F7E28F8 /* dbpostgresql.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dbpostgresql.h; sourceTree = "<group>"; };
+		E5076FE150CC304EA1E66CB7 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../config/win32.gypi; sourceTree = "<group>"; };
+		E5F673E0441C5E2229FDD93E /* dbpostgresql.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = dbpostgresql.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		E96EDCC249DDD96A3A49E078 /* dbsqlite.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dbsqlite.h; sourceTree = "<group>"; };
+		EF1D3A0FB82A120D07258171 /* w32support.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = w32support.h; sourceTree = "<group>"; };
+		F0A70C564192B62D81471235 /* libpq.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpq.a; path = ../prebuilt/lib/mac/libpq.a; sourceTree = "<group>"; };
+		F214785B15264CA77B48AA9C /* libiodbc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libiodbc.a; path = ../prebuilt/lib/mac/libiodbc.a; sourceTree = "<group>"; };
+		FD595D60DFA5F32E78C7953B /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		035B413C90A1F5149CE19E90 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C7C32703B3F965B28743536A /* libExternal.a in Frameworks */,
+				66A41CFBE379D96B31FCE3D5 /* libCore.a in Frameworks */,
+				DA7C1298A5D5829ADB83942C /* CoreServices.framework in Frameworks */,
+				6CA09AB6EF4594BFD9C46F77 /* libmysql.a in Frameworks */,
+				67C31EA22B43CFB82D44EE9F /* libz.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0A373C427EFDA9CA5785DFFD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FDC50FDC397E834C8250E838 /* libExternal.a in Frameworks */,
+				10E29CEDB762494983993424 /* libCore.a in Frameworks */,
+				E58CD0AF52A8FA4CC10BE150 /* CoreServices.framework in Frameworks */,
+				FBB18C9C7A7CFBCB5EBE44D4 /* libpq.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		100C52139434C6BC261822C4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8CF897F7C510EF107F6F8DAE /* libExternal.a in Frameworks */,
+				0261F4C04C75F59F8F8BB831 /* libCore.a in Frameworks */,
+				A78FB67799776FFE8DEF0339 /* CoreServices.framework in Frameworks */,
+				53C47B1505439258B09B8131 /* libsqlite.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		358FC8112133EDB38746642C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				807FCE407AD35711EBE572E8 /* libExternal.a in Frameworks */,
+				FF7FB3C7972CA94AAE1F7633 /* libCore.a in Frameworks */,
+				DF8B4A28B66741FC98006D06 /* CoreServices.framework in Frameworks */,
+				1678E5DAE0163DC4B7EAB0D7 /* libmysql.a in Frameworks */,
+				BD779F3AA31664AF2AB76D50 /* libz.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		51D9D6FC4361CC079F1685D9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C451B12BFAAEE8B29882F6EF /* libCore.a in Frameworks */,
+				377F28CE41B9487A1C5323D7 /* libExternal.a in Frameworks */,
+				71AEF4BF4CFA3352BC0D2233 /* CoreServices.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6961D49C45CF99A279085E1E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				227D9ECDC8CDFFD37D03E9BA /* libExternal.a in Frameworks */,
+				D154F6D199FCCD9AB3D05777 /* libCore.a in Frameworks */,
+				953A8576B330AD2E389735CB /* CoreServices.framework in Frameworks */,
+				9B7A8F79E1E290C012A52C31 /* libiodbc.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7BFF6D0395CAD5FCBBDAB4FC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0D75B425E1A1B41324C0E72E /* libExternal.a in Frameworks */,
+				9A36455725F6FFCACACED1E9 /* libCore.a in Frameworks */,
+				B942816EA19A32492B07E13F /* CoreServices.framework in Frameworks */,
+				D72E036F2B56BFF830F3F92B /* libiodbc.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8684AC2BF93CBCD803DA24B4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EFBF089C567282FC708EA6D2 /* libExternal.a in Frameworks */,
+				D8F1334AB268D0066FDD5E58 /* libCore.a in Frameworks */,
+				0567F0619821CC1602960117 /* CoreServices.framework in Frameworks */,
+				49C5BFDA7043B7EFD6E4AA90 /* libpq.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B172BD5DC2358D2FD0382A53 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6DE6F47A5AC74B774EC470C8 /* libExternal.a in Frameworks */,
+				D56CDF368DC0E748208A9BEF /* libCore.a in Frameworks */,
+				1B08D2A0C494E884A5A1FDC0 /* CoreServices.framework in Frameworks */,
+				2A4D4C03F020FA5AF9039E4F /* libsqlite.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7FB2FDD3C999D7AC1DD3106 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2E240620DF71128C079776BA /* libCore.a in Frameworks */,
+				8F932484A524D4763B1D71DE /* libExternal.a in Frameworks */,
+				066D90A7E47D36EADC6EE833 /* CoreServices.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		082C197F12DF96FD72CD2648 /* .. */ = {
+			isa = PBXGroup;
+			children = (
+				814F0BE337646419AE4B0232 /* version */,
+			);
+			path = ..;
+			sourceTree = "<group>";
+		};
+		2A9FE487E6EA51DAECE956B7 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				BD820279193049597D70DE74 /* database.cpp */,
+				0CCA123FCBFB91B3EFF88722 /* database.h */,
+				D8994F1DA1A0FDA4A28A8DC4 /* dbcursor.h */,
+				78A8BDB2E8421A33C03783AA /* dbdriver.h */,
+				95E268D369EA77825705EBD2 /* dbdrivercommon.cpp */,
+				5F4E1FA53AC98461A89A9AF1 /* dbmysql.h */,
+				5B95569C8181AD4D3B9C16F5 /* dbmysqlapi.cpp */,
+				5F1B6626D4B4B647ED16EFE7 /* dbodbc.h */,
+				A2ECA931EF824A8DF3728C0A /* dbodbcapi.cpp */,
+				E0AE47D0CDA638873F7E28F8 /* dbpostgresql.h */,
+				2AD7D72DCCA4AFFA6AA47B90 /* dbpostgresqlapi.cpp */,
+				E96EDCC249DDD96A3A49E078 /* dbsqlite.h */,
+				4C75520B82D9A5F2BB47E563 /* dbsqliteapi.cpp */,
+				6886AC2C362E0CC0CE80257D /* iossupport.cpp */,
+				DFD3D43FAC1BE0E0072128CC /* iossupport.h */,
+				1182FD9AE240BFA48E902D9C /* large_buffer.h */,
+				01583E5953504088E758E841 /* mysql_connection.cpp */,
+				0781FCC74B38FA8C1AD1A7E9 /* mysql_cursor.cpp */,
+				0E812AC123F983DDC1369EC4 /* odbc_connection.cpp */,
+				5600B3B5154DBEBFCF0A8ACE /* odbc_cursor.cpp */,
+				B905F4E02D5293807AABD424 /* osxsupport.cpp */,
+				355D41147AA109242467BAF7 /* osxsupport.h */,
+				0B7E2706A85B2A29E80FCF37 /* postgresql_connection.cpp */,
+				CF28D487474046E305401233 /* postgresql_cursor.cpp */,
+				469F9A9A2C2BA90C4C7AE0A9 /* revdb.cpp */,
+				8A4CAF31E5D0813B760C3830 /* revdb.h */,
+				6DE10596596515570B2C2C06 /* revdbapi.h */,
+				8BF78E438E441F315C3E41E0 /* sqlite_connection.cpp */,
+				6D4F7E7B6D135FE5243EE5E1 /* sqlite_cursor.cpp */,
+				271A396BADB7C3550CC373BA /* ssl.cpp */,
+				B965C96DE8848E51F1A85251 /* unxsupport.cpp */,
+				DA1CB4F4F9989F042D007D8F /* unxsupport.h */,
+				9737A360992F8B7F812FBC05 /* w32support.cpp */,
+				EF1D3A0FB82A120D07258171 /* w32support.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		2F29584F49CAB0FF21DCAFA4 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				C225EBCE97572AE4DF171F4E /* android-settings.gypi */,
+				4BA0724EB7DAE9B9287B2806 /* android.gypi */,
+				FD595D60DFA5F32E78C7953B /* arch.gypi */,
+				20AFFA50B967591517A59EDF /* common.gypi */,
+				5CD3B2E72124351ED32C30C1 /* configurations.gypi */,
+				11C9F9026AAEB0A7FB8BB6F1 /* crosscompile.gypi */,
+				4535604700FA118A83FE69A6 /* emscripten-settings.gypi */,
+				79032949DFA7E81060121A64 /* emscripten.gypi */,
+				29AD9E2CFDF93FDF42C1D478 /* exclusions.gypi */,
+				60857D7708309BDF356AE821 /* ios.gypi */,
+				5ED147D718B12C3CEF84E69B /* linux-settings.gypi */,
+				C363605380675F8FF45BBF5B /* linux.gypi */,
+				06E258BB1CD4BA0A4FF16C67 /* mac.gypi */,
+				151E3FFA251439839FC83126 /* perl.gypi */,
+				8452E3D7079A1803BDA84EA6 /* revdb.gyp */,
+				262487E62F0F50EED8BCF464 /* target_os.gypi */,
+				0C4BC7304B69F1A27DCCD2A9 /* thirdparty.gypi */,
+				4601AF35DBE001042E375277 /* version.gypi */,
+				E5076FE150CC304EA1E66CB7 /* win32.gypi */,
+				381211274E2F458A6D494CF6 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		44C1D22ED784F69F74D21351 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0F6FC7331FB00C09EEFBD3DC /* libExternal.a */,
+				279BFAA2A5D6A6B9CC7823E7 /* libExternal (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		50980599AEB61264C0FB4B12 /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */,
+				BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */,
+				2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */,
+				3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		71FB9C8C120E64090CDF9F20 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4E9BC8C071D93E7C4AB26CB8 /* CoreServices.framework */,
+				F214785B15264CA77B48AA9C /* libiodbc.a */,
+				914275C1FF579940E3585033 /* libmysql.a */,
+				F0A70C564192B62D81471235 /* libpq.a */,
+				0107D76C83545DE5D3079DCE /* libsqlite.a */,
+				DAD2CECA632E45EF243508FB /* libz.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		8007023BF7A44DFA7E49F4DD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				476CCD2121787642E4719CED /* dbmysql.bundle */,
+				66B80A08899088862FF8A8F2 /* server-dbmysql.dylib */,
+				7A61BAE1E26343581AFF9916 /* dbodbc.bundle */,
+				9EAD2DD53D21B114A643BBCB /* server-dbodbc.dylib */,
+				E5F673E0441C5E2229FDD93E /* dbpostgresql.bundle */,
+				79E935DA00738824719CF3E6 /* server-dbpostgresql.dylib */,
+				A24C092262B9300D63512464 /* dbsqlite.bundle */,
+				AC78EB4A032EDCB3C3172A01 /* server-dbsqlite.dylib */,
+				55919DC1136FC50A356F726F /* revdb.bundle */,
+				CC4D44FD6E8C8AA28E1C161F /* server-revdb.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		85C7850DD59BDBE02793FD4A = {
+			isa = PBXGroup;
+			children = (
+				FF226B9436A6026B7CA56A84 /* Source */,
+				50980599AEB61264C0FB4B12 /* Projects */,
+				71FB9C8C120E64090CDF9F20 /* Frameworks */,
+				8007023BF7A44DFA7E49F4DD /* Products */,
+				2F29584F49CAB0FF21DCAFA4 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		869EFE6693387EDA2C7D9475 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8E6ADEE3A83E26B2FFCDE9C8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BF674FF99F0F0CFE3F0E971C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BD3687015EB14B22412E1350 /* libCore.a */,
+				A113A14BF503608FE12D48C8 /* libCore (host).a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FF226B9436A6026B7CA56A84 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				082C197F12DF96FD72CD2648 /* .. */,
+				2A9FE487E6EA51DAECE956B7 /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		13A8195ECA20A5E167ECF829 /* dbmysql-server */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CBC6EAA9293456AFC0C94EBD /* Build configuration list for PBXNativeTarget "dbmysql-server" */;
+			buildPhases = (
+				927792BC143205464B264C00 /* Sources */,
+				358FC8112133EDB38746642C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				007A375175F8E475C7FC4A95 /* PBXTargetDependency */,
+				C0A0BCD20A6C3B16D5F6AFEE /* PBXTargetDependency */,
+				1E33D610123B5BA6720FB7F4 /* PBXTargetDependency */,
+				FC48AB2880033E5DC2B662E5 /* PBXTargetDependency */,
+				0CA6F3901CC8229E6B8C2082 /* PBXTargetDependency */,
+				F70D978364BCDED4234B4DCA /* PBXTargetDependency */,
+				9BE5077EFCCE1AC1BBE0B841 /* PBXTargetDependency */,
+			);
+			name = "dbmysql-server";
+			productName = "server-dbmysql";
+			productReference = 66B80A08899088862FF8A8F2 /* server-dbmysql.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+		1E3B23ACFCD50A993001C9C9 /* dbpostgresql */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2411308D5BA3E85F9BD30472 /* Build configuration list for PBXNativeTarget "dbpostgresql" */;
+			buildPhases = (
+				C895A200A74CD941780A9F4E /* Sources */,
+				8684AC2BF93CBCD803DA24B4 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				48669EB1CC02A2D65D8DEDA2 /* PBXTargetDependency */,
+				6414DF7B056C655CE849AC6C /* PBXTargetDependency */,
+				A51FDA5C1F0FE963A1966529 /* PBXTargetDependency */,
+				A7CED5E59478B31B157C01EF /* PBXTargetDependency */,
+				C748DF81B171791E37307DCC /* PBXTargetDependency */,
+				6F4112C2F591BD6DEC3BEEC5 /* PBXTargetDependency */,
+			);
+			name = dbpostgresql;
+			productName = dbpostgresql;
+			productReference = E5F673E0441C5E2229FDD93E /* dbpostgresql.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
+		83830BED1DD36CDB156D2335 /* dbmysql */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9825B09179C466C3098AE42C /* Build configuration list for PBXNativeTarget "dbmysql" */;
+			buildPhases = (
+				88948BC6EAC4A17C9E69ED64 /* Sources */,
+				035B413C90A1F5149CE19E90 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				20E14103ECADC1A9D0260F2F /* PBXTargetDependency */,
+				AE85175DE4D8AA9C1AB6AA2A /* PBXTargetDependency */,
+				9DCB5BCAD423A7A2B7224CAF /* PBXTargetDependency */,
+				334F843C621406E5C97F4467 /* PBXTargetDependency */,
+				2D71CCA67432F58B0F76B39D /* PBXTargetDependency */,
+				B89B3C000AA665B0A081A1C8 /* PBXTargetDependency */,
+				1F96DEEF510BD23F9EC082F8 /* PBXTargetDependency */,
+			);
+			name = dbmysql;
+			productName = dbmysql;
+			productReference = 476CCD2121787642E4719CED /* dbmysql.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
+		90FF89D0969361CE9CA1F464 /* dbsqlite-server */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B96A18694C24F0D5518ECFD7 /* Build configuration list for PBXNativeTarget "dbsqlite-server" */;
+			buildPhases = (
+				EC7A6F27EE27173285ECAE6E /* Sources */,
+				100C52139434C6BC261822C4 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				628942C8FBA920BE72F2FC4C /* PBXTargetDependency */,
+				23034E4192AEEBAEAD0C51FD /* PBXTargetDependency */,
+				B7DCEEE814052A79B0BB9095 /* PBXTargetDependency */,
+				7C38E5C8673265D7BC75F4CC /* PBXTargetDependency */,
+				E7ACA93A16AEBB32EF0AB5E5 /* PBXTargetDependency */,
+				C1BA4153ED08941062785764 /* PBXTargetDependency */,
+			);
+			name = "dbsqlite-server";
+			productName = "server-dbsqlite";
+			productReference = AC78EB4A032EDCB3C3172A01 /* server-dbsqlite.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+		9BD8A4F5D80F6E3CD2155271 /* external-revdb */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 13188CC221E5E16F2284FFD1 /* Build configuration list for PBXNativeTarget "external-revdb" */;
+			buildPhases = (
+				0DE1E9DD6256C2AEB7EA63E0 /* Sources */,
+				E7FB2FDD3C999D7AC1DD3106 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				47888EF0C3B1D5EB650EBFDB /* PBXTargetDependency */,
+				E425C9DEC0C9C2C6E1BF6214 /* PBXTargetDependency */,
+				BB50A79DEBB3E9DF4D1856F4 /* PBXTargetDependency */,
+			);
+			name = "external-revdb";
+			productName = revdb;
+			productReference = 55919DC1136FC50A356F726F /* revdb.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
+		A1E6EB0C17EB47ED79E7C1A6 /* dbpostgresql-server */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0EA37630BF6D0231F12F54DC /* Build configuration list for PBXNativeTarget "dbpostgresql-server" */;
+			buildPhases = (
+				1FF78250EF64A5424D7A8018 /* Sources */,
+				0A373C427EFDA9CA5785DFFD /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CAF70F58A181B62FE7ACD486 /* PBXTargetDependency */,
+				E1BCC34DC68F99FA5BC3CDB5 /* PBXTargetDependency */,
+				552763034EA17AD5B2F98EEE /* PBXTargetDependency */,
+				7380887377BAFEB0823B6FE7 /* PBXTargetDependency */,
+				7E1ADC80D53CEB24C323F723 /* PBXTargetDependency */,
+				B6B9F67C85C28FEF3B886CD0 /* PBXTargetDependency */,
+			);
+			name = "dbpostgresql-server";
+			productName = "server-dbpostgresql";
+			productReference = 79E935DA00738824719CF3E6 /* server-dbpostgresql.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+		BC1033ADCBCC3F33101F2319 /* dbodbc-server */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E478558AA70F2E0F434B38FD /* Build configuration list for PBXNativeTarget "dbodbc-server" */;
+			buildPhases = (
+				1CBFEE2BC149030AE22A5A3A /* Sources */,
+				7BFF6D0395CAD5FCBBDAB4FC /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D350312F35A6127392BDD5E7 /* PBXTargetDependency */,
+				DCAD2FC7218DC156F9D9B590 /* PBXTargetDependency */,
+				6DAD098E9AAD62FD7A06A7E8 /* PBXTargetDependency */,
+				C78C0009828E19099AF5B43D /* PBXTargetDependency */,
+				71D5ACCF03CB3D6F06E4EE1F /* PBXTargetDependency */,
+				1FA472EC47108EC0B415E2A8 /* PBXTargetDependency */,
+			);
+			name = "dbodbc-server";
+			productName = "server-dbodbc";
+			productReference = 9EAD2DD53D21B114A643BBCB /* server-dbodbc.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+		D64CEA6EF940152015449146 /* dbodbc */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 989BA92C7D0173D77C757E2E /* Build configuration list for PBXNativeTarget "dbodbc" */;
+			buildPhases = (
+				020D12B1F5D9D90376459C3F /* Sources */,
+				6961D49C45CF99A279085E1E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D86223396A498294759233CE /* PBXTargetDependency */,
+				497BDBF74D4B2BA698EE2796 /* PBXTargetDependency */,
+				D63B054D1C283E7B2C44F504 /* PBXTargetDependency */,
+				03EF2290196C25547101F54C /* PBXTargetDependency */,
+				EAC36E583902A2AEBDF310F3 /* PBXTargetDependency */,
+				8CA5ADDEBE9153E5D3AA7896 /* PBXTargetDependency */,
+			);
+			name = dbodbc;
+			productName = dbodbc;
+			productReference = 7A61BAE1E26343581AFF9916 /* dbodbc.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
+		E295F761C7088CA92DF12FC0 /* external-revdb-server */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E09C72E73BD002002FBA8823 /* Build configuration list for PBXNativeTarget "external-revdb-server" */;
+			buildPhases = (
+				53ABC397E6445A2F5B7E1715 /* Sources */,
+				51D9D6FC4361CC079F1685D9 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FAE99FE675B33F7AF934DB03 /* PBXTargetDependency */,
+				0200DEB7C6717005B126B59A /* PBXTargetDependency */,
+			);
+			name = "external-revdb-server";
+			productName = "server-revdb";
+			productReference = CC4D44FD6E8C8AA28E1C161F /* server-revdb.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+		F1A44E096FAED6FA68831B54 /* dbsqlite */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 905F1DE12B7F6ACFC103C26F /* Build configuration list for PBXNativeTarget "dbsqlite" */;
+			buildPhases = (
+				B98C9770A1F8BF3A808C4B6C /* Sources */,
+				B172BD5DC2358D2FD0382A53 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BE110D269C4681D21636101A /* PBXTargetDependency */,
+				D3399A0599DF6E41DEC50CD1 /* PBXTargetDependency */,
+				C45B4A245355A6820CC16D2A /* PBXTargetDependency */,
+				500D91E925017A57F3AFF7E5 /* PBXTargetDependency */,
+				BFCE8E224E630A4E782E5EE9 /* PBXTargetDependency */,
+				C25DD984606DBB370E90E64B /* PBXTargetDependency */,
+			);
+			name = dbsqlite;
+			productName = dbsqlite;
+			productReference = A24C092262B9300D63512464 /* dbsqlite.bundle */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		86525349BC4B469CBE1A73B5 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = 467FEF120649DDF2FD85F92B /* Build configuration list for PBXProject "revdb" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 85C7850DD59BDBE02793FD4A;
+			projectDirPath = ../../../revdb;
+			projectReferences = (
+				{
+					ProductGroup = 869EFE6693387EDA2C7D9475 /* Products */;
+					ProjectRef = 56C1EAAFAB690075509AFA8E /* fetch.xcodeproj */;
+				},
+				{
+					ProductGroup = BF674FF99F0F0CFE3F0E971C /* Products */;
+					ProjectRef = BBBFA3B2C76E1054F138971C /* libcore.xcodeproj */;
+				},
+				{
+					ProductGroup = 44C1D22ED784F69F74D21351 /* Products */;
+					ProjectRef = 2F2518C70A0F075C2C744C9B /* libexternal.xcodeproj */;
+				},
+				{
+					ProductGroup = 8E6ADEE3A83E26B2FFCDE9C8 /* Products */;
+					ProjectRef = 3519E3EB6A9C71855928302E /* thirdparty.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				C4697F8563B8950A49B39B18 /* All */,
+				83830BED1DD36CDB156D2335 /* dbmysql */,
+				13A8195ECA20A5E167ECF829 /* dbmysql-server */,
+				D64CEA6EF940152015449146 /* dbodbc */,
+				BC1033ADCBCC3F33101F2319 /* dbodbc-server */,
+				1E3B23ACFCD50A993001C9C9 /* dbpostgresql */,
+				A1E6EB0C17EB47ED79E7C1A6 /* dbpostgresql-server */,
+				F1A44E096FAED6FA68831B54 /* dbsqlite */,
+				90FF89D0969361CE9CA1F464 /* dbsqlite-server */,
+				9BD8A4F5D80F6E3CD2155271 /* external-revdb */,
+				E295F761C7088CA92DF12FC0 /* external-revdb-server */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		0F6FC7331FB00C09EEFBD3DC /* libExternal.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libExternal.a;
+			remoteRef = 3F8219831AA3EA13DFACA49F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		279BFAA2A5D6A6B9CC7823E7 /* libExternal (host).a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libExternal (host).a";
+			remoteRef = 919DE028A6716D8DFEFA4AAA /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		A113A14BF503608FE12D48C8 /* libCore (host).a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libCore (host).a";
+			remoteRef = E67154DA582DD195FB67E3EB /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		BD3687015EB14B22412E1350 /* libCore.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libCore.a;
+			remoteRef = 86078DE26B1427E3EBDA0DC6 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		020D12B1F5D9D90376459C3F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D2FC2D43E762CE90C12700BD /* dbdrivercommon.cpp in Sources */,
+				123F1DB0644078B68553CFA4 /* database.cpp in Sources */,
+				5817A8126FE988793A2417B2 /* dbodbcapi.cpp in Sources */,
+				B53F0EBD3885893D400E4998 /* odbc_connection.cpp in Sources */,
+				78C4701F28A7D8C55AF97D4D /* odbc_cursor.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0DE1E9DD6256C2AEB7EA63E0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				01B2F7FD749686CD3B3F1DA4 /* revdb.cpp in Sources */,
+				913DCEDE76D10CC4D0D4F2C3 /* osxsupport.cpp in Sources */,
+				E04892DD598AEEC0C567D526 /* database.cpp in Sources */,
+				2046D2BAB844BBF3D683266B /* dbdrivercommon.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1CBFEE2BC149030AE22A5A3A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D14AF8CE0DA6CEAE5D501FF5 /* dbdrivercommon.cpp in Sources */,
+				53258FBBF78066E4CC5310F5 /* database.cpp in Sources */,
+				767A5A5E2DBB2A714204BD4B /* dbodbcapi.cpp in Sources */,
+				0059E5307D552825B081F89E /* odbc_connection.cpp in Sources */,
+				31A7024464AC410B2410CBDC /* odbc_cursor.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1FF78250EF64A5424D7A8018 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DF3C8776128D58DEE40B6AC4 /* dbdrivercommon.cpp in Sources */,
+				885BA6506254237BB7ACA126 /* database.cpp in Sources */,
+				776D980D17C2C370CF71910A /* dbpostgresqlapi.cpp in Sources */,
+				CA0835818CE8C17FC388B727 /* postgresql_connection.cpp in Sources */,
+				D76F90DB10E31D52D23A8424 /* postgresql_cursor.cpp in Sources */,
+				B17AA4B9FDB8A2C2297DD73F /* ssl.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		53ABC397E6445A2F5B7E1715 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AF442134E64EEF82CF3B8EA4 /* revdb.cpp in Sources */,
+				A9FA52C23E6E153090921756 /* osxsupport.cpp in Sources */,
+				396FFC558A9AF938567724E7 /* database.cpp in Sources */,
+				1203456B4CD4023F1CD203D1 /* dbdrivercommon.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		88948BC6EAC4A17C9E69ED64 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5FC86880D6EA9B014A9D2779 /* dbdrivercommon.cpp in Sources */,
+				6BEDEC657D3DC8BCF1F9CEEE /* database.cpp in Sources */,
+				B4834377C639C919C30B0A06 /* dbmysqlapi.cpp in Sources */,
+				EF69053A2688BD8DBFD17A06 /* mysql_connection.cpp in Sources */,
+				CAE919AFE5BFD244BF3399A6 /* mysql_cursor.cpp in Sources */,
+				4F2ADC9B2319DA3B5CD0DACE /* ssl.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		927792BC143205464B264C00 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3B8F03C7E0567F7581C675FB /* dbdrivercommon.cpp in Sources */,
+				FDAE5787D1CDF728EC5185CF /* database.cpp in Sources */,
+				E4B87B593E67F4E087384E68 /* dbmysqlapi.cpp in Sources */,
+				5B03EB32821F0E0BA44D352B /* mysql_connection.cpp in Sources */,
+				F11252B79C911D13807D87F4 /* mysql_cursor.cpp in Sources */,
+				D1ACA5878AB38795D2A01375 /* ssl.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B98C9770A1F8BF3A808C4B6C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5AEAD93F52D285DB191B6CCB /* dbdrivercommon.cpp in Sources */,
+				270567261878ED32E1E16C9F /* database.cpp in Sources */,
+				2038EC9CCF1EB4AB372258F6 /* dbsqliteapi.cpp in Sources */,
+				3FFF00E80295331183F8F6C9 /* sqlite_connection.cpp in Sources */,
+				45212663F8A85BA061035383 /* sqlite_cursor.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C895A200A74CD941780A9F4E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D024DF7C99D1077F4082C70F /* dbdrivercommon.cpp in Sources */,
+				0010B1FF29D1A39487D493D7 /* database.cpp in Sources */,
+				2D76D6431E35F70394A0C522 /* dbpostgresqlapi.cpp in Sources */,
+				E688D969015BED1D83B9B424 /* postgresql_connection.cpp in Sources */,
+				8BA2560B1F48B41D83AFA24A /* postgresql_cursor.cpp in Sources */,
+				CCDCC8C3D02EAD276B4F0679 /* ssl.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EC7A6F27EE27173285ECAE6E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5A5C00AC69B629E033096957 /* dbdrivercommon.cpp in Sources */,
+				B0A257182107DF7F5E84CCCC /* database.cpp in Sources */,
+				2B1C7CBCCEC04CBFEB997566 /* dbsqliteapi.cpp in Sources */,
+				A60F3511B3007F51E7F1CF41 /* sqlite_connection.cpp in Sources */,
+				34A20F4181020AC899199EB8 /* sqlite_cursor.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		007A375175F8E475C7FC4A95 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = 7415CA1CBC8CA50A5737D271 /* PBXContainerItemProxy */;
+		};
+		0200DEB7C6717005B126B59A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = AC31D907775D2A527755F5D5 /* PBXContainerItemProxy */;
+		};
+		03EF2290196C25547101F54C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = F29462C1C091568490F9144D /* PBXContainerItemProxy */;
+		};
+		0CA6F3901CC8229E6B8C2082 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = EE7BE015AEC09ACB4B14018B /* PBXContainerItemProxy */;
+		};
+		1E33D610123B5BA6720FB7F4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = ADE54741AAAB7EC13D85C9CD /* PBXContainerItemProxy */;
+		};
+		1F96DEEF510BD23F9EC082F8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = E5913763F01D6C453A3FA8BB /* PBXContainerItemProxy */;
+		};
+		1FA472EC47108EC0B415E2A8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = 7DAC07B72711A8B146B2EEAE /* PBXContainerItemProxy */;
+		};
+		20E14103ECADC1A9D0260F2F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = 2AE5FA021D624581042F147D /* PBXContainerItemProxy */;
+		};
+		23034E4192AEEBAEAD0C51FD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_sqlite;
+			targetProxy = 2FFD11D65FBBFD088985BF85 /* PBXContainerItemProxy */;
+		};
+		291EB6669724874E2345BFEE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9BD8A4F5D80F6E3CD2155271 /* external-revdb */;
+			targetProxy = BA8994C911E2A77C58CD400C /* PBXContainerItemProxy */;
+		};
+		2D71CCA67432F58B0F76B39D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = C1419B3DE35A3BB83591E1D0 /* PBXContainerItemProxy */;
+		};
+		334F843C621406E5C97F4467 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_z;
+			targetProxy = D532B16FB8B6028994B398BA /* PBXContainerItemProxy */;
+		};
+		40C7AB5BA61D4D7E82F73468 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F1A44E096FAED6FA68831B54 /* dbsqlite */;
+			targetProxy = D9E61832AD536B694E12AAD9 /* PBXContainerItemProxy */;
+		};
+		44332143DFABB6AEAB1AEB5E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 90FF89D0969361CE9CA1F464 /* dbsqlite-server */;
+			targetProxy = 6EE346C6D023095FDEEEF9D5 /* PBXContainerItemProxy */;
+		};
+		47888EF0C3B1D5EB650EBFDB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = 57635A3D8A64F16EDB38AD42 /* PBXContainerItemProxy */;
+		};
+		48669EB1CC02A2D65D8DEDA2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = 5C684803534BBCDC01C084C3 /* PBXContainerItemProxy */;
+		};
+		497BDBF74D4B2BA698EE2796 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_iodbc;
+			targetProxy = F36123768A9F4CEFF8E1F98F /* PBXContainerItemProxy */;
+		};
+		4C5E894F8880BB089CA2B527 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A1E6EB0C17EB47ED79E7C1A6 /* dbpostgresql-server */;
+			targetProxy = B7A01D0337A8507C636C376F /* PBXContainerItemProxy */;
+		};
+		500D91E925017A57F3AFF7E5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = 1F5BB00C68A446D5C0895A07 /* PBXContainerItemProxy */;
+		};
+		552763034EA17AD5B2F98EEE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = 440746062EB9E34DC3C3C461 /* PBXContainerItemProxy */;
+		};
+		628942C8FBA920BE72F2FC4C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = 64A33DC9440942D01A597DE2 /* PBXContainerItemProxy */;
+		};
+		6414DF7B056C655CE849AC6C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_pq;
+			targetProxy = 49579EAD4091F92623C5730F /* PBXContainerItemProxy */;
+		};
+		6DAD098E9AAD62FD7A06A7E8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = 13D9DDA13B04023EFF1DD26E /* PBXContainerItemProxy */;
+		};
+		6F4112C2F591BD6DEC3BEEC5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = BF4DDE2D65EF3E5EC70568AC /* PBXContainerItemProxy */;
+		};
+		71D5ACCF03CB3D6F06E4EE1F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = 708B05E7FBE1E6A9384F779D /* PBXContainerItemProxy */;
+		};
+		7380887377BAFEB0823B6FE7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = DCBCBDD4788078F729AB07B8 /* PBXContainerItemProxy */;
+		};
+		7C38E5C8673265D7BC75F4CC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = F8C81507B0D078A71563DA47 /* PBXContainerItemProxy */;
+		};
+		7E1ADC80D53CEB24C323F723 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = 46A4AE52512D0127AFED89E4 /* PBXContainerItemProxy */;
+		};
+		8CA5ADDEBE9153E5D3AA7896 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = 419254DB908513AE4B48CA96 /* PBXContainerItemProxy */;
+		};
+		9440725AEB24DBCF5F8BC5C5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 83830BED1DD36CDB156D2335 /* dbmysql */;
+			targetProxy = C0866CA277CDA1892CABB737 /* PBXContainerItemProxy */;
+		};
+		98BF6500D5A38FE32679E44A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E295F761C7088CA92DF12FC0 /* external-revdb-server */;
+			targetProxy = A51B9C2A06DDEA9A38761952 /* PBXContainerItemProxy */;
+		};
+		9BE5077EFCCE1AC1BBE0B841 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = 6A4E294FDAF4DFC5836E5CA6 /* PBXContainerItemProxy */;
+		};
+		9DCB5BCAD423A7A2B7224CAF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = 5590E95E0202D3BE93A527DB /* PBXContainerItemProxy */;
+		};
+		A3C8630BC8E6363604C1C648 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1E3B23ACFCD50A993001C9C9 /* dbpostgresql */;
+			targetProxy = 8336C9909A4246EEA44091B4 /* PBXContainerItemProxy */;
+		};
+		A51FDA5C1F0FE963A1966529 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = 441752E2A781053FCA3D6304 /* PBXContainerItemProxy */;
+		};
+		A7CED5E59478B31B157C01EF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = B0D27D923791AF07D2582CBC /* PBXContainerItemProxy */;
+		};
+		AE85175DE4D8AA9C1AB6AA2A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_mysql;
+			targetProxy = EAC64F52B2070C3BC58F6ED1 /* PBXContainerItemProxy */;
+		};
+		B6B9F67C85C28FEF3B886CD0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = CC15BFA12C61BD5CAA03A833 /* PBXContainerItemProxy */;
+		};
+		B70AEDDD950C47E2B433D927 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D64CEA6EF940152015449146 /* dbodbc */;
+			targetProxy = EE0A8E4E1EF3673B01E5492C /* PBXContainerItemProxy */;
+		};
+		B7DCEEE814052A79B0BB9095 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = E40E2AC146BEC4E6C3B21FB5 /* PBXContainerItemProxy */;
+		};
+		B89B3C000AA665B0A081A1C8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = 79DB0E5ABC3D95BADBC811F7 /* PBXContainerItemProxy */;
+		};
+		BB50A79DEBB3E9DF4D1856F4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "libExternal-symbol-exports";
+			targetProxy = 729D8AF80AD3317B02F08164 /* PBXContainerItemProxy */;
+		};
+		BE110D269C4681D21636101A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = E1B83FDCBF099D25C9554023 /* PBXContainerItemProxy */;
+		};
+		BFCE8E224E630A4E782E5EE9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = 727D0F374EF10DCED7E4DA59 /* PBXContainerItemProxy */;
+		};
+		C0A0BCD20A6C3B16D5F6AFEE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_mysql;
+			targetProxy = 02FA74AF110B300C99084F42 /* PBXContainerItemProxy */;
+		};
+		C19E87C789B9D617596FFF56 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 13A8195ECA20A5E167ECF829 /* dbmysql-server */;
+			targetProxy = B4A25A8516543423DCD458AB /* PBXContainerItemProxy */;
+		};
+		C1BA4153ED08941062785764 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = F386836062E2E09DB91E650F /* PBXContainerItemProxy */;
+		};
+		C25DD984606DBB370E90E64B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "fetch-mac";
+			targetProxy = 846F7C8CA0677686D2AB65A4 /* PBXContainerItemProxy */;
+		};
+		C29BF2459FE03A5F94D0C9CC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BC1033ADCBCC3F33101F2319 /* dbodbc-server */;
+			targetProxy = 115511A05FAB721F695467A4 /* PBXContainerItemProxy */;
+		};
+		C45B4A245355A6820CC16D2A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = 1368AF26FBC5099FF08CC0CF /* PBXContainerItemProxy */;
+		};
+		C748DF81B171791E37307DCC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = AD44B4ED4ED68F1EF9EFCA0C /* PBXContainerItemProxy */;
+		};
+		C78C0009828E19099AF5B43D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_dep;
+			targetProxy = 14887B006FA31F2202B29F1C /* PBXContainerItemProxy */;
+		};
+		CAF70F58A181B62FE7ACD486 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = FD05C406CD9AD6AADA685B2F /* PBXContainerItemProxy */;
+		};
+		D3399A0599DF6E41DEC50CD1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_sqlite;
+			targetProxy = 249B4110BF7AC94BBE54CE17 /* PBXContainerItemProxy */;
+		};
+		D350312F35A6127392BDD5E7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = 29B85C7C1A0C366CA0CD23EA /* PBXContainerItemProxy */;
+		};
+		D63B054D1C283E7B2C44F504 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = FE6C22DDC28D863ED5066954 /* PBXContainerItemProxy */;
+		};
+		D86223396A498294759233CE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = 3EFEA8FA16CBBC9DF7C4C4CB /* PBXContainerItemProxy */;
+		};
+		DCAD2FC7218DC156F9D9B590 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_iodbc;
+			targetProxy = AC82E17E6A5169074F0D82DD /* PBXContainerItemProxy */;
+		};
+		E1BCC34DC68F99FA5BC3CDB5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_pq;
+			targetProxy = DBE55CD63D699D3362884868 /* PBXContainerItemProxy */;
+		};
+		E425C9DEC0C9C2C6E1BF6214 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libExternal;
+			targetProxy = 070FE632AFA0B040FA35DC81 /* PBXContainerItemProxy */;
+		};
+		E7ACA93A16AEBB32EF0AB5E5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = 7929C6C64E2798544CA26F1C /* PBXContainerItemProxy */;
+		};
+		EAC36E583902A2AEBDF310F3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = 06EA73ACC07F8712D479CEF3 /* PBXContainerItemProxy */;
+		};
+		F70D978364BCDED4234B4DCA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = fetch;
+			targetProxy = 25D79B7AAA3DF7A969BF2AFD /* PBXContainerItemProxy */;
+		};
+		FAE99FE675B33F7AF934DB03 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = libCore;
+			targetProxy = 3688681834024F505E8262C9 /* PBXContainerItemProxy */;
+		};
+		FC48AB2880033E5DC2B662E5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_z;
+			targetProxy = 2600331AD728AD41055B742D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		052A8157063271DAD5F56F0F /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libmysql/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbmysql-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-undefined dynamic_lookup",
+					"-lcustomcrypto",
+					"-lcustomssl",
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = dbmysql;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Fast;
+		};
+		0E5755821BB96D0D77111314 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 814F0BE337646419AE4B0232 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		14C5CE57250B4945F27B9AA9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					REVDB_BUILD,
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libcore/include,
+					../libexternal/include,
+				);
+				INFOPLIST_FILE = "rsrc/revdb-Info.plist";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revdb;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Debug;
+		};
+		15B4E13C58594F0CA0F9C578 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					REVDB_BUILD,
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libcore/include,
+					../libexternal/include,
+				);
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-revdb";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		1607BF90B60CC78B16E4D011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 814F0BE337646419AE4B0232 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		1A9E8E4A5EB846210767A508 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					REVDB_BUILD,
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libcore/include,
+					../libexternal/include,
+				);
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-revdb";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		23D7913234067EB31AB92AC6 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libsqlite/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbsqlite-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = dbsqlite;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+				);
+				WARNING_CFLAGS_excluded = (
+					"-Werror=return-type",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Fast;
+		};
+		25D7FF8515582938139EB505 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libmysql/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbmysql-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-undefined dynamic_lookup",
+					"-lcustomcrypto",
+					"-lcustomssl",
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = dbmysql;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Release;
+		};
+		2949B7199974EB53408650DF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		2AED851DE34890DB09C679EE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libiodbc/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbodbc-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-dbodbc";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		2E895CECBDC044042DAC3313 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					REVDB_BUILD,
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libcore/include,
+					../libexternal/include,
+				);
+				INFOPLIST_FILE = "rsrc/revdb-Info.plist";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revdb;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Fast;
+		};
+		3BD1F50AE312CC7FC426DE4D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libsqlite/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbsqlite-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-dbsqlite";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+				);
+				WARNING_CFLAGS_excluded = (
+					"-Werror=return-type",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		4AAE1E2B8FDB23695061A5C4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libiodbc/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbodbc-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = dbodbc;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Release;
+		};
+		4C0EBA42F662F3C2BF8798AE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					REVDB_BUILD,
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libcore/include,
+					../libexternal/include,
+				);
+				INFOPLIST_FILE = "rsrc/revdb-Info.plist";
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = revdb;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Release;
+		};
+		566F3289251095022176C1FA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		59BD72041268C62A8A05BBFC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libmysql/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbmysql-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-undefined dynamic_lookup",
+					"-lcustomcrypto",
+					"-lcustomssl",
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-dbmysql";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		659220FB4F61E2971A7F7413 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libpq/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbpostgresql-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-undefined dynamic_lookup",
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = dbpostgresql;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Release;
+		};
+		69A756AB8ABD8318EDDE3458 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libpq/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbpostgresql-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-undefined dynamic_lookup",
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-dbpostgresql";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		6DBA7F51744191943AF07F0F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libmysql/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbmysql-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-undefined dynamic_lookup",
+					"-lcustomcrypto",
+					"-lcustomssl",
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = dbmysql;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Debug;
+		};
+		6F05CC7B500600A4A5996819 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 814F0BE337646419AE4B0232 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		7368DD4696883FE138F5CC36 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libmysql/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbmysql-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-undefined dynamic_lookup",
+					"-lcustomcrypto",
+					"-lcustomssl",
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-dbmysql";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		7BEC50A2CDAD485FD4206797 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libiodbc/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbodbc-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = dbodbc;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Debug;
+		};
+		80E65452BBC2C5A79C47D461 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libmysql/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbmysql-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-undefined dynamic_lookup",
+					"-lcustomcrypto",
+					"-lcustomssl",
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-dbmysql";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		864D597C3C6DD3C2CB1B813C /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libsqlite/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbsqlite-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-dbsqlite";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+				);
+				WARNING_CFLAGS_excluded = (
+					"-Werror=return-type",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		A1BB535844B50F2EE736A562 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libiodbc/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbodbc-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = dbodbc;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Fast;
+		};
+		ACCB190477E8638F17EBA514 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					REVDB_BUILD,
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libcore/include,
+					../libexternal/include,
+				);
+				LIBRARY_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks";
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-revdb";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		AD79AB87325ACF122BDA6008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libiodbc/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbodbc-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-dbodbc";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		B6A1191FA9715BCA4FE7E492 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Fast;
+		};
+		B9ABA69425BF6665690DE142 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libiodbc/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbodbc-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-dbodbc";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		C4D0BF35C3F340305DC6B48C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libsqlite/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbsqlite-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = dbsqlite;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+				);
+				WARNING_CFLAGS_excluded = (
+					"-Werror=return-type",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Release;
+		};
+		C794DB522827E30B030D5F06 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libsqlite/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbsqlite-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-dbsqlite";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+				);
+				WARNING_CFLAGS_excluded = (
+					"-Werror=return-type",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		CD4CB1E9AFB99D394733310F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libpq/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbpostgresql-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-undefined dynamic_lookup",
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = dbpostgresql;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Debug;
+		};
+		E54F5FE2E2344DE0F9574116 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libpq/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbpostgresql-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-undefined dynamic_lookup",
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-dbpostgresql";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		EAE5F00F418ADB2675F6D20B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				DYLIB_COMPATIBILITY_VERSION = "";
+				DYLIB_CURRENT_VERSION = "";
+				EXECUTABLE_EXTENSION = dylib;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					_MACOSX,
+					_SERVER,
+					_MAC_SERVER,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libpq/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbpostgresql-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				MACH_O_TYPE = mh_dylib;
+				OTHER_LDFLAGS = (
+					"-undefined dynamic_lookup",
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "server-dbpostgresql";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		F3577AC98BCCF0D039975200 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libsqlite/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbsqlite-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = dbsqlite;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+				);
+				WARNING_CFLAGS_excluded = (
+					"-Werror=return-type",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Debug;
+		};
+		F896F7BCA556AFFFF13ABD2E /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					src,
+					../libexternal/include,
+					../thirdparty/libpq/include,
+				);
+				INFOPLIST_FILE = "rsrc/dbpostgresql-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/System/Library/Frameworks",
+					../prebuilt/lib/mac,
+				);
+				OTHER_LDFLAGS = (
+					"-undefined dynamic_lookup",
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = dbpostgresql;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+				WRAPPER_PREFIX = "";
+			};
+			name = Fast;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0EA37630BF6D0231F12F54DC /* Build configuration list for PBXNativeTarget "dbpostgresql-server" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				69A756AB8ABD8318EDDE3458 /* Debug */,
+				E54F5FE2E2344DE0F9574116 /* Fast */,
+				EAE5F00F418ADB2675F6D20B /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		13188CC221E5E16F2284FFD1 /* Build configuration list for PBXNativeTarget "external-revdb" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				14C5CE57250B4945F27B9AA9 /* Debug */,
+				2E895CECBDC044042DAC3313 /* Fast */,
+				4C0EBA42F662F3C2BF8798AE /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		2411308D5BA3E85F9BD30472 /* Build configuration list for PBXNativeTarget "dbpostgresql" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CD4CB1E9AFB99D394733310F /* Debug */,
+				F896F7BCA556AFFFF13ABD2E /* Fast */,
+				659220FB4F61E2971A7F7413 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		40C3B678A424C8274BAD5ED2 /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2949B7199974EB53408650DF /* Debug */,
+				B6A1191FA9715BCA4FE7E492 /* Fast */,
+				566F3289251095022176C1FA /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		467FEF120649DDF2FD85F92B /* Build configuration list for PBXProject "revdb" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1607BF90B60CC78B16E4D011 /* Debug */,
+				0E5755821BB96D0D77111314 /* Fast */,
+				6F05CC7B500600A4A5996819 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		905F1DE12B7F6ACFC103C26F /* Build configuration list for PBXNativeTarget "dbsqlite" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F3577AC98BCCF0D039975200 /* Debug */,
+				23D7913234067EB31AB92AC6 /* Fast */,
+				C4D0BF35C3F340305DC6B48C /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		9825B09179C466C3098AE42C /* Build configuration list for PBXNativeTarget "dbmysql" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6DBA7F51744191943AF07F0F /* Debug */,
+				052A8157063271DAD5F56F0F /* Fast */,
+				25D7FF8515582938139EB505 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		989BA92C7D0173D77C757E2E /* Build configuration list for PBXNativeTarget "dbodbc" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7BEC50A2CDAD485FD4206797 /* Debug */,
+				A1BB535844B50F2EE736A562 /* Fast */,
+				4AAE1E2B8FDB23695061A5C4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		B96A18694C24F0D5518ECFD7 /* Build configuration list for PBXNativeTarget "dbsqlite-server" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3BD1F50AE312CC7FC426DE4D /* Debug */,
+				864D597C3C6DD3C2CB1B813C /* Fast */,
+				C794DB522827E30B030D5F06 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		CBC6EAA9293456AFC0C94EBD /* Build configuration list for PBXNativeTarget "dbmysql-server" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				59BD72041268C62A8A05BBFC /* Debug */,
+				7368DD4696883FE138F5CC36 /* Fast */,
+				80E65452BBC2C5A79C47D461 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		E09C72E73BD002002FBA8823 /* Build configuration list for PBXNativeTarget "external-revdb-server" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ACCB190477E8638F17EBA514 /* Debug */,
+				15B4E13C58594F0CA0F9C578 /* Fast */,
+				1A9E8E4A5EB846210767A508 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		E478558AA70F2E0F434B38FD /* Build configuration list for PBXNativeTarget "dbodbc-server" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2AED851DE34890DB09C679EE /* Debug */,
+				B9ABA69425BF6665690DE142 /* Fast */,
+				AD79AB87325ACF122BDA6008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 86525349BC4B469CBE1A73B5 /* Project object */;
+}

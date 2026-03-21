@@ -1,0 +1,13 @@
+Name: highlight
+
+Type: glossary
+
+Description:
+To "highlight" a <button> or other object is to change its appearance
+in order to make it stand out on the screen in some way.  For example,
+a checkbox <button> is highlighted when it is checked.
+
+References: button (glossary), hilite (property)
+
+Tags: ui
+

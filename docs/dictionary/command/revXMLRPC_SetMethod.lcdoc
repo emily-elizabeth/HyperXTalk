@@ -1,0 +1,50 @@
+Name: revXMLRPC_SetMethod
+
+Type: command
+
+Syntax: revXMLRPC_SetMethod <XMLRPCdocumentID>,<methodName>
+
+Summary:
+Sets the name of the method in an XML-RPC document structure.
+
+Associations: xml-rpc library
+
+Introduced: 2.5
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Security: disk, process
+
+Example:
+revXMLRPC_SetMethod theRequest,"sample.elizabethanInsult"
+
+Parameters:
+XMLRPCdocumentID (integer):
+The number returned by the <revXMLRPC_CreateRequest> when you created the
+<XML-RPC> request.
+
+methodName (string):
+The the method name to be called upon execution of the XML-RPC
+documents documentID.
+
+The result (string):
+If the <revXMLRPC_SetMethod> <command> encounters an error, the <result>
+is set to an error message beginning with "xmlerr" or "xmlrpcerr".
+
+Description:
+Use the <revXMLRPC_SetMethod> <command> to set the method name to be
+called upon execution of an existing <XML-RPC document>.
+
+Where the path of the <XML-RPC document> tells the server which resource
+will handle the request, the method name tells that resource which
+method is being called specifically within that resource.
+
+
+References: revXMLRPC_SetPath (command), revXMLRPC_GetMethod (command),
+result (function), LiveCode custom library (glossary),
+Standalone Application Settings (glossary),
+standalone application (glossary), command (glossary),
+XML-RPC document (glossary), XML-RPC library (library),
+XML-RPC (glossary), revXMLRPC_CreateRequest (function)

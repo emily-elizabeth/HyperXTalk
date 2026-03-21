@@ -1,0 +1,15 @@
+Name: return
+
+Synonyms: return, returning, returned, return
+
+Type: glossary
+
+Description:
+To send a <value> back to the <handler> that <call|called> a
+<function>. 
+
+Also, the line feed character, ASCII 10.
+
+References: handler (glossary), function (glossary), value (glossary),
+call (glossary)
+

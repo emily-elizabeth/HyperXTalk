@@ -1,0 +1,1731 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		16BEF5ECD31A6C757CEB840C /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 2360CA329DC5BA81F2E27D4D /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				CA63A5B4A72E53117C513CF0 /* PBXTargetDependency */,
+				0F195B178DBDADF99DB73E72 /* PBXTargetDependency */,
+				8B2CF3991966B28CB7D0B0B8 /* PBXTargetDependency */,
+				ED89406125DAA79600D0D893 /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		05E212C8FEA7857C58AD26AB /* script-builder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04F628A1FD530CB94AB7F0B5 /* script-builder.cpp */; };
+		092F3CC813BACF8058FF3D67 /* script-execute-objc.mm in Sources */ = {isa = PBXBuildFile; fileRef = D771A304D6C999F6E7C296C9 /* script-execute-objc.mm */; };
+		0A435B446CAF7A5249F6F951 /* module-sort.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6CA4CA425CC0782DBE0B817F /* module-sort.cpp */; };
+		0AA8312C8947339C36C3046A /* script-execute-objc.mm in Sources */ = {isa = PBXBuildFile; fileRef = D771A304D6C999F6E7C296C9 /* script-execute-objc.mm */; };
+		0B273E07D06991FC350139E0 /* module-codeunit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DD121FE5D99CAB161DF0B2A /* module-codeunit.cpp */; };
+		0F9507A1E4CAED4BFD762361 /* module-math_foundation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DA0C3A6F5B9DDE29D64DE50B /* module-math_foundation.cpp */; };
+		1252F4DD096BCCD12246F767 /* module-string.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C747C149EF7D06FCCB74DCE2 /* module-string.cpp */; };
+		154F2455D7F8B632BB9DDA03 /* module-math_foundation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DA0C3A6F5B9DDE29D64DE50B /* module-math_foundation.cpp */; };
+		1CD8FE956B11216D45B66AF7 /* module-binary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3A8EEA520F1224D894BB946D /* module-binary.cpp */; };
+		1D8997A6CEED1E6D14C650AA /* module-logic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0746898B307C2A2CD7D547E0 /* module-logic.cpp */; };
+		1DB7E6A1DD153819C9E9B99A /* module-foreign.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2DBE80E5FB55E4EFB98B0C1C /* module-foreign.cpp */; };
+		2448C5CC6F1C1362B76EAF11 /* module-array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D022E3715D5A034C16256DD /* module-array.cpp */; };
+		29EEDC120E41CED12744A734 /* module-unittest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CB6FD10CDFF25C9F0296E7B3 /* module-unittest.cpp */; };
+		2B8FE88B79D96E7E210AC54A /* script-package.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8890A2CFE31DDFA1626EE2EB /* script-package.cpp */; };
+		31072006F741C451830F3161 /* module-math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FB90FB5AD75728C9961BBC30 /* module-math.cpp */; };
+		32284D2A5B92008E4AE93590 /* module-unittest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CB6FD10CDFF25C9F0296E7B3 /* module-unittest.cpp */; };
+		33FE13EC92856E741CAE73D3 /* module-byte.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A2EDAC2842D835068BBF6234 /* module-byte.cpp */; };
+		3642CA54E8D204BFB36EABF8 /* module-assert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A2B7198F3504EEC6437B8C2D /* module-assert.cpp */; };
+		36904529B09DD3F7088ACF02 /* module-date.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DEC33531E4C2A452CF6CF20 /* module-date.cpp */; };
+		39729049900CE7E085E8B4C3 /* script-object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BA59944F4B9B703D7758E003 /* script-object.cpp */; };
+		43F7F5F2D8692C6AF6F7DFEF /* module-java.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 53A0597A0461A80BD3C29728 /* module-java.cpp */; };
+		44FEE6FF8C3DEE3FEF236841 /* module-stream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E3D1382445CA99A3AABC05B /* module-stream.cpp */; };
+		504E4C67DBE8BD254484FE86 /* module-file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B00B80B4173116B8684BA692 /* module-file.cpp */; };
+		521B50AD92FBEF2FF5013F77 /* module-url.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5E2264187DD1E8ADD037D96 /* module-url.cpp */; };
+		54500A50C38CD6B18E9F3D3B /* module-sort.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6CA4CA425CC0782DBE0B817F /* module-sort.cpp */; };
+		5525E5035A0BEF9A3B60F422 /* module-file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B00B80B4173116B8684BA692 /* module-file.cpp */; };
+		56015F8917FB150C97530E3F /* script-module.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 122E681A4108991538A7F1FC /* script-module.cpp */; };
+		5656C72B4CB1E04696C9539F /* module-type.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5480DE4DDC50DD955E68B32C /* module-type.cpp */; };
+		567958827EBE842E5D61037E /* script-instance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F187A75AFA6E7CE1E99571A8 /* script-instance.cpp */; };
+		602E01FE3E21925942C7A343 /* script-instance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F187A75AFA6E7CE1E99571A8 /* script-instance.cpp */; };
+		6338C25A467AD222950FA52A /* module-array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7D022E3715D5A034C16256DD /* module-array.cpp */; };
+		685BA0BA0057CB066D27E235 /* module-type.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5480DE4DDC50DD955E68B32C /* module-type.cpp */; };
+		69202D25709A1838CFE4F93C /* module-java.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 53A0597A0461A80BD3C29728 /* module-java.cpp */; };
+		6B064278261FDBFC73D4B64C /* script-execute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9BF4E42186FBC835370ADC3F /* script-execute.cpp */; };
+		6B39E9E2BD6C3BB7030E3577 /* script-package.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8890A2CFE31DDFA1626EE2EB /* script-package.cpp */; };
+		6CF641A11045455F297B2F9D /* script-execute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9BF4E42186FBC835370ADC3F /* script-execute.cpp */; };
+		6E582CF228E42724DBA9BF5A /* module-stream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6E3D1382445CA99A3AABC05B /* module-stream.cpp */; };
+		6E60E82E4BC1121CFF4CA40D /* module-type_convert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 728920F345763EC5564E74C1 /* module-type_convert.cpp */; };
+		754FADEF55B71728305982B1 /* module-arithmetic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C539628A43961F3FFE41F5D /* module-arithmetic.cpp */; };
+		7BA4164F13A0CFBAA051F43E /* module-url.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5E2264187DD1E8ADD037D96 /* module-url.cpp */; };
+		7CCC8EA48E049D3ECEDF0D68 /* module-binary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3A8EEA520F1224D894BB946D /* module-binary.cpp */; };
+		7E4A1E9B9E2BC475F86140F4 /* module-foreign.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2DBE80E5FB55E4EFB98B0C1C /* module-foreign.cpp */; };
+		8483AC8C2FC57E946BA658CC /* script-object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BA59944F4B9B703D7758E003 /* script-object.cpp */; };
+		86B98A6041CF451FC70C68F2 /* module-assert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A2B7198F3504EEC6437B8C2D /* module-assert.cpp */; };
+		87AD887C40C0EBEAE554276B /* module-bitwise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F5CEEB457EBCFA9055C70D6 /* module-bitwise.cpp */; };
+		8B83CACB5FB51F0FCB8F0D31 /* script-error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0382BA4C84FE427C56207CA /* script-error.cpp */; };
+		9A880962873D67ECF75D93E3 /* module-math.cpp in Sources */ = {isa = PBXBuildFile; fileRef = FB90FB5AD75728C9961BBC30 /* module-math.cpp */; };
+		9BDC854E54BDE84FDD74B9DD /* module-type_convert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 728920F345763EC5564E74C1 /* module-type_convert.cpp */; };
+		A7D4F1B2371A1A530D34750C /* module-string.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C747C149EF7D06FCCB74DCE2 /* module-string.cpp */; };
+		A95E2E16B72570584ED4F150 /* script-error.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C0382BA4C84FE427C56207CA /* script-error.cpp */; };
+		ADABEEC621319A2EEF9BFCA4 /* script-module.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 122E681A4108991538A7F1FC /* script-module.cpp */; };
+		B5853DC45AEA021713B45C2C /* module-arithmetic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C539628A43961F3FFE41F5D /* module-arithmetic.cpp */; };
+		B5A0C2A9FDB698C6513198D9 /* module-char.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE669E609CAF91CBA763A397 /* module-char.cpp */; };
+		B627A067E3D7FC40F6D83BDC /* module-system.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AFB32E697C19A526CDD6D38D /* module-system.cpp */; };
+		BC30D10C423E4529B442A9CC /* module-bitwise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2F5CEEB457EBCFA9055C70D6 /* module-bitwise.cpp */; };
+		BC7129ED4114B894B225C7C4 /* module-codeunit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7DD121FE5D99CAB161DF0B2A /* module-codeunit.cpp */; };
+		C5C7C0916BF34B5E2372CE90 /* module-encoding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 285BFCD76B000310BE1E5DB7 /* module-encoding.cpp */; };
+		C6D7C4F60C67FA039BC9CD9F /* module-encoding.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 285BFCD76B000310BE1E5DB7 /* module-encoding.cpp */; };
+		C80E91640EAB19F34CB615A5 /* module-logic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0746898B307C2A2CD7D547E0 /* module-logic.cpp */; };
+		D56A7FF2F902188B3E43F4C0 /* module-unittest_IMPL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5819C5182CC9F88D4B15F20A /* module-unittest_IMPL.cpp */; };
+		D7B8255CA91D854526BE6B89 /* module-system.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AFB32E697C19A526CDD6D38D /* module-system.cpp */; };
+		D8C98D6A89D4BDC3D610E2FC /* module-list.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 31926EE3CC25EEB2FD2BDE5B /* module-list.cpp */; };
+		E51774CFAD66C9FEB8073456 /* module-unittest_IMPL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5819C5182CC9F88D4B15F20A /* module-unittest_IMPL.cpp */; };
+		E82FB911922F6DB877A896A5 /* module-byte.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A2EDAC2842D835068BBF6234 /* module-byte.cpp */; };
+		EA1F763B5CD666C1EDAB6331 /* module-date.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DEC33531E4C2A452CF6CF20 /* module-date.cpp */; };
+		F2CEE95A3462BE014F1F23D3 /* module-char.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AE669E609CAF91CBA763A397 /* module-char.cpp */; };
+		F4E9E4D13AF5C9A43DDAB59C /* script-builder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 04F628A1FD530CB94AB7F0B5 /* script-builder.cpp */; };
+		FA502502CF4D45D179797512 /* module-list.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 31926EE3CC25EEB2FD2BDE5B /* module-list.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		6F5B61A8F2CC6DBF464FE5B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 617813A48B50F77133FA5FA3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EFFD1DF32EBE377894D3DE93;
+			remoteInfo = "libScript (host)";
+		};
+		76B5AA77D07130AE9665BF1D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 617813A48B50F77133FA5FA3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CCBD7F6FEF6168830BFB18A5;
+			remoteInfo = stdscript;
+		};
+		A4F637FA4FDD369EE90A5E9F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 617813A48B50F77133FA5FA3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BFB34FEAFBEB488929C25797;
+			remoteInfo = libScript;
+		};
+		B37E0484E728C2C749BA6D83 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7CA79CFAA1A6991A1765C961 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5D555B7C84716DD942FC7E4F;
+			remoteInfo = "thirdparty_prebuilt_ffi (host)";
+		};
+		C322709CC0A3882674B57449 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 617813A48B50F77133FA5FA3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FC0D75F65AA09E2DFE7DF67A;
+			remoteInfo = "stdscript (host)";
+		};
+		E696ADB15D39B8E23F4CF7DA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7CA79CFAA1A6991A1765C961 /* thirdparty.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D8420BB1C1B30080D31966EA;
+			remoteInfo = thirdparty_prebuilt_ffi;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		04D055AA1B86C095CD5F1913 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../config/configurations.gypi; sourceTree = "<group>"; };
+		04F628A1FD530CB94AB7F0B5 /* script-builder.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "script-builder.cpp"; sourceTree = "<group>"; };
+		0746898B307C2A2CD7D547E0 /* module-logic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-logic.cpp"; sourceTree = "<group>"; };
+		0DEC33531E4C2A452CF6CF20 /* module-date.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-date.cpp"; sourceTree = "<group>"; };
+		122E681A4108991538A7F1FC /* script-module.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "script-module.cpp"; sourceTree = "<group>"; };
+		164B50AE9971D63703B539D4 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../config/mac.gypi; sourceTree = "<group>"; };
+		17901BDEE64A0E2DCEDB3929 /* script.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = script.h; sourceTree = "<group>"; };
+		183E192F8C69D910851FF10D /* libScript-host.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libScript-host.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		285BFCD76B000310BE1E5DB7 /* module-encoding.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-encoding.cpp"; sourceTree = "<group>"; };
+		2B4349190504210DBCE0494D /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../config/win32.gypi; sourceTree = "<group>"; };
+		2D009BF47A3F9471BF4A12ED /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
+		2DBE80E5FB55E4EFB98B0C1C /* module-foreign.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-foreign.cpp"; sourceTree = "<group>"; };
+		2F5CEEB457EBCFA9055C70D6 /* module-bitwise.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-bitwise.cpp"; sourceTree = "<group>"; };
+		31926EE3CC25EEB2FD2BDE5B /* module-list.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-list.cpp"; sourceTree = "<group>"; };
+		38935DDE81C76711F4A3DBF3 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../config/crosscompile.gypi; sourceTree = "<group>"; };
+		3A8EEA520F1224D894BB946D /* module-binary.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-binary.cpp"; sourceTree = "<group>"; };
+		4C539628A43961F3FFE41F5D /* module-arithmetic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-arithmetic.cpp"; sourceTree = "<group>"; };
+		4D7AEFCC0A3F1D86C289741B /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
+		505AF5731F9D6C1CE70574B8 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
+		52B2F7E5DC79CA77DCD52F52 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
+		53A0597A0461A80BD3C29728 /* module-java.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-java.cpp"; sourceTree = "<group>"; };
+		5480DE4DDC50DD955E68B32C /* module-type.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-type.cpp"; sourceTree = "<group>"; };
+		5819C5182CC9F88D4B15F20A /* module-unittest_IMPL.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-unittest_IMPL.cpp"; sourceTree = "<group>"; };
+		60C47FC651CDE98DEB768B7D /* libscript.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libscript.gyp; sourceTree = "<group>"; };
+		610EF245BCC01FF22003F62B /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../config/version.gypi; sourceTree = "<group>"; };
+		618E01DF2C4741DCB631AE97 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
+		6557B72831B7264E5EEC2697 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
+		6CA4CA425CC0782DBE0B817F /* module-sort.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-sort.cpp"; sourceTree = "<group>"; };
+		6D861B54CB98B87EF51F0BE7 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
+		6E3D1382445CA99A3AABC05B /* module-stream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-stream.cpp"; sourceTree = "<group>"; };
+		6FE5DACB11BC7E1AA00F270C /* libScript.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libScript.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		728920F345763EC5564E74C1 /* module-type_convert.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-type_convert.cpp"; sourceTree = "<group>"; };
+		74F83036AE3BDB0A4145B5D5 /* script-execute.hpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = "script-execute.hpp"; sourceTree = "<group>"; };
+		7CA79CFAA1A6991A1765C961 /* thirdparty.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = thirdparty.xcodeproj; path = "../build-mac/livecode/prebuilt/thirdparty.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		7D022E3715D5A034C16256DD /* module-array.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-array.cpp"; sourceTree = "<group>"; };
+		7DD121FE5D99CAB161DF0B2A /* module-codeunit.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-codeunit.cpp"; sourceTree = "<group>"; };
+		8422E26B59F97213F0B41EFC /* script-auto.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "script-auto.h"; sourceTree = "<group>"; };
+		8446616F44413F92CD4568A6 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
+		8890A2CFE31DDFA1626EE2EB /* script-package.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "script-package.cpp"; sourceTree = "<group>"; };
+		8A8FE0883B1F135092B288D9 /* script-private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "script-private.h"; sourceTree = "<group>"; };
+		92424EE6ACCEB73C4A6C8727 /* stdscript.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = stdscript.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BF4E42186FBC835370ADC3F /* script-execute.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "script-execute.cpp"; sourceTree = "<group>"; };
+		A2B7198F3504EEC6437B8C2D /* module-assert.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-assert.cpp"; sourceTree = "<group>"; };
+		A2EDAC2842D835068BBF6234 /* module-byte.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-byte.cpp"; sourceTree = "<group>"; };
+		A9AB09785253F697D6DA647D /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../config/thirdparty.gypi; sourceTree = "<group>"; };
+		AE669E609CAF91CBA763A397 /* module-char.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-char.cpp"; sourceTree = "<group>"; };
+		AFB32E697C19A526CDD6D38D /* module-system.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-system.cpp"; sourceTree = "<group>"; };
+		B00B80B4173116B8684BA692 /* module-file.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-file.cpp"; sourceTree = "<group>"; };
+		B3D36F2247C4A5153F991EB6 /* script-bytecode.hpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = "script-bytecode.hpp"; sourceTree = "<group>"; };
+		B3D674DB81AC3918699D1FD0 /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		B5E2264187DD1E8ADD037D96 /* module-url.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-url.cpp"; sourceTree = "<group>"; };
+		BA59944F4B9B703D7758E003 /* script-object.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "script-object.cpp"; sourceTree = "<group>"; };
+		C0382BA4C84FE427C56207CA /* script-error.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "script-error.cpp"; sourceTree = "<group>"; };
+		C0864D07C98C71B52B7B470E /* stdscript-sources.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = "stdscript-sources.gypi"; sourceTree = "<group>"; };
+		C6C02AC7E32F029DB70D6635 /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		C747C149EF7D06FCCB74DCE2 /* module-string.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-string.cpp"; sourceTree = "<group>"; };
+		CB6FD10CDFF25C9F0296E7B3 /* module-unittest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-unittest.cpp"; sourceTree = "<group>"; };
+		D45FF6B917ACA368BA60C061 /* script-validate.hpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = "script-validate.hpp"; sourceTree = "<group>"; };
+		D4729A666C85E53B3C3AE234 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		D771A304D6C999F6E7C296C9 /* script-execute-objc.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "script-execute-objc.mm"; sourceTree = "<group>"; };
+		DA0C3A6F5B9DDE29D64DE50B /* module-math_foundation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-math_foundation.cpp"; sourceTree = "<group>"; };
+		E3FC100C66430690A75D3B23 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
+		EA478F55D0B718FC351A35D9 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
+		ED937C651276615CDD0472D4 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
+		F187A75AFA6E7CE1E99571A8 /* script-instance.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "script-instance.cpp"; sourceTree = "<group>"; };
+		FA854F588506523B9FC8C673 /* stdscript-host.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "stdscript-host.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		FB90FB5AD75728C9961BBC30 /* module-math.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-math.cpp"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0C9DD4C8FCCF41A118ED3FC4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		36CA0CDB00C6A3C10FEB4FEC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A42A6563ED364653BDFCE25C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ABA641250FEF96A980E04C4B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0176254E7AFD3FE236C88AB1 /* include/libscript */ = {
+			isa = PBXGroup;
+			children = (
+				8422E26B59F97213F0B41EFC /* script-auto.h */,
+				17901BDEE64A0E2DCEDB3929 /* script.h */,
+			);
+			path = include/libscript;
+			sourceTree = "<group>";
+		};
+		0E7973CCA20BDFD33737F721 /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				7CA79CFAA1A6991A1765C961 /* thirdparty.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		5120EBE4E0F3A4A826952D7D = {
+			isa = PBXGroup;
+			children = (
+				78060250E9B1C619F91FF536 /* Source */,
+				0E7973CCA20BDFD33737F721 /* Projects */,
+				C1614AFCBEC19D0BA9603283 /* Products */,
+				D280A066E7E0BE539FA8EDF7 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		78060250E9B1C619F91FF536 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				AF8DCA1868EDDB23A0179A1B /* .. */,
+				0176254E7AFD3FE236C88AB1 /* include/libscript */,
+				C8515D9F54C81A77C82A20CB /* src */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		AF8DCA1868EDDB23A0179A1B /* .. */ = {
+			isa = PBXGroup;
+			children = (
+				C6C02AC7E32F029DB70D6635 /* version */,
+			);
+			path = ..;
+			sourceTree = "<group>";
+		};
+		C1614AFCBEC19D0BA9603283 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6FE5DACB11BC7E1AA00F270C /* libScript.a */,
+				183E192F8C69D910851FF10D /* libScript-host.a */,
+				92424EE6ACCEB73C4A6C8727 /* stdscript.a */,
+				FA854F588506523B9FC8C673 /* stdscript-host.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C8515D9F54C81A77C82A20CB /* src */ = {
+			isa = PBXGroup;
+			children = (
+				4C539628A43961F3FFE41F5D /* module-arithmetic.cpp */,
+				7D022E3715D5A034C16256DD /* module-array.cpp */,
+				A2B7198F3504EEC6437B8C2D /* module-assert.cpp */,
+				3A8EEA520F1224D894BB946D /* module-binary.cpp */,
+				2F5CEEB457EBCFA9055C70D6 /* module-bitwise.cpp */,
+				A2EDAC2842D835068BBF6234 /* module-byte.cpp */,
+				AE669E609CAF91CBA763A397 /* module-char.cpp */,
+				7DD121FE5D99CAB161DF0B2A /* module-codeunit.cpp */,
+				0DEC33531E4C2A452CF6CF20 /* module-date.cpp */,
+				285BFCD76B000310BE1E5DB7 /* module-encoding.cpp */,
+				B00B80B4173116B8684BA692 /* module-file.cpp */,
+				2DBE80E5FB55E4EFB98B0C1C /* module-foreign.cpp */,
+				53A0597A0461A80BD3C29728 /* module-java.cpp */,
+				31926EE3CC25EEB2FD2BDE5B /* module-list.cpp */,
+				0746898B307C2A2CD7D547E0 /* module-logic.cpp */,
+				FB90FB5AD75728C9961BBC30 /* module-math.cpp */,
+				DA0C3A6F5B9DDE29D64DE50B /* module-math_foundation.cpp */,
+				6CA4CA425CC0782DBE0B817F /* module-sort.cpp */,
+				6E3D1382445CA99A3AABC05B /* module-stream.cpp */,
+				C747C149EF7D06FCCB74DCE2 /* module-string.cpp */,
+				AFB32E697C19A526CDD6D38D /* module-system.cpp */,
+				5480DE4DDC50DD955E68B32C /* module-type.cpp */,
+				728920F345763EC5564E74C1 /* module-type_convert.cpp */,
+				CB6FD10CDFF25C9F0296E7B3 /* module-unittest.cpp */,
+				5819C5182CC9F88D4B15F20A /* module-unittest_IMPL.cpp */,
+				B5E2264187DD1E8ADD037D96 /* module-url.cpp */,
+				04F628A1FD530CB94AB7F0B5 /* script-builder.cpp */,
+				B3D36F2247C4A5153F991EB6 /* script-bytecode.hpp */,
+				C0382BA4C84FE427C56207CA /* script-error.cpp */,
+				D771A304D6C999F6E7C296C9 /* script-execute-objc.mm */,
+				9BF4E42186FBC835370ADC3F /* script-execute.cpp */,
+				74F83036AE3BDB0A4145B5D5 /* script-execute.hpp */,
+				F187A75AFA6E7CE1E99571A8 /* script-instance.cpp */,
+				122E681A4108991538A7F1FC /* script-module.cpp */,
+				BA59944F4B9B703D7758E003 /* script-object.cpp */,
+				8890A2CFE31DDFA1626EE2EB /* script-package.cpp */,
+				8A8FE0883B1F135092B288D9 /* script-private.h */,
+				D45FF6B917ACA368BA60C061 /* script-validate.hpp */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		D280A066E7E0BE539FA8EDF7 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				4D7AEFCC0A3F1D86C289741B /* android-settings.gypi */,
+				6557B72831B7264E5EEC2697 /* android.gypi */,
+				618E01DF2C4741DCB631AE97 /* arch.gypi */,
+				ED937C651276615CDD0472D4 /* common.gypi */,
+				04D055AA1B86C095CD5F1913 /* configurations.gypi */,
+				38935DDE81C76711F4A3DBF3 /* crosscompile.gypi */,
+				D4729A666C85E53B3C3AE234 /* emscripten-settings.gypi */,
+				2D009BF47A3F9471BF4A12ED /* emscripten.gypi */,
+				505AF5731F9D6C1CE70574B8 /* exclusions.gypi */,
+				52B2F7E5DC79CA77DCD52F52 /* ios.gypi */,
+				60C47FC651CDE98DEB768B7D /* libscript.gyp */,
+				B3D674DB81AC3918699D1FD0 /* linux-settings.gypi */,
+				6D861B54CB98B87EF51F0BE7 /* linux.gypi */,
+				164B50AE9971D63703B539D4 /* mac.gypi */,
+				EA478F55D0B718FC351A35D9 /* perl.gypi */,
+				C0864D07C98C71B52B7B470E /* stdscript-sources.gypi */,
+				8446616F44413F92CD4568A6 /* target_os.gypi */,
+				A9AB09785253F697D6DA647D /* thirdparty.gypi */,
+				610EF245BCC01FF22003F62B /* version.gypi */,
+				2B4349190504210DBCE0494D /* win32.gypi */,
+				E3FC100C66430690A75D3B23 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		F3E63CAA812572EF1780F33C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BFB34FEAFBEB488929C25797 /* libScript */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EF577DE9ED9318AD2B6471DF /* Build configuration list for PBXNativeTarget "libScript" */;
+			buildPhases = (
+				8EECE4160B467A9536296471 /* Sources */,
+				A42A6563ED364653BDFCE25C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D70622069A1A5947010B0FB8 /* PBXTargetDependency */,
+			);
+			name = libScript;
+			productName = libScript;
+			productReference = 6FE5DACB11BC7E1AA00F270C /* libScript.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		CCBD7F6FEF6168830BFB18A5 /* stdscript */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5128B40AEBCF7A0D76EEDF76 /* Build configuration list for PBXNativeTarget "stdscript" */;
+			buildPhases = (
+				9330CD4F5427FC9A4F0349F0 /* Sources */,
+				0C9DD4C8FCCF41A118ED3FC4 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = stdscript;
+			productName = stdscript;
+			productReference = 92424EE6ACCEB73C4A6C8727 /* stdscript.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		EFFD1DF32EBE377894D3DE93 /* libScript (host) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1935D2DEFF1EA3DDDAF4FE40 /* Build configuration list for PBXNativeTarget "libScript (host)" */;
+			buildPhases = (
+				C599E62A5232B8F52D11A21C /* Sources */,
+				36CA0CDB00C6A3C10FEB4FEC /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				36BB04E4847A1E15217DDCD1 /* PBXTargetDependency */,
+			);
+			name = "libScript (host)";
+			productName = "libScript-host";
+			productReference = 183E192F8C69D910851FF10D /* libScript-host.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+		FC0D75F65AA09E2DFE7DF67A /* stdscript (host) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6F1C29C581A021DE859C76EE /* Build configuration list for PBXNativeTarget "stdscript (host)" */;
+			buildPhases = (
+				BA718837C6697AC9F5B9C2F9 /* Sources */,
+				ABA641250FEF96A980E04C4B /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "stdscript (host)";
+			productName = "stdscript-host";
+			productReference = FA854F588506523B9FC8C673 /* stdscript-host.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		617813A48B50F77133FA5FA3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = CDFFEF5F68B9B5FFFE4250E9 /* Build configuration list for PBXProject "libscript" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 5120EBE4E0F3A4A826952D7D;
+			projectDirPath = ../../../libscript;
+			projectReferences = (
+				{
+					ProductGroup = F3E63CAA812572EF1780F33C /* Products */;
+					ProjectRef = 7CA79CFAA1A6991A1765C961 /* thirdparty.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				16BEF5ECD31A6C757CEB840C /* All */,
+				BFB34FEAFBEB488929C25797 /* libScript */,
+				EFFD1DF32EBE377894D3DE93 /* libScript (host) */,
+				CCBD7F6FEF6168830BFB18A5 /* stdscript */,
+				FC0D75F65AA09E2DFE7DF67A /* stdscript (host) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8EECE4160B467A9536296471 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				05E212C8FEA7857C58AD26AB /* script-builder.cpp in Sources */,
+				602E01FE3E21925942C7A343 /* script-instance.cpp in Sources */,
+				ADABEEC621319A2EEF9BFCA4 /* script-module.cpp in Sources */,
+				39729049900CE7E085E8B4C3 /* script-object.cpp in Sources */,
+				6B39E9E2BD6C3BB7030E3577 /* script-package.cpp in Sources */,
+				6B064278261FDBFC73D4B64C /* script-execute.cpp in Sources */,
+				0AA8312C8947339C36C3046A /* script-execute-objc.mm in Sources */,
+				A95E2E16B72570584ED4F150 /* script-error.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9330CD4F5427FC9A4F0349F0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				754FADEF55B71728305982B1 /* module-arithmetic.cpp in Sources */,
+				6338C25A467AD222950FA52A /* module-array.cpp in Sources */,
+				86B98A6041CF451FC70C68F2 /* module-assert.cpp in Sources */,
+				1CD8FE956B11216D45B66AF7 /* module-binary.cpp in Sources */,
+				87AD887C40C0EBEAE554276B /* module-bitwise.cpp in Sources */,
+				33FE13EC92856E741CAE73D3 /* module-byte.cpp in Sources */,
+				F2CEE95A3462BE014F1F23D3 /* module-char.cpp in Sources */,
+				BC7129ED4114B894B225C7C4 /* module-codeunit.cpp in Sources */,
+				36904529B09DD3F7088ACF02 /* module-date.cpp in Sources */,
+				C6D7C4F60C67FA039BC9CD9F /* module-encoding.cpp in Sources */,
+				504E4C67DBE8BD254484FE86 /* module-file.cpp in Sources */,
+				1DB7E6A1DD153819C9E9B99A /* module-foreign.cpp in Sources */,
+				69202D25709A1838CFE4F93C /* module-java.cpp in Sources */,
+				D8C98D6A89D4BDC3D610E2FC /* module-list.cpp in Sources */,
+				1D8997A6CEED1E6D14C650AA /* module-logic.cpp in Sources */,
+				0F9507A1E4CAED4BFD762361 /* module-math_foundation.cpp in Sources */,
+				9A880962873D67ECF75D93E3 /* module-math.cpp in Sources */,
+				0A435B446CAF7A5249F6F951 /* module-sort.cpp in Sources */,
+				44FEE6FF8C3DEE3FEF236841 /* module-stream.cpp in Sources */,
+				A7D4F1B2371A1A530D34750C /* module-string.cpp in Sources */,
+				B627A067E3D7FC40F6D83BDC /* module-system.cpp in Sources */,
+				9BDC854E54BDE84FDD74B9DD /* module-type_convert.cpp in Sources */,
+				685BA0BA0057CB066D27E235 /* module-type.cpp in Sources */,
+				29EEDC120E41CED12744A734 /* module-unittest.cpp in Sources */,
+				E51774CFAD66C9FEB8073456 /* module-unittest_IMPL.cpp in Sources */,
+				7BA4164F13A0CFBAA051F43E /* module-url.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BA718837C6697AC9F5B9C2F9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B5853DC45AEA021713B45C2C /* module-arithmetic.cpp in Sources */,
+				2448C5CC6F1C1362B76EAF11 /* module-array.cpp in Sources */,
+				3642CA54E8D204BFB36EABF8 /* module-assert.cpp in Sources */,
+				7CCC8EA48E049D3ECEDF0D68 /* module-binary.cpp in Sources */,
+				BC30D10C423E4529B442A9CC /* module-bitwise.cpp in Sources */,
+				E82FB911922F6DB877A896A5 /* module-byte.cpp in Sources */,
+				B5A0C2A9FDB698C6513198D9 /* module-char.cpp in Sources */,
+				0B273E07D06991FC350139E0 /* module-codeunit.cpp in Sources */,
+				EA1F763B5CD666C1EDAB6331 /* module-date.cpp in Sources */,
+				C5C7C0916BF34B5E2372CE90 /* module-encoding.cpp in Sources */,
+				5525E5035A0BEF9A3B60F422 /* module-file.cpp in Sources */,
+				7E4A1E9B9E2BC475F86140F4 /* module-foreign.cpp in Sources */,
+				43F7F5F2D8692C6AF6F7DFEF /* module-java.cpp in Sources */,
+				FA502502CF4D45D179797512 /* module-list.cpp in Sources */,
+				C80E91640EAB19F34CB615A5 /* module-logic.cpp in Sources */,
+				154F2455D7F8B632BB9DDA03 /* module-math_foundation.cpp in Sources */,
+				31072006F741C451830F3161 /* module-math.cpp in Sources */,
+				54500A50C38CD6B18E9F3D3B /* module-sort.cpp in Sources */,
+				6E582CF228E42724DBA9BF5A /* module-stream.cpp in Sources */,
+				1252F4DD096BCCD12246F767 /* module-string.cpp in Sources */,
+				D7B8255CA91D854526BE6B89 /* module-system.cpp in Sources */,
+				6E60E82E4BC1121CFF4CA40D /* module-type_convert.cpp in Sources */,
+				5656C72B4CB1E04696C9539F /* module-type.cpp in Sources */,
+				32284D2A5B92008E4AE93590 /* module-unittest.cpp in Sources */,
+				D56A7FF2F902188B3E43F4C0 /* module-unittest_IMPL.cpp in Sources */,
+				521B50AD92FBEF2FF5013F77 /* module-url.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C599E62A5232B8F52D11A21C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F4E9E4D13AF5C9A43DDAB59C /* script-builder.cpp in Sources */,
+				567958827EBE842E5D61037E /* script-instance.cpp in Sources */,
+				56015F8917FB150C97530E3F /* script-module.cpp in Sources */,
+				8483AC8C2FC57E946BA658CC /* script-object.cpp in Sources */,
+				2B8FE88B79D96E7E210AC54A /* script-package.cpp in Sources */,
+				6CF641A11045455F297B2F9D /* script-execute.cpp in Sources */,
+				092F3CC813BACF8058FF3D67 /* script-execute-objc.mm in Sources */,
+				8B83CACB5FB51F0FCB8F0D31 /* script-error.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0F195B178DBDADF99DB73E72 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EFFD1DF32EBE377894D3DE93 /* libScript (host) */;
+			targetProxy = 6F5B61A8F2CC6DBF464FE5B2 /* PBXContainerItemProxy */;
+		};
+		36BB04E4847A1E15217DDCD1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "thirdparty_prebuilt_ffi (host)";
+			targetProxy = B37E0484E728C2C749BA6D83 /* PBXContainerItemProxy */;
+		};
+		8B2CF3991966B28CB7D0B0B8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CCBD7F6FEF6168830BFB18A5 /* stdscript */;
+			targetProxy = 76B5AA77D07130AE9665BF1D /* PBXContainerItemProxy */;
+		};
+		CA63A5B4A72E53117C513CF0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BFB34FEAFBEB488929C25797 /* libScript */;
+			targetProxy = A4F637FA4FDD369EE90A5E9F /* PBXContainerItemProxy */;
+		};
+		D70622069A1A5947010B0FB8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = thirdparty_prebuilt_ffi;
+			targetProxy = E696ADB15D39B8E23F4CF7DA /* PBXContainerItemProxy */;
+		};
+		ED89406125DAA79600D0D893 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FC0D75F65AA09E2DFE7DF67A /* stdscript (host) */;
+			targetProxy = C322709CC0A3882674B57449 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		08FCCCCA7E77F2EB3D8B26FA /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Fast;
+		};
+		1110478F03F84231C8523F4F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../prebuilt/include,
+					../libfoundation/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = stdscript;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		15BEF202AF18FBAE7D6CDA2D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../prebuilt/include,
+					../libfoundation/include,
+					../thirdparty/libffi/include_darwin,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = libScript;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		27359037B3E754CD3A18B1AF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../prebuilt/include,
+					../libfoundation/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "stdscript-host";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		36566B7ED5F0A0256076D315 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../prebuilt/include,
+					../libfoundation/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = stdscript;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		61C7DFACB8716320EBA11C9D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C6C02AC7E32F029DB70D6635 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+		6D7B6E21E06C46C0F759ED83 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../prebuilt/include,
+					../libfoundation/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "stdscript-host";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		73ECCE52D1E09D236BB3CFFE /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C6C02AC7E32F029DB70D6635 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		7C722391624303D20F11215A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		921760AA99A125A73C6F7145 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../prebuilt/include,
+					../libfoundation/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = stdscript;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		97487CD19AC3A16AD7C35B5A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../prebuilt/include,
+					../libfoundation/include,
+					../thirdparty/libffi/include_darwin,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "libScript-host";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		BC7CE2EA55BA1F8F159AE5BF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../prebuilt/include,
+					../libfoundation/include,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "stdscript-host";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Release;
+		};
+		C103A786DBE75AA16FFB66C0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		C21F71DB39CEED557A356258 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C6C02AC7E32F029DB70D6635 /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		D37D01CD71C4CA3CFD7DE209 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../prebuilt/include,
+					../libfoundation/include,
+					../thirdparty/libffi/include_darwin,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = libScript;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		D806A9FB647109DA687EBBAB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../prebuilt/include,
+					../libfoundation/include,
+					../thirdparty/libffi/include_darwin,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "libScript-host";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Debug;
+		};
+		E586C7782E337CE15CA117C3 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../prebuilt/include,
+					../libfoundation/include,
+					../thirdparty/libffi/include_darwin,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = libScript;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+		FC1CCBED454CAF2189B4D2F3 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				EXECUTABLE_PREFIX = "";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"U_STATIC_IMPLEMENTATION=1",
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_ABOUT_POINTER_SIGNEDNESS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_CHECK_SWITCH_STATEMENTS = YES;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
+				GCC_WARN_MISSING_PARENTHESES = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_TYPECHECK_CALLS_TO_PRINTF = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNKNOWN_PRAGMAS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_LABEL = YES;
+				GCC_WARN_UNUSED_PARAMETER = NO;
+				GCC_WARN_UNUSED_VALUE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					include,
+					src,
+					../prebuilt/include,
+					../libfoundation/include,
+					../thirdparty/libffi/include_darwin,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "libScript-host";
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Wextra",
+					"-Wno-conversion",
+					"-Wno-shorten-64-to-32",
+					"-Wno-enum-constexpr-conversion",
+					"-Werror=declaration-after-statement",
+					"-Werror=delete-non-virtual-dtor",
+					"-Werror=overloaded-virtual",
+					"-Wno-unused-parameter",
+					"-Werror=return-type",
+					"-Werror=tautological-compare",
+					"-Werror=logical-not-parentheses",
+					"-Werror=conversion-null",
+					"-Werror=mismatched-new-delete",
+					"-Werror=parentheses",
+					"-Werror=constant-logical-operand",
+					"-Werror=unknown-pragmas",
+					"-Werror=objc-literal-compare",
+					"-Werror=shadow",
+					"-Werror=unreachable-code",
+					"-Werror=enum-compare",
+					"-Werror=switch",
+				);
+			};
+			name = Fast;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1935D2DEFF1EA3DDDAF4FE40 /* Build configuration list for PBXNativeTarget "libScript (host)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D806A9FB647109DA687EBBAB /* Debug */,
+				FC1CCBED454CAF2189B4D2F3 /* Fast */,
+				97487CD19AC3A16AD7C35B5A /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		2360CA329DC5BA81F2E27D4D /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C103A786DBE75AA16FFB66C0 /* Debug */,
+				08FCCCCA7E77F2EB3D8B26FA /* Fast */,
+				7C722391624303D20F11215A /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		5128B40AEBCF7A0D76EEDF76 /* Build configuration list for PBXNativeTarget "stdscript" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				36566B7ED5F0A0256076D315 /* Debug */,
+				921760AA99A125A73C6F7145 /* Fast */,
+				1110478F03F84231C8523F4F /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		6F1C29C581A021DE859C76EE /* Build configuration list for PBXNativeTarget "stdscript (host)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				27359037B3E754CD3A18B1AF /* Debug */,
+				6D7B6E21E06C46C0F759ED83 /* Fast */,
+				BC7CE2EA55BA1F8F159AE5BF /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		CDFFEF5F68B9B5FFFE4250E9 /* Build configuration list for PBXProject "libscript" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				61C7DFACB8716320EBA11C9D /* Debug */,
+				73ECCE52D1E09D236BB3CFFE /* Fast */,
+				C21F71DB39CEED557A356258 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		EF577DE9ED9318AD2B6471DF /* Build configuration list for PBXNativeTarget "libScript" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D37D01CD71C4CA3CFD7DE209 /* Debug */,
+				E586C7782E337CE15CA117C3 /* Fast */,
+				15BEF202AF18FBAE7D6CDA2D /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 617813A48B50F77133FA5FA3 /* Project object */;
+}

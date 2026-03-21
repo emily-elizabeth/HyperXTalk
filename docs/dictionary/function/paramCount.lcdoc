@@ -1,0 +1,45 @@
+Name: paramCount
+
+Type: function
+
+Syntax: the paramCount
+
+Syntax: paramCount()
+
+Summary:
+<return|Returns> the number of <parameter|parameters> <pass|passed> to
+the current <handler>.
+
+Introduced: 1.0
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Example:
+the paramCount
+
+Example:
+repeat with thisParam = 1 to the paramCount
+
+Returns:
+The <paramCount> function <return|returns> a <non-negative> <integer>.
+
+Description:
+Use the <paramCount> <function> to find out how many
+<parameter|parameters> were <pass|passed> to the current <handler>.
+
+The <paramCount> <function> <return|returns> the number of
+<parameter|parameters> <pass|passed> to the current <handler>. If no
+<parameter|parameters> were <pass|passed>, the <paramCount> <function>
+<return|returns> zero.
+
+References: on (control structure), setProp (control structure),
+getProp (control structure), function (control structure),
+variableNames (function), param (function), params (function),
+pass (glossary), handler (glossary), parameter (glossary),
+return (glossary), non-negative (glossary), $ (keyword),
+integer (keyword)
+
+Tags: properties
+

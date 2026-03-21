@@ -1,0 +1,63 @@
+Name: revSetVideoGrabSettings
+
+Type: command
+
+Syntax: revSetVideoGrabSettings <variableName>
+
+Summary:
+Restores video settings saved by the <revVideoGrabSettings> <function>.
+
+Associations: video library
+
+Introduced: 2.0
+
+Deprecated: 9.0
+
+OS:
+
+Platforms: desktop
+
+Security: disk, privacy
+
+Example:
+local tSettings
+put the cSavedSettings of me into tSettings
+revSetVideoGrabSettings "tSettings"
+
+Parameters:
+variableName:
+The name of a LiveCode variable that contains the settings string. The
+settings string is a block of binary data returned by the
+revVideoGrabSettings function.
+
+Description:
+The <revSetVideoGrabSettings> is ignored and and has no effect.
+
+>*Important:*  The <revSetVideoGrabSettings> <command> is part of the 
+> <Video library>. To ensure that the <command> works in a 
+> <standalone application>, you must include this 
+> <LiveCode custom library|custom library> when you create your 
+> <standalone application|standalone>. In the Inclusions pane of the 
+> <Standalone Application Settings> window, make sure the
+> "Video Grabber" 
+> library checkbox is checked.
+
+Changes:
+The use of <QuickTime> was deprecated in version 8.1 of LiveCode with
+new defaults for <dontUseQT> and <dontUseQTEffects> as true on all
+systems apart from pre OS X 10.8. The Windows build of LiveCode no
+longer supports any <QuickTime> features and setting the <dontUseQT> and
+<dontUseQTEffects> will have no effect.
+
+Support for the "Video Grabber" library on Mac OS X ended in LiveCode
+9.0.
+
+References: revVideoGrabSettings (command), function (control structure),
+video capture (glossary), Standalone Application Settings (glossary),
+standalone application (glossary), QuickTime (glossary),
+command (glossary), LiveCode custom library (glossary),
+Video library (library), dontUseQT (property), 
+dontUseQTEffects (property)
+
+Tags: multimedia
+

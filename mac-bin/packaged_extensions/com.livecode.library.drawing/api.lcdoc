@@ -1,0 +1,197 @@
+Library: com.livecode.library.drawing
+
+Type: library
+
+Title: Drawing Library
+
+Author: LiveCode
+
+Version: 0.0.0
+
+Description:
+This script library implements an SVG compiler for turning SVG files into
+'drawing metafiles'. A simple and efficient binary format for representing
+complex vector graphics, supported directly by the LiveCode image object.
+
+Name: drawingSvgCompile
+
+Type: function
+
+Syntax: drawingSvgCompile(<pXmlText>)
+
+Summary: Compile an SVG XML file to a drawing metafile.
+
+Example:
+on mouseUp
+	set the text of image 1 to drawingSvgCompile(url ("file:clock.svg"))
+end mouseUp
+
+Description:
+Use <drawingSvgCompile> to build a binary string representing an SVG file
+which can be used as the 'text' of an image object for display.
+
+The text of the SVG XML document is parsed using revXML and then stripped of all
+attributes and elements not currently understood by the SVG compiler. The
+resulting SVG is then converted to a lower-level form and encoded. This form can
+be used as the text of an image.
+
+The following SVG features are currently supported:
+
+  - 'svg' elements (percentage width/height only allowed on the root element)
+  - 'g' and 'defs' elements
+  - 'use' elements
+  - 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon' and 'path' elements
+  - 'fill', 'fill-opacity', fill-rule' properties
+  - 'stroke', 'stroke-opacity', stroke-width', 'stroke-dash-array',
+    'stroke-dash-offset', 'stroke-line-cap', 'stroke-line-join' and
+    'stroke-miter-limit' properties
+  - 'solidColor', 'linearGradient', 'radialGradient' paint servers
+  - 'solid-color' and 'solid-opacity' solid color server properties
+  - 'stop-color' and 'stop-opacity' gradient ramp properties
+  - absolute unit specifiers in, cm, mm, pt, pc, px
+
+Color values of the following forms are supported:
+
+  - &#35;rgb
+  - &#35;rrggbb
+  - rgb(rrr, ggg, bbb)
+  - standard SVG 1.1 named colors (https://www.w3.org/TR/SVG/types.html#ColorKeywords)
+
+Radial gradients support focal point (fx, fy) and SVG2's focal radius (fr).
+
+The rendering of an SVG file inside an image object respects the width, height,
+viewBox and preserveAspectRatio attributes on the root SVG node in the document.
+
+If the width and height attributes are specified, and they are not percentages,
+then they are taken to be the formattedWidth/Height of the image object. In this
+case the SVG will always display at that fixed size, clipped to the rect of the
+image.
+
+If the width and height attributes are not specified, or are percentages, and
+a viewBox attribute is specified then the width and height of the viewBox are
+taken to be the formattedWidth/Height of the image object. In this case the SVG
+will scale to fit within the rect of the image object, respecting the setting
+of the SVG's preserveAspectRatio attribute.
+
+Finally if the width and height are not specified, or are percentages and there
+is no viewBox attribute then the intrinsic width and height are taken to be
+256.
+
+>*Note:* The drawing binary format is not currently considered stable and is
+> subject to change until the end of the RC cycle for 9. At present it is advised
+> that SVG files be compiled as needed when developing in the IDE, and then
+> compiled ahead-of-time when building a standalone.
+
+
+>*Note:* To use this function in a standalone, you must include the XML 
+> extension.
+
+Parameters: 
+
+pXmlText: The text of the SVG XML document to compile.
+
+Returns:
+A binary string containing the encoded drawing - this can be used as the text
+of an image directly.
+
+The result: An error string if an error occurred.
+
+References: drawingSvgCompileFile (function)
+
+
+
+
+Name: drawingSvgCompileFile
+
+Type: function
+
+Syntax: drawingSvgCompileFile(<pXmlFile>)
+
+Summary: Compile an SVG XML file to a drawing metafile.
+
+Example:
+on mouseUp
+	set the text of image 1 to drawingSvgCompileFile("clock.svg")
+end mouseUp
+
+Description:
+Use <drawingSvgCompileFile> to build a binary string representing an SVG file
+which can be used as the 'text' of an image object for display.
+
+The SVG XML file is parsed using revXML and then stripped of all attributes
+and elements not currently understood by the SVG compiler. The resulting SVG
+is then converted to a lower-level form and encoded. This form can be used
+as the text of an image.
+
+The following SVG features are currently supported:
+
+  - 'svg' elements (percentage width/height only allowed on the root element)
+  - 'g' and 'defs' elements
+  - 'use' elements
+  - 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon' and 'path' elements
+  - 'fill', 'fill-opacity', fill-rule' properties
+  - 'stroke', 'stroke-opacity', stroke-width', 'stroke-dash-array',
+    'stroke-dash-offset', 'stroke-line-cap', 'stroke-line-join' and
+    'stroke-miter-limit' properties
+  - 'solidColor', 'linearGradient', 'radialGradient' paint servers
+  - 'solid-color' and 'solid-opacity' solid color server properties
+  - 'stop-color' and 'stop-opacity' gradient ramp properties
+  - absolute unit specifiers in, cm, mm, pt, pc, px
+
+Color values of the following forms are supported:
+
+  - &#35;rgb
+  - &#35;rrggbb
+  - rgb(rrr, ggg, bbb)
+  - standard SVG 1.1 named colors (https://www.w3.org/TR/SVG/types.html#ColorKeywords)
+
+Radial gradients support focal point (fx, fy) and SVG2's focal radius (fr).
+
+The rendering of an SVG file inside an image object respects the width, height,
+viewBox and preserveAspectRatio attributes on the root SVG node in the document.
+
+If the width and height attributes are specified, and they are not percentages,
+then they are taken to be the formattedWidth/Height of the image object. In this
+case the SVG will always display at that fixed size, clipped to the rect of the
+image.
+
+If the width and height attributes are not specified, or are percentages, and
+a viewBox attribute is specified then the width and height of the viewBox are
+taken to be the formattedWidth/Height of the image object. In this case the SVG
+will scale to fit within the rect of the image object, respecting the setting
+of the SVG's preserveAspectRatio attribute.
+
+Finally if the width and height are not specified, or are percentages and there
+is no viewBox attribute then the intrinsic width and height are taken to be
+256.
+
+>*Note:* The drawing binary format is not currently considered stable and is
+subject to change until the end of the RC cycle for 9. At present it is advised
+that SVG files be compiled as needed when developing in the IDE, and then
+compiled ahead-of-time when building a standalone.
+
+
+>*Note:* To use this function in a standalone, you must include the XML 
+extension.
+
+
+>*Note:* The <XML library> (and by extension, this function) can not load 
+> files from the resources folder on Android. You must either copy the 
+> resources to the documents folder or use the <drawingSvgCompile>
+> function instead.
+
+Parameters: 
+
+pXmlFile: The filename of the SVG XML file to load.
+
+Returns:
+A binary string containing the encoded drawing - this can be used as the text
+of an image directly.
+
+The result: An error string if an error occurred.
+
+References: drawingSvgCompile (function), XML library (library)
+
+
+
+

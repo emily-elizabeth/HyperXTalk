@@ -1,0 +1,44 @@
+Name: sha1Digest
+
+Type: function
+
+Syntax: the sha1Digest of <message>
+
+Syntax: sha1Digest(<message>)
+
+Summary:
+Computes a SHA-1 cryptographic message digest.
+
+Introduced: 4.6
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+get the sha1Digest of "LiveCode"
+
+Example:
+put textEncode("Message to verify", "UTF-8") into tMessage
+get sha1Digest(tMessage)
+
+Parameters:
+message(data): A <binary data> string.
+
+Returns:
+Returns the message digest of the <message> as a 20 <byte> 
+<binary data> string.
+
+Description:
+Compute a message digest of <message> using the SHA-1 cryptographic
+hash function.
+
+> *Warning:* Serious flaws have been found in the SHA-1 hash algorithm
+> that make it unsuitable to use for security-critical purposes.
+> Unless you need backwards compatibility with existing systems, use
+> one of the other algorithms available with the <messageDigest> <function>
+
+References: md5Digest (function), messageDigest (function),
+	byte (glossary), function (glossary)
+
+Tags: math

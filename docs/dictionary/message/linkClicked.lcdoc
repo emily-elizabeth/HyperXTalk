@@ -1,0 +1,52 @@
+Name: linkClicked
+
+Type: message
+
+Syntax: linkClicked <pLinkedTextOfChunk>
+
+Summary:
+Sent when the user clicks <grouped text>.
+
+Associations: field
+
+Introduced: 1.1
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Example:
+on linkClicked pLink -- open the URL stored with the clicked text
+launch url pLink
+end linkClicked
+
+Parameters:
+pLinkedTextOfChunk:
+The linkText property of the clicked text group.
+
+Description:
+Handle the <linkClicked> <message> to respond to the user clicking a
+<grouped text|text group>.
+
+The <linkClicked> <message> is sent to the <field(keyword)> that was
+clicked. 
+
+The <linkClicked> <message> is sent only when the <Browse tool> is being
+used and is sent only if the <field(keyword)> is <lock|locked>. The
+<linkClicked> <message> is not sent if the <field(object)|field's>
+<listBehavior> <property> is true.
+
+If the clicked text is grouped text--that is, if its textStyle
+<property> contains "link" --then the <linkText> <property> of the
+clicked group is sent as the <pLinkedTextOfChunk> <parameter>. If the
+text's <linkText> is empty, the <clickText> is sent as the
+<pLinkedTextOfChunk> <parameter>.
+
+References: click (command), clickLoc (function), clickText (function),
+property (glossary), Browse tool (glossary), grouped text (glossary),
+message (glossary), lock (glossary), parameter (glossary), link (keyword),
+field (keyword), field (object), listBehavior (property),
+lockText (property), linkText (property)
+
+Tags: ui
+

@@ -1,0 +1,50 @@
+<package version="0.0">
+  <name>com.livecode.widget.tile</name>
+  <title>Tile</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <license>community</license>
+  <type>widget</type>
+  <requires name="com.livecode.canvas"/>
+  <requires name="com.livecode.library.iconsvg"/>
+  <requires name="com.livecode.library.widgetutils"/>
+  <requires name="com.livecode.widget"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.math"/>
+  <requires name="com.livecode.engine"/>
+  <metadata key="preferredSize">200,200</metadata>
+  <metadata key="userVisible">false</metadata>
+  <metadata key="_ide">true</metadata>
+  <metadata key="sourceColor.editor">com.livecode.pi.color</metadata>
+  <metadata key="sourceColor.default">blue</metadata>
+  <metadata key="tileLabel.editor">com.livecode.pi.string</metadata>
+  <metadata key="tileLabel.default">Label</metadata>
+  <metadata key="colorStep.editor">com.livecode.pi.string</metadata>
+  <metadata key="colorStep.default">0</metadata>
+  <property name="tileLabel" get="string" set="string"/>
+  <property name="iconName" get="string" set="string"/>
+  <property name="hoverIconName" get="string" set="string"/>
+  <property name="hoverState" get="boolean" set="boolean"/>
+  <property name="fgColor" get="Color" set="string"/>
+  <property name="fgHoverColor" get="Color" set="string"/>
+  <property name="bgColor" get="Color" set="string"/>
+  <property name="bgHoverColor" get="Color" set="string"/>
+  <handler name="onCreate" parameters="" return="any"/>
+  <handler name="OnPaint" parameters="" return="any"/>
+  <handler name="setTileLabel" parameters="in string" return="nothing"/>
+  <handler name="OnMouseUp" parameters="" return="any"/>
+  <handler name="OnMouseEnter" parameters="" return="any"/>
+  <handler name="OnMouseLeave" parameters="" return="any"/>
+  <handler name="setIconName" parameters="in string" return="nothing"/>
+  <handler name="setHoverIconName" parameters="in string" return="nothing"/>
+  <handler name="setForegroundColor" parameters="in string" return="nothing"/>
+  <handler name="setForegroundHoverColor" parameters="in string" return="nothing"/>
+  <handler name="setBackgroundColor" parameters="in string" return="nothing"/>
+  <handler name="setBackgroundHoverColor" parameters="in string" return="nothing"/>
+  <handler name="setHover" parameters="in boolean" return="nothing"/>
+</package>

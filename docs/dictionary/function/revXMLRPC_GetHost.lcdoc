@@ -1,0 +1,50 @@
+Name: revXMLRPC_GetHost
+
+Type: function
+
+Syntax: revXMLRPC_GetHost(<XMLRPCdocumentID>)
+
+Summary:
+This function returns the target host of an XML-RPC document.
+
+Associations: xml-rpc library
+
+Introduced: 2.5
+
+OS: mac, windows, linux, ios, android
+
+Platforms: desktop, server, mobile
+
+Security: disk, process
+
+Example:
+local tHost
+put revXMLRPC_GetHost(tRequest) into tHost
+
+Parameters:
+XMLRPCdocumentID (integer):
+The number returned by the <revXMLRPC_CreateRequest> when you created the
+<XML-RPC> request, or the successful <revXMLRPC_Execute> <function> when you
+executed an <XML-RPC> request.
+
+Returns (string):
+The <revXMLRPC_GetHost> <function> returns the <IP address> or 
+<domain name> of the <host> that is the target of the <XML-RPC document>.
+
+Description:
+Use the <revXMLRPC_GetHost> <function> to retrieve the host that is the
+target of the execution of an <XML-RPC> request.
+
+If the <revXMLRPC_GetHost> <function> encounters an error, it
+<return|returns> an error message starting with "xmlrpcerr" ..
+
+
+References: revXMLRPC_SetHost (command), function (control structure),
+revXMLRPC_CreateRequest (function), return (glossary), host (glossary),
+XML-RPC (glossary), Standalone Application Settings (glossary),
+IP address (glossary), standalone application (glossary),
+XML-RPC document (glossary), function (glossary), domain name (glossary),
+LiveCode custom library (glossary), XML-RPC library (library),
+revXMLRPC_Execute (function)
+
+Tags: networking

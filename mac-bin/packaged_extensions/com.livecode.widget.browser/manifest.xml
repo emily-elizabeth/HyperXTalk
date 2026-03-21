@@ -1,0 +1,60 @@
+<package version="0.0">
+  <name>com.livecode.widget.browser</name>
+  <title>Browser</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <license>community</license>
+  <type>widget</type>
+  <requires name="com.livecode.foreign"/>
+  <requires name="com.livecode.extensions.libbrowser"/>
+  <requires name="com.livecode.engine"/>
+  <requires name="com.livecode.widget"/>
+  <requires name="com.livecode.library.widgetutils"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.char"/>
+  <requires name="com.livecode.canvas"/>
+  <metadata key="svgicon">M21.7,12c0,5.4-4.4,9.7-9.7,9.7S2.3,17.4,2.3,12S6.6,2.3,12,2.3S21.7,6.6,21.7,12z M11.9,16.6c0-0.2-0.1-0.3-0.3-0.4  C11,16,10.4,16,9.9,15.5c-0.1-0.2-0.1-0.4-0.2-0.6c-0.2-0.2-0.7-0.3-1-0.4c-0.4,0-0.8,0-1.3,0c-0.2,0-0.5,0-0.7,0  c-0.3-0.1-0.5-0.5-0.7-0.8C6,13.6,6,13.4,5.8,13.4c-0.2-0.1-0.4,0.1-0.6,0c-0.1-0.1-0.1-0.2-0.1-0.3c0-0.3,0.2-0.6,0.4-0.8  c0.3-0.2,0.6,0.1,0.9,0.1c0.1,0,0.1,0,0.2,0.1C6.9,12.6,7,13,7,13.3c0,0.1,0,0.2,0,0.2c0,0.1,0.1,0.1,0.2,0.1c0.1-0.5,0.1-1,0.2-1.5  c0-0.6,0.6-1.2,1.1-1.4c0.2-0.1,0.3,0.1,0.5,0c0.6-0.2,2.1-0.8,1.8-1.6C10.6,8.4,10,7.7,9.2,7.8C9,7.9,8.9,8,8.7,8.1  C8.4,8.3,7.8,8.9,7.5,8.9C7,8.8,7,8.1,7.1,7.8c0.1-0.4,1-1.7,1.6-1.5C8.8,6.4,9,6.6,9.1,6.7c0.2,0.1,0.5,0.1,0.8,0.1  c0.1,0,0.2,0,0.3-0.1c0.1-0.1,0.1-0.1,0.1-0.2c0-0.3-0.3-0.6-0.5-0.8C9.6,5.5,9.3,5.3,9,5.2C8,4.9,6.4,5.3,5.6,6  C4.8,6.7,4.2,7.9,3.8,8.9C3.6,9.5,3.4,10.3,3.3,11c-0.1,0.5-0.2,0.9,0.1,1.4C3.7,13,4.3,13.6,4.9,14c0.4,0.3,1.2,0.3,1.6,0.8  c0.3,0.4,0.2,0.9,0.2,1.4c0,0.6,0.4,1.1,0.6,1.6c0.1,0.3,0.2,0.7,0.3,1c0,0.1,0.1,0.7,0.1,0.8c0.6,0.3,1.1,0.6,1.8,0.8  c0.1,0,0.5-0.6,0.5-0.7c0.3-0.3,0.5-0.7,0.8-0.9c0.2-0.1,0.4-0.2,0.6-0.4c0.2-0.2,0.3-0.6,0.4-0.9C11.9,17.3,12,16.9,11.9,16.6z   M12.1,7.4c0.1,0,0.2-0.1,0.4-0.2c0.3-0.2,0.6-0.5,0.9-0.7c0.3-0.2,0.6-0.5,0.8-0.7c0.3-0.2,0.5-0.6,0.6-0.9  c0.1-0.2,0.4-0.6,0.3-0.9c-0.1-0.2-0.6-0.3-0.8-0.4c-0.8-0.2-1.5-0.3-2.3-0.3c-0.3,0-0.7,0.1-0.8,0.4c-0.1,0.5,0.3,0.4,0.7,0.5  c0,0,0.1,0.8,0.1,0.9c0.1,0.5-0.2,0.8-0.2,1.3c0,0.3,0,0.8,0.2,1C12,7.4,12.1,7.4,12.1,7.4z M20.5,14.4c0.1-0.2,0.1-0.5,0.2-0.7  c0.1-0.5,0.1-1,0.1-1.5c0-1-0.1-2-0.4-2.9C20.2,9,20.1,8.7,20,8.4c-0.2-0.5-0.5-1-0.9-1.4c-0.4-0.5-0.9-1.9-1.8-1.5  c-0.3,0.1-0.5,0.5-0.7,0.7c-0.2,0.3-0.4,0.6-0.6,0.9c-0.1,0.1-0.2,0.3-0.1,0.4c0,0.1,0.1,0.1,0.2,0.1c0.2,0.1,0.3,0.1,0.5,0.2  c0.1,0,0.2,0.1,0.1,0.2c0,0,0,0.1-0.1,0.1c-0.5,0.5-1,0.9-1.5,1.4c-0.1,0.1-0.2,0.3-0.2,0.4c0,0.1,0.1,0.1,0.1,0.2  c0,0.1-0.1,0.1-0.2,0.2c-0.2,0.1-0.4,0.2-0.5,0.3c-0.1,0.2,0,0.5-0.1,0.7c-0.1,0.5-0.4,0.9-0.6,1.4c-0.2,0.3-0.3,0.6-0.5,0.9  c0,0.4-0.1,0.7,0.1,1c0.5,0.7,1.4,0.3,2.1,0.6c0.2,0.1,0.4,0.1,0.5,0.3c0.3,0.3,0.3,0.8,0.4,1.1c0.1,0.4,0.2,0.8,0.4,1.2  c0.1,0.5,0.3,1,0.4,1.4c0.9-0.7,1.7-1.5,2.3-2.5C19.9,16,20.2,15.2,20.5,14.4z</metadata>
+  <metadata key="_ide">true</metadata>
+  <property name="URL" get="string" set="string"/>
+  <property name="htmlText" get="string" set="string"/>
+  <metadata key="htmlText.editor">com.livecode.pi.nowraptext</metadata>
+  <metadata key="htmlText.user_visible">false</metadata>
+  <metadata key="htmlText.label">HTML text</metadata>
+  <property name="vScrollbar" get="boolean" set="boolean"/>
+  <metadata key="vScrollbar.editor">com.livecode.pi.boolean</metadata>
+  <metadata key="vScrollbar.default">false</metadata>
+  <metadata key="vScrollbar.label">Vertical scrollbar</metadata>
+  <property name="hScrollbar" get="boolean" set="boolean"/>
+  <metadata key="hScrollbar.editor">com.livecode.pi.boolean</metadata>
+  <metadata key="hScrollbar.default">false</metadata>
+  <metadata key="hScrollbar.label">Horizontal scrollbar</metadata>
+  <property name="allowUserInteraction" get="boolean" set="boolean"/>
+  <metadata key="allowUserInteraction">com.livecode.pi.boolean</metadata>
+  <metadata key="allowUserInteraction.default">true</metadata>
+  <metadata key="allowUserInteraction.label">Allow user interaction</metadata>
+  <property name="isSecure" get="boolean"/>
+  <metadata key="isSecure.user_visible">false</metadata>
+  <property name="userAgent" get="string" set="string"/>
+  <metadata key="userAgent.editor">com.livecode.pi.text</metadata>
+  <metadata key="userAgent.label">User agent</metadata>
+  <property name="javascriptHandlers" get="string" set="string"/>
+  <metadata key="javascriptHandlers.editor">com.livecode.pi.text</metadata>
+  <metadata key="javascriptHandlers.label">JavaScript handlers</metadata>
+  <handler name="OnLoad" parameters="in array" return="any"/>
+  <handler name="OnSave" parameters="out array" return="any"/>
+  <handler name="OnCreate" parameters="" return="any"/>
+  <handler name="OnTimer" parameters="" return="any"/>
+  <handler name="OnOpen" parameters="" return="any"/>
+  <handler name="OnClose" parameters="" return="any"/>
+  <handler name="OnLaunchUrl" parameters="in string" return="any"/>
+  <handler name="OnGoBack" parameters="" return="any"/>
+  <handler name="OnGoForward" parameters="" return="any"/>
+  <handler name="OnDo" parameters="in string" return="any"/>
+  <handler name="OnPaint" parameters="" return="nothing"/>
+</package>

@@ -1,0 +1,34 @@
+<package version="0.0">
+  <name>com.livecode.widget.native.emscripten.button</name>
+  <title>HTML5 Native Button</title>
+  <author>LiveCode</author>
+  <version>1.0.0</version>
+  <os>html5</os>
+  <license>community</license>
+  <type>widget</type>
+  <requires name="com.livecode.emscripten"/>
+  <requires name="com.livecode.foreign"/>
+  <requires name="com.livecode.library.widgetutils"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.system"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.widget"/>
+  <requires name="com.livecode.engine"/>
+  <requires name="com.livecode.canvas"/>
+  <metadata key="svgicon">M 397,551.25195 a 2.1,2.1 0 0 0 -2.09961,2.09961 v 11.08985 A 2.1,2.1 0 0 0 397,566.54297 h 23.24023 a 2.1,2.1 0 0 0 2.09961,-2.10156 v -11.08985 a 2.1,2.1 0 0 0 -2.09961,-2.09961 z m 7.11328,2.52344 h 9.01367 l -0.81836,9.20703 -3.70117,1.03711 -3.67383,-1.03711 z m 1.67774,1.88281 0.30078,3.41797 h 3.91797 l -0.14063,1.46094 -1.26172,0.33789 -1.2539,-0.33789 -0.084,-0.89649 h -1.12109 l 0.14258,1.7793 2.3164,0.64063 h 0.0274 v -0.008 l 2.29882,-0.63476 0.31836,-3.48242 h -4.12304 l -0.0957,-1.15821 h 4.31446 l 0.10351,-1.11914 Z</metadata>
+  <property name="label" get="string" set="string"/>
+  <metadata key="label.editor">com.livecode.pi.string</metadata>
+  <metadata key="label.default"></metadata>
+  <handler name="OnCreate" parameters="" return="any"/>
+  <handler name="OnSave" parameters="out array" return="any"/>
+  <handler name="OnLoad" parameters="in array" return="any"/>
+  <handler name="OnOpen" parameters="" return="any"/>
+  <handler name="OnClose" parameters="" return="any"/>
+  <handler name="OnPaint" parameters="" return="any"/>
+  <handler name="SetLabel" parameters="in string" return="any"/>
+</package>

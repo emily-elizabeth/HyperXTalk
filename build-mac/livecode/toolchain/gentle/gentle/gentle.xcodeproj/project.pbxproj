@@ -1,0 +1,668 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		CC249DDC4BE0A190F3983A99 /* All */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = CC490C4A495F50A5BD2316A9 /* Build configuration list for PBXAggregateTarget "All" */;
+			buildPhases = (
+			);
+			dependencies = (
+				D77DDD7D507E6835567AA43A /* PBXTargetDependency */,
+				C974DF2B7FE017BCA07C7A6E /* PBXTargetDependency */,
+			);
+			name = All;
+			productName = All;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		0B7E527ABF428D843967A562 /* symtab.c in Sources */ = {isa = PBXBuildFile; fileRef = 54B66B73275D5D3BFEFBF25B /* symtab.c */; };
+		2360E9E60E8DA353B9BF9B64 /* libgrts-host.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B9E3675E3802D5BAA8FD23F9 /* libgrts-host.a */; };
+		245661BC0BA7D0B41C947194 /* yytab.c in Sources */ = {isa = PBXBuildFile; fileRef = 96F5FB3C96C9472399192A46 /* yytab.c */; };
+		2E5134CC2370658DC429DBC5 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = C98B637F3645C8814A7556C8 /* main.c */; };
+		316993556455D288667743C0 /* yytab.c in Sources */ = {isa = PBXBuildFile; fileRef = 96F5FB3C96C9472399192A46 /* yytab.c */; };
+		347F31C25062D63F1564AC47 /* output.c in Sources */ = {isa = PBXBuildFile; fileRef = B944734D2EE470680334A363 /* output.c */; };
+		604335DF8424820F72151B24 /* libgrts.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1ECBFF4ADA55078CFEA825AE /* libgrts.a */; };
+		721BE9B8A253917EAF2606D5 /* msg.c in Sources */ = {isa = PBXBuildFile; fileRef = 28597595E069CEF2D542E52B /* msg.c */; };
+		803D40091C60F2DC7D1AFB0B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = C98B637F3645C8814A7556C8 /* main.c */; };
+		8B874B74F40323F19D7486E9 /* msg.c in Sources */ = {isa = PBXBuildFile; fileRef = 28597595E069CEF2D542E52B /* msg.c */; };
+		AEDBA61AF011EF8604CFED3E /* input.c in Sources */ = {isa = PBXBuildFile; fileRef = 8EB0FCA6F1D64A8CC3CCFAE7 /* input.c */; };
+		B8ED8B0E1429A84C31879EFA /* cyfront.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E30E66EAE1091ACB8B31B9C /* cyfront.c */; };
+		BF5A90E938E4A164EDFF1082 /* symtab.c in Sources */ = {isa = PBXBuildFile; fileRef = 54B66B73275D5D3BFEFBF25B /* symtab.c */; };
+		C039BA87A12BECF98F498730 /* input.c in Sources */ = {isa = PBXBuildFile; fileRef = 8EB0FCA6F1D64A8CC3CCFAE7 /* input.c */; };
+		E4D22447968D53518F254570 /* output.c in Sources */ = {isa = PBXBuildFile; fileRef = B944734D2EE470680334A363 /* output.c */; };
+		F7B0579A4110B63F9552A8B4 /* cyfront.c in Sources */ = {isa = PBXBuildFile; fileRef = 6E30E66EAE1091ACB8B31B9C /* cyfront.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0BCD4F04D64D83965DACDB96 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C895FC786687525A76C88046 /* grts.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BFC00FCB72669E8CB894A7C5;
+			remoteInfo = "grts (host)";
+		};
+		1A00F2B1981EA73C9419DB75 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C355A849E6DAD278184B82B2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D1DB39160911D64DB6E1CACB;
+			remoteInfo = gentle;
+		};
+		525E13D56617B76801AD5517 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C355A849E6DAD278184B82B2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B9884ABA1851B821F10EA948;
+			remoteInfo = "gentle (host)";
+		};
+		9C16663D35FB0F3897E78EF2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C895FC786687525A76C88046 /* grts.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FA3B1D69E9A4ED58C15B0947;
+			remoteInfo = "grts (host)";
+		};
+		B604AD7B119821E1CAED45FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C895FC786687525A76C88046 /* grts.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = ED2A3D093FCF55D56F13AFB4;
+			remoteInfo = grts;
+		};
+		C60E0C12CBB7432ECFD10011 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C895FC786687525A76C88046 /* grts.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 3EBCC85CA32A89C1CD396839;
+			remoteInfo = grts;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		17448F2A8DF1F4BF5C5C62CC /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
+		1CB33B08C6D94A4BFB1F3C69 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../../config/ios.gypi; sourceTree = "<group>"; };
+		1D2F55C0470FA16A2B7DC60A /* gentle.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = gentle.gyp; sourceTree = "<group>"; };
+		2276F35E2B76346CC12A02AB /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../../../config/win32.gypi; sourceTree = "<group>"; };
+		28597595E069CEF2D542E52B /* msg.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = msg.c; sourceTree = "<group>"; };
+		2DC21588C736E4FA4750ED2B /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../../../config/perl.gypi; sourceTree = "<group>"; };
+		2E790F7E89F4CFE7EC0546A4 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../../../common.gypi; sourceTree = "<group>"; };
+		34AB30888AABBCCEDECD9996 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../../../config/yacc.gypi; sourceTree = "<group>"; };
+		3E2C1EAEC55ABFA8D45AE10B /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../../../config/version.gypi; sourceTree = "<group>"; };
+		3EEED924FFFDFE6FFD01A51E /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../../config/android.gypi; sourceTree = "<group>"; };
+		52826B90342BEB3A95249295 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../../../config/crosscompile.gypi; sourceTree = "<group>"; };
+		54B66B73275D5D3BFEFBF25B /* symtab.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = symtab.c; sourceTree = "<group>"; };
+		601716D51C7E98E64928EC6F /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../../../config/arch.gypi; sourceTree = "<group>"; };
+		6E30E66EAE1091ACB8B31B9C /* cyfront.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cyfront.c; sourceTree = "<group>"; };
+		7798E85C1172A3095BD52904 /* gentle-host */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "gentle-host"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A6DE4890E9EC6A7568C9244 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../../config/android-settings.gypi"; sourceTree = "<group>"; };
+		8EB0FCA6F1D64A8CC3CCFAE7 /* input.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = input.c; sourceTree = "<group>"; };
+		9139CD54AB558480AE17C0F0 /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../../../config/linux-settings.gypi"; sourceTree = "<group>"; };
+		95BEBEADF1F1D1D4C08EA0C7 /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../../../config/thirdparty.gypi; sourceTree = "<group>"; };
+		96F5FB3C96C9472399192A46 /* yytab.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = yytab.c; sourceTree = "<group>"; };
+		B0500FD7D699BFACC27F223A /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../../../config/linux.gypi; sourceTree = "<group>"; };
+		B944734D2EE470680334A363 /* output.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = output.c; sourceTree = "<group>"; };
+		BE7CBBEA1FFA01644A8A3F96 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../../../config/target_os.gypi; sourceTree = "<group>"; };
+		C48691D68C41F01D762E720A /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../../../config/configurations.gypi; sourceTree = "<group>"; };
+		C895FC786687525A76C88046 /* grts.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = grts.xcodeproj; path = "../../../build-mac/livecode/toolchain/gentle/gentle/grts.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		C98B637F3645C8814A7556C8 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		D9296338CC2663197A1521AA /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../../../config/mac.gypi; sourceTree = "<group>"; };
+		DF16D7C39E22CF6B6B75480D /* gentle-target */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "gentle-target"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E8A793C8B00B107F3EEB9F80 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
+		EC0C89F5F522B4C049F3A8F9 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../../../config/exclusions.gypi; sourceTree = "<group>"; };
+		F1432299B3D0C66DD23B7FA0 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../../config/emscripten.gypi; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5509C26544E0CE3DB1F45F57 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				604335DF8424820F72151B24 /* libgrts.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A7AEF4B17D59E13A18C83E8B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2360E9E60E8DA353B9BF9B64 /* libgrts-host.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0F9C635921D522CAEC6B71BB = {
+			isa = PBXGroup;
+			children = (
+				54B43B39BEA3333867EA938C /* Source */,
+				C2CB21C5C982F2DE8296A490 /* Projects */,
+				11A2F0A8F283F0B29EA68769 /* Products */,
+				BF60A3B8A95F7CBCCBE0BAA4 /* Build */,
+			);
+			sourceTree = "<group>";
+		};
+		11A2F0A8F283F0B29EA68769 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DF16D7C39E22CF6B6B75480D /* gentle-target */,
+				7798E85C1172A3095BD52904 /* gentle-host */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		54B43B39BEA3333867EA938C /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				E705440113A9D6A42B722B03 /* ../../.. */,
+				6E30E66EAE1091ACB8B31B9C /* cyfront.c */,
+				8EB0FCA6F1D64A8CC3CCFAE7 /* input.c */,
+				C98B637F3645C8814A7556C8 /* main.c */,
+				28597595E069CEF2D542E52B /* msg.c */,
+				B944734D2EE470680334A363 /* output.c */,
+				54B66B73275D5D3BFEFBF25B /* symtab.c */,
+				96F5FB3C96C9472399192A46 /* yytab.c */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		B16867E1F2CF4C4A067180B2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1ECBFF4ADA55078CFEA825AE /* libgrts.a */,
+				B9E3675E3802D5BAA8FD23F9 /* libgrts-host.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BF60A3B8A95F7CBCCBE0BAA4 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				8A6DE4890E9EC6A7568C9244 /* android-settings.gypi */,
+				3EEED924FFFDFE6FFD01A51E /* android.gypi */,
+				601716D51C7E98E64928EC6F /* arch.gypi */,
+				2E790F7E89F4CFE7EC0546A4 /* common.gypi */,
+				C48691D68C41F01D762E720A /* configurations.gypi */,
+				52826B90342BEB3A95249295 /* crosscompile.gypi */,
+				E8A793C8B00B107F3EEB9F80 /* emscripten-settings.gypi */,
+				F1432299B3D0C66DD23B7FA0 /* emscripten.gypi */,
+				EC0C89F5F522B4C049F3A8F9 /* exclusions.gypi */,
+				1D2F55C0470FA16A2B7DC60A /* gentle.gyp */,
+				1CB33B08C6D94A4BFB1F3C69 /* ios.gypi */,
+				9139CD54AB558480AE17C0F0 /* linux-settings.gypi */,
+				B0500FD7D699BFACC27F223A /* linux.gypi */,
+				D9296338CC2663197A1521AA /* mac.gypi */,
+				2DC21588C736E4FA4750ED2B /* perl.gypi */,
+				BE7CBBEA1FFA01644A8A3F96 /* target_os.gypi */,
+				95BEBEADF1F1D1D4C08EA0C7 /* thirdparty.gypi */,
+				3E2C1EAEC55ABFA8D45AE10B /* version.gypi */,
+				2276F35E2B76346CC12A02AB /* win32.gypi */,
+				34AB30888AABBCCEDECD9996 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
+		C2CB21C5C982F2DE8296A490 /* Projects */ = {
+			isa = PBXGroup;
+			children = (
+				C895FC786687525A76C88046 /* grts.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		E705440113A9D6A42B722B03 /* ../../.. */ = {
+			isa = PBXGroup;
+			children = (
+				17448F2A8DF1F4BF5C5C62CC /* version */,
+			);
+			path = ../../..;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B9884ABA1851B821F10EA948 /* gentle (host) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3951E1D8EFF8A9A4C94D70E5 /* Build configuration list for PBXNativeTarget "gentle (host)" */;
+			buildPhases = (
+				74D2B5FEB9CFA0C64E527061 /* Sources */,
+				A7AEF4B17D59E13A18C83E8B /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BC2195D84C28A04C41522097 /* PBXTargetDependency */,
+			);
+			name = "gentle (host)";
+			productName = "gentle-host";
+			productReference = 7798E85C1172A3095BD52904 /* gentle-host */;
+			productType = "com.apple.product-type.tool";
+		};
+		D1DB39160911D64DB6E1CACB /* gentle */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CF8289525F509727F241D431 /* Build configuration list for PBXNativeTarget "gentle" */;
+			buildPhases = (
+				F7B257549C1397342BC6A029 /* Sources */,
+				5509C26544E0CE3DB1F45F57 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F31A086D5C38BE242FC99196 /* PBXTargetDependency */,
+			);
+			name = gentle;
+			productName = "gentle-target";
+			productReference = DF16D7C39E22CF6B6B75480D /* gentle-target */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C355A849E6DAD278184B82B2 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 100000;
+			};
+			buildConfigurationList = F94B82E0670D9E321657A2E7 /* Build configuration list for PBXProject "gentle" */;
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 1;
+			mainGroup = 0F9C635921D522CAEC6B71BB;
+			projectDirPath = ../../../../../toolchain/gentle/gentle;
+			projectReferences = (
+				{
+					ProductGroup = B16867E1F2CF4C4A067180B2 /* Products */;
+					ProjectRef = C895FC786687525A76C88046 /* grts.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				CC249DDC4BE0A190F3983A99 /* All */,
+				D1DB39160911D64DB6E1CACB /* gentle */,
+				B9884ABA1851B821F10EA948 /* gentle (host) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		1ECBFF4ADA55078CFEA825AE /* libgrts.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libgrts.a;
+			remoteRef = B604AD7B119821E1CAED45FF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B9E3675E3802D5BAA8FD23F9 /* libgrts-host.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libgrts-host.a";
+			remoteRef = 9C16663D35FB0F3897E78EF2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		74D2B5FEB9CFA0C64E527061 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F7B0579A4110B63F9552A8B4 /* cyfront.c in Sources */,
+				AEDBA61AF011EF8604CFED3E /* input.c in Sources */,
+				2E5134CC2370658DC429DBC5 /* main.c in Sources */,
+				721BE9B8A253917EAF2606D5 /* msg.c in Sources */,
+				347F31C25062D63F1564AC47 /* output.c in Sources */,
+				BF5A90E938E4A164EDFF1082 /* symtab.c in Sources */,
+				245661BC0BA7D0B41C947194 /* yytab.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F7B257549C1397342BC6A029 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B8ED8B0E1429A84C31879EFA /* cyfront.c in Sources */,
+				C039BA87A12BECF98F498730 /* input.c in Sources */,
+				803D40091C60F2DC7D1AFB0B /* main.c in Sources */,
+				8B874B74F40323F19D7486E9 /* msg.c in Sources */,
+				E4D22447968D53518F254570 /* output.c in Sources */,
+				0B7E527ABF428D843967A562 /* symtab.c in Sources */,
+				316993556455D288667743C0 /* yytab.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BC2195D84C28A04C41522097 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "grts (host)";
+			targetProxy = 0BCD4F04D64D83965DACDB96 /* PBXContainerItemProxy */;
+		};
+		C974DF2B7FE017BCA07C7A6E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B9884ABA1851B821F10EA948 /* gentle (host) */;
+			targetProxy = 525E13D56617B76801AD5517 /* PBXContainerItemProxy */;
+		};
+		D77DDD7D507E6835567AA43A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D1DB39160911D64DB6E1CACB /* gentle */;
+			targetProxy = 1A00F2B1981EA73C9419DB75 /* PBXContainerItemProxy */;
+		};
+		F31A086D5C38BE242FC99196 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = grts;
+			targetProxy = C60E0C12CBB7432ECFD10011 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		08D627012AF5CD9F996B5DCC /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = "";
+				GCC_C_LANGUAGE_STANDARD = c89;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "gentle-target";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+		095F543AEB3E2031AB07FBD0 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = "";
+				GCC_C_LANGUAGE_STANDARD = c89;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "gentle-host";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Fast;
+		};
+		1652A1B280322CA4FA9A6F33 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 17448F2A8DF1F4BF5C5C62CC /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Fast;
+		};
+		3BF15A9B5045F6323C8CA34D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = "";
+				GCC_C_LANGUAGE_STANDARD = c89;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "gentle-target";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		45EA436A53C79667DFD28556 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 17448F2A8DF1F4BF5C5C62CC /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Release;
+		};
+		6AD6B52886E819211DB872F1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = "";
+				GCC_C_LANGUAGE_STANDARD = c89;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_RELEASE,
+					NDEBUG,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "gentle-host";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Release;
+		};
+		798D9CCB3FB19F5FE3476C52 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Debug;
+		};
+		8FF7C4BC6D2CB015A80915B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = "";
+				GCC_C_LANGUAGE_STANDARD = c89;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_TARGET,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "gentle-target";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		A7F06E5E9B4224A50F158BBD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = "";
+				GCC_C_LANGUAGE_STANDARD = c89;
+				GCC_INHIBIT_ALL_WARNINGS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					CROSS_COMPILE_HOST,
+					TARGET_PLATFORM_MACOS_X,
+					_MACOSX,
+					_DEBUG,
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-platform_version",
+					"-Wl,macos",
+					"-Wl,11.0",
+					"-Wl,11.0",
+				);
+				PRODUCT_NAME = "gentle-host";
+				WARNING_CFLAGS = "-w";
+			};
+			name = Debug;
+		};
+		B34EA5969888B6661EC4CEF6 /* Fast */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Fast;
+		};
+		D196600F0CEF21DF3FD625B5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = All;
+			};
+			name = Release;
+		};
+		FFA1A596744040CA03E1FCE7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 17448F2A8DF1F4BF5C5C62CC /* version */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++11";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_LINK_OBJC_RUNTIME = NO;
+				CONFIGURATION_BUILD_DIR = "$(SYMROOT)/$(CONFIGURATION)";
+				CONFIGURATION_TEMP_DIR = "$(OBJROOT)/$(CONFIGURATION)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				GCC_THREADSAFE_STATICS = NO;
+				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				INTERMEDIATE_DIR = "$(PROJECT_DERIVED_FILE_DIR)/$(CONFIGURATION)";
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				OBJROOT = "$(SOLUTION_DIR)/_cache/mac";
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SHARED_INTERMEDIATE_DIR = "$(SYMROOT)/DerivedSources/$(CONFIGURATION)";
+				SHARED_PRECOMPS_DIR = "$(OBJROOT)/Precompiled/$(CURRENT_ARCH)";
+				SOLUTION_DIR = ../../..;
+				STRIP_INSTALLED_PRODUCT = NO;
+				SYMROOT = "$(SOLUTION_DIR)/_build/mac";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3951E1D8EFF8A9A4C94D70E5 /* Build configuration list for PBXNativeTarget "gentle (host)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A7F06E5E9B4224A50F158BBD /* Debug */,
+				095F543AEB3E2031AB07FBD0 /* Fast */,
+				6AD6B52886E819211DB872F1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		CC490C4A495F50A5BD2316A9 /* Build configuration list for PBXAggregateTarget "All" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				798D9CCB3FB19F5FE3476C52 /* Debug */,
+				B34EA5969888B6661EC4CEF6 /* Fast */,
+				D196600F0CEF21DF3FD625B5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		CF8289525F509727F241D431 /* Build configuration list for PBXNativeTarget "gentle" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8FF7C4BC6D2CB015A80915B2 /* Debug */,
+				08D627012AF5CD9F996B5DCC /* Fast */,
+				3BF15A9B5045F6323C8CA34D /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+		F94B82E0670D9E321657A2E7 /* Build configuration list for PBXProject "gentle" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FFA1A596744040CA03E1FCE7 /* Debug */,
+				1652A1B280322CA4FA9A6F33 /* Fast */,
+				45EA436A53C79667DFD28556 /* Release */,
+			);
+			defaultConfigurationIsVisible = 1;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C355A849E6DAD278184B82B2 /* Project object */;
+}

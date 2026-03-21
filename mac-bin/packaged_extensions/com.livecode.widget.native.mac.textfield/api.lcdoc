@@ -1,0 +1,106 @@
+Library: com.livecode.widget.native.mac.textfield
+
+Type: widget
+
+Summary:
+This widget wraps the native NSTextField on Mac. Since this is
+a single-line field, the return key does not enter a new line,
+instead it triggers the returnKey action and the contents of
+the field is selected.
+
+version: 1.0.0
+
+author: LiveCode
+
+os: mac
+
+Name: enabled
+
+Type: property
+
+Syntax: set the enabled of <widget> to {true | false}
+get the enabled of <widget>
+
+Summary: The enabled state of the text field
+
+Description:
+Use the <enabled> property to enable or disable the native field. When
+disabled, the text has a greyed out appearance and the field contents
+cannot be edited.
+
+Name: returnKey
+
+Type: message
+
+Syntax: on returnKey
+
+Summary: Sent when the user presses the return key
+
+Example:
+on returnKey
+    -- ensure the user has entered a number
+    if the text of the target is not a number then
+      beep
+      answer "Invalid number entered!"
+    end if
+end returnKey
+
+Description:
+Use the <returnKey> message to respond to the user pressing the return
+key whilst the field is focused.
+
+Name: showFocusBorder
+
+Type: property
+
+Syntax: set the showFocusBorder of <widget> to { true | false }
+get the showFocusBorder of <widget>
+
+Summary: Whether the text field has a focus border or not
+
+Description:
+Use the <showFocusBorder> property to control whether the field
+widget displays a blue border when focused or not.
+
+
+
+Name: showBorder
+
+Type: property
+
+Syntax: set the showBorder of <widget> to { true | false }
+get the showBorder of <widget>
+
+Summary: Whether the text field has a border or not
+
+Description:
+Use the <showBorder> property to control whether the field
+widget has a border or not.
+
+
+
+Name: text
+
+Type: property
+
+Syntax: set the text of <widget> to <pText>
+get the text of <widget>
+
+Summary: The text displayed by the widget
+
+Value: The text of the widget
+
+Example:
+local sEntered
+on returnKey
+    -- store the entered text and clear the field
+    put the text of the target into sEntered
+    set the text of the target to empty
+end returnKey
+
+Description:
+Use the <text> property to get or set the text displayed
+by the field widget.
+
+
+

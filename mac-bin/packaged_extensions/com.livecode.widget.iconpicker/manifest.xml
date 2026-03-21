@@ -1,0 +1,51 @@
+<package version="0.0">
+  <name>com.livecode.widget.iconpicker</name>
+  <title>Icon Picker</title>
+  <author>LiveCode</author>
+  <version>1.0.3</version>
+  <license>community</license>
+  <type>widget</type>
+  <requires name="com.livecode.library.iconsvg"/>
+  <requires name="com.livecode.canvas"/>
+  <requires name="com.livecode.library.widgetutils"/>
+  <requires name="com.livecode.array"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.type"/>
+  <requires name="com.livecode.byte"/>
+  <requires name="com.livecode.char"/>
+  <requires name="com.livecode.widget"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.math"/>
+  <requires name="com.livecode.engine"/>
+  <requires name="com.livecode.mathfoundation"/>
+  <metadata key="userVisible">false</metadata>
+  <metadata key="_ide">true</metadata>
+  <property name="preferredSize" get="list"/>
+  <metadata key="preferredSize.user_visible">false</metadata>
+  <property name="selectedIcon" get="optional string" set="string"/>
+  <property name="showFrameBorder" get="boolean" set="boolean"/>
+  <property name="showNames" get="boolean" set="boolean"/>
+  <property name="iconSize" get="number" set="number"/>
+  <property name="filterString" get="string" set="string"/>
+  <property name="showSelectedElement" get="boolean" set="boolean"/>
+  <handler name="OnCreate" parameters="" return="any"/>
+  <handler name="OnSave" parameters="out array" return="any"/>
+  <handler name="OnLoad" parameters="in array" return="any"/>
+  <handler name="OnPaint" parameters="" return="any"/>
+  <handler name="OnMouseDown" parameters="" return="nothing"/>
+  <handler name="OnMouseMove" parameters="" return="nothing"/>
+  <handler name="onMouseLeave" parameters="" return="nothing"/>
+  <handler name="OnMouseUp" parameters="" return="nothing"/>
+  <handler name="OnMouseCancel" parameters="" return="nothing"/>
+  <handler name="OnMouseScroll" parameters="in real,in real" return="nothing"/>
+  <handler name="OnGeometryChanged" parameters="" return="any"/>
+  <handler name="getPreferredSize" parameters="" return="list"/>
+  <handler name="setFrameBorder" parameters="in boolean" return="any"/>
+  <handler name="initialiseScrollbar" parameters="" return="any"/>
+  <handler name="paintScrollbar" parameters="in Canvas,in Paint" return="any"/>
+  <handler name="checkScrollbarMouseDown" parameters="" return="any"/>
+  <handler name="scrollbarMouseUp" parameters="" return="any"/>
+</package>
