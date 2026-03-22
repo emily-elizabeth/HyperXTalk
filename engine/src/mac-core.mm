@@ -612,10 +612,32 @@ void MCPlatformGetSystemProperty(MCPlatformSystemProperty p_property, MCPlatform
 		break;
 			
 		case kMCPlatformSystemPropertyAccentColor:
-			((MCColor *)r_value) -> red = 0x0000;
-			((MCColor *)r_value) -> green = 0x0000;
-			((MCColor *)r_value) -> blue = 0x8080;
-			break;
+		{
+			// Use the system control-accent colour (respects the user's chosen
+			// accent in System Preferences / System Settings).
+			// controlAccentColor was introduced in macOS 10.14; fall back to
+			// selectedControlColor on older releases.
+			NSColor *t_accent;
+			if ([NSColor respondsToSelector:@selector(controlAccentColor)])
+				t_accent = [NSColor performSelector:@selector(controlAccentColor)];
+			else
+				t_accent = [NSColor selectedControlColor];
+			NSColor *t_rgb = [t_accent colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+			if (t_rgb != nil)
+			{
+				((MCColor *)r_value)->red   = (uint16_t)([t_rgb redComponent]   * 65535.0);
+				((MCColor *)r_value)->green = (uint16_t)([t_rgb greenComponent] * 65535.0);
+				((MCColor *)r_value)->blue  = (uint16_t)([t_rgb blueComponent]  * 65535.0);
+			}
+			else
+			{
+				// Fallback: system blue
+				((MCColor *)r_value)->red   = 0x0000;
+				((MCColor *)r_value)->green = 0x6200;
+				((MCColor *)r_value)->blue  = 0xffff;
+			}
+		}
+		break;
 			
 		case kMCPlatformSystemPropertyMaximumCursorSize:
 			*(int32_t *)r_value = 256;

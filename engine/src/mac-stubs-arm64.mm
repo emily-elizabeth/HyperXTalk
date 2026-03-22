@@ -132,6 +132,18 @@ public:
     }
 
     virtual Boolean drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCRectangle &d);
+
+    // Draw the keyboard-focus ring around a field/control using the system's
+    // keyboardFocusIndicatorColor so the ring tracks the user's accent colour.
+    virtual bool drawfocusborder(MCContext *p_context, const MCRectangle& p_dirty,
+                                 const MCRectangle& p_rect) override
+    {
+        MCThemeDrawInfo t_info;
+        memset(&t_info, 0, sizeof(t_info));
+        t_info.dest = p_rect;
+        p_context->drawtheme(THEME_DRAW_TYPE_FOCUS_RECT, &t_info);
+        return true;
+    }
 };
 
 // ── MCNativeTheme::drawwidget ───────────────────────────────────────────
@@ -593,6 +605,28 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 
             [t_box removeFromSuperview];
             [t_box release];
+            break;
+        }
+
+        // ── Keyboard focus ring ──────────────────────────────────────
+        case THEME_DRAW_TYPE_FOCUS_RECT:
+        {
+            // Draw the system focus ring using keyboardFocusIndicatorColor.
+            // This colour tracks the user's accent setting and appearance
+            // (light / dark mode) automatically.
+            NSColor *t_ring_color = [NSColor keyboardFocusIndicatorColor];
+            [t_appearance performAsCurrentDrawingAppearance:^{
+                [t_ring_color setStroke];
+                // Inset by half the stroke width so the ring stays inside the
+                // destination rect and doesn't clip against the bitmap edge.
+                NSRect t_ring_frame = NSInsetRect(t_frame, 1.5, 1.5);
+                NSBezierPath *t_path =
+                    [NSBezierPath bezierPathWithRoundedRect:t_ring_frame
+                                                   xRadius:3.0
+                                                   yRadius:3.0];
+                [t_path setLineWidth:3.0];
+                [t_path stroke];
+            }];
             break;
         }
 
