@@ -170,10 +170,22 @@ on revSaveAsStandalone pStack, pFolder, pPreview, pSuppressSuccessMsg
    end if
    if tSettings["MacOSX x86-32"] then
       delete variable tSettings["MacOSX x86-32"]
-      put true into tSettings["MacOSX x86-64"]
+      -- HyperXTalk: promote to arm64 if available, otherwise fall back to x86-64
+      if revEngineCheck("MacOSX arm64") then
+         put true into tSettings["MacOSX arm64"]
+      else
+         put true into tSettings["MacOSX x86-64"]
+      end if
       put true into tEdited
    end if
-   
+
+   -- HyperXTalk: arm64 and x86-64 are mutually exclusive on Apple Silicon.
+   -- If arm64 is set, strip x86-64 so we never attempt to build the absent x86-64 engine.
+   if tSettings["MacOSX arm64"] and tSettings["MacOSX x86-64"] then
+      put false into tSettings["MacOSX x86-64"]
+      put true into tEdited
+   end if
+
    -- Make sure there is actually something to build..
    if revSBNoPlatforms(tSettings) then
       local tMessage
@@ -437,11 +449,17 @@ private function revStandalonePlatformDetails pTarget
       case "MacOSX"
          -- MM-2014-03-21: [[ PPC Support Dropped ]] We now only support intel Mac builds. Assume all mac builds to be intel.
          -- MW-2013-06-13: [[ CloneAndRun ]] If not installated type, then take from the binaries folder.
-         put "Mac OS X/x86-64" into tArchFolder
+         -- HyperXTalk: use the actual target architecture (arm64 or x86-64)
+         if pTarget is "MacOSX arm64" then
+            put "Mac OS X/arm64" into tArchFolder
+            put "arm64" into tDetailsA["architecture"]
+         else
+            put "Mac OS X/x86-64" into tArchFolder
+            put "x86-64" into tDetailsA["architecture"]
+         end if
          put ".bundle" into tDetailsA["loadable_extension"]
          put ".dylib" into tDetailsA["shared_extension"]
          put "MacOSX" into  tDetailsA["platform"]
-         put "x86-64" into tDetailsA["architecture"]
          break
       case "Windows"
          if pTarget is "Windows" then
@@ -663,20 +681,24 @@ command revSaveAsMacStandalone pStack, pRestoreFileName, pFolder, @xStandalonePa
       put tStackPath & "/" before sStandaloneSettingsA["OSX,plist"]
    end if
    
-   -- Architectures
-   local tArchitectures
-   put "x86-64" into tArchitectures
-   
    -- keep a copy of the standalone settings to restore after each build
    local tStandaloneSettingsA
    put sStandaloneSettingsA into tStandaloneSettingsA
    repeat for each key tTarget in sPlatformDirectoriesA["MacOSX"]
       put sPlatformDirectoriesA["MacOSX"][tTarget] into tTargetDir
       put tTargetDir & normalizeForDisk(sStandaloneSettingsA["name"]) & ".app/Contents/MacOS/" into tDirectory
-      
+
       -- Ensure standalone settings script local is reset when building for subsequent targets
       put tStandaloneSettingsA into sStandaloneSettingsA
-      
+
+      -- Determine the architecture(s) for this target (HyperXTalk: arm64 or x86-64)
+      local tArchitectures
+      if tTarget is "MacOSX arm64" then
+         put "arm64" into tArchitectures
+      else
+         put "x86-64" into tArchitectures
+      end if
+
       revStandalonePreBuild pStack, pFolder, "macosx", tArchitectures, tStackName, tStackFileList
       if the result is not empty then 
          return the result
@@ -1753,8 +1775,14 @@ private command revSetMacOS pWhatFile, pPlatformCode, pEnginePath
       end if
       
       -- MM-2014-03-21: [[ PPC Support Dropped ]] We no longer include universal builds so set icon prefix to intel standalone.
-      local tIconPrefix
-      put  revEnvironmentRuntimePath() & "/Mac OS X/x86-64/Standalone.app/Contents/Resources/Standalone" into tIconPrefix
+      -- HyperXTalk: pick the correct arch folder for the icon resource path.
+      local tIconPrefix, tIconArch
+      if pPlatformCode is "MacOSX arm64" then
+         put "arm64" into tIconArch
+      else
+         put "x86-64" into tIconArch
+      end if
+      put revEnvironmentRuntimePath() & "/Mac OS X/" & tIconArch & "/Standalone.app/Contents/Resources/Standalone" into tIconPrefix
       
       if sStandaloneSettingsA["OSX,iconFile"] is not empty then
          revSBCopyFile sStandaloneSettingsA["OSX,iconFile"], item 1 to -3 of pWhatFile & "/Resources/Standalone.icns", "revStandaloneProgressCallback", the long id of me

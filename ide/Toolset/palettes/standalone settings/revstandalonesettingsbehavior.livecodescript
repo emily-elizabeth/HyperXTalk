@@ -26,7 +26,7 @@ constant kButtonList = "General,Stacks,Copy Files,Inclusions,OS X,Windows,Unix,i
 private command updateTabButtons pSettings
    local tEnableMacTick
    put false into tEnableMacTick
-   repeat for each item tItem in "MacOSX,MacOSX PowerPC-32,MacOSX x86-32,MacOSX x86-64"
+   repeat for each item tItem in "MacOSX,MacOSX PowerPC-32,MacOSX x86-32,MacOSX x86-64,MacOSX arm64"
       put tEnableMacTick or pSettings[tItem] into tEnableMacTick
    end repeat
    set the visible of button "OSXchecked" of group "checks" of me to tEnableMacTick

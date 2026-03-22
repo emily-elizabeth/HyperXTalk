@@ -714,7 +714,7 @@ function revFolderNameMakeLegal pName
 end revFolderNameMakeLegal
 
 // List of all desktop target platforms + architecture
-constant kDesktopTargets = "Windows,Windows x86-64,MacOSX x86-64,Linux,Linux x64,Linux armv6-hf"
+constant kDesktopTargets = "Windows,Windows x86-64,MacOSX arm64,MacOSX x86-64,Linux,Linux x64,Linux armv6-hf"
 function revSBDesktopTargets
    return kDesktopTargets
 end revSBDesktopTargets
@@ -738,7 +738,7 @@ end revSBTargetToPlatform
 
 -- item 1 of the architectures should be the default architecture
 constant kWindowsArchitectures = "x86-32,x86-64"
-constant kMacOSXArchitectures = "x86-32,x86-64"
+constant kMacOSXArchitectures = "arm64,x86-32,x86-64"
 constant kLinuxArchitectures =  "x86-32,x86-64,armv6-hf"
 constant kAndroidArchitectures =  "armv7,arm64,x86,x86_64"
 constant kiOSArchitectures =  "armv7,arm64"
@@ -850,7 +850,7 @@ constant kAnswerDialog               = "true"
 constant kCursors                    = "false"
 
 // SN-2015-01-21: [[ Bug 14371 ]] 'MacOSX' has been replaced by 'MacOSX x86-32'
-constant kInitialTargets = "Windows,MacOSX x86-64,Linux"
+constant kInitialTargets = "Windows,MacOSX arm64,MacOSX x86-64,Linux"
 
 on revSBDefaultStandaloneSettings pStack, @xSettingsA
    local tPlatform,tName
@@ -895,8 +895,10 @@ on revSBDefaultStandaloneSettings pStack, @xSettingsA
    
    -- build for every platform we have engines for
    repeat for each item tTarget in kInitialTargets
-      if tTarget is "MacOSX x86-64" then 
+      if tTarget is "MacOSX x86-64" then
          if xSettingsA["MacOSX x86-32"] then next repeat
+         -- arm64 takes precedence on Apple Silicon builds; skip x86-64 default when arm64 is set
+         if xSettingsA["MacOSX arm64"] then next repeat
       end if
       if xSettingsA[tTarget] = "" then
          put revEngineCheck(tTarget) into xSettingsA[tTarget]
@@ -913,8 +915,19 @@ on revSBDefaultStandaloneSettings pStack, @xSettingsA
    
    -- Since the intel choice, set the default here:
    -- MM-2014-03-21: [[ PPC Support Dropped ]] Only create standalone setting for Intel (for OS X) by default.
-   if xSettingsA["MacOSX x86-64"] is empty and xSettingsA["MacOSX x86-32"] is empty then
-      put true into xSettingsA["MacOSX x86-64"]
+   -- Prefer arm64 on Apple Silicon; fall back to x86-64 if no Mac arch is selected.
+   if xSettingsA["MacOSX arm64"] is empty and xSettingsA["MacOSX x86-64"] is empty and xSettingsA["MacOSX x86-32"] is empty then
+      if revEngineCheck("MacOSX arm64") then
+         put true into xSettingsA["MacOSX arm64"]
+      else
+         put true into xSettingsA["MacOSX x86-64"]
+      end if
+   end if
+
+   -- Migration: if arm64 is now selected and x86-64 is also set (from old saved settings),
+   -- clear x86-64 so we don't attempt to build both.  arm64 takes precedence on Apple Silicon.
+   if xSettingsA["MacOSX arm64"] and xSettingsA["MacOSX x86-64"] then
+      put false into xSettingsA["MacOSX x86-64"]
    end if
    
    -- Auto-remove stack passwords from community stacks
@@ -1022,6 +1035,8 @@ function revEngineCheck pEngine
          case "MacOSX x86-32"
          case "MacOSX x86-64"
             return there is a directory (tPath & "/Mac OS X/x86-64/Standalone.app")
+         case "MacOSX arm64"
+            return there is a directory (tPath & "/Mac OS X/arm64/Standalone.app")
          case "Windows"
             if there is a file (tPath & "/Windows/x86-32/Standalone") then
                return true
@@ -3052,6 +3067,9 @@ function revSBEnginePath pPlatform
             put the upper of char 1 of tEdition into char 1 of tEdition
             return tRuntimePath & "/Mac OS X/x86-64/Standalone.app/Contents/MacOS/Standalone-" & tEdition
             break
+         case "MacOSX arm64"
+            return tRuntimePath & "/Mac OS X/arm64/Standalone.app/Contents/MacOS/HyperXTalk-Standalone"
+            break
          case "Windows"
             return tRuntimePath & "/Windows/x86-32/Standalone"
             break
@@ -3089,6 +3107,10 @@ function revSBEnginePath pPlatform
       
       switch word 1 of pPlatform
          case "MacOSX"
+            // HyperXTalk rebrands the standalone engine; prefer the new name if present.
+            if there is a file (tBinariesPath & "/HyperXTalk-Standalone.app/Contents/MacOS/HyperXTalk-Standalone") then
+               return tBinariesPath & "/HyperXTalk-Standalone.app/Contents/MacOS/HyperXTalk-Standalone"
+            end if
             put the upper of char 1 of tEdition into char 1 of tEdition
             return tBinariesPath & "/Standalone-" & tEdition & ".app/Contents/MacOS/Standalone-" & tEdition
             break;
