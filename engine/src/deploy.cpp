@@ -757,20 +757,6 @@ Parse_stat MCIdeDeploy::parse(MCScriptPoint& sp)
 			m_platform = PLATFORM_LINUX;
 		else if (sp . token_is_cstring("macosx"))
 			m_platform = PLATFORM_MACOSX;
-		else if (sp . token_is_cstring("ios"))
-			m_platform = PLATFORM_IOS;
-		else if (sp . token_is_cstring("android"))
-			m_platform = PLATFORM_ANDROID;
-		else if (sp . token_is_cstring("winmobile"))
-			m_platform = PLATFORM_WINMOBILE;
-		else if (sp . token_is_cstring("linuxmobile"))
-			m_platform = PLATFORM_LINUXMOBILE;
-		else if (sp . token_is_cstring("iosembedded"))
-			m_platform = PLATFORM_IOS_EMBEDDED;
-		else if (sp . token_is_cstring("androidembedded"))
-			m_platform = PLATFORM_ANDROID_EMBEDDED;
-		else if (sp . token_is_cstring("emscripten"))
-			m_platform = PLATFORM_EMSCRIPTEN;
 		else
 			return PS_ERROR;
 	}
@@ -799,7 +785,6 @@ void MCIdeDeploy::exec_ctxt(MCExecContext& ctxt)
 	
 	// If platform is iOS and we are not Mac then error
 #ifndef _MACOSX
-	if (!t_has_error && (m_platform == PLATFORM_IOS || m_platform == PLATFORM_IOS_EMBEDDED))
 	{
 		ctxt . SetTheResultToCString("ios deployment not supported on this platform");
 		t_soft_error = true;
@@ -846,9 +831,7 @@ void MCIdeDeploy::exec_ctxt(MCExecContext& ctxt)
 	
     if (MCnoui && MClicenseparameters . license_class == kMCLicenseClassCommunity)
         t_is_licensed = true;
-	else if (t_is_trial &&
-			 m_platform != PLATFORM_IOS_EMBEDDED &&
-			 m_platform != PLATFORM_ANDROID_EMBEDDED)
+	else if (t_is_trial)
 		t_is_licensed = true;
 	else if (m_platform == PLATFORM_WINDOWS)
 		t_is_licensed = (MClicenseparameters . deploy_targets & kMCLicenseDeployToWindows) != 0;
@@ -856,16 +839,6 @@ void MCIdeDeploy::exec_ctxt(MCExecContext& ctxt)
 		t_is_licensed = (MClicenseparameters . deploy_targets & kMCLicenseDeployToMacOSX) != 0;
 	else if (m_platform == PLATFORM_LINUX)
 		t_is_licensed = (MClicenseparameters . deploy_targets & kMCLicenseDeployToLinux) != 0;
-	else if (m_platform == PLATFORM_IOS)
-		t_is_licensed = (MClicenseparameters . deploy_targets & kMCLicenseDeployToIOS) != 0;
-	else if (m_platform == PLATFORM_ANDROID)
-		t_is_licensed = (MClicenseparameters . deploy_targets & kMCLicenseDeployToAndroid) != 0;
-	else if (m_platform == PLATFORM_IOS_EMBEDDED)
-		t_is_licensed = (MClicenseparameters . deploy_targets & kMCLicenseDeployToIOSEmbedded) != 0;
-	else if (m_platform == PLATFORM_ANDROID_EMBEDDED)
-		t_is_licensed = (MClicenseparameters . deploy_targets & kMCLicenseDeployToAndroidEmbedded) != 0;
-	else if (m_platform == PLATFORM_EMSCRIPTEN)
-		t_is_licensed = (MClicenseparameters . deploy_targets & kMCLicenseDeployToHTML5) != 0;
 
 	if (!t_is_licensed)
 	{
@@ -874,13 +847,6 @@ void MCIdeDeploy::exec_ctxt(MCExecContext& ctxt)
 		t_has_error = true;
 	}
 	
-	if (t_is_trial &&
-		m_platform == PLATFORM_EMSCRIPTEN)
-	{
-		ctxt . SetTheResultToCString("trial of html5 is not possible");
-		t_soft_error = true;
-		t_has_error = true;
-	}
 	
 	uint32_t t_platform = PLATFORM_NONE;
 	switch(m_platform)
@@ -894,21 +860,6 @@ void MCIdeDeploy::exec_ctxt(MCExecContext& ctxt)
 		case PLATFORM_LINUX:
 			t_platform = kMCLicenseDeployToLinux;
 			break;
-		case PLATFORM_IOS:
-			t_platform = kMCLicenseDeployToIOS;
-			break;
-		case PLATFORM_ANDROID:
-			t_platform = kMCLicenseDeployToAndroid;
-			break;
-		case PLATFORM_IOS_EMBEDDED:
-			t_platform = kMCLicenseDeployToIOSEmbedded;
-			break;
-		case PLATFORM_ANDROID_EMBEDDED:
-			t_platform = kMCLicenseDeployToAndroidEmbedded;
-			break;
-		case PLATFORM_EMSCRIPTEN:
-			t_platform = kMCLicenseDeployToHTML5;
-			break;
 	}
 	
 	if (!t_has_error)
@@ -916,12 +867,7 @@ void MCIdeDeploy::exec_ctxt(MCExecContext& ctxt)
 		// If this is a trial then set the timeout.
 		if (t_is_trial)
 		{
-			if (m_platform != PLATFORM_IOS &&
-				m_platform != PLATFORM_ANDROID &&
-				m_platform != PLATFORM_EMSCRIPTEN)
 				t_params . timeout = 5 * 60;
-			else
-				t_params . timeout = 1 * 60;
 			
 			t_params . banner_timeout = 10;
 		}
@@ -942,14 +888,6 @@ void MCIdeDeploy::exec_ctxt(MCExecContext& ctxt)
 			MCDeployToLinux(t_params);
 		else if (m_platform == PLATFORM_MACOSX)
 			MCDeployToMacOSX(t_params);
-		else if (m_platform == PLATFORM_IOS)
-			MCDeployToIOS(t_params, false);
-		else if (m_platform == PLATFORM_ANDROID)
-			MCDeployToAndroid(t_params);
-		else if (m_platform == PLATFORM_IOS_EMBEDDED)
-			MCDeployToIOS(t_params, true);
-		else if (m_platform == PLATFORM_EMSCRIPTEN)
-			MCDeployToEmscripten(t_params);
 
 		MCDeployError t_error;
 		t_error = MCDeployCatch();

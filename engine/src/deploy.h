@@ -190,7 +190,6 @@ Exec_stat MCDeployToLinux(const MCDeployParameters& p_params);
 Exec_stat MCDeployToMacOSX(const MCDeployParameters& p_params);
 Exec_stat MCDeployToIOS(const MCDeployParameters& p_params, bool embedded);
 Exec_stat MCDeployToAndroid(const MCDeployParameters& p_params);
-Exec_stat MCDeployToEmscripten(const MCDeployParameters& p_params);
 
 ////////////////////////////////////////////////////////////////////////////////
 

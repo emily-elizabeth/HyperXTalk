@@ -78,7 +78,6 @@
 		6BA7A8BEC41A0D86A1863369 /* test_rgb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B01F63B061FFDC4E15737C6D /* test_rgb.cpp */; };
 		6EAE09FC3614678ED9C7075B /* mode_development.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3031B52D1EC75B6AD039DE7F /* mode_development.cpp */; };
 		6F06283F2D38E34516DFCD1D /* MediaToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8CB018D432725DC7D34730E /* MediaToolbox.framework */; };
-		70DBAF8383882BD3B60AFEC0 /* deploy_emscripten.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2BDD2A75C6906794268592AC /* deploy_emscripten.cpp */; };
 		71D383170362A01694B46BFD /* libskia_opt_avx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9F519ABCB248C776A6A5990 /* libskia_opt_avx.a */; };
 		7381AABFF35EF68D4BC18577 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0394DA2BF2241B11D547831F /* CoreGraphics.framework */; };
 		7412D614AFFD86E4188F3F17 /* libpcre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A20CAA96C567895FAB2AA773 /* libpcre.a */; };
@@ -597,7 +596,6 @@
 		27C717EB1AED641B4E6960F3 /* libskia_opt_sse41.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskia_opt_sse41.a; path = ../prebuilt/lib/mac/libskia_opt_sse41.a; sourceTree = "<group>"; };
 		28C05F2E5A3CD123B08630D0 /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
 		28FE5CBDEA057F453459CF44 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
-		2BDD2A75C6906794268592AC /* deploy_emscripten.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = deploy_emscripten.cpp; sourceTree = "<group>"; };
 		3031B52D1EC75B6AD039DE7F /* mode_development.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = mode_development.cpp; sourceTree = "<group>"; };
 		3131E522662279A4E436D234 /* libskia.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskia.a; path = ../prebuilt/lib/mac/libskia.a; sourceTree = "<group>"; };
 		387B8B9744C95D65DC364A3F /* libicuuc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicuuc.a; path = ../prebuilt/lib/mac/libicuuc.a; sourceTree = "<group>"; };
@@ -966,7 +964,6 @@
 				8FE42D75C7CC8420B9E1C27E /* deploy.h */,
 				CC1B09A85A864962D6536D29 /* deploy_capsule.cpp */,
 				6C5BC1077FC09ED2470D2E0F /* deploy_dmg.cpp */,
-				2BDD2A75C6906794268592AC /* deploy_emscripten.cpp */,
 				BDE466EC1E93D4D34DCC1E72 /* deploy_file.cpp */,
 				B3AD29E09D1E0D1AFD9D548E /* deploy_linux.cpp */,
 				07930F813B683392EA29B286 /* deploy_macosx.cpp */,
@@ -1442,7 +1439,6 @@
 				FAA2F1B298D6BB6C28526B69 /* deploy.cpp in Sources */,
 				ADADB941D79EFFC25B4B8328 /* deploy_capsule.cpp in Sources */,
 				E509B90E11B2E69E9D2B907B /* deploy_dmg.cpp in Sources */,
-				70DBAF8383882BD3B60AFEC0 /* deploy_emscripten.cpp in Sources */,
 				F58A04545F4C3523A68B45DD /* deploy_file.cpp in Sources */,
 				F9205BD705449C95B0127060 /* deploy_linux.cpp in Sources */,
 				E122E53B28FF0418D482B610 /* deploy_macosx.cpp in Sources */,

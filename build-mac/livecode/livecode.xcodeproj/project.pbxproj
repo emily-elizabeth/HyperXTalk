@@ -57,8 +57,6 @@
 				FBBC5A949DE9360757B2E448 /* PBXTargetDependency */,
 				721FB41CAB0D8B7975262020 /* PBXTargetDependency */,
 				4F11632AFADA34388AD4092B /* PBXTargetDependency */,
-				433171973A08F933ECF23173 /* PBXTargetDependency */,
-				25872FB1BC2DFEA8794794D5 /* PBXTargetDependency */,
 				10C1A6D7635B14CC735068C1 /* PBXTargetDependency */,
 				E7CCC6EF8B0EF0167AC695C5 /* PBXTargetDependency */,
 				6AD70AE4F68466AC52A5BBD1 /* PBXTargetDependency */,
@@ -175,17 +173,14 @@
 		411C53C9838E95424D3583EC /* revdb.bundle in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = E7AC560279855523011DE155 /* revdb.bundle */; };
 		4243ED476E9B68E0FA06860A /* server-revdb.dylib in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = EBEE25462176B4A3CAC9D9EA /* server-revdb.dylib */; };
 		4A5DC59292F7F9329893EC7D /* revxml.bundle.dSYM in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = BBFB21F7723ED5E596095DCD /* revxml.bundle.dSYM */; };
-		4ABC4779FAEF16309FAC0F0B /* reviphone.bundle in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = D6AD6A225B668101D7CE3126 /* reviphone.bundle */; };
 		4EF97C07EFE17CD87FA1BE7E /* lc-run in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = 04E07C6C61311488EC819A91 /* lc-run */; };
 		5426217B57C1457D6765B7FD /* HyperXTalk.app.dSYM in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = 77D1D9ADBCA187893AF68BCB /* HyperXTalk.app.dSYM */; };
 		592AAD964A48F8CF9320D856 /* lc-compile in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = C855E6841E54902E320F73FB /* lc-compile */; };
 		5A23AEE27F86322FA80AED5F /* server-revxml.dylib in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = 61ED241C8E1B262F21D7E50E /* server-revxml.dylib */; };
 		5CC6D8EBF725B3ED4ED82155 /* revsecurity.dylib in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = 115299E5A59D9ACF15DDCB08 /* revsecurity.dylib */; };
 		5D8E4AA1C83E4BD213700FDB /* revzip.bundle.dSYM in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = F5C0552E14AD8B57EAC8B0D6 /* revzip.bundle.dSYM */; };
-		65710C2193AE0D359A5D10A1 /* revandroid.bundle.dSYM in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = 3CA285A8F9A1C3A4000301D8 /* revandroid.bundle.dSYM */; };
 		6A92E7B2723331E84D2CC505 /* server-dbmysql.dylib.dSYM in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = 2D33DCC9136C27EF6A61F4F9 /* server-dbmysql.dylib.dSYM */; };
 		6B14B819E06BE5E0C8BDA058 /* server-revzip.dylib in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = A6360B68A4F98FF4BC15E1E9 /* server-revzip.dylib */; };
-		6F182D033457802ECEAC2621 /* revandroid.bundle in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = 73692BEA356FC9D96BAB6C6F /* revandroid.bundle */; };
 		7104003972B94F550DD7982F /* revpdfprinter.bundle.dSYM in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = E3A6AF370961C6C0A0CF1A8B /* revpdfprinter.bundle.dSYM */; };
 		7A252B955EA43D6031B16383 /* dbsqlite.bundle in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = B782E58A1B918E6E2BD07A82 /* dbsqlite.bundle */; };
 		80BAAD6D4E121A4517213280 /* revbrowser.bundle.dSYM in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = 80E3C39B96E52B4CA663A761 /* revbrowser.bundle.dSYM */; };
@@ -218,7 +213,6 @@
 		E97F966C95ECCD9E2BD106F1 /* revzip.bundle in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = 3E49BA4236AEE3BCCE91D0D2 /* revzip.bundle */; };
 		F42199F00F2290628E174BFE /* installer-stub in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = 9595FF53F2D692EA299C4B19 /* installer-stub */; };
 		FA97AB12855A1D067EED59A7 /* server-dbpostgresql.dylib in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = 5287D1164AD22F21E680E5B2 /* server-dbpostgresql.dylib */; };
-		FE4EB37B55FF166E6C6484A2 /* reviphone.bundle.dSYM in Copy to mac-bin */ = {isa = PBXBuildFile; fileRef = 0E6666D7C3353C1A068BEB7D /* reviphone.bundle.dSYM */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -452,13 +446,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 48F4D861D8A55FE3308DDAED;
 			remoteInfo = "cpptest-run-all";
-		};
-		3433B7429A807B7DC44EFE52 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E9917CB8BFAD45BCB17C39A2 /* revmobile.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = DC7A40C99637BA1C20486C54;
-			remoteInfo = reviphoneproxy;
 		};
 		3529CACE5AE0A2CFC88DBC24 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -866,13 +853,6 @@
 			remoteGlobalIDString = 03D9D61E526DBF5A20585FD9;
 			remoteInfo = "test-kernel-server";
 		};
-		963E2440791992E2DC21DB38 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E9917CB8BFAD45BCB17C39A2 /* revmobile.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 176B0B14CE5764227F3B0605;
-			remoteInfo = "external-revandroid";
-		};
 		97B646D9DA2EAA9F814FA5F6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 688132AD64FDB5C240A9C2F8 /* libfoundation.xcodeproj */;
@@ -935,13 +915,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = C8224C79C0224F7AE7695C1C;
 			remoteInfo = "osx-installer-stub";
-		};
-		A35EF0C9F366869506CC708E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E9917CB8BFAD45BCB17C39A2 /* revmobile.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 86F26521EFE5196165BD1907;
-			remoteInfo = "external-revandroid";
 		};
 		A376219C64EC038E4EA022B5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1041,13 +1014,6 @@
 			remoteGlobalIDString = CCB613352A797BFCCDB63F6D;
 			remoteInfo = "libskia_opt_arm (host)";
 		};
-		BDBFC1A574CF1FCE43C64284 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E9917CB8BFAD45BCB17C39A2 /* revmobile.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = A43389FD75B5270BEB0FD151;
-			remoteInfo = "external-reviphone";
-		};
 		BDF29E58A27FEFBD39788564 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5D4445BE62AB094D878B7487 /* revxml.xcodeproj */;
@@ -1061,13 +1027,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 51E224D4DA18B3C780705D36;
 			remoteInfo = "HyperXTalk-all";
-		};
-		BE97E7B134E990CC1413897F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E9917CB8BFAD45BCB17C39A2 /* revmobile.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 1E7F0123FC91582F1E08D97B;
-			remoteInfo = "external-reviphone";
 		};
 		C151284A11F1520B2F84C640 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1300,8 +1259,6 @@
 				C131258090C8DCC111086FB9 /* revbrowser.bundle in Copy to mac-bin */,
 				1FFA511DB135D65406CE206C /* dbodbc.bundle in Copy to mac-bin */,
 				D9A0FE4AE59245A947763F00 /* dbpostgresql.bundle in Copy to mac-bin */,
-				6F182D033457802ECEAC2621 /* revandroid.bundle in Copy to mac-bin */,
-				4ABC4779FAEF16309FAC0F0B /* reviphone.bundle in Copy to mac-bin */,
 				D07B59D437300EB41E114ED8 /* revspeech.bundle in Copy to mac-bin */,
 				4243ED476E9B68E0FA06860A /* server-revdb.dylib in Copy to mac-bin */,
 				F42199F00F2290628E174BFE /* installer-stub in Copy to mac-bin */,
@@ -1330,8 +1287,6 @@
 				80BAAD6D4E121A4517213280 /* revbrowser.bundle.dSYM in Copy to mac-bin */,
 				304E6E2779CB63CFA9A71D9C /* dbodbc.bundle.dSYM in Copy to mac-bin */,
 				C4E2471D165B17DEE49713D6 /* dbpostgresql.bundle.dSYM in Copy to mac-bin */,
-				65710C2193AE0D359A5D10A1 /* revandroid.bundle.dSYM in Copy to mac-bin */,
-				FE4EB37B55FF166E6C6484A2 /* reviphone.bundle.dSYM in Copy to mac-bin */,
 				E47358095C3DAB62A3936E0C /* revspeech.bundle.dSYM in Copy to mac-bin */,
 				22024FB87800F8435E5A8BF1 /* server-revdb.dylib.dSYM in Copy to mac-bin */,
 				39A17A855A8FB13ADC70652B /* installer-stub.dSYM in Copy to mac-bin */,
@@ -1350,7 +1305,6 @@
 		04E07C6C61311488EC819A91 /* lc-run */ = {isa = PBXFileReference; lastKnownFileType = text; path = "lc-run"; sourceTree = "<group>"; };
 		05C50FF3D2EEAF163BAB0258 /* osx-installer-stub.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "osx-installer-stub.xcodeproj"; path = "build-mac/livecode/Installer/osx-installer-stub.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		07CDB71EF1197126650BC3FC /* extensions.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = extensions.xcodeproj; path = "build-mac/livecode/extensions/extensions.xcodeproj"; sourceTree = SOURCE_ROOT; };
-		0E6666D7C3353C1A068BEB7D /* reviphone.bundle.dSYM */ = {isa = PBXFileReference; lastKnownFileType = text; path = reviphone.bundle.dSYM; sourceTree = "<group>"; };
 		115299E5A59D9ACF15DDCB08 /* revsecurity.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = revsecurity.dylib; sourceTree = "<group>"; };
 		11F4E1F43E42FD6DA5BB0BAA /* lc-compile-ffi-java.dSYM */ = {isa = PBXFileReference; lastKnownFileType = text; path = "lc-compile-ffi-java.dSYM"; sourceTree = "<group>"; };
 		1C34DE29BEC346FCD45888B6 /* server-community */ = {isa = PBXFileReference; lastKnownFileType = text; path = "server-community"; sourceTree = "<group>"; };
@@ -1369,7 +1323,6 @@
 		31E753297C3042BC27550A37 /* dbpostgresql.bundle */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; path = dbpostgresql.bundle; sourceTree = "<group>"; };
 		321A4BA8F5FDA2929170C8F0 /* libcpptest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libcpptest.xcodeproj; path = "build-mac/livecode/libcpptest/libcpptest.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		3C8F05D2F5EF600B9ABE5776 /* server-community.dSYM */ = {isa = PBXFileReference; lastKnownFileType = text; path = "server-community.dSYM"; sourceTree = "<group>"; };
-		3CA285A8F9A1C3A4000301D8 /* revandroid.bundle.dSYM */ = {isa = PBXFileReference; lastKnownFileType = text; path = revandroid.bundle.dSYM; sourceTree = "<group>"; };
 		3E49BA4236AEE3BCCE91D0D2 /* revzip.bundle */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; path = revzip.bundle; sourceTree = "<group>"; };
 		421D2D5E2BC1D7C002E548E8 /* libmysql.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libmysql.xcodeproj; path = "build-mac/livecode/thirdparty/libmysql/libmysql.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		46B831F6ACADD75EDEF91157 /* revxml.bundle */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; path = revxml.bundle; sourceTree = "<group>"; };
@@ -1398,7 +1351,6 @@
 		688132AD64FDB5C240A9C2F8 /* libfoundation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libfoundation.xcodeproj; path = "build-mac/livecode/libfoundation/libfoundation.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		6A6FE3050CAB99B57002B0EF /* server-dbsqlite.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = "server-dbsqlite.dylib"; sourceTree = "<group>"; };
 		6D65C78E5DB4E8E146A66F4A /* server-revxml.dylib.dSYM */ = {isa = PBXFileReference; lastKnownFileType = text; path = "server-revxml.dylib.dSYM"; sourceTree = "<group>"; };
-		73692BEA356FC9D96BAB6C6F /* revandroid.bundle */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; path = revandroid.bundle; sourceTree = "<group>"; };
 		76A71BE33766C1181E039E48 /* libjpeg.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libjpeg.xcodeproj; path = "build-mac/livecode/thirdparty/libjpeg/libjpeg.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		77309A6A1B3601C55AD7EA3E /* installer-stub.dSYM */ = {isa = PBXFileReference; lastKnownFileType = text; path = "installer-stub.dSYM"; sourceTree = "<group>"; };
 		77D091215504FFC5D8327B3C /* libiodbc.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libiodbc.xcodeproj; path = "build-mac/livecode/thirdparty/libiodbc/libiodbc.xcodeproj"; sourceTree = SOURCE_ROOT; };
@@ -1441,7 +1393,6 @@
 		CFFA4B1E07C64C3BE05E078E /* dbmysql.bundle */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; path = dbmysql.bundle; sourceTree = "<group>"; };
 		D410D4C507137091C7EAD442 /* HyperXTalk-Standalone.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = "HyperXTalk-Standalone.app"; sourceTree = "<group>"; };
 		D50EE95A7B443CADE891AD87 /* libpcre.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libpcre.xcodeproj; path = "build-mac/livecode/thirdparty/libpcre/libpcre.xcodeproj"; sourceTree = SOURCE_ROOT; };
-		D6AD6A225B668101D7CE3126 /* reviphone.bundle */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; path = reviphone.bundle; sourceTree = "<group>"; };
 		D911C45F3D1BCFF226153DFE /* HyperXTalk.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = HyperXTalk.app; sourceTree = "<group>"; };
 		D964711657F321B1ADF423A8 /* revzip.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = revzip.xcodeproj; path = "build-mac/livecode/revzip/revzip.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		E100214ADF5C62211D542519 /* revpdfprinter.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = revpdfprinter.xcodeproj; path = "build-mac/livecode/revpdfprinter/revpdfprinter.xcodeproj"; sourceTree = SOURCE_ROOT; };
@@ -1453,7 +1404,6 @@
 		E6A4DD400BA5457414194F6C /* revsecurity.dylib.dSYM */ = {isa = PBXFileReference; lastKnownFileType = text; path = revsecurity.dylib.dSYM; sourceTree = "<group>"; };
 		E7AC560279855523011DE155 /* revdb.bundle */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; path = revdb.bundle; sourceTree = "<group>"; };
 		E8559BCEC573A2B6FA177F3F /* server-dbpostgresql.dylib.dSYM */ = {isa = PBXFileReference; lastKnownFileType = text; path = "server-dbpostgresql.dylib.dSYM"; sourceTree = "<group>"; };
-		E9917CB8BFAD45BCB17C39A2 /* revmobile.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = revmobile.xcodeproj; path = "build-mac/livecode/revmobile/revmobile.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		EBEE25462176B4A3CAC9D9EA /* server-revdb.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = "server-revdb.dylib"; sourceTree = "<group>"; };
 		F5C0552E14AD8B57EAC8B0D6 /* revzip.bundle.dSYM */ = {isa = PBXFileReference; lastKnownFileType = text; path = revzip.bundle.dSYM; sourceTree = "<group>"; };
 		F7CA20BAD988A54F459BAEE7 /* kernel-development.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "kernel-development.xcodeproj"; path = "build-mac/livecode/engine/kernel-development.xcodeproj"; sourceTree = SOURCE_ROOT; };
@@ -1513,7 +1463,6 @@
 				05C50FF3D2EEAF163BAB0258 /* osx-installer-stub.xcodeproj */,
 				30148F66B1221687685AE9E4 /* revbrowser.xcodeproj */,
 				550F73E1A9C5547EA7C2B0D0 /* revdb.xcodeproj */,
-				E9917CB8BFAD45BCB17C39A2 /* revmobile.xcodeproj */,
 				E100214ADF5C62211D542519 /* revpdfprinter.xcodeproj */,
 				4B23D6ADC2B55D503BD7D1ED /* revspeech.xcodeproj */,
 				5D4445BE62AB094D878B7487 /* revxml.xcodeproj */,
@@ -1559,14 +1508,10 @@
 				7B808EFBD3BFBFBF87289B64 /* lc-run.dSYM */,
 				8F0466D39C69B9BA81C77742 /* modules */,
 				8698E6CAB35F513CB539241F /* packaged_extensions */,
-				73692BEA356FC9D96BAB6C6F /* revandroid.bundle */,
-				3CA285A8F9A1C3A4000301D8 /* revandroid.bundle.dSYM */,
 				CA5D7FFF3C02C1D24B6F3D28 /* revbrowser.bundle */,
 				80E3C39B96E52B4CA663A761 /* revbrowser.bundle.dSYM */,
 				E7AC560279855523011DE155 /* revdb.bundle */,
 				78DF4C8E7CA716C2AA1E0B90 /* revdb.bundle.dSYM */,
-				D6AD6A225B668101D7CE3126 /* reviphone.bundle */,
-				0E6666D7C3353C1A068BEB7D /* reviphone.bundle.dSYM */,
 				9B54D86380F7546C0FB0EF79 /* revpdfprinter.bundle */,
 				E3A6AF370961C6C0A0CF1A8B /* revpdfprinter.bundle.dSYM */,
 				115299E5A59D9ACF15DDCB08 /* revsecurity.dylib */,
@@ -1928,9 +1873,6 @@
 		F7216B0D5CADBB34ADDF94B8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				008C734128477802614C7727 /* revandroid.bundle */,
-				AF2138F06328BB363183B649 /* reviphone.bundle */,
-				01AEA3C342EA84F9DA560EF8 /* reviphoneproxy */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2073,7 +2015,6 @@
 				},
 				{
 					ProductGroup = F7216B0D5CADBB34ADDF94B8 /* Products */;
-					ProjectRef = E9917CB8BFAD45BCB17C39A2 /* revmobile.xcodeproj */;
 				},
 				{
 					ProductGroup = 73DDA1C037B285B8AFB0CC42 /* Products */;
@@ -2111,13 +2052,6 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		008C734128477802614C7727 /* revandroid.bundle */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = revandroid.bundle;
-			remoteRef = 963E2440791992E2DC21DB38 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		00B0D9EA46B72F37061BCBD9 /* libskia_opt_sse42 (host).a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -2137,13 +2071,6 @@
 			fileType = archive.ar;
 			path = libiodbc.a;
 			remoteRef = 6DE90DF5944E48B9EE21C9DE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		01AEA3C342EA84F9DA560EF8 /* reviphoneproxy */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = reviphoneproxy;
-			remoteRef = 3433B7429A807B7DC44EFE52 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		026016337D09DEE9C8839EC4 /* libkernel-development.a */ = {
@@ -2475,13 +2402,6 @@
 			remoteRef = 14A0C83DE9D89CAE39B201A9 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		AF2138F06328BB363183B649 /* reviphone.bundle */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = reviphone.bundle;
-			remoteRef = BE97E7B134E990CC1413897F /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		B37434D16271A4F828D09B27 /* dbodbc.bundle */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
@@ -2706,8 +2626,6 @@
 				"$(BUILT_PRODUCTS_DIR)/revbrowser.bundle",
 				"$(BUILT_PRODUCTS_DIR)/dbodbc.bundle",
 				"$(BUILT_PRODUCTS_DIR)/dbpostgresql.bundle",
-				"$(BUILT_PRODUCTS_DIR)/revandroid.bundle",
-				"$(BUILT_PRODUCTS_DIR)/reviphone.bundle",
 				"$(BUILT_PRODUCTS_DIR)/revspeech.bundle",
 				"$(BUILT_PRODUCTS_DIR)/server-revdb.dylib",
 				"$(BUILT_PRODUCTS_DIR)/installer-stub",
@@ -2738,8 +2656,6 @@
 				"$(BUILT_PRODUCTS_DIR)/revbrowser.bundle.dSYM",
 				"$(BUILT_PRODUCTS_DIR)/dbodbc.bundle.dSYM",
 				"$(BUILT_PRODUCTS_DIR)/dbpostgresql.bundle.dSYM",
-				"$(BUILT_PRODUCTS_DIR)/revandroid.bundle.dSYM",
-				"$(BUILT_PRODUCTS_DIR)/reviphone.bundle.dSYM",
 				"$(BUILT_PRODUCTS_DIR)/revspeech.bundle.dSYM",
 				"$(BUILT_PRODUCTS_DIR)/server-revdb.dylib.dSYM",
 				"$(BUILT_PRODUCTS_DIR)/installer-stub.dSYM",
@@ -2750,7 +2666,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo note: \"Extracting debug symbols\"\nexec env \"OBJCOPY=\" \"OBJDUMP=\" \"STRIP=\" tools/extract-debug-symbols.sh mac .dSYM \"${BUILT_PRODUCTS_DIR}/HyperXTalk-Standalone.app\" \"${BUILT_PRODUCTS_DIR}/lc-compile\" \"${BUILT_PRODUCTS_DIR}/lc-compile-ffi-java\" \"${BUILT_PRODUCTS_DIR}/lc-run\" \"${BUILT_PRODUCTS_DIR}/server-community\" \"${BUILT_PRODUCTS_DIR}/server-revzip.dylib\" \"${BUILT_PRODUCTS_DIR}/server-revxml.dylib\" \"${BUILT_PRODUCTS_DIR}/revsecurity.dylib\" \"${BUILT_PRODUCTS_DIR}/revdb.bundle\" \"${BUILT_PRODUCTS_DIR}/dbmysql.bundle\" \"${BUILT_PRODUCTS_DIR}/dbsqlite.bundle\" \"${BUILT_PRODUCTS_DIR}/revxml.bundle\" \"${BUILT_PRODUCTS_DIR}/revzip.bundle\" \"${BUILT_PRODUCTS_DIR}/HyperXTalk.app\" \"${BUILT_PRODUCTS_DIR}/revpdfprinter.bundle\" \"${BUILT_PRODUCTS_DIR}/Installer.app\" \"${BUILT_PRODUCTS_DIR}/revbrowser.bundle\" \"${BUILT_PRODUCTS_DIR}/dbodbc.bundle\" \"${BUILT_PRODUCTS_DIR}/dbpostgresql.bundle\" \"${BUILT_PRODUCTS_DIR}/revandroid.bundle\" \"${BUILT_PRODUCTS_DIR}/reviphone.bundle\" \"${BUILT_PRODUCTS_DIR}/revspeech.bundle\" \"${BUILT_PRODUCTS_DIR}/server-revdb.dylib\" \"${BUILT_PRODUCTS_DIR}/installer-stub\" \"${BUILT_PRODUCTS_DIR}/server-dbmysql.dylib\" \"${BUILT_PRODUCTS_DIR}/server-dbodbc.dylib\" \"${BUILT_PRODUCTS_DIR}/server-dbpostgresql.dylib\" \"${BUILT_PRODUCTS_DIR}/server-dbsqlite.dylib\"\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -2826,11 +2741,6 @@
 			name = dbmysql;
 			targetProxy = 2A7850EDA4E133C169B26B9C /* PBXContainerItemProxy */;
 		};
-		25872FB1BC2DFEA8794794D5 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "external-reviphone";
-			targetProxy = BDBFC1A574CF1FCE43C64284 /* PBXContainerItemProxy */;
-		};
 		2F875AADD3C8467F8E98C50C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "run-test-kernel-server";
@@ -2850,11 +2760,6 @@
 			isa = PBXTargetDependency;
 			name = installer;
 			targetProxy = 8C0E64DD82C9E7C7EBD13C71 /* PBXContainerItemProxy */;
-		};
-		433171973A08F933ECF23173 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "external-revandroid";
-			targetProxy = A35EF0C9F366869506CC708E /* PBXContainerItemProxy */;
 		};
 		4736E2F21DEBCF2C210F74D1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

@@ -91,7 +91,6 @@
 		4AE9F9D241EFBCB2C9B1AD98 /* lcb-modules.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = "lcb-modules.gyp"; sourceTree = "<group>"; };
 		4B3A5C7BD9B3529DED9822E3 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../config/mac.gypi; sourceTree = "<group>"; };
 		4D9E709D0B62C66B335DD04B /* type-convert.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "type-convert.lcb"; sourceTree = "<group>"; };
-		53899B915E362C50BE853161 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
 		5B7366F830A943B3EE0C6838 /* date.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = date.lcb; sourceTree = "<group>"; };
 		5EF25F39E4893DED6D8C74D4 /* arithmetic.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = arithmetic.lcb; sourceTree = "<group>"; };
 		5F773AAD6EB0AC8C07A3BDEB /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
@@ -130,9 +129,7 @@
 		E786FB73EBD72CB1945D26F2 /* byte.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = byte.lcb; sourceTree = "<group>"; };
 		E7D2E7BC53E8F128D536A761 /* binary.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = binary.lcb; sourceTree = "<group>"; };
 		F257A507521660F8075941EA /* engine-sources.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = "engine-sources.gypi"; sourceTree = "<group>"; };
-		FB47113B4D37A0FDDD64216C /* emscripten.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = emscripten.lcb; sourceTree = "<group>"; };
 		FBF3832494D3275A937E5498 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
-		FCE040DE2512574C238B8250 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -188,7 +185,6 @@
 			children = (
 				2A8C70AC20A8259B00EF91BC /* browser.lcb */,
 				D3ADABB488B20015E9EB82EB /* canvas.lcb */,
-				FB47113B4D37A0FDDD64216C /* emscripten.lcb */,
 				A51CEB6B14EADE413EE991A1 /* engine.lcb */,
 				95F698E719D1036993BF069C /* widget.lcb */,
 			);
@@ -213,8 +209,6 @@
 				801608050340A67EDD999CCD /* common.gypi */,
 				E7718E9FAD996033154B56C0 /* configurations.gypi */,
 				C391BAE33CE7BCDB4C365AD5 /* crosscompile.gypi */,
-				FCE040DE2512574C238B8250 /* emscripten-settings.gypi */,
-				53899B915E362C50BE853161 /* emscripten.gypi */,
 				F257A507521660F8075941EA /* engine-sources.gypi */,
 				0F34360180C434EBFFAED89B /* exclusions.gypi */,
 				D21CF74FEC26D8F7BA04A85A /* ios.gypi */,
@@ -310,7 +304,6 @@
 				src/engine.lcb,
 				src/widget.lcb,
 				src/browser.lcb,
-				src/emscripten.lcb,
 				../libscript/src/arithmetic.lcb,
 				../libscript/src/array.lcb,
 				../libscript/src/assert.lcb,
@@ -344,7 +337,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo note: \"Generating list of in-engine LCB modules\"\nexec \"${BUILT_PRODUCTS_DIR}/lc-compile\" --bootstrap --inputg ../toolchain/lc-compile/src/grammar.g --outputi \"${BUILT_PRODUCTS_DIR}/modules/lci\" --outputc \"${SHARED_INTERMEDIATE_DIR}/engine_lcb_modules.cpp\" src/canvas.lcb src/engine.lcb src/widget.lcb src/browser.lcb src/emscripten.lcb ../libscript/src/arithmetic.lcb ../libscript/src/array.lcb ../libscript/src/assert.lcb ../libscript/src/binary.lcb ../libscript/src/bitwise.lcb ../libscript/src/byte.lcb ../libscript/src/char.lcb ../libscript/src/codeunit.lcb ../libscript/src/date.lcb ../libscript/src/file.lcb ../libscript/src/foreign.lcb ../libscript/src/java.lcb ../libscript/src/list.lcb ../libscript/src/logic.lcb ../libscript/src/math.lcb ../libscript/src/math-foundation.lcb ../libscript/src/sort.lcb ../libscript/src/stream.lcb ../libscript/src/string.lcb ../libscript/src/system.lcb ../libscript/src/type.lcb ../libscript/src/type-convert.lcb ../libscript/src/unittest.lcb ../libscript/src/objc.lcb ../libscript/src/unittest-impl.lcb\nexit 1\n";
+			shellScript = "echo note: \"Generating list of in-engine LCB modules\"\nexec \"${BUILT_PRODUCTS_DIR}/lc-compile\" --bootstrap --inputg ../toolchain/lc-compile/src/grammar.g --outputi \"${BUILT_PRODUCTS_DIR}/modules/lci\" --outputc \"${SHARED_INTERMEDIATE_DIR}/engine_lcb_modules.cpp\" src/canvas.lcb src/engine.lcb src/widget.lcb src/browser.lcb ../libscript/src/arithmetic.lcb ../libscript/src/array.lcb ../libscript/src/assert.lcb ../libscript/src/binary.lcb ../libscript/src/bitwise.lcb ../libscript/src/byte.lcb ../libscript/src/char.lcb ../libscript/src/codeunit.lcb ../libscript/src/date.lcb ../libscript/src/file.lcb ../libscript/src/foreign.lcb ../libscript/src/java.lcb ../libscript/src/list.lcb ../libscript/src/logic.lcb ../libscript/src/math.lcb ../libscript/src/math-foundation.lcb ../libscript/src/sort.lcb ../libscript/src/stream.lcb ../libscript/src/string.lcb ../libscript/src/system.lcb ../libscript/src/type.lcb ../libscript/src/type-convert.lcb ../libscript/src/unittest.lcb ../libscript/src/objc.lcb ../libscript/src/unittest-impl.lcb\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 		8E0C17C2351B7C7BEA2CC8D8 /* Action "generate_builtin_list" */ = {
@@ -357,7 +350,6 @@
 				src/engine.lcb,
 				src/widget.lcb,
 				src/browser.lcb,
-				src/emscripten.lcb,
 				../libscript/src/arithmetic.lcb,
 				../libscript/src/array.lcb,
 				../libscript/src/assert.lcb,
@@ -391,7 +383,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo note: \"Generating list of in-engine LCB modules\"\nexec \"${BUILT_PRODUCTS_DIR}/lc-compile\" --bootstrap --inputg ../toolchain/lc-compile/src/grammar.g --outputi \"${BUILT_PRODUCTS_DIR}/modules/lci\" --outputc \"${SHARED_INTERMEDIATE_DIR}/engine_lcb_modules.cpp\" src/canvas.lcb src/engine.lcb src/widget.lcb src/browser.lcb src/emscripten.lcb ../libscript/src/arithmetic.lcb ../libscript/src/array.lcb ../libscript/src/assert.lcb ../libscript/src/binary.lcb ../libscript/src/bitwise.lcb ../libscript/src/byte.lcb ../libscript/src/char.lcb ../libscript/src/codeunit.lcb ../libscript/src/date.lcb ../libscript/src/file.lcb ../libscript/src/foreign.lcb ../libscript/src/java.lcb ../libscript/src/list.lcb ../libscript/src/logic.lcb ../libscript/src/math.lcb ../libscript/src/math-foundation.lcb ../libscript/src/sort.lcb ../libscript/src/stream.lcb ../libscript/src/string.lcb ../libscript/src/system.lcb ../libscript/src/type.lcb ../libscript/src/type-convert.lcb ../libscript/src/unittest.lcb ../libscript/src/objc.lcb ../libscript/src/unittest-impl.lcb\nexit 1\n";
+			shellScript = "echo note: \"Generating list of in-engine LCB modules\"\nexec \"${BUILT_PRODUCTS_DIR}/lc-compile\" --bootstrap --inputg ../toolchain/lc-compile/src/grammar.g --outputi \"${BUILT_PRODUCTS_DIR}/modules/lci\" --outputc \"${SHARED_INTERMEDIATE_DIR}/engine_lcb_modules.cpp\" src/canvas.lcb src/engine.lcb src/widget.lcb src/browser.lcb ../libscript/src/arithmetic.lcb ../libscript/src/array.lcb ../libscript/src/assert.lcb ../libscript/src/binary.lcb ../libscript/src/bitwise.lcb ../libscript/src/byte.lcb ../libscript/src/char.lcb ../libscript/src/codeunit.lcb ../libscript/src/date.lcb ../libscript/src/file.lcb ../libscript/src/foreign.lcb ../libscript/src/java.lcb ../libscript/src/list.lcb ../libscript/src/logic.lcb ../libscript/src/math.lcb ../libscript/src/math-foundation.lcb ../libscript/src/sort.lcb ../libscript/src/stream.lcb ../libscript/src/string.lcb ../libscript/src/system.lcb ../libscript/src/type.lcb ../libscript/src/type-convert.lcb ../libscript/src/unittest.lcb ../libscript/src/objc.lcb ../libscript/src/unittest-impl.lcb\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
