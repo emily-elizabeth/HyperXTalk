@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # This script removes lines from a file that match any lines from a second file.
 # Note that this will not preserve the order of lines, and will remove duplicates.
@@ -10,7 +10,7 @@
 import sys
 
 if len(sys.argv) < 3 or len(sys.argv) > 4:
-	print "ERROR: incorrect number of arguments"
+	print("ERROR: incorrect number of arguments")
 	sys.exit(1)
 	
 file1 = set(open(sys.argv[1]).readlines())
