@@ -7,3 +7,4 @@
 *.cer
 *.mobileprovision
 codesign.cfg
+.DS_Store
