@@ -89,24 +89,8 @@ cp "$REPO/_build/mac/Debug/libxml.a"    "$REPO/prebuilt/lib/mac/libxml.a"
 cp "$REPO/_build/mac/Debug/libzip.a"    "$REPO/prebuilt/lib/mac/libzip.a"
 ```
 
-Build the standalone
+Build the standalone. The first command will make the executables and the second one will build the standalone in the /mac-bin folder
 ```
 make compile-mac
-```
-
-Code sign all the bundles and executables and then the standalone
-```
-MACBIN=/Users/emily-elizabethhoward/Developer/HyperXTalk/mac-bin
-find "$MACBIN" -not -name "*.dSYM" | while read F; do
-    if [[ -f "$F" ]] && file "$F" | grep -qE "Mach-O|bundle"; then
-        codesign --force --sign - "$F" 2>/dev/null && echo "Signed: $(basename $F)"
-    fi
-done
-find "$MACBIN" -name "*.app" -exec codesign --force --options runtime --entitlements ./HyperXTalk.entitlements --sign - {} \;
-echo "Done signing."
-```
-
-Build the installer
-```
-python3 build_installer.py
+make package-mac-bin
 ```
