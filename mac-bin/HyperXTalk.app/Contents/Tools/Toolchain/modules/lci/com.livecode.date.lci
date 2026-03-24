@@ -1,6 +1,0 @@
-import module com.livecode.date
-  use com.livecode.foreign
-  foreign handler MCDateExecGetLocalDate(out rDateTime as List) returns nothing
-  foreign handler MCDateExecGetUniversalDate(out rDateTime as List) returns nothing
-  foreign handler MCDateExecGetUniversalTime(out rSeconds as Float64) returns nothing
-end module

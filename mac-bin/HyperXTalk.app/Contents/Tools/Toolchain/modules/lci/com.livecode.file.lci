@@ -1,8 +1,0 @@
-import module com.livecode.file
-  foreign handler MCFileExecGetContents(in File as String, out Contents as Data) returns nothing
-  foreign handler MCFileExecSetContents(in Contents as Data, in File as String) returns nothing
-  foreign handler MCFileExecDeleteFile(in File as String) returns nothing
-  foreign handler MCFileExecCreateDirectory(in File as String) returns nothing
-  foreign handler MCFileExecDeleteDirectory(in File as String) returns nothing
-  foreign handler MCFileExecGetDirectoryEntries(in Directory as String, out Entries as List) returns nothing
-end module

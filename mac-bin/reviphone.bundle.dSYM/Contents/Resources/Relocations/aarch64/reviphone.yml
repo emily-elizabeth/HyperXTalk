@@ -1,5 +1,106 @@
 ---
 triple:          'arm64-apple-darwin'
-binary-path:     '/Users/emily-elizabethhoward/Developer/HyperXTalk/_build/mac/Debug/reviphone.bundle/Contents/MacOS/reviphone'
-relocations:     []
+binary-path:     '/Users/stam/Developer/HyperXTalk/_build/mac/Debug/reviphone.bundle/Contents/MacOS/reviphone'
+relocations:
+  - { offset: 0x27, size: 0x8, addend: 0x0, symName: __Z14VariableFormatP12__MCVariablePKcz, symObjAddr: 0x0, symBinAddr: 0xC10, symSize: 0xF8 }
+  - { offset: 0x40, size: 0x8, addend: 0x0, symName: _g_error_message, symObjAddr: 0xEF50, symBinAddr: 0xC758, symSize: 0x0 }
+  - { offset: 0x6D, size: 0x8, addend: 0x0, symName: _s_simulator_runtime, symObjAddr: 0xEF58, symBinAddr: 0xC760, symSize: 0x0 }
+  - { offset: 0x795, size: 0x8, addend: 0x0, symName: _s_simulator_system_root, symObjAddr: 0xEF60, symBinAddr: 0xC768, symSize: 0x0 }
+  - { offset: 0x806, size: 0x8, addend: 0x0, symName: _s_simulator_session, symObjAddr: 0xEF68, symBinAddr: 0xC770, symSize: 0x0 }
+  - { offset: 0x1801, size: 0x8, addend: 0x0, symName: _kMCExternalName, symObjAddr: 0x36D0, symBinAddr: 0xC5A0, symSize: 0x0 }
+  - { offset: 0x1817, size: 0x8, addend: 0x0, symName: _kMCExternalStartup, symObjAddr: 0x36D8, symBinAddr: 0xC5A8, symSize: 0x0 }
+  - { offset: 0x1837, size: 0x8, addend: 0x0, symName: _kMCExternalShutdown, symObjAddr: 0x36E0, symBinAddr: 0xC5B0, symSize: 0x0 }
+  - { offset: 0x184D, size: 0x8, addend: 0x0, symName: _kMCExternalHandlers, symObjAddr: 0x36E8, symBinAddr: 0xC5B8, symSize: 0x0 }
+  - { offset: 0x18D0, size: 0x8, addend: 0x0, symName: __ZL17s_simulator_proxy, symObjAddr: 0xEF70, symBinAddr: 0xC778, symSize: 0x0 }
+  - { offset: 0x18E9, size: 0x8, addend: 0x0, symName: __ZL16s_simulator_task, symObjAddr: 0xEF78, symBinAddr: 0xC780, symSize: 0x0 }
+  - { offset: 0x1BC9, size: 0x8, addend: 0x0, symName: __Z14VariableFormatP12__MCVariablePKcz, symObjAddr: 0x0, symBinAddr: 0xC10, symSize: 0xF8 }
+  - { offset: 0x1C3C, size: 0x8, addend: 0x0, symName: __Z20VariableAppendFormatP12__MCVariablePKcz, symObjAddr: 0xF8, symBinAddr: 0xD08, symSize: 0xF8 }
+  - { offset: 0x1CAF, size: 0x8, addend: 0x0, symName: __Z5ThrowPKc, symObjAddr: 0x1F0, symBinAddr: 0xE00, symSize: 0x24 }
+  - { offset: 0x1CDB, size: 0x8, addend: 0x0, symName: __Z5CatchP12__MCVariable, symObjAddr: 0x214, symBinAddr: 0xE24, symSize: 0x3C }
+  - { offset: 0x1D03, size: 0x8, addend: 0x0, symName: __Z10CheckError7MCError, symObjAddr: 0x250, symBinAddr: 0xE60, symSize: 0x5C }
+  - { offset: 0x1D2F, size: 0x8, addend: 0x0, symName: __Z26revIPhoneListSimulatorSDKsPP12__MCVariablejS0_, symObjAddr: 0x2AC, symBinAddr: 0xEBC, symSize: 0x2A0 }
+  - { offset: 0x1DBB, size: 0x8, addend: 0x0, symName: __Z24revIPhoneSetSimulatorSDKPP12__MCVariablejS0_, symObjAddr: 0x54C, symBinAddr: 0x115C, symSize: 0x1D0 }
+  - { offset: 0x1E49, size: 0x8, addend: 0x0, symName: __ZL26fetch_named_simulator_rootPKcRP27DTiPhoneSimulatorSystemRootRP10SimRuntime, symObjAddr: 0x71C, symBinAddr: 0x132C, symSize: 0x444 }
+  - { offset: 0x1F17, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate init]', symObjAddr: 0xB60, symBinAddr: 0x1770, symSize: 0x78 }
+  - { offset: 0x1F4E, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate dealloc]', symObjAddr: 0xBD8, symBinAddr: 0x17E8, symSize: 0x5C }
+  - { offset: 0x1F81, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate getMessage]', symObjAddr: 0xC34, symBinAddr: 0x1844, symSize: 0x1C }
+  - { offset: 0x1FB8, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate getParams]', symObjAddr: 0xC50, symBinAddr: 0x1860, symSize: 0x1C }
+  - { offset: 0x1FEF, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate getQuiet]', symObjAddr: 0xC6C, symBinAddr: 0x187C, symSize: 0x20 }
+  - { offset: 0x2026, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate setMessage:]', symObjAddr: 0xC8C, symBinAddr: 0x189C, symSize: 0x70 }
+  - { offset: 0x2068, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate setParams:]', symObjAddr: 0xCFC, symBinAddr: 0x190C, symSize: 0x70 }
+  - { offset: 0x20AA, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate setErrorMsg:]', symObjAddr: 0xD6C, symBinAddr: 0x197C, symSize: 0x90 }
+  - { offset: 0x20FB, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate setQuiet:]', symObjAddr: 0xDFC, symBinAddr: 0x1A0C, symSize: 0x28 }
+  - { offset: 0x213D, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate getTarget]', symObjAddr: 0xE24, symBinAddr: 0x1A34, symSize: 0x1C }
+  - { offset: 0x2174, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate setTarget:]', symObjAddr: 0xE40, symBinAddr: 0x1A50, symSize: 0x24 }
+  - { offset: 0x21B6, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate didEnd]', symObjAddr: 0xE64, symBinAddr: 0x1A74, symSize: 0x20 }
+  - { offset: 0x21ED, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate session:didEndWithError:]', symObjAddr: 0xE84, symBinAddr: 0x1A94, symSize: 0x80 }
+  - { offset: 0x223E, size: 0x8, addend: 0x0, symName: __ZL21MCRunOnMainThread_FixPFvPvES_j, symObjAddr: 0xF04, symBinAddr: 0x1B14, symSize: 0x38 }
+  - { offset: 0x228A, size: 0x8, addend: 0x0, symName: '-[revIPhoneLaunchDelegate session:didStart:withError:]', symObjAddr: 0xF3C, symBinAddr: 0x1B4C, symSize: 0x80 }
+  - { offset: 0x22EA, size: 0x8, addend: 0x0, symName: __Z29revIPhoneLaunchAppInSimulatorPP12__MCVariablejS0_, symObjAddr: 0xFBC, symBinAddr: 0x1BCC, symSize: 0xB08 }
+  - { offset: 0x24F9, size: 0x8, addend: 0x0, symName: __Z32revIPhoneTerminateAppInSimulatorPP12__MCVariablejS0_, symObjAddr: 0x1AC4, symBinAddr: 0x26D4, symSize: 0x100 }
+  - { offset: 0x2554, size: 0x8, addend: 0x0, symName: __Z21revIPhoneAppIsRunningPP12__MCVariablejS0_, symObjAddr: 0x1BC4, symBinAddr: 0x27D4, symSize: 0x54 }
+  - { offset: 0x25AF, size: 0x8, addend: 0x0, symName: __Z19revIPhoneSetToolsetPP12__MCVariablejS0_, symObjAddr: 0x1C18, symBinAddr: 0x2828, symSize: 0x468 }
+  - { offset: 0x2674, size: 0x8, addend: 0x0, symName: __Z16revIPhoneStartupv, symObjAddr: 0x2080, symBinAddr: 0x2C90, symSize: 0xC }
+  - { offset: 0x2692, size: 0x8, addend: 0x0, symName: __Z17revIPhoneShutdownv, symObjAddr: 0x208C, symBinAddr: 0x2C9C, symSize: 0x118 }
+  - { offset: 0x26C2, size: 0x8, addend: 0x0, symName: __Z24MCExternalStartupWrapperIXadL_Z16revIPhoneStartupvEEEbv, symObjAddr: 0x21A4, symBinAddr: 0x2DB4, symSize: 0x54 }
+  - { offset: 0x26EA, size: 0x8, addend: 0x0, symName: __Z16revIPhoneStartupv, symObjAddr: 0x2080, symBinAddr: 0x2C90, symSize: 0xC }
+  - { offset: 0x26F5, size: 0x8, addend: 0x0, symName: __Z25MCExternalShutdownWrapperIXadL_Z17revIPhoneShutdownvEEEvv, symObjAddr: 0x21F8, symBinAddr: 0x2E08, symSize: 0x44 }
+  - { offset: 0x2719, size: 0x8, addend: 0x0, symName: __Z17revIPhoneShutdownv, symObjAddr: 0x208C, symBinAddr: 0x2C9C, symSize: 0x118 }
+  - { offset: 0x2724, size: 0x8, addend: 0x0, symName: __Z24MCExternalHandlerWrapperIXadL_Z19revIPhoneSetToolsetPP12__MCVariablejS1_EEEbS2_jS1_, symObjAddr: 0x223C, symBinAddr: 0x2E4C, symSize: 0x164 }
+  - { offset: 0x27B2, size: 0x8, addend: 0x0, symName: __Z19revIPhoneSetToolsetPP12__MCVariablejS0_, symObjAddr: 0x1C18, symBinAddr: 0x2828, symSize: 0x468 }
+  - { offset: 0x27BD, size: 0x8, addend: 0x0, symName: __Z24MCExternalHandlerWrapperIXadL_Z26revIPhoneListSimulatorSDKsPP12__MCVariablejS1_EEEbS2_jS1_, symObjAddr: 0x23A0, symBinAddr: 0x2FB0, symSize: 0x164 }
+  - { offset: 0x284B, size: 0x8, addend: 0x0, symName: __Z26revIPhoneListSimulatorSDKsPP12__MCVariablejS0_, symObjAddr: 0x2AC, symBinAddr: 0xEBC, symSize: 0x2A0 }
+  - { offset: 0x2856, size: 0x8, addend: 0x0, symName: __Z24MCExternalHandlerWrapperIXadL_Z24revIPhoneSetSimulatorSDKPP12__MCVariablejS1_EEEbS2_jS1_, symObjAddr: 0x2504, symBinAddr: 0x3114, symSize: 0x164 }
+  - { offset: 0x28E4, size: 0x8, addend: 0x0, symName: __Z24revIPhoneSetSimulatorSDKPP12__MCVariablejS0_, symObjAddr: 0x54C, symBinAddr: 0x115C, symSize: 0x1D0 }
+  - { offset: 0x28EF, size: 0x8, addend: 0x0, symName: __Z24MCExternalHandlerWrapperIXadL_Z29revIPhoneLaunchAppInSimulatorPP12__MCVariablejS1_EEEbS2_jS1_, symObjAddr: 0x2668, symBinAddr: 0x3278, symSize: 0x164 }
+  - { offset: 0x297D, size: 0x8, addend: 0x0, symName: __Z29revIPhoneLaunchAppInSimulatorPP12__MCVariablejS0_, symObjAddr: 0xFBC, symBinAddr: 0x1BCC, symSize: 0xB08 }
+  - { offset: 0x2988, size: 0x8, addend: 0x0, symName: __Z24MCExternalHandlerWrapperIXadL_Z32revIPhoneTerminateAppInSimulatorPP12__MCVariablejS1_EEEbS2_jS1_, symObjAddr: 0x27CC, symBinAddr: 0x33DC, symSize: 0x164 }
+  - { offset: 0x2A16, size: 0x8, addend: 0x0, symName: __Z32revIPhoneTerminateAppInSimulatorPP12__MCVariablejS0_, symObjAddr: 0x1AC4, symBinAddr: 0x26D4, symSize: 0x100 }
+  - { offset: 0x2A21, size: 0x8, addend: 0x0, symName: __Z24MCExternalHandlerWrapperIXadL_Z21revIPhoneAppIsRunningPP12__MCVariablejS1_EEEbS2_jS1_, symObjAddr: 0x2930, symBinAddr: 0x3540, symSize: 0x164 }
+  - { offset: 0x2AAF, size: 0x8, addend: 0x0, symName: __Z21revIPhoneAppIsRunningPP12__MCVariablejS0_, symObjAddr: 0x1BC4, symBinAddr: 0x27D4, symSize: 0x54 }
+  - { offset: 0x2ABA, size: 0x8, addend: 0x0, symName: __ZL18reviphone_callbackPv, symObjAddr: 0x2A94, symBinAddr: 0x36A4, symSize: 0xD0 }
+  - { offset: 0x2AF3, size: 0x8, addend: 0x0, symName: __ZL16dispatch_messageP10__MCObjectPKcS2_, symObjAddr: 0x2B64, symBinAddr: 0x3774, symSize: 0xC0 }
+  - { offset: 0x35C6, size: 0x8, addend: 0x0, symName: _MCVariableCreate, symObjAddr: 0x0, symBinAddr: 0x3844, symSize: 0x30 }
+  - { offset: 0x35E1, size: 0x8, addend: 0x0, symName: _MCErrorToString, symObjAddr: 0x7AC, symBinAddr: 0x3FF0, symSize: 0x50 }
+  - { offset: 0x3608, size: 0x8, addend: 0x0, symName: _MCErrorToString.s_engine_strings, symObjAddr: 0x8D8, symBinAddr: 0xC660, symSize: 0x0 }
+  - { offset: 0x3637, size: 0x8, addend: 0x0, symName: _MCExternalDescribe, symObjAddr: 0x7FC, symBinAddr: 0x4040, symSize: 0x38 }
+  - { offset: 0x365E, size: 0x8, addend: 0x0, symName: _MCExternalDescribe.s_info, symObjAddr: 0x3D38, symBinAddr: 0xC790, symSize: 0x0 }
+  - { offset: 0x374D, size: 0x8, addend: 0x0, symName: _s_interface, symObjAddr: 0x3D30, symBinAddr: 0xC788, symSize: 0x0 }
+  - { offset: 0x3C66, size: 0x8, addend: 0x0, symName: _MCVariableCreate, symObjAddr: 0x0, symBinAddr: 0x3844, symSize: 0x30 }
+  - { offset: 0x3C8E, size: 0x8, addend: 0x0, symName: _MCVariableRetain, symObjAddr: 0x30, symBinAddr: 0x3874, symSize: 0x30 }
+  - { offset: 0x3CB6, size: 0x8, addend: 0x0, symName: _MCVariableRelease, symObjAddr: 0x60, symBinAddr: 0x38A4, symSize: 0x30 }
+  - { offset: 0x3CDE, size: 0x8, addend: 0x0, symName: _MCVariableIsTransient, symObjAddr: 0x90, symBinAddr: 0x38D4, symSize: 0x3C }
+  - { offset: 0x3D14, size: 0x8, addend: 0x0, symName: _MCVariableIsTemporary, symObjAddr: 0xCC, symBinAddr: 0x3910, symSize: 0x3C }
+  - { offset: 0x3D4A, size: 0x8, addend: 0x0, symName: _MCVariableIsAnArray, symObjAddr: 0x108, symBinAddr: 0x394C, symSize: 0x3C }
+  - { offset: 0x3D80, size: 0x8, addend: 0x0, symName: _MCVariableClear, symObjAddr: 0x144, symBinAddr: 0x3988, symSize: 0x30 }
+  - { offset: 0x3DA8, size: 0x8, addend: 0x0, symName: _MCVariableExchange, symObjAddr: 0x174, symBinAddr: 0x39B8, symSize: 0x38 }
+  - { offset: 0x3DDE, size: 0x8, addend: 0x0, symName: _MCVariableStore, symObjAddr: 0x1AC, symBinAddr: 0x39F0, symSize: 0x40 }
+  - { offset: 0x3E22, size: 0x8, addend: 0x0, symName: _MCVariableFetch, symObjAddr: 0x1EC, symBinAddr: 0x3A30, symSize: 0x40 }
+  - { offset: 0x3E66, size: 0x8, addend: 0x0, symName: _MCVariableAppend, symObjAddr: 0x22C, symBinAddr: 0x3A70, symSize: 0x40 }
+  - { offset: 0x3EAA, size: 0x8, addend: 0x0, symName: _MCVariableCountKeys, symObjAddr: 0x26C, symBinAddr: 0x3AB0, symSize: 0x38 }
+  - { offset: 0x3EE0, size: 0x8, addend: 0x0, symName: _MCVariableIterateKeys, symObjAddr: 0x2A4, symBinAddr: 0x3AE8, symSize: 0x50 }
+  - { offset: 0x3F40, size: 0x8, addend: 0x0, symName: _MCVariableRemoveKey, symObjAddr: 0x2F4, symBinAddr: 0x3B38, symSize: 0x40 }
+  - { offset: 0x3F84, size: 0x8, addend: 0x0, symName: _MCVariableLookupKey, symObjAddr: 0x334, symBinAddr: 0x3B78, symSize: 0x50 }
+  - { offset: 0x3FE4, size: 0x8, addend: 0x0, symName: _MCObjectResolve, symObjAddr: 0x384, symBinAddr: 0x3BC8, symSize: 0x38 }
+  - { offset: 0x401A, size: 0x8, addend: 0x0, symName: _MCObjectDispatch, symObjAddr: 0x3BC, symBinAddr: 0x3C00, symSize: 0x58 }
+  - { offset: 0x4088, size: 0x8, addend: 0x0, symName: _MCObjectRetain, symObjAddr: 0x414, symBinAddr: 0x3C58, symSize: 0x30 }
+  - { offset: 0x40B0, size: 0x8, addend: 0x0, symName: _MCObjectRelease, symObjAddr: 0x444, symBinAddr: 0x3C88, symSize: 0x30 }
+  - { offset: 0x40D8, size: 0x8, addend: 0x0, symName: _MCObjectExists, symObjAddr: 0x474, symBinAddr: 0x3CB8, symSize: 0x38 }
+  - { offset: 0x410E, size: 0x8, addend: 0x0, symName: _MCContextMe, symObjAddr: 0x4AC, symBinAddr: 0x3CF0, symSize: 0x34 }
+  - { offset: 0x4136, size: 0x8, addend: 0x0, symName: _MCContextTarget, symObjAddr: 0x4E0, symBinAddr: 0x3D24, symSize: 0x34 }
+  - { offset: 0x415E, size: 0x8, addend: 0x0, symName: _MCContextResult, symObjAddr: 0x514, symBinAddr: 0x3D58, symSize: 0x34 }
+  - { offset: 0x4186, size: 0x8, addend: 0x0, symName: _MCContextIt, symObjAddr: 0x548, symBinAddr: 0x3D8C, symSize: 0x34 }
+  - { offset: 0x41AE, size: 0x8, addend: 0x0, symName: _MCContextCaseSensitive, symObjAddr: 0x57C, symBinAddr: 0x3DC0, symSize: 0x34 }
+  - { offset: 0x41D6, size: 0x8, addend: 0x0, symName: _MCContextConvertOctals, symObjAddr: 0x5B0, symBinAddr: 0x3DF4, symSize: 0x34 }
+  - { offset: 0x41FE, size: 0x8, addend: 0x0, symName: _MCContextItemDelimiter, symObjAddr: 0x5E4, symBinAddr: 0x3E28, symSize: 0x34 }
+  - { offset: 0x4226, size: 0x8, addend: 0x0, symName: _MCContextLineDelimiter, symObjAddr: 0x618, symBinAddr: 0x3E5C, symSize: 0x34 }
+  - { offset: 0x4250, size: 0x8, addend: 0x0, symName: _MCContextColumnDelimiter, symObjAddr: 0x64C, symBinAddr: 0x3E90, symSize: 0x34 }
+  - { offset: 0x427A, size: 0x8, addend: 0x0, symName: _MCContextRowDelimiter, symObjAddr: 0x680, symBinAddr: 0x3EC4, symSize: 0x34 }
+  - { offset: 0x42A4, size: 0x8, addend: 0x0, symName: _MCContextDefaultStack, symObjAddr: 0x6B4, symBinAddr: 0x3EF8, symSize: 0x34 }
+  - { offset: 0x42CE, size: 0x8, addend: 0x0, symName: _MCContextDefaultCard, symObjAddr: 0x6E8, symBinAddr: 0x3F2C, symSize: 0x34 }
+  - { offset: 0x42F8, size: 0x8, addend: 0x0, symName: _MCRunOnMainThread, symObjAddr: 0x71C, symBinAddr: 0x3F60, symSize: 0x40 }
+  - { offset: 0x4340, size: 0x8, addend: 0x0, symName: _MCWaitRun, symObjAddr: 0x75C, symBinAddr: 0x3FA0, symSize: 0x28 }
+  - { offset: 0x435A, size: 0x8, addend: 0x0, symName: _MCWaitBreak, symObjAddr: 0x784, symBinAddr: 0x3FC8, symSize: 0x28 }
+  - { offset: 0x4374, size: 0x8, addend: 0x0, symName: _MCExternalInitialize, symObjAddr: 0x834, symBinAddr: 0x4078, symSize: 0x6C }
+  - { offset: 0x439E, size: 0x8, addend: 0x0, symName: _MCExternalFinalize, symObjAddr: 0x8A0, symBinAddr: 0x40E4, symSize: 0x38 }
 ...

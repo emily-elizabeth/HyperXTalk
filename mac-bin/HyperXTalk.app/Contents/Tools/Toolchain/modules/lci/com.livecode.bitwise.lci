@@ -1,9 +1,0 @@
-import module com.livecode.bitwise
-  use com.livecode.foreign
-  foreign handler MCBitwiseEvalBitwiseAnd(in Left as LCSInt, in Right as LCSInt, out Value as LCSInt) returns nothing
-  foreign handler MCBitwiseEvalBitwiseOr(in Left as LCSInt, in Right as LCSInt, out Value as LCSInt) returns nothing
-  foreign handler MCBitwiseEvalBitwiseNot(in Operand as LCSInt, out Value as LCSInt) returns nothing
-  foreign handler MCBitwiseEvalBitwiseXor(in Left as LCSInt, in Right as LCSInt, out Value as LCSInt) returns nothing
-  foreign handler MCBitwiseEvalBitwiseShiftLeft(in Target as LCSInt, in Shift as LCUInt, out Value as LCSInt) returns nothing
-  foreign handler MCBitwiseEvalBitwiseShiftRight(in Target as LCSInt, in Shift as LCUInt, out Value as LCSInt) returns nothing
-end module

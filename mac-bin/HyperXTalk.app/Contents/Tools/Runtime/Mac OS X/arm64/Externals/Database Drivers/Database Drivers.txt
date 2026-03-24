@@ -1,4 +1,0 @@
-MySQL,dbmysql.bundle
-ODBC,dbodbc.bundle
-PostgreSQL,dbpostgresql.bundle
-SQLite,dbsqlite.bundle

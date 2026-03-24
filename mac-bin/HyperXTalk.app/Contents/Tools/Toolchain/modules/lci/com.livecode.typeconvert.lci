@@ -1,4 +1,0 @@
-import module com.livecode.typeconvert
-  foreign handler MCTypeConvertExecSplitStringByDelimiter(in Target as String, in Delimiter as String) returns List
-  foreign handler MCTypeConvertExecCombineListWithDelimiter(in Target as List, in Delimiter as String) returns String
-end module

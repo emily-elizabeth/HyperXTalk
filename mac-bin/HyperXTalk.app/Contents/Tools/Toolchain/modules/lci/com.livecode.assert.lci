@@ -1,5 +1,0 @@
-import module com.livecode.assert
-  handler MCAssertExpectPrecondition(in pCondition as Boolean) returns nothing
-  foreign handler MCStringExecPutStringBefore(in Source as String, inout Target as String) returns nothing
-  handler MCAssertExpectPreconditionWithReason(in pCondition as Boolean, in pReason as String) returns nothing
-end module

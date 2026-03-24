@@ -1,5 +1,5 @@
 ---
 triple:          'arm64-apple-darwin'
-binary-path:     '/Users/emily-elizabethhoward/Developer/HyperXTalk/_build/mac/Debug/revsecurity.dylib'
+binary-path:     '/Users/stam/Developer/HyperXTalk/_build/mac/Debug/revsecurity.dylib'
 relocations:     []
 ...
