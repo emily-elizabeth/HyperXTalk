@@ -9,14 +9,14 @@ on preOpenStack
    put the version && "| Build" && the buildNumber into field "version"
    set the blendLevel of field "version" to 40
    
-   set the htmlText of field "Copyright" of me to "<p>&copy; 2000-" & word -1 of the long date && "LiveCode Ltd.</p>"
+   set the htmlText of field "Copyright" of me to "<p>&copy; " & word -1 of the long date && "HyperXTalk</p>"
    revFontApplySystemStyle the long id of field "Copyright" of me, empty, empty
    
    set the textColor of char 1 to -1 of field "displayData" of me to empty
    set the textColor of char 1 to 5 of field "displayData" of me to aboutHiliteColor()
    loadText "about"
    
-   set the title of this stack to "About LiveCode" && line 4 of the revLicenseInfo
+   set the title of this stack to "About HyperXTalk" && line 4 of the revLicenseInfo
    
    if char 1 of the version < 7 then
       put ideCoreFolderPath("skin", "about-background_legacy.png") into tPath
@@ -62,10 +62,10 @@ on loadText pType
    set the itemDel to "/"
    switch pType
       case "about"
-         put item 1 to -3 of the filename of stack "home" & "/about.txt" into tFilePath
+         put item 1 to -3 of the filename of stack "home" & "/Support/about.txt" into tFilePath
          break
       case "legal"
-         put item 1 to -3 of the filename of stack "home" & "/Open Source Licenses.txt" into tFilePath
+         put item 1 to -3 of the filename of stack "home" & "/Support/Open Source Licenses.txt" into tFilePath
          break
    end switch
    put textDecode(url ("binfile:" & tFilePath), "utf-8") into field "credits" of me

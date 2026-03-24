@@ -321,6 +321,7 @@ on generateMenu
    generateContextMenu
 end generateMenu
 
+
 constant kTutorialActionSize = 10
 on generateMenubarUI
    if there is a group "icons" of me then
@@ -682,7 +683,8 @@ on layoutMenu
 end layoutMenu	
 
 function revMenubarItems
-   return "Inspector,Code,Message Box,Divide,Group,Edit Group,Select Grouped,Divide,Messages,Errors,Divide,Sample Stacks,Tutorials,Resources,Dictionary,Divide,Test,Divide"
+   return "Inspector,Code,Message Box,Divide,Group,Edit Group,Select Grouped,Divide,Messages,Errors,Divide,Dictionary,Divide"
+--   Sample Stacks,Tutorials,Resources,Dictionary,Divide,Test,Divide"
 end revMenubarItems
 
 on updateMenubarPreference
@@ -748,6 +750,7 @@ on updateMenubarPreference
       end if
    end if
    
+/*
    set the width of field "label" of group "upgrade" of me to 1000
    set the height of field "label" of group "upgrade" of me to the formattedHeight of field "label" of group "upgrade" of me
    local tLabelWidth
@@ -779,8 +782,10 @@ on updateMenubarPreference
       set the rect of graphic "bg" of group "upgrade" of me to tRect
    end if
    set the rect of group "upgrade" of me to the formattedRect of group "upgrade" of me
-   
+
    set the topleft of me to tTopLeft
+*/
+
    unlock messages
    unlock screen
 end updateMenubarPreference
@@ -874,10 +879,10 @@ on updateButtonState
    updateButtonHilite "Message Box", false
    updateButtonHilite "Inspector", false
    updateButtonHilite "Code", false
-   updateButtonHilite "Test", false
-   updateButtonHilite "Sample Stacks", false
-   updateButtonHilite "Tutorials", false
-   updateButtonHilite "Resources", false
+//   updateButtonHilite "Test", false
+//   updateButtonHilite "Sample Stacks", false
+//   updateButtonHilite "Tutorials", false
+//   updateButtonHilite "Resources", false
    updateButtonHilite "Dictionary", false
    
    # Toggle buttons hilited according to state of property
@@ -895,8 +900,7 @@ on updateButtonState
    setToolbarButtonState "Inspector", tCanInspect
    
    # Deal with enabled/disabled of test
-   setToolbarButtonState "Test", \
-         revIDEGetPreference("cDeployPlatforms") is not empty 
+//   setToolbarButtonState "Test", revIDEGetPreference("cDeployPlatforms") is not empty 
    
    if revIDETutorialInProgress() is not empty then
       disableToolbar
@@ -1158,19 +1162,19 @@ on revMenubarMenuButtonClicked pWhich
       case "Errors"
          revIDEToggle "Suppress Errors"
          break
-      case "Sample Stacks"
-      case "Tutorials"
-         revIDELaunchResource pWhich
-         break
-      case "Resources"
-         revIDEOpenPalette "Resource Center"
-         break
+//      case "Sample Stacks"
+//      case "Tutorials"
+//         revIDELaunchResource pWhich
+//         break
+//      case "Resources"
+//         revIDEOpenPalette "Resource Center"
+//         break
       case "Dictionary"
          revIDEDocumentationLoad "API", "LiveCode Script"
          break
-      case "Test"
-         revIDEDeployAction
-         break
+//      case "Test"
+//         revIDEDeployAction
+//         break
    end switch
 end revMenubarMenuButtonClicked
 /*
@@ -1893,34 +1897,34 @@ private function revMenubarHelpMenu pContext
    local tHelp
    # AL-2015-07-10: Temporarily remove welcome screen option from help menu
    //put "Welcome Screen/|Welcome" & return after tHelp
-   put "Start Center/|Start Center" & return after tHelp
-   put "User Guide" & return after tHelp
+//   put "Start Center/|Start Center" & return after tHelp
+//   put "User Guide" & return after tHelp
    put "Dictionary (API)/|Dictionary" & return after tHelp
    
    put "-" & return  after tHelp
    
-   put "Sample Stacks" & return after tHelp
-   put "Sample Scripts" & return after tHelp
-   put "-" & return after tHelp
-   put "Beginners Guide" & return after tHelp
-   put "All Guides" & return after tHelp
-   put "Tutorials" & return after tHelp
-   put "-" & return after tHelp
+//   put "Sample Stacks" & return after tHelp
+//   put "Sample Scripts" & return after tHelp
+//   put "-" & return after tHelp
+//   put "Beginners Guide" & return after tHelp
+//   put "All Guides" & return after tHelp
+//   put "Tutorials" & return after tHelp
+//   put "-" & return after tHelp
    put "Forums" & return after tHelp
    put "Technical Questions" & return after tHelp
-   put "Discussion List" & return after tHelp
-   put "Newsletters" & return after tHelp
-   put "-" & return after tHelp
-   put "Release Notes/|Release Notes" & return after tHelp
-   put "License Agreement/|License Agreement" & return after tHelp
-   put "-" & return after tHelp
-   put "&Buy a License.../|Buy" & return after tHelp
-   put "&Support.../|Support" & return after tHelp
-   put "-" & return after tHelp
-   put enableMenuItem("Re-license LiveCode/|Relicense", line 7 of the revLicenseInfo is not "Global") & return after tHelp
-   put "-" & return after tHelp
-   put "Check For Updates/|Update" & return after tHelp
-   put "-" & return after tHelp
+//   put "Discussion List" & return after tHelp
+//   put "Newsletters" & return after tHelp
+//   put "-" & return after tHelp
+//   put "Release Notes/|Release Notes" & return after tHelp
+//   put "License Agreement/|License Agreement" & return after tHelp
+//   put "-" & return after tHelp
+//   put "&Buy a License.../|Buy" & return after tHelp
+//   put "&Support.../|Support" & return after tHelp
+//   put "-" & return after tHelp
+//   put enableMenuItem("Re-license LiveCode/|Relicense", line 7 of the revLicenseInfo is not "Global") & return after tHelp
+//   put "-" & return after tHelp
+//   put "Check For Updates/|Update" & return after tHelp
+//   put "-" & return after tHelp
    put "About LiveCode/|About" after tHelp
    
    return modifyMenu("Help", tHelp)
@@ -1971,8 +1975,6 @@ private function revMenubarDevelopmentMenu pContext
    put tab & "-" & return after tDevelopment
    put tab & "Plugin Settings" & return after tDevelopment
    put "-" & return after tDevelopment
-   put revMenubarSimulatorSubmenu() after tDevelopment
-   put "-" & return after tDevelopment   
    
    if revEnvironmentEditionProperty("script_profiler") then
       local tProfiler
@@ -1997,32 +1999,6 @@ private function revMenubarDevelopmentMenu pContext
    return modifyMenu("Development", tDevelopment)
 end revMenubarDevelopmentMenu
 
-private function revMenubarSimulatorSubmenu
-   local tSimulators
-   put revIDETestTargets() into tSimulators
-   
-   if tSimulators is not an array then
-      return "(Test/|Simulate" & return & "(Test Target" & return & tab & "(No targets configured" & return
-   end if
-   
-   local tCurrentTarget
-   put revIDETestTarget() into tCurrentTarget
-   
-   local tMenu
-   put enableMenuItem("Test/|Simulate", tCurrentTarget is not empty) & return after tMenu
-   put "Test Target/|Simulator Version" & return after tMenu
-   repeat for each key tPlatform in tSimulators
-      local tCanDeploy
-      put revIDETestCanDeployToTarget(tPlatform) into tCanDeploy
-      repeat for each line tTarget in tSimulators[tPlatform]
-         put tab & enableMenuItem(toggleMenuItem(tTarget, tTarget is tCurrentTarget), tCanDeploy) & return after tMenu
-      end repeat
-      put tab & "-" & return after tMenu
-   end repeat
-   delete char -3 to -1 of tMenu
-   
-   return tMenu
-end revMenubarSimulatorSubmenu
 
 ################################################################################
 
@@ -3077,12 +3053,6 @@ on revMenubarDevelopmentMenuPick pWhich
       case "Suspend Development Tools"
          revIDESuspendDevelopmentTools
          break
-      case "Simulate"
-         revIDEActionTest
-         break
-      case "Simulator Version"
-         revIDESetTestTarget item 2 of pWhich
-         break
       case "Object Library"
          go cd 1 of stack "revImageLibrary" as modeless
          lock messages
@@ -3168,24 +3138,24 @@ on revMenubarHelpMenuPick pWhich
       case "Dictionary"
          revIDEDocumentationLoad "API", "LiveCode Script"
          break
-      case "Start Center"
-      case "Welcome"
-      case "About"
-         revIDEOpenPalette tPick
-         break
-      case "Buy"
-      case "Support"
-      case "User Guide"
+//      case "Start Center"
+//      case "Welcome"
+//      case "About"
+//         revIDEOpenPalette tPick
+//         break
+//      case "Buy"
+//      case "Support"
+//      case "User Guide"
       case "License Agreement"
       case "Release Notes"
-      case "Sample Stacks"
-      case "Sample Scripts"
-      case "Beginners Guide"
-      case "Tutorials"
+//      case "Sample Stacks"
+//      case "Sample Scripts"
+//      case "Beginners Guide"
+//      case "Tutorials"
       case "Forums"
       case "Technical Questions"
-      case "Discussion List"
-      case "Newsletters"
+//      case "Discussion List"
+//      case "Newsletters"
          revIDELaunchResource tPick
          break
       case "All Guides"

@@ -4378,8 +4378,8 @@ function revIDEPaletteToStackName pPalette
          return "revIDEProjectBrowser"
       case "extension manager"
          return "revIDEExtensionManager"
-      case "start center"
-         return "revStartCenter"
+//eh      case "start center"
+//eh         return "revStartCenter"
       case "welcome"
          return "revWelcome"
       case "search"
@@ -4612,18 +4612,18 @@ command revIDEOpenPalette pPaletteName
    
    hide stack tStackName
    switch pPaletteName
-      case "Start Center"
-         set the cMode of stack tStackName to "run"
-         modeless stack tStackName
-         break
-      case "Welcome"
-         local tStartCenter
-         put revIDEPaletteToStackName("start center") into tStartCenter
-         if the visible of stack tStartCenter is true then
-            close stack tStartCenter
-         end if
-         modeless stack tStackName
-         break
+//eh      case "Start Center"
+//eh         set the cMode of stack tStackName to "run"
+//eh         modeless stack tStackName
+//eh         break
+//eh      case "Welcome"
+//eh         local tStartCenter
+//eh         put revIDEPaletteToStackName("start center") into tStartCenter
+//eh         if the visible of stack tStartCenter is true then
+//eh            close stack tStartCenter
+//eh         end if
+//eh         modeless stack tStackName
+//eh         break
       case "message box"
          -- The message box needs to be brought to the front as it takes keyboard focus
          palette stack tStackName
@@ -12248,6 +12248,7 @@ on revIDEFindMoreWidgets
    unlock screen
 end revIDEFindMoreWidgets
 
+/*eh
 command ideShowUpgradeOptions
    if ideCanShowUpgradeOptions() then
       lock screen
@@ -12262,6 +12263,7 @@ command ideShowUpgradeOptions
       launch url revEnvironmentEditionProperty("edition_external_url", tUpgradeEdition)
    end if
 end ideShowUpgradeOptions
+*/
 
 function ideCanShowUpgradeOptions
    return ideShouldShowUpgradeOptions() \

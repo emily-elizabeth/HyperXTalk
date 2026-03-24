@@ -2,7 +2,7 @@
 constant kImportantTextColor = "#569e54"
 
 on startup
-   revSetTestEnvironment($TRAVIS is true)
+//     revSetTestEnvironment($TRAVIS is true)
 
    -- MW-2011-03-13: Make sure the externals are empty on startup
    set the externals of me to empty
@@ -15,7 +15,7 @@ on startup
    revInternal__Log "Enter", "Startup"
    
    try
-      revInternal__SetupLicense
+//      revInternal__SetupLicense
       revInternal__SetupPaths
       revInternal__SetupFolders
       revInternal__SetupStackFiles
@@ -114,43 +114,43 @@ on revInternal__openStack
    
    try
       if tSuccess then
-         revInternal__setSplashStatus "Checking System Parameters..."
+         hxtInternal__setSplashStatus "Checking System Parameters..."
          revInternal__InitialiseSystem
          put the result into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Loading Libraries..."
+         hxtInternal__setSplashStatus "Loading Libraries..."
          revInternal__InitialiseLibraries
          put the result into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Setting Globals..."
+         hxtInternal__setSplashStatus "Setting Globals..."
          revInternal__InitialiseGlobals
          put the result into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Setting Preferences..."
+         hxtInternal__setSplashStatus "Setting Preferences..."
          revInternal__InitialiseOptions
          put the result into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Loading Standard Icons..."
+         hxtInternal__setSplashStatus "Loading Standard Icons..."
          set the visible of stack "revGeneralIcons" to false
          put true into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Loading theme data..."
+         hxtInternal__setSplashStatus "Loading theme data..."
          revInternal__InitialiseIcons
          put the result into tSuccess	
       end if	
       
       if tSuccess then
-         revInternal__setSplashStatus "Loading Patterns..."
+         hxtInternal__setSplashStatus "Loading Patterns..."
          repeat for each item tPatternStack in "revGeneralPatterns,revCompatibilityPatterns1,revCompatibilityPatterns2"
             get there is a stack tPatternStack
          end repeat
@@ -158,69 +158,69 @@ on revInternal__openStack
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Loading Script Editor..."
+         hxtInternal__setSplashStatus "Loading Script Editor..."
          revInternal__InitialiseScriptEditor
          put the result into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Loading User Icon Libraries..."
+         hxtInternal__setSplashStatus "Loading User Icon Libraries..."
          revInternal__InitialiseUserLibraries
          put the result into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Loading Error Management..."
+         hxtInternal__setSplashStatus "Loading Error Management..."
          revInternal__InitialiseErrors
          put the result into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Loading Menu Bar..."
+         hxtInternal__setSplashStatus "Loading Menu Bar..."
          revInternal__InitialiseMenus
          put the result into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Loading Tools..."
+         hxtInternal__setSplashStatus "Loading Tools..."
          revInternal__InitialiseTools
          put the result into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Loading Project Browser..."
+         hxtInternal__setSplashStatus "Loading Project Browser..."
          revInternal__InitialiseProjectBrowser
          put the result into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Loading Message Box..."
+         hxtInternal__setSplashStatus "Loading Message Box..."
          revInternal__InitialiseMessageBox
          put the result into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Loading Plug-ins..."
+         hxtInternal__setSplashStatus "Loading Plug-ins..."
          revInternal__InitialisePlugIns
          put the result into tSuccess
          set the defaultStack to "home" -- plug ins may take away default stack
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Cleaning Cache"
+         hxtInternal__setSplashStatus "Cleaning Cache"
          revInternal__CleanDocsCache
          put the result into tSuccess
       end if
       
       if tSuccess and not revEnvironmentIsInstalled() then
-         revInternal__setSplashStatus "Building Dictionary"
+         hxtInternal__setSplashStatus "Building Dictionary"
          revInternal__BuildDictionary
          put the result into tSuccess
       end if
       
       if tSuccess then
-         revInternal__setSplashStatus "Performing Final Steps..."
-         revInternal__setSplashStatus ""
+         hxtInternal__setSplashStatus "Performing Final Steps..."
+         hxtInternal__setSplashStatus ""
          revInternal__InitialiseFinalSteps
          
          put the result into tSuccess
@@ -251,8 +251,9 @@ on revInternal__openStack
          revIDEOpenPalette "Start Center"
       end if
 
+
       -- MM-2011-09-27: The new auto update process is handled entirely by the installer.
-      -- Luanch the installer in update mode to begin update process.
+      -- Launch the installer in update mode to begin update process.
       --
       if line 3 of revLicenseInfo is not "evaluation" then
          local tCommand, tOldPath
@@ -291,10 +292,10 @@ on revInternal__openStack
       set the allowInterrupts to true
 end revInternal__openStack
 
-on revInternal__setSplashStatus pMessage
+on hxtInternal__setSplashStatus pMessage
 	revInternal__Log "Message", pMessage
    set the statusMessage of stack "revSplash" to pMessage
-end revInternal__setSplashStatus
+end hxtInternal__setSplashStatus
 
 
 local sLicensePlatform
@@ -322,6 +323,7 @@ local sOldPreferencesPath
 -- This is the path to the folder containing support files for the IDE prior to 4.5
 local sOldSupportPath
 
+
 -- MW-2013-06-10: [[ CloneAndRun ]] This is the path containing all the binaries the IDE should
 --    use. If empty it means use default installed locations, otherwise this is a git repo build
 local sBinariesPath
@@ -332,11 +334,12 @@ local sRepositoryPath
 local sOverrideRuntimePath, sTestEnvironment
 
 -- Parameterize this so it makes it easier to change.
-constant kProductName = "LiveCode"
+constant kProductName = "HyperXTalk"
 
 --------------------------------------------------------------------------------
 -- Internal Setup Functions
 --
+
 
 private command revInternal__SetupLicense 
    revInternal__Log "Enter", "License Setup"
@@ -356,6 +359,7 @@ private command revInternal__SetupLicense
    
    revInternal__Log "Leave", "License Setup"
 end revInternal__SetupLicense
+
 
 private command revInternal__SetupPaths
    revInternal__Log "Enter", "Path Setup"
@@ -377,23 +381,24 @@ private command revInternal__SetupPaths
          local tOldFolder
          put the folder into tOldFolder
          set the folder to "~"
-         put the folder & slash & ".runrev/revolution/enterprise/preferences" into sOldPreferencesPath
+         put the folder & slash & ".hyperxtalk/hyperxtalk/enterprise/preferences" into sOldPreferencesPath
          if there is no folder sOldPreferencesPath then
-            put the folder & slash & ".runrev/revolution/studio/preferences" into sOldPreferencesPath
+            put the folder & slash & ".hyperxtalk/hyperxtalk/studio/preferences" into sOldPreferencesPath
          end if
          if there is no folder sOldPreferencesPath then
-            put the folder & slash & ".runrev/revolution/media/preferences" into sOldPreferencesPath
+            put the folder & slash & ".hyperxtalk/hyperxtalk/media/preferences" into sOldPreferencesPath
          end if
-         put the folder & slash & ".runrev/preferences" into sPreferencesPath
-         put the folder & slash & ".runrev/cache" into sCachePath
-         put the folder & slash & ".runrev/crashlogs" into sCrashLogPath
-         put the folder & slash & ".runrev/documentationcache" into sUserDocsPath
+         put the folder & slash & ".hyperxtalk/preferences" into sPreferencesPath
+         put the folder & slash & ".hyperxtalk/cache" into sCachePath
+         put the folder & slash & ".hyperxtalk/crashlogs" into sCrashLogPath
+         put the folder & slash & ".hyperxtalk/documentationcache" into sUserDocsPath
          set the folder to tOldFolder
          
          -- MW-2013-06-13: Adjust the engine path for Linux
          put item 1 to -2 of tEnginePath into tEnginePath
          break
       case "MacOS X"
+
          put specialFolderPath("Preferences") & "/Runtime Revolution/Revolution Enterprise" into sOldPreferencesPath
          if there is no folder sOldPreferencesPath then
             put specialFolderPath("Preferences") & "/Runtime Revolution/Revolution Studio" into sOldPreferencesPath
@@ -401,15 +406,17 @@ private command revInternal__SetupPaths
          if there is no folder sOldPreferencesPath then
             put specialFolderPath("Preferences") & "/Runtime Revolution/Revolution Media" into sOldPreferencesPath
          end if
-         put specialFolderPath("Preferences") & "/RunRev" into sPreferencesPath
-         put specialFolderPath("cusr") & "/Library/Application Support/RunRev/Cache" into sCachePath
-         put specialFolderPath("cusr") & "/Library/Application Support/RunRev/Crash Logs" into sCrashLogPath
-         put specialFolderPath("cusr") & "/Library/Application Support/RunRev/Documentation Cache" into sUserDocsPath
+
+         put specialFolderPath("Preferences") & "/HyperXTalk" into sPreferencesPath
+         put specialFolderPath("cusr") & "/Library/Application Support/HyperXTalk/Cache" into sCachePath
+         put specialFolderPath("cusr") & "/Library/Application Support/HyperXTalk/Crash Logs" into sCrashLogPath
+         put specialFolderPath("cusr") & "/Library/Application Support/HyperXTalk/Documentation Cache" into sUserDocsPath
          
          -- MW-2013-06-13: Adjust the engine path for Mac
          put item 1 to -5 of tEnginePath into tEnginePath
          break
       case "Windows"
+
          -- We put prefereces into the 'Roaming' AppData folder.
          put specialFolderPath(0x001a) & "/Runtime Revolution/Revolution Enterprise/Preferences" into sOldPreferencesPath
          if there is no folder sOldPreferencesPath then
@@ -418,11 +425,12 @@ private command revInternal__SetupPaths
          if there is no folder sOldPreferencesPath then
             put specialFolderPath(0x001a) & "/Runtime Revolution/Revolution Media/Preferences" into sOldPreferencesPath
          end if
-         put specialFolderPath(0x001a) & "/RunRev/Preferences" into sPreferencesPath
+
+         put specialFolderPath(0x001a) & "/HyperXTalk/Preferences" into sPreferencesPath
          -- We put everything else in the 'Local' AppData folder.
-         put specialFolderPath(0x001c) & "/RunRev/Cache" into sCachePath
-         put specialFolderPath(0x001c) & "/RunRev/Crash Logs" into sCrashLogPath
-         put specialFolderPath(0x001c) & "/RunRev/Documentation Cache" into sUserDocsPath
+         put specialFolderPath(0x001c) & "/HyperXTalk/Cache" into sCachePath
+         put specialFolderPath(0x001c) & "/HyperXTalk/Crash Logs" into sCrashLogPath
+         put specialFolderPath(0x001c) & "/HyperXTalk/Documentation Cache" into sUserDocsPath
          
          -- MW-2013-06-13: Adjust the engine path for Windows
          put item 1 to -2 of tEnginePath into tEnginePath
@@ -1224,6 +1232,7 @@ command revInternal__InitialiseLibraries
    put return & "revTableLibrary" after tLoadList 
    put return & "revhtml5urllibrary" after tLoadList
 
+
    if revEnvironmentEditionProperty("autocomplete_pro") then
       put return & "autocomplete-pro" after tLoadList
    end if
@@ -1231,6 +1240,7 @@ command revInternal__InitialiseLibraries
    if revEnvironmentEditionProperty("autocomplete") then
       put return & "autocomplete" after tLoadList
    end if
+
    
    local tBackList
    put "revidedeveloperextensionlibrary" into tBackList
@@ -1238,7 +1248,7 @@ command revInternal__InitialiseLibraries
    put return & "revsaveasiosstandalone" after tBackList
    put return & "revsaveasandroidstandalone" after tBackList
    put return & "revsaveasemscriptenstandalone" after tBackList
-   put return & "revOnlineLibrary" after tBackList
+       put return & "revOnlineLibrary" after tBackList
    put return & "revCore" after tBackList
    
    # AL-2015-09-02: [[ Bug 15841 ]] Temporarily add project browser library to prevent preference errors
@@ -1883,6 +1893,7 @@ function revEnvironmentToolsetPath
   return hookToolsPath("toolset", sToolsPath & "/Toolset")
 end revEnvironmentToolsetPath
 
+
 function revEnvironmentEditionProperty pProp, pEdition
    if pEdition is empty then
       put the editionType into pEdition
@@ -2052,6 +2063,7 @@ function revEnvironmentEditionProperty pProp, pEdition
    
    throw "Unknown edition property"
 end revEnvironmentEditionProperty
+
 
 function revEnvironmentPluginsPath
    return hookToolsPath("plugins", sToolsPath & "/Plugins")
@@ -2225,31 +2237,9 @@ function revEnvironmentNonNativeBinariesPath pPlatform, pSDK
       case "MacOSX x86_64"
          put slash & "mac-bin" after tNonNativeBinariesPath
          break
-      case "Android"
-      case "Android armv6"
-         put slash & "android-armv6-bin" after tNonNativeBinariesPath
-         break
-      case "Android armv7"
-         put slash & "android-armv7-bin" after tNonNativeBinariesPath
-         break
-      case "Android arm64"
-         put slash & "android-arm64-bin" after tNonNativeBinariesPath
-         break
-      case "Android x86"
-         put slash & "android-x86-bin" after tNonNativeBinariesPath
-         break
-      case "Android x86_64"
-         put slash & "android-x86_64-bin" after tNonNativeBinariesPath
-         break
-      case "Emscripten"
-      case "HTML5"
-         put slash & "emscripten-bin" after tNonNativeBinariesPath
-         break
-      case "iOS"
-         put slash & "ios-bin" & slash & pSDK after tNonNativeBinariesPath
-         break
       default 
          return empty
+         break
    end switch
    
    return tNonNativeBinariesPath
