@@ -1,6 +1,8 @@
 # HyperXTalk
 Cross-platform x-talk development environment
 
+[Build Instructions](build.md)
+
 Here are more things that need to be done before the steps below, thanks to Stam for documenting these:
 
 ***
