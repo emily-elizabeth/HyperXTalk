@@ -1684,7 +1684,6 @@
 		863F11E694AB04EC37E05725 /* SkBitmapCache.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkBitmapCache.cpp; sourceTree = "<group>"; };
 		866EF46975500C8BFE7B4BE1 /* SkTTCFHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkTTCFHeader.h; sourceTree = "<group>"; };
 		86852E9FE8D565D6FF9E0DB0 /* SkDisplayMovie.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkDisplayMovie.cpp; sourceTree = "<group>"; };
-		86A606549C866E38C5702102 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../config/ios.gypi; sourceTree = "<group>"; };
 		86A9ABF60ECD3F0DD7AAFBB5 /* SkBlitMask_opts_arm_neon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkBlitMask_opts_arm_neon.h; sourceTree = "<group>"; };
 		86AAA248A004FCDC6EF3CFDE /* SkImageGenerator_skia.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkImageGenerator_skia.cpp; sourceTree = "<group>"; };
 		882463502C3594FDA8FF6CE8 /* SkPath.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkPath.cpp; sourceTree = "<group>"; };
@@ -1783,7 +1782,6 @@
 		A00F37AC8DD6EBBFB1967817 /* SkMatrixPriv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkMatrixPriv.h; sourceTree = "<group>"; };
 		A0412DAF18DC624CAF28FB20 /* SkAddIntersections.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkAddIntersections.cpp; sourceTree = "<group>"; };
 		A05BD77FB9E2369C457C6A8C /* SkBlitMask_opts.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkBlitMask_opts.h; sourceTree = "<group>"; };
-		A078A22292FED9359ADEE186 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../config/android.gypi; sourceTree = "<group>"; };
 		A087FC9F975E9760E9E685AD /* SkOSPath.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkOSPath.cpp; sourceTree = "<group>"; };
 		A144389FFEC0F1409E83BBC8 /* SkPDFUtils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkPDFUtils.cpp; sourceTree = "<group>"; };
 		A1C1A95392F3FA00BF5C0C34 /* SkSampler.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkSampler.cpp; sourceTree = "<group>"; };
@@ -1878,7 +1876,6 @@
 		B8879131181E3846B4198200 /* Sk4px_none.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Sk4px_none.h; sourceTree = "<group>"; };
 		B90624CB3473A4BBA5A51C6F /* SkTextureCompressor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkTextureCompressor.h; sourceTree = "<group>"; };
 		B958D971208FA229AD69331A /* SkFontStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkFontStream.h; sourceTree = "<group>"; };
-		B95DA63820D51EF04E62DAA5 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../config/emscripten.gypi; sourceTree = "<group>"; };
 		B97DE7BF1DC188AEDFA45C0F /* SkRecords.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkRecords.cpp; sourceTree = "<group>"; };
 		B98E01C1D4BD306423767BB6 /* SkCachedData.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkCachedData.cpp; sourceTree = "<group>"; };
 		B9BDCD4FD2F0432ED83D5313 /* SkFontMgr_custom_embedded_factory.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkFontMgr_custom_embedded_factory.cpp; sourceTree = "<group>"; };
@@ -1961,7 +1958,6 @@
 		CDB5D12932D6776429C6AF51 /* SkScan.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkScan.h; sourceTree = "<group>"; };
 		CDE4D039B25C6629C4AE3575 /* SkXfermode.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkXfermode.cpp; sourceTree = "<group>"; };
 		CE4FF1F41FF148237E1B2F7E /* SkDisplayMath.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkDisplayMath.cpp; sourceTree = "<group>"; };
-		CE5118EEC1E70C0A6D5D0A69 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../config/android-settings.gypi"; sourceTree = "<group>"; };
 		CE7C2F35769323529732ACA2 /* SkAnimatorScript2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkAnimatorScript2.cpp; sourceTree = "<group>"; };
 		CEF2DE8F1CC115BFCCFC7AE4 /* SkDWriteFontFileStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkDWriteFontFileStream.h; sourceTree = "<group>"; };
 		CF409BF07954CF1733A3D25C /* SkOpContour.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkOpContour.cpp; sourceTree = "<group>"; };
@@ -2070,7 +2066,6 @@
 		E6BAC295040E7056B892AFF8 /* SkLinearBitmapPipeline_tile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkLinearBitmapPipeline_tile.h; sourceTree = "<group>"; };
 		E6C10D4B7459D44729E59E8C /* SkIStream.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkIStream.h; sourceTree = "<group>"; };
 		E6FAEC3515B05017C5D7238F /* SkRadialShadowMapShader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkRadialShadowMapShader.cpp; sourceTree = "<group>"; };
-		E709AC5A0308B3BC71ED8E91 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		E75A301C4A94C5C6297FFA79 /* Sk1DPathEffect.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Sk1DPathEffect.cpp; sourceTree = "<group>"; };
 		E77E0CA86399F9CE471D0904 /* SkClipStack.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = SkClipStack.cpp; sourceTree = "<group>"; };
 		E7B003B0268EAC3DB770E807 /* SkLightingShader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SkLightingShader.h; sourceTree = "<group>"; };
@@ -2310,35 +2305,8 @@
 			children = (
 				A5FD6AE91A0BA5622BB6B851 /* Source */,
 				1F97414534AA859062E1A522 /* Products */,
-				08F74913366F732EFC72FC8A /* Build */,
+				53B90EEF51399F1BC8E91A19 /* Build */,
 			);
-			sourceTree = "<group>";
-		};
-		08F74913366F732EFC72FC8A /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				CE5118EEC1E70C0A6D5D0A69 /* android-settings.gypi */,
-				A078A22292FED9359ADEE186 /* android.gypi */,
-				9FE1A2A2B16FD2099083FF36 /* arch.gypi */,
-				E027BD1C0ED9429CC38C1BCA /* common.gypi */,
-				772FCCC2A26C9AC9C356DE36 /* configurations.gypi */,
-				C5A17227F9FCE0652375FA0E /* crosscompile.gypi */,
-				E709AC5A0308B3BC71ED8E91 /* emscripten-settings.gypi */,
-				B95DA63820D51EF04E62DAA5 /* emscripten.gypi */,
-				23474F3FBE1EB11D29370617 /* exclusions.gypi */,
-				86A606549C866E38C5702102 /* ios.gypi */,
-				DE183B39B8EEE3398D139B3E /* libskia.gyp */,
-				12C12F340F48C347BE2BFA39 /* linux-settings.gypi */,
-				824F852185939E88D3ED65FD /* linux.gypi */,
-				3B493AF3362B6CEE24BE622C /* mac.gypi */,
-				026B8B94340DD30947F2CCF8 /* perl.gypi */,
-				701F41F5FE59015D7DF87332 /* target_os.gypi */,
-				8CF177651C4174561FA40051 /* thirdparty.gypi */,
-				05BB8E097839E8727B703BAD /* version.gypi */,
-				F8CFA3A5B452B46B1D78531A /* win32.gypi */,
-				C518558B682818944F243435 /* yacc.gypi */,
-			);
-			name = Build;
 			sourceTree = "<group>";
 		};
 		1F97414534AA859062E1A522 /* Products */ = {
@@ -2451,6 +2419,28 @@
 				552A89E862797A8ED6778C5F /* SkXfermodeImageFilter.cpp */,
 			);
 			path = effects;
+			sourceTree = "<group>";
+		};
+		53B90EEF51399F1BC8E91A19 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				9FE1A2A2B16FD2099083FF36 /* arch.gypi */,
+				E027BD1C0ED9429CC38C1BCA /* common.gypi */,
+				772FCCC2A26C9AC9C356DE36 /* configurations.gypi */,
+				C5A17227F9FCE0652375FA0E /* crosscompile.gypi */,
+				23474F3FBE1EB11D29370617 /* exclusions.gypi */,
+				DE183B39B8EEE3398D139B3E /* libskia.gyp */,
+				12C12F340F48C347BE2BFA39 /* linux-settings.gypi */,
+				824F852185939E88D3ED65FD /* linux.gypi */,
+				3B493AF3362B6CEE24BE622C /* mac.gypi */,
+				026B8B94340DD30947F2CCF8 /* perl.gypi */,
+				701F41F5FE59015D7DF87332 /* target_os.gypi */,
+				8CF177651C4174561FA40051 /* thirdparty.gypi */,
+				05BB8E097839E8727B703BAD /* version.gypi */,
+				F8CFA3A5B452B46B1D78531A /* win32.gypi */,
+				C518558B682818944F243435 /* yacc.gypi */,
+			);
+			name = Build;
 			sourceTree = "<group>";
 		};
 		5C5BA4CEB079795BC2F846C8 /* svg */ = {

@@ -56,7 +56,6 @@
 
 /* Begin PBXFileReference section */
 		004D58079AC6D47144FB5BAC /* chvalid.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = chvalid.c; sourceTree = "<group>"; };
-		008E559983E39D8C226AFA6F /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../config/android.gypi; sourceTree = "<group>"; };
 		01DFDDF3A909E52D667C66BA /* wsockcompat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = wsockcompat.h; sourceTree = "<group>"; };
 		01FCBF8FF07EA7F56034C9B4 /* DOCBparser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DOCBparser.h; sourceTree = "<group>"; };
 		05F869081FDB653726EE94B3 /* encoding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = encoding.h; sourceTree = "<group>"; };
@@ -70,7 +69,6 @@
 		1BFC3561CC03EE92B22B76B8 /* schematron.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = schematron.h; sourceTree = "<group>"; };
 		1C7F3203EDCD3588CA5475F3 /* HTMLparser.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HTMLparser.c; sourceTree = "<group>"; };
 		1E7ADAF0A23747A331FF28AF /* parser.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = parser.c; sourceTree = "<group>"; };
-		209237CDE1BC99286C825D86 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../config/android-settings.gypi"; sourceTree = "<group>"; };
 		228F2E1676A9AFADEA9915F1 /* xmlunicode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xmlunicode.c; sourceTree = "<group>"; };
 		24F5E04F8EAF8CC0EFB50F4E /* catalog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = catalog.h; sourceTree = "<group>"; };
 		26DAACE62C00594DE3939BDB /* xmlwriter.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xmlwriter.c; sourceTree = "<group>"; };
@@ -79,7 +77,6 @@
 		29F229A9E7EE9B8E33E9ADD6 /* xmlsave.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = xmlsave.c; sourceTree = "<group>"; };
 		29F8CB3C3C1A02E4C291982C /* triodef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = triodef.h; sourceTree = "<group>"; };
 		2A34B19A9970232A3DFFBB06 /* xmlerror.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xmlerror.h; sourceTree = "<group>"; };
-		2A37C102A5F8DF512ED9BF8E /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		2D5885A0F556B00C93E92ECF /* xmlmemory.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xmlmemory.h; sourceTree = "<group>"; };
 		301B5A2DD3507EF3920D2C9D /* xmlunicode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xmlunicode.h; sourceTree = "<group>"; };
 		320420047C5552BD8B5518FF /* DOCBparser.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DOCBparser.c; sourceTree = "<group>"; };
@@ -148,7 +145,6 @@
 		AC0F4E2E8CB5F4BFD2495A0F /* entities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = entities.h; sourceTree = "<group>"; };
 		ACF9338D2E0CA99617DA0900 /* pattern.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pattern.h; sourceTree = "<group>"; };
 		AD22EF3EEA7954CBEC36821B /* enc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = enc.h; sourceTree = "<group>"; };
-		AE25EF91ACB5030BF843C943 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../config/ios.gypi; sourceTree = "<group>"; };
 		AF67F56DBF6D50099CD75BF3 /* xmlexports.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = xmlexports.h; sourceTree = "<group>"; };
 		B02C1D889DAD7728A2973DBE /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../../config/exclusions.gypi; sourceTree = "<group>"; };
 		B2A4AC49179BC043E57C9C50 /* error.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = error.c; sourceTree = "<group>"; };
@@ -185,7 +181,6 @@
 		F47D28FD80E3B4A0046A869C /* nanoftp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = nanoftp.h; sourceTree = "<group>"; };
 		F769E405371199336C81DA33 /* SAX2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SAX2.h; sourceTree = "<group>"; };
 		F894357C82FCFE5FAAB303E9 /* tree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tree.h; sourceTree = "<group>"; };
-		F9338A6F0DCF65CE68E4DF8A /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../config/emscripten.gypi; sourceTree = "<group>"; };
 		FCAA102A658F100DDB2A9550 /* timsort.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = timsort.h; sourceTree = "<group>"; };
 		FE7D86F4C012BB4C923EA74B /* tree.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tree.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -217,33 +212,6 @@
 				BF699C540CB804BF2E6AE5CB /* src */,
 			);
 			name = Source;
-			sourceTree = "<group>";
-		};
-		7A7040DD754021A91D196192 /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				209237CDE1BC99286C825D86 /* android-settings.gypi */,
-				008E559983E39D8C226AFA6F /* android.gypi */,
-				4DDF6C3BD5AC83821F46C6A7 /* arch.gypi */,
-				95BFA7D6FA3BEDB65AB6742E /* common.gypi */,
-				820D64CFDB59C47E608D6C95 /* configurations.gypi */,
-				BFAF7F067846798A6B32E7BF /* crosscompile.gypi */,
-				2A37C102A5F8DF512ED9BF8E /* emscripten-settings.gypi */,
-				F9338A6F0DCF65CE68E4DF8A /* emscripten.gypi */,
-				B02C1D889DAD7728A2973DBE /* exclusions.gypi */,
-				AE25EF91ACB5030BF843C943 /* ios.gypi */,
-				1B6A454CB1CB6BADD496557B /* libxml.gyp */,
-				94B7F036B7EF52266337AC46 /* linux-settings.gypi */,
-				11A5B650A23340A828BA596E /* linux.gypi */,
-				DD5885920F29E7201C9D32E4 /* mac.gypi */,
-				ABE4A3DDF6DDB4B708F1118D /* perl.gypi */,
-				396164F4A1AB82FCDDCD1004 /* target_os.gypi */,
-				E100517F3D58C0BEA77E42BA /* thirdparty.gypi */,
-				34803374E1371DED93B8FEC1 /* version.gypi */,
-				9D9A9F38A82D08D0D02AEC3A /* win32.gypi */,
-				3A9738A64AFF4CF2848545D7 /* yacc.gypi */,
-			);
-			name = Build;
 			sourceTree = "<group>";
 		};
 		7CC4FC65E9E779723574F573 /* include/libxml */ = {
@@ -300,12 +268,34 @@
 			path = include/libxml;
 			sourceTree = "<group>";
 		};
+		9B5D8A4A5433405F41FD4E16 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				4DDF6C3BD5AC83821F46C6A7 /* arch.gypi */,
+				95BFA7D6FA3BEDB65AB6742E /* common.gypi */,
+				820D64CFDB59C47E608D6C95 /* configurations.gypi */,
+				BFAF7F067846798A6B32E7BF /* crosscompile.gypi */,
+				B02C1D889DAD7728A2973DBE /* exclusions.gypi */,
+				1B6A454CB1CB6BADD496557B /* libxml.gyp */,
+				94B7F036B7EF52266337AC46 /* linux-settings.gypi */,
+				11A5B650A23340A828BA596E /* linux.gypi */,
+				DD5885920F29E7201C9D32E4 /* mac.gypi */,
+				ABE4A3DDF6DDB4B708F1118D /* perl.gypi */,
+				396164F4A1AB82FCDDCD1004 /* target_os.gypi */,
+				E100517F3D58C0BEA77E42BA /* thirdparty.gypi */,
+				34803374E1371DED93B8FEC1 /* version.gypi */,
+				9D9A9F38A82D08D0D02AEC3A /* win32.gypi */,
+				3A9738A64AFF4CF2848545D7 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		B2046FE41CA9074DD51B4BA7 = {
 			isa = PBXGroup;
 			children = (
 				7260A4D1715F4E3501B678D6 /* Source */,
 				B9BC7C563E15F20CA838C063 /* Products */,
-				7A7040DD754021A91D196192 /* Build */,
+				9B5D8A4A5433405F41FD4E16 /* Build */,
 			);
 			sourceTree = "<group>";
 		};

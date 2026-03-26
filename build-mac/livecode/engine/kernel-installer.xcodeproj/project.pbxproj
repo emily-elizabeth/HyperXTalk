@@ -572,7 +572,6 @@
 /* Begin PBXFileReference section */
 		0293839C469E26B29DF0227E /* libpcre.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpcre.a; path = ../prebuilt/lib/mac/libpcre.a; sourceTree = "<group>"; };
 		04D356F17517ED14AE445669 /* hash_strings.pl */ = {isa = PBXFileReference; lastKnownFileType = text.script.perl; path = hash_strings.pl; sourceTree = "<group>"; };
-		05A2F143DDADA29060D2CFB9 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
 		0976976ACC23D035D400C173 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		15BB88C009AA76C7A7721320 /* perfect.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = perfect.xcodeproj; path = "../build-mac/livecode/util/perfect/perfect.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		1E550B5C7CB577FEC69F0FF9 /* libbrowser.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libbrowser.xcodeproj; path = "../build-mac/livecode/libbrowser/libbrowser.xcodeproj"; sourceTree = SOURCE_ROOT; };
@@ -583,7 +582,6 @@
 		294F409ED509FAC9231D80C5 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
 		320834952DA13A4F6B0F434D /* libffi.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libffi.a; path = ../prebuilt/lib/mac/libffi.a; sourceTree = "<group>"; };
 		320DC582C7C17216FFD41590 /* engine-common.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "engine-common.xcodeproj"; path = "../build-mac/livecode/engine/engine-common.xcodeproj"; sourceTree = SOURCE_ROOT; };
-		3232676977BE8C32044F2021 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
 		3457DDB4A3756AA7F49F38C8 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		388E6A2123E271061FF87996 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
 		3B7E6BF9B2CA3B869C79DA91 /* mode_installer_osx.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = mode_installer_osx.mm; sourceTree = "<group>"; };
@@ -611,7 +609,6 @@
 		627825FA5B492D6F16570D3C /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		62F99DDA4D6B78FFB215FE4C /* libskia_opt_sse42.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskia_opt_sse42.a; path = ../prebuilt/lib/mac/libskia_opt_sse42.a; sourceTree = "<group>"; };
 		68DD5A4D824BD68BEE7BA7C8 /* mode_installer_lnx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = mode_installer_lnx.cpp; sourceTree = "<group>"; };
-		6CC40EB8C03F44F2019516BE /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		6E5B3FD5451A3CD2A6BA54D3 /* libfoundation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libfoundation.xcodeproj; path = "../build-mac/livecode/libfoundation/libfoundation.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		6FF19CBF18D75C0068D2E4C6 /* libpng.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng.a; path = ../prebuilt/lib/mac/libpng.a; sourceTree = "<group>"; };
 		704BD4117867851889ACD2E1 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
@@ -624,7 +621,6 @@
 		801F0EB1038EA8ED7763B64E /* kernel.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = kernel.xcodeproj; path = "../build-mac/livecode/engine/kernel.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		87B959061814F2AF971FA8C5 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		87E240A9CC323B23FD509874 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
-		8B7041868FEBBD053CAF0A39 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
 		8C4B4C55577B1AAE48434944 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
 		8D95EDE41A06E44CE7DBD33F /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		8FC1C74491167FEB29CB4DF8 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -635,7 +631,6 @@
 		9F7DEEA8CE76066FCF0B1140 /* bsdiff_apply.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bsdiff_apply.cpp; sourceTree = "<group>"; };
 		A22606FD2C72A56FB350D51E /* libskia_opt_sse41.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskia_opt_sse41.a; path = ../prebuilt/lib/mac/libskia_opt_sse41.a; sourceTree = "<group>"; };
 		A77D1E6837ACA94997384332 /* libskia_opt_hsw.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskia_opt_hsw.a; path = ../prebuilt/lib/mac/libskia_opt_hsw.a; sourceTree = "<group>"; };
-		AA80E4E08AC7CD8D84819679 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
 		B0757B7ECCF36BBECBFA1458 /* libcups.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcups.dylib; path = usr/lib/libcups.dylib; sourceTree = SDKROOT; };
 		B3312CB8207C3C892E4C8842 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = ../prebuilt/lib/mac/libjpeg.a; sourceTree = "<group>"; };
 		B43C8CCC583723E6E5ABEB36 /* libicuuc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicuuc.a; path = ../prebuilt/lib/mac/libicuuc.a; sourceTree = "<group>"; };
@@ -816,6 +811,31 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		595D726E4777567427D14E6E /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				388E6A2123E271061FF87996 /* arch.gypi */,
+				D55FABA58EAC69E71FCB8932 /* common.gypi */,
+				52A66511067FB8D8FF3709B4 /* configurations.gypi */,
+				4546FF7698BC8DA7FE3F2D98 /* cpptest.gypi */,
+				731B88B577AE8BB3B9412950 /* crosscompile.gypi */,
+				4A5251F900F5A12F137579B9 /* engine-sources.gypi */,
+				1F9A7EA1AE2B6FB0C40BDB19 /* exclusions.gypi */,
+				5339350D64DFA8661C58B8D4 /* kernel-installer.gyp */,
+				536AFF8DCE7B599397C083F1 /* kernel-mode-template.gypi */,
+				2395A310BD476631229D9A36 /* linux-settings.gypi */,
+				704BD4117867851889ACD2E1 /* linux.gypi */,
+				574220484FF9B6DC027F2AE3 /* mac.gypi */,
+				8C4B4C55577B1AAE48434944 /* perl.gypi */,
+				79F1358013BE0520EFB9BDAC /* target_os.gypi */,
+				9B20887EACA575E283FEE65D /* thirdparty.gypi */,
+				C05F5210052D3F4A7ABF8866 /* version.gypi */,
+				FBEEC543F23DB52D74B4A4AD /* win32.gypi */,
+				294F409ED509FAC9231D80C5 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		5BBB0C101D1C2BF31461FF9D /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -920,38 +940,8 @@
 				37244D0B3770F33019C72DB3 /* Projects */,
 				802EDC67BEC2A5171E3024A1 /* Frameworks */,
 				7110CD65863F9B4EEBF412EC /* Products */,
-				845E6925C8E58108586644F5 /* Build */,
+				595D726E4777567427D14E6E /* Build */,
 			);
-			sourceTree = "<group>";
-		};
-		845E6925C8E58108586644F5 /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				3232676977BE8C32044F2021 /* android-settings.gypi */,
-				05A2F143DDADA29060D2CFB9 /* android.gypi */,
-				388E6A2123E271061FF87996 /* arch.gypi */,
-				D55FABA58EAC69E71FCB8932 /* common.gypi */,
-				52A66511067FB8D8FF3709B4 /* configurations.gypi */,
-				4546FF7698BC8DA7FE3F2D98 /* cpptest.gypi */,
-				731B88B577AE8BB3B9412950 /* crosscompile.gypi */,
-				6CC40EB8C03F44F2019516BE /* emscripten-settings.gypi */,
-				8B7041868FEBBD053CAF0A39 /* emscripten.gypi */,
-				4A5251F900F5A12F137579B9 /* engine-sources.gypi */,
-				1F9A7EA1AE2B6FB0C40BDB19 /* exclusions.gypi */,
-				AA80E4E08AC7CD8D84819679 /* ios.gypi */,
-				5339350D64DFA8661C58B8D4 /* kernel-installer.gyp */,
-				536AFF8DCE7B599397C083F1 /* kernel-mode-template.gypi */,
-				2395A310BD476631229D9A36 /* linux-settings.gypi */,
-				704BD4117867851889ACD2E1 /* linux.gypi */,
-				574220484FF9B6DC027F2AE3 /* mac.gypi */,
-				8C4B4C55577B1AAE48434944 /* perl.gypi */,
-				79F1358013BE0520EFB9BDAC /* target_os.gypi */,
-				9B20887EACA575E283FEE65D /* thirdparty.gypi */,
-				C05F5210052D3F4A7ABF8866 /* version.gypi */,
-				FBEEC543F23DB52D74B4A4AD /* win32.gypi */,
-				294F409ED509FAC9231D80C5 /* yacc.gypi */,
-			);
-			name = Build;
 			sourceTree = "<group>";
 		};
 		97D6A0A93B87023887E466E8 /* Intermediates */ = {

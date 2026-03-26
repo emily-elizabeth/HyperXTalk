@@ -328,7 +328,6 @@
 		6885AB3825BE256DED23D0A1 /* pixman-config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "pixman-config.h"; sourceTree = "<group>"; };
 		6A1029F3F0B512EEA9F2B1BD /* cairo-xlib-xrender-private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "cairo-xlib-xrender-private.h"; sourceTree = "<group>"; };
 		6B54859D261A47CA9C7813D1 /* cairo-skia.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "cairo-skia.h"; sourceTree = "<group>"; };
-		6C1ACB6B0164268E88451EA8 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../config/ios.gypi; sourceTree = "<group>"; };
 		6CFC8D1F86690632F63865F9 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../../config/win32.gypi; sourceTree = "<group>"; };
 		6D213CB2D2065D7F4E86A044 /* pixman-vmx.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "pixman-vmx.c"; sourceTree = "<group>"; };
 		6D21E8367DF3EC4544E5C7FD /* pixman-image.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "pixman-image.c"; sourceTree = "<group>"; };
@@ -493,8 +492,6 @@
 		D37C8CE02D48B5EF70AAA7DA /* cairo-gl-composite.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "cairo-gl-composite.c"; sourceTree = "<group>"; };
 		D3AD66E6461E038DF1986CEB /* cairo-user-font-private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "cairo-user-font-private.h"; sourceTree = "<group>"; };
 		D3E149025FF95468312DC89E /* cairo-tristrip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "cairo-tristrip.c"; sourceTree = "<group>"; };
-		D47430617A64EFC98299BD54 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
-		D5A0536999F1E3E7BA971A4B /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../config/android-settings.gypi"; sourceTree = "<group>"; };
 		D5F8598832F118FDAFF9D466 /* cairo-clip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "cairo-clip.c"; sourceTree = "<group>"; };
 		D616C90B7B1D21350CC20F22 /* cairo-stroke-dash.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "cairo-stroke-dash.c"; sourceTree = "<group>"; };
 		D620255ECBC1B8DFDF85185D /* cairo-drm-intel-surface.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "cairo-drm-intel-surface.c"; sourceTree = "<group>"; };
@@ -542,7 +539,6 @@
 		EAFCD861C1CC41019C5CA8A2 /* cairo-line.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "cairo-line.c"; sourceTree = "<group>"; };
 		EB0BFB712E914C6D094A24D1 /* pixman-private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "pixman-private.h"; sourceTree = "<group>"; };
 		EB413310B04828875CAFEAB1 /* cairo-drm-intel-command-private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "cairo-drm-intel-command-private.h"; sourceTree = "<group>"; };
-		ECB0B2B55B010BFA180FB612 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../config/android.gypi; sourceTree = "<group>"; };
 		ED4BA8570FC1FB476891694A /* cairo-clip-polygon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "cairo-clip-polygon.c"; sourceTree = "<group>"; };
 		EDA86FF9CCF5B6766129B8B3 /* cairo-backend-private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "cairo-backend-private.h"; sourceTree = "<group>"; };
 		EDB29FD773896423C648F6B7 /* cairo-clip-private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "cairo-clip-private.h"; sourceTree = "<group>"; };
@@ -575,7 +571,6 @@
 		FDD33DAAB111FFF5E8B85CEB /* cairo-directfb-surface.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "cairo-directfb-surface.c"; sourceTree = "<group>"; };
 		FEA1D0C8013922AEB1674EC2 /* pixman-combine32.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "pixman-combine32.c"; sourceTree = "<group>"; };
 		FEDD115EF121E30CCEB01B52 /* cairo-rtree.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "cairo-rtree.c"; sourceTree = "<group>"; };
-		FEEFDC654ABA7B72A087EBB7 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../config/emscripten.gypi; sourceTree = "<group>"; };
 		FF28A08BDAF2E11F717888BD /* cairo-path-stroke.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "cairo-path-stroke.c"; sourceTree = "<group>"; };
 		FF341DA518B6C81B0B67FA50 /* cairo-xlib-xrender.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "cairo-xlib-xrender.h"; sourceTree = "<group>"; };
 		FF3CE9C6481039A22EE306D3 /* cairo-clip-tor-scan-converter.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "cairo-clip-tor-scan-converter.c"; sourceTree = "<group>"; };
@@ -1016,7 +1011,7 @@
 			children = (
 				03E4A66FF6B3F17F93BDCC08 /* Source */,
 				7A2E683DD24A8D67DEECA0DF /* Products */,
-				9DEC18CB9CD6761F48C2CB25 /* Build */,
+				8E2532372207DBDE6B8E363A /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1028,19 +1023,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		9DEC18CB9CD6761F48C2CB25 /* Build */ = {
+		8E2532372207DBDE6B8E363A /* Build */ = {
 			isa = PBXGroup;
 			children = (
-				D5A0536999F1E3E7BA971A4B /* android-settings.gypi */,
-				ECB0B2B55B010BFA180FB612 /* android.gypi */,
 				3CE285954CF44B9EC982BC7A /* arch.gypi */,
 				53BFEA46D10A64A86083E61F /* common.gypi */,
 				5766B1939083FF8B69BF6730 /* configurations.gypi */,
 				642FED8CC4A95F5852A56B99 /* crosscompile.gypi */,
-				D47430617A64EFC98299BD54 /* emscripten-settings.gypi */,
-				FEEFDC654ABA7B72A087EBB7 /* emscripten.gypi */,
 				CBFD1A318FE6276C7E1ED15A /* exclusions.gypi */,
-				6C1ACB6B0164268E88451EA8 /* ios.gypi */,
 				C2A7427E73C818E7AB41234D /* libcairo.gyp */,
 				1E1CBB7E720A9A6A692F01AE /* linux-settings.gypi */,
 				DEAE15DFFC9C5066D8CA580E /* linux.gypi */,

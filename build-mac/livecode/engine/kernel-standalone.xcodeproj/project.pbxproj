@@ -558,10 +558,8 @@
 		049AE91EC9EBE83868CF8A59 /* libgif.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libgif.a; path = ../prebuilt/lib/mac/libgif.a; sourceTree = "<group>"; };
 		067DCD139C42F2183548E1BB /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
 		07612B0899165B408016BCF9 /* cpptest.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = cpptest.gypi; path = ../config/cpptest.gypi; sourceTree = "<group>"; };
-		0B18DAA315F2FB86E33DAC16 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
 		0DD422537A286237F98B9420 /* libicu.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libicu.xcodeproj; path = "../build-mac/livecode/prebuilt/libicu.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		10E4FD6FAB6F868A7DD929A8 /* libfoundation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libfoundation.xcodeproj; path = "../build-mac/livecode/libfoundation/libfoundation.xcodeproj"; sourceTree = SOURCE_ROOT; };
-		13AD957A96EAB9FBBBB6D560 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
 		15DA69978358B98780C9DC86 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = ../prebuilt/lib/mac/libjpeg.a; sourceTree = "<group>"; };
 		1905D05D1DA5D2DC2B63ED6B /* libskia_opt_sse42.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskia_opt_sse42.a; path = ../prebuilt/lib/mac/libskia_opt_sse42.a; sourceTree = "<group>"; };
 		19649EFF54A9C9666566E042 /* libskia.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskia.a; path = ../prebuilt/lib/mac/libskia.a; sourceTree = "<group>"; };
@@ -573,7 +571,6 @@
 		2B5D7B8BD7E08C8E01989EED /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
 		2F2BCA7EC947C44CB8E9277D /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		302DB52BAB0487657EC1A275 /* MediaToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaToolbox.framework; path = System/Library/Frameworks/MediaToolbox.framework; sourceTree = SDKROOT; };
-		31B219FA5C8DD05FB153FB98 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		370E8863794E6805DE0D5DE0 /* libskia_opt_sse2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskia_opt_sse2.a; path = ../prebuilt/lib/mac/libskia_opt_sse2.a; sourceTree = "<group>"; };
 		371744EB5E176AAC4010884F /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
 		3AF23677B506EDE7652A8396 /* libscript.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libscript.xcodeproj; path = "../build-mac/livecode/libscript/libscript.xcodeproj"; sourceTree = SOURCE_ROOT; };
@@ -584,10 +581,8 @@
 		4D3575B4BC78F3B46DF09A3C /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
 		4D4070C3C97D9A6152A8C898 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		544C72B63DB4933EEA5E9DA3 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
-		565C875B4B48C302F31D58BC /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
 		568425678460CE47515709B5 /* libskia_opt_arm.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskia_opt_arm.a; path = ../prebuilt/lib/mac/libskia_opt_arm.a; sourceTree = "<group>"; };
 		56E03391B1B966D244DC345B /* thirdparty.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = thirdparty.xcodeproj; path = "../build-mac/livecode/prebuilt/thirdparty.xcodeproj"; sourceTree = SOURCE_ROOT; };
-		631D74C19916BC39081C23D4 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
 		63AAF6D77665558D8B341831 /* libpcre.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpcre.a; path = ../prebuilt/lib/mac/libpcre.a; sourceTree = "<group>"; };
 		6445DE32F846044650B96207 /* libffi.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libffi.xcodeproj; path = "../build-mac/livecode/thirdparty/libffi/libffi.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		6919B028CCA62A9502DD57FE /* libgraphics.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libgraphics.xcodeproj; path = "../build-mac/livecode/libgraphics/libgraphics.xcodeproj"; sourceTree = SOURCE_ROOT; };
@@ -729,7 +724,7 @@
 				6A39E368C5A6E497C1007495 /* Projects */,
 				D55795408715DB192176AE2F /* Frameworks */,
 				C6F6D28F70B041260AC574E2 /* Products */,
-				4ACA7D96065856E627153E08 /* Build */,
+				62EB0D6D2CC6DEA305813240 /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -784,36 +779,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		4ACA7D96065856E627153E08 /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				0B18DAA315F2FB86E33DAC16 /* android-settings.gypi */,
-				13AD957A96EAB9FBBBB6D560 /* android.gypi */,
-				E29B020E1C84C26C2E5FEBB1 /* arch.gypi */,
-				907FBA42E4DB54B7106024BE /* common.gypi */,
-				02FCDC52EFE1B8657627C82E /* configurations.gypi */,
-				07612B0899165B408016BCF9 /* cpptest.gypi */,
-				D723DB2AB705460AD571A95F /* crosscompile.gypi */,
-				31B219FA5C8DD05FB153FB98 /* emscripten-settings.gypi */,
-				565C875B4B48C302F31D58BC /* emscripten.gypi */,
-				8C72CB6A8299D3BC2107F6B9 /* engine-sources.gypi */,
-				E655830958E4F41A930292B8 /* exclusions.gypi */,
-				631D74C19916BC39081C23D4 /* ios.gypi */,
-				FBB943E28DBC2343F3523FB5 /* kernel-mode-template.gypi */,
-				04703887CFF46F6E103C597C /* kernel-standalone.gyp */,
-				7517AE3D641F52A7384B17B8 /* linux-settings.gypi */,
-				067DCD139C42F2183548E1BB /* linux.gypi */,
-				8419A8279FE1563A39EDFBA1 /* mac.gypi */,
-				371744EB5E176AAC4010884F /* perl.gypi */,
-				D9D06093B6595FE21E9718CF /* target_os.gypi */,
-				A927F4E2E5CFD3DFA4C447FF /* thirdparty.gypi */,
-				710170A330DBD1CA538A0241 /* version.gypi */,
-				F7F3486E38A2A094B6620D74 /* win32.gypi */,
-				DE8744CD65BE241BD0E592D8 /* yacc.gypi */,
-			);
-			name = Build;
-			sourceTree = "<group>";
-		};
 		58FC3BBCF158BC8FA1372233 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -830,6 +795,31 @@
 				C44E2ED3F47E8DE10FD4C437 /* test_rgb.cpp */,
 			);
 			path = test;
+			sourceTree = "<group>";
+		};
+		62EB0D6D2CC6DEA305813240 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				E29B020E1C84C26C2E5FEBB1 /* arch.gypi */,
+				907FBA42E4DB54B7106024BE /* common.gypi */,
+				02FCDC52EFE1B8657627C82E /* configurations.gypi */,
+				07612B0899165B408016BCF9 /* cpptest.gypi */,
+				D723DB2AB705460AD571A95F /* crosscompile.gypi */,
+				8C72CB6A8299D3BC2107F6B9 /* engine-sources.gypi */,
+				E655830958E4F41A930292B8 /* exclusions.gypi */,
+				FBB943E28DBC2343F3523FB5 /* kernel-mode-template.gypi */,
+				04703887CFF46F6E103C597C /* kernel-standalone.gyp */,
+				7517AE3D641F52A7384B17B8 /* linux-settings.gypi */,
+				067DCD139C42F2183548E1BB /* linux.gypi */,
+				8419A8279FE1563A39EDFBA1 /* mac.gypi */,
+				371744EB5E176AAC4010884F /* perl.gypi */,
+				D9D06093B6595FE21E9718CF /* target_os.gypi */,
+				A927F4E2E5CFD3DFA4C447FF /* thirdparty.gypi */,
+				710170A330DBD1CA538A0241 /* version.gypi */,
+				F7F3486E38A2A094B6620D74 /* win32.gypi */,
+				DE8744CD65BE241BD0E592D8 /* yacc.gypi */,
+			);
+			name = Build;
 			sourceTree = "<group>";
 		};
 		66BA711064BBB81D92976B89 /* Products */ = {

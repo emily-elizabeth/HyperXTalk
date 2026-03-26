@@ -87,7 +87,6 @@
 
 /* Begin PBXFileReference section */
 		17448F2A8DF1F4BF5C5C62CC /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
-		1CB33B08C6D94A4BFB1F3C69 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../../config/ios.gypi; sourceTree = "<group>"; };
 		1D2F55C0470FA16A2B7DC60A /* gentle.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = gentle.gyp; sourceTree = "<group>"; };
 		2276F35E2B76346CC12A02AB /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../../../config/win32.gypi; sourceTree = "<group>"; };
 		28597595E069CEF2D542E52B /* msg.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = msg.c; sourceTree = "<group>"; };
@@ -95,13 +94,11 @@
 		2E790F7E89F4CFE7EC0546A4 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../../../common.gypi; sourceTree = "<group>"; };
 		34AB30888AABBCCEDECD9996 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../../../config/yacc.gypi; sourceTree = "<group>"; };
 		3E2C1EAEC55ABFA8D45AE10B /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../../../config/version.gypi; sourceTree = "<group>"; };
-		3EEED924FFFDFE6FFD01A51E /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../../config/android.gypi; sourceTree = "<group>"; };
 		52826B90342BEB3A95249295 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../../../config/crosscompile.gypi; sourceTree = "<group>"; };
 		54B66B73275D5D3BFEFBF25B /* symtab.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = symtab.c; sourceTree = "<group>"; };
 		601716D51C7E98E64928EC6F /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../../../config/arch.gypi; sourceTree = "<group>"; };
 		6E30E66EAE1091ACB8B31B9C /* cyfront.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cyfront.c; sourceTree = "<group>"; };
 		7798E85C1172A3095BD52904 /* gentle-host */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "gentle-host"; sourceTree = BUILT_PRODUCTS_DIR; };
-		8A6DE4890E9EC6A7568C9244 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../../config/android-settings.gypi"; sourceTree = "<group>"; };
 		8EB0FCA6F1D64A8CC3CCFAE7 /* input.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = input.c; sourceTree = "<group>"; };
 		9139CD54AB558480AE17C0F0 /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../../../config/linux-settings.gypi"; sourceTree = "<group>"; };
 		95BEBEADF1F1D1D4C08EA0C7 /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../../../config/thirdparty.gypi; sourceTree = "<group>"; };
@@ -114,9 +111,7 @@
 		C98B637F3645C8814A7556C8 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		D9296338CC2663197A1521AA /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../../../config/mac.gypi; sourceTree = "<group>"; };
 		DF16D7C39E22CF6B6B75480D /* gentle-target */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "gentle-target"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E8A793C8B00B107F3EEB9F80 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		EC0C89F5F522B4C049F3A8F9 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../../../config/exclusions.gypi; sourceTree = "<group>"; };
-		F1432299B3D0C66DD23B7FA0 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../../config/emscripten.gypi; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,7 +140,7 @@
 				54B43B39BEA3333867EA938C /* Source */,
 				C2CB21C5C982F2DE8296A490 /* Projects */,
 				11A2F0A8F283F0B29EA68769 /* Products */,
-				BF60A3B8A95F7CBCCBE0BAA4 /* Build */,
+				D39EB609BA3F74E18A767F5C /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -182,20 +177,23 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		BF60A3B8A95F7CBCCBE0BAA4 /* Build */ = {
+		C2CB21C5C982F2DE8296A490 /* Projects */ = {
 			isa = PBXGroup;
 			children = (
-				8A6DE4890E9EC6A7568C9244 /* android-settings.gypi */,
-				3EEED924FFFDFE6FFD01A51E /* android.gypi */,
+				C895FC786687525A76C88046 /* grts.xcodeproj */,
+			);
+			name = Projects;
+			sourceTree = "<group>";
+		};
+		D39EB609BA3F74E18A767F5C /* Build */ = {
+			isa = PBXGroup;
+			children = (
 				601716D51C7E98E64928EC6F /* arch.gypi */,
 				2E790F7E89F4CFE7EC0546A4 /* common.gypi */,
 				C48691D68C41F01D762E720A /* configurations.gypi */,
 				52826B90342BEB3A95249295 /* crosscompile.gypi */,
-				E8A793C8B00B107F3EEB9F80 /* emscripten-settings.gypi */,
-				F1432299B3D0C66DD23B7FA0 /* emscripten.gypi */,
 				EC0C89F5F522B4C049F3A8F9 /* exclusions.gypi */,
 				1D2F55C0470FA16A2B7DC60A /* gentle.gyp */,
-				1CB33B08C6D94A4BFB1F3C69 /* ios.gypi */,
 				9139CD54AB558480AE17C0F0 /* linux-settings.gypi */,
 				B0500FD7D699BFACC27F223A /* linux.gypi */,
 				D9296338CC2663197A1521AA /* mac.gypi */,
@@ -207,14 +205,6 @@
 				34AB30888AABBCCEDECD9996 /* yacc.gypi */,
 			);
 			name = Build;
-			sourceTree = "<group>";
-		};
-		C2CB21C5C982F2DE8296A490 /* Projects */ = {
-			isa = PBXGroup;
-			children = (
-				C895FC786687525A76C88046 /* grts.xcodeproj */,
-			);
-			name = Projects;
 			sourceTree = "<group>";
 		};
 		E705440113A9D6A42B722B03 /* ../../.. */ = {

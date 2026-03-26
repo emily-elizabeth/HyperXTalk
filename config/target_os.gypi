@@ -25,38 +25,11 @@
 			},
 		],
 		[
-			'OS == "android"',
-			{
-				'includes':
-				[
-					'android.gypi',
-				],
-			},
-		],
-		[
 			'OS == "win"',
 			{
 				'includes':
 				[
 					'win32.gypi',
-				],
-			},
-		],
-		[
-			'OS == "ios"',
-			{
-				'includes':
-				[
-					'ios.gypi',
-				],
-			},
-		],
-		[
-			'OS == "emscripten"',
-			{
-				'includes':
-				[
-					'emscripten.gypi',
 				],
 			},
 		],

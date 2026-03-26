@@ -186,7 +186,6 @@
 
 /* Begin PBXFileReference section */
 		06BB6D1176440411E39092EF /* asctime.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = asctime.c; sourceTree = "<group>"; };
-		0786988A5812F38F9857DB7E /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../../../config/android-settings.gypi"; sourceTree = "<group>"; };
 		085B0C6B1538DED1DF241A51 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../../../../config/crosscompile.gypi; sourceTree = "<group>"; };
 		0EE61E9FAEA0BB545CDE251F /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../../../../common.gypi; sourceTree = "<group>"; };
 		116E87ADF49B0CF39E64455A /* zic.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = zic.c; sourceTree = "<group>"; };
@@ -203,7 +202,6 @@
 		4078E7B47234E4FDB023A25F /* systemv */ = {isa = PBXFileReference; lastKnownFileType = text; path = systemv; sourceTree = "<group>"; };
 		4EEBA4D6A74BAFE50C2A1BAB /* tzdata.zi */ = {isa = PBXFileReference; lastKnownFileType = text; path = tzdata.zi; sourceTree = "<group>"; };
 		566734E108DCC3889613ED13 /* factory */ = {isa = PBXFileReference; lastKnownFileType = text; path = factory; sourceTree = "<group>"; };
-		58EE2A44E267EB3A9120C5A8 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../../../config/android.gypi; sourceTree = "<group>"; };
 		6276CA89118A53C1FC2FD424 /* europe */ = {isa = PBXFileReference; lastKnownFileType = text; path = europe; sourceTree = "<group>"; };
 		64CC888E96AE0DEA824ACF2D /* tz.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = tz.gyp; sourceTree = "<group>"; };
 		696EFE88D8C1A72B58BAE955 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../../../../config/mac.gypi; sourceTree = "<group>"; };
@@ -214,12 +212,10 @@
 		9C62D37C67D7B078378EB1DA /* africa */ = {isa = PBXFileReference; lastKnownFileType = text; path = africa; sourceTree = "<group>"; };
 		A1956BEA02061385FEEE9D8E /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
 		A5A42C3DF1E2D9E173016D23 /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../../../../config/linux-settings.gypi"; sourceTree = "<group>"; };
-		B0BE2F297D131F3BF5B93827 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		B9C437968C1C0D70DB49D795 /* asia */ = {isa = PBXFileReference; lastKnownFileType = text; path = asia; sourceTree = "<group>"; };
 		BB604A4C2DC40622097E6C15 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../../../../config/configurations.gypi; sourceTree = "<group>"; };
 		BC978889A7F415F2F9E79577 /* zic */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = zic; sourceTree = BUILT_PRODUCTS_DIR; };
 		C491B53A9DB83556B9A0F3D2 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../../../../config/arch.gypi; sourceTree = "<group>"; };
-		C81DC2C4861E756A56A03E13 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../../../config/emscripten.gypi; sourceTree = "<group>"; };
 		D177C0799A1CE53289FE85C9 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../../../../config/yacc.gypi; sourceTree = "<group>"; };
 		D1CD84851DD24C6014DE6AFC /* tz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = tz.dylib; sourceTree = "<group>"; };
 		D6FCE2875AE95344CEA927BA /* ziguard.awk */ = {isa = PBXFileReference; lastKnownFileType = text; path = ziguard.awk; sourceTree = "<group>"; };
@@ -229,7 +225,6 @@
 		E09E5C4EFB3A2844148FFC5F /* etcetera */ = {isa = PBXFileReference; lastKnownFileType = text; path = etcetera; sourceTree = "<group>"; };
 		E13078B41C515F6B697E5ED3 /* tz.ios */ = {isa = PBXFileReference; lastKnownFileType = text; path = tz.ios; sourceTree = "<group>"; };
 		F44105796E64DE56FD415B40 /* southamerica */ = {isa = PBXFileReference; lastKnownFileType = text; path = southamerica; sourceTree = "<group>"; };
-		F83276DCC4E4D4B86C5A896D /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../../../config/ios.gypi; sourceTree = "<group>"; };
 		FC9F8BF27BB1B037888AC977 /* antarctica */ = {isa = PBXFileReference; lastKnownFileType = text; path = antarctica; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -317,7 +312,7 @@
 				A060D589FA2A5B91D6324351 /* Intermediates */,
 				4040211659BB6559BA310C2A /* Projects */,
 				1B329D0A0F1323BFE267CE29 /* Products */,
-				E083ABA7745C814DE243281A /* Build */,
+				CFF9C779E93341D7150DE21D /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -355,19 +350,14 @@
 			path = tools;
 			sourceTree = "<group>";
 		};
-		E083ABA7745C814DE243281A /* Build */ = {
+		CFF9C779E93341D7150DE21D /* Build */ = {
 			isa = PBXGroup;
 			children = (
-				0786988A5812F38F9857DB7E /* android-settings.gypi */,
-				58EE2A44E267EB3A9120C5A8 /* android.gypi */,
 				C491B53A9DB83556B9A0F3D2 /* arch.gypi */,
 				0EE61E9FAEA0BB545CDE251F /* common.gypi */,
 				BB604A4C2DC40622097E6C15 /* configurations.gypi */,
 				085B0C6B1538DED1DF241A51 /* crosscompile.gypi */,
-				B0BE2F297D131F3BF5B93827 /* emscripten-settings.gypi */,
-				C81DC2C4861E756A56A03E13 /* emscripten.gypi */,
 				302C211BB3D2822D156F817D /* exclusions.gypi */,
-				F83276DCC4E4D4B86C5A896D /* ios.gypi */,
 				A5A42C3DF1E2D9E173016D23 /* linux-settings.gypi */,
 				24A4805666EF8B77E1E68076 /* linux.gypi */,
 				696EFE88D8C1A72B58BAE955 /* mac.gypi */,

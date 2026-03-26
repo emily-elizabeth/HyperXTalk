@@ -170,8 +170,6 @@
 		290C7215217E9E008A44C220 /* Info.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = Info.c; sourceTree = "<group>"; };
 		2A0490E864EEDAB81E3F0EF2 /* ParamData.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ParamData.c; sourceTree = "<group>"; };
 		2A300943953685749B99CFF7 /* SQLConfigDriver.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SQLConfigDriver.c; sourceTree = "<group>"; };
-		2BADFC5D6C99E9A63363084B /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../config/android-settings.gypi"; sourceTree = "<group>"; };
-		2CB66F1B3E45B2606B0BCFDD /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../config/ios.gypi; sourceTree = "<group>"; };
 		2EFEB253704E9300520EE472 /* isqltypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = isqltypes.h; sourceTree = "<group>"; };
 		2F08EB162FF2F33235241C22 /* connect.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = connect.c; sourceTree = "<group>"; };
 		2F4CB56AAC28CF5A96C82EFA /* BulkOperations.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = BulkOperations.c; sourceTree = "<group>"; };
@@ -246,7 +244,6 @@
 		A6CFC31BB9C66516DFA71091 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		A81CA68643FF77D59F2EE26C /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../../config/arch.gypi; sourceTree = "<group>"; };
 		A8ED54ACEF50A691DAD11C22 /* SQLRemoveDefaultDataSource.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SQLRemoveDefaultDataSource.c; sourceTree = "<group>"; };
-		A97A3FDCBFC03D6E4F8F0AF1 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../config/emscripten.gypi; sourceTree = "<group>"; };
 		A99EE48085AEFE41E705B313 /* SetStmtAttr.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SetStmtAttr.c; sourceTree = "<group>"; };
 		ABEB0092F8DB546E7E928872 /* SQLRemoveDriverManager.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SQLRemoveDriverManager.c; sourceTree = "<group>"; };
 		AC83FFD129F145EC1235E8BD /* Cancel.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = Cancel.c; sourceTree = "<group>"; };
@@ -300,12 +297,10 @@
 		EEDD1E8C6F73DDD49B83E571 /* SQLInstallTranslatorEx.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SQLInstallTranslatorEx.c; sourceTree = "<group>"; };
 		F3F790BA296D8053D116A20C /* SQLRemoveTranslator.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SQLRemoveTranslator.c; sourceTree = "<group>"; };
 		F40F87EC9A72BFBEB070B70E /* MoreResults.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MoreResults.c; sourceTree = "<group>"; };
-		F4A2F46E37E5DB601F5B27ED /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		F568BA3B2112655CE1601C38 /* SetCursorName.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SetCursorName.c; sourceTree = "<group>"; };
 		F8CF8509E4DFF2D2E45E1615 /* libiodbc.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libiodbc.gyp; sourceTree = "<group>"; };
 		F9694BB56941C57CF310BC2F /* dlproc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dlproc.c; sourceTree = "<group>"; };
 		F9B15B4DFF86FF73ED0DDA30 /* odbc3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = odbc3.c; sourceTree = "<group>"; };
-		FBCC749DE901437774D833F6 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../config/android.gypi; sourceTree = "<group>"; };
 		FCC3ED7ECCF33919A2DD1ECE /* trace.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = trace.c; sourceTree = "<group>"; };
 		FCD1EE940EF9129467C0402D /* SQLGetTranslator.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SQLGetTranslator.c; sourceTree = "<group>"; };
 		FE8EA4AC197AA147EC27FEC5 /* DescribeCol.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DescribeCol.c; sourceTree = "<group>"; };
@@ -323,6 +318,28 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		070C416E21843E24808EC18E /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				A81CA68643FF77D59F2EE26C /* arch.gypi */,
+				E4E661A77BF7133863EB7CF8 /* common.gypi */,
+				8390D74AF1C4AA71D8BAC1EF /* configurations.gypi */,
+				56AD7F85C68F946EC06E3875 /* crosscompile.gypi */,
+				6DF1A55BC9A41EC55C957290 /* exclusions.gypi */,
+				F8CF8509E4DFF2D2E45E1615 /* libiodbc.gyp */,
+				659D62D1F4E376ACBACC1402 /* linux-settings.gypi */,
+				0F9D31496D7385C8070F0B28 /* linux.gypi */,
+				4AD30F5A20B6A9ECBDABA454 /* mac.gypi */,
+				E8C40103EC9DF427CDC60873 /* perl.gypi */,
+				E5FD47C0EFF785F5BB8C1B8A /* target_os.gypi */,
+				BA5E39222DE0E0144348B0CA /* thirdparty.gypi */,
+				D705AED97E58D16F006AE4FC /* version.gypi */,
+				5B64C304C3B8830C123B232C /* win32.gypi */,
+				63765865DEFC8B0FB889E849 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		2169C24A0DDD5ABC8CA5F8E3 /* inst */ = {
 			isa = PBXGroup;
 			children = (
@@ -432,33 +449,6 @@
 			path = include;
 			sourceTree = "<group>";
 		};
-		5BEF65EE23584CCF4A0CED9F /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				2BADFC5D6C99E9A63363084B /* android-settings.gypi */,
-				FBCC749DE901437774D833F6 /* android.gypi */,
-				A81CA68643FF77D59F2EE26C /* arch.gypi */,
-				E4E661A77BF7133863EB7CF8 /* common.gypi */,
-				8390D74AF1C4AA71D8BAC1EF /* configurations.gypi */,
-				56AD7F85C68F946EC06E3875 /* crosscompile.gypi */,
-				F4A2F46E37E5DB601F5B27ED /* emscripten-settings.gypi */,
-				A97A3FDCBFC03D6E4F8F0AF1 /* emscripten.gypi */,
-				6DF1A55BC9A41EC55C957290 /* exclusions.gypi */,
-				2CB66F1B3E45B2606B0BCFDD /* ios.gypi */,
-				F8CF8509E4DFF2D2E45E1615 /* libiodbc.gyp */,
-				659D62D1F4E376ACBACC1402 /* linux-settings.gypi */,
-				0F9D31496D7385C8070F0B28 /* linux.gypi */,
-				4AD30F5A20B6A9ECBDABA454 /* mac.gypi */,
-				E8C40103EC9DF427CDC60873 /* perl.gypi */,
-				E5FD47C0EFF785F5BB8C1B8A /* target_os.gypi */,
-				BA5E39222DE0E0144348B0CA /* thirdparty.gypi */,
-				D705AED97E58D16F006AE4FC /* version.gypi */,
-				5B64C304C3B8830C123B232C /* win32.gypi */,
-				63765865DEFC8B0FB889E849 /* yacc.gypi */,
-			);
-			name = Build;
-			sourceTree = "<group>";
-		};
 		81BDBC4694509A0F85D6FAAA /* Source */ = {
 			isa = PBXGroup;
 			children = (
@@ -566,7 +556,7 @@
 			children = (
 				81BDBC4694509A0F85D6FAAA /* Source */,
 				AA70A6AB0B6FA80F822267CB /* Products */,
-				5BEF65EE23584CCF4A0CED9F /* Build */,
+				070C416E21843E24808EC18E /* Build */,
 			);
 			sourceTree = "<group>";
 		};

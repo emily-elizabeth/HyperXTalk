@@ -135,19 +135,15 @@
 /* Begin PBXFileReference section */
 		0482B46EFB0F95265E25674E /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
 		0A132FED6A354D0397099ABD /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../../config/crosscompile.gypi; sourceTree = "<group>"; };
-		0A76E3C110268B020BDE1373 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../config/android.gypi; sourceTree = "<group>"; };
 		0DD5FDC93138020F817D2BC7 /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../../config/thirdparty.gypi; sourceTree = "<group>"; };
 		3BC284B4F0B0FA1B691CDD35 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../../config/win32.gypi; sourceTree = "<group>"; };
 		48EBF07B5350A692092A551E /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../../config/yacc.gypi; sourceTree = "<group>"; };
 		5803E1751DC06DC745497C25 /* lc-compile-bootstrap.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "lc-compile-bootstrap.xcodeproj"; path = "../../build-mac/livecode/toolchain/lc-compile/src/lc-compile-bootstrap.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		65A52752FBC8258A807F8E63 /* mac.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = mac.gypi; path = ../../config/mac.gypi; sourceTree = "<group>"; };
 		65C0FB0989E8DED2A03ADF68 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../../config/linux.gypi; sourceTree = "<group>"; };
-		731CBD9AE316701FC5F08D63 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		803CCE2FFA631B089369ED29 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../../config/arch.gypi; sourceTree = "<group>"; };
 		851DFCB665ECF17D4543711E /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../../config/perl.gypi; sourceTree = "<group>"; };
 		86859E004E3D68D1285E3135 /* lc-compile.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = "lc-compile.gyp"; sourceTree = "<group>"; };
-		9F01F2AB747D177654F34277 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../config/ios.gypi; sourceTree = "<group>"; };
-		B063A387E8E4554E6A5DBDEE /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../config/emscripten.gypi; sourceTree = "<group>"; };
 		B5ADEF135209BA8D563F8D10 /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../../config/target_os.gypi; sourceTree = "<group>"; };
 		C5E7B8CDB463E18EC8BED377 /* thirdparty.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = thirdparty.xcodeproj; path = "../../build-mac/livecode/prebuilt/thirdparty.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		CF18917BF2A0612362538102 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../../config/exclusions.gypi; sourceTree = "<group>"; };
@@ -155,10 +151,31 @@
 		E160225915E45DFB23CF9A07 /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../../config/linux-settings.gypi"; sourceTree = "<group>"; };
 		E20A2D3DB392824EAE7A17FE /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../../config/configurations.gypi; sourceTree = "<group>"; };
 		E7F1CF6E33A6CF5B7758AAC4 /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../../config/version.gypi; sourceTree = "<group>"; };
-		E961BA39EA0A8EB0B07F583F /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../config/android-settings.gypi"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
+		13D978798E36506C85E2B798 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				803CCE2FFA631B089369ED29 /* arch.gypi */,
+				E0A1AEADCB6B06BE02993BFB /* common.gypi */,
+				E20A2D3DB392824EAE7A17FE /* configurations.gypi */,
+				0A132FED6A354D0397099ABD /* crosscompile.gypi */,
+				CF18917BF2A0612362538102 /* exclusions.gypi */,
+				86859E004E3D68D1285E3135 /* lc-compile.gyp */,
+				E160225915E45DFB23CF9A07 /* linux-settings.gypi */,
+				65C0FB0989E8DED2A03ADF68 /* linux.gypi */,
+				65A52752FBC8258A807F8E63 /* mac.gypi */,
+				851DFCB665ECF17D4543711E /* perl.gypi */,
+				B5ADEF135209BA8D563F8D10 /* target_os.gypi */,
+				0DD5FDC93138020F817D2BC7 /* thirdparty.gypi */,
+				E7F1CF6E33A6CF5B7758AAC4 /* version.gypi */,
+				3BC284B4F0B0FA1B691CDD35 /* win32.gypi */,
+				48EBF07B5350A692092A551E /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		2D3A03A263890585DD602DFA /* Projects */ = {
 			isa = PBXGroup;
 			children = (
@@ -188,33 +205,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		B823DE3470D933CA392A829E /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				E961BA39EA0A8EB0B07F583F /* android-settings.gypi */,
-				0A76E3C110268B020BDE1373 /* android.gypi */,
-				803CCE2FFA631B089369ED29 /* arch.gypi */,
-				E0A1AEADCB6B06BE02993BFB /* common.gypi */,
-				E20A2D3DB392824EAE7A17FE /* configurations.gypi */,
-				0A132FED6A354D0397099ABD /* crosscompile.gypi */,
-				731CBD9AE316701FC5F08D63 /* emscripten-settings.gypi */,
-				B063A387E8E4554E6A5DBDEE /* emscripten.gypi */,
-				CF18917BF2A0612362538102 /* exclusions.gypi */,
-				9F01F2AB747D177654F34277 /* ios.gypi */,
-				86859E004E3D68D1285E3135 /* lc-compile.gyp */,
-				E160225915E45DFB23CF9A07 /* linux-settings.gypi */,
-				65C0FB0989E8DED2A03ADF68 /* linux.gypi */,
-				65A52752FBC8258A807F8E63 /* mac.gypi */,
-				851DFCB665ECF17D4543711E /* perl.gypi */,
-				B5ADEF135209BA8D563F8D10 /* target_os.gypi */,
-				0DD5FDC93138020F817D2BC7 /* thirdparty.gypi */,
-				E7F1CF6E33A6CF5B7758AAC4 /* version.gypi */,
-				3BC284B4F0B0FA1B691CDD35 /* win32.gypi */,
-				48EBF07B5350A692092A551E /* yacc.gypi */,
-			);
-			name = Build;
-			sourceTree = "<group>";
-		};
 		CB2DD6DAE21A1E66C9223669 /* Source */ = {
 			isa = PBXGroup;
 			children = (
@@ -229,7 +219,7 @@
 			children = (
 				CB2DD6DAE21A1E66C9223669 /* Source */,
 				2D3A03A263890585DD602DFA /* Projects */,
-				B823DE3470D933CA392A829E /* Build */,
+				13D978798E36506C85E2B798 /* Build */,
 			);
 			sourceTree = "<group>";
 		};

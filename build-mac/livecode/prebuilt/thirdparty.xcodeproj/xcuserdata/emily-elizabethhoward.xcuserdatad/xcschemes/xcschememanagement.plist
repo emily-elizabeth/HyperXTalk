@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>All.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>0</integer>
+		</dict>
+		<key>thirdparty_prebuilt_cairo (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>160</integer>
+		</dict>
+		<key>thirdparty_prebuilt_cairo.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>116</integer>
+		</dict>
+		<key>thirdparty_prebuilt_dep (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
+		<key>thirdparty_prebuilt_dep.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>169</integer>
+		</dict>
+		<key>thirdparty_prebuilt_expat (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>87</integer>
+		</dict>
+		<key>thirdparty_prebuilt_expat.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>124</integer>
+		</dict>
+		<key>thirdparty_prebuilt_ffi (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>10</integer>
+		</dict>
+		<key>thirdparty_prebuilt_ffi.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>121</integer>
+		</dict>
+		<key>thirdparty_prebuilt_fontconfig (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>61</integer>
+		</dict>
+		<key>thirdparty_prebuilt_fontconfig.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>129</integer>
+		</dict>
+		<key>thirdparty_prebuilt_freetype (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>33</integer>
+		</dict>
+		<key>thirdparty_prebuilt_freetype.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>150</integer>
+		</dict>
+		<key>thirdparty_prebuilt_gif (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>37</integer>
+		</dict>
+		<key>thirdparty_prebuilt_gif.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>111</integer>
+		</dict>
+		<key>thirdparty_prebuilt_harfbuzz (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>47</integer>
+		</dict>
+		<key>thirdparty_prebuilt_harfbuzz.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>84</integer>
+		</dict>
+		<key>thirdparty_prebuilt_iodbc (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>108</integer>
+		</dict>
+		<key>thirdparty_prebuilt_iodbc.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>86</integer>
+		</dict>
+		<key>thirdparty_prebuilt_jpeg (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>119</integer>
+		</dict>
+		<key>thirdparty_prebuilt_jpeg.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>71</integer>
+		</dict>
+		<key>thirdparty_prebuilt_mysql (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>102</integer>
+		</dict>
+		<key>thirdparty_prebuilt_mysql.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>107</integer>
+		</dict>
+		<key>thirdparty_prebuilt_pcre (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>85</integer>
+		</dict>
+		<key>thirdparty_prebuilt_pcre.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>8</integer>
+		</dict>
+		<key>thirdparty_prebuilt_png (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>18</integer>
+		</dict>
+		<key>thirdparty_prebuilt_png.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>132</integer>
+		</dict>
+		<key>thirdparty_prebuilt_pq (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>170</integer>
+		</dict>
+		<key>thirdparty_prebuilt_pq.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>166</integer>
+		</dict>
+		<key>thirdparty_prebuilt_skia (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>39</integer>
+		</dict>
+		<key>thirdparty_prebuilt_skia.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
+		<key>thirdparty_prebuilt_sqlite (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>48</integer>
+		</dict>
+		<key>thirdparty_prebuilt_sqlite.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>15</integer>
+		</dict>
+		<key>thirdparty_prebuilt_xml (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>17</integer>
+		</dict>
+		<key>thirdparty_prebuilt_xml.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>19</integer>
+		</dict>
+		<key>thirdparty_prebuilt_xslt (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>143</integer>
+		</dict>
+		<key>thirdparty_prebuilt_xslt.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>161</integer>
+		</dict>
+		<key>thirdparty_prebuilt_z (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>173</integer>
+		</dict>
+		<key>thirdparty_prebuilt_z.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>115</integer>
+		</dict>
+		<key>thirdparty_prebuilt_zip (host).xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>134</integer>
+		</dict>
+		<key>thirdparty_prebuilt_zip.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>99</integer>
+		</dict>
+	</dict>
+</dict>
+</plist>

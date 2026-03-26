@@ -124,7 +124,6 @@
 		27ED97C7E9E6D5AC0B4718AE /* my_pthread.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = my_pthread.h; sourceTree = "<group>"; };
 		2931B769CE8A8A4883ED92FD /* my_thr_init.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = my_thr_init.c; sourceTree = "<group>"; };
 		2A45FC702F3348E196CC8ACB /* ctype.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ctype.c; sourceTree = "<group>"; };
-		2B7D9EBEB398D25C51217AA0 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../../config/android.gypi; sourceTree = "<group>"; };
 		2D04E418593746DDD3E52BD9 /* client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = client.c; sourceTree = "<group>"; };
 		310EADE1509C091FD0972858 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../../config/exclusions.gypi; sourceTree = "<group>"; };
 		313F2812628858CB4B7E216A /* strnmov.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = strnmov.c; sourceTree = "<group>"; };
@@ -145,7 +144,6 @@
 		45C14DDFB511776A9E6D9DBE /* my_time.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = my_time.c; sourceTree = "<group>"; };
 		47EE9EE2FE40BBC90B31ACE5 /* strcend.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = strcend.c; sourceTree = "<group>"; };
 		48B913F5BDBA147EB12646A0 /* config-android.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "config-android.h"; sourceTree = "<group>"; };
-		48E79CCEF97EEC969B8F140F /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../../config/ios.gypi; sourceTree = "<group>"; };
 		49DF1CE0A5757E14BD2EAB4E /* my_global.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = my_global.h; sourceTree = "<group>"; };
 		4A9725E9A0B377740ACE3028 /* mysql_time.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mysql_time.h; sourceTree = "<group>"; };
 		4C5E7AE84BF5A8948105D871 /* client_settings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = client_settings.h; sourceTree = "<group>"; };
@@ -189,11 +187,9 @@
 		882E4CA2D0019EA644DB3B95 /* ctype-extra.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "ctype-extra.c"; sourceTree = "<group>"; };
 		884837C8CAE9121F9E380E22 /* mysqld_error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mysqld_error.h; sourceTree = "<group>"; };
 		8A7C31A46E0B0953DFDAF716 /* my_open.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = my_open.c; sourceTree = "<group>"; };
-		8ABEA231D72A927D3E17725E /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		8BCB103E7D46742B21071D9F /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../../config/linux.gypi; sourceTree = "<group>"; };
 		8BDD21BCB9CE503BAA7D6E71 /* mf_pack.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mf_pack.c; sourceTree = "<group>"; };
 		8EE7AD996EBDD124277520AF /* mysql.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mysql.h; sourceTree = "<group>"; };
-		8FEA252300535B9EBC28BC2A /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../../config/android-settings.gypi"; sourceTree = "<group>"; };
 		9242F2A8DB168AD281E46333 /* ctype-gbk.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "ctype-gbk.c"; sourceTree = "<group>"; };
 		9264B0D8332CBBA7BCCEC56A /* is_prefix.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = is_prefix.c; sourceTree = "<group>"; };
 		930B00ED5D1C58ED3B40A018 /* my_fstream.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = my_fstream.c; sourceTree = "<group>"; };
@@ -239,7 +235,6 @@
 		DE302A6F8B7A6972FABCF428 /* sha1.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sha1.h; sourceTree = "<group>"; };
 		E07EAA009E70E63E792A53FE /* libmysql.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libmysql.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E13EFB7660EF13DCA1C8C205 /* probes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = probes.h; sourceTree = "<group>"; };
-		E1D228DA2A214BFA29F8BFD5 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../../config/emscripten.gypi; sourceTree = "<group>"; };
 		E1DFDD00BC789A08410294E7 /* my_vsnprintf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = my_vsnprintf.c; sourceTree = "<group>"; };
 		E259E6651BCE7EF049750CD5 /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
 		E3B0974222A17FAA00B4A5FB /* pack.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pack.c; sourceTree = "<group>"; };
@@ -272,33 +267,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		35D0987DF3DFEC514DD0DE0A /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				8FEA252300535B9EBC28BC2A /* android-settings.gypi */,
-				2B7D9EBEB398D25C51217AA0 /* android.gypi */,
-				86C497D55846E6059799B5A5 /* arch.gypi */,
-				72AA9E6DB6355E0CD0E29F4D /* common.gypi */,
-				FBE6C1490221AFBE9C9F6CA7 /* configurations.gypi */,
-				18D4A3DE849933AFAA9DC2EC /* crosscompile.gypi */,
-				8ABEA231D72A927D3E17725E /* emscripten-settings.gypi */,
-				E1D228DA2A214BFA29F8BFD5 /* emscripten.gypi */,
-				310EADE1509C091FD0972858 /* exclusions.gypi */,
-				48E79CCEF97EEC969B8F140F /* ios.gypi */,
-				FD28598BF67DB92C5F84984E /* libmysql.gyp */,
-				6E9EAA370C603FC2A4160D4A /* linux-settings.gypi */,
-				8BCB103E7D46742B21071D9F /* linux.gypi */,
-				6607DBE7D959810F47D3DB8B /* mac.gypi */,
-				5EAC7F97B86107318989C163 /* perl.gypi */,
-				D4623FB1A8C91F603AF3A941 /* target_os.gypi */,
-				F0C68D1DADEC6FFD31B9E748 /* thirdparty.gypi */,
-				0FCCECDC941A37C4BDA836AD /* version.gypi */,
-				BEEF72102CF319F5A314EE77 /* win32.gypi */,
-				41426CBD3D8B3AF961A7F64C /* yacc.gypi */,
-			);
-			name = Build;
-			sourceTree = "<group>";
-		};
 		6415EF56ACBFA4DB693E4852 /* src */ = {
 			isa = PBXGroup;
 			children = (
@@ -447,6 +415,28 @@
 			path = include;
 			sourceTree = "<group>";
 		};
+		7553892346BF0730E7A9884C /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				86C497D55846E6059799B5A5 /* arch.gypi */,
+				72AA9E6DB6355E0CD0E29F4D /* common.gypi */,
+				FBE6C1490221AFBE9C9F6CA7 /* configurations.gypi */,
+				18D4A3DE849933AFAA9DC2EC /* crosscompile.gypi */,
+				310EADE1509C091FD0972858 /* exclusions.gypi */,
+				FD28598BF67DB92C5F84984E /* libmysql.gyp */,
+				6E9EAA370C603FC2A4160D4A /* linux-settings.gypi */,
+				8BCB103E7D46742B21071D9F /* linux.gypi */,
+				6607DBE7D959810F47D3DB8B /* mac.gypi */,
+				5EAC7F97B86107318989C163 /* perl.gypi */,
+				D4623FB1A8C91F603AF3A941 /* target_os.gypi */,
+				F0C68D1DADEC6FFD31B9E748 /* thirdparty.gypi */,
+				0FCCECDC941A37C4BDA836AD /* version.gypi */,
+				BEEF72102CF319F5A314EE77 /* win32.gypi */,
+				41426CBD3D8B3AF961A7F64C /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		7A767B07FDD83A16366CA370 /* Source */ = {
 			isa = PBXGroup;
 			children = (
@@ -462,7 +452,7 @@
 			children = (
 				7A767B07FDD83A16366CA370 /* Source */,
 				B06727CF4C7B610B97B61195 /* Products */,
-				35D0987DF3DFEC514DD0DE0A /* Build */,
+				7553892346BF0730E7A9884C /* Build */,
 			);
 			sourceTree = "<group>";
 		};

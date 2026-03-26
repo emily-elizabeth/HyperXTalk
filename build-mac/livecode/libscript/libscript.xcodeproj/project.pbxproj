@@ -150,23 +150,19 @@
 		183E192F8C69D910851FF10D /* libScript-host.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libScript-host.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		285BFCD76B000310BE1E5DB7 /* module-encoding.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-encoding.cpp"; sourceTree = "<group>"; };
 		2B4349190504210DBCE0494D /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../config/win32.gypi; sourceTree = "<group>"; };
-		2D009BF47A3F9471BF4A12ED /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
 		2DBE80E5FB55E4EFB98B0C1C /* module-foreign.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-foreign.cpp"; sourceTree = "<group>"; };
 		2F5CEEB457EBCFA9055C70D6 /* module-bitwise.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-bitwise.cpp"; sourceTree = "<group>"; };
 		31926EE3CC25EEB2FD2BDE5B /* module-list.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-list.cpp"; sourceTree = "<group>"; };
 		38935DDE81C76711F4A3DBF3 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../config/crosscompile.gypi; sourceTree = "<group>"; };
 		3A8EEA520F1224D894BB946D /* module-binary.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-binary.cpp"; sourceTree = "<group>"; };
 		4C539628A43961F3FFE41F5D /* module-arithmetic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-arithmetic.cpp"; sourceTree = "<group>"; };
-		4D7AEFCC0A3F1D86C289741B /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
 		505AF5731F9D6C1CE70574B8 /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
-		52B2F7E5DC79CA77DCD52F52 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
 		53A0597A0461A80BD3C29728 /* module-java.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-java.cpp"; sourceTree = "<group>"; };
 		5480DE4DDC50DD955E68B32C /* module-type.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-type.cpp"; sourceTree = "<group>"; };
 		5819C5182CC9F88D4B15F20A /* module-unittest_IMPL.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-unittest_IMPL.cpp"; sourceTree = "<group>"; };
 		60C47FC651CDE98DEB768B7D /* libscript.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = libscript.gyp; sourceTree = "<group>"; };
 		610EF245BCC01FF22003F62B /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../config/version.gypi; sourceTree = "<group>"; };
 		618E01DF2C4741DCB631AE97 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
-		6557B72831B7264E5EEC2697 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
 		6CA4CA425CC0782DBE0B817F /* module-sort.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-sort.cpp"; sourceTree = "<group>"; };
 		6D861B54CB98B87EF51F0BE7 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
 		6E3D1382445CA99A3AABC05B /* module-stream.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-stream.cpp"; sourceTree = "<group>"; };
@@ -198,7 +194,6 @@
 		C747C149EF7D06FCCB74DCE2 /* module-string.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-string.cpp"; sourceTree = "<group>"; };
 		CB6FD10CDFF25C9F0296E7B3 /* module-unittest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-unittest.cpp"; sourceTree = "<group>"; };
 		D45FF6B917ACA368BA60C061 /* script-validate.hpp */ = {isa = PBXFileReference; lastKnownFileType = text; path = "script-validate.hpp"; sourceTree = "<group>"; };
-		D4729A666C85E53B3C3AE234 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		D771A304D6C999F6E7C296C9 /* script-execute-objc.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = "script-execute-objc.mm"; sourceTree = "<group>"; };
 		DA0C3A6F5B9DDE29D64DE50B /* module-math_foundation.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "module-math_foundation.cpp"; sourceTree = "<group>"; };
 		E3FC100C66430690A75D3B23 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
@@ -258,13 +253,36 @@
 			name = Projects;
 			sourceTree = "<group>";
 		};
+		0FB43073B2CD44C15738D2E6 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				618E01DF2C4741DCB631AE97 /* arch.gypi */,
+				ED937C651276615CDD0472D4 /* common.gypi */,
+				04D055AA1B86C095CD5F1913 /* configurations.gypi */,
+				38935DDE81C76711F4A3DBF3 /* crosscompile.gypi */,
+				505AF5731F9D6C1CE70574B8 /* exclusions.gypi */,
+				60C47FC651CDE98DEB768B7D /* libscript.gyp */,
+				B3D674DB81AC3918699D1FD0 /* linux-settings.gypi */,
+				6D861B54CB98B87EF51F0BE7 /* linux.gypi */,
+				164B50AE9971D63703B539D4 /* mac.gypi */,
+				EA478F55D0B718FC351A35D9 /* perl.gypi */,
+				C0864D07C98C71B52B7B470E /* stdscript-sources.gypi */,
+				8446616F44413F92CD4568A6 /* target_os.gypi */,
+				A9AB09785253F697D6DA647D /* thirdparty.gypi */,
+				610EF245BCC01FF22003F62B /* version.gypi */,
+				2B4349190504210DBCE0494D /* win32.gypi */,
+				E3FC100C66430690A75D3B23 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		5120EBE4E0F3A4A826952D7D = {
 			isa = PBXGroup;
 			children = (
 				78060250E9B1C619F91FF536 /* Source */,
 				0E7973CCA20BDFD33737F721 /* Projects */,
 				C1614AFCBEC19D0BA9603283 /* Products */,
-				D280A066E7E0BE539FA8EDF7 /* Build */,
+				0FB43073B2CD44C15738D2E6 /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -340,34 +358,6 @@
 				D45FF6B917ACA368BA60C061 /* script-validate.hpp */,
 			);
 			path = src;
-			sourceTree = "<group>";
-		};
-		D280A066E7E0BE539FA8EDF7 /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				4D7AEFCC0A3F1D86C289741B /* android-settings.gypi */,
-				6557B72831B7264E5EEC2697 /* android.gypi */,
-				618E01DF2C4741DCB631AE97 /* arch.gypi */,
-				ED937C651276615CDD0472D4 /* common.gypi */,
-				04D055AA1B86C095CD5F1913 /* configurations.gypi */,
-				38935DDE81C76711F4A3DBF3 /* crosscompile.gypi */,
-				D4729A666C85E53B3C3AE234 /* emscripten-settings.gypi */,
-				2D009BF47A3F9471BF4A12ED /* emscripten.gypi */,
-				505AF5731F9D6C1CE70574B8 /* exclusions.gypi */,
-				52B2F7E5DC79CA77DCD52F52 /* ios.gypi */,
-				60C47FC651CDE98DEB768B7D /* libscript.gyp */,
-				B3D674DB81AC3918699D1FD0 /* linux-settings.gypi */,
-				6D861B54CB98B87EF51F0BE7 /* linux.gypi */,
-				164B50AE9971D63703B539D4 /* mac.gypi */,
-				EA478F55D0B718FC351A35D9 /* perl.gypi */,
-				C0864D07C98C71B52B7B470E /* stdscript-sources.gypi */,
-				8446616F44413F92CD4568A6 /* target_os.gypi */,
-				A9AB09785253F697D6DA647D /* thirdparty.gypi */,
-				610EF245BCC01FF22003F62B /* version.gypi */,
-				2B4349190504210DBCE0494D /* win32.gypi */,
-				E3FC100C66430690A75D3B23 /* yacc.gypi */,
-			);
-			name = Build;
 			sourceTree = "<group>";
 		};
 		F3E63CAA812572EF1780F33C /* Products */ = {

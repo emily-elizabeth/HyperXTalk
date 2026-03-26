@@ -114,26 +114,21 @@
 		4B65A525B126310F717E40BA /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
 		51F7D4F7E506FC8A46C52C42 /* revpdfprinter.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = revpdfprinter.gyp; sourceTree = "<group>"; };
 		54F877438555BE9A44BF7200 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
-		5765CD1895EB08F507460943 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
 		626EDED54DC556658EE3826F /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
 		6309249B3FC86E2BB00C87FF /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = ../prebuilt/lib/mac/libz.a; sourceTree = "<group>"; };
 		6A3AD33502C2B7DFAFA2ACC4 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
 		6C2C517F4BAF4E5FFDE3598B /* libexternal.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libexternal.xcodeproj; path = "../build-mac/livecode/libexternal/libexternal.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		78C2A39602551689C3623B1C /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
-		7A6D1F01010C84946DF79053 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		8E9591EF5A556B7E059C685B /* libcore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libcore.xcodeproj; path = "../build-mac/livecode/libcore/libcore.xcodeproj"; sourceTree = SOURCE_ROOT; };
-		919E2EC610C648A70592BE0F /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
 		9F6CBAE8421F6A2C13A5EC8C /* revpdfprinter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = revpdfprinter.h; sourceTree = "<group>"; };
 		A604551FE45503A41A5CDA83 /* thirdparty.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = thirdparty.xcodeproj; path = "../build-mac/livecode/prebuilt/thirdparty.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		A830C793F832988466F33247 /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
-		B075B00AB7A4CC6EEF9696E8 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
 		B7E4B6C3D1E12BB7F3AA64D1 /* configurations.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = configurations.gypi; path = ../config/configurations.gypi; sourceTree = "<group>"; };
 		B8CD0E5ADFC8749278A1BC4F /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		BA4F32353748300648A465A9 /* revpdfprinter_lnx.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = revpdfprinter_lnx.cpp; sourceTree = "<group>"; };
 		C005B00F33F1F4B5EF399E97 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
 		C090D492A310A44B2CA4561A /* revpdfprinter_android.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = revpdfprinter_android.cpp; sourceTree = "<group>"; };
 		D70F2D4AF88E4F9C59D3380D /* revpdfprinter_ios.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = revpdfprinter_ios.mm; sourceTree = "<group>"; };
-		D7152FC23E6EDE30B7302303 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
 		DADE7F8750FBB5D97E92868B /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
 		E626DEB643A946D6B8938D16 /* fetch.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = fetch.xcodeproj; path = "../build-mac/livecode/prebuilt/fetch.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		E93695BAE1552748C475DEDA /* libcairo.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcairo.a; path = ../prebuilt/lib/mac/libcairo.a; sourceTree = "<group>"; };
@@ -176,33 +171,6 @@
 				EDBD37A89120F0754471B804 /* revpdfprinter.bundle */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		1139B3B3D42AA314B97CBC5D /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				919E2EC610C648A70592BE0F /* android-settings.gypi */,
-				5765CD1895EB08F507460943 /* android.gypi */,
-				626EDED54DC556658EE3826F /* arch.gypi */,
-				C005B00F33F1F4B5EF399E97 /* common.gypi */,
-				B7E4B6C3D1E12BB7F3AA64D1 /* configurations.gypi */,
-				23636D593507ED812471F29F /* crosscompile.gypi */,
-				7A6D1F01010C84946DF79053 /* emscripten-settings.gypi */,
-				D7152FC23E6EDE30B7302303 /* emscripten.gypi */,
-				1D1F07516A5F47CB3ADF2149 /* exclusions.gypi */,
-				B075B00AB7A4CC6EEF9696E8 /* ios.gypi */,
-				2C281D298E082F316D9BBC1E /* linux-settings.gypi */,
-				6A3AD33502C2B7DFAFA2ACC4 /* linux.gypi */,
-				EB126D4E856F90E9B7846D2C /* mac.gypi */,
-				54F877438555BE9A44BF7200 /* perl.gypi */,
-				51F7D4F7E506FC8A46C52C42 /* revpdfprinter.gyp */,
-				DADE7F8750FBB5D97E92868B /* target_os.gypi */,
-				4A0EA4757BD033460F403BDE /* thirdparty.gypi */,
-				12D24C963F85E26C414AA436 /* version.gypi */,
-				391E232E3B667C61EB81DC66 /* win32.gypi */,
-				A830C793F832988466F33247 /* yacc.gypi */,
-			);
-			name = Build;
 			sourceTree = "<group>";
 		};
 		2D8FDA32894A5134141815B8 /* src */ = {
@@ -248,6 +216,28 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		84EA27B985042B1C85AA6446 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				626EDED54DC556658EE3826F /* arch.gypi */,
+				C005B00F33F1F4B5EF399E97 /* common.gypi */,
+				B7E4B6C3D1E12BB7F3AA64D1 /* configurations.gypi */,
+				23636D593507ED812471F29F /* crosscompile.gypi */,
+				1D1F07516A5F47CB3ADF2149 /* exclusions.gypi */,
+				2C281D298E082F316D9BBC1E /* linux-settings.gypi */,
+				6A3AD33502C2B7DFAFA2ACC4 /* linux.gypi */,
+				EB126D4E856F90E9B7846D2C /* mac.gypi */,
+				54F877438555BE9A44BF7200 /* perl.gypi */,
+				51F7D4F7E506FC8A46C52C42 /* revpdfprinter.gyp */,
+				DADE7F8750FBB5D97E92868B /* target_os.gypi */,
+				4A0EA4757BD033460F403BDE /* thirdparty.gypi */,
+				12D24C963F85E26C414AA436 /* version.gypi */,
+				391E232E3B667C61EB81DC66 /* win32.gypi */,
+				A830C793F832988466F33247 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		C5F643DAD96B3B2587A5928E /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -284,7 +274,7 @@
 				CDD8669C3A66AE25CA65FB4D /* Projects */,
 				668BA9D1EBFAFC08234A2C7A /* Frameworks */,
 				052795EB765C220CB91A73B9 /* Products */,
-				1139B3B3D42AA314B97CBC5D /* Build */,
+				84EA27B985042B1C85AA6446 /* Build */,
 			);
 			sourceTree = "<group>";
 		};

@@ -216,22 +216,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		01175788D2D75E6F608802FC /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		05747518CA5A8187B27102EE /* libxml.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxml.a; path = ../prebuilt/lib/mac/libxml.a; sourceTree = "<group>"; };
 		1025EC0B452557FEADBECE87 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		18435C61F5BCC610824ADCEF /* version.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = version.gypi; path = ../config/version.gypi; sourceTree = "<group>"; };
 		18985EED950BCC7A78913AFE /* libxslt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxslt.a; path = ../prebuilt/lib/mac/libxslt.a; sourceTree = "<group>"; };
-		1AA6DBE9F271F2AB73DFB1C4 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
 		2A5A5B70D6D3570470C3787F /* libz.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libz.a; path = ../prebuilt/lib/mac/libz.a; sourceTree = "<group>"; };
 		31D05D805EE6AA9119610879 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
 		37E0649E9478E598FC5FAF45 /* libcore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libcore.xcodeproj; path = "../build-mac/livecode/libcore/libcore.xcodeproj"; sourceTree = SOURCE_ROOT; };
-		4694B191D533F975092499BD /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
 		46F70A78DA18633439FCA665 /* server-revxml.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "server-revxml.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A14619DEE5D6BCCCE23F682 /* thirdparty.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = thirdparty.xcodeproj; path = "../build-mac/livecode/prebuilt/thirdparty.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		67F71A554D74475AF95E74A7 /* revxml.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = revxml.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
-		6AB285B336086A9210061C51 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
 		6D84D409B035CD2578ABEBA5 /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../config/thirdparty.gypi; sourceTree = "<group>"; };
-		6EC701D7FC7B7098FA6E40D9 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
 		774AD024987298B04540892B /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
 		7A03890D1CB5E11067F38002 /* fetch.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = fetch.xcodeproj; path = "../build-mac/livecode/prebuilt/fetch.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		7C17DBD4B81A7C82B122C72E /* revxml.gyp */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = revxml.gyp; sourceTree = "<group>"; };
@@ -300,33 +295,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		132F7168C985D651BE38333E /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				4694B191D533F975092499BD /* android-settings.gypi */,
-				1AA6DBE9F271F2AB73DFB1C4 /* android.gypi */,
-				31D05D805EE6AA9119610879 /* arch.gypi */,
-				897D54DA34071D6AADD641B3 /* common.gypi */,
-				9D27A45EA08778F9B55565C0 /* configurations.gypi */,
-				D4288F125B8EAAA9975C4B87 /* crosscompile.gypi */,
-				01175788D2D75E6F608802FC /* emscripten-settings.gypi */,
-				6AB285B336086A9210061C51 /* emscripten.gypi */,
-				EC76801AD2AEAA46A2DE1CD3 /* exclusions.gypi */,
-				6EC701D7FC7B7098FA6E40D9 /* ios.gypi */,
-				D6122C76B2C0333D60C401CF /* linux-settings.gypi */,
-				C6745B291DD0F1C92B45DA1E /* linux.gypi */,
-				C4059CC2BB58173B8365B128 /* mac.gypi */,
-				8FE23919FCA306E319515C4E /* perl.gypi */,
-				7C17DBD4B81A7C82B122C72E /* revxml.gyp */,
-				FE058EE6239ABDAD8DCF9E89 /* target_os.gypi */,
-				6D84D409B035CD2578ABEBA5 /* thirdparty.gypi */,
-				18435C61F5BCC610824ADCEF /* version.gypi */,
-				D5336EB272663B20C6A97394 /* win32.gypi */,
-				BB96AC6F5B804AAAEE6A940F /* yacc.gypi */,
-			);
-			name = Build;
-			sourceTree = "<group>";
-		};
 		1459AA03CC57976C28B4E86F /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -372,6 +340,28 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		A85954D3C721D443FF619BF9 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				31D05D805EE6AA9119610879 /* arch.gypi */,
+				897D54DA34071D6AADD641B3 /* common.gypi */,
+				9D27A45EA08778F9B55565C0 /* configurations.gypi */,
+				D4288F125B8EAAA9975C4B87 /* crosscompile.gypi */,
+				EC76801AD2AEAA46A2DE1CD3 /* exclusions.gypi */,
+				D6122C76B2C0333D60C401CF /* linux-settings.gypi */,
+				C6745B291DD0F1C92B45DA1E /* linux.gypi */,
+				C4059CC2BB58173B8365B128 /* mac.gypi */,
+				8FE23919FCA306E319515C4E /* perl.gypi */,
+				7C17DBD4B81A7C82B122C72E /* revxml.gyp */,
+				FE058EE6239ABDAD8DCF9E89 /* target_os.gypi */,
+				6D84D409B035CD2578ABEBA5 /* thirdparty.gypi */,
+				18435C61F5BCC610824ADCEF /* version.gypi */,
+				D5336EB272663B20C6A97394 /* win32.gypi */,
+				BB96AC6F5B804AAAEE6A940F /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		ABA38BAAC14DE4D2123C4131 /* Source */ = {
 			isa = PBXGroup;
 			children = (
@@ -388,7 +378,7 @@
 				BF582DD442C8F8DCE31A978E /* Projects */,
 				7F26B62D1BDA991CC94F1129 /* Frameworks */,
 				834D213CFDF5D56415AA935B /* Products */,
-				132F7168C985D651BE38333E /* Build */,
+				A85954D3C721D443FF619BF9 /* Build */,
 			);
 			sourceTree = "<group>";
 		};

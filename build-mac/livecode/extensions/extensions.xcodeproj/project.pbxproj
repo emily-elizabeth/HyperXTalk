@@ -287,14 +287,11 @@
 /* Begin PBXFileReference section */
 		04FA25B2422B6A6D22927BB9 /* spinner.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = spinner.lcb; sourceTree = "<group>"; };
 		055458572DDDDCC68F999E70 /* macbutton.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = macbutton.lcb; sourceTree = "<group>"; };
-		080E694909697B21303227BC /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
 		09BBEEE465D5021FFCF76AE1 /* browser.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = browser.lcb; sourceTree = "<group>"; };
-		0B5168780FF8BD27A6072E72 /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
 		0DFF35EE4F3605887977959B /* mactextfield.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = mactextfield.lcb; sourceTree = "<group>"; };
 		0E37E41408C430EFBD419CCC /* header.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = header.lcb; sourceTree = "<group>"; };
 		10979F4F3FD0C77032B4EE1E /* thirdparty.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = thirdparty.gypi; path = ../config/thirdparty.gypi; sourceTree = "<group>"; };
 		1B490F120CB32CD427EBC8F8 /* inih.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = inih.xcodeproj; path = "../build-mac/livecode/extensions/libraries/ini/inih/inih.xcodeproj"; sourceTree = SOURCE_ROOT; };
-		1F23813895200306E7711728 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
 		21917864C1F1F484ACA70D28 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
 		22A99291FE52BCE3C1B3B1E3 /* diff.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = diff.livecodescript; sourceTree = "<group>"; };
 		22FFCF6A0334944C093373FC /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
@@ -315,19 +312,11 @@
 		46DD4DF41426A49C4CABC0E7 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
 		555B8EE189BAA80C3B123D56 /* qr.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = qr.livecodescript; sourceTree = "<group>"; };
 		5639D219F8700C49E7040060 /* revzip.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = revzip.xcodeproj; path = "../build-mac/livecode/revzip/revzip.xcodeproj"; sourceTree = SOURCE_ROOT; };
-		5A05AE250F52E6BF026436B3 /* androidbgaudio.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = androidbgaudio.lcb; sourceTree = "<group>"; };
-		5A999D571B85865F41898D26 /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
-		5D17D4497EB432D571E0F8E6 /* android-utils.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "android-utils.lcb"; sourceTree = "<group>"; };
 		5F2AF10051ED786F313D001D /* engine.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = engine.xcodeproj; path = "../build-mac/livecode/engine/engine.xcodeproj"; sourceTree = SOURCE_ROOT; };
-		5FA63CA1E7F3C75C4E921C9E /* androidfield.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = androidfield.lcb; sourceTree = "<group>"; };
 		6390F4DB7E5A4051B07069E1 /* notarealfile.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = notarealfile.txt; sourceTree = "<group>"; };
 		6630AAAA7A41190BC4C1B84C /* oauth2.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = oauth2.livecodescript; sourceTree = "<group>"; };
 		665D0B93AD1E5609725B9ADA /* tz.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = tz.xcodeproj; path = "../build-mac/livecode/extensions/libraries/timezone/tz/tz.xcodeproj"; sourceTree = SOURCE_ROOT; };
-		67D82F9574CC3363FA04FF82 /* androidbutton.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = androidbutton.lcb; sourceTree = "<group>"; };
-		68CE496FDB7D061CFBEEC390 /* html5button.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = html5button.lcb; sourceTree = "<group>"; };
 		68E5C703E02E896682648F2A /* clock.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = clock.lcb; sourceTree = "<group>"; };
-		694A126C7EFFE2EDF57A4C2A /* androidaudiorecorder.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = androidaudiorecorder.lcb; sourceTree = "<group>"; };
-		6A00D3F08D6DA867A02A6561 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
 		6BBA71530A6FB2322423DA56 /* win32.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = win32.gypi; path = ../config/win32.gypi; sourceTree = "<group>"; };
 		6BC75C0AE7CB027A66739C09 /* treeview.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = treeview.lcb; sourceTree = "<group>"; };
 		6E07C42613B40C44DAB99E40 /* gradientrampeditor.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = gradientrampeditor.lcb; sourceTree = "<group>"; };
@@ -337,7 +326,6 @@
 		765821DBB4089580B0A3762D /* linux-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "linux-settings.gypi"; path = "../config/linux-settings.gypi"; sourceTree = "<group>"; };
 		765E8F681BC4847B7439B525 /* mime.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = mime.livecodescript; sourceTree = "<group>"; };
 		7773F11FBB3F66418D32360F /* dropbox.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = dropbox.livecodescript; sourceTree = "<group>"; };
-		7F940EB15373CD01CB51193F /* toast.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = toast.lcb; sourceTree = "<group>"; };
 		7FC0AFFE4D48942412596A52 /* widget-utils.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "widget-utils.lcb"; sourceTree = "<group>"; };
 		8078AFEC7148FCF021ECBF8E /* extension-utils.lc */ = {isa = PBXFileReference; lastKnownFileType = text; path = "extension-utils.lc"; sourceTree = "<group>"; };
 		89545630F983E25F7AB3DFDF /* target_os.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = target_os.gypi; path = ../config/target_os.gypi; sourceTree = "<group>"; };
@@ -364,7 +352,6 @@
 		DE508F1F93C39DEB0A854BDC /* ini.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = ini.lcb; sourceTree = "<group>"; };
 		EBC76BE81EA572A18D0C0830 /* macstatusmenu.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = macstatusmenu.lcb; sourceTree = "<group>"; };
 		F0AB51543817E71EA6A9A182 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
-		F219DAD7D08F70804B48B951 /* iosbutton.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = iosbutton.lcb; sourceTree = "<group>"; };
 		F6ECDDAAAF475C70A02EAFCE /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
 		FCEF34BEEF0960AAE10B75F4 /* timezone.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = timezone.lcb; sourceTree = "<group>"; };
 		FD1902DD7900153856FBAFBD /* messageauthentication.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = messageauthentication.livecodescript; sourceTree = "<group>"; };
@@ -421,10 +408,9 @@
 			path = gradientrampeditor;
 			sourceTree = "<group>";
 		};
-		1DC552E4698CA42F0730C28C /* modules */ = {
+		25E8F2B132C5DCBFEFA7FF0D /* modules */ = {
 			isa = PBXGroup;
 			children = (
-				FA1E132CCC741594ADE65026 /* android-utils */,
 				145EA4B78DABF400869B9600 /* scriptitems */,
 				3F56DC6339B4FBC04883B9B9 /* widget-utils */,
 			);
@@ -445,34 +431,6 @@
 				22A99291FE52BCE3C1B3B1E3 /* diff.livecodescript */,
 			);
 			path = com.livecode.library.diff;
-			sourceTree = "<group>";
-		};
-		2FB4128D447A9EC9D6CDF773 /* widgets */ = {
-			isa = PBXGroup;
-			children = (
-				D3889045BA3450373BCB1342 /* androidbutton */,
-				BF94B64CE8C36F2B03172614 /* androidfield */,
-				083BA2D5A447156EE6A896C7 /* browser */,
-				B851E5E16DE2DEF460F04ED2 /* clock */,
-				C8F1A1EE6204E2404C93E78B /* colorswatch */,
-				1D2C256ED3AF73DF1D76FBC6 /* gradientrampeditor */,
-				C7599FA7D3D29D72FD050C15 /* graph */,
-				63543A57472E5F130DEC836B /* header */,
-				F3E54FFB17E90EAAE41143D5 /* html5button */,
-				BF3E25D4ACDC6CA616BD7ADE /* iconpicker */,
-				F3C692ED8067D603960C7DB9 /* iosbutton */,
-				F471FAFA7F9C9F2D19AA4C00 /* macbutton */,
-				FE222E37403694B56CD26021 /* mactextfield */,
-				B9E029C458414C67972B119A /* navbar */,
-				FD12978AD42605F571EF5B60 /* paletteactions */,
-				E537B6F34B041661FA6E7647 /* segmented */,
-				73238705B4A200752A202761 /* spinner */,
-				6E035215B082F2D4DE8008D3 /* svgpath */,
-				7683D4FB20852B9E2767DB2A /* switchbutton */,
-				A7D36F019FCE7C3E602A9943 /* tile */,
-				6D53959924D927002224D5C0 /* treeview */,
-			);
-			path = widgets;
 			sourceTree = "<group>";
 		};
 		3A6144ACA15A44D24952664C /* macstatusmenu */ = {
@@ -516,7 +474,7 @@
 			children = (
 				8C5F7931EAA70EB93AE9740C /* Source */,
 				A1EF15F52C81855B78B3E1DD /* Projects */,
-				DC878380667BED3ABDB11736 /* Build */,
+				67FB053F57CDAAFBA966EE8C /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -551,6 +509,28 @@
 			path = header;
 			sourceTree = "<group>";
 		};
+		67FB053F57CDAAFBA966EE8C /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				3D16AE429F283B750F18EC2D /* arch.gypi */,
+				F0AB51543817E71EA6A9A182 /* common.gypi */,
+				D3E35F27FB4C94214782C1E4 /* configurations.gypi */,
+				4011E90B37C16E678F604021 /* crosscompile.gypi */,
+				F6ECDDAAAF475C70A02EAFCE /* exclusions.gypi */,
+				372CF7599537B133E133F9B9 /* extensions.gyp */,
+				765821DBB4089580B0A3762D /* linux-settings.gypi */,
+				21917864C1F1F484ACA70D28 /* linux.gypi */,
+				3AD4A0A2D59AE7259D4C0FD3 /* mac.gypi */,
+				46DD4DF41426A49C4CABC0E7 /* perl.gypi */,
+				89545630F983E25F7AB3DFDF /* target_os.gypi */,
+				10979F4F3FD0C77032B4EE1E /* thirdparty.gypi */,
+				D7ACDA2EC9C141BF4D626EA5 /* version.gypi */,
+				6BBA71530A6FB2322423DA56 /* win32.gypi */,
+				CA25D9A296BC16CE4571F8E7 /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		6A638E2266F7C42004D040E7 /* com.livecode.library.messageauthentication */ = {
 			isa = PBXGroup;
 			children = (
@@ -567,23 +547,6 @@
 			path = com.livecode.library.httpd;
 			sourceTree = "<group>";
 		};
-		6D4F91978D5F973AB18E2876 /* libraries */ = {
-			isa = PBXGroup;
-			children = (
-				CDCE1BBBD29AB31CDB485C56 /* androidaudiorecorder */,
-				FB47283D3A119DA738E9551C /* androidbgaudio */,
-				E821D02578CB81C23B1731A9 /* canvas */,
-				7045E98444D8ED188924CA43 /* iconsvg */,
-				BCB58FCE91D48A1A19F31D8E /* ini */,
-				82F4A7FC27905018637EDCFD /* json */,
-				3A6144ACA15A44D24952664C /* macstatusmenu */,
-				96AC3424D5160F898744D5A8 /* objectrepository */,
-				EF048964F9D832D12E51B4E7 /* timezone */,
-				9723A1D233AFF3BB94B5AA3C /* toast */,
-			);
-			path = libraries;
-			sourceTree = "<group>";
-		};
 		6D53959924D927002224D5C0 /* treeview */ = {
 			isa = PBXGroup;
 			children = (
@@ -598,6 +561,30 @@
 				AF74F4305B443D6612A680C9 /* svgpath.lcb */,
 			);
 			path = svgpath;
+			sourceTree = "<group>";
+		};
+		6ED7B665D37EA34CE950C70E /* widgets */ = {
+			isa = PBXGroup;
+			children = (
+				083BA2D5A447156EE6A896C7 /* browser */,
+				B851E5E16DE2DEF460F04ED2 /* clock */,
+				C8F1A1EE6204E2404C93E78B /* colorswatch */,
+				1D2C256ED3AF73DF1D76FBC6 /* gradientrampeditor */,
+				C7599FA7D3D29D72FD050C15 /* graph */,
+				63543A57472E5F130DEC836B /* header */,
+				BF3E25D4ACDC6CA616BD7ADE /* iconpicker */,
+				F471FAFA7F9C9F2D19AA4C00 /* macbutton */,
+				FE222E37403694B56CD26021 /* mactextfield */,
+				B9E029C458414C67972B119A /* navbar */,
+				FD12978AD42605F571EF5B60 /* paletteactions */,
+				E537B6F34B041661FA6E7647 /* segmented */,
+				73238705B4A200752A202761 /* spinner */,
+				6E035215B082F2D4DE8008D3 /* svgpath */,
+				7683D4FB20852B9E2767DB2A /* switchbutton */,
+				A7D36F019FCE7C3E602A9943 /* tile */,
+				6D53959924D927002224D5C0 /* treeview */,
+			);
+			path = widgets;
 			sourceTree = "<group>";
 		};
 		7045E98444D8ED188924CA43 /* iconsvg */ = {
@@ -688,10 +675,10 @@
 			children = (
 				FAE473DD255136C9E5E1D437 /* .. */,
 				A9CA42319CA817D0BE14A385 /* BUILT_PRODUCTS_DIR */,
-				6D4F91978D5F973AB18E2876 /* libraries */,
-				1DC552E4698CA42F0730C28C /* modules */,
+				D61BF11BB5F0AE3AC6446827 /* libraries */,
+				25E8F2B132C5DCBFEFA7FF0D /* modules */,
 				0BCC969BD7CB2CF8C53558B6 /* script-libraries */,
-				2FB4128D447A9EC9D6CDF773 /* widgets */,
+				6ED7B665D37EA34CE950C70E /* widgets */,
 				6390F4DB7E5A4051B07069E1 /* notarealfile.txt */,
 			);
 			name = Source;
@@ -719,14 +706,6 @@
 				8C33398F99668CE3C1500204 /* objectrepository.lcb */,
 			);
 			path = objectrepository;
-			sourceTree = "<group>";
-		};
-		9723A1D233AFF3BB94B5AA3C /* toast */ = {
-			isa = PBXGroup;
-			children = (
-				7F940EB15373CD01CB51193F /* toast.lcb */,
-			);
-			path = toast;
 			sourceTree = "<group>";
 		};
 		A1EF15F52C81855B78B3E1DD /* Projects */ = {
@@ -833,14 +812,6 @@
 			path = iconpicker;
 			sourceTree = "<group>";
 		};
-		BF94B64CE8C36F2B03172614 /* androidfield */ = {
-			isa = PBXGroup;
-			children = (
-				5FA63CA1E7F3C75C4E921C9E /* androidfield.lcb */,
-			);
-			path = androidfield;
-			sourceTree = "<group>";
-		};
 		C3C459746097412376BCB0EC /* com.livecode.library.getopt */ = {
 			isa = PBXGroup;
 			children = (
@@ -873,14 +844,6 @@
 			path = com.livecode.library.mime;
 			sourceTree = "<group>";
 		};
-		CDCE1BBBD29AB31CDB485C56 /* androidaudiorecorder */ = {
-			isa = PBXGroup;
-			children = (
-				694A126C7EFFE2EDF57A4C2A /* androidaudiorecorder.lcb */,
-			);
-			path = androidaudiorecorder;
-			sourceTree = "<group>";
-		};
 		D1F996D02F305B2D98FE9AA1 /* messageauthentication */ = {
 			isa = PBXGroup;
 			children = (
@@ -889,12 +852,18 @@
 			path = messageauthentication;
 			sourceTree = "<group>";
 		};
-		D3889045BA3450373BCB1342 /* androidbutton */ = {
+		D61BF11BB5F0AE3AC6446827 /* libraries */ = {
 			isa = PBXGroup;
 			children = (
-				67D82F9574CC3363FA04FF82 /* androidbutton.lcb */,
+				E821D02578CB81C23B1731A9 /* canvas */,
+				7045E98444D8ED188924CA43 /* iconsvg */,
+				BCB58FCE91D48A1A19F31D8E /* ini */,
+				82F4A7FC27905018637EDCFD /* json */,
+				3A6144ACA15A44D24952664C /* macstatusmenu */,
+				96AC3424D5160F898744D5A8 /* objectrepository */,
+				EF048964F9D832D12E51B4E7 /* timezone */,
 			);
-			path = androidbutton;
+			path = libraries;
 			sourceTree = "<group>";
 		};
 		D8A284D9A8CE6AC331A7C7AA /* mime */ = {
@@ -903,33 +872,6 @@
 				765E8F681BC4847B7439B525 /* mime.livecodescript */,
 			);
 			path = mime;
-			sourceTree = "<group>";
-		};
-		DC878380667BED3ABDB11736 /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				1F23813895200306E7711728 /* android-settings.gypi */,
-				6A00D3F08D6DA867A02A6561 /* android.gypi */,
-				3D16AE429F283B750F18EC2D /* arch.gypi */,
-				F0AB51543817E71EA6A9A182 /* common.gypi */,
-				D3E35F27FB4C94214782C1E4 /* configurations.gypi */,
-				4011E90B37C16E678F604021 /* crosscompile.gypi */,
-				5A999D571B85865F41898D26 /* emscripten-settings.gypi */,
-				080E694909697B21303227BC /* emscripten.gypi */,
-				F6ECDDAAAF475C70A02EAFCE /* exclusions.gypi */,
-				372CF7599537B133E133F9B9 /* extensions.gyp */,
-				0B5168780FF8BD27A6072E72 /* ios.gypi */,
-				765821DBB4089580B0A3762D /* linux-settings.gypi */,
-				21917864C1F1F484ACA70D28 /* linux.gypi */,
-				3AD4A0A2D59AE7259D4C0FD3 /* mac.gypi */,
-				46DD4DF41426A49C4CABC0E7 /* perl.gypi */,
-				89545630F983E25F7AB3DFDF /* target_os.gypi */,
-				10979F4F3FD0C77032B4EE1E /* thirdparty.gypi */,
-				D7ACDA2EC9C141BF4D626EA5 /* version.gypi */,
-				6BBA71530A6FB2322423DA56 /* win32.gypi */,
-				CA25D9A296BC16CE4571F8E7 /* yacc.gypi */,
-			);
-			name = Build;
 			sourceTree = "<group>";
 		};
 		E537B6F34B041661FA6E7647 /* segmented */ = {
@@ -964,22 +906,6 @@
 			path = resources;
 			sourceTree = "<group>";
 		};
-		F3C692ED8067D603960C7DB9 /* iosbutton */ = {
-			isa = PBXGroup;
-			children = (
-				F219DAD7D08F70804B48B951 /* iosbutton.lcb */,
-			);
-			path = iosbutton;
-			sourceTree = "<group>";
-		};
-		F3E54FFB17E90EAAE41143D5 /* html5button */ = {
-			isa = PBXGroup;
-			children = (
-				68CE496FDB7D061CFBEEC390 /* html5button.lcb */,
-			);
-			path = html5button;
-			sourceTree = "<group>";
-		};
 		F471FAFA7F9C9F2D19AA4C00 /* macbutton */ = {
 			isa = PBXGroup;
 			children = (
@@ -988,28 +914,12 @@
 			path = macbutton;
 			sourceTree = "<group>";
 		};
-		FA1E132CCC741594ADE65026 /* android-utils */ = {
-			isa = PBXGroup;
-			children = (
-				5D17D4497EB432D571E0F8E6 /* android-utils.lcb */,
-			);
-			path = "android-utils";
-			sourceTree = "<group>";
-		};
 		FAE473DD255136C9E5E1D437 /* .. */ = {
 			isa = PBXGroup;
 			children = (
 				22FFCF6A0334944C093373FC /* version */,
 			);
 			path = ..;
-			sourceTree = "<group>";
-		};
-		FB47283D3A119DA738E9551C /* androidbgaudio */ = {
-			isa = PBXGroup;
-			children = (
-				5A05AE250F52E6BF026436B3 /* androidbgaudio.lcb */,
-			);
-			path = androidbgaudio;
 			sourceTree = "<group>";
 		};
 		FD12978AD42605F571EF5B60 /* paletteactions */ = {
@@ -1187,11 +1097,7 @@
 			inputPaths = (
 				"script-libraries/extension-utils/resources/extension-utils.lc",
 				"modules/widget-utils/widget-utils.lcb",
-				"modules/android-utils/android-utils.lcb",
 				modules/scriptitems/scriptitems.lcb,
-				libraries/androidbgaudio/androidbgaudio.lcb,
-				libraries/androidaudiorecorder/androidaudiorecorder.lcb,
-				libraries/toast/toast.lcb,
 				libraries/canvas/canvas.lcb,
 				libraries/iconsvg/iconsvg.lcb,
 				libraries/json/json.lcb,
@@ -1199,12 +1105,8 @@
 				libraries/ini/ini.lcb,
 				libraries/timezone/timezone.lcb,
 				libraries/macstatusmenu/macstatusmenu.lcb,
-				widgets/androidbutton/androidbutton.lcb,
-				widgets/androidfield/androidfield.lcb,
-				widgets/html5button/html5button.lcb,
 				widgets/macbutton/macbutton.lcb,
 				widgets/mactextfield/mactextfield.lcb,
-				widgets/iosbutton/iosbutton.lcb,
 				widgets/browser/browser.lcb,
 				widgets/clock/clock.lcb,
 				widgets/graph/graph.lcb,
@@ -1227,7 +1129,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo note: \"Building extensions\"\nexec \"${BUILT_PRODUCTS_DIR}/server-community\" script-libraries/extension-utils/resources/extension-utils.lc \"${not_a_real_variable}buildlcbextensions\" ../ide-support/revdocsparser.livecodescript \"${BUILT_PRODUCTS_DIR}/packaged_extensions\" \"${not_a_real_variable}false\" \"${BUILT_PRODUCTS_DIR}/lc-compile\" \"${BUILT_PRODUCTS_DIR}/modules/lci\" \"${not_a_real_variable}\" modules/widget-utils/widget-utils.lcb modules/android-utils/android-utils.lcb modules/scriptitems/scriptitems.lcb libraries/androidbgaudio/androidbgaudio.lcb libraries/androidaudiorecorder/androidaudiorecorder.lcb libraries/toast/toast.lcb libraries/canvas/canvas.lcb libraries/iconsvg/iconsvg.lcb libraries/json/json.lcb libraries/objectrepository/objectrepository.lcb libraries/ini/ini.lcb libraries/timezone/timezone.lcb libraries/macstatusmenu/macstatusmenu.lcb widgets/androidbutton/androidbutton.lcb widgets/androidfield/androidfield.lcb widgets/html5button/html5button.lcb widgets/macbutton/macbutton.lcb widgets/mactextfield/mactextfield.lcb widgets/iosbutton/iosbutton.lcb widgets/browser/browser.lcb widgets/clock/clock.lcb widgets/graph/graph.lcb widgets/header/header.lcb widgets/iconpicker/iconpicker.lcb widgets/navbar/navbar.lcb widgets/paletteactions/paletteactions.lcb widgets/segmented/segmented.lcb widgets/svgpath/svgpath.lcb widgets/switchbutton/switchbutton.lcb widgets/treeview/treeview.lcb widgets/colorswatch/colorswatch.lcb widgets/gradientrampeditor/gradientrampeditor.lcb widgets/tile/tile.lcb widgets/spinner/spinner.lcb\nexit 1\n";
+			shellScript = "echo note: \"Building extensions\"\nexec \"${BUILT_PRODUCTS_DIR}/server-community\" script-libraries/extension-utils/resources/extension-utils.lc \"${not_a_real_variable}buildlcbextensions\" ../ide-support/revdocsparser.livecodescript \"${BUILT_PRODUCTS_DIR}/packaged_extensions\" \"${not_a_real_variable}false\" \"${BUILT_PRODUCTS_DIR}/lc-compile\" \"${BUILT_PRODUCTS_DIR}/modules/lci\" \"${not_a_real_variable}\" modules/widget-utils/widget-utils.lcb modules/scriptitems/scriptitems.lcb libraries/canvas/canvas.lcb libraries/iconsvg/iconsvg.lcb libraries/json/json.lcb libraries/objectrepository/objectrepository.lcb libraries/ini/ini.lcb libraries/timezone/timezone.lcb libraries/macstatusmenu/macstatusmenu.lcb widgets/macbutton/macbutton.lcb widgets/mactextfield/mactextfield.lcb widgets/browser/browser.lcb widgets/clock/clock.lcb widgets/graph/graph.lcb widgets/header/header.lcb widgets/iconpicker/iconpicker.lcb widgets/navbar/navbar.lcb widgets/paletteactions/paletteactions.lcb widgets/segmented/segmented.lcb widgets/svgpath/svgpath.lcb widgets/switchbutton/switchbutton.lcb widgets/treeview/treeview.lcb widgets/colorswatch/colorswatch.lcb widgets/gradientrampeditor/gradientrampeditor.lcb widgets/tile/tile.lcb widgets/spinner/spinner.lcb\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 		D23FCBCA2BD88F099B34123D /* Rule "build_script_extension" */ = {

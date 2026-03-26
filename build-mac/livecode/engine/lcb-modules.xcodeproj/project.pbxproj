@@ -81,7 +81,6 @@
 		0F34360180C434EBFFAED89B /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
 		2775DCD18AC7882572F36F63 /* com.livecode.type.lci */ = {isa = PBXFileReference; lastKnownFileType = text; path = com.livecode.type.lci; sourceTree = "<group>"; };
 		2A8C70AC20A8259B00EF91BC /* browser.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = browser.lcb; sourceTree = "<group>"; };
-		385707F6A0B0230507631EC1 /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
 		3D028CC68A3C75BB42D5FE09 /* char.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = char.lcb; sourceTree = "<group>"; };
 		3DFBA1244E831B80A3E6364E /* lc-compile.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "lc-compile.xcodeproj"; path = "../build-mac/livecode/toolchain/lc-compile/lc-compile.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		3F938A2F439F5A865274F016 /* sort.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = sort.lcb; sourceTree = "<group>"; };
@@ -104,7 +103,6 @@
 		878EF516806720A3B7F99F68 /* linux.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = linux.gypi; path = ../config/linux.gypi; sourceTree = "<group>"; };
 		8D031FCCF71E0E394B89AE6A /* codeunit.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = codeunit.lcb; sourceTree = "<group>"; };
 		901CBA95989BA195174E121E /* assert.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = assert.lcb; sourceTree = "<group>"; };
-		91C7A0C331BB43DAADE0D092 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
 		95F698E719D1036993BF069C /* widget.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = widget.lcb; sourceTree = "<group>"; };
 		9B3E2C334378F2A32EE0C082 /* unittest.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = unittest.lcb; sourceTree = "<group>"; };
 		9B4398BE3B06FB84FBA23B83 /* math-foundation.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "math-foundation.lcb"; sourceTree = "<group>"; };
@@ -118,7 +116,6 @@
 		C13D81613F903C095378E584 /* perl.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = perl.gypi; path = ../config/perl.gypi; sourceTree = "<group>"; };
 		C391BAE33CE7BCDB4C365AD5 /* crosscompile.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = crosscompile.gypi; path = ../config/crosscompile.gypi; sourceTree = "<group>"; };
 		CC81E41905767FDFD9F22449 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
-		D21CF74FEC26D8F7BA04A85A /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
 		D3ADABB488B20015E9EB82EB /* canvas.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = canvas.lcb; sourceTree = "<group>"; };
 		D4ADF811FD8F00B1D3F3618F /* unittest-impl.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "unittest-impl.lcb"; sourceTree = "<group>"; };
 		D80C2D6AE47C3F980E5C5B37 /* stream.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = stream.lcb; sourceTree = "<group>"; };
@@ -180,17 +177,6 @@
 			name = Projects;
 			sourceTree = "<group>";
 		};
-		4D80DB55B7BBFF51EB7C4553 /* src */ = {
-			isa = PBXGroup;
-			children = (
-				2A8C70AC20A8259B00EF91BC /* browser.lcb */,
-				D3ADABB488B20015E9EB82EB /* canvas.lcb */,
-				A51CEB6B14EADE413EE991A1 /* engine.lcb */,
-				95F698E719D1036993BF069C /* widget.lcb */,
-			);
-			path = src;
-			sourceTree = "<group>";
-		};
 		55FA7B504390FEECDEC7AFCE /* .. */ = {
 			isa = PBXGroup;
 			children = (
@@ -200,31 +186,15 @@
 			path = ..;
 			sourceTree = "<group>";
 		};
-		57A31B12C42A785543B1CE36 /* Build */ = {
+		80DEA308FD70C5B5147A19C9 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				91C7A0C331BB43DAADE0D092 /* android-settings.gypi */,
-				385707F6A0B0230507631EC1 /* android.gypi */,
-				CC81E41905767FDFD9F22449 /* arch.gypi */,
-				801608050340A67EDD999CCD /* common.gypi */,
-				E7718E9FAD996033154B56C0 /* configurations.gypi */,
-				C391BAE33CE7BCDB4C365AD5 /* crosscompile.gypi */,
-				F257A507521660F8075941EA /* engine-sources.gypi */,
-				0F34360180C434EBFFAED89B /* exclusions.gypi */,
-				D21CF74FEC26D8F7BA04A85A /* ios.gypi */,
-				4AE9F9D241EFBCB2C9B1AD98 /* lcb-modules.gyp */,
-				B8B96010272549A3B7398A79 /* linux-settings.gypi */,
-				878EF516806720A3B7F99F68 /* linux.gypi */,
-				4B3A5C7BD9B3529DED9822E3 /* mac.gypi */,
-				C13D81613F903C095378E584 /* perl.gypi */,
-				7DFDC34DFEAF0A79C358E131 /* stdscript-sources.gypi */,
-				FBF3832494D3275A937E5498 /* target_os.gypi */,
-				0EA8B852BBC4E05D7588909A /* thirdparty.gypi */,
-				BF80447DB98412FBB8703D53 /* version.gypi */,
-				752E7FC0F80F4E226FEECE69 /* win32.gypi */,
-				5F773AAD6EB0AC8C07A3BDEB /* yacc.gypi */,
+				2A8C70AC20A8259B00EF91BC /* browser.lcb */,
+				D3ADABB488B20015E9EB82EB /* canvas.lcb */,
+				A51CEB6B14EADE413EE991A1 /* engine.lcb */,
+				95F698E719D1036993BF069C /* widget.lcb */,
 			);
-			name = Build;
+			path = src;
 			sourceTree = "<group>";
 		};
 		9DA8FA6A87A5228F34685AA5 /* Intermediates */ = {
@@ -240,9 +210,33 @@
 			children = (
 				55FA7B504390FEECDEC7AFCE /* .. */,
 				F588A8A42ED5DFFDF7CD019E /* BUILT_PRODUCTS_DIR */,
-				4D80DB55B7BBFF51EB7C4553 /* src */,
+				80DEA308FD70C5B5147A19C9 /* src */,
 			);
 			name = Source;
+			sourceTree = "<group>";
+		};
+		CEC82C07ED2661DE20F6C5B0 /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				CC81E41905767FDFD9F22449 /* arch.gypi */,
+				801608050340A67EDD999CCD /* common.gypi */,
+				E7718E9FAD996033154B56C0 /* configurations.gypi */,
+				C391BAE33CE7BCDB4C365AD5 /* crosscompile.gypi */,
+				F257A507521660F8075941EA /* engine-sources.gypi */,
+				0F34360180C434EBFFAED89B /* exclusions.gypi */,
+				4AE9F9D241EFBCB2C9B1AD98 /* lcb-modules.gyp */,
+				B8B96010272549A3B7398A79 /* linux-settings.gypi */,
+				878EF516806720A3B7F99F68 /* linux.gypi */,
+				4B3A5C7BD9B3529DED9822E3 /* mac.gypi */,
+				C13D81613F903C095378E584 /* perl.gypi */,
+				7DFDC34DFEAF0A79C358E131 /* stdscript-sources.gypi */,
+				FBF3832494D3275A937E5498 /* target_os.gypi */,
+				0EA8B852BBC4E05D7588909A /* thirdparty.gypi */,
+				BF80447DB98412FBB8703D53 /* version.gypi */,
+				752E7FC0F80F4E226FEECE69 /* win32.gypi */,
+				5F773AAD6EB0AC8C07A3BDEB /* yacc.gypi */,
+			);
+			name = Build;
 			sourceTree = "<group>";
 		};
 		E4A6265C9B32EDC2A4BCC48F = {
@@ -251,7 +245,7 @@
 				C45330DC0DC0A4B8B21AB441 /* Source */,
 				9DA8FA6A87A5228F34685AA5 /* Intermediates */,
 				4B38788AB92CD1C4651C6718 /* Projects */,
-				57A31B12C42A785543B1CE36 /* Build */,
+				CEC82C07ED2661DE20F6C5B0 /* Build */,
 			);
 			sourceTree = "<group>";
 		};

@@ -50,35 +50,40 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		037290F894D49208987E26D5 /* ide.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B4F121D86AA03A89394AB12 /* ide.cpp */; };
+		04F65561D0A66386B6785137 /* mode_development.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3031B52D1EC75B6AD039DE7F /* mode_development.cpp */; };
+		0521A6A42A462D3D71C32716 /* deploy_windows.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B7DB62ECE39647D467010B80 /* deploy_windows.cpp */; };
 		069ABFDCD38A945D2E166FDC /* libskia_opt_sse42.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3DC11713D175532E36AF3733 /* libskia_opt_sse42.a */; };
-		07A9D0312D27D7EF4E752E82 /* lextable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DD5B008ECDD0098899732A58 /* lextable.cpp */; };
-		104D103D37D6315A3CD9C7E7 /* deploy_windows.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B7DB62ECE39647D467010B80 /* deploy_windows.cpp */; };
 		1149AA0B81289869E771FF90 /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DE1C56736033ACCCAEE3E9A0 /* libjpeg.a */; };
+		1217F811642E8915911A96B5 /* lextable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DD5B008ECDD0098899732A58 /* lextable.cpp */; };
 		125190670EB746A116054F9B /* libskia.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3131E522662279A4E436D234 /* libskia.a */; };
-		134F823B6B4BF4C36B8FCA1A /* internal_development.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F27DEA8850FA411F2151F821 /* internal_development.cpp */; };
 		1ED8DB0C97E641D11B3D6996 /* libcpptest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C0030736C068AEA325C7ECAE /* libcpptest.a */; };
 		1F77E9B77486F56A80360372 /* libGraphics.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EB7AA63D7E10AD650CF60F26 /* libGraphics.a */; };
 		1FB1DE97F276CE6B5D5948C5 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 45637A16CFB2AEAA2D43690A /* AudioToolbox.framework */; };
 		22FE57BE1FB94A5E9E79CD0D /* stdscript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FAB0D089E0B3BDCB05000A23 /* stdscript.a */; };
+		2359018786E38C0989310AE4 /* deploy_dmg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6C5BC1077FC09ED2470D2E0F /* deploy_dmg.cpp */; };
 		2487DE05AE5194998D9FEC74 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CB21686FC9AF4D760A6ED77 /* Carbon.framework */; };
 		26DCA5737FE1C7A3CB233962 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4926A86D77F21131397EA4EF /* libpng.a */; };
-		28315710F72B5F09AAB5ABBE /* dummystartupstack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F5DC9639584E5F9122CDFA0 /* dummystartupstack.cpp */; };
 		311708C4EE03CEA4739032C3 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 807257DF49CA0DBF4C80AD41 /* Security.framework */; };
+		38AAF034229B0FD51F51076B /* bsdiff_build.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77DC8C4107F1CDF733B26A69 /* bsdiff_build.cpp */; };
 		3CEB1190AFC4F15E634EB702 /* libffi.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E327B7E2EB15D74DB7CE20A /* libffi.a */; };
 		3D5FFEE519EE2D7576BF4B3E /* libFoundation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 719C3835370EAB8583A82D5E /* libFoundation.a */; };
 		40B2D3A6313A35A882C9E897 /* libskia_opt_sse3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EB70995399EC303D20B7A75E /* libskia_opt_sse3.a */; };
 		4149673B57474E629E442982 /* libicuuc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 387B8B9744C95D65DC364A3F /* libicuuc.a */; };
+		4252C05B769DBCECE865E902 /* deploysecurity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6B0A0EAB13EACF12B71B4BF2 /* deploysecurity.cpp */; };
 		443B386956D2DCEC147DA882 /* libkernel-development.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 38CF3FC37632B15427403F63 /* libkernel-development.a */; };
+		4892906F953225563C247FE8 /* internal_development.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F27DEA8850FA411F2151F821 /* internal_development.cpp */; };
 		4A597A96194C28E8285C26C9 /* test_path.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 487D3B40D5836F5E30245C42 /* test_path.cpp */; };
 		4E3685A8AF57E9B440824F38 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF83EB1866A6A8B729FEA99A /* ApplicationServices.framework */; };
+		55B72A3401C6FCF1EEFF69D5 /* ide.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B4F121D86AA03A89394AB12 /* ide.cpp */; };
 		55C16F86B8BAD47BF3F9E3A6 /* libicudata.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93DD8D9045B5883D30E58C23 /* libicudata.a */; };
+		5B47D705EE539EE1B3FC3AF5 /* deploy_linux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3AD29E09D1E0D1AFD9D548E /* deploy_linux.cpp */; };
 		5B57F9E0CB9CA4473F60AAFF /* libicui18n.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EEDE675220F1A06C0B8559B8 /* libicui18n.a */; };
 		65BEE151F06E1A0B528C3B43 /* libsecurity-community.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 327E3E2C519EC34EDA8E8EA2 /* libsecurity-community.a */; };
 		6BA7A8BEC41A0D86A1863369 /* test_rgb.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B01F63B061FFDC4E15737C6D /* test_rgb.cpp */; };
-		6EAE09FC3614678ED9C7075B /* mode_development.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3031B52D1EC75B6AD039DE7F /* mode_development.cpp */; };
+		6CDDBE423C81CB1524D70648 /* deploy_sign.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F25D6BB131D276A9504D58B7 /* deploy_sign.cpp */; };
 		6F06283F2D38E34516DFCD1D /* MediaToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C8CB018D432725DC7D34730E /* MediaToolbox.framework */; };
 		71D383170362A01694B46BFD /* libskia_opt_avx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9F519ABCB248C776A6A5990 /* libskia_opt_avx.a */; };
+		7243887DA1C0A5226A3AB1F8 /* deploy_macosx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 07930F813B683392EA29B286 /* deploy_macosx.cpp */; };
 		7381AABFF35EF68D4BC18577 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0394DA2BF2241B11D547831F /* CoreGraphics.framework */; };
 		7412D614AFFD86E4188F3F17 /* libpcre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A20CAA96C567895FAB2AA773 /* libpcre.a */; };
 		7681773A03D06372CC71E5E7 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FFC862B548543B289CB2DF0 /* CoreFoundation.framework */; };
@@ -94,11 +99,9 @@
 		915E1D5CD29BDFBCAD67A93A /* libicutu.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E7A08C34821897AFA26D37A6 /* libicutu.a */; };
 		9E77230F7A2B459B6372F505 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B54FD0861A0E4BA12C0B019 /* Cocoa.framework */; };
 		9F1FB62AECD2968FEE403148 /* test_lextable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C62FB3710F708D96649FFA99 /* test_lextable.cpp */; };
-		A1B657C2E6B96BC155D17649 /* bsdiff_build.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 77DC8C4107F1CDF733B26A69 /* bsdiff_build.cpp */; };
 		A205608AB06BFAA5CDB8BE67 /* test_new.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8FA8FCD32B9A6D89B392E82 /* test_new.cpp */; };
 		A4C77D9FE02356254B0919E5 /* libkernel.a in Frameworks */ = {isa = PBXBuildFile; fileRef = FB5231404F05BAAD9E4F9B50 /* libkernel.a */; };
-		ADADB941D79EFFC25B4B8328 /* deploy_capsule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CC1B09A85A864962D6536D29 /* deploy_capsule.cpp */; };
-		B34E1996819788FAD627E52F /* deploy_sign.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F25D6BB131D276A9504D58B7 /* deploy_sign.cpp */; };
+		A787B956CA33810D4B6CC517 /* deploy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B99D1049A210C905378FAEE2 /* deploy.cpp */; };
 		BA6F6E4EC137EC224DB5257E /* libskia_opt_sse2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 71831FD95E208161D78B09BD /* libskia_opt_sse2.a */; };
 		C0869E7F13A1FC394DEB2537 /* libskia_opt_sse41.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 27C717EB1AED641B4E6960F3 /* libskia_opt_sse41.a */; };
 		C2ADB5B49F8C79CFDCCB0941 /* libbrowser.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D96B0663562D675E04740995 /* libbrowser.a */; };
@@ -107,18 +110,15 @@
 		DB01AD2F21128DFFFCEBE71A /* libScript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C55A1F32890823A8ED43733B /* libScript.a */; };
 		DDDD0E56810713296F9FEED3 /* libskia_opt_hsw.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DC732BE67921E9F7C509A77B /* libskia_opt_hsw.a */; };
 		DE9341D303FB91141B7D2BB5 /* libffi.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B2E1760568834DDEFEAEF35 /* libffi.a */; };
-		E122E53B28FF0418D482B610 /* deploy_macosx.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 07930F813B683392EA29B286 /* deploy_macosx.cpp */; };
-		E509B90E11B2E69E9D2B907B /* deploy_dmg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6C5BC1077FC09ED2470D2E0F /* deploy_dmg.cpp */; };
+		E4F7FABF8BCE3A719618EB84 /* deploy_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDE466EC1E93D4D34DCC1E72 /* deploy_file.cpp */; };
 		E65DF8B95DFC691C7C549E38 /* libopenssl_stubs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A2D3CF9CE99FE02C98DF0D0C /* libopenssl_stubs.a */; };
 		EA9A1E3AD6D6D885BF6B5A53 /* encodederrors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 022AEC2BE67E41AA75AFFF8E /* encodederrors.cpp */; };
 		EEB879B9328CCC8CD8841F53 /* libicuio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9372CDCB3826751B3DFA3891 /* libicuio.a */; };
 		EEF0B8A38E482BCEF6883C8E /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0E2DA5452B823C357009773A /* CoreMedia.framework */; };
-		F1062E5903D1563C806E7AC4 /* deploysecurity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6B0A0EAB13EACF12B71B4BF2 /* deploysecurity.cpp */; };
 		F24C771A556EA128F7D08B0F /* libcups.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 416ECCBCE466CABFF9A23F4C /* libcups.dylib */; };
 		F266B8F86B294135EC896CA1 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4C2AC0AFB9E6BF483E9F6B8 /* CoreText.framework */; };
-		F58A04545F4C3523A68B45DD /* deploy_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDE466EC1E93D4D34DCC1E72 /* deploy_file.cpp */; };
-		F9205BD705449C95B0127060 /* deploy_linux.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3AD29E09D1E0D1AFD9D548E /* deploy_linux.cpp */; };
-		FAA2F1B298D6BB6C28526B69 /* deploy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B99D1049A210C905378FAEE2 /* deploy.cpp */; };
+		F8997381CC88ACBA167AFB90 /* dummystartupstack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3F5DC9639584E5F9122CDFA0 /* dummystartupstack.cpp */; };
+		FB43F42B88FC17EF1E3CD808 /* deploy_capsule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CC1B09A85A864962D6536D29 /* deploy_capsule.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -592,7 +592,6 @@
 		1B14253C81A6E888C05FE528 /* libscript.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libscript.xcodeproj; path = "../build-mac/livecode/libscript/libscript.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		1BED9B45E577A5576D5BAC73 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		1C2A887E2399FC00186E7E80 /* arch.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = arch.gypi; path = ../config/arch.gypi; sourceTree = "<group>"; };
-		243A61E4BE872B92EC8F1D9E /* android.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = android.gypi; path = ../config/android.gypi; sourceTree = "<group>"; };
 		27C717EB1AED641B4E6960F3 /* libskia_opt_sse41.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskia_opt_sse41.a; path = ../prebuilt/lib/mac/libskia_opt_sse41.a; sourceTree = "<group>"; };
 		28C05F2E5A3CD123B08630D0 /* version */ = {isa = PBXFileReference; lastKnownFileType = text; path = version; sourceTree = "<group>"; };
 		28FE5CBDEA057F453459CF44 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
@@ -640,8 +639,6 @@
 		8FE42D75C7CC8420B9E1C27E /* deploy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = deploy.h; sourceTree = "<group>"; };
 		9372CDCB3826751B3DFA3891 /* libicuio.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicuio.a; path = ../prebuilt/lib/mac/libicuio.a; sourceTree = "<group>"; };
 		93DD8D9045B5883D30E58C23 /* libicudata.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libicudata.a; path = ../prebuilt/lib/mac/libicudata.a; sourceTree = "<group>"; };
-		9A435A2C69F2EBBECBEBDE11 /* emscripten.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = emscripten.gypi; path = ../config/emscripten.gypi; sourceTree = "<group>"; };
-		9AC225220FBDC04B0452B34E /* emscripten-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "emscripten-settings.gypi"; path = "../config/emscripten-settings.gypi"; sourceTree = "<group>"; };
 		9D297C1BDF86C59B6FC09DD9 /* test-kernel-development */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "test-kernel-development"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20CAA96C567895FAB2AA773 /* libpcre.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpcre.a; path = ../prebuilt/lib/mac/libpcre.a; sourceTree = "<group>"; };
 		A29C98C7B9A914189546C622 /* kernel-mode-template.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = "kernel-mode-template.gypi"; sourceTree = "<group>"; };
@@ -660,14 +657,12 @@
 		BC408B39F6A4420F745840CF /* yacc.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = yacc.gypi; path = ../config/yacc.gypi; sourceTree = "<group>"; };
 		BDE466EC1E93D4D34DCC1E72 /* deploy_file.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = deploy_file.cpp; sourceTree = "<group>"; };
 		C047A3B6D76E220E6274E959 /* kernel.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = kernel.xcodeproj; path = "../build-mac/livecode/engine/kernel.xcodeproj"; sourceTree = SOURCE_ROOT; };
-		C0914F78BB689AB0C970703F /* ios.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = ios.gypi; path = ../config/ios.gypi; sourceTree = "<group>"; };
 		C5524C950E1551DDFE004D44 /* engine-sources.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; path = "engine-sources.gypi"; sourceTree = "<group>"; };
 		C5672B1E6E82C7F6E4CF97F1 /* deploysecurity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = deploysecurity.h; sourceTree = "<group>"; };
 		C62FB3710F708D96649FFA99 /* test_lextable.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = test_lextable.cpp; sourceTree = "<group>"; };
 		C8CB018D432725DC7D34730E /* MediaToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaToolbox.framework; path = System/Library/Frameworks/MediaToolbox.framework; sourceTree = SDKROOT; };
 		CC1B09A85A864962D6536D29 /* deploy_capsule.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = deploy_capsule.cpp; sourceTree = "<group>"; };
 		D1459F7754513C504013145C /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
-		D4482EF25C165B787BBBD6E7 /* android-settings.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = "android-settings.gypi"; path = "../config/android-settings.gypi"; sourceTree = "<group>"; };
 		D9F519ABCB248C776A6A5990 /* libskia_opt_avx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskia_opt_avx.a; path = ../prebuilt/lib/mac/libskia_opt_avx.a; sourceTree = "<group>"; };
 		DA38375A3F6E3005FF0D27BA /* libfoundation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libfoundation.xcodeproj; path = "../build-mac/livecode/libfoundation/libfoundation.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		DC732BE67921E9F7C509A77B /* libskia_opt_hsw.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libskia_opt_hsw.a; path = ../prebuilt/lib/mac/libskia_opt_hsw.a; sourceTree = "<group>"; };
@@ -772,6 +767,31 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		2360F90DFAC751B494D57D6A /* Build */ = {
+			isa = PBXGroup;
+			children = (
+				1C2A887E2399FC00186E7E80 /* arch.gypi */,
+				877CFC32F7BC2103787995B8 /* common.gypi */,
+				5730187F19BE999557E00CD6 /* configurations.gypi */,
+				5B657386649CAB7433AABFD8 /* cpptest.gypi */,
+				A363C8BBFC552F365F4F1EF8 /* crosscompile.gypi */,
+				C5524C950E1551DDFE004D44 /* engine-sources.gypi */,
+				42611C413AE66C6DD92F3F06 /* exclusions.gypi */,
+				F9B8E3FE0958B15F002610F5 /* kernel-development.gyp */,
+				A29C98C7B9A914189546C622 /* kernel-mode-template.gypi */,
+				A4A988EFF1DB78AEFCDE0A49 /* linux-settings.gypi */,
+				3F3D10F62199EE16EC4E7543 /* linux.gypi */,
+				B0AB0BA5BC6684FAF3E4BFBA /* mac.gypi */,
+				827F809B9F2105BAF87F7A7F /* perl.gypi */,
+				3AE9571506E2BCC7F4CF57D0 /* target_os.gypi */,
+				AF297423FC1371524460D7C7 /* thirdparty.gypi */,
+				B744F74B596339700EC93BD8 /* version.gypi */,
+				5751E9544C4AE90FBCD41FCB /* win32.gypi */,
+				BC408B39F6A4420F745840CF /* yacc.gypi */,
+			);
+			name = Build;
+			sourceTree = "<group>";
+		};
 		2D7D08888E74C63E856A03DA /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -865,36 +885,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		3A10B58E69405B8A6CD032DA /* Build */ = {
-			isa = PBXGroup;
-			children = (
-				D4482EF25C165B787BBBD6E7 /* android-settings.gypi */,
-				243A61E4BE872B92EC8F1D9E /* android.gypi */,
-				1C2A887E2399FC00186E7E80 /* arch.gypi */,
-				877CFC32F7BC2103787995B8 /* common.gypi */,
-				5730187F19BE999557E00CD6 /* configurations.gypi */,
-				5B657386649CAB7433AABFD8 /* cpptest.gypi */,
-				A363C8BBFC552F365F4F1EF8 /* crosscompile.gypi */,
-				9AC225220FBDC04B0452B34E /* emscripten-settings.gypi */,
-				9A435A2C69F2EBBECBEBDE11 /* emscripten.gypi */,
-				C5524C950E1551DDFE004D44 /* engine-sources.gypi */,
-				42611C413AE66C6DD92F3F06 /* exclusions.gypi */,
-				C0914F78BB689AB0C970703F /* ios.gypi */,
-				F9B8E3FE0958B15F002610F5 /* kernel-development.gyp */,
-				A29C98C7B9A914189546C622 /* kernel-mode-template.gypi */,
-				A4A988EFF1DB78AEFCDE0A49 /* linux-settings.gypi */,
-				3F3D10F62199EE16EC4E7543 /* linux.gypi */,
-				B0AB0BA5BC6684FAF3E4BFBA /* mac.gypi */,
-				827F809B9F2105BAF87F7A7F /* perl.gypi */,
-				3AE9571506E2BCC7F4CF57D0 /* target_os.gypi */,
-				AF297423FC1371524460D7C7 /* thirdparty.gypi */,
-				B744F74B596339700EC93BD8 /* version.gypi */,
-				5751E9544C4AE90FBCD41FCB /* win32.gypi */,
-				BC408B39F6A4420F745840CF /* yacc.gypi */,
-			);
-			name = Build;
-			sourceTree = "<group>";
-		};
 		3F95AE4D496E4E1B0D2E510D /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -931,7 +921,7 @@
 				2F04E9A2B211C5DA6B311863 /* Projects */,
 				3984C905C4249EF5DF115EFD /* Frameworks */,
 				2D7D08888E74C63E856A03DA /* Products */,
-				3A10B58E69405B8A6CD032DA /* Build */,
+				2360F90DFAC751B494D57D6A /* Build */,
 			);
 			sourceTree = "<group>";
 		};
@@ -955,7 +945,24 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		9CCE661D99C24C4155F3B0A5 /* src */ = {
+		9EDD144F68EA68FAA3282EA2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A279CB3E2DB4112823D050FA /* Intermediates */ = {
+			isa = PBXGroup;
+			children = (
+				022AEC2BE67E41AA75AFFF8E /* encodederrors.cpp */,
+				0F7A0E07EEF24D7287341544 /* hashedstrings.cpp */,
+			);
+			name = Intermediates;
+			path = src;
+			sourceTree = INTERMEDIATE_DIR;
+		};
+		A3C71056AE3B34CBA4F26221 /* src */ = {
 			isa = PBXGroup;
 			children = (
 				DE675E8D447CC7B007A36033 /* bsdiff.h */,
@@ -983,28 +990,11 @@
 			path = src;
 			sourceTree = "<group>";
 		};
-		9EDD144F68EA68FAA3282EA2 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		A279CB3E2DB4112823D050FA /* Intermediates */ = {
-			isa = PBXGroup;
-			children = (
-				022AEC2BE67E41AA75AFFF8E /* encodederrors.cpp */,
-				0F7A0E07EEF24D7287341544 /* hashedstrings.cpp */,
-			);
-			name = Intermediates;
-			path = src;
-			sourceTree = INTERMEDIATE_DIR;
-		};
 		A3F71D7F407B84249A592547 /* Source */ = {
 			isa = PBXGroup;
 			children = (
 				AF13599A4E36D23F70BDD727 /* .. */,
-				9CCE661D99C24C4155F3B0A5 /* src */,
+				A3C71056AE3B34CBA4F26221 /* src */,
 				861546043F6E082CC01BE56A /* test */,
 			);
 			name = Source;
@@ -1435,20 +1425,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1B657C2E6B96BC155D17649 /* bsdiff_build.cpp in Sources */,
-				FAA2F1B298D6BB6C28526B69 /* deploy.cpp in Sources */,
-				ADADB941D79EFFC25B4B8328 /* deploy_capsule.cpp in Sources */,
-				E509B90E11B2E69E9D2B907B /* deploy_dmg.cpp in Sources */,
-				F58A04545F4C3523A68B45DD /* deploy_file.cpp in Sources */,
-				F9205BD705449C95B0127060 /* deploy_linux.cpp in Sources */,
-				E122E53B28FF0418D482B610 /* deploy_macosx.cpp in Sources */,
-				B34E1996819788FAD627E52F /* deploy_sign.cpp in Sources */,
-				104D103D37D6315A3CD9C7E7 /* deploy_windows.cpp in Sources */,
-				F1062E5903D1563C806E7AC4 /* deploysecurity.cpp in Sources */,
-				037290F894D49208987E26D5 /* ide.cpp in Sources */,
-				134F823B6B4BF4C36B8FCA1A /* internal_development.cpp in Sources */,
-				6EAE09FC3614678ED9C7075B /* mode_development.cpp in Sources */,
-				07A9D0312D27D7EF4E752E82 /* lextable.cpp in Sources */,
+				38AAF034229B0FD51F51076B /* bsdiff_build.cpp in Sources */,
+				A787B956CA33810D4B6CC517 /* deploy.cpp in Sources */,
+				FB43F42B88FC17EF1E3CD808 /* deploy_capsule.cpp in Sources */,
+				2359018786E38C0989310AE4 /* deploy_dmg.cpp in Sources */,
+				E4F7FABF8BCE3A719618EB84 /* deploy_file.cpp in Sources */,
+				5B47D705EE539EE1B3FC3AF5 /* deploy_linux.cpp in Sources */,
+				7243887DA1C0A5226A3AB1F8 /* deploy_macosx.cpp in Sources */,
+				6CDDBE423C81CB1524D70648 /* deploy_sign.cpp in Sources */,
+				0521A6A42A462D3D71C32716 /* deploy_windows.cpp in Sources */,
+				4252C05B769DBCECE865E902 /* deploysecurity.cpp in Sources */,
+				55B72A3401C6FCF1EEFF69D5 /* ide.cpp in Sources */,
+				4892906F953225563C247FE8 /* internal_development.cpp in Sources */,
+				04F65561D0A66386B6785137 /* mode_development.cpp in Sources */,
+				1217F811642E8915911A96B5 /* lextable.cpp in Sources */,
 				EA9A1E3AD6D6D885BF6B5A53 /* encodederrors.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1461,7 +1451,7 @@
 				A205608AB06BFAA5CDB8BE67 /* test_new.cpp in Sources */,
 				6BA7A8BEC41A0D86A1863369 /* test_rgb.cpp in Sources */,
 				4A597A96194C28E8285C26C9 /* test_path.cpp in Sources */,
-				28315710F72B5F09AAB5ABBE /* dummystartupstack.cpp in Sources */,
+				F8997381CC88ACBA167AFB90 /* dummystartupstack.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

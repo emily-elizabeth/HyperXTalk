@@ -139,7 +139,6 @@
 			'sources':
 			[
 				'modules/widget-utils/widget-utils.lcb',
-				'modules/android-utils/android-utils.lcb',				
 				'modules/scriptitems/scriptitems.lcb',
 
 				'libraries/canvas/canvas.lcb',
