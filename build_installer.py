@@ -641,11 +641,13 @@ def create_payload(payload_path):
             add_tree(ext_pkg, f"{SF}/Extensions", zf)
 
         # ----------------------------------------------------------------
-        # 12. Uninstaller → TF/LiveCode Setup.app
+        # 12. Uninstaller → SF/LiveCode Setup.app
+        #     Note: must live inside Contents/Tools, NOT at the bundle root,
+        #     so it does not break the app bundle's code signature seal.
         # ----------------------------------------------------------------
         stub = f"{MAC_BIN}/installer-stub"
         if os.path.exists(stub):
-            add_file_entry(stub, f"{TF}/LiveCode Setup.app", zf, is_exec=True)
+            add_file_entry(stub, f"{SF}/LiveCode Setup.app", zf, is_exec=True)
 
         # ----------------------------------------------------------------
         # Write manifest.txt
@@ -756,7 +758,20 @@ def main():
     create_payload(payload_path)
 
     # ------------------------------------------------------------------
-    # 5. Ad-hoc code-sign
+    # 5. Remove .setup.txt from bundle root before signing.
+    #    The installer writes this file at install time to track the
+    #    installation for the uninstaller. If present at signing time it
+    #    breaks the bundle signature seal ("unsealed contents present in
+    #    the bundle root"). It is safe to remove here — it will be
+    #    written fresh by the installer when the user installs.
+    # ------------------------------------------------------------------
+    setup_txt = os.path.join(app_path, ".setup.txt")
+    if os.path.exists(setup_txt):
+        os.remove(setup_txt)
+        print("Removed .setup.txt from bundle root before signing.")
+
+    # ------------------------------------------------------------------
+    # 6. Ad-hoc code-sign
     # ------------------------------------------------------------------
     identity_label = "ad-hoc" if CODESIGN_IDENTITY == "-" else CODESIGN_IDENTITY
     print(f"Code-signing ({identity_label}) …")
