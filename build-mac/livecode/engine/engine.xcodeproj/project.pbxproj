@@ -2360,8 +2360,8 @@
 				2C89B8F8834942C113DE82DE /* libfoundation.xcodeproj */,
 				1B7FC9E4013C1046793089EA /* libgraphics.xcodeproj */,
 				930A65BCE3B5771543CBDFED /* libicu.xcodeproj */,
-				C1C77A0A16F9A50C5F7A1E16 /* libopenssl.xcodeproj */,
 				D6CF378F685264511FC9E299 /* libopenssl.xcodeproj */,
+				C1C77A0A16F9A50C5F7A1E16 /* libopenssl.xcodeproj */,
 				23F80ABCADF3351FC5CC838B /* libscript.xcodeproj */,
 				77CE41DF00E735EB6A5FC21D /* revpdfprinter.xcodeproj */,
 				FF46801026559E06D04AF4B3 /* thirdparty.xcodeproj */,
@@ -3090,12 +3090,12 @@
 					ProjectRef = 930A65BCE3B5771543CBDFED /* libicu.xcodeproj */;
 				},
 				{
-					ProductGroup = E4D9B45E14EC69B1542AF05C /* Products */;
-					ProjectRef = C1C77A0A16F9A50C5F7A1E16 /* libopenssl.xcodeproj */;
-				},
-				{
 					ProductGroup = 6001E0A328AE9C419C0D2A87 /* Products */;
 					ProjectRef = D6CF378F685264511FC9E299 /* libopenssl.xcodeproj */;
+				},
+				{
+					ProductGroup = E4D9B45E14EC69B1542AF05C /* Products */;
+					ProjectRef = C1C77A0A16F9A50C5F7A1E16 /* libopenssl.xcodeproj */;
 				},
 				{
 					ProductGroup = D044A5C86B7D5CA3E5195F54 /* Products */;

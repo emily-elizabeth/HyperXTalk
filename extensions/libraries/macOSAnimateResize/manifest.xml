@@ -1,6 +1,6 @@
 <package version="0.0">
-  <name>org.openxtalk.windowanimation</name>
-  <title>Window Animation Library</title>
+  <name>com.hyperxtalk.macosanimateresize</name>
+  <title>macOS Window Animation Library</title>
   <author>Emily-Elizabeth Howard</author>
   <version>1.0.0</version>
   <license>community</license>

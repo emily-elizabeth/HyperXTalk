@@ -581,9 +581,15 @@
 			
 			'dependencies':
 			[
+				'../libcore/libcore.gyp:libCore',
 				'../libexternal/libexternal.gyp:libExternal',
 				'../prebuilt/thirdparty.gyp:thirdparty_prebuilt_sqlite',
 			],
+			
+			'variables':
+			{
+				'server_mode': 1,
+			},
 			
 			'include_dirs':
 			[

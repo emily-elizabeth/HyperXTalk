@@ -333,7 +333,6 @@
 		8D5EE74F252A66951B4B0EA0 /* switchbutton.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = switchbutton.lcb; sourceTree = "<group>"; };
 		8E82C92B4D99AB33D39D36E4 /* oauth2.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = oauth2.livecodescript; sourceTree = "<group>"; };
 		9BBF5F91BBE92417E91E0E3B /* scriptitems.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = scriptitems.lcb; sourceTree = "<group>"; };
-		9E11E0D7DED3BE6E110D11FE /* org.openxtalk.windowanimation.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = org.openxtalk.windowanimation.lcb; sourceTree = "<group>"; };
 		A1654C1EED1C9603C1F29A39 /* revxml.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = revxml.xcodeproj; path = "../build-mac/livecode/revxml/revxml.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		A4ACC73C6515F992560A5DF6 /* messageauthentication.livecodescript */ = {isa = PBXFileReference; lastKnownFileType = text; path = messageauthentication.livecodescript; sourceTree = "<group>"; };
 		A7ED9D9FA3A4ECB37BFD973A /* json.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = json.lcb; sourceTree = "<group>"; };
@@ -352,6 +351,7 @@
 		D874E23AA3C1A8E51E893F81 /* lc-compile.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "lc-compile.xcodeproj"; path = "../build-mac/livecode/toolchain/lc-compile/lc-compile.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		DE508F1F93C39DEB0A854BDC /* ini.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = ini.lcb; sourceTree = "<group>"; };
 		EBC76BE81EA572A18D0C0830 /* macstatusmenu.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = macstatusmenu.lcb; sourceTree = "<group>"; };
+		ECE0DC51FA658DD1B9E4B5A8 /* com.hyperxtalk.macosanimateresize.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = com.hyperxtalk.macosanimateresize.lcb; sourceTree = "<group>"; };
 		F0AB51543817E71EA6A9A182 /* common.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = common.gypi; path = ../common.gypi; sourceTree = "<group>"; };
 		F6ECDDAAAF475C70A02EAFCE /* exclusions.gypi */ = {isa = PBXFileReference; explicitFileType = sourcecode; name = exclusions.gypi; path = ../config/exclusions.gypi; sourceTree = "<group>"; };
 		FCEF34BEEF0960AAE10B75F4 /* timezone.lcb */ = {isa = PBXFileReference; lastKnownFileType = text; path = timezone.lcb; sourceTree = "<group>"; };
@@ -409,6 +409,14 @@
 			path = gradientrampeditor;
 			sourceTree = "<group>";
 		};
+		240445E417563CC8EA4D48B9 /* macOSAnimateResize */ = {
+			isa = PBXGroup;
+			children = (
+				ECE0DC51FA658DD1B9E4B5A8 /* com.hyperxtalk.macosanimateresize.lcb */,
+			);
+			path = macOSAnimateResize;
+			sourceTree = "<group>";
+		};
 		25E8F2B132C5DCBFEFA7FF0D /* modules */ = {
 			isa = PBXGroup;
 			children = (
@@ -432,14 +440,6 @@
 				22A99291FE52BCE3C1B3B1E3 /* diff.livecodescript */,
 			);
 			path = com.livecode.library.diff;
-			sourceTree = "<group>";
-		};
-		32D22486C678E879B490803A /* macOSAnimateResize */ = {
-			isa = PBXGroup;
-			children = (
-				9E11E0D7DED3BE6E110D11FE /* org.openxtalk.windowanimation.lcb */,
-			);
-			path = macOSAnimateResize;
 			sourceTree = "<group>";
 		};
 		3A6144ACA15A44D24952664C /* macstatusmenu */ = {
@@ -644,7 +644,7 @@
 				7045E98444D8ED188924CA43 /* iconsvg */,
 				BCB58FCE91D48A1A19F31D8E /* ini */,
 				82F4A7FC27905018637EDCFD /* json */,
-				32D22486C678E879B490803A /* macOSAnimateResize */,
+				240445E417563CC8EA4D48B9 /* macOSAnimateResize */,
 				3A6144ACA15A44D24952664C /* macstatusmenu */,
 				96AC3424D5160F898744D5A8 /* objectrepository */,
 				EF048964F9D832D12E51B4E7 /* timezone */,
@@ -1115,7 +1115,7 @@
 				libraries/ini/ini.lcb,
 				libraries/timezone/timezone.lcb,
 				libraries/macstatusmenu/macstatusmenu.lcb,
-				libraries/macOSAnimateResize/org.openxtalk.windowanimation.lcb,
+				libraries/macOSAnimateResize/com.hyperxtalk.macosanimateresize.lcb,
 				widgets/macbutton/macbutton.lcb,
 				widgets/mactextfield/mactextfield.lcb,
 				widgets/browser/browser.lcb,
@@ -1140,7 +1140,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "echo note: \"Building extensions\"\nexec \"${BUILT_PRODUCTS_DIR}/server-community\" script-libraries/extension-utils/resources/extension-utils.lc \"${not_a_real_variable}buildlcbextensions\" ../ide-support/revdocsparser.livecodescript \"${BUILT_PRODUCTS_DIR}/packaged_extensions\" \"${not_a_real_variable}false\" \"${BUILT_PRODUCTS_DIR}/lc-compile\" \"${BUILT_PRODUCTS_DIR}/modules/lci\" \"${not_a_real_variable}\" modules/widget-utils/widget-utils.lcb modules/scriptitems/scriptitems.lcb libraries/canvas/canvas.lcb libraries/iconsvg/iconsvg.lcb libraries/json/json.lcb libraries/objectrepository/objectrepository.lcb libraries/ini/ini.lcb libraries/timezone/timezone.lcb libraries/macstatusmenu/macstatusmenu.lcb libraries/macOSAnimateResize/org.openxtalk.windowanimation.lcb widgets/macbutton/macbutton.lcb widgets/mactextfield/mactextfield.lcb widgets/browser/browser.lcb widgets/clock/clock.lcb widgets/graph/graph.lcb widgets/header/header.lcb widgets/iconpicker/iconpicker.lcb widgets/navbar/navbar.lcb widgets/paletteactions/paletteactions.lcb widgets/segmented/segmented.lcb widgets/svgpath/svgpath.lcb widgets/switchbutton/switchbutton.lcb widgets/treeview/treeview.lcb widgets/colorswatch/colorswatch.lcb widgets/gradientrampeditor/gradientrampeditor.lcb widgets/tile/tile.lcb widgets/spinner/spinner.lcb\nexit 1\n";
+			shellScript = "echo note: \"Building extensions\"\nexec \"${BUILT_PRODUCTS_DIR}/server-community\" script-libraries/extension-utils/resources/extension-utils.lc \"${not_a_real_variable}buildlcbextensions\" ../ide-support/revdocsparser.livecodescript \"${BUILT_PRODUCTS_DIR}/packaged_extensions\" \"${not_a_real_variable}false\" \"${BUILT_PRODUCTS_DIR}/lc-compile\" \"${BUILT_PRODUCTS_DIR}/modules/lci\" \"${not_a_real_variable}\" modules/widget-utils/widget-utils.lcb modules/scriptitems/scriptitems.lcb libraries/canvas/canvas.lcb libraries/iconsvg/iconsvg.lcb libraries/json/json.lcb libraries/objectrepository/objectrepository.lcb libraries/ini/ini.lcb libraries/timezone/timezone.lcb libraries/macstatusmenu/macstatusmenu.lcb libraries/macOSAnimateResize/com.hyperxtalk.macosanimateresize.lcb widgets/macbutton/macbutton.lcb widgets/mactextfield/mactextfield.lcb widgets/browser/browser.lcb widgets/clock/clock.lcb widgets/graph/graph.lcb widgets/header/header.lcb widgets/iconpicker/iconpicker.lcb widgets/navbar/navbar.lcb widgets/paletteactions/paletteactions.lcb widgets/segmented/segmented.lcb widgets/svgpath/svgpath.lcb widgets/switchbutton/switchbutton.lcb widgets/treeview/treeview.lcb widgets/colorswatch/colorswatch.lcb widgets/gradientrampeditor/gradientrampeditor.lcb widgets/tile/tile.lcb widgets/spinner/spinner.lcb\nexit 1\n";
 			showEnvVarsInLog = 0;
 		};
 		D23FCBCA2BD88F099B34123D /* Rule "build_script_extension" */ = {

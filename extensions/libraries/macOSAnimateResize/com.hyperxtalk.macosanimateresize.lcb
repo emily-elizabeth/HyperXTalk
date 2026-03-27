@@ -5,11 +5,11 @@
   CGRect/NSRect struct-marshalling issues in LCB foreign handlers.
 */
 
-library org.openxtalk.windowanimation
+library com.hyperxtalk.macosanimateresize
 
 metadata version  is "1.0.0"
 metadata author   is "Emily-Elizabeth Howard"
-metadata title    is "Window Animation Library"
+metadata title    is "macOS Window Animation Library"
 metadata platform is "mac"
 
 use com.livecode.foreign

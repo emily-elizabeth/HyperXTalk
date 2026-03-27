@@ -711,8 +711,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8CF897F7C510EF107F6F8DAE /* libExternal.a in Frameworks */,
 				0261F4C04C75F59F8F8BB831 /* libCore.a in Frameworks */,
+				8CF897F7C510EF107F6F8DAE /* libExternal.a in Frameworks */,
 				A78FB67799776FFE8DEF0339 /* CoreServices.framework in Frameworks */,
 				53C47B1505439258B09B8131 /* libsqlite.a in Frameworks */,
 			);
@@ -1042,9 +1042,9 @@
 			buildRules = (
 			);
 			dependencies = (
+				B7DCEEE814052A79B0BB9095 /* PBXTargetDependency */,
 				628942C8FBA920BE72F2FC4C /* PBXTargetDependency */,
 				23034E4192AEEBAEAD0C51FD /* PBXTargetDependency */,
-				B7DCEEE814052A79B0BB9095 /* PBXTargetDependency */,
 				7C38E5C8673265D7BC75F4CC /* PBXTargetDependency */,
 				E7ACA93A16AEBB32EF0AB5E5 /* PBXTargetDependency */,
 				C1BA4153ED08941062785764 /* PBXTargetDependency */,
@@ -2485,6 +2485,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					src,
+					../libcore/include,
 					../libexternal/include,
 					../thirdparty/libsqlite/include,
 				);
@@ -3369,6 +3370,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					src,
+					../libcore/include,
 					../libexternal/include,
 					../thirdparty/libsqlite/include,
 				);
@@ -3884,6 +3886,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					src,
+					../libcore/include,
 					../libexternal/include,
 					../thirdparty/libsqlite/include,
 				);
