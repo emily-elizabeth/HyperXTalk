@@ -1,9 +1,55 @@
-Library: 
+Name: windowAnimateResize
 
-Type: 
+Type: handler
 
-version: 1.0.0
+Syntax: windowAnimateResize(<pWindowID>, <pLeft>, <pTop>, <pWidth>, <pHeight>, <pDuration>)
 
-author: Emily-Elizabeth Howard
+Summary: Smoothly resizes and repositions a macOS stack window using native Cocoa animation.
 
+Library: org.openxtalk.windowanimation
 
+OS: mac
+
+Platforms: desktop
+
+Parameters:
+pWindowID (Integer): The native window identifier. Always obtain this with `the windowId of stack "StackName"` using the explicit stack name. Never use `this stack` from within a toolbar callback as it resolves unreliably.
+pLeft (Integer): The new left edge of the window in LiveCode screen coordinates (top-left origin).
+pTop (Integer): The new top edge of the window in LiveCode screen coordinates (top-left origin).
+pWidth (Integer): The new window width in points.
+pHeight (Integer): The new content-area height in points. The title bar height is added automatically by the glue layer.
+pDuration (Real): The animation duration in seconds. For example, 0.3 gives a quick, snappy resize.
+
+Description:
+Animates the resize and reposition of the window identified by <pWindowID> using
+NSAnimationContext and the NSWindow animator proxy. The coordinate system is
+converted automatically from LiveCode's top-left screen origin to Cocoa's
+bottom-left origin.
+
+The window is looked up fresh on every call via its windowNumber so no stale
+pointers are held between calls.
+
+Always pass the windowId using the explicit stack name rather than `this stack`.
+In toolbar callbacks, `this stack` resolves unreliably and may target the wrong
+window, especially when multiple windows are open.
+
+The handler silently returns on non-Mac platforms, making it safe to call in
+cross-platform stacks without an explicit platform check.
+
+A runtime error is thrown if <pWindowID> cannot be resolved to a live NSWindow.
+Always call this handler after the target stack has been opened.
+
+The system respects the user's Reduce Motion accessibility setting. If that
+setting is enabled, the window will resize instantly regardless of <pDuration>.
+
+Example:
+-- Resize and move the window over 0.3 seconds
+windowAnimateResize(the windowId of stack "Untitled 1", 200, 200, 800, 600, 0.3)
+
+Example:
+-- Animate to a fixed size keeping the current position
+windowAnimateResize(the windowId of stack "Untitled 1", \
+   the left of stack "Untitled 1", the top of stack "Untitled 1", \
+   1280, 720, 0.5)
+
+Tags: animation, window, macOS, resize
