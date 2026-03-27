@@ -148,6 +148,7 @@
 				'libraries/ini/ini.lcb',
 				'libraries/timezone/timezone.lcb',
 				'libraries/macstatusmenu/macstatusmenu.lcb',
+				'libraries/macOSAnimateResize/org.openxtalk.windowanimation.lcb',
 
 				'widgets/macbutton/macbutton.lcb',
 				'widgets/mactextfield/mactextfield.lcb',

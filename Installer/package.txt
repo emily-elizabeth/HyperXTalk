@@ -415,14 +415,6 @@ component Extensions
 	into [[ToolsFolder]]/Extensions place
 		rfolder macosx:packaged_extensions/com.livecode.widget.native.mac.textfield
 	into [[ToolsFolder]]/Extensions place
-		rfolder macosx:packaged_extensions/com.livecode.widget.native.android.button
-	into [[ToolsFolder]]/Extensions place
-		rfolder macosx:packaged_extensions/com.livecode.widget.native.android.field
-	into [[ToolsFolder]]/Extensions place
-		rfolder macosx:packaged_extensions/com.livecode.widget.native.ios.button
-	into [[ToolsFolder]]/Extensions place
-		rfolder macosx:packaged_extensions/com.livecode.widget.native.emscripten.button
-	into [[ToolsFolder]]/Extensions place
 		rfolder macosx:packaged_extensions/com.livecode.widget.browser
 	into [[ToolsFolder]]/Extensions place
 		rfolder macosx:packaged_extensions/com.livecode.widget.clock
@@ -436,12 +428,6 @@ component Extensions
 		rfolder macosx:packaged_extensions/com.livecode.widget.headerbar
 	into [[ToolsFolder]]/Extensions place
 		rfolder macosx:packaged_extensions/com.livecode.widget.iconpicker
-	into [[ToolsFolder]]/Extensions place
-		rfolder macosx:packaged_extensions/com.livecode.library.androidbgaudio
-	into [[ToolsFolder]]/Extensions place
-		rfolder macosx:packaged_extensions/com.livecode.library.androidaudiorecorder
-	into [[ToolsFolder]]/Extensions place
-		rfolder macosx:packaged_extensions/com.livecode.library.androidutils
 	into [[ToolsFolder]]/Extensions place
 		rfolder macosx:packaged_extensions/com.livecode.library.iconsvg
 	into [[ToolsFolder]]/Extensions place

@@ -268,6 +268,14 @@ package-mac:
 	    cp -R "$(MAC_BIN)/$$b.bundle" \
 	      "$(TOOLS_DIR)/Externals/Database Drivers/" || true; \
 	done
+	@# Sign all bundles from mac-bin with hardened runtime before copying
+	@for b in revbrowser revxml revspeech revzip revdb revpdfprinter dbmysql dbodbc dbpostgresql dbsqlite; do \
+	  [ -d "$(MAC_BIN)/$$b.bundle" ] && \
+	    codesign --force --deep --sign "$(CODESIGN_IDENTITY)" \
+	        --options runtime \
+	        --entitlements HyperXTalk.entitlements \
+	        "$(MAC_BIN)/$$b.bundle" || true; \
+	done
 	@# ----------------------------------------------------------------
 	@# Externals discovery files (read by the standalone builder)
 	@# ----------------------------------------------------------------
@@ -408,6 +416,14 @@ package-mac-bin:
 	        --options runtime \
 	        --entitlements HyperXTalk.entitlements \
 	        "$(MACBIN_BIN)/$$f" || true; \
+	done
+	@# Sign all loose bundles in mac-bin with hardened runtime
+	@for b in revbrowser revxml revspeech revzip revdb revpdfprinter dbmysql dbodbc dbpostgresql dbsqlite; do \
+	  [ -d "$(MACBIN_BIN)/$$b.bundle" ] && \
+	    codesign --force --deep --sign "$(CODESIGN_IDENTITY)" \
+	        --options runtime \
+	        --entitlements HyperXTalk.entitlements \
+	        "$(MACBIN_BIN)/$$b.bundle" || true; \
 	done
 	@# ----------------------------------------------------------------
 	@# Edition marker
