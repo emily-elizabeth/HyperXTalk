@@ -552,14 +552,14 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 				}
 #ifdef _MACOSX
                 // FG-2014-10-29: [[ Bugfix 13842 ]] On Yosemite, glowing buttons
-                // should draw with white text.
+                // should draw with white text - but only for DEFAULT buttons.
                 if (IsMacLFAM() && MCmajorosversion >= MCOSVersionMake(10,10,0) && MCaqua
                     && !(flags & F_DISABLED) && isstdbtn && getstyleint(flags) == F_STANDARD
-                    && ((state & CS_HILITED) || (state & CS_SHOW_DEFAULT))
+                    && (state & CS_SHOW_DEFAULT)
                     && rect.height <= 24 && MCappisactive)
                     setforeground(dc, DI_BACK, False, True);
                 // PM-2014-11-26: [[ Bug 14070 ]] [Removed code] Make sure text color in menuButton inverts when hilited
-        
+         
 #endif
 				drawlabel(dc, sx + loff, sy + loff, twidth, shadowrect, line, fontstyle, t_mnemonic);
 

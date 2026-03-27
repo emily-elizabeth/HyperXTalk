@@ -787,9 +787,12 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                             t_fill = [[NSColor controlColor]
                                           colorWithAlphaComponent:0.5];
                         } else if (t_pressed || t_hilited) {
-                            t_fill = t_default
-                                ? [t_accent shadowWithLevel:0.15]
-                                : [[NSColor controlColor] shadowWithLevel:0.12];
+                            // Use shadowWithLevel for proper macOS button press effect
+                            if (t_default) {
+                                t_fill = [t_accent shadowWithLevel:0.15];
+                            } else {
+                                t_fill = [[NSColor controlColor] shadowWithLevel:0.12];
+                            }
                         } else if (t_default) {
                             t_fill = t_accent;
                         } else {
@@ -816,9 +819,13 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                         [t_fill setFill];
                         [t_path fill];
 
-                        // Thin border (skipped when disabled).
+                        // Thin border (skipped when disabled, always drawn when pressed for visibility).
                         if (!t_disabled) {
-                            [[NSColor separatorColor] setStroke];
+                            if (t_pressed || t_hilited) {
+                                [[NSColor controlColor] setStroke];
+                            } else {
+                                [[NSColor separatorColor] setStroke];
+                            }
                             [t_path setLineWidth:0.5];
                             [t_path stroke];
                         }
@@ -1090,6 +1097,20 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 
             [t_box removeFromSuperview];
             [t_box release];
+            break;
+        }
+
+        // ── Focus ring ──────────────────────────────────────────────────────
+        case THEME_DRAW_TYPE_FOCUS_RECT:
+        {
+            [t_appearance performAsCurrentDrawingAppearance:^{
+                NSRect t_inner = NSInsetRect(t_frame, 1.5, 1.5);
+                NSColor *t_accent = [NSColor keyboardFocusIndicatorColor];
+                NSBezierPath *t_path = [NSBezierPath bezierPathWithRoundedRect:t_inner xRadius:2.5 yRadius:2.5];
+                [t_accent setStroke];
+                [t_path setLineWidth:2.0];
+                [t_path stroke];
+            }];
             break;
         }
 
