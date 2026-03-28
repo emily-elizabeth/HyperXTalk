@@ -1247,7 +1247,10 @@ void MCButton::drawcascade(MCDC *dc, MCRectangle &srect)
 void MCButton::drawcombo(MCDC *dc, MCRectangle &srect)
 {
 	MCRectangle trect = srect;
-	if (MCcurtheme && MCcurtheme->iswidgetsupported(WTHEME_TYPE_COMBO))
+	// Use the native theme only when not on LF_MAC native path; on LF_MAC we
+	// use custom drawing for full control over the text-field and chevron borders.
+	if (MCcurtheme && MCcurtheme->iswidgetsupported(WTHEME_TYPE_COMBO)
+	        && !(MClook == LF_MAC && !IsMacEmulatedLF()))
 	{
 		//draw frame around combobobox
 		MCWidgetInfo winfo;
@@ -1272,15 +1275,57 @@ void MCButton::drawcombo(MCDC *dc, MCRectangle &srect)
 		break;
 	case LF_MAC:
 		{
-			trect.width -= trect.height + 2;
-			drawborder(dc, trect, 1);
-			trect.x = srect.x + srect.width - srect.height;
-			trect.width = trect.height;
-			setforeground(dc, DI_BACK, (state & CS_SUBMENU) != 0, False);
-			dc->fillrect(trect);
-			drawmacborder(dc, trect);
-			trect = MCU_reduce_rect(trect, 2);
-			drawmacpopup(dc, trect);
+			uint2 radius = 5;
+			// White background fill for the whole control.
+			MCColor white_col;
+			white_col.red = white_col.green = white_col.blue = 0xFFFF;
+			dc->setforeground(white_col);
+			dc->setfillstyle(FillSolid, nil, 0, 0);
+			dc->fillroundrect(srect, radius);
+			// Light gray outer border.
+			MCColor border_col;
+			border_col.red = border_col.green = border_col.blue = 0xCBCB;
+			dc->setforeground(border_col);
+			dc->drawroundrect(srect, radius, true);
+			// Small rounded pill button inset on the right.
+			int2 btn_margin = 3;
+			trect.x = srect.x + srect.width - srect.height + btn_margin;
+			trect.y = srect.y + btn_margin;
+			trect.width = srect.height - btn_margin * 2;
+			trect.height = srect.height - btn_margin * 2;
+			uint2 btn_radius = 4;
+			// Fill button with light gray.
+			MCColor btn_col;
+			btn_col.red = 0xE5E5; btn_col.green = 0xE5E5; btn_col.blue = 0xEAEA;
+			dc->setforeground(btn_col);
+			dc->setfillstyle(FillSolid, nil, 0, 0);
+			dc->fillroundrect(trect, btn_radius);
+			// Thin border around the button.
+			dc->setforeground(border_col);
+			dc->drawroundrect(trect, btn_radius, true);
+			// Downward "v" chevron stroke, drawn directly to avoid the
+			// theme early-return inside drawarrow().
+			{
+				int2 aw = (trect.width  * 6) / 16;  // chevron width (~38% of button)
+				int2 ah = (aw * 6) / 10;             // chevron height (shallower angle)
+				int2 ax = trect.x + (trect.width  - aw) / 2;
+				int2 ay = trect.y + (trect.height - ah) / 2;
+				// Three points: top-left -> tip -> top-right
+				MCPoint ap[3];
+				ap[0].x = ax;          ap[0].y = ay;
+				ap[1].x = ax + aw / 2; ap[1].y = ay + ah;
+				ap[2].x = ax + aw;     ap[2].y = ay;
+				MCColor chevron_col;
+				chevron_col.red = chevron_col.green = chevron_col.blue =
+				    (flags & F_DISABLED) ? 0xAAAA : 0x3333;
+				dc->setforeground(chevron_col);
+				// Draw with 2px round-capped line for a clean stroke chevron.
+				uint2 t_lsize, t_lstyle, t_lcap, t_ljoin;
+				dc->getlineatts(t_lsize, t_lstyle, t_lcap, t_ljoin);
+				dc->setlineatts(2, LineSolid, CapRound, JoinRound);
+				dc->drawlines(ap, 3);
+				dc->setlineatts(t_lsize, t_lstyle, t_lcap, t_ljoin);
+			}
 		}
 		break;
 	case LF_WIN95:
