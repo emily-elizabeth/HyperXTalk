@@ -782,7 +782,68 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                     [t_bg stroke];
                     break;
                 }
-                default:   // push button, bevel button, pulldown, combo button
+                case WTHEME_TYPE_PULLDOWN:
+                {
+                    // Draw pulldown button with accent-colored chevron area
+                    NSRect t_r = t_frame;
+                    t_r.origin.y    += 1.0;
+                    t_r.size.height -= 3.0;
+                    CGFloat t_radius = t_r.size.height / 2.0;
+                    
+                    [t_appearance performAsCurrentDrawingAppearance:^{
+                        // Standard button background
+                        NSColor *t_fill;
+                        if (t_disabled) {
+                            t_fill = [[NSColor controlColor] colorWithAlphaComponent:0.5];
+                        } else {
+                            t_fill = [NSColor controlColor];
+                        }
+                        
+                        NSBezierPath *t_path = [NSBezierPath bezierPathWithRoundedRect:t_r xRadius:t_radius yRadius:t_radius];
+                        
+                        // Drop shadow
+                        [NSGraphicsContext saveGraphicsState];
+                        NSShadow *t_shadow = [[NSShadow alloc] init];
+                        [t_shadow setShadowOffset:NSMakeSize(0.0, -1.0)];
+                        [t_shadow setShadowBlurRadius:1.5];
+                        [t_shadow setShadowColor:[NSColor colorWithWhite:0.0 alpha:0.20]];
+                        [t_shadow set];
+                        [t_fill setFill];
+                        [t_path fill];
+                        [t_shadow release];
+                        [NSGraphicsContext restoreGraphicsState];
+                        
+                        // Accent-colored rounded rectangle for chevron (right side, inset)
+                        if (!t_disabled) {
+                            NSColor *t_accent = [NSColor controlAccentColor];
+                            if (t_accent == nil) {
+                                t_accent = [NSColor systemBlueColor];
+                            }
+                            
+                            // Inset rounded rectangle for accent area
+                            NSRect t_accent_rect = NSInsetRect(t_r, 2.0, 2.0);
+                            NSRect t_chevron_bg = NSMakeRect(NSMaxX(t_accent_rect) - 16, NSMinY(t_accent_rect), 16, NSHeight(t_accent_rect));
+                            NSBezierPath *t_accent_path = [NSBezierPath bezierPathWithRoundedRect:t_chevron_bg xRadius:3.0 yRadius:3.0];
+                            [t_accent setFill];
+                            [t_accent_path fill];
+                            
+                            // White chevron (down arrow): 7px wide, 4px high, 6px from bottom, centered in accent area
+                            CGFloat t_ax = NSMidX(t_chevron_bg);
+                            CGFloat t_ay = NSMinY(t_chevron_bg) + NSHeight(t_chevron_bg) - 6;
+                            NSBezierPath *t_arrow = [NSBezierPath bezierPath];
+                            [t_arrow setLineWidth:1.5];
+                            [t_arrow setLineCapStyle:NSLineCapStyleRound];
+                            [t_arrow setLineJoinStyle:NSLineJoinStyleRound];
+                            [t_arrow moveToPoint:NSMakePoint(t_ax - 3.5, t_ay - 2)];
+                            [t_arrow lineToPoint:NSMakePoint(t_ax, t_ay + 2)];
+                            [t_arrow lineToPoint:NSMakePoint(t_ax + 3.5, t_ay - 2)];
+                            [[NSColor whiteColor] setStroke];
+                            [t_arrow stroke];
+                        }
+                    }];
+                    break;
+                }
+                default:   // push button, bevel button, combo button
                 {
                     // NSButtonCell with NSBezelStyleRounded uses Core Animation /
                     // Metal for its modern flat rendering; it silently falls back
