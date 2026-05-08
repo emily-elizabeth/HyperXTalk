@@ -16,6 +16,7 @@
 #include "MCBlock.h"
 #include "paragraf.h"
 #include "mcerror.h"
+#include "param.h"
 #include "util.h"
 #include "undolst.h"
 #include "debug.h"
