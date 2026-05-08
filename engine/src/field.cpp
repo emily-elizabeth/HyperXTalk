@@ -126,6 +126,12 @@ MCPropertyInfo MCField::kProperties[] =
 	DEFINE_RW_OBJ_PROPERTY(P_PASSWORD_TOGGLE, Bool, MCField, PasswordToggle)
 	DEFINE_RW_OBJ_PROPERTY(P_CANCEL_BUTTON, Bool, MCField, CancelButton)
 	DEFINE_RW_OBJ_PROPERTY(P_HINT_TEXT, String, MCField, HintText)
+	DEFINE_RW_OBJ_PROPERTY(P_INPUT_TYPE, String, MCField, InputType)
+	DEFINE_RW_OBJ_PROPERTY(P_INPUT_REQUIRED, Bool, MCField, InputRequired)
+	DEFINE_RW_OBJ_PROPERTY(P_INPUT_MIN, String, MCField, InputMin)
+	DEFINE_RW_OBJ_PROPERTY(P_INPUT_MAX, String, MCField, InputMax)
+	DEFINE_RW_OBJ_PROPERTY(P_INPUT_STEP, String, MCField, InputStep)
+	DEFINE_RW_OBJ_PROPERTY(P_INPUT_PATTERN, String, MCField, InputPattern)
 	DEFINE_RW_OBJ_PROPERTY(P_TOGGLE_HILITE, Bool, MCField, ToggleHilite)
 	DEFINE_RW_OBJ_PROPERTY(P_3D_HILITE, Bool, MCField, ThreeDHilite)
 	DEFINE_RO_OBJ_PART_ENUM_PROPERTY(P_ENCODING, InterfaceEncoding, MCField, Encoding)
@@ -268,6 +274,12 @@ MCField::MCField()
     m_cancel_button = false;
     m_spell_check = false;
     m_hint_text = MCValueRetain(kMCEmptyString);
+    m_input_type = MCValueRetain(kMCEmptyString);
+    m_input_min = MCValueRetain(kMCEmptyString);
+    m_input_max = MCValueRetain(kMCEmptyString);
+    m_input_step = MCValueRetain(kMCEmptyString);
+    m_input_pattern = MCValueRetain(kMCEmptyString);
+    m_input_required = false;
 
     // MM-2014-08-11: [[ Bug 13149 ]] Used to flag if a recompute is required during the next draw.
     m_recompute = false;
@@ -362,6 +374,12 @@ MCField::MCField(const MCField &fref) : MCControl(fref)
     m_spell_check = false;   // spell errors are not copied; will re-check if needed
 	MCValueRetain(fref.m_hint_text);
 	m_hint_text = fref.m_hint_text;
+    MCValueRetain(fref.m_input_type);   m_input_type    = fref.m_input_type;
+    MCValueRetain(fref.m_input_min);    m_input_min     = fref.m_input_min;
+    MCValueRetain(fref.m_input_max);    m_input_max     = fref.m_input_max;
+    MCValueRetain(fref.m_input_step);   m_input_step    = fref.m_input_step;
+    MCValueRetain(fref.m_input_pattern);m_input_pattern = fref.m_input_pattern;
+    m_input_required = fref.m_input_required;
 	state &= ~CS_KFOCUSED;
 
     // MM-2014-08-11: [[ Bug 13149 ]] Used to flag if a recompute is required during the next draw.
@@ -414,6 +432,11 @@ MCField::~MCField()
 
 	MCValueRelease(label);
 	MCValueRelease(m_hint_text);
+    MCValueRelease(m_input_type);
+    MCValueRelease(m_input_min);
+    MCValueRelease(m_input_max);
+    MCValueRelease(m_input_step);
+    MCValueRelease(m_input_pattern);
     delete[] m_spell_errors;
 }
 
@@ -693,9 +716,25 @@ void MCField::kunfocus()
 			else
 				if (state & CS_CHANGED)
 				{
-					message(MCM_close_field);
-					if (!(state & CS_KFOCUSED))
-						state &= ~CS_CHANGED;
+					// Run input validation before dispatching closeField.
+					// If validation fails, send fieldValidationFailed instead
+					// and leave the field focused so the user can correct it.
+					MCStringRef t_error = MCField::ValidateInput();
+					if (t_error != nullptr)
+					{
+						MCParameter p1, p2;
+						p1.setvalueref_argument(MCNameGetString(getname()));
+						p1.setnext(&p2);
+						p2.setvalueref_argument(t_error);
+						MCValueRelease(t_error);
+						message_with_args(MCM_field_validation_failed, &p1);
+					}
+					else
+					{
+						message(MCM_close_field);
+						if (!(state & CS_KFOCUSED))
+							state &= ~CS_CHANGED;
+					}
 				}
 				else
 					message(MCM_exit_field);
