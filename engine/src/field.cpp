@@ -16,7 +16,6 @@
 #include "MCBlock.h"
 #include "paragraf.h"
 #include "mcerror.h"
-#include "param.h"
 #include "util.h"
 #include "undolst.h"
 #include "debug.h"
@@ -707,12 +706,10 @@ void MCField::kunfocus()
 					MCStringRef t_error = MCField::ValidateInput();
 					if (t_error != nullptr)
 					{
-						MCParameter p1, p2;
-						p1.setvalueref_argument(MCNameGetString(getname()));
-						p1.setnext(&p2);
-						p2.setvalueref_argument(t_error);
+						message_with_valueref_args(MCM_field_validation_failed,
+						                           MCNameGetString(getname()),
+						                           t_error);
 						MCValueRelease(t_error);
-						message_with_args(MCM_field_validation_failed, &p1);
 					}
 					else
 					{
