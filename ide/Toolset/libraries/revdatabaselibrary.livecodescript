@@ -14,11 +14,19 @@ on extensionInitialize
          local tDriverPath
          put revEnvironmentBinariesPath() into tDriverPath
          revSetDatabaseDriverPath tDriverPath
-         -- HTX diagnostic: verify dbsqlite.dll exists and can be loaded
-         local tTestConn, tExpectedDLL
-         put tDriverPath & slash & "dbsqlite.dll" into tExpectedDLL
+         -- HTX diagnostic: verify the SQLite driver exists and can be loaded.
+         -- The driver filename is platform-specific.
+         local tTestConn, tExpectedDLL, tDriverExt
+         if the platform is "MacOS" then
+            put ".bundle" into tDriverExt
+         else if the platform is "linux" then
+            put ".so" into tDriverExt
+         else
+            put ".dll" into tDriverExt
+         end if
+         put tDriverPath & slash & "dbsqlite" & tDriverExt into tExpectedDLL
          if there is not a file tExpectedDLL then
-            put return & "HTX-DBDIAG: dbsqlite.dll NOT FOUND at: " & tExpectedDLL after msg
+            put return & "HTX-DBDIAG: dbsqlite" & tDriverExt & " NOT FOUND at: " & tExpectedDLL after msg
          else
             -- try an in-memory SQLite open to verify the driver loads at all
             put revOpenDatabase("sqlite", ":memory:", "", "", "") into tTestConn
@@ -28,7 +36,7 @@ on extensionInitialize
             else
                put return & "HTX-DBDIAG: sqlite driver load FAILED: " & tTestConn after msg
                put return & "  driverpath=" & tDriverPath after msg
-               put return & "  dll exists=" & (there is a file tExpectedDLL) after msg
+               put return & "  driver exists=" & (there is a file tExpectedDLL) after msg
             end if
          end if
       end if
