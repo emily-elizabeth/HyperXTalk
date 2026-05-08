@@ -1,0 +1,60 @@
+Name: inputType
+
+Type: property
+
+Syntax: set the inputType of <field> to <type>
+
+Summary:
+Specifies the kind of value a field expects, enabling built-in validation
+when the field is closed or <validateField> is called.
+
+Introduced: 1.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Value (enum):
+The <inputType> of a field is a string. Valid values are:
+
+- `"text"` — no engine-side type checking (default)
+- `"email"` — must be a valid email address
+- `"url"` — must begin with http://, https://, or ftp://
+- `"tel"` — digits, spaces, and the characters + - ( ) . only
+- `"number"` — must be a valid number; respects <inputMin>, <inputMax>, and <inputStep>
+- `"date"` — no engine-side format check; use <inputPattern> for stricter control
+
+Default value: empty (equivalent to "text")
+
+Example:
+set the inputType of field "EmailAddress" to "email"
+
+Example:
+set the inputType of field "Age" to "number"
+set the inputMin of field "Age" to 0
+set the inputMax of field "Age" to 150
+
+Example:
+set the inputType of field "Website" to "url"
+
+Description:
+Use the <inputType> property to tell HyperXTalk what category of value a
+field should contain. When the user finishes editing the field (on
+<closeField>), or when <validateField> is called, the engine checks the
+field's content against the declared type.
+
+If validation fails, a <fieldValidationFailed> message is sent with the
+field name and an error string as parameters. The field remains focused so
+the user can correct the value, and <closeField> is not sent.
+
+Setting <inputType> to empty or "text" disables type checking. The
+<inputRequired>, <inputMin>, <inputMax>, <inputStep>, and <inputPattern>
+constraints are always checked regardless of <inputType>.
+
+References: inputRequired (property), inputMin (property),
+inputMax (property), inputStep (property), inputPattern (property),
+validateField (command), closeField (message),
+fieldValidationFailed (message)
+
+Tags: ui, validation
+

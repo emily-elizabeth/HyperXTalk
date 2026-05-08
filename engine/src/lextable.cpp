@@ -455,6 +455,7 @@ const LT command_table[] =
         {"unload", TT_STATEMENT, S_UNLOAD},
         {"unlock", TT_STATEMENT, S_UNLOCK},
         {"unmark", TT_STATEMENT, S_UNMARK},
+        {"validateField", TT_STATEMENT, S_VALIDATE_FIELD},
         {"visual", TT_STATEMENT, S_VISUAL},
         {"wait", TT_STATEMENT, S_WAIT},
         {"write", TT_STATEMENT, S_WRITE}

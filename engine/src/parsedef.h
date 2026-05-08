@@ -2186,6 +2186,7 @@ enum Statements {
     S_UNLOCK,
     S_UNMARK,
     S_VISUAL,
+    S_VALIDATE_FIELD,
     S_WAIT,
     S_WRITE
 };
