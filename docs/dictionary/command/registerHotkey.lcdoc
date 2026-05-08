@@ -28,10 +28,10 @@ Example:
 registerHotkey "Alt+F9", "toggleRecording"
 
 Example:
--- Handler that responds to the hotkey
-on openPalette
-    show stack "Palette"
-end openPalette
+-- Best practice: place the handler in a back script so it is reachable
+-- regardless of which stack is frontmost when the hotkey fires
+insert script of stack "MyLibrary" into back
+registerHotkey "Ctrl+Shift+P", "openPalette"
 
 Parameters:
 keyString (string): The key combination to register. Modifiers and the
@@ -44,13 +44,30 @@ Left, Right, Up, Down, Insert.
 handlerName (string): The name of the message to send when the hotkey
 is pressed. The message is sent to the current card of the default stack
 and bubbles up the normal message path (card → stack → stack behaviours
-→ global script).
+→ back scripts → global script).
 
 Description:
 Use <registerHotkey> to associate a system-wide keyboard shortcut with
 a HyperXTalk message handler. When the registered combination is pressed,
 HyperXTalk fires <handlerName> to the current card of the default stack,
 regardless of which application currently has focus.
+
+Because <registerHotkey> dispatches to the current card of whichever
+stack is currently the default, the handler may not be reached if that
+stack changes between registration and the keypress. For reliable delivery
+regardless of which stack is frontmost, place the handler in a back script
+or in a library stack that has been inserted into the back script:
+
+    -- In a startup handler
+    insert script of stack "MyLibrary" into back
+
+    -- Then in MyLibrary's script
+    on openPalette
+        show stack "Palette"
+    end openPalette
+
+    -- Register after inserting the library
+    registerHotkey "Ctrl+Shift+P", "openPalette"
 
 If the same <keyString> is already registered, calling <registerHotkey>
 again replaces the previous handler silently — there is no error.
