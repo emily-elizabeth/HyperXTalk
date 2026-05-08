@@ -1,0 +1,36 @@
+Name: inputMax
+
+Type: property
+
+Syntax: set the inputMax of <field> to <value>
+
+Summary:
+Specifies the maximum acceptable value for a field with inputType "number".
+
+Introduced: 1.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Value:
+The <inputMax> of a field is a string. For numeric fields it should be a
+number. The default value is empty (no upper bound enforced).
+
+Example:
+set the inputType of field "Age" to "number"
+set the inputMin of field "Age" to 0
+set the inputMax of field "Age" to 150
+
+Description:
+When <inputType> is "number" and <inputMax> is non-empty, validation
+checks that the field's numeric value is less than or equal to <inputMax>.
+If the value is too large, <fieldValidationFailed> is sent with an error
+describing the maximum.
+
+References: inputType (property), inputMin (property),
+inputStep (property), inputRequired (property), inputPattern (property),
+validateField (command), fieldValidationFailed (message)
+
+Tags: ui, validation
+

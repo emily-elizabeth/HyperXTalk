@@ -21,6 +21,7 @@
 #include "cmds.h"
 #include "mcerror.h"
 #include "chunk.h"
+#include "field.h"
 #include "param.h"
 #include "util.h"
 #include "date.h"
@@ -346,6 +347,48 @@ void MCFocus::exec_ctxt(MCExecContext &ctxt)
 		}
 		MCInterfaceExecFocusOn(ctxt, optr);
     }
+}
+
+MCValidateField::~MCValidateField()
+{
+    delete field;
+}
+
+Parse_stat MCValidateField::parse(MCScriptPoint &sp)
+{
+    initpoint(sp);
+    field = new (nothrow) MCChunk(False);
+    if (field->parse(sp, False) != PS_NORMAL)
+    {
+        MCperror->add(PE_FOCUS_BADOBJECT, sp);
+        return PS_ERROR;
+    }
+    return PS_NORMAL;
+}
+
+void MCValidateField::exec_ctxt(MCExecContext &ctxt)
+{
+    MCObject *t_obj;
+    uint4 t_parid;
+    if (!field->getobj(ctxt, t_obj, t_parid, True))
+    {
+        ctxt.LegacyThrow(EE_FOCUS_BADOBJECT);
+        return;
+    }
+    if (t_obj->gettype() != CT_FIELD)
+    {
+        ctxt.LegacyThrow(EE_FOCUS_BADOBJECT);
+        return;
+    }
+    MCField *t_field = static_cast<MCField *>(t_obj);
+    MCStringRef t_error = t_field->ValidateInput();
+    if (t_error != nullptr)
+    {
+        ctxt.SetTheResultToValue(t_error);
+        MCValueRelease(t_error);
+    }
+    else
+        ctxt.SetTheResultToEmpty();
 }
 
 MCInsert::~MCInsert()

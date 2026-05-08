@@ -305,6 +305,8 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCUnregisterAllHotkeys;
 	case S_UNREGISTER_HOTKEY:
 		return new MCUnregisterHotkey;
+	case S_VALIDATE_FIELD:
+		return new MCValidateField;
 	case S_VISUAL:
 		return new MCVisualEffect;
 	case S_WAIT:

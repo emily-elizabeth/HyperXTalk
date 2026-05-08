@@ -1152,6 +1152,19 @@ public:
     virtual void exec_ctxt(MCExecContext &ctxt);
 };
 
+class MCValidateField : public MCStatement
+{
+    MCChunk *field;
+public:
+    MCValidateField()
+    {
+        field = NULL;
+    }
+    virtual ~MCValidateField();
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &ctxt);
+};
+
 class MCInsert : public MCStatement
 {
 	MCChunk *target;

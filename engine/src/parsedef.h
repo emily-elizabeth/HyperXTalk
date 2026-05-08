@@ -2180,6 +2180,7 @@ enum Statements {
     S_UNREGISTER_ALL_HOTKEYS,
     S_UNREGISTER_HOTKEY,
     S_VISUAL,
+    S_VALIDATE_FIELD,
     S_WAIT,
     S_WRITE
 };

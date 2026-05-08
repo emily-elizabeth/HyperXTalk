@@ -444,6 +444,7 @@ const LT command_table[] =
         {"unmark", TT_STATEMENT, S_UNMARK},
         {"unregisterallhotkeys", TT_STATEMENT, S_UNREGISTER_ALL_HOTKEYS},
         {"unregisterhotkey", TT_STATEMENT, S_UNREGISTER_HOTKEY},
+        {"validateField", TT_STATEMENT, S_VALIDATE_FIELD},
         {"visual", TT_STATEMENT, S_VISUAL},
         {"wait", TT_STATEMENT, S_WAIT},
         {"write", TT_STATEMENT, S_WRITE}
