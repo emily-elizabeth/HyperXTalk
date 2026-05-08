@@ -1080,13 +1080,13 @@ static bool s_regex_match(MCStringRef p_text, const char *p_pattern)
 {
     MCAutoStringRef t_pat;
     MCStringCreateWithCString(p_pattern, &t_pat);
+    // MCR_compile caches the result — do NOT call MCR_free on the returned
+    // pointer; the cache owns it and freeing it here causes a dangling pointer.
     regexp *t_re = MCR_compile(*t_pat, false);
     if (t_re == nullptr)
         return false;
-    bool t_ok = MCR_exec(t_re, p_text,
-                         MCRangeMake(0, MCStringGetLength(p_text))) != 0;
-    MCR_free((regex_t *)t_re);
-    return t_ok;
+    return MCR_exec(t_re, p_text,
+                    MCRangeMake(0, MCStringGetLength(p_text))) != 0;
 }
 
 // Validate the current field content against the active input constraints.
@@ -1123,7 +1123,6 @@ MCStringRef MCField::ValidateInput() const
         {
             bool t_matched = MCR_exec(t_re, t_text,
                                       MCRangeMake(0, MCStringGetLength(t_text))) != 0;
-            MCR_free((regex_t *)t_re);
             if (!t_matched)
             {
                 MCStringRef t_err;
