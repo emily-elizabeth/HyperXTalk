@@ -49,6 +49,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include <stdint.h>
 
 #include "mcstring.h"
+#include "param.h"
 #include "hotkey.h"
 #include "globals.h"
 
