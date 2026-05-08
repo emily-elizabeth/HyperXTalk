@@ -89,8 +89,13 @@ static bool _ensure_handler()
     EventTypeSpec t_spec = { kEventClassKeyboard, kEventHotKeyPressed };
     s_handler_upp = NewEventHandlerUPP(_hot_key_handler);
 
-    OSStatus t_err = InstallApplicationEventHandler(
-        s_handler_upp, 1, &t_spec, nullptr, &s_handler_ref);
+    // InstallApplicationEventHandler (GetApplicationEventTarget) only reliably
+    // delivers the first press in Cocoa-hosted apps because NSApplication's run
+    // loop doesn't continuously service the Carbon application event target.
+    // GetEventDispatcherTarget() is the per-thread dispatcher that Cocoa's run
+    // loop keeps alive, so hot-key events arrive on every press.
+    OSStatus t_err = InstallEventHandler(
+        GetEventDispatcherTarget(), s_handler_upp, 1, &t_spec, nullptr, &s_handler_ref);
 
     return (t_err == noErr);
 }
