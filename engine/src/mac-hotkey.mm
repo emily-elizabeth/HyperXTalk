@@ -278,9 +278,14 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
     EventHotKeyID t_hkid = { kHotkeySignature, (UInt32)p_id };
     EventHotKeyRef t_ref = nullptr;
 
+    // IMPORTANT: use the same target as the handler (GetEventDispatcherTarget).
+    // RegisterEventHotKey's 4th argument is where the event will be sent;
+    // it must match the target the handler was installed on or events will
+    // only arrive once (Cocoa forwards the first press via a compatibility
+    // path but routes subsequent ones directly to the registered target).
     OSStatus t_err = RegisterEventHotKey(
         t_key_code, t_modifiers, t_hkid,
-        GetApplicationEventTarget(), 0, &t_ref);
+        GetEventDispatcherTarget(), 0, &t_ref);
 
     if (t_err != noErr)
     {
