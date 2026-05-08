@@ -1440,6 +1440,13 @@ enum Properties {
     P_LABEL,
     P_LABEL_WIDTH,
     P_HINT_TEXT,
+    // field input validation properties
+    P_INPUT_TYPE,
+    P_INPUT_REQUIRED,
+    P_INPUT_MIN,
+    P_INPUT_MAX,
+    P_INPUT_STEP,
+    P_INPUT_PATTERN,
     // toolbar properties
     P_TOOLBAR_DISPLAY_MODE,
     P_TOOLBAR_VISIBLE,

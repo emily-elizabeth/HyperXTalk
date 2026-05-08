@@ -28,6 +28,8 @@
 #include "paragraf.h"
 
 #include "exec-interface.h"
+#include "regex.h"
+#include <cmath>
 ////////////////////////////////////////////////////////////////////////////////
 
 enum MCInterfaceFieldStyle
@@ -1007,6 +1009,229 @@ void MCField::SetHintText(MCExecContext& ctxt, MCStringRef p_string)
 	// Redraw the field so the hint text appears/disappears immediately
 	Redraw();
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Input validation properties
+
+void MCField::GetInputType(MCExecContext& ctxt, MCStringRef& r_string)
+{
+    r_string = MCValueRetain(m_input_type);
+}
+
+void MCField::SetInputType(MCExecContext& ctxt, MCStringRef p_string)
+{
+    MCValueAssign(m_input_type, p_string);
+}
+
+void MCField::GetInputRequired(MCExecContext& ctxt, bool& r_flag)
+{
+    r_flag = m_input_required;
+}
+
+void MCField::SetInputRequired(MCExecContext& ctxt, bool p_flag)
+{
+    m_input_required = p_flag;
+}
+
+void MCField::GetInputMin(MCExecContext& ctxt, MCStringRef& r_string)
+{
+    r_string = MCValueRetain(m_input_min);
+}
+
+void MCField::SetInputMin(MCExecContext& ctxt, MCStringRef p_string)
+{
+    MCValueAssign(m_input_min, p_string);
+}
+
+void MCField::GetInputMax(MCExecContext& ctxt, MCStringRef& r_string)
+{
+    r_string = MCValueRetain(m_input_max);
+}
+
+void MCField::SetInputMax(MCExecContext& ctxt, MCStringRef p_string)
+{
+    MCValueAssign(m_input_max, p_string);
+}
+
+void MCField::GetInputStep(MCExecContext& ctxt, MCStringRef& r_string)
+{
+    r_string = MCValueRetain(m_input_step);
+}
+
+void MCField::SetInputStep(MCExecContext& ctxt, MCStringRef p_string)
+{
+    MCValueAssign(m_input_step, p_string);
+}
+
+void MCField::GetInputPattern(MCExecContext& ctxt, MCStringRef& r_string)
+{
+    r_string = MCValueRetain(m_input_pattern);
+}
+
+void MCField::SetInputPattern(MCExecContext& ctxt, MCStringRef p_string)
+{
+    MCValueAssign(m_input_pattern, p_string);
+}
+
+// Validate the current field content against the active input constraints.
+// Returns nullptr if valid, or a newly-retained MCStringRef error message if not.
+MCStringRef MCField::ValidateInput() const
+{
+    // Get the current plain-text value of the field.
+    MCAutoStringRef t_field_text;
+    if (!const_cast<MCField *>(this)->exportastext(0, 0, INT32_MAX, &t_field_text))
+        return nullptr; // can't validate without text
+    MCStringRef t_text = *t_field_text;
+
+    bool t_empty = MCStringIsEmpty(t_text);
+
+    // --- required ---
+    if (m_input_required && t_empty)
+    {
+        MCStringRef t_err;
+        MCStringCreateWithCString("This field is required.", t_err);
+        return t_err;
+    }
+
+    // No further checks needed for an empty non-required field.
+    if (t_empty)
+        return nullptr;
+
+    // --- custom pattern ---
+    if (!MCStringIsEmpty(m_input_pattern))
+    {
+        // Anchor the pattern to match the full value.
+        MCAutoStringRef t_anchored;
+        MCStringFormat(&t_anchored, "^(?:%@)$", m_input_pattern);
+        regexp *t_re = MCR_compile(*t_anchored, false);
+        if (t_re != nullptr)
+        {
+            bool t_matched = MCR_exec(t_re, t_text, MCRangeMake(0, MCStringGetLength(t_text))) != 0;
+            MCR_free((regex_t *)t_re);
+            if (!t_matched)
+            {
+                MCStringRef t_err;
+                MCStringCreateWithCString("Value does not match the required pattern.", t_err);
+                return t_err;
+            }
+        }
+        // If compile fails, skip rather than crash.
+    }
+
+    if (MCStringIsEmpty(m_input_type))
+        return nullptr;
+
+    // --- type-specific validation ---
+    if (MCStringIsEqualToCString(m_input_type, "email", kMCStringOptionCompareCaseless))
+    {
+        // Must contain exactly one '@', with non-empty local and domain parts,
+        // and a dot somewhere in the domain.
+        MCStringRef t_err = nullptr;
+        uindex_t t_at;
+        if (!MCStringFirstIndexOfChar(t_text, '@', 0, kMCStringOptionCompareExact, t_at)
+            || t_at == 0
+            || t_at == MCStringGetLength(t_text) - 1)
+        {
+            MCStringCreateWithCString("Please enter a valid email address.", t_err);
+            return t_err;
+        }
+        MCAutoStringRef t_domain;
+        MCStringCopySubstring(t_text, MCRangeMake(t_at + 1, MCStringGetLength(t_text) - t_at - 1), &t_domain);
+        uindex_t t_dot;
+        if (!MCStringFirstIndexOfChar(*t_domain, '.', 0, kMCStringOptionCompareExact, t_dot)
+            || t_dot == 0
+            || t_dot == MCStringGetLength(*t_domain) - 1)
+        {
+            MCStringCreateWithCString("Please enter a valid email address.", t_err);
+            return t_err;
+        }
+        return nullptr;
+    }
+
+    if (MCStringIsEqualToCString(m_input_type, "url", kMCStringOptionCompareCaseless))
+    {
+        if (!MCStringBeginsWithCString(t_text, (const char_t *)"http://", kMCStringOptionCompareCaseless)
+            && !MCStringBeginsWithCString(t_text, (const char_t *)"https://", kMCStringOptionCompareCaseless)
+            && !MCStringBeginsWithCString(t_text, (const char_t *)"ftp://", kMCStringOptionCompareCaseless))
+        {
+            MCStringRef t_err;
+            MCStringCreateWithCString("Please enter a valid URL (starting with http://, https://, or ftp://).", t_err);
+            return t_err;
+        }
+        return nullptr;
+    }
+
+    if (MCStringIsEqualToCString(m_input_type, "tel", kMCStringOptionCompareCaseless))
+    {
+        // Allow digits, spaces, +, -, (, ), and .
+        for (uindex_t i = 0; i < MCStringGetLength(t_text); i++)
+        {
+            char_t c = MCStringGetCharAtIndex(t_text, i);
+            if (c != '+' && c != '-' && c != '(' && c != ')' && c != ' ' && c != '.'
+                && (c < '0' || c > '9'))
+            {
+                MCStringRef t_err;
+                MCStringCreateWithCString("Please enter a valid telephone number.", t_err);
+                return t_err;
+            }
+        }
+        return nullptr;
+    }
+
+    if (MCStringIsEqualToCString(m_input_type, "number", kMCStringOptionCompareCaseless))
+    {
+        double t_num;
+        if (!MCStringToDouble(t_text, t_num))
+        {
+            MCStringRef t_err;
+            MCStringCreateWithCString("Please enter a valid number.", t_err);
+            return t_err;
+        }
+        if (!MCStringIsEmpty(m_input_min))
+        {
+            double t_min;
+            if (MCStringToDouble(m_input_min, t_min) && t_num < t_min)
+            {
+                MCStringRef t_err;
+                MCStringFormat(t_err, "Value must be at least %@.", m_input_min);
+                return t_err;
+            }
+        }
+        if (!MCStringIsEmpty(m_input_max))
+        {
+            double t_max;
+            if (MCStringToDouble(m_input_max, t_max) && t_num > t_max)
+            {
+                MCStringRef t_err;
+                MCStringFormat(t_err, "Value must be no more than %@.", m_input_max);
+                return t_err;
+            }
+        }
+        if (!MCStringIsEmpty(m_input_step))
+        {
+            double t_step;
+            double t_base = 0.0;
+            if (!MCStringIsEmpty(m_input_min))
+                MCStringToDouble(m_input_min, t_base);
+            if (MCStringToDouble(m_input_step, t_step) && t_step > 0.0)
+            {
+                double t_rem = fmod(t_num - t_base, t_step);
+                if (t_rem > 1e-9 && (t_step - t_rem) > 1e-9)
+                {
+                    MCStringRef t_err;
+                    MCStringFormat(t_err, "Value must be a multiple of %@ from the minimum.", m_input_step);
+                    return t_err;
+                }
+            }
+        }
+        return nullptr;
+    }
+
+    // "date", "text", and unrecognised types: no engine-side check beyond required/pattern.
+    return nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 void MCField::GetToggleHilite(MCExecContext& ctxt, bool& r_setting)
 {

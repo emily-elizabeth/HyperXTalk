@@ -229,6 +229,13 @@ private:
 	MCScrollbar *hscrollbar;
 	MCStringRef label;
     MCStringRef m_hint_text;
+    // Field input validation properties
+    MCStringRef m_input_type;    // "text", "email", "url", "tel", "number", "date"
+    MCStringRef m_input_min;     // lower bound (string; parsed per type at validation time)
+    MCStringRef m_input_max;     // upper bound
+    MCStringRef m_input_step;    // step (numeric types)
+    MCStringRef m_input_pattern; // custom regex pattern
+    bool m_input_required : 1;   // value must be non-empty
     MCTextDirection text_direction;
     MCInterfaceFieldCursorMovement cursor_movement;
     MCInterfaceKeyboardType keyboard_type : 4;
@@ -720,6 +727,21 @@ public:
 	void SetCancelButton(MCExecContext& ctxt, bool setting);
 	void GetHintText(MCExecContext& ctxt, MCStringRef& r_string);
 	void SetHintText(MCExecContext& ctxt, MCStringRef p_string);
+    // Input validation properties
+    void GetInputType(MCExecContext& ctxt, MCStringRef& r_string);
+    void SetInputType(MCExecContext& ctxt, MCStringRef p_string);
+    void GetInputRequired(MCExecContext& ctxt, bool& r_flag);
+    void SetInputRequired(MCExecContext& ctxt, bool p_flag);
+    void GetInputMin(MCExecContext& ctxt, MCStringRef& r_string);
+    void SetInputMin(MCExecContext& ctxt, MCStringRef p_string);
+    void GetInputMax(MCExecContext& ctxt, MCStringRef& r_string);
+    void SetInputMax(MCExecContext& ctxt, MCStringRef p_string);
+    void GetInputStep(MCExecContext& ctxt, MCStringRef& r_string);
+    void SetInputStep(MCExecContext& ctxt, MCStringRef p_string);
+    void GetInputPattern(MCExecContext& ctxt, MCStringRef& r_string);
+    void SetInputPattern(MCExecContext& ctxt, MCStringRef p_string);
+    // Returns nullptr if valid, or a retained error string if not.
+    MCStringRef ValidateInput() const;
 
     // Returns the bounding rect of the password-toggle eye icon in card coords.
     // Used for both drawing (fieldf.cpp) and hit-testing (mdown).

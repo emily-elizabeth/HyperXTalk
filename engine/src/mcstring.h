@@ -296,6 +296,7 @@ extern MCNameRef MCM_close_background;
 extern MCNameRef MCM_close_card;
 extern MCNameRef MCM_close_control;
 extern MCNameRef MCM_close_field;
+extern MCNameRef MCM_field_validation_failed;
 extern MCNameRef MCM_close_stack;
 extern MCNameRef MCM_close_stack_request;
 extern MCNameRef MCM_color_changed;
