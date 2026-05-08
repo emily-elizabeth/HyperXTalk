@@ -2808,7 +2808,16 @@ enum Exec_errors
     EE_IFF_BADCONDITION,
 
     // {EE-0918} iff: error evaluating result expression
-    EE_IFF_BADRESULT
+    EE_IFF_BADRESULT,
+
+    // {EE-0919} registerHotkey: error evaluating key expression
+    EE_REGISTERHOTKEY_BADKEY,
+
+    // {EE-0920} registerHotkey: error evaluating handler name expression
+    EE_REGISTERHOTKEY_BADHANDLER,
+
+    // {EE-0921} unregisterHotkey: error evaluating key expression
+    EE_UNREGISTERHOTKEY_BADKEY,
 
 };
 

@@ -2126,6 +2126,7 @@ enum Statements {
     S_READ,
     S_RECORD,
     S_REDO,
+    S_REGISTER_HOTKEY,
 	S_RELAYER,
     S_RELEASE,
     S_REMOVE,
@@ -2175,6 +2176,8 @@ enum Statements {
     S_UNLOAD,
     S_UNLOCK,
     S_UNMARK,
+    S_UNREGISTER_ALL_HOTKEYS,
+    S_UNREGISTER_HOTKEY,
     S_VISUAL,
     S_WAIT,
     S_WRITE

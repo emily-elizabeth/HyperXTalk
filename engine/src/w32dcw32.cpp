@@ -46,6 +46,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "socket.h"
 
 #include "resolution.h"
+#include "hotkey.h"
 
 #define VK_LAST 0xDE   //last is 222
 #define LEAVE_CHECK_INTERVAL 500
@@ -1646,6 +1647,14 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 //			return IsWindowUnicode(hwnd) ? DefWindowProcW(hwnd, msg, wParam, lParam) : DefWindowProcA(hwnd, msg, wParam, lParam);
 	}
 	break;
+	case WM_HOTKEY:
+		// Dispatched when a global hotkey registered via RegisterHotKey() is pressed.
+		// wParam is the engine ID we passed to RegisterHotKey() in w32-hotkey.cpp.
+		// WM_HOTKEY is always delivered on the main thread, so no extra
+		// synchronisation is needed before calling into the engine.
+		MCHotkeyDispatchFired((int32_t)wParam);
+		curinfo->handled = True;
+		break;
 	case WM_POWERBROADCAST:
 		MCS_reset_time();
 		return TRUE;

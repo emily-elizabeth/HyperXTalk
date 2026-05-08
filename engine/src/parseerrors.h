@@ -1822,6 +1822,15 @@ enum Parse_errors
 
     // {PE-0586} iff: requires exactly 3 parameters
     PE_IFF_BADPARAM,
+
+    // {PE-0587} registerHotkey: bad key expression
+    PE_REGISTERHOTKEY_BADKEY,
+
+    // {PE-0588} registerHotkey: bad handler name expression
+    PE_REGISTERHOTKEY_BADHANDLER,
+
+    // {PE-0589} unregisterHotkey: bad key expression
+    PE_UNREGISTERHOTKEY_BADKEY,
 };
 
 extern const char *MCparsingerrors;
