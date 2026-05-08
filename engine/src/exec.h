@@ -4471,5 +4471,3 @@ template<> struct MCExecValueTraits<float>
 
 void MCBatteryEvalBatteryLevel(MCExecContext& ctxt, integer_t& r_level);
 void MCBatteryEvalPowerSource(MCExecContext& ctxt, MCStringRef& r_source);
-
-#endif

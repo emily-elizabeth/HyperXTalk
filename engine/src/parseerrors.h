@@ -1829,11 +1829,4 @@ enum Parse_errors
     // {PE-0588} registerHotkey: bad handler name expression
     PE_REGISTERHOTKEY_BADHANDLER,
 
-    // {PE-0589} unregisterHotkey: bad key expression
-    PE_UNREGISTERHOTKEY_BADKEY,
-};
-
-extern const char *MCparsingerrors;
-
-#endif
-
+    // {PE-0589} unregisterHotkey: bad key expre

@@ -226,7 +226,7 @@ void MCUnregisterHotkey::exec_ctxt(MCExecContext& ctxt)
         return;  // no-op if not registered
 
     MCPlatformUnregisterHotkey(s_entries[t_idx].id);
-    _remove_entry((uindex_t)t_idx);
+        _remove_entry((uindex_t)t_idx);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

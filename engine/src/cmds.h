@@ -2216,38 +2216,4 @@ public:
 	
     virtual ~MCResolveImage(void);
     
-    virtual Parse_stat parse(MCScriptPoint &p_sp);
-    
-    virtual void exec_ctxt(MCExecContext &ctxt);
-    
-private:
-    MCChunk *m_relative_object;
-    MCExpression *m_id_or_name;
-    bool m_is_id : 1;
-};
-
-// MM-2014-02-12: [[ SecureSocket ]] secure socket <socket> [with|without verification]
-//  New secure socket command, used to ensure all future communications over the given socket are encrypted.
-class MCSecure : public MCStatement
-{
-public:
-	MCSecure(void)
-	{
-		m_sock_name = NULL;
-		m_verify_host_name = NULL;
-		secureverify = True;
-	}
-	
-	virtual ~MCSecure();
-	virtual Parse_stat parse(MCScriptPoint &);
-	virtual void exec_ctxt(MCExecContext&);
-	
-private:
-	MCExpression *m_sock_name;
-	bool secureverify : 1;
-	
-	// MM-2014-06-13: [[ Bug 12567 ]] Added new host name variant for use with verification.
-	MCExpression *m_verify_host_name;
-};
-
-#endif
+    virtual Par

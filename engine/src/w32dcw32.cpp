@@ -403,7 +403,17 @@ Boolean MCScreenDC::handle(real8 sleep, Boolean dispatch, Boolean anyevent,
 		else if (msg.message == WM_KEYDOWN || msg.message == WM_SYSKEYDOWN)
 			curinfo->keymove = KM_KEY_DOWN;
 
-		// IM-2016-01-11: [[ Bug 16415 ]] Always use DispatchMessage for non-stack windows		
+		// WM_HOTKEY is registered with NULL hwnd so it arrives as a thread
+		// message (msg.hwnd == NULL).  DispatchMessageW silently discards thread
+		// messages, so intercept it here before the dispatch logic below.
+		if (msg.message == WM_HOTKEY && msg.hwnd == NULL)
+		{
+			MCHotkeyDispatchFired((int32_t)msg.wParam);
+			curinfo->handled = True;
+			goto done;
+		}
+
+		// IM-2016-01-11: [[ Bug 16415 ]] Always use DispatchMessage for non-stack windows
 		bool t_foreign_window;
 		t_foreign_window = MCdispatcher->findstackwindowid((uintptr_t)msg.hwnd) == nil;
 		bool t_os_dispatch;
@@ -434,6 +444,7 @@ Boolean MCScreenDC::handle(real8 sleep, Boolean dispatch, Boolean anyevent,
 			DispatchMessageW(&msg);
 		else
 			MCWindowProc(msg.hwnd, msg.message, msg.wParam, msg.lParam);
+		done:;
 	}
 
 	abort = curinfo->abort;
@@ -1647,14 +1658,6 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 //			return IsWindowUnicode(hwnd) ? DefWindowProcW(hwnd, msg, wParam, lParam) : DefWindowProcA(hwnd, msg, wParam, lParam);
 	}
 	break;
-	case WM_HOTKEY:
-		// Dispatched when a global hotkey registered via RegisterHotKey() is pressed.
-		// wParam is the engine ID we passed to RegisterHotKey() in w32-hotkey.cpp.
-		// WM_HOTKEY is always delivered on the main thread, so no extra
-		// synchronisation is needed before calling into the engine.
-		MCHotkeyDispatchFired((int32_t)wParam);
-		curinfo->handled = True;
-		break;
 	case WM_POWERBROADCAST:
 		MCS_reset_time();
 		return TRUE;

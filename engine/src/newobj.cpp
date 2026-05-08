@@ -981,12 +981,3 @@ MCExpression *MCN_new_operator(int2 which)
 	case O_XOR_BITS:
 		return new MCXorBits;
 	case O_BEGINS_WITH:
-		return new MCBeginsWith;
-	case O_ENDS_WITH:
-		return new MCEndsWith;
-	case O_MATCHES:
-		return new MCMatches;
-	default:
-		return new MCExpression;
-	}
-}

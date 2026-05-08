@@ -621,6 +621,7 @@
       <AdditionalIncludeDirectories>..\..\..\hxtlib</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="..\..\..\engine\src\keywords.cpp"/>
+    <ClCompile Include="..\..\..\engine\src\hotkey.cpp"/>
     <ClCompile Include="..\..\..\engine\src\literal.cpp"/>
     <ClCompile Include="..\..\..\engine\src\mcmessagedigest.cpp"/>
     <ClCompile Include="..\..\..\engine\src\newobj.cpp"/>
@@ -839,6 +840,7 @@
     <ClCompile Include="..\..\..\engine\src\w32-toolbar.cpp"/>
     <ClCompile Include="..\..\..\engine\src\w32-core-compat.cpp"/>
     <ClCompile Include="..\..\..\engine\src\w32-jumplist.cpp"/>
+    <ClCompile Include="..\..\..\engine\src\w32-hotkey.cpp"/>
     <ClCompile Include="..\..\..\engine\src\module-canvas.cpp"/>
     <ClCompile Include="..\..\..\engine\src\module-engine.cpp"/>
     <ClCompile Include="..\..\..\engine\src\module-resources.cpp"/>

@@ -35,15 +35,12 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "param.h"
 #include "hotkey.h"
 #include "globals.h"
+#include "variable.h"
 
-// MCScreenDC::getinvisiblewindow() is the HWND we register against.
-// Forward-declare to avoid pulling in the whole w32dc.h header chain here.
-class MCScreenDC;
-extern MCScreen *MCscreen;
-static inline HWND _invisible_window()
-{
-    return ((MCScreenDC *)MCscreen)->getinvisiblewindow();
-}
+// WM_HOTKEY is registered with NULL so messages are posted to the thread
+// queue rather than a specific window.  Thread messages are accessible from
+// any GetMessage/PeekMessage call on this thread — including modal loops —
+// which mirrors the Mac's kCFRunLoopCommonModes approach.
 
 ////////////////////////////////////////////////////////////////////////////////
 // Per-hotkey Windows state
@@ -182,7 +179,7 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
 
     // Use the engine ID as the RegisterHotKey atom ID directly.
     // Valid range is 0x0000–0xBFFF for application-defined IDs.
-    if (!RegisterHotKey(_invisible_window(), (int)p_id, t_mods, t_vk))
+    if (!RegisterHotKey(NULL, (int)p_id, t_mods, t_vk))
     {
         char t_msg[128];
         _snprintf(t_msg, sizeof(t_msg),
@@ -198,7 +195,7 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
     // Grow the Windows-side entry table.
     if (!MCMemoryResizeArray(s_w32_entry_count + 1, s_w32_entries, s_w32_entry_count))
     {
-        UnregisterHotKey(_invisible_window(), (int)p_id);
+        UnregisterHotKey(NULL, (int)p_id);
         return false;
     }
     s_w32_entries[s_w32_entry_count - 1] = { p_id, (int)p_id };
@@ -211,7 +208,7 @@ void MCPlatformUnregisterHotkey(int32_t p_id)
     {
         if (s_w32_entries[i].engine_id == p_id)
         {
-            UnregisterHotKey(_invisible_window(), s_w32_entries[i].atom_id);
+            UnregisterHotKey(NULL, s_w32_entries[i].atom_id);
             for (uindex_t j = i + 1; j < s_w32_entry_count; j++)
                 s_w32_entries[j - 1] = s_w32_entries[j];
             s_w32_entry_count--;
@@ -222,9 +219,8 @@ void MCPlatformUnregisterHotkey(int32_t p_id)
 
 void MCPlatformUnregisterAllHotkeys()
 {
-    HWND t_hwnd = _invisible_window();
     for (uindex_t i = 0; i < s_w32_entry_count; i++)
-        UnregisterHotKey(t_hwnd, s_w32_entries[i].atom_id);
+        UnregisterHotKey(NULL, s_w32_entries[i].atom_id);
     MCMemoryDeleteArray(s_w32_entries);
     s_w32_entries     = nullptr;
     s_w32_entry_count = 0;
