@@ -648,6 +648,13 @@
 			'src/mac-battery.mm',
 			'src/w32-battery.cpp',
 
+			# Global hotkeys
+			'src/hotkey.h',
+			'src/hotkey.cpp',
+			'src/lnx-hotkey.cpp',
+			'src/mac-hotkey.mm',
+			'src/w32-hotkey.cpp',
+
 			# Credential storage
 			'src/exec-credentials.h',
 			'src/exec-credentials.cpp',

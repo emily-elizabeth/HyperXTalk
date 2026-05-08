@@ -1823,19 +1823,28 @@ enum Parse_errors
     // {PE-0586} iff: requires exactly 3 parameters
     PE_IFF_BADPARAM,
 
-    // {PE-0587} iconDataForFile: bad parameter
+    // {PE-0587} registerHotkey: bad key expression
+    PE_REGISTERHOTKEY_BADKEY,
+
+    // {PE-0588} registerHotkey: bad handler name expression
+    PE_REGISTERHOTKEY_BADHANDLER,
+
+    // {PE-0589} unregisterHotkey: bad key expression
+    PE_UNREGISTERHOTKEY_BADKEY,
+
+    // {PE-0590} iconDataForFile: bad parameter
     PE_ICONDATAFORFILE_BADPARAM,
 
-    // {PE-0588} iconDataForExtension: bad parameter
+    // {PE-0591} iconDataForExtension: bad parameter
     PE_ICONDATAFOREXTENSION_BADPARAM,
 
-    // {PE-0589} deleteCredential: bad parameter expression
+    // {PE-0592} deleteCredential: bad parameter expression
     PE_DELETECREDENTIAL_BADPARAM,
 
-    // {PE-0590} retrieveCredential: bad parameter expression
+    // {PE-0593} retrieveCredential: bad parameter expression
     PE_RETRIEVECREDENTIAL_BADPARAM,
 
-    // {PE-0591} storeCredential: bad parameter expression
+    // {PE-0594} storeCredential: bad parameter expression
     PE_STORECREDENTIAL_BADPARAM,
 };
 

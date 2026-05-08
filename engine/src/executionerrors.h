@@ -2810,37 +2810,46 @@ enum Exec_errors
     // {EE-0918} iff: error evaluating result expression
     EE_IFF_BADRESULT,
 
-    // {EE-0919} iconDataForFile: error evaluating path
+    // {EE-0919} registerHotkey: error evaluating key expression
+    EE_REGISTERHOTKEY_BADKEY,
+
+    // {EE-0920} registerHotkey: error evaluating handler name expression
+    EE_REGISTERHOTKEY_BADHANDLER,
+
+    // {EE-0921} unregisterHotkey: error evaluating key expression
+    EE_UNREGISTERHOTKEY_BADKEY,
+
+    // {EE-0922} iconDataForFile: error evaluating path
     EE_ICONDATAFORFILE_BADPATH,
 
-    // {EE-0920} iconDataForFile: error evaluating size
+    // {EE-0923} iconDataForFile: error evaluating size
     EE_ICONDATAFORFILE_BADSIZE,
 
-    // {EE-0921} iconDataForExtension: error evaluating extension
+    // {EE-0924} iconDataForExtension: error evaluating extension
     EE_ICONDATAFOREXTENSION_BADEXT,
 
-    // {EE-0922} iconDataForExtension: error evaluating size
+    // {EE-0925} iconDataForExtension: error evaluating size
     EE_ICONDATAFOREXTENSION_BADSIZE,
 
-    // {EE-0923} deleteCredential: bad service expression
+    // {EE-0926} deleteCredential: bad service expression
     EE_DELETECREDENTIAL_BADSERVICE,
 
-    // {EE-0924} deleteCredential: bad account expression
+    // {EE-0927} deleteCredential: bad account expression
     EE_DELETECREDENTIAL_BADACCOUNT,
 
-    // {EE-0925} retrieveCredential: bad service expression
+    // {EE-0928} retrieveCredential: bad service expression
     EE_RETRIEVECREDENTIAL_BADSERVICE,
 
-    // {EE-0926} retrieveCredential: bad account expression
+    // {EE-0929} retrieveCredential: bad account expression
     EE_RETRIEVECREDENTIAL_BADACCOUNT,
 
-    // {EE-0927} storeCredential: bad service expression
+    // {EE-0930} storeCredential: bad service expression
     EE_STORECREDENTIAL_BADSERVICE,
 
-    // {EE-0928} storeCredential: bad account expression
+    // {EE-0931} storeCredential: bad account expression
     EE_STORECREDENTIAL_BADACCOUNT,
 
-    // {EE-0929} storeCredential: bad secret expression
+    // {EE-0932} storeCredential: bad secret expression
     EE_STORECREDENTIAL_BADSECRET,
 };
 

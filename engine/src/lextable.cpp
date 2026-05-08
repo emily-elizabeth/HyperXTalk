@@ -391,6 +391,7 @@ const LT command_table[] =
         {"read", TT_STATEMENT, S_READ},
         {"record", TT_STATEMENT, S_RECORD},
         {"redo", TT_STATEMENT, S_REDO},
+        {"registerhotkey", TT_STATEMENT, S_REGISTER_HOTKEY},
 		{"relayer", TT_STATEMENT, S_RELAYER},
         {"release", TT_STATEMENT, S_STOP},
         {"remove", TT_STATEMENT, S_REMOVE},
@@ -441,6 +442,8 @@ const LT command_table[] =
         {"unload", TT_STATEMENT, S_UNLOAD},
         {"unlock", TT_STATEMENT, S_UNLOCK},
         {"unmark", TT_STATEMENT, S_UNMARK},
+        {"unregisterallhotkeys", TT_STATEMENT, S_UNREGISTER_ALL_HOTKEYS},
+        {"unregisterhotkey", TT_STATEMENT, S_UNREGISTER_HOTKEY},
         {"visual", TT_STATEMENT, S_VISUAL},
         {"wait", TT_STATEMENT, S_WAIT},
         {"write", TT_STATEMENT, S_WRITE}

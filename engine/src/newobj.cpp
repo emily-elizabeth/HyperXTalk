@@ -210,6 +210,8 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCRecord;
 	case S_REDO:
 		return new MCRedo;
+	case S_REGISTER_HOTKEY:
+		return new MCRegisterHotkey;
 	case S_RELAYER:
 		return new MCRelayer;
 	case S_REMOVE:
@@ -299,6 +301,10 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCUnlock;
 	case S_UNMARK:
 		return new MCUnmark;
+	case S_UNREGISTER_ALL_HOTKEYS:
+		return new MCUnregisterAllHotkeys;
+	case S_UNREGISTER_HOTKEY:
+		return new MCUnregisterHotkey;
 	case S_VISUAL:
 		return new MCVisualEffect;
 	case S_WAIT:

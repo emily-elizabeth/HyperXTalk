@@ -1005,6 +1005,38 @@ public:
 };
 
 // ---------------------------------------------------------------------------
+// Global hotkey commands
+
+class MCRegisterHotkey : public MCStatement
+{
+    MCExpression *m_key;
+    MCExpression *m_handler;
+public:
+    MCRegisterHotkey() : m_key(nil), m_handler(nil) {}
+    virtual ~MCRegisterHotkey();
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &);
+};
+
+class MCUnregisterHotkey : public MCStatement
+{
+    MCExpression *m_key;
+public:
+    MCUnregisterHotkey() : m_key(nil) {}
+    virtual ~MCUnregisterHotkey();
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &);
+};
+
+class MCUnregisterAllHotkeys : public MCStatement
+{
+public:
+    virtual ~MCUnregisterAllHotkeys();
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &);
+};
+
+// ---------------------------------------------------------------------------
 
 class MCClickCmd : public MCStatement
 {
