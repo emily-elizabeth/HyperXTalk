@@ -2496,4 +2496,9 @@ const uint2 table_sizes[] =
     ELEMENTS(sugar_table),
     ELEMENTS(there_table),
     ELEMENTS(tool_table),
-    EL
+    ELEMENTS(unit_table),
+    ELEMENTS(validation_table),
+    ELEMENTS(visual_table),
+	ELEMENTS(server_table),
+};
+extern const uint4 table_sizes_size = ELEMENTS(table_sizes);

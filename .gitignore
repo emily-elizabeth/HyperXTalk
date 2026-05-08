@@ -145,3 +145,4 @@ build/engine/Debug/Externals/CEF
 build/engine/Release/Externals/CEF 
 /thirdparty/libcef
 /Installer/output
+ide/Documentation/html_viewer/resources/data/api/api.sqlite

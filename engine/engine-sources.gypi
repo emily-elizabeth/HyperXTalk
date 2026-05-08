@@ -1391,4 +1391,31 @@
 						'src/desktop-image.cpp',
 						'src/desktop-menu.cpp',
 						'src/desktop-stack.cpp',
-						'src/platform.cpp
+						'src/platform.cpp',
+						'src/platform-recorder.cpp',
+						'src/platform-surface.cpp',
+						'src/platform-window.cpp',
+					],
+				},
+			],
+			[
+				'mobile != 0',
+				{
+					'sources/':
+					[
+						['exclude', '^src/dsk.*\\.(cpp|mm)$'],
+					],
+				},
+			],
+			[
+				'mobile == 0',
+				{
+					'sources!':
+					[
+						'src/exec-sensor.cpp',
+					],
+				},
+			],
+		],
+	},
+}

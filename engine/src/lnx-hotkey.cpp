@@ -398,4 +398,5 @@ void MCPlatformUnregisterAllHotkeys()
     s_lnx_entry_count = 0;
     pthread_mutex_unlock(&s_mutex);
 
-    XFlush
+    XFlush(s_bg_display);
+}
