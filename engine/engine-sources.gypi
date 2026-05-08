@@ -338,6 +338,7 @@
 			'src/vclip.cpp',
 			'src/toolbar.cpp',
 			'src/exec-interface-toolbar.cpp',
+				'src/lnx-hotkey.cpp',
 			'src/widget.cpp',
 			'src/widget-events.cpp',
             'src/widget-ref.cpp',
@@ -1041,6 +1042,11 @@
 			'src/stacke.cpp',
 			'src/toolbar.cpp',
 			'src/exec-interface-toolbar.cpp',
+				# Platform hotkey backends require the desktop event loop.
+				# hotkey.cpp (cross-platform registry) stays shared.
+				'src/mac-hotkey.mm',
+				'src/w32-hotkey.cpp',
+				'src/lnx-hotkey.cpp',
 		],
 		
 		# Sources used to implement LCB modules in the engine

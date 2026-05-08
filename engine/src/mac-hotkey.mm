@@ -7,8 +7,8 @@ the terms of the GNU General Public License v3 as published by the Free
 Software Foundation.
 
 LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
@@ -17,20 +17,35 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 //
 // macOS global hotkey backend using Carbon RegisterEventHotKey.
 //
-// RegisterEventHotKey is the simplest, most reliable way to register
-// system-wide hotkeys on macOS.  It is technically deprecated as of
-// macOS 12 but continues to work in all current versions and is widely
-// used by cross-platform frameworks (Qt, SDL, Electron, etc.).
+// Architecture:
+//   A dedicated background pthread runs RunCurrentEventLoop() with its own
+//   per-thread Carbon event dispatcher.  RegisterEventHotKey targets that
+//   thread's dispatcher, so hotkey events are delivered on the background
+//   thread regardless of what run-loop mode the main thread is currently in.
 //
-// Callbacks are delivered on the main thread via the Carbon event loop,
-// which is ticked by the Cocoa run loop.
+//   HyperXTalk uses a custom Cocoa event loop (it does NOT call [NSApp run]).
+//   It alternates between:
+//     - non-blocking:  NSAnyEventMask      + NSDefaultRunLoopMode
+//     - blocking:      NSApplicationDefinedMask + NSEventTrackingRunLoopMode
+//   Carbon's per-thread dispatcher is only serviced during NSDefaultRunLoopMode
+//   iterations, so a naive single-thread approach fires only once.  Running
+//   Carbon on a dedicated thread eliminates that dependency entirely.
 //
-// Requires: -framework Carbon  (already available on all macOS targets)
+//   When a hotkey fires on the background thread the handler uses
+//   CFRunLoopPerformBlock(main_loop, kCFRunLoopCommonModes, ...) +
+//   CFRunLoopWakeUp() to call MCHotkeyDispatchFired on the main thread.
+//   kCFRunLoopCommonModes covers both NSDefaultRunLoopMode and
+//   NSEventTrackingRunLoopMode, so delivery is not blocked by the engine's
+//   NSEventTrackingRunLoopMode blocking wait.
+//
+// Requires: -framework Carbon, -framework Foundation
+//           (both already available on all macOS targets)
 //
 
 #import <Foundation/Foundation.h>
 #include <Carbon/Carbon.h>
-
+#include <dispatch/dispatch.h>
+#include <pthread.h>
 #include <string>
 
 #include "prefix.h"
@@ -38,6 +53,9 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "param.h"
 #include "hotkey.h"
 #include "globals.h"
+// Forward-declare rather than including mac-internal.h (which requires
+// platform-internal.h to precede it and pulls in heavy platform class headers).
+void MCMacPlatformScheduleCallback(void (*)(void *), void *);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Per-hotkey Carbon state
@@ -54,11 +72,19 @@ static uindex_t          s_mac_entry_count = 0;
 static const OSType kHotkeySignature = 'hxtk'; // HyperXTalk
 
 ////////////////////////////////////////////////////////////////////////////////
-// Carbon event handler (installed once)
+// Background Carbon event thread
 
-static EventHandlerRef  s_handler_ref = nullptr;
-static EventHandlerUPP  s_handler_upp = nullptr;
+static EventHandlerRef  s_handler_ref    = nullptr;
+static EventHandlerUPP  s_handler_upp    = nullptr;
+// The background thread's per-thread dispatcher target — stashed so the main
+// thread can pass it as the 4th argument to RegisterEventHotKey.
+static EventTargetRef   s_bg_target      = nullptr;
+static pthread_t        s_bg_thread;
+static bool             s_thread_started = false; // true once pthread_create called
+// Semaphore (dispatch-based) used only during thread startup to sync s_bg_target.
+static dispatch_semaphore_t s_ready_sem = nullptr;
 
+// Carbon event handler — always called on the background thread.
 static OSStatus _hot_key_handler(EventHandlerCallRef p_next,
                                  EventRef            p_event,
                                  void               *p_user_data)
@@ -76,28 +102,68 @@ static OSStatus _hot_key_handler(EventHandlerCallRef p_next,
     if (t_hkid.signature != kHotkeySignature)
         return eventNotHandledErr;
 
-    // Dispatch is already on the main thread (Carbon event loop).
-    MCHotkeyDispatchFired((int32_t)t_hkid.id);
+    MCMacPlatformScheduleCallback(
+        [](void *p_ctx) { MCHotkeyDispatchFired((int32_t)(uintptr_t)p_ctx); },
+        (void *)(uintptr_t)t_hkid.id);
     return noErr;
 }
 
-static bool _ensure_handler()
+// Background thread entry point.  Installs the Carbon handler on its own
+// per-thread dispatcher, signals the main thread that setup is complete, then
+// runs the Carbon event loop indefinitely so hotkeys are delivered even when
+// the main thread is blocked in NSEventTrackingRunLoopMode.
+static void *_carbon_thread_func(void * /*unused*/)
 {
-    if (s_handler_ref != nullptr)
-        return true;
-
     EventTypeSpec t_spec = { kEventClassKeyboard, kEventHotKeyPressed };
     s_handler_upp = NewEventHandlerUPP(_hot_key_handler);
 
-    // InstallApplicationEventHandler (GetApplicationEventTarget) only reliably
-    // delivers the first press in Cocoa-hosted apps because NSApplication's run
-    // loop doesn't continuously service the Carbon application event target.
-    // GetEventDispatcherTarget() is the per-thread dispatcher that Cocoa's run
-    // loop keeps alive, so hot-key events arrive on every press.
+    // GetEventDispatcherTarget() here returns THIS thread's dispatcher, which
+    // RunCurrentEventLoop() below will service continuously.
     OSStatus t_err = InstallEventHandler(
         GetEventDispatcherTarget(), s_handler_upp, 1, &t_spec, nullptr, &s_handler_ref);
 
-    return (t_err == noErr);
+    if (t_err == noErr)
+        s_bg_target = GetEventDispatcherTarget();
+
+    // Unblock _ensure_thread() — even on failure so it doesn't hang.
+    dispatch_semaphore_signal(s_ready_sem);
+
+    if (t_err != noErr)
+        return nullptr;
+
+    // Drive Carbon delivery for this thread forever (until process exit).
+    // QuitEventLoop(GetCurrentEventLoop()) can be used for clean shutdown.
+    RunCurrentEventLoop(kEventDurationForever);
+    return nullptr;
+}
+
+// Start the background thread on first use.  Returns true if s_bg_target is
+// valid (i.e. the thread started and the handler was installed).
+static bool _ensure_thread()
+{
+    if (s_bg_target != nullptr)
+        return true;
+    if (s_thread_started)
+        return false; // already tried and failed — don't retry
+
+    s_ready_sem      = dispatch_semaphore_create(0);
+    s_thread_started = true;
+
+    if (pthread_create(&s_bg_thread, nullptr, _carbon_thread_func, nullptr) != 0)
+    {
+        dispatch_release(s_ready_sem);
+        s_ready_sem = nullptr;
+        return false;
+    }
+    pthread_detach(s_bg_thread);
+
+    // Wait up to 2 s for the background thread to set s_bg_target.
+    dispatch_semaphore_wait(s_ready_sem,
+                            dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC));
+    dispatch_release(s_ready_sem);
+    s_ready_sem = nullptr;
+
+    return s_bg_target != nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -193,19 +259,15 @@ static bool _parse_key_string(MCStringRef p_str,
     r_key_code  = 0;
 
     // Tokenise on '+', keeping the key name as the last token.
-    // To handle "Ctrl++", we scan for the last '+' separator.
     char *t_p = t_cstr;
     char *t_tokens[16];
     int   t_count = 0;
 
-    // Split by '+', but allow an empty token after a trailing '+' to mean
-    // a literal '+' key (rare but possible: "Ctrl++" = Ctrl + Plus).
     while (*t_p && t_count < 15)
     {
         char *t_start = t_p;
         while (*t_p && *t_p != '+')
             t_p++;
-        // Null-terminate this token in-place.
         *t_p = '\0';
         t_tokens[t_count++] = t_start;
         if (*(t_p + 1))
@@ -253,10 +315,10 @@ static bool _parse_key_string(MCStringRef p_str,
 
 bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
 {
-    if (!_ensure_handler())
+    if (!_ensure_thread())
     {
         MCStringRef t_err;
-        /* UNCHECKED */ MCStringCreateWithCString("failed to install hotkey event handler", t_err);
+        /* UNCHECKED */ MCStringCreateWithCString("failed to start hotkey background thread", t_err);
         MCresult->setvalueref(t_err);
         MCValueRelease(t_err);
         return false;
@@ -278,18 +340,14 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
     EventHotKeyID t_hkid = { kHotkeySignature, (UInt32)p_id };
     EventHotKeyRef t_ref = nullptr;
 
-    // IMPORTANT: use the same target as the handler (GetEventDispatcherTarget).
-    // RegisterEventHotKey's 4th argument is where the event will be sent;
-    // it must match the target the handler was installed on or events will
-    // only arrive once (Cocoa forwards the first press via a compatibility
-    // path but routes subsequent ones directly to the registered target).
+    // Target the background thread's dispatcher so events are delivered
+    // there regardless of the main thread's current run-loop mode.
     OSStatus t_err = RegisterEventHotKey(
         t_key_code, t_modifiers, t_hkid,
-        GetEventDispatcherTarget(), 0, &t_ref);
+        s_bg_target, 0, &t_ref);
 
     if (t_err != noErr)
     {
-        // errEventAlreadyPostedErr (-9862) means the key is grabbed by another app.
         char t_msg[64];
         snprintf(t_msg, sizeof(t_msg), "RegisterEventHotKey failed (OSStatus %d)", (int)t_err);
         MCStringRef t_mcerr;
@@ -300,7 +358,6 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
     }
 
     // Grow the Mac-side entry table.
-    MCMacHotkeyEntry *t_new;
     if (!MCMemoryResizeArray(s_mac_entry_count + 1, s_mac_entries, s_mac_entry_count))
     {
         UnregisterEventHotKey(t_ref);

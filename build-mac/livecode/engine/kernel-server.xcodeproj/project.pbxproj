@@ -307,7 +307,6 @@
 		64287E99579873A0B30B91A6 /* objectpropsets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 191FD9D8D5B6307C4B164798 /* objectpropsets.cpp */; };
 		6509E7F635625F30E7D44F52 /* hotkey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B873452B3EE59AB927ABB08C /* hotkey.cpp */; };
 		652061F014FE9BF6124DD2D6 /* stack2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 12AD414C075F44124ED514ED /* stack2.cpp */; };
-		656E3D85E68C51FF13C5DB5A /* mac-hotkey.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6A0DDF1F989CE13B8B16E067 /* mac-hotkey.mm */; };
 		6596AE3A89EFB947A64D988A /* md5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9229E36A69F8FD4EF5C55BA /* md5.cpp */; };
 		6598BAA5664CAA1B4584E943 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FBD60E5EE891BB034EFFE0EB /* CoreFoundation.framework */; };
 		65DC217EF059210E0C715E92 /* graphics_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1C1C6C62A56F6E07BD478EA3 /* graphics_util.cpp */; };
@@ -557,7 +556,6 @@
 		D3B181C487393B8D0ABEE9CB /* funcs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22E6A34FE2D93556F350ED95 /* funcs.cpp */; };
 		D4A964CAB61470BD62490A2F /* exec-interface-image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EEDBBD2B9B2AE6A015B459FF /* exec-interface-image.cpp */; };
 		D4C7AF87C30C454573CAB030 /* patternmatcher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8782F1A06ED5FDFC04257CFB /* patternmatcher.cpp */; };
-		D4D3FCECD3A2253A3F7C96C7 /* mac-hotkey.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6A0DDF1F989CE13B8B16E067 /* mac-hotkey.mm */; };
 		D569918557A06D2EF65D0852 /* scrolbar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 24D40C1B1949155B21264833 /* scrolbar.cpp */; };
 		D5EE3AA76AE1CA3C9332028C /* globals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB7942504C2EC81419EC96D4 /* globals.cpp */; };
 		D610B82F289B72A1106BF9F2 /* player-srv-stubs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 675B3BA883C3C17EFC889DAC /* player-srv-stubs.cpp */; };
@@ -4191,7 +4189,6 @@
 				60FB5AF56F1A911CB63A0FC3 /* exec-battery.cpp in Sources */,
 				EB34ADC1A84D4FD1DB30C77A /* mac-battery.mm in Sources */,
 				6509E7F635625F30E7D44F52 /* hotkey.cpp in Sources */,
-				656E3D85E68C51FF13C5DB5A /* mac-hotkey.mm in Sources */,
 				D1D938D5E1C28FCF8AFBFB3A /* notification.cpp in Sources */,
 				E2D2B40D38A632FD2DF1BC25 /* mac-notification.mm in Sources */,
 				9C35A45F41670AAB650C5FAC /* native-layer.cpp in Sources */,
@@ -4470,7 +4467,6 @@
 				43E350F5B3D7B56E29DA76A7 /* exec-battery.cpp in Sources */,
 				BC56D7C4DBAB0459F32703A2 /* mac-battery.mm in Sources */,
 				4487D627F39CB20D900362CC /* hotkey.cpp in Sources */,
-				D4D3FCECD3A2253A3F7C96C7 /* mac-hotkey.mm in Sources */,
 				11D1F5B23AA9B049A2A9FED9 /* notification.cpp in Sources */,
 				4DF8B547D6B7C0321B9C9522 /* mac-notification.mm in Sources */,
 				B32C50E28977F5E6CA48657C /* native-layer.cpp in Sources */,
