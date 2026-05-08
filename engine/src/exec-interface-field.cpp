@@ -1082,6 +1082,22 @@ void MCField::SetInputPattern(MCExecContext& ctxt, MCStringRef p_string)
     MCValueAssign(m_input_pattern, p_string);
 }
 
+// Run a full-match regex test against p_text using a C-string pattern.
+// Returns true if the entire text matches, false otherwise or if the
+// pattern fails to compile.
+static bool s_regex_match(MCStringRef p_text, const char *p_pattern)
+{
+    MCAutoStringRef t_pat;
+    MCStringCreateWithCString(p_pattern, &t_pat);
+    regexp *t_re = MCR_compile(*t_pat, false);
+    if (t_re == nullptr)
+        return false;
+    bool t_ok = MCR_exec(t_re, p_text,
+                         MCRangeMake(0, MCStringGetLength(p_text))) != 0;
+    MCR_free((regex_t *)t_re);
+    return t_ok;
+}
+
 // Validate the current field content against the active input constraints.
 // Returns nullptr if valid, or a newly-retained MCStringRef error message if not.
 MCStringRef MCField::ValidateInput() const
@@ -1109,13 +1125,13 @@ MCStringRef MCField::ValidateInput() const
     // --- custom pattern ---
     if (!MCStringIsEmpty(m_input_pattern))
     {
-        // Anchor the pattern to match the full value.
         MCAutoStringRef t_anchored;
         MCStringFormat(&t_anchored, "^(?:%@)$", m_input_pattern);
         regexp *t_re = MCR_compile(*t_anchored, false);
         if (t_re != nullptr)
         {
-            bool t_matched = MCR_exec(t_re, t_text, MCRangeMake(0, MCStringGetLength(t_text))) != 0;
+            bool t_matched = MCR_exec(t_re, t_text,
+                                      MCRangeMake(0, MCStringGetLength(t_text))) != 0;
             MCR_free((regex_t *)t_re);
             if (!t_matched)
             {
@@ -1133,24 +1149,11 @@ MCStringRef MCField::ValidateInput() const
     // --- type-specific validation ---
     if (MCStringIsEqualToCString(m_input_type, "email", kMCStringOptionCompareCaseless))
     {
-        // Must contain exactly one '@', with non-empty local and domain parts,
-        // and a dot somewhere in the domain.
-        MCStringRef t_err = nullptr;
-        uindex_t t_at;
-        if (!MCStringFirstIndexOfChar(t_text, '@', 0, kMCStringOptionCompareExact, t_at)
-            || t_at == 0
-            || t_at == MCStringGetLength(t_text) - 1)
+        // Non-empty local part, exactly one @, domain with at least one dot
+        // and non-empty labels on either side.
+        if (!s_regex_match(t_text, "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"))
         {
-            MCStringCreateWithCString("Please enter a valid email address.", t_err);
-            return t_err;
-        }
-        MCAutoStringRef t_domain;
-        MCStringCopySubstring(t_text, MCRangeMake(t_at + 1, MCStringGetLength(t_text) - t_at - 1), &t_domain);
-        uindex_t t_dot;
-        if (!MCStringFirstIndexOfChar(*t_domain, '.', 0, kMCStringOptionCompareExact, t_dot)
-            || t_dot == 0
-            || t_dot == MCStringGetLength(*t_domain) - 1)
-        {
+            MCStringRef t_err;
             MCStringCreateWithCString("Please enter a valid email address.", t_err);
             return t_err;
         }
@@ -1159,9 +1162,7 @@ MCStringRef MCField::ValidateInput() const
 
     if (MCStringIsEqualToCString(m_input_type, "url", kMCStringOptionCompareCaseless))
     {
-        if (!MCStringBeginsWithCString(t_text, (const char_t *)"http://", kMCStringOptionCompareCaseless)
-            && !MCStringBeginsWithCString(t_text, (const char_t *)"https://", kMCStringOptionCompareCaseless)
-            && !MCStringBeginsWithCString(t_text, (const char_t *)"ftp://", kMCStringOptionCompareCaseless))
+        if (!s_regex_match(t_text, "^(https?|ftp)://\\S+$"))
         {
             MCStringRef t_err;
             MCStringCreateWithCString("Please enter a valid URL (starting with http://, https://, or ftp://).", t_err);
@@ -1172,17 +1173,12 @@ MCStringRef MCField::ValidateInput() const
 
     if (MCStringIsEqualToCString(m_input_type, "tel", kMCStringOptionCompareCaseless))
     {
-        // Allow digits, spaces, +, -, (, ), and .
-        for (uindex_t i = 0; i < MCStringGetLength(t_text); i++)
+        // Digits, spaces, and the symbols +  -  (  )  .
+        if (!s_regex_match(t_text, "^[+0-9()\\-.\\s]+$"))
         {
-            char_t c = MCStringGetCharAtIndex(t_text, i);
-            if (c != '+' && c != '-' && c != '(' && c != ')' && c != ' ' && c != '.'
-                && (c < '0' || c > '9'))
-            {
-                MCStringRef t_err;
-                MCStringCreateWithCString("Please enter a valid telephone number.", t_err);
-                return t_err;
-            }
+            MCStringRef t_err;
+            MCStringCreateWithCString("Please enter a valid telephone number.", t_err);
+            return t_err;
         }
         return nullptr;
     }
