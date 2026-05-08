@@ -35,3 +35,19 @@ void MCPlatformSetJumpList(MCStringRef /*p_tasks*/, MCStringRef /*p_category*/)
 void MCMacActivateApplication(void)
 {
 }
+
+// Global hotkeys are desktop-only; no-ops in the server engine.
+#include "hotkey.h"
+
+bool MCPlatformRegisterHotkey(MCStringRef /*p_key*/, int32_t /*p_id*/)
+{
+    return false;
+}
+
+void MCPlatformUnregisterHotkey(int32_t /*p_id*/)
+{
+}
+
+void MCPlatformUnregisterAllHotkeys()
+{
+}

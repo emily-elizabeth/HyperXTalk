@@ -430,6 +430,25 @@ bump-revision:
 	  PREV=$$REV perl -i -pe 's/(BUILD_LONG_VERSION\s*=\s*\d+\.\d+\.\d+\.)\d+/$$1.$$ENV{PREV}/e' version
 	@echo "Build revision is now $$(perl -ne 'print $$1 if /BUILD_REVISION\s*=\s*(\d+)/' version)"
 
+# Sync the IDE Toolset scripts from source into the development mac-bin bundle
+# without running a full package-mac-bin.  Use this after editing any file
+# under ide/Toolset/ or ide-support/ during development:
+#   make sync-toolset
+sync-toolset:
+	@if [ ! -d "$(MACBIN_BUNDLE)" ]; then \
+	  echo "$(MACBIN_BUNDLE) not found — run compile-mac first"; exit 1; \
+	fi
+	@echo "Syncing ide/Toolset → $(MACBIN_TOOLS)/Toolset/"
+	@mkdir -p "$(MACBIN_TOOLS)/Toolset/libraries"
+	@cp -R ide/Toolset/. "$(MACBIN_TOOLS)/Toolset/"
+	@for f in revsblibrary revsaveasstandalone revliburl; do \
+	  [ -f "ide-support/$$f.livecodescript" ] && \
+	    cp "ide-support/$$f.livecodescript" "$(MACBIN_TOOLS)/Toolset/libraries/" || true; \
+	done
+	@cp -f ide-support/revdocsparser.livecodescript \
+	    "$(MACBIN_TOOLS)/Toolset/libraries/" 2>/dev/null || true
+	@echo "Done."
+
 package-mac-bin:
 	@echo "=== Packaging $(MACBIN_BUNDLE) ==="
 	@# ----------------------------------------------------------------
