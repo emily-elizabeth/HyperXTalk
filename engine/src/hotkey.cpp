@@ -59,23 +59,23 @@ static uindex_t       s_entry_count = 0;
 static int32_t        s_next_id     = 1;
 
 // Find an entry by key string (case-insensitive).  Returns index or -1.
-static intindex_t _find_by_key(MCStringRef p_key)
+static index_t _find_by_key(MCStringRef p_key)
 {
     for (uindex_t i = 0; i < s_entry_count; i++)
     {
         if (MCStringIsEqualTo(s_entries[i].key, p_key, kMCStringOptionCompareCaseless))
-            return (intindex_t)i;
+            return (index_t)i;
     }
     return -1;
 }
 
 // Find an entry by engine ID.  Returns index or -1.
-static intindex_t _find_by_id(int32_t p_id)
+static index_t _find_by_id(int32_t p_id)
 {
     for (uindex_t i = 0; i < s_entry_count; i++)
     {
         if (s_entries[i].id == p_id)
-            return (intindex_t)i;
+            return (index_t)i;
     }
     return -1;
 }
@@ -106,7 +106,7 @@ static void _dispatch_to_default_card(MCNameRef p_msg)
 
 void MCHotkeyDispatchFired(int32_t p_id)
 {
-    intindex_t t_idx = _find_by_id(p_id);
+    index_t t_idx = _find_by_id(p_id);
     if (t_idx < 0)
         return;
     _dispatch_to_default_card(s_entries[t_idx].handler);
@@ -161,7 +161,7 @@ void MCRegisterHotkey::exec_ctxt(MCExecContext& ctxt)
         return;
 
     // If this key is already registered, unregister it first.
-    intindex_t t_existing = _find_by_key(*t_key);
+    index_t t_existing = _find_by_key(*t_key);
     if (t_existing >= 0)
     {
         MCPlatformUnregisterHotkey(s_entries[t_existing].id);
@@ -221,7 +221,7 @@ void MCUnregisterHotkey::exec_ctxt(MCExecContext& ctxt)
     if (!ctxt.EvalExprAsStringRef(m_key, EE_UNREGISTERHOTKEY_BADKEY, &t_key))
         return;
 
-    intindex_t t_idx = _find_by_key(*t_key);
+    index_t t_idx = _find_by_key(*t_key);
     if (t_idx < 0)
         return;  // no-op if not registered
 
