@@ -1083,6 +1083,8 @@ void MCField::SetInputPattern(MCExecContext& ctxt, MCStringRef p_string)
 }
 
 // Run a full-match regex test against p_text using a C-string pattern.
+// p_text MUST be a Unicode (16-bit) MCStringRef — MCR_exec is compiled with
+// 16-bit PCRE support and will produce incorrect results on native strings.
 // Returns true if the entire text matches, false otherwise or if the
 // pattern fails to compile.
 static bool s_regex_match(MCStringRef p_text, const char *p_pattern)
@@ -1110,6 +1112,14 @@ MCStringRef MCField::ValidateInput() const
 
     bool t_empty = MCStringIsEmpty(t_text);
 
+    // MCR_exec requires a Unicode (16-bit) string — convert once up front so
+    // every regex call below gets the right encoding.  We keep t_text around
+    // for non-regex checks (isEmpty, ToDouble, etc.) which work on either form.
+    MCAutoStringRef t_unicode_buf;
+    if (!t_empty && !MCStringUnicodeCopy(t_text, &t_unicode_buf))
+        return nullptr;
+    MCStringRef t_utext = t_empty ? t_text : *t_unicode_buf;
+
     // --- required ---
     if (m_input_required && t_empty)
     {
@@ -1130,8 +1140,8 @@ MCStringRef MCField::ValidateInput() const
         regexp *t_re = MCR_compile(*t_anchored, false);
         if (t_re != nullptr)
         {
-            bool t_matched = MCR_exec(t_re, t_text,
-                                      MCRangeMake(0, MCStringGetLength(t_text))) != 0;
+            bool t_matched = MCR_exec(t_re, t_utext,
+                                      MCRangeMake(0, MCStringGetLength(t_utext))) != 0;
             if (!t_matched)
             {
                 MCStringRef t_err;
@@ -1150,7 +1160,7 @@ MCStringRef MCField::ValidateInput() const
     {
         // Non-empty local part, exactly one @, domain with at least one dot
         // and non-empty labels on either side.
-        if (!s_regex_match(t_text, "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"))
+        if (!s_regex_match(t_utext, "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"))
         {
             MCStringRef t_err;
             MCStringCreateWithCString("Please enter a valid email address.", t_err);
@@ -1161,9 +1171,9 @@ MCStringRef MCField::ValidateInput() const
 
     if (MCStringIsEqualToCString(m_input_type, "url", kMCStringOptionCompareCaseless))
     {
-        // Host must contain a dot (rules out bare labels like "https://a").
-        // Path/query/fragment are optional.
-        if (!s_regex_match(t_text, "^(https?|ftp)://[^\\s/?#]+\\.[^\\s/?#]+([/?#]\\S*)?$"))
+        // Host must contain a dot with at least 2 characters after it (TLD),
+        // and at least 1 character before it. Path/query/fragment are optional.
+        if (!s_regex_match(t_utext, "^(https?|ftp)://[^\\s/?#]+\\.[^\\s/?#]{2,}([/?#]\\S*)?$"))
         {
             MCStringRef t_err;
             MCStringCreateWithCString("Please enter a valid URL (starting with http://, https://, or ftp://).", t_err);
@@ -1175,7 +1185,7 @@ MCStringRef MCField::ValidateInput() const
     if (MCStringIsEqualToCString(m_input_type, "tel", kMCStringOptionCompareCaseless))
     {
         // Digits, spaces, and the symbols +  -  (  )  .
-        if (!s_regex_match(t_text, "^[+0-9()\\-.\\s]+$"))
+        if (!s_regex_match(t_utext, "^[+0-9()\\-.\\s]+$"))
         {
             MCStringRef t_err;
             MCStringCreateWithCString("Please enter a valid telephone number.", t_err);
