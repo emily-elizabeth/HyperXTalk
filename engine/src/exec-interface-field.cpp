@@ -1161,7 +1161,9 @@ MCStringRef MCField::ValidateInput() const
 
     if (MCStringIsEqualToCString(m_input_type, "url", kMCStringOptionCompareCaseless))
     {
-        if (!s_regex_match(t_text, "^(https?|ftp)://\\S+$"))
+        // Host must contain a dot (rules out bare labels like "https://a").
+        // Path/query/fragment are optional.
+        if (!s_regex_match(t_text, "^(https?|ftp)://[^\\s/?#]+\\.[^\\s/?#]+([/?#]\\S*)?$"))
         {
             MCStringRef t_err;
             MCStringCreateWithCString("Please enter a valid URL (starting with http://, https://, or ftp://).", t_err);
