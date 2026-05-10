@@ -1149,9 +1149,11 @@ MCStringRef MCField::ValidateInput() const
     // --- type-specific validation ---
     if (MCStringIsEqualToCString(m_input_type, "email", kMCStringOptionCompareCaseless))
     {
-        // Non-empty local part, exactly one @, domain with at least one dot
-        // and non-empty labels on either side.
-        if (!s_regex_match(t_utext, "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"))
+        // Local part: RFC 5321 allowed unquoted characters.
+        // Domain: one or more labels separated by dots, ending with an
+        // alphabetic TLD of at least two characters.  This rejects strings
+        // like "qwerty:://@www...com" whose local part contains : or /.
+        if (!s_regex_match(t_utext, "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~\\-]+@[a-zA-Z0-9\\-]+(?:\\.[a-zA-Z0-9\\-]+)*\\.[a-zA-Z]{2,}$"))
         {
             MCStringRef t_err;
             MCStringCreateWithCString("Please enter a valid email address.", t_err);
