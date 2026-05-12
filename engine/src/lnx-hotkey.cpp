@@ -30,6 +30,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "prefix.h"
 
 #include <glib.h>
+#include <glib-unix.h>
 #include <unistd.h>
 #include <stdint.h>
 
@@ -44,8 +45,9 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 static guint s_io_watch = 0;
 
-// GLib I/O callback: drains the self-pipe and dispatches each hotkey ID.
-static gboolean _pipe_readable(GIOChannel * /*channel*/,
+// GLib fd watch callback: drains the self-pipe and dispatches each hotkey ID.
+// Signature matches GUnixFDSourceFunc as required by g_unix_fd_add().
+static gboolean _pipe_readable(gint         /*fd*/,
                                 GIOCondition /*cond*/,
                                 gpointer     /*data*/)
 {
@@ -64,10 +66,11 @@ static bool _ensure_watch()
     if (!lnx_hotkey_x11_ensure_pipe())
         return false;
 
+    // g_unix_fd_add() (glib-unix.h) is the modern replacement for the
+    // g_io_channel_unix_new / g_io_add_watch / g_io_channel_unref pattern
+    // that was removed in GLib 2.74.
     int t_fd = lnx_hotkey_x11_pipe_read_fd();
-    GIOChannel *t_chan = g_io_channel_unix_new(t_fd);
-    s_io_watch = g_io_add_watch(t_chan, G_IO_IN, _pipe_readable, nullptr);
-    g_io_channel_unref(t_chan);
+    s_io_watch = g_unix_fd_add(t_fd, G_IO_IN, _pipe_readable, nullptr);
     return true;
 }
 
