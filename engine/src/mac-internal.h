@@ -614,6 +614,7 @@ void MCMacPlatformHandleMouseCursorChange(MCPlatformWindowRef window);
 void MCMacPlatformHandleMousePress(uint32_t p_button, bool p_is_down);
 void MCMacPlatformHandleMouseMove(MCPoint p_screen_location);
 void MCMacPlatformHandleMouseScroll(CGFloat dx, CGFloat dy);
+void MCMacPlatformResetScrollAccumulation(void);
 void MCMacPlatformHandleMouseSync(void);
 bool MCMacPlatformGetNaturalScrolling(void);
 void MCMacPlatformHandleDrawSync(NSWindow *window);

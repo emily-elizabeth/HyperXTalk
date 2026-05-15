@@ -2150,13 +2150,40 @@ bool MCMacPlatformGetNaturalScrolling(void)
 	        boolForKey:@"com.apple.swipescrolldirection"];
 }
 
+// Sub-pixel scroll accumulators. scrollingDeltaX/Y are floating-point screen
+// points; accumulating the fractional remainder ensures no scroll is lost on
+// slow gestures where each event delivers less than 1 point of movement.
+static CGFloat s_scroll_accum_x = 0.0;
+static CGFloat s_scroll_accum_y = 0.0;
+
+// Call at the start of each new gesture (NSEventPhaseBegan) to prevent stale
+// fractional remainders from a previous swipe bleeding into the next one.
+void MCMacPlatformResetScrollAccumulation(void)
+{
+	s_scroll_accum_x = 0.0;
+	s_scroll_accum_y = 0.0;
+}
+
 void MCMacPlatformHandleMouseScroll(CGFloat dx, CGFloat dy)
 {
 	if (s_mouse_window == nil)
 		return;
 
-	if (dx != 0.0 || dy != 0.0)
-		MCPlatformCallbackSendMouseScroll(s_mouse_window, dx < 0.0 ? -1 : (dx > 0.0 ? 1 : 0), dy < 0.0 ? -1 : (dy > 0.0 ? 1 : 0));
+	if (dx == 0.0 && dy == 0.0)
+		return;
+
+	s_scroll_accum_x += dx;
+	s_scroll_accum_y += dy;
+
+	// Truncate towards zero — the remainder stays in the accumulator for the
+	// next event, so sub-pixel deltas are never silently discarded.
+	int32_t t_idx = (int32_t)s_scroll_accum_x;
+	int32_t t_idy = (int32_t)s_scroll_accum_y;
+	s_scroll_accum_x -= (CGFloat)t_idx;
+	s_scroll_accum_y -= (CGFloat)t_idy;
+
+	if (t_idx != 0 || t_idy != 0)
+		MCPlatformCallbackSendMouseScroll(s_mouse_window, t_idx, t_idy);
 }
 
 void MCMacPlatformHandleMouseSync(void)

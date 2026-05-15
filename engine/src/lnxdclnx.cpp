@@ -586,15 +586,24 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         // Is this a mouse scroll event?
                         if (MCmousestackptr && t_event->type == GDK_SCROLL)
                         {
-                            // GDK direction names reflect the natural-scrolling convention;
-                            // map to signed deltas matching the scrollWheel message contract.
+                            // Map GDK scroll events to signed pixel deltas matching
+                            // the scrollWheel message contract (negative = up/left).
+                            // kScrollLinePixels normalises discrete mouse-wheel clicks
+                            // to a pixel distance comparable to a short touchpad swipe.
+                            // GDK_SCROLL_SMOOTH provides sub-unit touchpad deltas;
+                            // scale by the same constant so the feel is consistent.
+                            const int kScrollLinePixels = 40;
                             int t_dx = 0, t_dy = 0;
                             switch (t_event->scroll.direction)
                             {
-                                case GDK_SCROLL_UP:    t_dy = -1; break;
-                                case GDK_SCROLL_DOWN:  t_dy =  1; break;
-                                case GDK_SCROLL_LEFT:  t_dx = -1; break;
-                                case GDK_SCROLL_RIGHT: t_dx =  1; break;
+                                case GDK_SCROLL_UP:    t_dy = -kScrollLinePixels; break;
+                                case GDK_SCROLL_DOWN:  t_dy =  kScrollLinePixels; break;
+                                case GDK_SCROLL_LEFT:  t_dx = -kScrollLinePixels; break;
+                                case GDK_SCROLL_RIGHT: t_dx =  kScrollLinePixels; break;
+                                case GDK_SCROLL_SMOOTH:
+                                    t_dx = (int)round(t_event->scroll.delta_x * kScrollLinePixels);
+                                    t_dy = (int)round(t_event->scroll.delta_y * kScrollLinePixels);
+                                    break;
                                 default: break;
                             }
 

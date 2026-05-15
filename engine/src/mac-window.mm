@@ -1542,16 +1542,29 @@ static void map_key_event(NSEvent *event, MCPlatformKeyCode& r_key_code, codepoi
 	if (t_window == nil)
 		return;
 	
+	// Reset the sub-pixel accumulator at the start of each new gesture so
+	// fractional remainders from a previous swipe don't bleed into this one.
+	if ([event phase] == NSEventPhaseBegan ||
+	    [event momentumPhase] == NSEventPhaseBegan)
+		MCMacPlatformResetScrollAccumulation();
+
 	CGFloat t_dx, t_dy;
 	if ([event hasPreciseScrollingDeltas])
 	{
+		// Trackpad / high-resolution input: delta values are in screen points.
+		// Pass through directly — they already represent the intended pixel
+		// displacement from the gesture.
 		t_dx = [event scrollingDeltaX];
 		t_dy = [event scrollingDeltaY];
 	}
 	else
 	{
-		t_dx = [event deltaX];
-		t_dy = [event deltaY];
+		// Traditional mouse wheel: deltaX/Y are in "line" units (±1 per click).
+		// Scale to pixels so a single notch delivers a comparable scroll distance
+		// to a short trackpad swipe, giving a consistent cross-device feel.
+		const CGFloat kScrollLinePixels = 40.0;
+		t_dx = [event deltaX] * kScrollLinePixels;
+		t_dy = [event deltaY] * kScrollLinePixels;
 	}
 	t_window -> ProcessMouseScroll(t_dx, t_dy);
 }

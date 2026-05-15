@@ -1096,11 +1096,21 @@ on mouseDown pButtonNumber
    if pButtonNumber <> 3 or the long id of the target is not the long id of field "Script" of me then
       pass mouseDown
    end if
-   
+
    prepareContextMenu
    showContextMenu
    pass mouseDown
 end mouseDown
+
+
+on scrollWheel pDeltaX, pDeltaY
+   if the long id of the mouseControl is not the long id of field "Script" of me then
+      pass scrollWheel
+   end if
+   local tVMax
+   put the formattedHeight of field "Script" of me - the height of field "Script" of me into tVMax
+   set the vScroll of field "Script" of me to max(0, min(the vScroll of field "Script" of me - (pDeltaY * 3), tVMax))
+end scrollWheel
 
 private command showContextMenu
    popup button "Context Menu" of me

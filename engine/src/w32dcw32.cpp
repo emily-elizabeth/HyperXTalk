@@ -1722,13 +1722,15 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 		{
 			int4 val = (short)HIWORD(wParam);
 			int t_dx = 0, t_dy = 0;
-			// WM_MOUSEWHEEL: positive val = wheel up, negative = wheel down.
-			// scrollWheel message convention (matches macOS desktop.cpp):
-			//   pDeltaY negative = up, positive = down  — so invert the sign.
+			// WHEEL_DELTA = 120 per notch for a standard wheel; high-resolution
+			// devices send smaller increments. Normalise to ~40 pixels per standard
+			// notch — comparable to a short trackpad swipe on macOS. Invert the
+			// sign to match scrollWheel message convention (negative = up/left).
+			const int kScrollPixelsPerDelta = 40;
 			if (msg == WM_MOUSEWHEEL)
-				t_dy = val < 0 ? 1 : -1;
+				t_dy = -(val * kScrollPixelsPerDelta / WHEEL_DELTA);
 			else
-				t_dx = val < 0 ? 1 : -1;
+				t_dx = -(val * kScrollPixelsPerDelta / WHEEL_DELTA);
 
 			MCObject *mfocused = MCmousestackptr->getcard()->getmfocused();
 			if (mfocused == NULL)
