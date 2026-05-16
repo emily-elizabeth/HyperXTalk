@@ -1,4 +1,4 @@
-﻿script "revSEEditorBehavior"
+﻿script "revSEEditorBehavior" with behavior "com.livecode.scripteditor.behavior.editorcommon"
 # Stores the following mapping
 #  <handler name>,type   => string representing the handler type eg PF for private function
 # <handler name>,start  => line offset to start of handler
@@ -1110,6 +1110,7 @@ on scrollWheel pDeltaX, pDeltaY
    local tVMax
    put the formattedHeight of field "Script" of me - the height of field "Script" of me into tVMax
    set the vScroll of field "Script" of me to max(0, min(the vScroll of field "Script" of me - (pDeltaY * 3), tVMax))
+   set the hScroll of field "Script" of me to max(0, min(the hScroll of field "Script" of me - (pDeltaX * 3), tVMax))
 end scrollWheel
 
 private command showContextMenu
