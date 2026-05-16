@@ -3199,14 +3199,44 @@ MCControl* MCInterfaceExecCreateControlGetObject(MCExecContext& ctxt, int p_type
 
 void MCInterfaceExecCreateControl(MCExecContext& ctxt, MCStringRef p_new_name, int p_type, MCObject *p_container, bool p_force_invisible)
 {
-    
+
     MCStack *t_current_stack = p_container == nullptr ? MCdefaultstackptr : p_container->getstack();
-    
+
     if (t_current_stack->islocked())
 	{
 		ctxt . LegacyThrow(EE_CREATE_LOCKED);
 		return;
 	}
+
+#ifndef _SERVER
+    // If creating a named toolbar, NOOP if one with that name already exists
+    // in the target stack — prevents wiping icons on a second create call.
+    if (p_type == CT_TOOLBAR && p_new_name != nil)
+    {
+        MCNewAutoNameRef t_toolbar_name;
+        if (MCNameCreate(p_new_name, &t_toolbar_name))
+        {
+            MCControl *t_existing = t_current_stack->getcontrols();
+            if (t_existing != nil)
+            {
+                MCControl *t_ptr = t_existing;
+                do
+                {
+                    if (t_ptr->gettype() == CT_TOOLBAR && t_ptr->hasname(*t_toolbar_name))
+                    {
+                        // Already exists — set 'it' to the existing toolbar and bail out.
+                        MCAutoValueRef t_existing_id;
+                        t_ptr->names(P_LONG_ID, &t_existing_id);
+                        ctxt.SetItToValue(*t_existing_id);
+                        return;
+                    }
+                    t_ptr = (MCControl *)t_ptr->next();
+                }
+                while (t_ptr != t_existing);
+            }
+        }
+    }
+#endif
 
 	MCControl *t_control = MCInterfaceExecCreateControlGetObject(ctxt, p_type, p_container);
 	if (t_control == NULL)

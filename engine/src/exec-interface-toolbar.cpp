@@ -168,9 +168,6 @@ void MCToolbar::GetItemLabel(MCExecContext& ctxt, MCNameRef p_item,
 void MCToolbar::SetItemLabel(MCExecContext& ctxt, MCNameRef p_item,
                              MCStringRef p_label)
 {
-    fprintf(stderr, "[SetItemLabel] called on toolbar %p item=%p\n",
-            (void*)this, (void*)p_item);
-    fflush(stderr);
     MCToolbarItem *t_item = FindItem(p_item);
     if (t_item == nil)
     {
