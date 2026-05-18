@@ -1741,6 +1741,24 @@ void MCField::SetMetadataOfLineChunk(MCExecContext& ctxt, uint32_t p_part_id, in
     SetParagraphPropOfCharChunk< PodFieldPropType<MCStringRef> >(ctxt, this, false, p_part_id, si, ei, &MCParagraph::SetMetadata, value);
 }
 
+// [[ RowTag ]] Get/set the rowTag of a line chunk.
+void MCField::GetRowTagOfLineChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t si, int32_t ei, MCStringRef& r_value)
+{
+    bool t_mixed;
+    MCAutoStringRef t_tag;
+    GetParagraphPropOfCharChunk< PodFieldPropType<MCStringRef> >(ctxt, this, p_part_id, si, ei, &MCParagraph::GetRowTag, t_mixed, &t_tag);
+
+    if (*t_tag == nil)
+        r_value = MCValueRetain(kMCEmptyString);
+    else
+        r_value = MCValueRetain(*t_tag);
+}
+
+void MCField::SetRowTagOfLineChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t si, int32_t ei, MCStringRef value)
+{
+    SetParagraphPropOfCharChunk< PodFieldPropType<MCStringRef> >(ctxt, this, false, p_part_id, si, ei, &MCParagraph::SetRowTag, value);
+}
+
 void MCField::GetMetadataOfCharChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t si, int32_t ei, MCStringRef& r_value)
 {
     bool t_mixed;
@@ -3098,6 +3116,17 @@ void MCParagraph::SetMetadata(MCExecContext& ctxt, MCStringRef p_metadata)
         attrs -> flags |= PA_HAS_METADATA;
         MCValueInter(p_metadata, attrs -> metadata);
     }
+}
+
+// [[ RowTag ]] Get/set the rowTag paragraph attribute.
+void MCParagraph::GetRowTag(MCExecContext& ctxt, MCStringRef &r_tag)
+{
+    r_tag = MCValueRetain(getrowtag());
+}
+
+void MCParagraph::SetRowTag(MCExecContext& ctxt, MCStringRef p_tag)
+{
+    setrowtag(p_tag);
 }
 
 // SN-28-11-13: The IDE needs to set char chunk properties for a specific paragraph

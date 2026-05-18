@@ -56,6 +56,8 @@
 // FG-2014-05-06: [[ TabAlignments ]] This flag is set if the paragraph has
 //   tab alignments set.
 #define PA_HAS_TAB_ALIGNMENTS (1 << 19)
+// [[ RowTag ]] This flag is set if the paragraph has a row tag set.
+#define PA_HAS_ROW_TAG (1 << 20)
 
 enum
 {
@@ -82,7 +84,7 @@ enum
 // MW-2012-01-25: [[ ParaStyles ]] A collection of paragraph attributes.
 struct MCParagraphAttrs
 {
-	unsigned flags : 20;
+	unsigned flags : 21;
 	unsigned text_align : 2;
 	unsigned list_style : 4;
 	unsigned list_depth : 4;
@@ -105,7 +107,8 @@ struct MCParagraphAttrs
 	uint32_t background_color;
 	uint32_t border_color;
     MCStringRef metadata;
-    
+    MCStringRef row_tag;
+
     uint16_t alignments_count;
     intenum_t *alignments;
 
@@ -720,6 +723,10 @@ public:
     MCStringRef getmetadata(void) const;
 	// Set the metadata property for the current paragraph.
     void setmetadata(MCStringRef metadata);
+    // Returns the row tag for the current paragraph.
+    MCStringRef getrowtag(void) const;
+    // Set the row tag property for the current paragraph.
+    void setrowtag(MCStringRef p_tag);
 
 	// Returns true if the top border will be elided due to hGrid
 	bool elidetopborder(void) const;
@@ -989,6 +996,8 @@ public:
     void GetMetadata(MCExecContext& ctxt, MCStringRef &r_metadata);
     void GetEffectiveMetadata(MCExecContext& ctxt, MCStringRef &r_metadata);
     void SetMetadata(MCExecContext& ctxt, MCStringRef p_metadata);
+    void GetRowTag(MCExecContext& ctxt, MCStringRef &r_tag);
+    void SetRowTag(MCExecContext& ctxt, MCStringRef p_tag);
 
 
     //////////////////////////////////////////////////

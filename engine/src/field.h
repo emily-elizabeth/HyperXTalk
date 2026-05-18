@@ -810,6 +810,8 @@ public:
 	void SetLinkTextOfCharChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t si, int32_t ei, MCStringRef value);
     void GetMetadataOfLineChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t si, int32_t ei, MCStringRef& r_value);
 	void SetMetadataOfLineChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t si, int32_t ei, MCStringRef value);
+    void GetRowTagOfLineChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t si, int32_t ei, MCStringRef& r_value);
+    void SetRowTagOfLineChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t si, int32_t ei, MCStringRef value);
     void GetMetadataOfCharChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t si, int32_t ei, MCStringRef& r_value);
 	void SetMetadataOfCharChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t si, int32_t ei, MCStringRef value);
     void GetImageSourceOfCharChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t si, int32_t ei, MCStringRef& r_value);

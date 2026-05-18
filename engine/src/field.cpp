@@ -153,6 +153,7 @@ MCPropertyInfo MCField::kProperties[] =
 	DEFINE_RW_OBJ_CHAR_CHUNK_PROPERTY(P_IMAGE_SOURCE, String, MCField, ImageSource)
 	DEFINE_RW_OBJ_CHAR_CHUNK_PROPERTY(P_METADATA, String, MCField, Metadata)
 	DEFINE_RW_OBJ_LINE_CHUNK_PROPERTY(P_METADATA, String, MCField, Metadata)
+	DEFINE_RW_OBJ_LINE_CHUNK_PROPERTY(P_ROW_TAG, String, MCField, RowTag)
 	// PM-2015-07-06: [[ Bug 15577 ]] "visited" property should be RW
 	DEFINE_RW_OBJ_CHAR_CHUNK_PROPERTY(P_VISITED, Bool, MCField, Visited)
 	DEFINE_RO_OBJ_CHAR_CHUNK_ENUM_PROPERTY(P_ENCODING, InterfaceEncoding, MCField, Encoding)

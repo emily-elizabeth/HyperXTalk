@@ -1555,6 +1555,8 @@ enum Properties {
     P_IMAGE_SOURCE,
 	// MW-2012-01-06: [[ Block Metadata ]] Property tag for the metadata block property.
 	P_METADATA,
+    // [[ RowTag ]] Property tag for the per-line row tag property.
+    P_ROW_TAG,
 	// MW-2012-01-09: [[ Field Indices ]] Property tag for chunk index properties.
 	P_CHAR_INDEX,
 	P_LINE_INDEX,

@@ -1539,6 +1539,7 @@ const LT factor_table[] =
         {"roundwidth", TT_PROPERTY, P_ROUND_RADIUS},
 		{"rowdel", TT_PROPERTY, P_ROW_DELIMITER},
 		{"rowdelimiter", TT_PROPERTY, P_ROW_DELIMITER},
+		{"rowtag", TT_PROPERTY, P_ROW_TAG},
         {"rtftext", TT_PROPERTY, P_RTF_TEXT},
         {"samplestandarddeviation", TT_FUNCTION, F_SMP_STD_DEV},
         {"samplevariance", TT_FUNCTION, F_SMP_VARIANCE},

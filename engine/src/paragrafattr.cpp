@@ -273,6 +273,10 @@ IO_stat MCParagraph::loadattrs(IO_handle stream, uint32_t version)
 		if (t_stat == IO_NORMAL && (attrs -> flags & PA_HAS_LIST_INDEX) != 0)
 			t_stat = checkloadstat(IO_read_uint2(&attrs -> list_index, stream));
         
+        // [[ RowTag ]] Load the row tag, if any.
+        if (t_stat == IO_NORMAL && (attrs -> flags & PA_HAS_ROW_TAG) != 0)
+            t_stat = checkloadstat(IO_read_stringref_new(attrs -> row_tag, stream, version >= kMCStackFileFormatVersion_7_0));
+
         // SN-2015-05-01: [[ Bug 15175 ]] Load the paragraph's tab alignments
         if (t_stat == IO_NORMAL && (attrs -> flags & PA_HAS_TAB_ALIGNMENTS) != 0)
         {
@@ -378,7 +382,11 @@ IO_stat MCParagraph::saveattrs(IO_handle stream, uint32_t p_version)
 	// MW-2012-11-13: [[ ParaListIndex ]] Write out the list index, if any.
 	if (t_stat == IO_NORMAL && (attrs -> flags & PA_HAS_LIST_INDEX) != 0)
 		t_stat = IO_write_uint2(attrs -> list_index, stream);
-    
+
+    // [[ RowTag ]] Write out the row tag, if any.
+    if (t_stat == IO_NORMAL && (attrs -> flags & PA_HAS_ROW_TAG) != 0)
+        t_stat = IO_write_stringref_new(attrs -> row_tag, stream, p_version >= kMCStackFileFormatVersion_7_0);
+
     // SN-2015-05-01: [[ Bug 15175 ]] Save the paragraph tabAlign property
     if (t_stat == IO_NORMAL && (attrs -> flags & PA_HAS_TAB_ALIGNMENTS) != 0)
     {
@@ -456,7 +464,11 @@ uint32_t MCParagraph::measureattrs(uint32_t p_version)
 	// MW-2012-11-13: [[ ParaListIndex ]] If the paragraph has a list index, then add that on.
 	if ((attrs -> flags & PA_HAS_LIST_INDEX) != 0)
 		t_size += 2;
-    
+
+    // [[ RowTag ]] If the paragraph has a row tag, add that on.
+    if ((attrs -> flags & PA_HAS_ROW_TAG) != 0)
+        t_size += measure_stringref(attrs -> row_tag, p_version);
+
     // SN-2015-05-01: [[ Bug 15175 ]] Need 2 bytes for the uint16_t size, and 1
     //  byte per alignment.
     if ((attrs -> flags & PA_HAS_TAB_ALIGNMENTS) != 0)
@@ -505,6 +517,10 @@ void MCParagraph::copyattrs(const MCParagraph& other)
 	// MW-2012-12-04: [[ Bug 10577 ]] If the struct has metadata, then copy it properly.
 	if ((other . attrs -> flags & PA_HAS_METADATA) != 0)
         /* UNCHECKED */ MCStringCopy(other . attrs -> metadata, attrs -> metadata);
+
+    // [[ RowTag ]] If the struct has a row tag, copy it properly.
+    if ((other . attrs -> flags & PA_HAS_ROW_TAG) != 0)
+        /* UNCHECKED */ MCStringCopy(other . attrs -> row_tag, attrs -> row_tag);
 }
 
 void MCParagraph::clearattrs(void)
@@ -524,6 +540,10 @@ void MCParagraph::clearattrs(void)
 	// MW-2012-11-13: [[ ParaMetadata ]] If we have metadata, delete it.
 	if ((attrs -> flags & PA_HAS_METADATA) != 0)
         MCValueRelease(attrs -> metadata);
+
+    // [[ RowTag ]] If we have a row tag, delete it.
+    if ((attrs -> flags & PA_HAS_ROW_TAG) != 0)
+        MCValueRelease(attrs -> row_tag);
 
 	// Delete the structure.
 	delete attrs;
@@ -809,6 +829,25 @@ void MCParagraph::setmetadata(MCStringRef p_metadata)
     /* UNCHECKED */ MCValueInter(p_metadata, attrs -> metadata);
 }
 
+// [[ RowTag ]] Get/set the row tag attribute.
+void MCParagraph::setrowtag(MCStringRef p_tag)
+{
+    if (attrs != nil && (attrs -> flags & PA_HAS_ROW_TAG) != 0)
+    {
+        attrs -> flags &= ~PA_HAS_ROW_TAG;
+        MCValueRelease(attrs -> row_tag);
+        attrs -> row_tag = nil;
+    }
+
+    if (p_tag == nil || MCStringIsEmpty(p_tag))
+        return;
+
+    if (attrs == nil)
+        attrs = new (nothrow) MCParagraphAttrs;
+    attrs -> flags |= PA_HAS_ROW_TAG;
+    /* UNCHECKED */ MCValueInter(p_tag, attrs -> row_tag);
+}
+
 void MCParagraph::setlistindex(uint32_t p_new_list_index)
 {
 	if (p_new_list_index == 0)
@@ -1027,6 +1066,14 @@ MCStringRef MCParagraph::getmetadata(void) const
 {
 	if (attrs != nil && (attrs -> flags & PA_HAS_METADATA) && attrs -> metadata != nil)
 		return attrs -> metadata;
+    return kMCEmptyString;
+}
+
+// [[ RowTag ]]
+MCStringRef MCParagraph::getrowtag(void) const
+{
+    if (attrs != nil && (attrs -> flags & PA_HAS_ROW_TAG) && attrs -> row_tag != nil)
+        return attrs -> row_tag;
     return kMCEmptyString;
 }
 
