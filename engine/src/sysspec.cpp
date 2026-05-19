@@ -551,8 +551,9 @@ bool MCS_getmachine(MCStringRef& r_string)
 
 // Returns true when the system's "natural scrolling" (aka reverse scrolling)
 // preference is enabled.  On macOS this is the Trackpad → Natural Scrolling
-// setting; on other platforms natural scrolling is not a system-level concept
-// so the function always returns false.
+// setting; on Linux we query the GNOME GSettings key via the gsettings(1)
+// command (gracefully returns false on non-GNOME desktops or when the
+// command is not present).
 #if defined(_MAC_DESKTOP)
 extern bool MCMacPlatformGetNaturalScrolling(void);
 #endif
@@ -560,6 +561,30 @@ bool MCS_getnaturalscrolling(void)
 {
 #if defined(_MAC_DESKTOP)
     return MCMacPlatformGetNaturalScrolling();
+#elif defined(_LINUX_DESKTOP)
+    // Query the GNOME natural-scroll preference via the gsettings command-line
+    // tool.  We cache the result in a static so the fork/exec only happens once
+    // per session; the setting is unlikely to change while HxT is running.
+    // On KDE, Xfce, or other non-GNOME desktops the schema won't exist and
+    // gsettings writes an error to stderr (suppressed by 2>/dev/null) and exits
+    // without printing anything, so we fall back to false.
+    static bool s_checked = false;
+    static bool s_natural = false;
+    if (!s_checked)
+    {
+        s_checked = true;
+        FILE *t_pipe = popen(
+            "gsettings get org.gnome.desktop.peripherals.mouse natural-scroll"
+            " 2>/dev/null", "r");
+        if (t_pipe != nullptr)
+        {
+            char t_buf[16] = {};
+            if (fgets(t_buf, sizeof(t_buf), t_pipe) != nullptr)
+                s_natural = (strncmp(t_buf, "true", 4) == 0);
+            pclose(t_pipe);
+        }
+    }
+    return s_natural;
 #else
     return false;
 #endif

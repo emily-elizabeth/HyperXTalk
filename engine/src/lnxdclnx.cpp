@@ -607,6 +607,19 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                 default: break;
                             }
 
+                            // Respect the system-level "natural scrolling" preference.
+                            // When natural scrolling is on, GDK delivers events from the
+                            // gesture's physical direction (finger up → GDK_SCROLL_UP)
+                            // rather than the content direction.  Other GTK applications
+                            // already honour this automatically; we must flip our deltas
+                            // to match, otherwise HxT scrolls in the opposite direction
+                            // from everything else on the desktop.
+                            if (MCS_getnaturalscrolling())
+                            {
+                                t_dx = -t_dx;
+                                t_dy = -t_dy;
+                            }
+
                             MCObject *mfocused = MCmousestackptr->getcard()->getmfocused();
                             if (mfocused == NULL)
                                 mfocused = MCmousestackptr->getcard()->findGroupUnderPoint(MCmousex, MCmousey);
