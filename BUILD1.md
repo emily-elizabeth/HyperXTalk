@@ -19,8 +19,11 @@
 3. **Homebrew** — install from https://docs.brew.sh/Installation, then install
    the formulae the prebuild scripts need:
    ```bash
-   brew install openssl@3 libpq mysql-client
+   brew install openssl@3 libpq mysql-client pixman meson ninja pkg-config
    ```
+   `meson` and `ninja` are required by the libcairo build step inside
+   `make prebuilt-mac`. `pixman` is a cairo dependency. `pkg-config` is
+   used by several prebuild scripts to locate library flags.
 
 4. **Java JDK (arm64)** — required to compile the JNI bindings in libfoundation.
    Install Temurin (the recommended OpenJDK distribution for Apple Silicon):
