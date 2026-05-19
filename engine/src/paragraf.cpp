@@ -1942,8 +1942,16 @@ void MCParagraph::split(findex_t p_position)
 	// MW-2012-11-20: [[ ParaListIndex]] When splitting a paragraph we don't copy the
 	//   list index.
 	pgptr -> setlistindex(0);
-    // [[ RowTag ]] Splitting a paragraph must not duplicate the row tag.
-    pgptr -> setrowtag(nil);
+    // [[ RowTag ]] Row tags travel with the content, not the split position.
+    // When splitting at position 0 all content moves to pgptr (a blank line is
+    // inserted before the original row), so transfer the tag by clearing it
+    // from 'this' — pgptr already has a copy via copyattrs(). When splitting
+    // elsewhere the content stays in 'this', so clear the tag from the new
+    // tail paragraph instead.
+    if (p_position == 0)
+        setrowtag(nil);
+    else
+        pgptr -> setrowtag(nil);
 
     pgptr->m_text.Reset();
 	if (!MCStringIsEmpty(*m_text))
