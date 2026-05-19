@@ -2260,7 +2260,19 @@ void MCField::freturn(Field_translations function, MCStringRef p_string, KeySym 
 		if (!deleteselection(False))
 			focusedparagraph->clearzeros();
 		textheight -= focusedparagraph->getheight(fixedheight);
+        // [[ RowTag ]] If the cursor is at position 0, all original content
+        // moves to the new paragraph — transfer the row tag with it.
+        findex_t t_split_pos = focusedparagraph->focusedindex;
 		focusedparagraph->split();
+        if (t_split_pos == 0)
+        {
+            MCStringRef t_tag = focusedparagraph->getrowtag();
+            if (!MCStringIsEmpty(t_tag))
+            {
+                focusedparagraph->next()->setrowtag(t_tag);
+                focusedparagraph->setrowtag(nil);
+            }
+        }
 		focusedparagraph->setselectionindex(PARAGRAPH_MAX_LEN, PARAGRAPH_MAX_LEN, False, False);
 		updateparagraph(True, False);
 		focusedy += focusedparagraph->getheight(fixedheight);

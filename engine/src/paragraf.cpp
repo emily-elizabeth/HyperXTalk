@@ -1942,16 +1942,11 @@ void MCParagraph::split(findex_t p_position)
 	// MW-2012-11-20: [[ ParaListIndex]] When splitting a paragraph we don't copy the
 	//   list index.
 	pgptr -> setlistindex(0);
-    // [[ RowTag ]] Row tags travel with the content, not the split position.
-    // When splitting at position 0 all content moves to pgptr (a blank line is
-    // inserted before the original row), so transfer the tag by clearing it
-    // from 'this' — pgptr already has a copy via copyattrs(). When splitting
-    // elsewhere the content stays in 'this', so clear the tag from the new
-    // tail paragraph instead.
-    if (p_position == 0)
-        setrowtag(nil);
-    else
-        pgptr -> setrowtag(nil);
+    // [[ RowTag ]] The split-off paragraph is always new — it never inherits
+    // the row tag directly.  Call sites that know the original content moved
+    // entirely into pgptr (e.g. inserting text before position 0) are
+    // responsible for transferring the tag themselves after the split.
+    pgptr -> setrowtag(nil);
 
     pgptr->m_text.Reset();
 	if (!MCStringIsEmpty(*m_text))
@@ -2268,9 +2263,22 @@ Boolean MCParagraph::finsertnew(MCStringRef p_string)
 		{
             // We found a line-break, so insert it into the current paragraph and then split at
 			// the end.
+            // [[ RowTag ]] Note where the original content starts before we
+            // insert anything.  If that position is 0, all existing content
+            // will move into the new paragraph and the row tag travels with it.
+            findex_t t_pre_insert_focused = t_paragraph->focusedindex;
 			MCRange t_range = MCRangeMakeMinMax(t_index, t_nextpara - 1);
             t_paragraph -> finsertnobreak(p_string, t_range);
 			t_paragraph -> split();
+            if (t_pre_insert_focused == 0)
+            {
+                MCStringRef t_tag = t_paragraph->getrowtag();
+                if (!MCStringIsEmpty(t_tag))
+                {
+                    t_paragraph->next()->setrowtag(t_tag);
+                    t_paragraph->setrowtag(nil);
+                }
+            }
 			t_paragraph = t_paragraph -> next();
 
 			// Advance beyond the paragraph break codepoint
