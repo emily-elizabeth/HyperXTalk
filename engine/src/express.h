@@ -61,12 +61,18 @@ public:
     // EP-less version of evaluation functions
     virtual bool evalcontainer(MCExecContext& ctxt, MCContainer& r_container);
 
-	// Return the var-ref which lies at the root of this expression. 
+	// Return the var-ref which lies at the root of this expression.
 	// A return value of NULL means that there is no root variable.
 	// The purpose of this call is to analyze (after parsing) whether the
 	// left and right hand side of an variable mutation command share the
 	// same variable. It is designed to be used at parse-time, not exec-time.
 	virtual MCVarref *getrootvarref(void);
+
+    // [[ RowTag ]] Returns true if this expression is an MCChunk (a container /
+    // object reference).  Used by MCPut::exec_ctxt to propagate row tags on
+    // field-to-field put without requiring RTTI (the engine is built with
+    // -fno-rtti).
+    virtual bool is_chunk_expr() const { return false; }
 	
 	//////////
 	

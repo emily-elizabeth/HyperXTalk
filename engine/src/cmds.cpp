@@ -17,6 +17,7 @@
 #include "object.h"
 #include "button.h"
 #include "field.h"
+#include "paragraf.h"
 #include "image.h"
 #include "card.h"
 #include "eps.h"
@@ -853,6 +854,105 @@ Parse_stat MCPut::parse(MCScriptPoint &sp)
 	return PS_NORMAL;
 }
 
+// [[ RowTag ]] After a successful 'put ... into field', propagate row tags from
+// any source field paragraphs to the matching destination field paragraphs.
+// Only triggers when both source and dest are CT_LINE or CT_UNDEFINED (whole-
+// object) chunks, which are the only chunk types that carry row tags.  Errors
+// during the tag-copy are silently cleared so they never abort the put itself.
+static void sCopyRowTagsBetweenFieldChunks(MCExecContext&   ctxt,
+                                            MCChunk*         p_src,
+                                            MCChunk*         p_dst,
+                                            Preposition_type p_prep)
+{
+    // Only propagate tags for 'put into'; before/after insertion is ambiguous.
+    if (p_prep != PT_INTO && p_prep != PT_UNDEFINED)
+        return;
+
+    // Only line or whole-object chunks carry row tags; sub-line chunks don't.
+    Chunk_term t_src_type = p_src->getlastchunktype();
+    Chunk_term t_dst_type = p_dst->getlastchunktype();
+    if ((t_src_type != CT_UNDEFINED && t_src_type != CT_LINE) ||
+        (t_dst_type != CT_UNDEFINED && t_dst_type != CT_LINE))
+        return;
+
+    // Evaluate source chunk — must resolve to a field.
+    MCObjectChunkPtr t_src_ocp;
+    if (!p_src->evalobjectchunk(ctxt, false, true, t_src_ocp))
+    {
+        ctxt.IgnoreLastError();
+        return;
+    }
+    if (t_src_ocp.object->gettype() != CT_FIELD)
+    {
+        MCValueRelease(t_src_ocp.mark.text);
+        return;
+    }
+    MCField* t_src_field = static_cast<MCField*>(t_src_ocp.object);
+
+    // Evaluate dest chunk (post-put, so character offsets reflect current text).
+    MCObjectChunkPtr t_dst_ocp;
+    if (!p_dst->evalobjectchunk(ctxt, false, true, t_dst_ocp))
+    {
+        MCValueRelease(t_src_ocp.mark.text);
+        ctxt.IgnoreLastError();
+        return;
+    }
+    if (t_dst_ocp.object->gettype() != CT_FIELD)
+    {
+        MCValueRelease(t_src_ocp.mark.text);
+        MCValueRelease(t_dst_ocp.mark.text);
+        return;
+    }
+    MCField* t_dst_field = static_cast<MCField*>(t_dst_ocp.object);
+
+    // Resolve paragraph lists.
+    MCParagraph* t_src_list = t_src_field->resolveparagraphs(t_src_ocp.part_id);
+    MCParagraph* t_dst_list = t_dst_field->resolveparagraphs(t_dst_ocp.part_id);
+
+    if (t_src_list == nil || t_dst_list == nil)
+    {
+        MCValueRelease(t_src_ocp.mark.text);
+        MCValueRelease(t_dst_ocp.mark.text);
+        return;
+    }
+
+    // Locate the starting source paragraph.  indextoparagraph() modifies si/ei
+    // in place (makes them relative to the returned paragraph), so pass copies.
+    findex_t t_src_si = (t_src_type == CT_UNDEFINED) ? 0 : (findex_t)t_src_ocp.mark.start;
+    findex_t t_src_ei = (t_src_type == CT_UNDEFINED) ? INT32_MAX : (findex_t)t_src_ocp.mark.finish;
+    MCParagraph* t_src_start =
+        t_src_field->indextoparagraph(t_src_list, t_src_si, t_src_ei, nil);
+
+    // Locate the starting dest paragraph.
+    findex_t t_dst_si = (t_dst_type == CT_UNDEFINED) ? 0 : (findex_t)t_dst_ocp.mark.start;
+    findex_t t_dst_ei = (t_dst_type == CT_UNDEFINED) ? INT32_MAX : (findex_t)t_dst_ocp.mark.finish;
+    MCParagraph* t_dst_start =
+        t_dst_field->indextoparagraph(t_dst_list, t_dst_si, t_dst_ei, nil);
+
+    MCValueRelease(t_src_ocp.mark.text);
+    MCValueRelease(t_dst_ocp.mark.text);
+
+    // Copy row tags paragraph by paragraph.
+    MCParagraph* t_src = t_src_start;
+    MCParagraph* t_dst = t_dst_start;
+    for (;;)
+    {
+        t_dst->setrowtag(t_src->getrowtag());
+
+        // For a line-chunk source, one paragraph is all we copy.
+        if (t_src_type == CT_LINE)
+            break;
+
+        // Advance both lists; stop when either wraps back to its head.
+        MCParagraph* t_next_src = (MCParagraph*)t_src->next();
+        MCParagraph* t_next_dst = (MCParagraph*)t_dst->next();
+        if (t_next_src == t_src_list || t_next_dst == t_dst_list)
+            break;
+        t_src = t_next_src;
+        t_dst = t_next_dst;
+    }
+}
+
 void MCPut::exec_ctxt(MCExecContext& ctxt)
 {
     
@@ -866,6 +966,14 @@ void MCPut::exec_ctxt(MCExecContext& ctxt)
 //        MCExecTypeConvertAndReleaseAlways(ctxt, t_value . type, &t_value, kMCExecValueTypeValueRef, &(&t_valueref));
 //        dest -> set(ctxt, prep, *t_valueref, is_unicode);
         dest -> set(ctxt, prep, t_value, is_unicode);
+
+        // [[ RowTag ]] If the put succeeded and the source is a field chunk,
+        // propagate row tags from source paragraphs to dest paragraphs.
+        if (!ctxt.HasError() && source->is_chunk_expr())
+            sCopyRowTagsBetweenFieldChunks(ctxt,
+                                           static_cast<MCChunk*>(source),
+                                           dest,
+                                           prep);
 	}
     else
 	{        

@@ -75,6 +75,10 @@ public:
 
 	MCVarref *getrootvarref(void);
 
+    // [[ RowTag ]] MCChunk overrides this so MCPut can detect field-chunk
+    // sources without dynamic_cast (engine is built with -fno-rtti).
+    bool is_chunk_expr() const override { return true; }
+
 	Chunk_term getlastchunktype(void);
 
     bool evalobjectchunk(MCExecContext& ctxt, bool p_whole_chunk, bool p_force, MCObjectChunkPtr& r_chunk);
