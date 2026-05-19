@@ -1,0 +1,86 @@
+Name: rowTag
+
+Type: property
+
+Syntax: set the rowTag of <line> of <field> to <string>
+
+Summary:
+Associates a string tag with a paragraph (line) of a field, without
+affecting its visible content.
+
+Associations: field
+
+Introduced: 0.9.14
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+set the rowTag of line 1 of field "data" to "row-42"
+
+Example:
+put the rowTag of line 3 of field "data"
+
+Example:
+-- Tag each line with a database primary key
+repeat with tLine = 1 to the number of lines of field "results"
+   set the rowTag of line tLine of field "results" to line tLine of tKeys
+end repeat
+
+Example:
+-- Locate a tagged row after sorting or reordering
+repeat with tLine = 1 to the number of lines of field "results"
+   if the rowTag of line tLine of field "results" is tTargetKey then
+      select line tLine of field "results"
+      exit repeat
+   end if
+end repeat
+
+Parameters:
+string (string):
+Any string. Set to empty to remove the tag from the paragraph.
+
+Value:
+The <rowTag> of a line of a field returns a string, or empty if no tag
+has been set.
+
+Description:
+Use the <rowTag> property to attach an invisible identifier to a
+paragraph of a field. Unlike the <metadata> property, which can be
+applied to any chunk (character, word, or line), <rowTag> is strictly
+a paragraph-level attribute — it is always attached to the whole line,
+not to individual characters within it.
+
+A typical use is to associate each visible line of a field with a
+primary key or record identifier from a database, so that the correct
+record can be retrieved even after the field has been sorted, filtered,
+or otherwise reordered.
+
+**Behaviour when lines are inserted or removed**
+
+The <rowTag> travels with the paragraph that holds it:
+
+- Copying a line between fields with `put` preserves the tag on the
+  destination paragraph.
+- Inserting a blank line *before* a tagged line (via the keyboard or
+  `put return before line N of field`) leaves the tag on the original
+  content; the new empty line receives no tag.
+- Splitting a line in the middle (pressing Return part-way through)
+  leaves the tag on the first half; the second half receives no tag.
+- Joining two lines (deleting the paragraph break between them) keeps
+  the tag of whichever paragraph retains its content.
+
+**Persistence**
+
+The <rowTag> is included in the <styledText> export of a field, under
+the key `"rowtag"` in each paragraph's array entry. Assigning
+<styledText> back to a field restores the tags. The property is also
+saved and loaded as part of the stack file.
+
+References: styledText (property), metadata (property),
+flagged (property), textAlign (property), spaceAbove (property),
+spaceBelow (property)
+
+Tags: text processing
+
