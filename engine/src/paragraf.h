@@ -540,6 +540,11 @@ public:
 	//   MCField::cloneselection
 	void getselectionindex(findex_t &si, findex_t &ei);
 
+	// Returns the current cursor (insertion point) index within the paragraph.
+    // [[ RowTag ]] Used by MCField::freturn to determine whether to transfer
+    // the row tag after a split.
+    findex_t getfocusedindex() const { return focusedindex; }
+
 	// Set the selected range of the paragraph
 	// Called by:
 	//   MCField::undo (front == back == False)

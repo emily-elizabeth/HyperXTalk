@@ -2262,7 +2262,7 @@ void MCField::freturn(Field_translations function, MCStringRef p_string, KeySym 
 		textheight -= focusedparagraph->getheight(fixedheight);
         // [[ RowTag ]] If the cursor is at position 0, all original content
         // moves to the new paragraph — transfer the row tag with it.
-        findex_t t_split_pos = focusedparagraph->focusedindex;
+        findex_t t_split_pos = focusedparagraph->getfocusedindex();
 		focusedparagraph->split();
         if (t_split_pos == 0)
         {
