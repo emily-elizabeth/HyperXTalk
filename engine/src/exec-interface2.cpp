@@ -3208,7 +3208,14 @@ void MCInterfaceMarkContainer(MCExecContext& ctxt, MCObjectPtr p_container, Bool
         case CT_IMAGE:
         case CT_AUDIO_CLIP:
         case CT_VIDEO_CLIP:
+            // [[ Bug ]] getstringprop may leave r_mark.text uninitialised if it
+            // fails (e.g. object has no text property).  Initialise to nil first
+            // so that the MCStringGetLength call below never receives a garbage
+            // pointer, and fall back to an empty string if the prop wasn't set.
+            r_mark . text = nil;
             p_container . object -> getstringprop(ctxt, p_container . part_id, P_TEXT, False, (MCStringRef &)r_mark . text);
+            if (r_mark . text == nil)
+                r_mark . text = MCValueRetain(kMCEmptyString);
             r_mark . start = 0;
             r_mark . finish = MCStringGetLength((MCStringRef)r_mark . text);
             return;
