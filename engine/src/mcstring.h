@@ -131,6 +131,7 @@ extern MCNameRef MCN_version_string;
 
 extern MCNameRef MCN_style;
 extern MCNameRef MCN_metadata;
+extern MCNameRef MCN_rowtag;
 extern MCNameRef MCN_runs;
 
 extern MCNameRef MCN_down;

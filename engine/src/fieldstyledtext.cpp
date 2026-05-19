@@ -243,7 +243,12 @@ static bool export_styled_text(void *p_context, MCFieldExportEventType p_event_t
 		{
             /* UNCHECKED */ MCArrayStoreValue(ctxt . paragraph_array, true, MCNAME("metadata"), p_event_data . paragraph_style . metadata);
 		}
-		
+		// [[ RowTag ]] If the paragraph has a row tag, export it.
+		if (p_event_data . has_paragraph_style && p_event_data . paragraph_style . has_row_tag)
+		{
+			/* UNCHECKED */ MCArrayStoreValue(ctxt . paragraph_array, true, MCNAME("rowtag"), p_event_data . paragraph_style . row_tag);
+		}
+
 		// Now create the 'runs' entry in the paragraph array.
 		/* UNCHECKED */ MCArrayCreateMutable(ctxt . runs_array);
 
@@ -413,19 +418,21 @@ MCParagraph *MCField::styledtexttoparagraphs(MCArrayRef p_array)
 	return t_paragraphs;
 }
 
-MCParagraph *MCField::parsestyledtextappendparagraph(MCArrayRef p_style, MCStringRef p_metadata, bool p_split, MCParagraph*& x_paragraphs)
+MCParagraph *MCField::parsestyledtextappendparagraph(MCArrayRef p_style, MCStringRef p_metadata, MCStringRef p_row_tag, bool p_split, MCParagraph*& x_paragraphs)
 {
 	MCParagraph *t_new_paragraph;
 	t_new_paragraph = new (nothrow) MCParagraph;
 	t_new_paragraph -> setparent(this);
 	t_new_paragraph -> inittext();
-	
-	if (p_style != nil || p_metadata != nil)
+
+	if (p_style != nil || p_metadata != nil || p_row_tag != nil)
 	{
 		if (p_style != nil)
 			t_new_paragraph -> fetchattrs(p_style);
 		if (p_metadata != nil)
 			t_new_paragraph -> setmetadata(p_metadata);
+		if (p_row_tag != nil)
+			t_new_paragraph -> setrowtag(p_row_tag);
 	}
 	else if (p_split)
 	{
@@ -659,7 +666,7 @@ void MCField::parsestyledtextblockarray(MCArrayRef p_block_value, MCParagraph*& 
 
 		// And, if we need a new paragraph, add it.
 		if (t_add_paragraph)
-			t_paragraph = parsestyledtextappendparagraph(nil, nil, true, x_paragraphs);
+			t_paragraph = parsestyledtextappendparagraph(nil, nil, nil, true, x_paragraphs);
 	}
 }
 
@@ -700,6 +707,17 @@ void MCField::parsestyledtextarray(MCArrayRef p_styled_text, bool p_paragraph_br
             /* UNCHECKED */ ctxt . ConvertToString(t_metadata_val, &t_metadata);
 		}
 
+		// [[ RowTag ]] Fetch the row tag (if any)
+		MCAutoStringRef t_row_tag;
+		MCValueRef t_row_tag_val = nil;
+		if (!MCArrayFetchValue((MCArrayRef)t_entry, false, MCN_rowtag, t_row_tag_val))
+			t_row_tag_val = nil;
+		if (t_row_tag_val != nil)
+		{
+			MCExecContext ctxt(nil, nil, nil);
+			/* UNCHECKED */ ctxt . ConvertToString(t_row_tag_val, &t_row_tag);
+		}
+
 		// If the array looks like a paragraph array, then treat it as such.
 		MCValueRef t_runs_entry;
 		if (!MCArrayFetchValue((MCArrayRef)t_entry, false, MCN_runs, t_runs_entry))
@@ -723,9 +741,9 @@ void MCField::parsestyledtextarray(MCArrayRef p_styled_text, bool p_paragraph_br
 			
 			// Begin paragraph with style
 			if (t_style_entry != nil && MCValueIsArray(t_style_entry))
-				parsestyledtextappendparagraph((MCArrayRef)t_style_entry, *t_metadata, false, x_paragraphs);
+				parsestyledtextappendparagraph((MCArrayRef)t_style_entry, *t_metadata, *t_row_tag, false, x_paragraphs);
 			else
-				parsestyledtextappendparagraph(nil, *t_metadata, false, x_paragraphs);
+				parsestyledtextappendparagraph(nil, *t_metadata, *t_row_tag, false, x_paragraphs);
 					
 			// Finally, we are a sequence so loop through all the elements.
 			if (t_runs_array != nil)
@@ -751,7 +769,7 @@ void MCField::parsestyledtextarray(MCArrayRef p_styled_text, bool p_paragraph_br
 		if (p_paragraph_break)
 		{
 			p_paragraph_break = false;
-			parsestyledtextappendparagraph(nil, nil, false, x_paragraphs);
+			parsestyledtextappendparagraph(nil, nil, nil, false, x_paragraphs);
 		}
 			
 		// Finally, attempt to parse a block array.

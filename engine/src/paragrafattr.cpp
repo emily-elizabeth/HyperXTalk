@@ -658,6 +658,12 @@ void MCParagraph::exportattrs(MCFieldParagraphStyle& x_style)
 		x_style . has_metadata = true;
 		x_style . metadata = attrs -> metadata;
 	}
+	// [[ RowTag ]] Fetch the row tag attr.
+	if ((attrs -> flags & PA_HAS_ROW_TAG) != 0)
+	{
+		x_style . has_row_tag = true;
+		x_style . row_tag = attrs -> row_tag;
+	}
 	// MW-2012-11-13: [[ ParaListIndex ]] Fetch the list index.
 	if ((attrs -> flags & PA_HAS_LIST_INDEX) != 0)
 	{
@@ -772,6 +778,12 @@ void MCParagraph::importattrs(const MCFieldParagraphStyle& p_style)
 	{
 		attrs -> flags |= PA_HAS_METADATA;
         /* UNCHECKED */ MCStringCopy(p_style . metadata, attrs -> metadata);
+	}
+	// [[ RowTag ]] Import the rowTag setting.
+	if (p_style . has_row_tag)
+	{
+		attrs -> flags |= PA_HAS_ROW_TAG;
+		/* UNCHECKED */ MCValueInter(p_style . row_tag, attrs -> row_tag);
 	}
 	// MW-2012-11-13: [[ ParaListIndex ]] Import the listIndex setting.
 	if (p_style . has_list_index)

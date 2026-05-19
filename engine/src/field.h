@@ -40,6 +40,7 @@ struct MCFieldParagraphStyle
 	bool has_padding : 1;
 	bool has_metadata : 1;
 	bool has_list_index : 1;
+	bool has_row_tag : 1;
 	
 	unsigned text_align : 2;
 	unsigned list_style : 4;
@@ -65,6 +66,7 @@ struct MCFieldParagraphStyle
 	uint32_t background_color;
 	uint32_t border_color;
     MCStringRef metadata;
+	MCStringRef row_tag;
 	uint16_t list_index;
 };
 
@@ -528,7 +530,7 @@ public:
 	MCParagraph *styledtexttoparagraphs(MCArrayRef p_array);
 	MCParagraph *texttoparagraphs(MCStringRef p_text);
 	
-    MCParagraph *parsestyledtextappendparagraph(MCArrayRef p_style, MCStringRef metadata, bool p_split, MCParagraph*& x_paragraphs);
+    MCParagraph *parsestyledtextappendparagraph(MCArrayRef p_style, MCStringRef metadata, MCStringRef p_row_tag, bool p_split, MCParagraph*& x_paragraphs);
 	void parsestyledtextappendblock(MCParagraph *p_paragraph, MCArrayRef p_style, MCStringRef p_string, MCStringRef p_metadata);
 	void parsestyledtextblockarray(MCArrayRef p_block_value, MCParagraph*& x_paragraphs);
 	void parsestyledtextarray(MCArrayRef p_styled_text, bool p_paragraph_break, MCParagraph*& x_paragraphs);

@@ -180,6 +180,7 @@ MCNameRef MCN_platform_string;
 MCNameRef MCN_version_string;
 
 MCNameRef MCN_metadata;
+MCNameRef MCN_rowtag;
 MCNameRef MCN_runs;
 MCNameRef MCN_style;
 
@@ -639,6 +640,7 @@ const struct { const char *cstring; MCNameRef *name_var; } kInitialNames[] =
 	{ MC_BUILD_ENGINE_SHORT_VERSION, &MCN_version_string },
 
 	{ "metadata", &MCN_metadata },
+	{ "rowtag", &MCN_rowtag },
 	{ "runs", &MCN_runs },
 	{ "style", &MCN_style },
 
