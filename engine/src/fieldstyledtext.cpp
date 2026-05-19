@@ -440,6 +440,8 @@ MCParagraph *MCField::parsestyledtextappendparagraph(MCArrayRef p_style, MCStrin
 
 		// Splitting paragraphs shouldn't copy the list index.
 		t_new_paragraph -> setlistindex(0);
+        // [[ RowTag ]] Splitting a paragraph must not duplicate the row tag.
+        t_new_paragraph -> setrowtag(nil);
 	}
 	
 	if (x_paragraphs != nil)

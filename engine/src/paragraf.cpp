@@ -1942,6 +1942,8 @@ void MCParagraph::split(findex_t p_position)
 	// MW-2012-11-20: [[ ParaListIndex]] When splitting a paragraph we don't copy the
 	//   list index.
 	pgptr -> setlistindex(0);
+    // [[ RowTag ]] Splitting a paragraph must not duplicate the row tag.
+    pgptr -> setrowtag(nil);
 
     pgptr->m_text.Reset();
 	if (!MCStringIsEmpty(*m_text))

@@ -2217,14 +2217,16 @@ MCParagraph *MCField::importhtmltext(MCValueRef p_text)
                             if (t_new_paragraph != t_prev_paragraph)
                             {
                                 t_new_paragraph -> copyattrs(*t_prev_paragraph);
-                                
+
                                 // If the prev paragraph had a listStyle, then set this one
                                 // to skip.
                                 if (t_prev_paragraph -> getliststyle() != kMCParagraphListStyleNone)
                                     t_new_paragraph -> setliststyle(kMCParagraphListStyleSkip);
-                                
+
                                 // Make sure the list index of the new paragraph is unset.
                                 t_new_paragraph -> setlistindex(0);
+                                // [[ RowTag ]] Splitting a paragraph must not duplicate the row tag.
+                                t_new_paragraph -> setrowtag(nil);
                             }
                         }
                         break;
