@@ -2446,12 +2446,47 @@ void MCVLCPlayer::Start(double rate)
     // applies the deferred rect and calls [view setFrame: actualRect], the
     // callback fires (async, to avoid re-entering AppKit's layout pass) and
     // starts VLC at that safe moment.
+    //
+    // Audio-only exception: for media with no video tracks (e.g. MP3), the
+    // player's video area has zero height — doSetGeometry is always called with
+    // a zero-height rect, so the NSView frame is perpetually zero and the
+    // frame-ready callback never fires.  Audio output in VLC uses a completely
+    // separate pipeline that doesn't need an NSObject view, so we can skip the
+    // deferral and play directly.
     if (!m_offscreen && m_view != nullptr)
     {
+        // Detect audio-only media: check parsed track list for any video track.
+        bool t_has_video = false;
+        if (m_media != nullptr)
+        {
+            libvlc_media_track_t **t_tracks = nullptr;
+            unsigned t_count = libvlc_media_tracks_get(m_media, &t_tracks);
+            for (unsigned i = 0; i < t_count; i++)
+            {
+                if (t_tracks[i]->i_type == libvlc_track_video)
+                {
+                    t_has_video = true;
+                    break;
+                }
+            }
+            if (t_tracks != nullptr)
+                libvlc_media_tracks_release(t_tracks, t_count);
+        }
+
         bool t_has_frame  = MCVLCViewHasNonZeroFrame(m_view);
         bool t_has_window = MCVLCViewHasWindow(m_view);
-        vlc_log("[VLC] Start: NSView %p inWindow=%d hasFrame=%d\n",
-                m_view, (int)t_has_window, (int)t_has_frame);
+        vlc_log("[VLC] Start: NSView %p inWindow=%d hasFrame=%d hasVideo=%d\n",
+                m_view, (int)t_has_window, (int)t_has_frame, (int)t_has_video);
+
+        if (!t_has_video)
+        {
+            // Audio-only: no view needed, play immediately.
+            vlc_log("[VLC] Start: audio-only media — playing directly\n");
+            libvlc_media_player_play(m_player);
+            libvlc_media_player_set_rate(m_player, (float)rate);
+            m_playing = true;
+            return;
+        }
 
         // Always defer play to the next run-loop turn via the frame-ready
         // mechanism, regardless of whether the frame is already non-zero.
