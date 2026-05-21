@@ -2401,11 +2401,42 @@ void MCVLCPlayer::Start(double rate)
 
     if (!m_offscreen && m_view != nullptr)
     {
+        // Audio-only media (e.g. MP3) has no video track, so the render HWND
+        // always has zero client height.  The D3D vout size guard below would
+        // arm the WM_TIMER loop forever and never play.  Audio output doesn't
+        // need an HWND, so detect this case and play immediately.
+        bool t_has_video = false;
+        if (m_media != nullptr)
+        {
+            libvlc_media_track_t **t_tracks = nullptr;
+            unsigned t_count = libvlc_media_tracks_get(m_media, &t_tracks);
+            for (unsigned i = 0; i < t_count; i++)
+            {
+                if (t_tracks[i]->i_type == libvlc_track_video)
+                {
+                    t_has_video = true;
+                    break;
+                }
+            }
+            if (t_tracks != nullptr)
+                libvlc_media_tracks_release(t_tracks, t_count);
+        }
+
         HWND t_hw = (HWND)m_view;
         RECT t_cr = {0};
         GetClientRect(t_hw, &t_cr);
-        if (t_cr.right == 0 && t_cr.bottom == 0)
+        if (!t_has_video || (t_cr.right == 0 && t_cr.bottom == 0))
         {
+            if (!t_has_video)
+            {
+                // Audio-only: no D3D surface needed, play immediately.
+                vlc_log("[VLC] Start: audio-only media — playing directly\n");
+                libvlc_media_player_play(m_player);
+                libvlc_media_player_set_rate(m_player, (float)rate);
+                m_playing = true;
+                return;
+            }
+            // Video with zero-size HWND: defer until WM_SIZE delivers valid dims.
             m_play_pending = true;
             // m_rate was already stored above; the WndProc will use it.
             UINT_PTR t_timer = SetTimer(t_hw, 1001, 50, nullptr);
