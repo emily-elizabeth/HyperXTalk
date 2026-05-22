@@ -70,6 +70,12 @@
 						[
 							'../thirdparty/headers/linux/include/cairo',
 							'<!@(pkg-config --cflags-only-I dbus-1 2>/dev/null | sed "s/-I//g")',
+							# glib-2.0 ships headers across two directories: the main
+							# /usr/include/glib-2.0/ tree and a per-arch lib path that
+							# contains the generated glibconfig.h.  Without both paths
+							# the visibility/deprecation macros in glib-unix.h are
+							# undefined.  pkg-config gives us both automatically.
+							'<!@(pkg-config --cflags-only-I glib-2.0 2>/dev/null | sed "s/-I//g")',
 						],
 
 						'defines':
