@@ -9,37 +9,54 @@ Author: HyperXTalk
 Version: 1.0.0
 
 Description:
-Dark mode-aware semantic color system. Developers define named color roles that
-carry light and dark variants, annotate controls with cSemantic* custom
-properties, and let the library handle systemAppearanceChanged automatically.
+Dark mode-aware semantic color system for HyperXTalk developers.
 
+Developers define named color roles ‚Äî each carrying a light and dark variant ‚Äî
+and annotate controls with cSemantic* custom properties. The library holds the
+single systemAppearanceChanged handler that walks every open developer stack
+and applies the correct color automatically when the OS appearance changes.
+
+Usage:
+   -- 1. Load the library (or include it via Standalone Settings)
+   start using stack "com.hyperxtalk.library.appearance"
+
+   -- 2. Override or add roles as needed (optional ‚Äî a default palette ships)
+   defineSemanticColor "accent", "0,122,255", "10,132,255"
+
+   -- 3. Annotate controls at design time or in openCard/openStack:
+   set cSemanticFillColor       of btn "Primary" to "accent"
+   set cSemanticForegroundColor of btn "Primary" to "accent_label"
+   set cSemanticBackgroundColor of this card to "background"
+
+   -- 4. Force an immediate apply (e.g. after loading a new card):
+   applySemanticColors
+
+   -- 5. Query a color value directly (for custom drawing):
+   set the fillColor of grc "Border" to semanticColor("separator")
 
 Name: defineSemanticColor
 
 Type: command
 
-Syntax: defineSemanticColor <pName>, <pLightColor>, <pDarkColor>
+Syntax: defineSemanticColor <pName>,<pLightColor>,<pDarkColor>
 
-Summary: Register or update a named semantic color role.
+Summary: Register or update a semantic color role.
 
-Parameters:
+Parameters: 
 
-pName: The role name (e.g. "background", "accent", "myBrand"). Case-sensitive.
+pName: The role name, e.g. "background", "accent", "myBrand".
 
-pLightColor: Color used in light mode. Either "r,g,b" triplet or "#rrggbb".
+pLightColor: Color value used in light mode ("r,g,b" or "#rrggbb").
 
-pDarkColor: Color used in dark mode. Either "r,g,b" triplet or "#rrggbb".
+pDarkColor: Color value used in dark mode ("r,g,b" or "#rrggbb").
 
 Description:
-Creates or replaces the named semantic color role. The library ships with a
-default palette covering common roles (background, surface, label,
-label_secondary, accent, accent_label, separator, input_background,
-destructive). Call defineSemanticColor to override any of these or to add
-project-specific roles.
+Creates or replaces the named semantic color role. Both light and dark
+variants must be supplied. The name is case-sensitive.
 
-Example:
-   defineSemanticColor "brand", "0,90,200", "30,140,255"
-   defineSemanticColor "accent", "#FF6B00", "#FF8C3A"
+Example:    defineSemanticColor "brand", "0,90,200", "30,140,255"
+
+
 
 
 Name: semanticColor
@@ -50,69 +67,51 @@ Syntax: semanticColor(<pName>)
 
 Summary: Return the current-appearance color for a named semantic role.
 
-Parameters:
+Parameters: 
 
-pName: A role name previously registered with defineSemanticColor.
+pName: The role name previously registered with defineSemanticColor.
 
-Returns: The color string ("r,g,b" or "#rrggbb") for the current OS appearance,
-or empty if the role is not registered.
+Returns:
+The color string for the current OS appearance, or empty if the role
+is not registered.
 
 Description:
-Resolves pName to either its light or dark color value based on the current
-value of `the systemAppearance`. Use this when a color value is needed for
-custom drawing code rather than a simple property assignment.
+Resolves the named role to either its light or dark color value based on the
+current value of `the systemAppearance`. Use this when you need a color value
+for custom drawing rather than a simple property assignment.
 
-Example:
-   -- Custom drawing handler:
-   set the foregroundColor of grc "Divider" to semanticColor("separator")
+Example:    set the foregroundColor of grc "Border" to semanticColor("separator")
 
-   -- In a paint handler:
-   set the penColor to semanticColor("accent")
+
 
 
 Name: applySemanticColors
 
 Type: command
 
-Syntax: applySemanticColors [<pTarget>]
+Syntax: applySemanticColors <pTarget>
 
-Summary: Immediately apply cSemantic* custom properties to controls.
+Summary: Immediately apply all cSemantic* custom properties to controls.
 
-Parameters:
+Parameters: 
 
-pTarget (optional): The long id of a specific control, card, or stack. When
-omitted, all open developer stacks are walked.
+pTarget:
+The long id of a specific control, card, or stack. If
+omitted, every open developer stack is walked.
 
 Description:
 Pushes the current-appearance color values onto every control that carries a
-recognised cSemantic* custom property:
-
-- cSemanticFillColor       → fillColor
-- cSemanticForegroundColor → foregroundColor
-- cSemanticBackgroundColor → backgroundColor
-- cSemanticBorderColor     → borderColor
-- cSemanticShadowColor     → shadowColor
-- cSemanticHiliteColor     → hiliteColor
-
-Call applySemanticColors explicitly when:
-- A new card opens and its controls need colors initialized.
-- A cSemantic* property is set programmatically at runtime.
-- A color role is changed mid-session via defineSemanticColor.
-
-The systemAppearanceChanged handler calls this automatically on OS-level
-appearance changes, so no explicit call is needed for that case.
+cSemantic* custom property. Call this after programmatically setting custom
+properties at runtime, after calling defineSemanticColor mid-session, or when
+opening a new card that needs its colors initialized.
 
 Example:
-   -- Initialize colors when a card opens:
-   on openCard
-      applySemanticColors
-      pass openCard
-   end openCard
-
-   -- Apply to a single control after updating its role:
-   set cSemanticFillColor of btn "Primary" to "accent"
-   applySemanticColors the long id of btn "Primary"
-
-   -- Re-apply everything after redefining a role:
+   -- Re-apply after dynamically changing a role:
    defineSemanticColor "accent", "220,40,40", "255,80,80"
    applySemanticColors
+
+   -- Apply to a single control only:
+   applySemanticColors the long id of btn "Submit"
+
+
+
