@@ -53,12 +53,34 @@ for subdir in Toolset Resources Documentation Plugins Externals; do
 done
 
 # --- Externals (.so plugins from the build) ---
+# Create the expected directory structure for externals and database drivers.
+mkdir -p "$APPBIN/Externals/Database Drivers"
+
+# Copy libExternal.so, revsecurity.so, and revpdfprinter.so to the main binary directory.
+# They are shared libraries or support libraries rather than standard loadable externals.
+for lib in libExternal.so revsecurity.so revpdfprinter.so; do
+    if [ -f "$OUT_DIR/$lib" ]; then
+        cp "$OUT_DIR/$lib" "$APPBIN/"
+        strip --strip-debug "$APPBIN/$lib" 2>/dev/null || true
+    fi
+done
+
+# Copy standard externals and database drivers to their respective directories inside APPBIN/Externals/
 for so in "$OUT_DIR"/*.so; do
     [ -f "$so" ] || continue
     name="$(basename "$so")"
-    case "$name" in server-*) continue ;; esac
-    cp "$so" "$APPBIN/"
-    strip --strip-debug "$APPBIN/$name" 2>/dev/null || true
+    case "$name" in
+        server-*) continue ;;
+        libExternal.so|revsecurity.so|revpdfprinter.so) continue ;;
+        dbmysql.so|dbodbc.so|dbpostgresql.so|dbsqlite.so)
+            cp "$so" "$APPBIN/Externals/Database Drivers/"
+            strip --strip-debug "$APPBIN/Externals/Database Drivers/$name" 2>/dev/null || true
+            ;;
+        *)
+            cp "$so" "$APPBIN/Externals/"
+            strip --strip-debug "$APPBIN/Externals/$name" 2>/dev/null || true
+            ;;
+    esac
 done
 
 # --- Externals subdirectory from build (CEF etc) ---
@@ -66,10 +88,11 @@ if [ -d "$OUT_DIR/Externals" ]; then
     cp -a "$OUT_DIR/Externals/"* "$APPBIN/Externals/" 2>/dev/null || true
 fi
 
-# --- Packaged extensions ---
+# --- Packaged extensions (widgets and libraries) ---
+# When packaged/installed, the IDE looks in "Extensions" rather than "packaged_extensions"
 if [ -d "$OUT_DIR/packaged_extensions" ]; then
-    mkdir -p "$APPBIN/packaged_extensions"
-    cp -a "$OUT_DIR/packaged_extensions/"* "$APPBIN/packaged_extensions/" 2>/dev/null || true
+    mkdir -p "$APPBIN/Extensions"
+    cp -a "$OUT_DIR/packaged_extensions/"* "$APPBIN/Extensions/" 2>/dev/null || true
 fi
 
 # --- LCI modules ---
