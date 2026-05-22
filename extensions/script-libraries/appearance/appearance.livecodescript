@@ -16,40 +16,6 @@ You should have received a copy of the GNU General Public License along with
 HyperXTalk. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
-Title: Appearance Library
-
-Author: HyperXTalk
-
-Version: 1.0.0
-
-Description:
-Dark mode-aware semantic color system for HyperXTalk developers.
-
-Developers define named color roles — each carrying a light and dark variant —
-and annotate controls with cSemantic* custom properties. The library holds the
-single systemAppearanceChanged handler that walks every open developer stack
-and applies the correct color automatically when the OS appearance changes.
-
-Usage:
-   -- 1. Load the library (or include it via Standalone Settings)
-   start using stack "com.hyperxtalk.library.appearance"
-
-   -- 2. Override or add roles as needed (optional — a default palette ships)
-   defineSemanticColor "accent", "0,122,255", "10,132,255"
-
-   -- 3. Annotate controls at design time or in openCard/openStack:
-   set cSemanticFillColor       of btn "Primary" to "accent"
-   set cSemanticForegroundColor of btn "Primary" to "accent_label"
-   set cSemanticBackgroundColor of this card to "background"
-
-   -- 4. Force an immediate apply (e.g. after loading a new card):
-   applySemanticColors
-
-   -- 5. Query a color value directly (for custom drawing):
-   set the fillColor of grc "Border" to semanticColor("separator")
-*/
-
 -- ---------------------------------------------------------------------------
 -- Script-local state
 -- ---------------------------------------------------------------------------
@@ -83,6 +49,44 @@ on extensionFinalize
 
    remove the script of me from back
 end extensionFinalize
+
+/**
+
+Title: Appearance Library
+
+Author: HyperXTalk
+
+Type: library
+
+Version: 1.0.0
+
+Description:
+Dark mode-aware semantic color system for HyperXTalk developers.
+
+Developers define named color roles — each carrying a light and dark variant —
+and annotate controls with cSemantic* custom properties. The library holds the
+single systemAppearanceChanged handler that walks every open developer stack
+and applies the correct color automatically when the OS appearance changes.
+
+Usage:
+   -- 1. Load the library (or include it via Standalone Settings)
+   start using stack "com.hyperxtalk.library.appearance"
+
+   -- 2. Override or add roles as needed (optional — a default palette ships)
+   defineSemanticColor "accent", "0,122,255", "10,132,255"
+
+   -- 3. Annotate controls at design time or in openCard/openStack:
+   set cSemanticFillColor       of btn "Primary" to "accent"
+   set cSemanticForegroundColor of btn "Primary" to "accent_label"
+   set cSemanticBackgroundColor of this card to "background"
+
+   -- 4. Force an immediate apply (e.g. after loading a new card):
+   applySemanticColors
+
+   -- 5. Query a color value directly (for custom drawing):
+   set the fillColor of grc "Border" to semanticColor("separator")
+
+*/
 
 -- ---------------------------------------------------------------------------
 -- Default semantic color palette
@@ -123,11 +127,6 @@ end _initDefaultPalette
 -- ---------------------------------------------------------------------------
 
 /**
-Name: defineSemanticColor
-
-Type: command
-
-Syntax: defineSemanticColor <pName>, <pLightColor>, <pDarkColor>
 
 Summary: Register or update a semantic color role.
 
@@ -142,6 +141,7 @@ variants must be supplied. The name is case-sensitive.
 
 Example:
    defineSemanticColor "brand", "0,90,200", "30,140,255"
+
 */
 command defineSemanticColor pName, pLightColor, pDarkColor
    put pLightColor into sColorRegistry[pName]["light"]
@@ -149,11 +149,6 @@ command defineSemanticColor pName, pLightColor, pDarkColor
 end defineSemanticColor
 
 /**
-Name: semanticColor
-
-Type: function
-
-Syntax: semanticColor(<pName>)
 
 Summary: Return the current-appearance color for a named semantic role.
 
@@ -170,17 +165,13 @@ for custom drawing rather than a simple property assignment.
 
 Example:
    set the foregroundColor of grc "Border" to semanticColor("separator")
+
 */
 function semanticColor pName
    return sColorRegistry[pName][_currentMode()]
 end semanticColor
 
 /**
-Name: applySemanticColors
-
-Type: command
-
-Syntax: applySemanticColors [<pTarget>]
 
 Summary: Immediately apply all cSemantic* custom properties to controls.
 
@@ -196,11 +187,12 @@ opening a new card that needs its colors initialized.
 
 Example:
    -- Re-apply after dynamically changing a role:
-   defineSemanticColor "accent" , "220,40,40", "255,80,80"
+   defineSemanticColor "accent", "220,40,40", "255,80,80"
    applySemanticColors
 
    -- Apply to a single control only:
    applySemanticColors the long id of btn "Submit"
+
 */
 command applySemanticColors pTarget
    local tMode
