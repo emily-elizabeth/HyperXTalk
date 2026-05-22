@@ -85,6 +85,7 @@
 				'script-libraries/httpd/httpd.livecodescript',
 				'script-libraries/qr/qr.livecodescript',
 				'script-libraries/shakecontrol/shakecontrol.livecodescript',
+				'script-libraries/appearance/appearance.livecodescript',
 			],
 			
 			'dependencies':
