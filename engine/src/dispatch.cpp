@@ -1575,9 +1575,17 @@ void send_startup_message(bool p_do_relaunch = true)
 
 	MCdefaultstackptr -> setextendedstate(true, ECS_DURING_STARTUP);
 
-	MCdefaultstackptr -> getcard() -> message(MCM_start_up);
+	Exec_stat t_stat = MCdefaultstackptr -> getcard() -> message(MCM_start_up);
 
 	MCdefaultstackptr -> setextendedstate(false, ECS_DURING_STARTUP);
+
+	// In no-UI mode, a script error during startup has no way to be
+	// shown to the user.  Continuing with a corrupted script engine
+	// state ( LiveCode uses longjmp for exceptions ) frequently
+	// causes heap corruption and a later crash in sptr->open().
+	// Exit cleanly instead.
+	if (t_stat == ES_ERROR && MCnoui)
+		MCquit = True;
 }
 
 void MCDispatch::wclose(Window w)
