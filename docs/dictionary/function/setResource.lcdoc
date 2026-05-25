@@ -7,7 +7,7 @@ Syntax: setResource(<destinationFile>, <resourceType>,[<resID>],[<resName>], <fl
 Summary:
 Places data in a specified resource in a <Mac OS> <file>.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
 OS: mac
 

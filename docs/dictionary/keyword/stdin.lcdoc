@@ -8,7 +8,7 @@ Summary:
 Used with the <read from file> <command> to designate the 
 <standard input>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

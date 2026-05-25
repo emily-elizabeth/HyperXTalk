@@ -10,11 +10,11 @@ Sets the <lockMessages> <property> to true, preventing
 <getProp call|getProp calls>, and certain <message|messages> from 
 being sent.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 lock messages

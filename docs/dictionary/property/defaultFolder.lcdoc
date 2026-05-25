@@ -10,11 +10,11 @@ Summary:
 Specifies the <folder> that is used by the <files> and <folders>
 <function|functions> and by <command|commands> that manipulate <files>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the defaultFolder to "/Applications/GetIt" --MacOS, Linux-style file path
@@ -36,7 +36,7 @@ If you set the <defaultFolder> to a <folder(glossary)> that doesn't exist, the
 
 Value:
 The <defaultFolder> is a <string> consisting of a valid <file path|path>
-to a <folder>. When a OpenXTalk application starts up, the
+to a <folder>. When a HyperXTalk application starts up, the
 <defaultFolder> initially contains whatever the working directory was at
 the time the application was launched. Typically this is the folder that
 the application resides in, however this is not always the case and
@@ -54,13 +54,13 @@ Use the <defaultFolder> to perform <file> manipulations on <file|files> in
 the same <folder> without having to include the <absolute file path|full
 path>. 
 
-The <defaultFolder> <property> specifies the <folder> OpenXTalk uses as
+The <defaultFolder> <property> specifies the <folder> HyperXTalk uses as
 the <current folder|current directory> when resolving 
 <relative file path|relative paths> (except for <relative file path|
 relative paths> specified in the <stackFiles> <property>).
 
 If you specify a <file> without giving its 
-<absolute file path|full path>, OpenXTalk looks for
+<absolute file path|full path>, HyperXTalk looks for
 the file in the <defaultFolder>. If you specify a <relative file path|
 relative path>, the <defaultFolder> is <prepend|prepended> to it to
 create the <absolute file path|full path>.

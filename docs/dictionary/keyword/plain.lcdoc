@@ -9,11 +9,11 @@ Used with the <visual effect> <command> to designate a simple "cut"
 effect. Also used with the <textStyle> <property> to indicate plain text
 with no added styling.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 hide field 3 with visual effect plain to gray

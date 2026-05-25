@@ -1343,27 +1343,6 @@ on revIDEInitialiseIDELibrary
    
    ## Regenerate dictionary data
    revInternal__LoadLibrary "revDatabaseLibrary"
-
-   -- Seed api.sqlite into the user doc-cache before any code opens the
-   -- database.  ideDocsInitialize caches the SQLite connection the first
-   -- time it runs; if the DB is opened as an empty stub that cached
-   -- connection is used for the entire session and ideDocsEnsureDatabase
-   -- inside revidedocumentationlibrary never gets another chance to copy
-   -- the real file.  Do the copy here — unconditionally before anything
-   -- else touches the database — so the connection is always seeded from
-   -- the 6 MB shipped database.
-   revIDEEnsureAPIDatabase
-
-   -- home.livecodescript only calls revIDEGenerateDistributedDocs when
-   -- NOT installed (dev builds).  On installed builds we must trigger it
-   -- here so that api.sqlite is written to the user doc-cache before
-   -- revIDERegenerateBuiltDictionaryData tries to read from it.
-   -- revIDEGenerateDistributedDocs is a no-op when docs/ is absent or
-   -- the cache is already up-to-date, so this is safe to call every launch.
-   if revEnvironmentIsInstalled() then
-      revIDEGenerateDistributedDocs
-   end if
-
    revIDERegenerateBuiltDictionaryData
    
    ## Initialise property library
@@ -1372,52 +1351,6 @@ on revIDEInitialiseIDELibrary
    ideSubscribe "ideExtensionsChanged"
    ideSubscribe "ideDesktopChanged"
 end revIDEInitialiseIDELibrary
-
--- Copy the shipped api.sqlite from the app bundle into the user doc-cache
--- before anything opens the SQLite connection.  Once revDocsOpenAPIDatabase
--- is called the first time, the connection is cached for the entire session
--- and ideDocsEnsureDatabase inside revidedocumentationlibrary never runs
--- again.  This handler runs unconditionally early in IDE startup so the
--- first open always finds the real 6 MB database, not an empty stub.
-on revIDEEnsureAPIDatabase
-   local tSource, tDest, tCacheDir, tStamp
-   set the itemdelimiter to "/"
-
-   -- Source: shipped database inside the app bundle (or source repo in dev).
-   put item 1 to -3 of the filename of stack "home" & \
-         "/Documentation/html_viewer/resources/data/api/api.sqlite" into tSource
-   if there is not a file tSource then exit revIDEEnsureAPIDatabase
-
-   -- Destination: user-writable doc-cache.
-   put revEnvironmentUserDocsPath() & "/IDE" into tCacheDir
-   revIDEEnsurePath tCacheDir
-   put tCacheDir & "/api.sqlite" into tDest
-   put tCacheDir & "/api.sqlite.version" into tStamp
-
-   -- Skip if we already seeded this version's database.
-   -- The stamp file records the engine version string written after a
-   -- successful copy; a fresh install or version upgrade will have no
-   -- matching stamp so the copy always runs at least once per version.
-   if there is a file tDest then
-      if there is a file tStamp then
-         if url ("file:" & tStamp) is the version then
-            exit revIDEEnsureAPIDatabase
-         end if
-      end if
-   end if
-
-   -- Use the OS copy command — more reliable than binfile: URL for large
-   -- binary files and avoids any in-memory string truncation issues.
-   if the platform is "macosx" or the platform is "linux" then
-      get shell("cp -f " & quote & tSource & quote & " " & quote & tDest & quote)
-   else
-      -- Windows: write via the binfile URL mechanism.
-      put url ("binfile:" & tSource) into url ("binfile:" & tDest)
-   end if
-
-   -- Write the version stamp so subsequent launches skip the copy.
-   put the version into url ("file:" & tStamp)
-end revIDEEnsureAPIDatabase
 
 on ideExtensionsChanged
    revIDERegenerateBuiltDictionaryData
@@ -3648,6 +3581,7 @@ on revIDEUngroup pGroup
    end if
    revIDESelectObjects pGroup
    ungroup
+   revIDEMessageSend "ideControlDeleted", pGroup
 end revIDEUngroup
 
 /*
@@ -4218,19 +4152,10 @@ function revIDESpecialFolderPath pKey, pParam
          if pParam is not empty then
             put "_" & pParam after pKey
          end if
-         if revEnvironmentIsInstalled() then
-            -- On installed builds the install directory is read-only on
-            -- Windows (Program Files).  revIDEGenerateDistributedAPI writes
-            -- *.js files here, and revIDEGetBaseDocsData / revIDERegenerateBuiltAPIs
-            -- reads them back.  If both point to the install dir the writes fail
-            -- silently and the reads return stale data.  Redirect to the
-            -- user-writable documentation cache so writes succeed and reads
-            -- immediately see the fresh content.
-            put revIDESpecialFolderPath("documentation cache") & "/" & tolower(pKey) into tPath
-         else
-            put item 1 to -3 of the filename of stack "home" & "/Documentation/html_viewer/resources/data/" & tolower(pKey) into tPath
+         put item 1 to -3 of the filename of stack "home" & "/Documentation/html_viewer/resources/data/" & tolower(pKey) into tPath
+         if not revEnvironmentIsInstalled() then
+            revIDEEnsurePath tPath
          end if
-         revIDEEnsurePath tPath
          return tPath
          break
       case "examples"
@@ -5246,7 +5171,10 @@ private on __setPropertyOfObject pObject, pProperty, pValue
    if tProperties["properties"][pProperty]["setter"] is not empty then
       dispatch tProperties["properties"][pProperty]["setter"] with pObject, pProperty, pValue
    else
-      set the pProperty of pObject to pValue
+      try
+         set the pProperty of pObject to pValue
+      catch tError
+      end try
    end if
    
 end __setPropertyOfObject
@@ -6600,8 +6528,12 @@ on revIDEStandaloneSettingsSet pStack, pProperty, pValue
    set the cRevStandaloneSettings[pProperty] of pStack to pValue
 end revIDEStandaloneSettingsSet
 
+function revIDEStandaloneSettingsGet pTargetStackLongID, pProperty
+   return the cRevStandaloneSettings[pProperty] of pTargetStackLongID
+end revIDEStandaloneSettingsGet
+   
 function revIDEStandaloneSections
-	// AL-2015-03-03: [[ Bug 14769 ]] Add 'Table' section to the property inspector
+   // AL-2015-03-03: [[ Bug 14769 ]] Add 'Table' section to the property inspector
    return "General,Stacks,Copy Files,Mac,Windows,Linux,iOS,Android,Bug Reports"
 end revIDEStandaloneSections
 
@@ -7067,11 +6999,30 @@ on revIDEActionOpenStack
    put the result into tStackFilePaths
    
    repeat for each line tStackFilePath in tStackFilePaths
-      # Check the stack exists
-      if there is not a file tStackFilePath then exit revIDEActionOpenStack
-      
-      # Open the stack
-      revIDEOpenStack tStackFilePath
+      -- Route .hyperxtalk_project to the project loader
+      if tStackFilePath ends with ".hyperxtalk_project" then
+         local tProjectFilePath
+         if there is a file tStackFilePath then
+            -- Windows / Linux: user opened the JSON file directly
+            put tStackFilePath into tProjectFilePath
+         else
+            -- macOS: user selected the package folder; construct the inner JSON path
+            local tBundleLeaf, tProjectBaseName, tSavedDelim
+            put the itemDelimiter into tSavedDelim
+            set the itemDelimiter to "/"
+            put the last item of tStackFilePath into tBundleLeaf
+            set the itemDelimiter to tSavedDelim
+            put char 1 to (length(tBundleLeaf) - length(".hyperxtalk_project")) of tBundleLeaf into tProjectBaseName
+            put tStackFilePath & "/" & tProjectBaseName & ".hyperxtalk_project" into tProjectFilePath
+         end if
+         revIDELoadFromProject tProjectFilePath
+      else
+         # Check the stack exists
+         if there is not a file tStackFilePath then exit revIDEActionOpenStack
+         
+         # Open the stack
+         revIDEOpenStack tStackFilePath
+      end if
    end repeat
 end revIDEActionOpenStack
 
@@ -7244,7 +7195,7 @@ function revIDEAcceptedTypes pType
       case "media"
          return revIDEAcceptedTypes("audio") & comma & revIDEAcceptedTypes("video")
       case "stack"
-         return "hyperxtalk,hyperxtalkscript,livecode,rev,lc,livecodescript,mc,oxtstack,oxtstackscript"
+         return "hyperxtalk,hyperxtalkscript,hyperxtalk_project,livecode,rev,lc,livecodescript,mc,oxtstack,oxtstackscript"
       case "text"
          return "txt"
       case "graph"
@@ -7504,7 +7455,7 @@ private function __answerGetTypeString pType
    local tTagString
    switch pType
       case "stack"
-         put revIDELocalise("xTalk Stacks") into tTagString
+         put revIDELocalise("HyperXTalk Stacks") into tTagString
          break
       case "image"
          put revIDELocalise("Images") into tTagString
@@ -7737,6 +7688,25 @@ on revIDESaveStack pStackID
       send "revSaveStackRequest" to this card of stack tStack
    end repeat
    
+   # If this stack was loaded from a project file, redirect to the project saver.
+   # Check the mainStack too in case a substack is being saved.
+   local tProjectFilePath, tProjectStackID
+   if the cRevProjectFilePath of stack tStackName is not empty then
+      put the cRevProjectFilePath of stack tStackName into tProjectFilePath
+      put the long ID of stack tStackName into tProjectStackID
+   else
+      local tMainStackName
+      put the mainStack of stack tStackName into tMainStackName
+      if tMainStackName is not empty and the cRevProjectFilePath of stack tMainStackName is not empty then
+         put the cRevProjectFilePath of stack tMainStackName into tProjectFilePath
+         put the long ID of stack tMainStackName into tProjectStackID
+      end if
+   end if
+   if tProjectFilePath is not empty then
+      revIDESaveAsProject tProjectStackID, tProjectFilePath
+      exit revIDESaveStack
+   end if
+
    # Check if the stack has a filename. IF not, redirect to save as
    if the effective filename of stack tStackName is empty then
       revIDEActionSaveStackAs the long ID of stack tStackName
@@ -7969,18 +7939,18 @@ end revIDESaveStackAs
 
 on revIDEActionSaveStackAs pStackID, pSubstackOnly
    if not exists(pStackID) then __revIDEError("Target stack does not exist")
-
+   
    local tMakeMainStack, tMainStackName, tStackName, tShortName
    put the short name of pStackID into tShortName
-
+   
    global gREVMessageDispatch
    repeat for each line tStack in gREVMessageDispatch["revSaveStackRequest"]
       send "revSaveStackRequest" to this cd of stack tStack
    end repeat
-
+   
    local tDefaultStackBackup
    put the defaultStack into tDefaultStackBackup
-
+   
    # Saving if a substack
    put true into tMakeMainStack
    put the mainStack of stack tShortName into tMainStackName
@@ -7990,9 +7960,9 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
          put tMainStackName into tShortName
       end if
    end if
-
+   
    put revFixPath(tShortName) into tStackName
-
+   
    // MM-2012-03-09: Added new 5.5 stack file format to drop down.
    local tStackFileType
    local tStackFileIsScriptOnly = true
@@ -8005,14 +7975,17 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
    # Prepare substitutions for localisation
    local tSubstitutions
    put tShortName into tSubstitutions[1]
-
+   
    local tStackFilter, tStack24Filter, tStack27Filter, tStack55Filter, tStack70Filter, tStack80Filter
    put (revIDELocalise("HyperXTalk Stack") & "|hyperxtalk,hyperxtalkscript,livecode,rev|RSTK") into tStackFilter
-   put (revIDELocalise("Legacy LiveCode Stack (2.4)") & "|livecode,rev|RSTK") into tStack24Filter
-   put (revIDELocalise("Legacy LiveCode Stack (2.7)") & "|livecode,rev|RSTK") into tStack27Filter
-   put (revIDELocalise("Legacy LiveCode Stack (5.5)") & "|livecode,rev|RSTK") into tStack55Filter
-   put (revIDELocalise("Legacy LiveCode Stack (7.0)") & "|livecode,rev|RSTK") into tStack70Filter
-   put (revIDELocalise("Legacy LiveCode Stack (8.0)") & "|livecode,rev|RSTK") into tStack80Filter
+   --   put (revIDELocalise("Legacy LiveCode Stack (2.4)") & "|livecode,rev|RSTK") into tStack24Filter
+   --   put (revIDELocalise("Legacy LiveCode Stack (2.7)") & "|livecode,rev|RSTK") into tStack27Filter
+   --   put (revIDELocalise("Legacy LiveCode Stack (5.5)") & "|livecode,rev|RSTK") into tStack55Filter
+   --   put (revIDELocalise("Legacy LiveCode Stack (7.0)") & "|livecode,rev|RSTK") into tStack70Filter
+   --   put (revIDELocalise("Legacy LiveCode Stack (8.0)") & "|livecode,rev|RSTK") into tStack80Filter
+   
+   local tProjectFilter
+   --   put (revIDELocalise("HyperXTalk Project") & "|hyperxtalk_project|RPRJ") into tProjectFilter
    
    local tVersion
    switch 
@@ -8020,23 +7993,23 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
          put "script" after tStackName
          ask file revIDELocalise("Save script only stack %1 as:", tSubstitutions) with tStackName with type (revIDELocalise("HyperXTalk Script Only Stack") & "|hyperxtalkscript,livecodescript|RSTK")
          break
-	  case tStackFileType is 8.0
-	     ask file revIDELocalise("Save stack %1 as:", tSubstitutions) with tStackName with type tStack80Filter or type tStackFilter or type tStack70Filter or type tStack55Filter or type tStack27Filter or type tStack24Filter
-		 break
-	  case tStackFileType is 7.0
-	     ask file revIDELocalise("Save stack %1 as:", tSubstitutions) with tStackName with type tStack70Filter or type tStackFilter or type tStack80Filter or type tStack55Filter or type tStack27Filter or type tStack24Filter
-		 break
+      case tStackFileType is 8.0
+         ask file revIDELocalise("Save stack %1 as:", tSubstitutions) with tStackName with type tStack80Filter or type tStackFilter or type tProjectFilter or type tStack70Filter or type tStack55Filter or type tStack27Filter or type tStack24Filter
+         break
+      case tStackFileType is 7.0
+         ask file revIDELocalise("Save stack %1 as:", tSubstitutions) with tStackName with type tStack70Filter or type tStackFilter or type tProjectFilter or type tStack80Filter or type tStack55Filter or type tStack27Filter or type tStack24Filter
+         break
       case tStackFileType is 5.5
-         ask file revIDELocalise("Save stack %1 as:", tSubstitutions) with tStackName with type tStack55Filter or type tStackFilter or type tStack80Filter or type tStack70Filter or type tStack27Filter or type tStack24Filter
+         ask file revIDELocalise("Save stack %1 as:", tSubstitutions) with tStackName with type tStack55Filter or type tStackFilter or type tProjectFilter or type tStack80Filter or type tStack70Filter or type tStack27Filter or type tStack24Filter
          break
       case tStackFileType is 2.7
-         ask file revIDELocalise("Save stack %1 as:", tSubstitutions) with tStackName with type tStack27Filter or type tStackFilter or type tStack80Filter or type tStack70Filter or type tStack55Filter or type tStack24Filter
+         ask file revIDELocalise("Save stack %1 as:", tSubstitutions) with tStackName with type tStack27Filter or type tStackFilter or type tProjectFilter or type tStack80Filter or type tStack70Filter or type tStack55Filter or type tStack24Filter
          break
       case tStackFileType is 2.4
-         ask file revIDELocalise("Save stack %1 as:", tSubstitutions) with tStackName with type tStack24Filter or type tStackFilter or type tStack80Filter or type tStack70Filter or type tStack55Filter or type tStack27Filter
+         ask file revIDELocalise("Save stack %1 as:", tSubstitutions) with tStackName with type tStack24Filter or type tStackFilter or type tProjectFilter or type tStack80Filter or type tStack70Filter or type tStack55Filter or type tStack27Filter
          break
       default
-         ask file revIDELocalise("Save stack %1 as:", tSubstitutions) with tStackName with type tStackFilter or type tStack80Filter or type tStack70Filter or type tStack55Filter or type tStack27Filter or type tStack24Filter
+         ask file revIDELocalise("Save stack %1 as:", tSubstitutions) with tStackName with type tStackFilter or type tProjectFilter or type tStack80Filter or type tStack70Filter or type tStack55Filter or type tStack27Filter or type tStack24Filter
          break
    end switch
    put the result into tVersion
@@ -8057,6 +8030,9 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
       case revIDELocalise("Legacy LiveCode Stack (2.4)")
          put 2.4 into tVersion
          break
+      case revIDELocalise("HyperXTalk Project")
+         put "project" into tVersion
+         break
       default
          put empty into tVersion
          break
@@ -8070,7 +8046,11 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
    
    # MacOS Auotmatically appends the filetype to the filename
    local tFilePath
-   if the platform is not "MacOS" and not (it ends with ".rev" or it ends with ".livecode" or it ends with ".livecodescript" or it ends with ".hyperxtalk" or it ends with ".hyperxtalkscript") then
+   if tVersion is "project" then
+      if not (it ends with ".hyperxtalk_project") then
+         put ".hyperxtalk_project" after it
+      end if
+   else if the platform is not "MacOS" and not (it ends with ".rev" or it ends with ".livecode" or it ends with ".livecodescript" or it ends with ".hyperxtalk") then // HXT or it ends with ".hyperxtalkscript") then
       put ".hyperxtalk" after it
       if the scriptOnly of stack tShortName then
          put "script" after it
@@ -8081,7 +8061,7 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
    local tFileVersions
    put tVersion into tFileVersions[1]
    put the minStackFileVersion of stack tShortName into tFileVersions[2]
-   if tVersion is not empty and highestVersionNumber(tVersion, tFileVersions[2]) is 2 then
+   if tVersion is not "project" and tVersion is not empty and highestVersionNumber(tVersion, tFileVersions[2]) is 2 then
       answer revIDELocalise("Saving this stack file as version %1 will result in data loss." && \
             "The minimum stack file version for this stack is %2.", tFileVersions) \
             with revIDELocalise("Save as %1", tFileVersions) and  revIDELocalise("Save as %2", tFileVersions) and revIDELocalise("Cancel")
@@ -8094,23 +8074,23 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
    end if
    
    # Display warning if user has not selected the latest file format
-   if the scriptOnly of stack tShortName and not tStackFileIsScriptOnly then
+   if tVersion is not "project" and the scriptOnly of stack tShortName and not tStackFileIsScriptOnly then
       answer revIDELocalise("Saving in script only format will result in loss of data as only" & \
             " the script will be saved. Are you sure you wish to continue?") with revIDELocalise("No") and revIDELocalise("Yes")
       if it is not revIDELocalise("Yes") then
-        revIDESetEdited tShortName
+         revIDESetEdited tShortName
          return "Cancelled"
       end if
    end if
    
    # Window and Mac automatically present overwrite dialog
-   if the platform is not in "Win32,MacOS" and there is a file tFilePath then
+   if tVersion is not "project" and the platform is not in "Win32,MacOS" and there is a file tFilePath then
       answer warning revIDELocalise("File exists. Overwrite?") with revIDELocalise("Cancel") or revIDELocalise("OK")
       if it is revIDELocalise("Cancel") then
          return "Cancelled"
       end if
    end if
-
+   
    # When making a substack a mainstack, it must clone default colors set on mainstack to substack
    # so that inherited values are preserved.
    local tStackColors, tHomeColors
@@ -8128,24 +8108,714 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
       revRemoveRevOnlineKey "fingerprint",tMainStackName
       revIDESaveStack tMainStackName
    end if
-
-
+   
+   
    set the cursor to watch
    lock messages
-
+   
    # RevOnline fingerprint enables the revOnline uploader automatically overwrite the stack if already uploaded.
    # Because you're saving as a new stack, this fingerprint should be removed.
    //eh revRemoveRevOnlineKey "fingerprint",tShortName
-
+   
    -- Synthesize a "saveStackRequest" message
-   if ideDispatchSaveStackRequest(tShortName) is not "handled" then
+   if tVersion is "project" then
+      revIDESaveAsProject the long id of stack tShortName, tFilePath
+   else if ideDispatchSaveStackRequest(tShortName) is not "handled" then
       revIDESaveStackAs the long id of stack tShortName, tFilePath, tVersion
    end if
-
+   
    unlock messages
-
+   
    return empty
 end revIDEActionSaveStackAs
+
+-- ---------------------------------------------------------------------------
+-- Project folder format (.hyperxtalk_project) save handlers
+-- ---------------------------------------------------------------------------
+
+on revIDEActionSaveAsProject pStackID
+   local tShortName
+   put the short name of pStackID into tShortName
+
+   -- Prompt for save location
+   ask file revIDELocalise("Save project as:") with tShortName & ".hyperxtalk_project"
+   if it is empty then exit revIDEActionSaveAsProject
+
+   local tFolderPath
+   put it into tFolderPath
+   if not (tFolderPath ends with ".hyperxtalk_project") then
+      put ".hyperxtalk_project" after tFolderPath
+   end if
+
+   -- Confirm overwrite if folder already exists
+   if there is a folder tFolderPath then
+      answer revIDELocalise("A project named '%1' already exists. Replace it?", tShortName) \
+            with revIDELocalise("Replace") and revIDELocalise("Cancel")
+      if it is revIDELocalise("Cancel") then exit revIDEActionSaveAsProject
+   end if
+
+   set the cursor to watch
+   revIDESaveAsProject pStackID, tFolderPath
+end revIDEActionSaveAsProject
+
+on revIDESaveAsProject pStackID, pFolderPath
+   -- pFolderPath is the full path to the project folder,
+   -- e.g. "/Users/emily/Documents/MyStack.hyperxtalk_project"
+   -- The main JSON file inside takes the same name as the folder.
+
+   -- Derive base project name from folder (strip .hyperxtalk_project suffix)
+   local tSavedItemDelim2, tFolderLeaf, tBaseName
+   put the itemDelimiter into tSavedItemDelim2
+   set the itemDelimiter to "/"
+   put the last item of pFolderPath into tFolderLeaf
+   set the itemDelimiter to tSavedItemDelim2
+   put char 1 to (length(tFolderLeaf) - length(".hyperxtalk_project")) of tFolderLeaf into tBaseName
+
+   -- Create the project folder if it doesn't already exist.
+   -- On macOS, .hyperxtalk_project packages report false for "there is a folder",
+   -- so also check for the inner JSON file as proof the package already exists.
+   local tMainFilePath
+   put pFolderPath & "/" & tBaseName & ".hyperxtalk_project" into tMainFilePath
+   if there is no folder pFolderPath and there is not a file tMainFilePath then
+      create folder pFolderPath
+      if the result is not empty then
+         answer revIDELocalise("Could not create project folder:") & return & the result
+         return "Error"
+      end if
+   end if
+
+   -- Create the media subfolder for extracted assets
+   local tMediaFolder
+   put pFolderPath & "/media" into tMediaFolder
+   if there is no folder tMediaFolder then
+      create folder tMediaFolder
+   end if
+
+   -- Build the full object tree as a LiveCode array
+   local tTree
+   revIDEProjectBuildTree pStackID, tMediaFolder, tTree
+
+   -- Sanitize the tree: convert all leaf values to plain strings so that
+   -- boolean and data typed values don't trip up the JSON encoder.
+   revIDEProjectSanitizeArray tTree
+
+   -- Encode to JSON
+   local tJSON
+   put jsonExport(tTree) into tJSON
+
+   -- Write the main project JSON file
+   put pFolderPath & "/" & tBaseName & ".hyperxtalk_project" into tMainFilePath
+   open file tMainFilePath for write
+   if the result is not empty then
+      answer revIDELocalise("Could not write project file:") & return & the result
+      return "Error"
+   end if
+   write tJSON to file tMainFilePath
+   close file tMainFilePath
+
+   -- Export first-card preview as preview.png inside the bundle.
+   -- Being part of the package it travels with the file automatically.
+   local tStackName, tPreviewPath
+   put the short name of pStackID into tStackName
+   put pFolderPath & "/preview.png" into tPreviewPath
+   export snapshot from card 1 of stack tStackName to file tPreviewPath as PNG
+
+   -- Mark the stack as saved and update recent files
+   revIDESetUnedited the short name of pStackID
+   revUpdateRecentFiles the short name of pStackID
+end revIDESaveAsProject
+
+-- ---------------------------------------------------------------------------
+-- .hxtlib compiled library save handlers ("Save as Library...")
+-- ---------------------------------------------------------------------------
+
+on revIDEActionSaveAsLibrary pStackID
+   local tShortName
+   put the short name of pStackID into tShortName
+
+   -- Prompt for save location.
+   ask file revIDELocalise("Save library as:") with tShortName & ".hxtlib"
+   if it is empty then exit revIDEActionSaveAsLibrary
+
+   local tFilePath
+   put it into tFilePath
+   if not (tFilePath ends with ".hxtlib") then
+      put ".hxtlib" after tFilePath
+   end if
+
+   -- Confirm overwrite if file already exists.
+   if there is a file tFilePath then
+      answer revIDELocalise("A library named '%1' already exists. Replace it?", tShortName) \
+            with revIDELocalise("Replace") and revIDELocalise("Cancel")
+      if it is revIDELocalise("Cancel") then exit revIDEActionSaveAsLibrary
+   end if
+
+   set the cursor to watch
+   revIDESaveAsLibrary pStackID, tFilePath
+end revIDEActionSaveAsLibrary
+
+on revIDESaveAsLibrary pStackID, pFilePath
+   -- pFilePath is the full path to the output .hxtlib file.
+   -- The engine command "save stack as library to <path>" handles:
+   --   • serializing the handler list (ASTN section via MCHXTASTWriter)
+   --   • embedding the source script (SRCS section as fallback)
+   --   • writing the binary container with CRC32/SHA-256 integrity checks
+
+   save pStackID as library to pFilePath
+   if the result is not empty then
+      answer error revIDELocalise("Could not save library:") & return & the result
+      exit revIDESaveAsLibrary
+   end if
+
+   answer revIDELocalise("Library saved to:") & return & pFilePath
+end revIDESaveAsLibrary
+
+on revIDEProjectBuildTree pStackID, pMediaFolder, @rTree
+   put "hyperxtalk-project" into rTree["format"]
+   put 1 into rTree["version"]
+
+   -- Resolve to a plain stack name for reliable use inside serialize handlers
+   local tStackNode, tStackName
+   put the short name of pStackID into tStackName
+   revIDEProjectSerializeStack tStackName, pMediaFolder, tStackNode
+   put tStackNode into rTree["stack"]
+end revIDEProjectBuildTree
+
+-- pStackName is the plain short name of the stack (not a long id)
+on revIDEProjectSerializeStack pStackName, pMediaFolder, @rObj
+   put pStackName into rObj["name"]
+   put the id of stack pStackName into rObj["id"]
+   put the title of stack pStackName into rObj["title"]
+   put the rect of stack pStackName into rObj["rect"]
+   put the script of stack pStackName into rObj["script"]
+   put the resizable of stack pStackName into rObj["resizable"]
+   put the cantModify of stack pStackName into rObj["cantModify"]
+   put the cantDelete of stack pStackName into rObj["cantDelete"]
+   put the backgroundColor of stack pStackName into rObj["backgroundColor"]
+   put the foregroundColor of stack pStackName into rObj["foregroundColor"]
+   put the shadow of stack pStackName into rObj["shadow"]
+   put the textFont of stack pStackName into rObj["textFont"]
+   put the textSize of stack pStackName into rObj["textSize"]
+   put the textStyle of stack pStackName into rObj["textStyle"]
+
+   -- Cards
+   local tCardCount
+   put the number of cards of stack pStackName into tCardCount
+
+   local i
+   repeat with i = 1 to tCardCount
+      local tCardIDNum, tCardNode
+      put empty into tCardNode
+      put the id of card i of stack pStackName into tCardIDNum
+      revIDEProjectSerializeCard tCardIDNum, pStackName, pMediaFolder, tCardNode
+      put tCardNode into rObj["cards"][i]
+   end repeat
+
+   -- Custom properties
+   revIDEProjectSerializeCustomProps "stack" && quote & pStackName & quote, rObj
+
+   -- Substacks
+   local tSubstacks
+   put the substacks of stack pStackName into tSubstacks
+   if tSubstacks is not empty then
+      local tSubstackName, tSubstackNode
+      local s
+      put 1 into s
+      repeat for each line tSubstackName in tSubstacks
+         if tSubstackName is empty then next repeat
+         -- Skip IDE Toolset stacks
+         local tSubstackFile
+         put the filename of stack tSubstackName into tSubstackFile
+         if tSubstackFile contains "Toolset" then next repeat
+         put empty into tSubstackNode
+         revIDEProjectSerializeStack tSubstackName, pMediaFolder, tSubstackNode
+         put tSubstackNode into rObj["substacks"][s]
+         add 1 to s
+      end repeat
+   end if
+end revIDEProjectSerializeStack
+
+-- pCardIDNum is the numeric id of the card; pStackName is the plain short name of its stack
+on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, @rObj
+   put the short name of card id pCardIDNum of stack pStackName into rObj["name"]
+   put pCardIDNum into rObj["id"]
+   put the rect of card id pCardIDNum of stack pStackName into rObj["rect"]
+   put the script of card id pCardIDNum of stack pStackName into rObj["script"]
+   put the cantDelete of card id pCardIDNum of stack pStackName into rObj["cantDelete"]
+   put the dontSearch of card id pCardIDNum of stack pStackName into rObj["dontSearch"]
+   put the backgroundColor of card id pCardIDNum of stack pStackName into rObj["backgroundColor"]
+   put the foregroundColor of card id pCardIDNum of stack pStackName into rObj["foregroundColor"]
+
+   -- Custom properties
+   revIDEProjectSerializeCustomProps "card id" && pCardIDNum && "of stack" && quote & pStackName & quote, rObj
+
+   local tControlCount
+   put the number of controls of card id pCardIDNum of stack pStackName into tControlCount
+
+   local j, tControlIndex
+   put 1 into tControlIndex
+   repeat with j = 1 to tControlCount
+      local tControlID, tControlNode
+      put the long id of control j of card id pCardIDNum of stack pStackName into tControlID
+      -- Only serialize top-level controls (direct children of the card, not inside groups)
+      if word 1 of the owner of control j of card id pCardIDNum of stack pStackName is not "card" then next repeat
+      put empty into tControlNode
+      revIDEProjectSerializeControl tControlID, pMediaFolder, tControlNode
+      put tControlNode into rObj["controls"][tControlIndex]
+      add 1 to tControlIndex
+   end repeat
+end revIDEProjectSerializeCard
+
+on revIDEProjectSerializeControl pControlID, pMediaFolder, @rObj
+   -- Derive type from word 1 of the long id (e.g. "image id 3 of ...")
+   local tType
+   put word 1 of pControlID into tType
+   put tType into rObj["type"]
+   put the script of pControlID into rObj["script"]
+
+   -- Capture all properties at once; remove read-only/handled ones
+   local tProps
+   put the properties of pControlID into tProps
+   delete variable tProps["id"]
+   delete variable tProps["script"]
+   -- Image binary data is handled separately via mediaFile; don't embed in JSON
+   if tType is "image" then
+      delete variable tProps["text"]
+   end if
+   -- Behavior is a long ID (changes on reconstruct) — save as name+stack instead
+   if tProps["behavior"] is not empty then
+      local tBehRef, tSavedDelim
+      put tProps["behavior"] into tBehRef
+      put the itemDelimiter into tSavedDelim
+      set the itemDelimiter to quote
+      put item 2 of tBehRef into rObj["behaviorStack"]
+      set the itemDelimiter to tSavedDelim
+      put the short name of tBehRef into rObj["behaviorName"]
+      delete variable tProps["behavior"]
+   end if
+   put tProps into rObj["properties"]
+
+   -- Image: export binary data to media folder
+   if tType is "image" then
+      local tImageData
+      put the text of pControlID into tImageData
+      if tImageData is not empty then
+         local tMediaName, tMediaFile
+         put the short name of pControlID & "_" & the id of pControlID & ".png" into tMediaName
+         put pMediaFolder & "/" & tMediaName into tMediaFile
+         open file tMediaFile for binary write
+         if the result is empty then
+            write tImageData to file tMediaFile
+            close file tMediaFile
+            put "media/" & tMediaName into rObj["mediaFile"]
+         end if
+      end if
+   end if
+
+   -- Widget: save the kind so we can recreate it (kind is set at create time, not via properties)
+   if tType is "widget" then
+      put the kind of pControlID into rObj["widgetKind"]
+   end if
+
+   -- Custom properties
+   revIDEProjectSerializeCustomProps pControlID, rObj
+
+   -- Group: recurse into direct child controls only
+   if tType is "group" then
+      local tChildCount, k, tChildIndex
+      put the number of controls of pControlID into tChildCount
+      put 1 into tChildIndex
+      repeat with k = 1 to tChildCount
+         local tChildID, tChildNode
+         put the long id of control k of pControlID into tChildID
+         -- Only serialize direct children (owner is this group, not a nested group)
+         if the id of the owner of control k of pControlID is not the id of pControlID then next repeat
+         put empty into tChildNode
+         revIDEProjectSerializeControl tChildID, pMediaFolder, tChildNode
+         put tChildNode into rObj["controls"][tChildIndex]
+         add 1 to tChildIndex
+      end repeat
+   end if
+end revIDEProjectSerializeControl
+
+-- Serializes custom properties (default set + named sets) from any object into rObj.
+-- pObjRef must be a valid object expression (long id or equivalent).
+on revIDEProjectSerializeCustomProps pObjRef, @rObj
+   -- Default custom property set
+   local tDefaultProps
+   put the customProperties of pObjRef into tDefaultProps
+   if tDefaultProps is an array then
+      put tDefaultProps into rObj["customProperties"]
+   end if
+   -- Named custom property sets
+   local tSetNames, tSetName
+   put the customPropertySets of pObjRef into tSetNames
+   repeat for each line tSetName in tSetNames
+      if tSetName is empty then next repeat
+      local tSetProps
+      put the customProperties[tSetName] of pObjRef into tSetProps
+      if tSetProps is an array then
+         put tSetProps into rObj["customPropertySets"][tSetName]
+      end if
+   end repeat
+end revIDEProjectSerializeCustomProps
+
+-- Restores custom properties (default set + named sets) from a serialized node
+-- onto any object. pObjRef must be a valid, already-created object expression.
+on revIDEProjectReconstructCustomProps pNode, pObjRef
+   if pNode["customProperties"] is an array then
+      set the customProperties of pObjRef to pNode["customProperties"]
+   end if
+   if pNode["customPropertySets"] is an array then
+      local tSetName
+      repeat for each key tSetName in pNode["customPropertySets"]
+         set the customProperties[tSetName] of pObjRef to pNode["customPropertySets"][tSetName]
+      end repeat
+   end if
+end revIDEProjectReconstructCustomProps
+
+-- Recursively converts every leaf value in an array to a plain string,
+-- so that livecode.lang.boolean and livecode.lang.data typed values do not
+-- cause type errors inside jsonExport.
+on revIDEProjectSanitizeArray @pArray
+   local tKey, tSubArray
+   repeat for each key tKey in pArray
+      if pArray[tKey] is an array then
+         put pArray[tKey] into tSubArray
+         revIDEProjectSanitizeArray tSubArray
+         put tSubArray into pArray[tKey]
+      else
+         put pArray[tKey] & "" into pArray[tKey]
+      end if
+   end repeat
+end revIDEProjectSanitizeArray
+
+-- ---------------------------------------------------------------------------
+-- Project format loading (commented out for incremental testing)
+-- ---------------------------------------------------------------------------
+
+on revIDELoadFromProject pFilePath
+   local tFolderPath, tSavedItemDelim
+   put the itemDelimiter into tSavedItemDelim
+   set the itemDelimiter to "/"
+   put item 1 to -2 of pFilePath into tFolderPath
+   set the itemDelimiter to tSavedItemDelim
+   if there is not a file pFilePath then
+      answer revIDELocalise("Could not locate project file:") & return & pFilePath
+      return "Error"
+   end if
+   local tJSON
+   open file pFilePath for read
+   if the result is not empty then
+      answer revIDELocalise("Could not read project file:") & return & the result
+      return "Error"
+   end if
+   read from file pFilePath until end
+   put it into tJSON
+   close file pFilePath
+   local tTree
+   put jsonImport(tJSON) into tTree
+   if tTree is not an array then
+      answer revIDELocalise("Invalid project file format.")
+      return "Error"
+   end if
+   if tTree["format"] is not "hyperxtalk-project" then
+      answer revIDELocalise("Not a valid HyperXTalk project file.")
+      return "Error"
+   end if
+   local tStackNode, tNewStackName
+   put tTree["stack"] into tStackNode
+   lock screen
+   -- tDeferredBehaviors collects {controlRef, behaviorName, behaviorStack} entries
+   -- from all controls across all stacks/substacks, resolved after full reconstruction
+   local tDeferredBehaviors
+   revIDEProjectReconstructStack tStackNode, tFolderPath, empty, tDeferredBehaviors
+   put the result into tNewStackName
+   -- Resolve all deferred behaviors now that every stack and control exists
+   local bi
+   repeat with bi = 1 to the number of elements of tDeferredBehaviors
+      local tBeh, tBehaviorTarget
+      put tDeferredBehaviors[bi] into tBeh
+      put "button" && quote & tBeh["behaviorName"] & quote && "of stack" && quote & tBeh["behaviorStack"] & quote into tBehaviorTarget
+      if there is a tBehaviorTarget then
+         set the behavior of tBeh["controlRef"] to the long id of tBehaviorTarget
+      end if
+   end repeat
+   if tNewStackName is not empty then
+      -- Store the project FOLDER path so Save knows to update the project rather
+      -- than prompt for a new .hyperxtalk file. tFolderPath is the package folder
+      -- (parent of the inner JSON file), which is what revIDESaveAsProject expects.
+      set the cRevProjectFilePath of stack tNewStackName to tFolderPath
+      revIDEAddRecentStack pFilePath
+      unlock screen
+      lock error dialogs
+      send "preOpenStack" to card 1 of stack tNewStackName
+      send "preOpenCard" to card 1 of stack tNewStackName
+      go stack tNewStackName
+      send "openStack" to card 1 of stack tNewStackName
+      send "openCard" to card 1 of stack tNewStackName
+      unlock error dialogs
+   else
+      unlock screen
+   end if
+end revIDELoadFromProject
+
+
+on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDeferredBehaviors
+   local tName
+   put pStackNode["name"] into tName
+   create stack tName
+   local tNewStackName
+   put tName into tNewStackName
+   lock screen
+   lock messages
+   if pStackNode["title"] is not empty then
+      set the title of stack tNewStackName to pStackNode["title"]
+   end if
+   if pStackNode["rect"] is not empty then
+      set the rect of stack tNewStackName to pStackNode["rect"]
+   end if
+   if pStackNode["resizable"] is not empty then
+      set the resizable of stack tNewStackName to (pStackNode["resizable"] is "true")
+   end if
+   if pStackNode["cantModify"] is not empty then
+      set the cantModify of stack tNewStackName to (pStackNode["cantModify"] is "true")
+   end if
+   if pStackNode["cantDelete"] is not empty then
+      set the cantDelete of stack tNewStackName to (pStackNode["cantDelete"] is "true")
+   end if
+   if pStackNode["backgroundColor"] is not empty then
+      set the backgroundColor of stack tNewStackName to pStackNode["backgroundColor"]
+   end if
+   if pStackNode["foregroundColor"] is not empty then
+      set the foregroundColor of stack tNewStackName to pStackNode["foregroundColor"]
+   end if
+   if pStackNode["shadow"] is not empty then
+      set the shadow of stack tNewStackName to (pStackNode["shadow"] is "true")
+   end if
+   if pStackNode["textFont"] is not empty then
+      set the textFont of stack tNewStackName to pStackNode["textFont"]
+   end if
+   if pStackNode["textSize"] is not empty then
+      set the textSize of stack tNewStackName to pStackNode["textSize"]
+   end if
+   if pStackNode["textStyle"] is not empty then
+      set the textStyle of stack tNewStackName to pStackNode["textStyle"]
+   end if
+   local tCards, tCardCount
+   put pStackNode["cards"] into tCards
+   put the number of elements of tCards into tCardCount
+   local i
+   repeat with i = 1 to tCardCount
+      local tCardNode, tThisCardID
+      put tCards[i] into tCardNode
+      if i is 1 then
+         put the id of card 1 of stack tNewStackName into tThisCardID
+      else
+         set the defaultStack to tNewStackName
+         create card
+         put the id of the last card of stack tNewStackName into tThisCardID
+      end if
+      revIDEProjectReconstructCard tCardNode, tNewStackName, tThisCardID, pFolderPath, pDeferredBehaviors
+   end repeat
+   if pStackNode["substacks"] is an array then
+      local tSubstacks
+      put pStackNode["substacks"] into tSubstacks
+      local s
+      repeat with s = 1 to the number of elements of tSubstacks
+         local tSubNode, tSubName
+         put tSubstacks[s] into tSubNode
+         revIDEProjectReconstructStack tSubNode, pFolderPath, tNewStackName, pDeferredBehaviors
+         put the result into tSubName
+         if tSubName is not empty then
+            set the mainStack of stack tSubName to tNewStackName
+            close stack tSubName
+         end if
+      end repeat
+   end if
+   -- Custom properties
+   revIDEProjectReconstructCustomProps pStackNode, "stack" && quote & tNewStackName & quote
+   set the script of stack tNewStackName to pStackNode["script"]
+   unlock messages
+   unlock screen
+   return tNewStackName
+end revIDEProjectReconstructStack
+
+
+on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pDeferredBehaviors
+   local tCardRef
+   put "card id" && pCardID && "of stack" && quote & pStackName & quote into tCardRef
+   if pCardNode["name"] is not empty then
+      set the name of tCardRef to pCardNode["name"]
+   end if
+   if pCardNode["cantDelete"] is not empty then
+      set the cantDelete of tCardRef to (pCardNode["cantDelete"] is "true")
+   end if
+   if pCardNode["dontSearch"] is not empty then
+      set the dontSearch of tCardRef to (pCardNode["dontSearch"] is "true")
+   end if
+   if pCardNode["backgroundColor"] is not empty then
+      set the backgroundColor of tCardRef to pCardNode["backgroundColor"]
+   end if
+   if pCardNode["foregroundColor"] is not empty then
+      set the foregroundColor of tCardRef to pCardNode["foregroundColor"]
+   end if
+   set the defaultStack to pStackName
+   if pCardNode["controls"] is an array then
+      local tControls, tControlCount
+      put pCardNode["controls"] into tControls
+      put the number of elements of tControls into tControlCount
+      local j
+      repeat with j = 1 to tControlCount
+         local tControlNode
+         put tControls[j] into tControlNode
+         revIDEProjectReconstructControl tControlNode, pStackName, pCardID, empty, pFolderPath, pDeferredBehaviors
+      end repeat
+   end if
+   -- Custom properties
+   revIDEProjectReconstructCustomProps pCardNode, tCardRef
+   set the script of tCardRef to pCardNode["script"]
+end revIDEProjectReconstructCard
+
+
+-- pGroupID: empty when creating directly on a card; group id when creating inside a group.
+on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, pFolderPath, @pDeferredBehaviors
+   local tType
+   put pControlNode["type"] into tType
+
+   local tCardRef
+   put "card id" && pCardID && "of stack" && quote & pStackName & quote into tCardRef
+
+   -- Build the creation target (card or group)
+   -- pGroupID is always a plain numeric id, so "group id X of card id Y of stack Z"
+   -- is always one level deep regardless of nesting depth
+   local tTarget
+   if pGroupID is empty then
+      put tCardRef into tTarget
+   else
+      put "group id" && pGroupID && "of" && tCardRef into tTarget
+   end if
+
+   -- Create the control
+   -- tControlRef: full long id from `it` — used for properties/script/text
+   -- tNewControlID: plain numeric id — used to build tTarget for child creates
+   local tControlRef, tNewControlID
+   switch tType
+      case "button"
+         create button in tTarget
+         put it into tControlRef
+         put the id of tControlRef into tNewControlID
+         break
+      case "field"
+         create field in tTarget
+         put it into tControlRef
+         put the id of tControlRef into tNewControlID
+         break
+      case "image"
+         create image in tTarget
+         put it into tControlRef
+         put the id of tControlRef into tNewControlID
+         break
+      case "graphic"
+         create graphic in tTarget
+         put it into tControlRef
+         put the id of tControlRef into tNewControlID
+         break
+      case "scrollbar"
+         create scrollbar in tTarget
+         put it into tControlRef
+         put the id of tControlRef into tNewControlID
+         break
+      case "player"
+         create player in tTarget
+         put it into tControlRef
+         put the id of tControlRef into tNewControlID
+         break
+      case "group"
+         create group in tTarget
+         put it into tControlRef
+         put the id of tControlRef into tNewControlID
+         break
+         
+      case "widget"
+         if pControlNode["widgetKind"] is empty then exit revIDEProjectReconstructControl
+         local tWidgetKind
+         put pControlNode["widgetKind"] into tWidgetKind
+         create widget as tWidgetKind in tTarget
+         put it into tControlRef
+         put the id of tControlRef into tNewControlID
+         break
+         
+      default
+         -- Unknown type, skip
+         exit revIDEProjectReconstructControl
+   end switch
+
+   -- Build a flat stack-level reference for property/script/text operations
+   -- Control IDs are unique within a stack, so this works regardless of nesting depth
+   local tStackRef
+   put tType && "id" && tNewControlID && "of stack" && quote & pStackName & quote into tStackRef
+
+   -- Restore all properties at once (script and image data handled separately)
+   -- Strip "layer"/"number": restoring a card-level layer on a grouped control moves it
+   -- out of its group. Creation order already preserves stacking.
+   -- Strip "behavior": it is a long ID that changes on reconstruct; resolved by name below.
+   if pControlNode["properties"] is an array then
+      local tProps
+      put pControlNode["properties"] into tProps
+      delete variable tProps["layer"]
+      delete variable tProps["number"]
+      delete variable tProps["behavior"]
+      set the properties of tStackRef to tProps
+   end if
+
+   -- Defer behavior resolution until all stacks/controls are reconstructed
+   -- (the behavior button may not exist yet if it lives in the same project stack)
+   if pControlNode["behaviorName"] is not empty then
+      local tBehEntry, tBehIdx
+      put tStackRef into tBehEntry["controlRef"]
+      put pControlNode["behaviorName"] into tBehEntry["behaviorName"]
+      put pControlNode["behaviorStack"] into tBehEntry["behaviorStack"]
+      put the number of elements of pDeferredBehaviors + 1 into tBehIdx
+      put tBehEntry into pDeferredBehaviors[tBehIdx]
+   end if
+
+   -- Image: restore binary data from media folder
+   if tType is "image" then
+      if pControlNode["mediaFile"] is not empty then
+         local tMediaPath, tImageData
+         put pFolderPath & "/" & pControlNode["mediaFile"] into tMediaPath
+         open file tMediaPath for binary read
+         if the result is empty then
+            read from file tMediaPath until end
+            put it into tImageData
+            close file tMediaPath
+            set the text of tStackRef to tImageData
+         end if
+      end if
+   end if
+
+   -- Group: recurse into child controls in reverse order
+   if tType is "group" then
+      if pControlNode["controls"] is an array then
+         local tChildControls, tChildCount, k
+         put pControlNode["controls"] into tChildControls
+         put the number of elements of tChildControls into tChildCount
+         repeat with k = 1 to tChildCount
+            local tChildNode
+            put tChildControls[k] into tChildNode
+            revIDEProjectReconstructControl tChildNode, pStackName, pCardID, tNewControlID, pFolderPath, pDeferredBehaviors
+         end repeat
+      end if
+   end if
+
+   -- Custom properties
+   revIDEProjectReconstructCustomProps pControlNode, tStackRef
+   -- Script last to avoid side-effects during reconstruction
+   set the script of tStackRef to pControlNode["script"]
+end revIDEProjectReconstructControl
+
+-- ---------------------------------------------------------------------------
 
 on revIDEMoveSubstackToFile pStackID
    # Validate stack exists
@@ -8979,60 +9649,11 @@ end revIDEToggleToolbar
 
 on revIDEToggleShowIDEStacksInLists
    global gREVShowStacks
-
-   -- Toggle the preference directly rather than routing through the
-   -- revPreferencesGUI button.  The old approach sent "revToggleShowStacks"
-   -- to a button in revPreferencesGUI, which only works if that stack is
-   -- already loaded.  On first use each session the stack isn't open, so
-   -- its preOpenStack init resets the button hilite before revToggleShowStacks
-   -- can read it, causing the toggle to be a no-op and requiring multiple
-   -- clicks before the state became consistent.
-   local tNewValue
-   put not revIDEGetPreference("cShowRevolutionStacks") into tNewValue
-   put tNewValue into gREVShowStacks
-
-   -- Persist and notify all subscribers (project browser, message box, etc.)
-   revIDESetPreference "cShowRevolutionStacks", tNewValue
-
-   -- If the Preferences dialog is open, keep its checkbox in sync
-   if the mode of stack "revPreferencesGUI" is not 0 then
-      set the hilite of button "show revolution stacks" of card "general" of stack "revPreferencesGUI" to tNewValue
-   end if
-
-   lock screen
-   local tOpenStacks
-   put the openStacks into tOpenStacks
-
-   local tFrontStack
-   put empty into tFrontStack
-   repeat for each line tStack in tOpenStacks
-      if tStack is not "revMenubar" and the mode of stack tStack is among the items of "1,2,3" then
-         put tStack into tFrontStack
-         exit repeat
-      end if
-   end repeat
-   if tFrontStack is not empty then
-      set the wholeMatches to true
-      local tBringToFront
-      if lineOffset(tFrontStack, tOpenStacks) < lineOffset("revApplicationOverview", tOpenStacks) then
-         put true into tBringToFront
-      end if
-   end if
-   unlock screen
-
-   if tBringToFront then
-      lock messages
-      switch the mode of stack tFrontStack
-         case 1
-         case 2
-            toplevel tFrontStack
-            break
-         case 3
-            modeless tFrontStack
-            break
-      end switch
-      unlock messages
-   end if
+   -- Toggle the global and persist the preference directly, without loading
+   -- revPreferencesGUI. revIDESetPreference fires idePreferenceChanged:cShowRevolutionStacks
+   -- which the Project Browser is already subscribed to, so it rebuilds immediately.
+   put not revIDEGetPreference("cShowRevolutionStacks") into gREVShowStacks
+   revIDESetPreference "cShowRevolutionStacks", gREVShowStacks
 end revIDEToggleShowIDEStacksInLists
 
 on revIDETogglePalette pPaletteName
@@ -10009,9 +10630,10 @@ constant kMoveBufferSize = 20
 # OK-2009-10-07 : This command does "go pMoveSpecifier" with a buffering effect to prevent it
 # getting carried out more frequently than every kMoveBufferSize milliseconds
 on revIDEGoCard pMoveSpecifier
-   if (the milliseconds - sMoveBuffers[pMoveSpecifier]) < kMoveBufferSize then
+   if the milliseconds - sMoveBuffers[pMoveSpecifier] < kMoveBufferSize then
       exit revIDEGoCard
    end if
+   
    set the defaultStack to the topStack
    local tCommand
    put "go " & pMoveSpecifier into tCommand
@@ -11122,32 +11744,60 @@ on revIDERegenerateBuiltGuides
    revIDESetUTF8FileContents tDocsCache & slash & "built_guide.js", tData
 end revIDERegenerateBuiltGuides
 
-constant kAPIs = "xTalk Script,livecode_script|xTalk Builder,livecode_builder|xTalk IDE,livecode_ide"
+constant kAPIs = "LiveCode Script,livecode_script|LiveCode Builder,livecode_builder|LiveCode IDE,livecode_ide"
 on revIDERegenerateBuiltAPIs
+   -- Ensure revDocsParser is loaded before dispatching to it.
+   -- In dev mode, revIDEGenerateDistributedDocs loads the parser before calling
+   -- revIDERegenerateBuiltDictionaryData.  In installed mode that path is skipped,
+   -- so we must load the parser here ourselves or the dispatch throws
+   -- EE_DISPATCH_BADTARGET and aborts the entire revidelibrary load.
+   if there is no stack "revDocsParser" then
+      local tParserPath
+      if revEnvironmentIsInstalled() then
+         put revIDESpecialFolderPath("Toolset") & "/libraries/revdocsparser.livecodescript" into tParserPath
+      else
+         put revEnvironmentRepositoryPath() & slash & "ide-support" & slash & "revdocsparser.livecodescript" into tParserPath
+      end if
+      if there is a file tParserPath then
+         start using stack tParserPath
+      end if
+   end if
    local tData, tAPIData
+   -- Save/restore lineDelimiter so callers are not affected.
+   local tSavedLineDelimiter
+   put the lineDelimiter into tSavedLineDelimiter
    set the lineDelimiter to "|"
    repeat for each line tAPI in kAPIs
+      -- Extract name/type with comma itemdelimiter before any revIDESpecialFolderPath
+      -- call can clobber it with "/".
+      local tAPIName, tAPIType
+      set the itemdelimiter to ","
+      put item 1 of tAPI into tAPIName
+      put item 2 of tAPI into tAPIType
       -- For now, the IDE API is BFS only
-      if item 2 of tAPI is "livecode_ide" and revEnvironmentIsInstalled() then
+      if tAPIType is "livecode_ide" and revEnvironmentIsInstalled() then
          next repeat
       end if
-      
-      put revIDEGetDocsAPIData(item 2 of tAPI) into tAPIData
-      dispatch function "revDocsCreateAPIJSON" to stack "revDocsParser" \
-            with item 1 of tAPI, item 2 of tAPI, "", tAPIData
-      if tData is empty then
-         put the result into tData
-      else
-         put comma & the result after tData
+
+      put revIDEGetDocsAPIData(tAPIType) into tAPIData
+      if there is a stack "revDocsParser" then
+         dispatch function "revDocsCreateAPIJSON" to stack "revDocsParser" \
+               with tAPIName, tAPIType, "", tAPIData
+         if tData is empty then
+            put the result into tData
+         else
+            put comma & the result after tData
+         end if
       end if
    end repeat
-   
+   set the lineDelimiter to tSavedLineDelimiter
+
    local tDictionaryData
    put "var dictionary_data =" & return & "{" & return & \
          tab & quote & "docs" & quote & ":[" & \
          tData & return & tab & "]" & return & "}" \
          into tDictionaryData
-   
+
    local tDocsCache
    put revIDESpecialFolderPath("documentation cache") into tDocsCache
    revIDESetUTF8FileContents tDocsCache & slash & "built_api.js", tDictionaryData
@@ -11159,12 +11809,13 @@ on revIDERegenerateBuiltDictionaryData
 end revIDERegenerateBuiltDictionaryData
 
 on revIDEGenerateDistributedDocs
-   -- On dev builds load revdocsparser from the repo; on installed builds it is
-   -- already in memory (copied to Toolset/libraries by the installer and scanned
-   -- by revInternal__StackFiles at startup), so using the repo path (which is
-   -- empty when installed) would throw an error and abort the entire function.
+   -- Load revdocsparser so its handlers are in the message hierarchy.
+   -- Dev builds use the repo ide-support path.  Installed builds use the
+   -- Toolset/libraries path where the installer places revdocsparser.livecodescript;
+   -- the repo path is empty when installed, so using it throws EE_START_BADTARGET
+   -- and aborts the entire library load.
    if revEnvironmentIsInstalled() then
-      start using stack (revIDESpecialFolderPath("IDE") & "/ide-support/revdocsparser.livecodescript")
+      start using stack (revIDESpecialFolderPath("Toolset") & "/libraries/revdocsparser.livecodescript")
    else
       start using stack (revEnvironmentRepositoryPath() & slash & "ide-support" & slash & "revdocsparser.livecodescript")
    end if
@@ -11218,49 +11869,15 @@ private on revIDEGenerateDistributedGuide
 end revIDEGenerateDistributedGuide
 
 private command revIDEGenerateDistributedAPI
-   local tRepoPath, tDocsFolder, tDistributed
-
-   -- On installed builds we write to the user-writable doc cache rather than
-   -- the read-only install folder.  On dev builds we write directly to the
-   -- distributed (repo) location, matching the original behaviour.
-   put not revEnvironmentIsInstalled() into tDistributed
-
-   if revEnvironmentIsInstalled() then
-      -- docs/ is shipped alongside the app by the installer.
-      -- Use revIDESpecialFolderPath("IDE") rather than dissecting the filename
-      -- directly; the latter requires itemdel="/" which is not guaranteed here.
-      put revIDESpecialFolderPath("IDE") & "/docs" into tDocsFolder
-   else
-      put revEnvironmentRepositoryPath() into tRepoPath
-      put tRepoPath & slash & "docs" into tDocsFolder
-   end if
-
+   local tRepoPath
+   put revEnvironmentRepositoryPath() into tRepoPath
+   
+   local tDocsFolder
+   put tRepoPath & slash & "docs" into tDocsFolder
    if there is not a folder tDocsFolder then
-      -- No source docs available; nothing to build.
-      exit revIDEGenerateDistributedAPI
+      answer "No dictionary data found at" && tDocsFolder
    end if
-
-   -- On installed builds, force-rebuild into the user doc cache whenever the
-   -- engine version stored in api_version.txt doesn't match the running engine
-   -- version.  This fires on every new install (version string changes) while
-   -- avoiding a full rebuild on every subsequent launch of the same version.
-   -- Timestamp comparisons are unreliable here because script.js written during
-   -- the first doc-build ends up newer than the installed .lcdoc files, so the
-   -- old staleness check never triggered after the first run.
-   local tForceBuild
-   if revEnvironmentIsInstalled() then
-      local tVersionStampFile, tStoredVersion
-      put revIDESpecialFolderPath("documentation cache") & slash & "api_version.txt" into tVersionStampFile
-      if there is a file tVersionStampFile then
-         put url ("file:" & tVersionStampFile) into tStoredVersion
-         put (trim(tStoredVersion) is not the version) into tForceBuild
-      else
-         put true into tForceBuild
-      end if
-   else
-      put false into tForceBuild
-   end if
-
+   
    # Check to see if we need to regenerate the script dictionary
    local tNeedUpdate, tInputs, tError, tOutput
    put the effective filename of stack "revDocsParser" into tInputs[0]
@@ -11268,12 +11885,8 @@ private command revIDEGenerateDistributedAPI
    put tDocsFolder & slash & "glossary" into tInputs[2]
    put revIDESpecialFolderPath("api", "livecode_script") & slash & "script.js" into tOutput
    
-   if tForceBuild then
-      put true into tNeedUpdate
-   else
-      put revIDEIsFilesetStale(tInputs, tOutput, true, tError) into tNeedUpdate
-   end if
-
+   put revIDEIsFilesetStale(tInputs, tOutput, true, tError) into tNeedUpdate
+   
    # Regenerate dictionary if necessary
    if tNeedUpdate then
       local tScriptA
@@ -11283,9 +11896,9 @@ private command revIDEGenerateDistributedAPI
       put "dictionary" into tScriptA["type"]
       # Parse the dictionary files into a structured array
       put revDocsParseDictionaryToLibraryArray(tDocsFolder) into tScriptA["doc"]
-
+      
       # Update the database
-      ideDocsUpdateDatabase "livecode_script", tScriptA, tDistributed
+      ideDocsUpdateDatabase "livecode_script", tScriptA, true
       
       local tJSON
       put revDocsFormatLibraryDocArrayAsJSON(tScriptA) into tJSON
@@ -11308,12 +11921,8 @@ private command revIDEGenerateDistributedAPI
       add 1 to tCount
    end repeat
    
-   if tForceBuild then
-      put true into tNeedUpdate
-   else
-      put revIDEIsFilesetStale(tInputs, tOutput, false, tError) into tNeedUpdate
-   end if
-
+   put revIDEIsFilesetStale(tInputs, tOutput, false, tError) into tNeedUpdate
+   
    # Regenerate dictionary if necessary
    if tNeedUpdate then
       local tModularA, tModularCount, tBlocksA, tParsedA
@@ -11347,7 +11956,7 @@ private command revIDEGenerateDistributedAPI
       put "dictionary" into tBuilderA["type"]
       
       # Update the database
-      ideDocsUpdateDatabase "livecode_builder", tBuilderA, tDistributed
+      ideDocsUpdateDatabase "livecode_builder", tBuilderA, true
       
       put revDocsFormatLibraryDocArrayAsJSON(tBuilderA) into tJSON
       revIDESetUTF8FileContents revIDESpecialFolderPath("api", "livecode_builder") & slash & "builder.js", \
@@ -11361,34 +11970,22 @@ private command revIDEGenerateDistributedAPI
    local tDatagridDoc, tFolder
    put revIDESpecialFolderPath("Documentation") &"/dictionary" into tFolder
    put tFolder & slash & "datagrid.lcdoc" into tInputs[1]
-   if tForceBuild then
-      put true into tNeedUpdate
-   else
-      put revIDEIsFilesetStale(tInputs, tOutput, false, tError) into tNeedUpdate
-   end if
-   # Regenerate if necessary
+   put revIDEIsFilesetStale(tInputs, tOutput, false, tError) into tNeedUpdate
+   # Regenerate if necessary   
    if tNeedUpdate then
       local tLibA
       put revDocsParseDocFileToLibraryArray(tFolder & slash & "datagrid.lcdoc", "DataGrid", "LiveCode") into tLibA
 
       # Update the database
-      ideDocsUpdateDatabase "livecode_script", tLibA, tDistributed
+      ideDocsUpdateDatabase "livecode_script", tLibA, true
       put revDocsFormatLibraryDocArrayAsJSON(tLibA) into tJSON
       revIDESetUTF8FileContents revIDESpecialFolderPath("api", "livecode_script") & slash & "dg.js", \
             tJSON
    end if
    
    local tIDELibsFolder, tIdeSupportFolder
-   if revEnvironmentIsInstalled() then
-      -- On installed builds use the paths relative to the app.
-      -- Use revIDESpecialFolderPath("IDE") / revIDESpecialFolderPath("Toolset")
-      -- rather than dissecting the filename directly (requires itemdel="/").
-      put revIDESpecialFolderPath("IDE") & "/ide-support" into tIdeSupportFolder
-      put revIDESpecialFolderPath("Toolset") & "/libraries" into tIDELibsFolder
-   else
-      put tRepoPath & "/ide-support" into tIdeSupportFolder
-      put tRepoPath & "/ide/Toolset/libraries" into tIDELibsFolder
-   end if
+   put tRepoPath & "/ide-support" into tIdeSupportFolder
+   put tRepoPath & "/ide/Toolset/libraries" into tIDELibsFolder
    
    # Check to see if we need to regenerate the ide dictionary
    put empty into tInputs
@@ -11397,11 +11994,7 @@ private command revIDEGenerateDistributedAPI
    put tIDELibsFolder into tInputs[2]
    put revIDESpecialFolderPath("api", "livecode_ide") & slash & "ide.js" into tOutput
    
-   if tForceBuild then
-      put true into tNeedUpdate
-   else
-      put revIDEIsFilesetStale(tInputs, tOutput, true, tError) into tNeedUpdate
-   end if
+   put revIDEIsFilesetStale(tInputs, tOutput, true, tError) into tNeedUpdate
    # Regenerate dictionary if necessary
    if tNeedUpdate then
       local tIDELibs, tIDEA, tIDECount, tIDEParsedA
@@ -11440,7 +12033,7 @@ private command revIDEGenerateDistributedAPI
       put "dictionary" into tIDELibraryA["type"]
       
       # Update the database
-      ideDocsUpdateDatabase "livecode_ide", tIDELibraryA, tDistributed
+      ideDocsUpdateDatabase "livecode_ide", tIDELibraryA, true
       
       put revDocsFormatLibraryDocArrayAsJSON(tIDELibraryA) into tJSON
       revIDESetUTF8FileContents revIDESpecialFolderPath("api", "livecode_ide") & slash & "ide.js", \
@@ -11462,26 +12055,16 @@ private command revIDEGenerateDistributedAPI
       put revIDESpecialFolderPath("api", "livecode_script") & slash & toLower(item 1 to -2 of tFile) & ".js" into tOutput
       put the effective filename of stack "revDocsParser" into tInputs[0]
       put tExtractedDocsFolder & slash & tFile into tInputs[1]
-      if tForceBuild then
-         put true into tNeedUpdate
-      else
-         put revIDEIsFilesetStale(tInputs, tOutput, false, tError) into tNeedUpdate
-      end if
+      put revIDEIsFilesetStale(tInputs, tOutput, false, tError) into tNeedUpdate
       # Regenerate if necessary
       if tNeedUpdate then
          put revDocsParseDocFileToLibraryArray(tExtractedDocsFolder & slash & tFile, item -2 of tFile, "LiveCode") into tLibA
          # Update the database
-         ideDocsUpdateDatabase "livecode_script", tLibA, tDistributed
+         ideDocsUpdateDatabase "livecode_script", tLibA, true
          put revDocsFormatLibraryDocArrayAsJSON(tLibA) into tJSON
          revIDESetUTF8FileContents tOutput, tJSON
       end if
    end repeat
-
-   -- Stamp the cache with the current engine version so that subsequent
-   -- launches of the same version skip the rebuild entirely.
-   if revEnvironmentIsInstalled() then
-      put the version into url ("file:" & tVersionStampFile)
-   end if
 end revIDEGenerateDistributedAPI
 
 on revIDEEnsureDictionaryUrl pWhich

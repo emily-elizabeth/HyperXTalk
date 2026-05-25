@@ -8,11 +8,11 @@ Summary:
 Evaluates to true if a chunk is equal to one of the chunks in a string,
 false otherwise.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 "Hello" is among the words of "Hello World" -- evaluates to true

@@ -8,11 +8,11 @@ Summary:
 Returns the data set resulting from applying the xslt document in the specified
 file against the specified xml document.
 
-Introduced: 6.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put xsltApplyStylesheetFromFile(tDocID, "getData.xml" ) into tProcessedData

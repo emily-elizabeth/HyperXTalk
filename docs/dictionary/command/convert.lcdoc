@@ -7,11 +7,11 @@ Syntax: convert <dateAndTime> [from <format> [and <format>]] to <format> [and <f
 Summary:
 Changes a date, a time, or a date and time to a specified format.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 convert "11/22/2016" to long english date
@@ -49,6 +49,7 @@ can request only one format.
 - "abbreviated time":  10:13 PM
 - "long time":  10:13:21 PM
 - "internet date":   Thu, 17 Feb 2017 22:13:21 -0500
+- "sql date":   2017-02-17 22:13:21
 - "seconds":   the number of seconds since the start of the epoch
 - "dateItems":   2017,2,17,22,13,21,5
 
@@ -98,8 +99,8 @@ is true, or if you use the <system> keyword, the user's current system
 preferences are used to format the date or time. Otherwise, the standard
 US date and time formats are used.
 
-The internet date, seconds, and <dateItems> formats are invariant and do
-not change according to the user's preferences.
+The internet date, sql date, seconds, and <dateItems> formats are
+invariant and do not change according to the user's preferences.
 
 >*Note:* The <convert> command assumes all dates / times are in local
 > time except for 'the seconds', which is taken to be universal time.
@@ -117,7 +118,7 @@ format (glossary), keyword (glossary), variable (glossary),
 command (glossary), container (glossary), dateItems (keyword),
 system (keyword), long (keyword), short (keyword), string (keyword),
 seconds (keyword), abbreviated (keyword), internet (keyword),
-english (keyword), it (keyword), is a (operator),
+sql (keyword), english (keyword), it (keyword), is a (operator),
 useSystemDate (property), centuryCutoff (property),
 twelveHourTime (property)
 

@@ -9,7 +9,7 @@ Specifies an <image> whose mask is used as the shape of the window.
 
 Associations: stack
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -7,11 +7,11 @@ Syntax: set the grid to {true | false}
 Summary:
 Specifies whether dragged <object|objects> are snapped to a grid.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the grid to true

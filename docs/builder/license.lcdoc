@@ -1,0 +1,71 @@
+Library: com.livecode.commercial.license
+
+Type: module
+
+Summary: This library provides license entitlement related operations for Extension Builder (commercial).
+It remains in OpenXTalk for compatibility with LiveCode, but since this only applies to closed source usage
+it should be considered as deprecated in OpenXTalk builds and may be removed in the future.
+
+Tags: License
+
+
+Name: EnsureLicense
+
+Type: statement
+
+Syntax:     ensure license for [ feature <Feature> of ] extension <Extension> [ or edition <Edition> ]
+
+Summary: Throws if license is not satisfied
+
+Example: ensure license for edition "indy"
+
+Example: ensure license for extension "com.foo.bar" or edition "indy"
+
+Example: ensure license for feature "baz" of extension "com.foo.bar" or edition "indy"
+
+Description:
+Causes an error to be thrown if the license requirement is not satisfied. All
+further calls to the module will then also cause an error to be thrown.
+
+Tags: License
+
+
+
+
+Name: LicensedEdition
+
+Type: operator
+
+Syntax:     licensed for edition <Edition>
+
+Summary: Returns true if licensed
+
+Example:
+variable tLicensed as Boolean
+put licensed for edition "business" into tLicensed
+
+Description: Returns true if the license is for the named editon or greater.
+
+Tags: License
+
+
+
+
+Name: LicensedExtension
+
+Type: operator
+
+Syntax:     licensed for [ feature <Feature> of ] extension <Extension>
+
+Summary: Returns true if licensed
+
+Example:
+variable tLicensed as Boolean
+put licensed for extension "com.foo.bar" into tLicensed
+put licensed for feature "baz" of extension "com.foo.bar" into tLicensed
+
+Description:
+Returns true if the license includes the named extension or extension
+and feature.
+
+Tags: License

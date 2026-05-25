@@ -1,2 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\PREBUILT\BUILD\ICU-58.3-SRC\ICU\SOURCE\EXTRA\UCONV\MAKEDATA.MAK
-nmake /nologo /f makedata.mak icup="C:\Users\user\Documents\GitHub\HyperXTalk\prebuilt\build\icu-58.3-src\icu\source\extra\uconv\..\..\.." CFG=x86\Release

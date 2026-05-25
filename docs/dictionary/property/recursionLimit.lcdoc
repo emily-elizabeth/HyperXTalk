@@ -7,11 +7,11 @@ Syntax: set the recursionLimit to stackSizeInBytes
 Summary:
 Specifies how many levels deep a recursive function is allowed to go.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the recursionLimit to 20
@@ -25,7 +25,7 @@ Use the recursionLimit property to quickly find possible recursion bugs
 or to extend the ability to use deeply recursive routines.
 
 The stackSizeInBytes specifies the CPU call stack size. ("Stack" in this
-sense has nothing to do with OpenXTalk stack objects; it refers to a type
+sense has nothing to do with HyperXTalk stack objects; it refers to a type
 of data structure used by the processor.)
 
 The relationship between the <recursionLimit> and the number of levels

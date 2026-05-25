@@ -10,11 +10,11 @@ Summary:
 Specifies the method used to produce sound when the beep command is
 used. 
 
-Introduced: 2.9
+Introduced: 1.0.0
 
-OS: windows, ios
+OS: windows
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 set the beepSound to "system"
@@ -45,7 +45,7 @@ Description:
 Use the <beepSound> property to change the sound made when the beep
 command is used.
 
-When the beep command is executed, OpenXTalk makes a sound using the
+When the beep command is executed, HyperXTalk makes a sound using the
 method specified by the <beepSound> property.
 
 >*Note:* Setting the <beepSound> property only has an effect on the

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <foundation.h>
 #include <foundation-auto.h>
 
@@ -772,24 +756,24 @@ MCTypeInfoRef MCRecordTypeInfoGetFieldType(MCTypeInfoRef unresolved_self, uindex
 
 static bool MCCommonHandlerTypeInfoCreate(bool p_is_foreign, const MCHandlerTypeFieldInfo *p_fields, index_t p_field_count, MCTypeInfoRef p_return_type, MCTypeInfoRef& r_typeinfo)
 {
-	__MCAssertIsTypeInfo(p_return_type);
-	MCAssert(nil != p_fields || 0 == p_field_count);
+    __MCAssertIsTypeInfo(p_return_type);
+    MCAssert(nil != p_fields || 0 == p_field_count);
 
     __MCTypeInfo *self;
     if (!__MCValueCreate(kMCValueTypeCodeTypeInfo, self))
         return false;
-    
-	/* If the p_field_count < 0 then the p_fields are expected to be
-	 * terminated by a custodian with name = nil. */
-	if (p_field_count < 0)
-		for (p_field_count = 0; p_fields[p_field_count].type != nil; ++p_field_count);
+
+    /* If the p_field_count < 0 then the p_fields are expected to be
+        * terminated by a custodian with name = nil. */
+    if (p_field_count < 0)
+        for (p_field_count = 0; p_fields[p_field_count].type != nil; ++p_field_count);
 
     if (!MCMemoryNewArray(p_field_count, self -> handler . fields))
     {
         MCMemoryDelete(self);
         return false;
     }
-    
+
     self -> flags |= kMCValueTypeCodeHandler;
 
     if (p_is_foreign)
@@ -988,8 +972,8 @@ bool MCHandlerTypeInfoGetLayoutType(MCTypeInfoRef unresolved_self, int p_abi, vo
     if (!MCMemoryAllocate(sizeof(MCHandlerTypeLayout) + sizeof(ffi_cif), t_layout))
         return false;
 
-	t_layout -> abi = p_abi;
-    
+    t_layout -> abi = p_abi;
+
     if (ffi_prep_cif((ffi_cif *)&t_layout -> cif, (ffi_abi)p_abi, self -> handler . field_count, self -> handler . layout_args[0], self -> handler . layout_args + 1) != FFI_OK)
     {
         MCMemoryDeallocate(t_layout);

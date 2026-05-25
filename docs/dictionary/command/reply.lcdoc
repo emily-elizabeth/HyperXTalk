@@ -7,10 +7,10 @@ Syntax: reply <string> [with keyword <aeKeyword>]
 Syntax: reply error <string>
 
 Summary:
-<return|Returns> data to an application that sent OpenXTalk an 
+<return|Returns> data to an application that sent HyperXTalk an 
 <Apple Event>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 

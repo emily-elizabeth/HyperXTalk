@@ -9,11 +9,11 @@ Used with several <command|commands>, usually to specify a <default>
 setting or send a <callback|callback message> when the operation of the
 <command> is complete.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 open socket to "www.example.net" with message "mySocketOpened"

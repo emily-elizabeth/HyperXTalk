@@ -12,11 +12,11 @@ Summary:
 Pauses a <handler> before <execute|executing> the rest of its
 <statement|statements>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 wait for 2 seconds -- Waits for 2 seconds and blocks
@@ -51,12 +51,12 @@ elapsed during a <wait> <command> may be a few <milliseconds> more than
 the specified time, depending on the speed of the system and on the
 system's minimum time slice.)
 
-If the wait..with messages form is used, OpenXTalk continues normal
+If the wait..with messages form is used, HyperXTalk continues normal
 processing during the wait. The current handler is frozen, but the user
 can start other handlers and perform other actions such as switching
 cards. 
 
->*Tip:* To complete a process after a pause while allowing OpenXTalk to
+>*Tip:* To complete a process after a pause while allowing HyperXTalk to
 > run normally until that time, you can use the send in time form of the
 > <send> <command> instead of using the wait...with messages form of the
 > <wait> command.

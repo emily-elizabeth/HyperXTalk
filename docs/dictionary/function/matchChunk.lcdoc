@@ -8,11 +8,11 @@ Summary:
 <return|Returns> true if a <regular expression> is found in the
 specified <string>, false otherwise.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 matchChunk("Hello","Hel") -- returns true
@@ -75,7 +75,7 @@ matched substrings in the optional <positionVarsList> variables, while
 the <matchText> <function(control structure)> records the substrings
 themselves. 
 
->*Tip:* OpenXTalk implements <regular expression|regular expressions>
+>*Tip:* HyperXTalk implements <regular expression|regular expressions>
 > compatible with the PCRE library. For detailed information about
 > <regular expression> elements you can use with this
 > <function(control structure)>, see the PCRE pattern documentation at

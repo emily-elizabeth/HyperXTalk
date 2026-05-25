@@ -1,0 +1,55 @@
+Name: itemEnabled
+
+Type: property
+
+Syntax: get the itemEnabled[<name>] of <toolbar>
+Syntax: set the itemEnabled[<name>] of <toolbar> to {true | false}
+
+Summary:
+Controls whether a toolbar item responds to user interaction.
+
+Associations: toolbar
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+set the itemEnabled["saveButton"] of toolbar 1 to true
+
+Example:
+set the itemEnabled["undoButton"] of toolbar "mainBar" to false
+
+Example:
+if tHasSelection then
+    set the itemEnabled["copyButton"] of toolbar 1 to true
+end if
+
+Example:
+put the itemEnabled["saveButton"] of toolbar 1 into tEnabled
+
+Value:
+The <itemEnabled> of a toolbar item is a boolean. The default value is
+true.
+
+Description:
+Use the <itemEnabled> property to enable or disable a named toolbar item.
+A disabled item is rendered in a greyed-out state and does not dispatch a
+<toolbarItemClicked> message when clicked.
+
+On macOS, this sets NSToolbarItem's enabled property directly on the live
+item, taking effect immediately without reloading the toolbar.
+
+On Windows, this updates the button's TBSTATE_ENABLED flag via
+TB_SETSTATE.
+
+On Linux, this calls gtk_widget_set_sensitive on the tool item widget.
+
+Separator and space items do not respond meaningfully to this property.
+
+References: toolbar (object), itemNames (property),
+toolbarItemClicked (message)
+
+Tags: ui

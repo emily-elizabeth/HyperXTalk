@@ -9,11 +9,11 @@ Returns the name of the method in an XML-RPC document structure.
 
 Associations: xml-rpc library
 
-Introduced: 2.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, process
 
@@ -41,6 +41,6 @@ method is being called specifically within that resource.
 References: revXMLRPC_SetMethod (command), revXMLRPC_GetPath (function),
 Standalone Application Settings (glossary),
 standalone application (glossary), return (glossary), function (glossary),
-XML-RPC document (glossary), OpenXTalk custom library (glossary),
+XML-RPC document (glossary), HyperXTalk custom library (glossary),
 XML-RPC library (library), revXMLRPC_CreateRequest (function),
 XML-RPC (glossary)

@@ -9,7 +9,7 @@ Syntax: set the rawClipboardData to empty
 Summary:
 Provides low-level access to the contents of the <clipboard(glossary)>.
 
-Introduced: 8.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

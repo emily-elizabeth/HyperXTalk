@@ -1,0 +1,97 @@
+Name: taskbarProgress
+
+Type: property
+
+Syntax: set the taskbarProgress of <stack> to <value>
+
+Summary:
+Controls the progress indicator shown on a stack's Windows taskbar button.
+
+Associations: stack
+
+Introduced: 1.0.0
+
+OS: windows
+
+Platforms: desktop
+
+Example:
+-- Show a normal progress bar at 60%
+set the taskbarProgress of this stack to 0.6
+
+Example:
+-- Show an indeterminate spinner while work is in progress
+set the taskbarProgress of this stack to -1
+doLongOperation
+set the taskbarProgress of this stack to 0
+
+Example:
+-- Update progress incrementally
+repeat with tStep = 1 to 100
+   set the taskbarProgress of this stack to tStep / 100
+   processStep tStep
+end repeat
+set the taskbarProgress of this stack to 0
+
+Example:
+-- Get the current value
+put the taskbarProgress of this stack into tProgress
+
+Parameters:
+stack:
+A reference to a stack, or an expression that evaluates to a stack.
+
+value:
+A number controlling the appearance of the progress indicator:
+
+- **0** (or any value equal to 0): hides the progress bar.
+- **0 < value ≤ 1**: displays a green progress bar filled to that
+  fraction of the button width. Values greater than 1 are treated as 1
+  (full).
+- **value < 0** (conventionally -1): displays an indeterminate
+  animation (a pulsing bar), indicating that work is ongoing but
+  progress cannot be measured.
+
+Value:
+The <taskbarProgress> of a stack returns the last value set, as a
+number. The default value is 0.
+
+Description:
+Use the <taskbarProgress> property to give users visual feedback about
+a long-running operation directly in the Windows taskbar, without
+requiring them to switch to the application window.
+
+On Windows 10 and later, the taskbar button for each open window can
+display a progress overlay — a colored bar that fills the button from
+left to right. This is the same indicator shown by the Windows file
+copy dialog, web browsers during downloads, and other system
+applications.
+
+Setting <taskbarProgress> to a value between 0 and 1 immediately
+updates the taskbar button for that stack's window to show a green
+progress bar filled to the corresponding fraction. Setting it to a
+negative number switches the button to the indeterminate "marching"
+animation, which is useful when the total amount of work is not known
+in advance. Setting it back to 0 removes the indicator entirely.
+
+The property is read/write: getting it returns the value most recently
+set, not the state of the OS indicator directly.
+
+>*Note:* The <taskbarProgress> property only has a visual effect on
+> Windows. On macOS and Linux the property is accepted without error but
+> has no effect. This allows you to set it unconditionally in
+> cross-platform scripts.
+
+>*Note:* The <taskbarProgress> property is not persistent — it is not
+> saved into the stack file. The indicator is also automatically cleared
+> by Windows if the window is closed. Set it in a handler rather than
+> relying on a saved value.
+
+>*Note:* The progress indicator is associated with the stack's window.
+> Substacks and palette windows each have their own taskbar button (if
+> shown in the taskbar) and must be updated independently.
+
+References: iconic (property), decorations (property),
+scaleFactor (property)
+
+Tags: windowing

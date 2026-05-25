@@ -8,11 +8,11 @@ Summary:
 Specifies the <Unix> access permissions of <files> and <folders> created
 by the <application>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: linux, ios, android, mac
+OS: linux, mac
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 

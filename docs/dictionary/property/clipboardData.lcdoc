@@ -13,7 +13,7 @@ Syntax: get the clipboardData[<key>]
 Summary:
 Specifies what data and of what type is on the <clipboard(glossary)>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -47,20 +47,20 @@ the <clipboard(glossary)>, without copying or pasting. The keys for the
 
   - "text": plain text
   - "unicode": plain text encoded as utf-16 in host byte order
-  - "rtf": OpenXTalk rich text format data
-  - "htmltext": OpenXTalk HTML text
-  - "styles": styled text in OpenXTalk internal styled-text format
-  - "styledtext": array of OpenXTalk styled text
+  - "rtf": HyperXTalk rich text format data
+  - "htmltext": HyperXTalk HTML text
+  - "styles": styled text in HyperXTalk internal styled-text format
+  - "styledtext": array of HyperXTalk styled text
   - "image": the <text> of an image object, i.e. binary data in PNG, GIF
     or JPEG format
-  - "rtf": styled text in OpenXTalk RTF format
-  - "html": styled text in OpenXTalk HTML format
-  - "styles": OpenXTalk styled text data
-  - "objects": one or more OpenXTalk objects serialized into an internal
+  - "rtf": styled text in HyperXTalk RTF format
+  - "html": styled text in HyperXTalk HTML format
+  - "styles": HyperXTalk styled text data
+  - "objects": one or more HyperXTalk objects serialized into an internal
     format 
-  - "files": a return-delimited list of filenames in OpenXTalk format
+  - "files": a return-delimited list of filenames in HyperXTalk format
   - "private": an arbitrary application-defined string. This format will
-    only be visible within the same OpenXTalk process
+    only be visible within the same HyperXTalk process
 
 
 The <clipboardData> property is populated automatically when the 
@@ -105,8 +105,8 @@ using the application's Paste menu item.
 the <clipboard> function.
 
 >*Tip:*  The "objects" type can be used to capture the binary form of a 
-OpenXTalk object that was placed on the <clipboard(glossary)>. This 
-binary data can be passed to another instance of OpenXTalk or saved to a 
+HyperXTalk object that was placed on the <clipboard(glossary)>. This 
+binary data can be passed to another instance of HyperXTalk or saved to a 
 file and re-loaded at a later time.
 
 >*Tip:*  If you require low-level access to the <clipboard(glossary)> 

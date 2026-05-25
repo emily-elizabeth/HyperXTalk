@@ -8,7 +8,7 @@ Summary:
 Specifies whether typed text is sent to the window under the 
 <mouse pointer> or to the frontmost window.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -35,7 +35,7 @@ If the <pointerFocus> <property> is true, moving the <mouse pointer>
 into a window makes it the <active window>. Set the <pointerFocus> to
 true to work around problems in some <Unix> window managers
 (specifically, "olwm" and "fvwm" ) that prevent 
-<explicit focus|active-focus> applications such as OpenXTalk from 
+<explicit focus|active-focus> applications such as HyperXTalk from 
 operating correctly. 
 
 If the application is started from a Unix command line, this property

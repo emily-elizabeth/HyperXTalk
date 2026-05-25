@@ -8,7 +8,7 @@ Summary:
 Specifies where the <record sound> <command> should listen when
 recording a sound file.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac
 

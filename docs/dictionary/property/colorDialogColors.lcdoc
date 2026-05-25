@@ -7,7 +7,7 @@ Syntax: set the colorDialogColors to listOfColors
 Summary:
 Provides access to the custom colors the user sets in the color dialog.
 
-Introduced: 6.5
+Introduced: 1.0.0
 
 OS: windows
 

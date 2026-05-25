@@ -8,7 +8,7 @@ Summary:
 Specifies the actual <PostScript> code associated with an <EPS|EPS
 object>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

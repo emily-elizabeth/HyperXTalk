@@ -9,7 +9,7 @@ Specifies whether a <player|player's> <controller bar> is visible.
 
 Associations: player
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

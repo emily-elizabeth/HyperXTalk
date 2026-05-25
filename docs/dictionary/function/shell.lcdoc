@@ -9,7 +9,7 @@ Syntax: shell(<commandLine>)
 Summary:
 Runs a <shell> command and returns its output.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -51,7 +51,7 @@ you want to use. The command is executed in the current <defaultFolder>.
 
 >*Note:* If you use a <file path> in the <shell> command on a Windows
 > system, the <file path> must be in Windows form, not the Unix-style
-> <file path|file paths> that OpenXTalk uses internally.
+> <file path|file paths> that HyperXTalk uses internally.
 
 To prevent a console window from appearing when the shell command is
 executed, set the <hideConsoleWindows> property to true.

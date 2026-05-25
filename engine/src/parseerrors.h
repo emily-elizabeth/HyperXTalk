@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #ifndef __MC_PARSE_ERRORS__
 #define __MC_PARSE_ERRORS__
 
@@ -1147,7 +1131,13 @@ enum Parse_errors
 	
 	// {PE-0371} send: bad target chunk or program expression
 	PE_SEND_BADTARGET,
-	
+
+	// share: bad data expression
+	PE_SHARE_BADDATA,
+
+	// share: bad rect expression after 'from'
+	PE_SHARE_BADRECT,
+
 	// {PE-0372} set: error in expression
 	PE_SET_BADEXP,
 	
@@ -1810,6 +1800,21 @@ enum Parse_errors
     
     // {PE-0584} out of memory
     PE_OUTOFMEMORY,
+
+    // {PE-0585} matches: missing match mode 'regex' or 'wildcard'
+    PE_MATCHES_NOMODE,
+
+    // {PE-0586} iff: requires exactly 3 parameters
+    PE_IFF_BADPARAM,
+
+    // {PE-0587} storeCredential: bad parameter expression
+    PE_STORECREDENTIAL_BADPARAM,
+
+    // {PE-0588} retrieveCredential: bad parameter expression
+    PE_RETRIEVECREDENTIAL_BADPARAM,
+
+    // {PE-0589} deleteCredential: bad parameter expression
+    PE_DELETECREDENTIAL_BADPARAM,
 };
 
 extern const char *MCparsingerrors;

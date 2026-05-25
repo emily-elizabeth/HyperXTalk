@@ -10,11 +10,11 @@ Summary:
 <return|Returns> the original data from a base 64-<encode|encoded>
 <string>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put base64Decode(receivedData) into URL "file:download.mov"

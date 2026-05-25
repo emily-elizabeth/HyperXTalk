@@ -14,11 +14,11 @@ Specifies the style or styles applied to text in an <object(glossary)>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the textStyle of line 2 of field "Choices" to "italic,underline"

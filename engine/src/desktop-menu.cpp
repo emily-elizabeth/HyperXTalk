@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "platform.h"
 
 #include "globdefs.h"
@@ -344,6 +328,8 @@ public:
 			MCPlatformSetMenuItemProperty(TopMenu(), t_item_index, kMCPlatformMenuItemPropertyAccelerator, kMCPlatformPropertyTypeAccelerator, &t_item_accelerator);
 			MCPlatformSetMenuItemProperty(TopMenu(), t_item_index, kMCPlatformMenuItemPropertyEnabled, kMCPlatformPropertyTypeBool, &t_item_enabled);
 			MCPlatformSetMenuItemProperty(TopMenu(), t_item_index, kMCPlatformMenuItemPropertyHighlight, kMCPlatformPropertyTypeMenuItemHighlight, &t_item_highlight);
+			if (!MCStringIsEmpty(p_menuitem -> icon))
+				MCPlatformSetMenuItemProperty(TopMenu(), t_item_index, kMCPlatformMenuItemPropertyIcon, kMCPlatformPropertyTypeMCString, &(p_menuitem -> icon));
             
             MCValueRelease(t_tag);
 		}

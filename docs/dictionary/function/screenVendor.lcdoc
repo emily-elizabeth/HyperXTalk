@@ -10,7 +10,7 @@ Summary:
 <return|Returns> version information about the producer of the windowing
 software. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

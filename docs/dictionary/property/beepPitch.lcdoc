@@ -7,7 +7,7 @@ Syntax: set the beepPitch to <pitchFrequency>
 Summary:
 Sets the frequency of the sound played by the <beep> <command>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

@@ -10,7 +10,7 @@ empty for the default.
 
 Associations: speech library
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 
@@ -33,7 +33,7 @@ the specified speech provider cannot be loaded then the
 provider" in the <result>.
 
 Description:
-Sets the API that OpenXTalk uses to speak. SAPI4 and SAPI5 are only 
+Sets the API that HyperXTalk uses to speak. SAPI4 and SAPI5 are only 
 supported on Windows.  SpeechManager is only supported on OS X.
 
 If an invalid API is specified, the default API for the currrent 
@@ -49,7 +49,7 @@ to SAPI4 if SAPI5 is not supported).
 >*Important:*  The <revSetSpeechProvider> <command> is part of the 
 > <Speech library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Speech" 
 > library checkbox is checked.
@@ -59,5 +59,5 @@ revUnloadSpeech (command), revSetSpeechVolume (command),
 result (function), revSpeechVoices (function),
 Standalone Application Settings (glossary),
 standalone application (glossary), command (glossary),
-OpenXTalk custom library (glossary), Speech library (library)
+HyperXTalk custom library (glossary), Speech library (library)
 

@@ -1,22 +1,9 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
+
 #include "globdefs.h"
+// Forward-declare so we can check whether execution is on a worker thread
+// without pulling in all of mcworker.h's dependencies.
 #include "filedefs.h"
 #include "objdefs.h"
 #include "parsedef.h"
@@ -1120,7 +1107,8 @@ Exec_stat _MCEngineExecDoDispatch(MCExecContext &ctxt, int p_handler_type, MCNam
 	MCdynamicpath = MCdynamiccard.IsValid();
 	if (t_stat == ES_PASS || t_stat == ES_NOT_HANDLED)
     {
-        switch(t_stat = t_object -> handle((Handler_type)p_handler_type, p_message, p_parameters, t_object.Get()))
+        t_stat = t_object -> handle((Handler_type)p_handler_type, p_message, p_parameters, t_object.Get());
+        switch(t_stat)
         {
         case ES_ERROR:
             ctxt . LegacyThrow(EE_DISPATCH_BADCOMMAND, p_message);

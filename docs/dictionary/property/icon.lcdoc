@@ -10,11 +10,11 @@ Summary:
 Specifies an <image> that is displayed in a <button>, or used as the
 <desktop> icon of a <stack file> or application.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the icon of this stack to kStackIcon
@@ -44,7 +44,7 @@ Use the <icon> <property> to change a <button(object)|button's>
 appearance, or to set the <icon> used for a <stack> or <application> in
 the <OS X> dock.
 
-OpenXTalk looks for the specified image in the following order:
+HyperXTalk looks for the specified image in the following order:
 
 * 1. The stack of the object's <behavior> (if applicable)
 * 2. The stack of the owner of the object's <behavior> (if applicable)
@@ -85,7 +85,7 @@ property>, and the <icon> of a <stack> had no effect on <OS X|OS X
 systems>. 
 
 Changes:
-The order in which OpenXTalk searches for icons was changed in version
+The order in which HyperXTalk searches for icons was changed in version
 3.5. Previously, the current stack was searched first, followed by the
 list of open stacks.
 

@@ -10,11 +10,11 @@ Summary:
 <return|Returns> a list of <object|objects> that have been inserted into
 the <message path> before the target <object(glossary)>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the frontScripts

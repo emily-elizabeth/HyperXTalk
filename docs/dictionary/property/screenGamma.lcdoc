@@ -7,7 +7,7 @@ Syntax: set the screenGamma to <gammaValue>
 Summary:
 Specifies the <gamma> <value> used for displaying <PNG> <image|images>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -32,7 +32,7 @@ Changes in the <screenGamma> do not apply to <PNG>
 <image(keyword)> uses the <screenGamma> that was in effect when it was
 being decompressed for display.
 
->*Tip:*  To force OpenXTalk to re-decompress a <PNG> <image(keyword)>
+>*Tip:*  To force HyperXTalk to re-decompress a <PNG> <image(keyword)>
 > without leaving the <card>, put the <image(keyword)> into itself:
 
     set the screenGamma to 2.2

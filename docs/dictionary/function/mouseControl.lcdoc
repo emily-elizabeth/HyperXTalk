@@ -10,11 +10,11 @@ Summary:
 <return|Returns> the number of the <control> the <mouse pointer> is
 over. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the mouseControl

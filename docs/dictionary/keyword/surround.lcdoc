@@ -9,11 +9,11 @@ Used with the <selectionMode> <property> to cause <object|objects> to be
 <selected> only when the entire <object(glossary)> is within the
 rectangle you drag.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the selectionMode to surround

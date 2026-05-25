@@ -11,7 +11,7 @@ Syntax: XBrowser_Close [ <instanceId>]
 Summary:
 Destroy the specified browser
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <foundation.h>
 
 #include "foundation-auto.h"
@@ -38,29 +22,29 @@ inline uint8_t val(uint8_t x)
 bool MCFiltersBase64Decode(MCStringRef p_src, MCDataRef& r_dst)
 {
 	MCAutoByteArray buffer;
-    
-    uint32_t l;
-    MCAutoStringRefAsNativeChars t_native;
-    const char_t *s = nil;
-    byte_t *p = nil;
-    
-    if (!t_native . Lock(p_src, s, l))
-        return false;
-    
+
+	uint32_t l;
+	MCAutoStringRefAsNativeChars t_native;
+	const char_t *s = nil;
+	byte_t *p = nil;
+
+	if (!t_native . Lock(p_src, s, l))
+		return false;
+
 	if (!buffer . New(l))
 		return false;
-    
+
 	p = buffer . Bytes();
-    
+
 	uint8_t c[5];
 	c[4] = '\0';
-    
+
 	while (l)
 	{
 		uint16_t i = 0;
 		int16_t pad = -1;
 		uint32_t d;
-        
+		
 		while (i < 4)
 		{
 			if (l--)
@@ -81,26 +65,26 @@ bool MCFiltersBase64Decode(MCStringRef p_src, MCDataRef& r_dst)
 				c[i] = '=';
 			}
 		}
-        
+		
 		d = (val(c[0]) << 18) | (val(c[1]) << 12) | (val(c[2]) << 6) | val(c[3]);
-        
+		
 		if (pad < 2)
 			*p++ = (d & 0xff0000) >> 16;
 		if (pad < 1)
 			*p++ = (d & 0xff00) >> 8;
 		if (pad < 0)
 			*p++ = d & 0xff;
-        
+		
 		if (c[4] == '=')
 		{
 			*p = 0;
 			break;
 		}
 	}
-    
-    
+
+
 	buffer . Shrink(p - buffer . Bytes());
-    
+
 	return buffer . CreateDataAndRelease(r_dst);
 }
 

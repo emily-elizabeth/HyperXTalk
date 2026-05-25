@@ -1,3 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\UTIL\WEAK_STUB_MAKER.PL
-call call perl.exe "..\..\..\..\util\weak_stub_maker.pl" "..\..\..\..\thirdparty\libopenssl\ssl.stubs" "Debug\obj\libopenssl_stubs\src\ssl.win.stubs.cpp"
-if %errorlevel% neq 0 exit /b %errorlevel%

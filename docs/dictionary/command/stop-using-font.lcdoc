@@ -7,7 +7,7 @@ Syntax: stop using font file <fontFile>
 Summary:
 Unloads a font file from memory.
 
-Introduced: 6.5
+Introduced: 1.0.0
 
 OS: mac, windows
 

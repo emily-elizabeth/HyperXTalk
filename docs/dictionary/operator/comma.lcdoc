@@ -8,11 +8,11 @@ Summary:
 <concatenate|Concatenates> (joins) two <string|strings> and inserts a
 comma between them.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put "first","second" -- evaluates to "first,second"

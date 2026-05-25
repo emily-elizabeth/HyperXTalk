@@ -8,13 +8,13 @@ Summary:
 Specifies whether the charToNum and numToChar functions assume a
 character is double-byte.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 Deprecated: 7.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 create field "russianLetter"

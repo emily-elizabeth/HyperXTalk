@@ -9,7 +9,7 @@ Syntax: enable menuItem <itemNumber> of <button>
 Summary:
 Enables a <menu> or <menu item> so that it can be chosen by the user.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

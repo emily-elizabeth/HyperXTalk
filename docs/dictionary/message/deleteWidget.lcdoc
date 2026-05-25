@@ -9,11 +9,11 @@ Sent to a <widget> just before it is removed from the <stack>.
 
 Associations: widget
 
-Introduced: 8.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on deleteWidget

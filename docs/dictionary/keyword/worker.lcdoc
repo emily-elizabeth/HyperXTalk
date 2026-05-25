@@ -1,0 +1,42 @@
+Name: worker
+
+Type: keyword
+
+Syntax: worker
+
+Summary:
+Used with <create>, <dispatch>, <destroy>, and <delete> to work with
+named worker script objects.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+create worker "mathWorker" from tScriptPath
+
+Example:
+dispatch "computeSquares" to worker "mathWorker" with 8
+
+Example:
+destroy worker "mathWorker"
+
+Description:
+The <worker> keyword is used in several commands to create, address, and
+remove worker script objects:
+
+- <create worker> — creates a new named worker
+- <dispatch to worker> — sends a message to a named worker
+- <destroy worker> / <delete worker> — removes a named worker
+
+Workers are lightweight, named script objects backed by invisible
+script-only stacks. They allow script logic to be cleanly separated from
+UI code and addressed by name across a stack's lifetime.
+
+References: create worker (command), destroy worker (command),
+delete worker (command), dispatch to worker (command),
+dispatch to caller (command), caller (keyword)
+
+Tags: workers

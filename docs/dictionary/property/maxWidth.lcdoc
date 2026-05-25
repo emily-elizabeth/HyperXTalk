@@ -9,11 +9,11 @@ Specifies how wide a <stack window> can be made when it's resized.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the maxWidth of the defaultStack to 300

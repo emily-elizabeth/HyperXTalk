@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 //
 // MCHandlerlist class declarations
 //
@@ -42,13 +26,13 @@ public:
 	MCHandler *find(MCNameRef name);
 
 	// Return the list of handler pointers.
-	MCHandler **get(void)
+	MCHandler **get(void) const
 	{
 		return m_handlers;
 	}
 
 	// Return the number of handlers.
-	uint32_t count(void)
+	uint32_t count(void) const
 	{
 		return m_count;
 	}
@@ -71,6 +55,9 @@ private:
 typedef bool (*MCHandlerlistListConstantsCallback)(void *p_context, MCHandlerConstantInfo *info);
 typedef bool (*MCHandlerlistListVariablesCallback)(void *p_context, MCVariable *p_variable);
 typedef bool (*MCHandlerlistListHandlersCallback)(void *p_context, Handler_type p_type, MCHandler* p_handler, bool p_include_all);
+
+class MCHXTASTWriter;
+class MCHXTASTReader;
 
 class MCHandlerlist
 {
@@ -167,5 +154,18 @@ public:
 		return vars != NULL;
 	}
 	uint4 linecount();
+
+    // Set the owning object.  parse() sets this automatically; call this
+    // explicitly when the handler list is reconstructed without parsing
+    // (e.g. from the ASTN binary section via hxt_deserialize()).
+    void setparent(MCObject *p) { parent = p; }
+
+    // HXT: AST serialization.
+    // hxt_serialize() writes the script-local variables, constant pool,
+    // and all handlers into w.
+    // hxt_deserialize() reads the same format and populates this instance.
+    // Call setparent() before or after hxt_deserialize() as appropriate.
+    bool hxt_serialize(MCHXTASTWriter &w) const;
+    bool hxt_deserialize(MCHXTASTReader &r);
 };
 #endif

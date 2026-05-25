@@ -11,7 +11,7 @@ Syntax: XBrowser_Open <windowId> [, <url>]
 Summary:
 Opens and initialises a new browser
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 
@@ -22,13 +22,13 @@ Security: network
 Example:
 local tBrowserId
 put revBrowserOpen(the windowId \
-      of this stack, "http://www.OpenXTalk.org" ) into tBrowserId
+      of this stack, "http://www.HyperXTalk.com" ) into tBrowserId
 if tBrowserId is not an integer then
   answer "Failed to open browser"
 end if
 
 -- Using the old XBrowser syntax
-XBrowser_Open the windowId of this stack, "http://www.OpenXTalk.org"
+XBrowser_Open the windowId of this stack, "http://www.HyperXTalk.com"
 put the result into tBrowserId
 
 Parameters:
@@ -72,7 +72,7 @@ and this command now does nothing, but is still included to prevent
 legacy code causing script errors.
 
 There is a sample stack for revBrowser at the following location in the
-OpenXTalk folder: Resources/Examples/Browser Sampler.rev. This stack
+HyperXTalk folder: Resources/Examples/Browser Sampler.rev. This stack
 demonstrates, with many examples, how to use browser objects in an
 application. 
 
@@ -88,7 +88,7 @@ The syntax of these older functions differs slightly from that
 documented and used in the new functions.
 
 The revBrowser functions (with the exception of <revBrowserOpen>) all
-require a browser id, which tells OpenXTalk which browser object to act
+require a browser id, which tells HyperXTalk which browser object to act
 upon. This id is returned by the revBrowserOpen function and should be
 saved in the calling application. The browser id is always the first
 parameter given to any revBrowser function and always the first

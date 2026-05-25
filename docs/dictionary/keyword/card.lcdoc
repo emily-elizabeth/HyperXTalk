@@ -9,11 +9,11 @@ Used with the <visual effect> <command> to show the destination
 <card(keyword)> at the end of the visual effect. Also used to refer to
 <card(object)|cards>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 visual effect push left to card

@@ -9,11 +9,11 @@ Adds a single parameter to an <XML-RPC document> structure.
 
 Associations: xml-rpc library
 
-Introduced: 2.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, process
 
@@ -92,7 +92,7 @@ revXMLRPC_GetParam (function), result (function),
 revXMLRPC_GetParamCount (function), revXMLRPC_CreateRequest (function),
 Standalone Application Settings (glossary),
 standalone application (glossary), command (glossary),
-XML-RPC document (glossary), OpenXTalk custom library (glossary),
+XML-RPC document (glossary), HyperXTalk custom library (glossary),
 XML-RPC library (library), XML-RPC (glossary)
 
 Tags: networking

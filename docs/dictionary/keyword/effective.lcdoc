@@ -9,11 +9,11 @@ Used with <inheritance|inherited> <properties> to specify the
 <object|object's> own setting or the setting <inheritance|inherited>
 from the <object|object's> <owner>, whichever is actually displayed.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the effective textColor of me into myColor

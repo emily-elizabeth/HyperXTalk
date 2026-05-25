@@ -7,7 +7,7 @@ Syntax: revRotatePoly <graphicReference>, <angleInDegrees>
 Summary:
 Rotates a <graphic> by a specified angle.
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

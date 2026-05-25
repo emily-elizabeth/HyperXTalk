@@ -8,11 +8,11 @@ Summary:
 Designates a location in the <message path> after an <object|object's>
 <stack>, or the most <recent cards|recently visited card>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 insert the script of card button 9 into back

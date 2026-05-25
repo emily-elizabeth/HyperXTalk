@@ -9,7 +9,7 @@ Syntax: set the fullDragData to empty
 Summary:
 Provides access to the contents of the <drag-and-drop> <clipboard>.
 
-Introduced: 8.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -31,17 +31,17 @@ drag-and-drop clipboard. It should only be accessed during drag-and-drop
 operations. The keys for the <fullDragData> are:
 
   - "text": plain text
-  - "rtftext": OpenXTalk rich text format data
-  - "htmltext": OpenXTalk HTML text
-  - "styledtext": array of OpenXTalk styled text
+  - "rtftext": HyperXTalk rich text format data
+  - "htmltext": HyperXTalk HTML text
+  - "styledtext": array of HyperXTalk styled text
   - "image": any of PNG, GIF or JPEG image
   - "png": PNG image
   - "gif": GIF image
   - "jpeg": JPEG image
   - "rtf": Rich Text Format data
   - "html": HTML
-  - "styles": OpenXTalk styled text data
-  - "objects": OpenXTalk objects
+  - "styles": HyperXTalk styled text data
+  - "objects": HyperXTalk objects
   - "files": List of newline-separated file paths
   - "private": available for in-app use
 
@@ -58,7 +58,7 @@ to. If you want to do this explicitly, use ``set the fullDragData to
 empty``. 
 
 The ``text``, ``rtftext``, ``htmltext``, ``styles`` and ``styledtext``
-properties are handled specially by OpenXTalk: adding any one of them
+properties are handled specially by HyperXTalk: adding any one of them
 will cause the rest to be automatically generated and added.
 
 If you require lower-level access to the drag-and-drop clipboard, see

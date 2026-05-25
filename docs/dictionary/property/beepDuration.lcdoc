@@ -7,7 +7,7 @@ Syntax: set the beepDuration to <milliseconds>
 Summary:
 Sets the length of the sound played by the <beep> <command>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

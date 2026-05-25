@@ -11,11 +11,11 @@ Summary:
 
 Associations: database library
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 
@@ -60,7 +60,7 @@ communicating with.
 >*Important:*  The <revDatabaseType> <function> is part of the 
 > <Database library>. To ensure that the <function> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure both the 
 > "Database" library checkbox and those of the database drivers you are 
@@ -71,7 +71,7 @@ The revDatabaseType synonym was added in version 2.0.
 
 References: function (control structure),
 revDatabaseColumnTypes (function), revOpenDatabases (function),
-OpenXTalk custom library (glossary),
+HyperXTalk custom library (glossary),
 Standalone Application Settings (glossary), database (glossary),
 standalone application (glossary), return (glossary),
 SQL query (glossary), Database library (library)

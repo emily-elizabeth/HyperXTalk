@@ -7,13 +7,13 @@ Syntax: the propertyNames
 Syntax: propertyNames()
 
 Summary:
-<return|Returns> a list of all built-in <properties> in <OpenXTalk>.
+<return|Returns> a list of all built-in <properties> in <HyperXTalk>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the propertyNames
@@ -27,17 +27,17 @@ names, one per <line>.
 
 Description:
 Use the <propertyNames> <function> to check whether a particular
-<property> already exists in <OpenXTalk>, to avoid using a 
+<property> already exists in <HyperXTalk>, to avoid using a 
 <reserved word> for your own <custom property|custom properties>.
 
 The <propertyNames> <function> <return|returns> all the
-<property|properties> that can be used in <OpenXTalk>, including
+<property|properties> that can be used in <HyperXTalk>, including
 synonyms. 
 
 References: setProp (control structure), function (control structure),
 constantNames (function), functionNames (function),
 commandNames (function), colorNames (function), property (glossary),
-custom property (glossary), OpenXTalk (glossary), return (glossary),
+custom property (glossary), HyperXTalk (glossary), return (glossary),
 reserved word (glossary), line (keyword), properties (property),
 customProperties (property)
 

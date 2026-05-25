@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <Cocoa/Cocoa.h>
 #include <Carbon/Carbon.h>
 
@@ -1237,6 +1221,13 @@ void MCPlatformGetWindowAtPoint(MCPoint p_loc, MCPlatformWindowRef& r_window)
 		[[t_window delegate] isKindOfClass: [MCWindowDelegate class]] &&
 		t_is_in_frame)
 		r_window = [(MCWindowDelegate *)[t_window delegate] platformWindow];
+	else if (t_window != nil && t_is_in_frame)
+	{
+		// The topmost window may be an NSPopover's private _NSPopoverWindow whose
+		// delegate is Apple's own popover machinery, not MCWindowDelegate. Look it
+		// up in the popover-window registry instead.
+		r_window = MCMacPlatformFindPopoverWindow(t_number);
+	}
 	else
 		r_window = nil;
 }
@@ -1315,6 +1306,188 @@ void MCPlatformFlushEvents(MCPlatformEventMask p_mask)
 void MCPlatformBeep(void)
 {
     NSBeep();
+}
+
+void MCPlatformShareContent(MCPlatformWindowRef p_window,
+                            MCPlatformShareType p_type,
+                            MCValueRef p_data,
+                            bool p_has_rect,
+                            MCRectangle p_anchor,
+                            MCStringRef p_toolbar_item)
+{
+    NSArray *t_items = nil;
+
+    switch (p_type)
+    {
+        case kMCPlatformShareFile:
+        {
+            // Share a file by URL.
+            MCAutoStringRef t_path((MCStringRef)MCValueRetain(p_data));
+            NSString *t_ns_path = MCStringConvertToAutoreleasedNSString(*t_path);
+            NSURL   *t_url      = [NSURL fileURLWithPath: t_ns_path];
+            if (t_url != nil)
+                t_items = @[t_url];
+            break;
+        }
+
+        case kMCPlatformShareImage:
+        {
+            // Share encoded image bytes (PNG/JPEG/GIF) as an NSImage.
+            MCDataRef t_img = (MCDataRef)p_data;
+            NSData   *t_ns_data = [NSData dataWithBytes: MCDataGetBytePtr(t_img)
+                                                 length: MCDataGetLength(t_img)];
+            NSImage  *t_image   = [[NSImage alloc] initWithData: t_ns_data];
+            if (t_image != nil)
+                t_items = @[t_image];
+            break;
+        }
+
+        case kMCPlatformShareText:
+        default:
+        {
+            // Share plain text or a URL string.
+            MCAutoStringRef t_str((MCStringRef)MCValueRetain(p_data));
+            NSString *t_ns_str = MCStringConvertToAutoreleasedNSString(*t_str);
+            if (t_ns_str != nil)
+                t_items = @[t_ns_str];
+            break;
+        }
+    }
+
+    if (t_items == nil || [t_items count] == 0)
+        return;
+
+    NSSharingServicePicker *t_picker =
+        [[NSSharingServicePicker alloc] initWithItems: t_items];
+
+    // Get the NSWindow to anchor the popover to.
+    NSWindow *t_ns_window = nil;
+    if (p_window != nil)
+        t_ns_window = (NSWindow *)((MCMacPlatformWindow *)p_window)->GetHandle();
+    if (t_ns_window == nil)
+        return;
+
+    // Prefer toolbar-item anchoring when a name was supplied.
+    if (p_toolbar_item != nil)
+    {
+        NSString  *t_ident   = MCStringConvertToAutoreleasedNSString(p_toolbar_item);
+        NSToolbar *t_toolbar = [t_ns_window toolbar];
+        if (t_toolbar != nil && t_ident != nil)
+        {
+            for (NSToolbarItem *t_item in [t_toolbar visibleItems])
+            {
+                if ([[t_item itemIdentifier] isEqualToString: t_ident])
+                {
+                    NSView *t_item_view = [t_item view];
+                    if (t_item_view == nil)
+                        break; // No custom view — fall through to centred positioning.
+
+                    NSRect t_btn_rect = [t_item_view bounds];
+                    if (NSIsEmptyRect(t_btn_rect))
+                        break;
+
+                    [t_picker showRelativeToRect: t_btn_rect
+                                         ofView: t_item_view
+                                  preferredEdge: NSRectEdgeMinY];
+                    return;
+                }
+            }
+        }
+        // Named item not found — fall through to rect-based anchoring.
+    }
+
+    // Rect-based or centred anchoring.
+    NSView *t_view = [t_ns_window contentView];
+    NSRect  t_anchor_rect;
+    if (p_has_rect)
+    {
+        // Convert card coordinates (top-left origin) to view coordinates
+        // (bottom-left origin).
+        CGFloat t_height = [t_view bounds].size.height;
+        t_anchor_rect = NSMakeRect((CGFloat)p_anchor.x,
+                                   t_height - (CGFloat)(p_anchor.y + p_anchor.height),
+                                   (CGFloat)p_anchor.width,
+                                   (CGFloat)p_anchor.height);
+    }
+    else
+    {
+        // Default: centre of the window.
+        NSRect t_bounds = [t_view bounds];
+        t_anchor_rect   = NSMakeRect(NSMidX(t_bounds) - 1, NSMidY(t_bounds) - 1, 2, 2);
+    }
+
+    [t_picker showRelativeToRect: t_anchor_rect
+                          ofView: t_view
+                   preferredEdge: NSRectEdgeMinY];
+}
+
+void MCPlatformSetJumpList(MCStringRef /*p_tasks*/, MCStringRef /*p_category*/)
+{
+    // Not applicable on macOS.
+}
+
+void MCPlatformSetTaskbarProgress(void * /*p_hwnd*/, double /*p_value*/)
+{
+    // Not applicable on macOS.
+}
+
+void MCPlatformSetTaskbarOverlayIcon(void * /*p_hwnd*/, MCStringRef /*p_icon_path*/)
+{
+    // Not applicable on macOS.
+}
+
+void MCPlatformSetBadge(void * /*p_hwnd*/, uinteger_t p_count)
+{
+    // macOS: update the Dock tile badge label.
+    NSDockTile *t_tile = [NSApp dockTile];
+    if (p_count == 0)
+        [t_tile setBadgeLabel:nil];
+    else
+        [t_tile setBadgeLabel:[NSString stringWithFormat:@"%u", (unsigned)p_count]];
+}
+
+void MCPlatformSpellCheckText(MCStringRef p_text, MCRange*& r_errors, uindex_t& r_count)
+{
+    r_errors = nil;
+    r_count  = 0;
+
+    if (!p_text || MCStringIsEmpty(p_text))
+        return;
+
+    NSString *t_ns_text = MCStringConvertToAutoreleasedNSString(p_text);
+    if (!t_ns_text)
+        return;
+
+    NSSpellChecker *t_checker = [NSSpellChecker sharedSpellChecker];
+    NSUInteger      t_length  = [t_ns_text length];
+
+    // checkString:range:types:options:inSpellDocumentWithTag:orthography:wordCount:
+    // is the modern API and compiles cleanly against macOS 26 SDK.
+    NSArray<NSTextCheckingResult *> *t_results =
+        [t_checker checkString: t_ns_text
+                         range: NSMakeRange(0, t_length)
+                         types: NSTextCheckingTypeSpelling
+                       options: nil
+       inSpellDocumentWithTag: 0
+                   orthography: nil
+                    wordCount: NULL];
+
+    uindex_t t_count = (uindex_t)[t_results count];
+    if (t_count == 0)
+        return;
+
+    MCRange *t_errors = new (nothrow) MCRange[t_count];
+    if (!t_errors)
+        return;
+
+    for (uindex_t i = 0; i < t_count; i++)
+    {
+        NSRange t_r = [[t_results objectAtIndex: (NSUInteger)i] range];
+        t_errors[i].offset = (uindex_t)t_r.location;
+        t_errors[i].length = (uindex_t)t_r.length;
+    }
+    r_errors = t_errors;
+    r_count  = t_count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1667,6 +1840,39 @@ extern uint2 MCdragdelta;
 //   when doing an user-import snapshot.
 static bool s_mouse_cursor_locked = false;
 
+// Maps windowNumber → MCMacPlatformWindow* for NSPopover-hosted windows.
+// NSPopover creates a private _NSPopoverWindow whose delegate is Apple's own
+// machinery, not MCWindowDelegate, so MCPlatformGetWindowAtPoint cannot find
+// it through the normal delegate check. We register the popover window here
+// after showRelativeToRect: and look it up as a fallback.
+static NSMutableDictionary *s_popover_window_map = nil;
+
+void MCMacPlatformRegisterPopoverWindow(NSWindow *p_ns_window, MCMacPlatformWindow *p_platform_window)
+{
+    if (s_popover_window_map == nil)
+        s_popover_window_map = [[NSMutableDictionary alloc] init];
+    NSNumber *t_key = [NSNumber numberWithInteger: [p_ns_window windowNumber]];
+    s_popover_window_map[t_key] = [NSValue valueWithPointer: p_platform_window];
+}
+
+void MCMacPlatformUnregisterPopoverWindow(NSWindow *p_ns_window)
+{
+    if (s_popover_window_map == nil)
+        return;
+    NSNumber *t_key = [NSNumber numberWithInteger: [p_ns_window windowNumber]];
+    [s_popover_window_map removeObjectForKey: t_key];
+}
+
+MCMacPlatformWindow *MCMacPlatformFindPopoverWindow(NSInteger p_window_number)
+{
+    if (s_popover_window_map == nil)
+        return nil;
+    NSValue *t_val = s_popover_window_map[[NSNumber numberWithInteger: p_window_number]];
+    if (t_val == nil)
+        return nil;
+    return (MCMacPlatformWindow *)[t_val pointerValue];
+}
+
 void MCMacPlatformLockCursor(void)
 {
     s_mouse_cursor_locked = true;
@@ -1837,33 +2043,15 @@ void MCMacPlatformHandleMouseCursorChange(MCPlatformWindowRef p_window)
     MCMacPlatformWindow *t_window;
     t_window = (MCMacPlatformWindow *)p_window;
     
-    // If we are on Lion+ then check to see if the mouse location is outside
-    // of any of the system tracking rects (used for resizing etc.)
-    extern uint4 MCmajorosversion;
-    if (MCmajorosversion >= MCOSVersionMake(10,7,0))
-    {
-        // MW-2014-06-11: [[ Bug 12437 ]] Make sure we only check tracking rectangles if we have
-        //   a resizable frame.
-        bool t_is_resizable;
-        MCPlatformGetWindowProperty(p_window, kMCPlatformWindowPropertyHasSizeWidget, kMCPlatformPropertyTypeBool, &t_is_resizable);
-        
-        if (t_is_resizable)
-        {
-            NSArray *t_tracking_areas;
-            t_tracking_areas = [[t_window -> GetContainerView() superview] trackingAreas];
-            
-            NSPoint t_mouse_loc;
-            t_mouse_loc = [t_window -> GetView() mapMCPointToNSPoint: s_mouse_position];
-            for(uindex_t i = 0; i < [t_tracking_areas count]; i++)
-            {
-                if (NSPointInRect(t_mouse_loc, [(NSTrackingArea *)[t_tracking_areas objectAtIndex: i] rect]))
-                    return;
-            }
-        }
-    }
-    
     // MW-2014-06-25: [[ Bug 12634 ]] Make sure we only change the cursor if we are not
     //   within a native view.
+    // Note: a Lion-era block that checked the superview's tracking areas to avoid
+    // overriding the system resize cursors was removed here.  On modern macOS the
+    // superview's tracking areas cover the entire content area (not just resize
+    // handles), so that check unconditionally suppressed cursor changes on any
+    // resizable stack.  The hitTest below is the correct gate: when the mouse is
+    // over a resize handle it sits in the window chrome (outside our view
+    // hierarchy), hitTest does not return our view, and we leave the cursor alone.
     if ([t_window -> GetContainerView() hitTest: [t_window -> GetView() mapMCPointToNSPoint: s_mouse_position]] == t_window -> GetView())
     {
         // Show the cursor attached to the window.
@@ -1978,11 +2166,17 @@ void MCMacPlatformHandleMouseMove(MCPoint p_screen_loc)
 	}
 }
 
+bool MCMacPlatformGetNaturalScrolling(void)
+{
+	return [[NSUserDefaults standardUserDefaults]
+	        boolForKey:@"com.apple.swipescrolldirection"];
+}
+
 void MCMacPlatformHandleMouseScroll(CGFloat dx, CGFloat dy)
 {
 	if (s_mouse_window == nil)
 		return;
-	
+
 	if (dx != 0.0 || dy != 0.0)
 		MCPlatformCallbackSendMouseScroll(s_mouse_window, dx < 0.0 ? -1 : (dx > 0.0 ? 1 : 0), dy < 0.0 ? -1 : (dy > 0.0 ? 1 : 0));
 }

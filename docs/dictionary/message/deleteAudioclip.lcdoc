@@ -10,11 +10,11 @@ Sent to an <audioclip(object)> just before it is removed from the
 
 Associations: audioclip
 
-Introduced: 8.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Description:
 Handle the <deleteAudioclip> message if you want to perform cleanup

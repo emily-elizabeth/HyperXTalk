@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
-    <title>LiveCode Guides</title>
+    <title>Guides</title>
     
     <link href="[[tDocsCSSFolder]]/bootstrap.min.css" rel="stylesheet">
     <link href="[[tDocsCSSFolder]]/userguide.css" rel="stylesheet">
@@ -28,7 +28,7 @@
 	<div class="col-md-9" role="main">
     	<div style="position:relative" id="documentation" style="position:relative">
     		<div id="lcdoc_guide_landing" style="display:none">
-    			<h1>LiveCode Guides</h1>
+    			<h1>Guides</h1>
     			<ul id="lcdoc_landing_list"></ul>
     		</div>
         </div>
@@ -54,7 +54,7 @@
 
    		initializeGuides(tRepoGuidesFolder, tIDEGuidesFolder);
 
-		// Notify LiveCode that the page is ready.
+		// Notify script that the page is ready.
 		// browserNavigateComplete callbacks are unavailable via libffi;
 		// use the JS bridge instead.
 		if (typeof liveCode !== 'undefined') {

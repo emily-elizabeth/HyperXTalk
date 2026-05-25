@@ -7,11 +7,11 @@ Syntax: set the HTTPProxy to <host> : <portNumber>
 Summary:
 Specifies a <proxy server> to be used for <HTTP> requests.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the HTTPProxy to "127.0.0.0:80"

@@ -9,7 +9,7 @@ Syntax: get the printerName
 Summary:
 Reports the name of the currently selected printer.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -38,7 +38,7 @@ the system's default printer is returned.
 
 Description:
 Use the <printerName> property to determine or set the printer that will
-be used by OpenXTalk.
+be used by HyperXTalk.
 
 Setting the <printerName> to empty will reset the printer to the system
 default, and all printer settings to the default for that printer.

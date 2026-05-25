@@ -6,7 +6,7 @@ Syntax: revGoURL <URL>
 
 Summary: Used to open a <URL> in a <browser|web browser>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Deprecated: 2.9
 

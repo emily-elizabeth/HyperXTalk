@@ -10,7 +10,7 @@ Summary:
 Displays a <file dialog box|standard file dialog> for the user to choose
 a <folder>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

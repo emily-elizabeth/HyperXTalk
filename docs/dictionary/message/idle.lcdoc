@@ -10,11 +10,11 @@ sent.
 
 Associations: card
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Description:
 Handle the <idle> <message> to check constantly on the status of an
@@ -47,7 +47,7 @@ only needs to handle a single message every sixty seconds:
         send "updateClock" to me in 60 seconds
     end updateClock
 
-Executing an <idle> <handler> slows down other OpenXTalk actions, so
+Executing an <idle> <handler> slows down other HyperXTalk actions, so
 <handle> the <idle> <message> only in the rare cases where the <send>
 <command> cannot be used instead.
 

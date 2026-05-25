@@ -8,7 +8,7 @@ Summary:
 Has no effect and is included for compatibility with
 imported <HyperCard> <stacks>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
@@ -16,10 +16,10 @@ Description:
 In HyperCard, the <blindTyping> <property> determines whether the user
 can type into the <message box> when the <message box> is not visible.
 
-In OpenXTalk, the message box always acts as though the <blindTyping> is
+In HyperXTalk, the message box always acts as though the <blindTyping> is
 set to false: it must be visible for the user to type into it.
 
 References: type (command), stacks (function), property (glossary),
-OpenXTalk (glossary), HyperCard (glossary), message box (keyword),
+HyperXTalk (glossary), HyperCard (glossary), message box (keyword),
 visible (property)
 

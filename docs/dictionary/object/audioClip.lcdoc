@@ -9,7 +9,7 @@ Syntax: audioClip
 Summary:
 An <object type> that contains sound data.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -9,11 +9,11 @@ Create a <widget> control of the specified <kind>.
 
 Associations: widget
 
-Introduced: 8.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 create widget "My Navbar" as "com.livecode.widget.navbar"

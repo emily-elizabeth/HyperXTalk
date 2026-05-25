@@ -10,11 +10,11 @@ Summary:
 Returns a list of the smallest and largest <keys> for each dimension of
 an <array>.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the extents of myArray

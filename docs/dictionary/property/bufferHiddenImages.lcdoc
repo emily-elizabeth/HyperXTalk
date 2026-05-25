@@ -8,11 +8,11 @@ Summary:
 Specifies whether <image|images> that are not visible are decompressed
 into an offscreen <buffer>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the bufferHiddenImages to true

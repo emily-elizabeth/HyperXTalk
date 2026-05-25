@@ -10,7 +10,7 @@ Summary:
 Returns the list of 'active scripting' languages that are installed on
 the system.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
 Changes:
 - Support for running JavaScript on HTML5 systems was added in version
@@ -34,7 +34,7 @@ languages, one per line.
 
 Description:
 Use the <alternateLanguages> <function> to find out what scripting
-languages (in addition to <OpenXTalk>) are available for use with the do
+languages (in addition to <HyperXTalk>) are available for use with the do
 command. 
 
 Mac OS and OS X systems support system-wide script languages (such as
@@ -50,5 +50,5 @@ HTML5 systems support executing JavaScript within the context of the
 browser host.
 
 References: do (command), function (control structure),
-OpenXTalk (glossary), return (glossary)
+HyperXTalk (glossary), return (glossary)
 

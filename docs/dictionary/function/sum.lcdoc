@@ -7,11 +7,11 @@ Syntax: sum(<numbersList>)
 Summary:
 <return|Returns> the sum of a list of numbers.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put sum(1,5,2,3) -- returns 11

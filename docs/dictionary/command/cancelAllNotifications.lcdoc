@@ -1,0 +1,42 @@
+Name: cancelAllNotifications
+
+Type: command
+
+Syntax: cancelAllNotifications
+
+Summary:
+Removes every notification that was posted by the current application.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- Clear all notifications when the application quits
+on shutdownRequest
+    cancelAllNotifications
+    quit
+end shutdownRequest
+
+Example:
+-- Reset all notifications when the user opens the main window
+on openStack
+    cancelAllNotifications
+end openStack
+
+Description:
+Use <cancelAllNotifications> to dismiss every notification posted by the
+application, regardless of tag. Notifications are removed from the
+notification center and the system tray.
+
+If no notifications are currently visible, the command silently does nothing.
+
+To remove a single notification by tag, use <cancelNotification>.
+
+References: cancelNotification (command), showNotification (command),
+requestNotificationPermission (command),
+notificationPermission (function)
+
+Tags: notifications

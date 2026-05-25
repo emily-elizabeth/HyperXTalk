@@ -8,7 +8,7 @@ Summary:
 Use the launch command to open a document with the operating system's
 default program.
 
-Introduced: 2.7.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -17,7 +17,7 @@ Platforms: desktop
 Security: process
 
 Example:
-launch document "/myProjects/myOpenXTalkProject/help.pdf"
+launch document "/myProjects/myHyperXTalkProject/help.pdf"
 
 Example:
 launch document (the cSampleImage of me)

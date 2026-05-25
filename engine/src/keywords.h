@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 //
 // Keyword class declarations
 //
@@ -88,6 +72,8 @@ public:
 	virtual Parse_stat parse(MCScriptPoint &);
 	virtual void exec_ctxt(MCExecContext &ctxt);
 	virtual uint4 linecount();
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCRepeat : public MCStatement
@@ -106,6 +92,8 @@ public:
 	virtual Parse_stat parse(MCScriptPoint &);
 	virtual void exec_ctxt(MCExecContext&);
 	virtual uint4 linecount();
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCExit : public MCStatement
@@ -115,6 +103,8 @@ public:
 	virtual Parse_stat parse(MCScriptPoint &sp);
 	virtual void exec_ctxt(MCExecContext&);
 	virtual uint4 linecount();
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCNext : public MCStatement
@@ -136,6 +126,8 @@ public:
 	virtual Parse_stat parse(MCScriptPoint &sp);
 	virtual void exec_ctxt(MCExecContext&);
 	virtual uint4 linecount();
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCBreak : public MCStatement
@@ -167,6 +159,8 @@ public:
 	virtual Parse_stat parse(MCScriptPoint &sp);
 	virtual void exec_ctxt(MCExecContext &);
 	virtual uint4 linecount();
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCThrowKeyword : public MCStatement
@@ -181,6 +175,8 @@ public:
 	virtual Parse_stat parse(MCScriptPoint &sp);
 	virtual void exec_ctxt(MCExecContext &);
 	virtual uint4 linecount();
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCTry : public MCStatement
@@ -199,6 +195,8 @@ public:
 	virtual Parse_stat parse(MCScriptPoint &);
 	virtual void exec_ctxt(MCExecContext&);
 	virtual uint4 linecount();
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -219,8 +217,11 @@ public:
     MCHandref(MCNameRef name);
     ~MCHandref(void);
     
-    MCParameter** getparams(void) { return &params; }
-    
+    MCParameter** getparams(void) const { return const_cast<MCParameter**>(&params); }
+
+    // HXT: returns the handler/function name stored in this ref.
+    MCNameRef getname(void) const { return *name; }
+
     void parse(void);
     void exec(MCExecContext& ctxt, uint2 line, uint2 pos, bool is_function);
 };
@@ -233,6 +234,8 @@ public:
     virtual ~MCComref();
     virtual Parse_stat parse(MCScriptPoint &);
     virtual void exec_ctxt(MCExecContext&);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCFuncref : public MCExpression
@@ -243,6 +246,8 @@ public:
     virtual ~MCFuncref();
     virtual Parse_stat parse(MCScriptPoint &, Boolean the);
     void eval_ctxt(MCExecContext& ctxt, MCExecValue& r_value);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -10,11 +10,11 @@ presses Return or Enter.
 
 Associations: button
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the default of button "OK" to true
@@ -34,7 +34,7 @@ default button is a cue to users about what to expect when they use the
 shortcut of pressing Return or Enter.
 
 When the user presses Enter or Return and there is no active control,
-OpenXTalk sends a mouseUp <message> to the <button(keyword)> whose
+HyperXTalk sends a mouseUp <message> to the <button(keyword)> whose
 <default> <property> is true. (Also <handle> the <returnInField> and
 <enterInField> messages to ensure that the default <button(keyword)> is
 activated even if there is a text <insertion point> or a <control> is

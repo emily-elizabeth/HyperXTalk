@@ -7,11 +7,11 @@ Syntax: set the randomSeed to <integer>
 Summary:
 Determines the seed <value> used to generate <random> numbers.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the randomSeed to 4570422
@@ -36,7 +36,7 @@ set the <randomSeed> back to its original <value(function)> and
 <call(command)> the <random> function five more times, the list of five
 numbers is the same as the first list you generated.
 
-OpenXTalk uses a new <randomSeed> every time the <application> is started
+HyperXTalk uses a new <randomSeed> every time the <application> is started
 up. 
 
 References: call (command), random (function), value (function),

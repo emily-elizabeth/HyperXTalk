@@ -8,11 +8,11 @@ Summary:
 Searches for a <regular expression> and replaces the portions that match
 the <regular expression>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put replaceText("malformed","mal","well") -- returns "wellformed"

@@ -7,13 +7,13 @@ Type: object
 Syntax: stack
 
 Summary:
-The basic OpenXTalk <object(glossary)>: a window.
+The basic HyperXTalk <object(glossary)>: a window.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 go to stack "Help"
@@ -25,7 +25,7 @@ Description:
 Use the <stack> <object type> to display a window, <palette>, or 
 <dialog box>.
 
-A stack corresponds to a single window. Each OpenXTalk file contains one 
+A stack corresponds to a single window. Each HyperXTalk file contains one 
 or more stacks. The first stack in a stack file is called the main 
 stack; any other stacks in the stack file are called substacks of the 
 main stack.

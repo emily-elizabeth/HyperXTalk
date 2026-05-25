@@ -8,11 +8,11 @@ Summary:
 Specifies a <format> for the <date> <function> and the <convert>
 <command>. 
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put "Date:" && the internet date & return after field "Mail Header"

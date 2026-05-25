@@ -9,11 +9,11 @@ Sent to an <image> when its <ID> <property> is changed.
 
 Associations: image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on IDChanged prevID,currentID -- update ID stored in another object
@@ -38,7 +38,7 @@ exceptions: <stacks> and <image(object)|images>.
 
 You can set the <ID> of an <image> to any positive <integer>. Be careful
 not to set an <image> <ID> to a number that's the <ID> of another
-<image> in the same <stack> : since OpenXTalk uses IDs to keep track of
+<image> in the same <stack> : since HyperXTalk uses IDs to keep track of
 <object|objects>, a conflict may result in the inability to access one
 or both <object|objects>. The following ID numbers are reserved and
 should not be used for <image> IDs:

@@ -8,7 +8,7 @@ Summary:
 <return|Returns> a list of the names of all <stacks> that are 
 <loaded into memory>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -40,7 +40,7 @@ operation on all <stacks> that are <loaded into memory>.
 
 If the <whichStacks> <parameter> is all, the <revLoadedStacks>
 <function> returns all <stacks> that are <loaded into memory>, including
-<stacks> that are part of the OpenXTalk <development environment> (such
+<stacks> that are part of the HyperXTalk <development environment> (such
 as the <message box>, <property inspector>, and so on).
 
 If the <whichStacks> <parameter> is application, the <revLoadedStacks>
@@ -48,7 +48,7 @@ If the <whichStacks> <parameter> is application, the <revLoadedStacks>
 <development environment>.
 
 If the <whichStacks> <parameter> is preference, the <revLoadedStacks>
-<function> checks the setting of the "OpenXTalk UI Elements in Lists"
+<function> checks the setting of the "HyperXTalk UI Elements in Lists"
 item in the View menu, and returns either all <stacks>, or only <stacks>
 that are not part of the <development environment>, depending on the
 setting. 

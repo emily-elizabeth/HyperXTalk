@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <foundation.h>
 #include <foundation-auto.h>
 #include <foundation-stdlib.h>
@@ -768,34 +752,34 @@ bool MCProperListMap(MCProperListRef self, MCProperListMapCallback p_callback, M
 {
     if (MCProperListIsIndirect(self))
         self = self -> contents;
-    
-	MCAutoValueRefArray t_values;
-	if (!t_values.New (self -> length))
-		return false;
+
+    MCAutoValueRefArray t_values;
+    if (!t_values.New (self -> length))
+        return false;
 
     bool t_success;
     t_success = true;
-    
+
     for (uindex_t i = 0; t_success && i < self -> length; i++)
     {
         MCValueRef t_value;
-		t_value = NULL;
+        t_value = NULL;
 
         if (!p_callback(context, self -> list[i], t_value))
             t_success = false;
         
 
-		/* In case the callback returns a value into t_value but also
-		 * indicates failure, make sure to release t_value on
-		 * failure. */
-		if (t_success)
-			t_values[i] = t_value;
-		else
-			MCValueRelease (t_value);
+        /* In case the callback returns a value into t_value but also
+            * indicates failure, make sure to release t_value on
+            * failure. */
+        if (t_success)
+            t_values[i] = t_value;
+        else
+            MCValueRelease (t_value);
     }
-    
+
     if (t_success)
-		t_success = t_values.TakeAsProperList (r_new_list);
+        t_success = t_values.TakeAsProperList (r_new_list);
 
     return t_success;
 }

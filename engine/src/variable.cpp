@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -230,15 +214,15 @@ bool MCVariable::isuql(void) const
 
 void MCVariable::clearuql(void)
 {    
-	if (!is_uql)
-		return;
-    
+    if (!is_uql)
+        return;
+
     // SN-2014-04-09 [[ Bug 12160 ]] Put after/before on an uninitialised, by-reference parameter inserts the variable's name in it
     // The content of a UQL value was not cleared when needed
     if (value . type == kMCExecValueTypeNameRef && MCNameIsEqualToCaseless(value . nameref_value, *name))
         clear();
-    
-	is_uql = false;
+
+    is_uql = false;
 }
 
 Boolean MCVariable::isclear(void) const
@@ -1329,11 +1313,11 @@ void MCVarref::clearuql()
 // MW-2008-08-18: [[ Bug 6945 ]] Cannot delete a nested array key.
 bool MCVarref::dofree(MCExecContext& ctxt)
 {
-	MCContainer t_container;
+    MCContainer t_container;
     if (!resolve(ctxt, t_container))
         return false;
-    
-	return t_container.remove(ctxt);
+
+    return t_container.remove(ctxt);
 }
 
 class MCContainerBuilder
@@ -1366,7 +1350,17 @@ public:
                 return false;
         return true;
     }
-    
+
+    // HXT: Fast path — append a pre-known integer index directly, skipping the
+    // temporary MCNumberRef heap allocation that AppendNonArrayRef would incur.
+    bool AppendIntegerIndex(index_t p_index)
+    {
+        MCNewAutoNameRef t_name;
+        if (!MCNameCreateWithIndex(p_index, &t_name))
+            return false;
+        return AppendNameRef(*t_name);
+    }
+
 private:
     bool AppendNonArrayRef(MCExecContext& ctxt, MCValueRef p_value)
     {
@@ -1474,10 +1468,64 @@ bool MCVarref::resolve(MCExecContext& ctxt, MCContainer& r_container)
             
     for(uindex_t i = 0; i < dimensions; i++)
 	{
-        MCAutoValueRef t_value;
-        if (!ctxt . EvalExprAsValueRef(t_dimensions[i], EE_VARIABLE_BADINDEX, &t_value))
+        // HXT: Fast path — avoid the temporary MCNumberRef heap allocation that
+        // EvalExprAsValueRef would incur for numeric array keys.
+        //
+        // A `repeat with x = 1 to N` loop counter is stored as
+        // kMCExecValueTypeDouble.  The old path wrapped that double in a heap-
+        // allocated MCNumberRef, handed it to ctxt.ConvertToName(), which
+        // immediately called MCNumberStrictFetchAsIndex + MCNameCreateWithIndex
+        // to extract the integer — then freed the MCNumberRef.  100,000 times
+        // per benchmark that is 100,000 malloc/free pairs for no reason.
+        //
+        // We read the raw MCExecValue directly and skip straight to
+        // MCNameCreateWithIndex for the three integer-compatible types.
+        MCExecValue t_dim;
+        t_dimensions[i]->eval_ctxt(ctxt, t_dim);
+        if (ctxt.HasError())
+        {
+            ctxt.LegacyThrow(EE_VARIABLE_BADINDEX);
             return false;
-        
+        }
+
+        if (t_dim.type == kMCExecValueTypeInt)
+        {
+            if (!t_builder.AppendIntegerIndex(t_dim.int_value))
+                return false;
+            continue;
+        }
+        else if (t_dim.type == kMCExecValueTypeUInt &&
+                 t_dim.uint_value <= (uinteger_t)INT32_MAX)
+        {
+            // INT32_MAX guard keeps the cast defined on 32-bit platforms where
+            // index_t is int32_t; on 64-bit all uint32 values are in range.
+            if (!t_builder.AppendIntegerIndex((index_t)t_dim.uint_value))
+                return false;
+            continue;
+        }
+        else if (t_dim.type == kMCExecValueTypeDouble)
+        {
+            // Exact-integer check: the most common case (repeat-with counter).
+            index_t t_index = (index_t)t_dim.double_value;
+            if ((double)t_index == t_dim.double_value)
+            {
+                if (!t_builder.AppendIntegerIndex(t_index))
+                    return false;
+                continue;
+            }
+            // Non-integer double — fall through to slow path below.
+        }
+
+        // Slow path — string keys, non-integer doubles, and out-of-range uints.
+        // MCExecTypeConvertToValueRefAndReleaseAlways releases t_dim for us,
+        // so MCAutoValueRef just needs to own the resulting MCValueRef.
+        MCAutoValueRef t_value;
+        MCExecTypeConvertToValueRefAndReleaseAlways(ctxt, t_dim.type, &t_dim, &t_value);
+        if (ctxt.HasError())
+        {
+            ctxt.LegacyThrow(EE_VARIABLE_BADINDEX);
+            return false;
+        }
         if (!t_builder.AppendValueRef(ctxt, *t_value))
             return false;
     }

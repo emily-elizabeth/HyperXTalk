@@ -10,11 +10,11 @@ that are drawn at each <vertex> of an irregular <polygon> <graphic>.
 
 Associations: graphic
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the markerLineSize of last graphic to 0 -- no border

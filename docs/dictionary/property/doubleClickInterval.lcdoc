@@ -8,11 +8,11 @@ Summary:
 Specifies how long the delay can be between two clicks for them to be
 considered a <double-click|double click>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the doubleClickInterval to 100 -- 1/10 second
@@ -38,7 +38,7 @@ and second click, no <mouseDoubleDown> or <mouseDoubleUp> <message> is
 sent to the clicked <object(glossary)>.
 
 On Mac OS systems, the <doubleClickInterval> is set to the current
-setting (in the Mouse control panel) when OpenXTalk starts up. Normally,
+setting (in the Mouse control panel) when HyperXTalk starts up. Normally,
 you should not change the <doubleClickInterval> setting, since doing so
 may discombobulate the user.
 

@@ -9,7 +9,7 @@ Specifies the window controls and appearance of a <stack window>.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

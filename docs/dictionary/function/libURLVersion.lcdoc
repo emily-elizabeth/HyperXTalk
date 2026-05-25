@@ -9,7 +9,7 @@ Summary:
 
 Associations: internet library
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux, html5
 
@@ -37,14 +37,14 @@ There is no special significance to the version number returned by
 >*Important:* The <libURLVersion> <function> is part of the 
 > <Internet library>. To ensure that the <function> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
 
 References: function (control structure), version (function),
 revAppVersion (function), systemVersion (function),
-OpenXTalk custom library (glossary), return (glossary),
+HyperXTalk custom library (glossary), return (glossary),
 main stack (glossary), handler (glossary),
 Standalone Application Settings (glossary), message (glossary),
 group (glossary), standalone application (glossary),

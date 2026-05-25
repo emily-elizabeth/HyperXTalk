@@ -9,11 +9,11 @@ Used with the <visual effect> <command> to designate a straight cut
 between two <card|cards> with no visual effect. Also used with the
 <find> <command> to search at the beginnings of one or more <words>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 find normal "run" -- finds "run" and "running", but not "grunt"

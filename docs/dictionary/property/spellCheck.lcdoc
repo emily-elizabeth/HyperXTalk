@@ -1,0 +1,61 @@
+Name: spellCheck
+
+Type: property
+
+Syntax: set the spellCheck of <field> to {true | false}
+
+Summary:
+Specifies whether misspelled words in a <field> are underlined with a
+red squiggly line.
+
+Associations: field
+
+Introduced: 1.0.0
+
+OS: mac, windows
+
+Platforms: desktop
+
+Example:
+set the spellCheck of field "body" to true
+
+Example:
+set the spellCheck of the focusedObject to false
+
+Value (bool):
+The <spellCheck> of a <field(keyword)> is true or false.
+By default, the <spellCheck> <property> of newly created
+<field(object)|fields> is set to false.
+
+Description:
+Use the <spellCheck> <property> to enable inline spell checking for a
+<field(keyword)>. When enabled, misspelled words are underlined with a
+red squiggly line as the user types or whenever the field's text
+changes.
+
+When <spellCheck> is set to true, the engine passes the full plain-text
+content of the field to the system spell checker. Each word identified
+as misspelled is marked with a red zigzag underline drawn one pixel
+below the text baseline. The underline updates automatically whenever
+the text of the field changes.
+
+When <spellCheck> is set to false, all spelling error indicators are
+removed immediately and no further spell checking is performed on that
+field.
+
+Spell checking uses the system dictionary and respects the user's
+language settings. On macOS the system spell checker is
+`NSSpellChecker`. On Windows 8 and later the system spell checker is
+the `ISpellChecker` COM API (Windows Spell Checking API). On other
+platforms the <spellCheck> property is accepted without error but has
+no visible effect.
+
+>*Note:* The <spellCheck> property performs checking only — it does not
+> provide suggestions or auto-correction. To control whether the system
+> offers auto-corrections while the user is typing, see the
+> `allowInlineInput` property.
+
+References: lockText (property), sharedText (property),
+allowInlineInput (property), field (keyword), field (object)
+
+Tags: ui

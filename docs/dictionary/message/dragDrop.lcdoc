@@ -8,7 +8,7 @@ Summary:
 Sent to the <object(glossary)> where data was dropped when a 
 <drag and drop> finishes.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 Associations: card, field, button, graphic, scrollbar, player, image
 
@@ -32,10 +32,10 @@ dragged.
 >*Important:*  If the <acceptDrop> <property> is set to false at the
 > time the drop occurs, no <dragDrop> <message> is sent.
 
-OpenXTalk automatically handles the mechanics of dragging and dropping
+HyperXTalk automatically handles the mechanics of dragging and dropping
 text between and within unlocked fields. To support this type of drag
 and drop operation, you don't need to do any scripting: the text is
-dropped into the field automatically when OpenXTalk receives the
+dropped into the field automatically when HyperXTalk receives the
 <dragDrop> <message>.
 
 To prevent an unlocked field from accepting a drag and drop, trap the

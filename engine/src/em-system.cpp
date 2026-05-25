@@ -565,8 +565,8 @@ MCEmscriptenSystem::ListFolderEntries(MCStringRef p_folder,
 		}
 
 		t_engine_entry.data_size = t_stat_buf.st_size;
-		t_engine_entry.modification_time = uint32_t(t_stat_buf.st_mtime);
-		t_engine_entry.access_time = uint32_t(t_stat_buf.st_atime);
+		t_engine_entry.modification_time = uint64_t(t_stat_buf.st_mtime);
+		t_engine_entry.access_time = uint64_t(t_stat_buf.st_atime);
 		t_engine_entry.group_id = t_stat_buf.st_gid;
 		t_engine_entry.user_id = t_stat_buf.st_uid;
 		t_engine_entry.permissions = t_stat_buf.st_mode & 0777;

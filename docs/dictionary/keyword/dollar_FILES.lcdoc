@@ -7,7 +7,7 @@ Syntax: $_FILES
 Summary:
 <$_FILES> is an array variable that is used to handle file uploads.
 
-Introduced: 4.6.4
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

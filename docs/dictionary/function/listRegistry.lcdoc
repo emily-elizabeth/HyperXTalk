@@ -8,7 +8,7 @@ Summary:
 Lists the sub-keys of the specified key in the <registry|Windows system
 registry>. 
 
-Introduced: 4.5
+Introduced: 1.0.0
 
 OS: windows
 

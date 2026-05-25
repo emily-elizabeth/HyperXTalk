@@ -7,7 +7,7 @@ Syntax: copyResource(<file>, <destinationFile>, <resType>,{<resID> | <resName>}[
 Summary:
 Copies a <resource> from one <Mac OS> <file> to another.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Deprecated: 8.1
 
@@ -72,8 +72,8 @@ resource ID of the original <resource> in the <file>; it only affects
 the copy in the <destinationFile>.
 
 Changes:
-The <copyResource> function was deprecated in OpenXTalk 8.1, since the
-versions of MacOS supported by OpenXTalk no longer support resource
+The <copyResource> function was deprecated in HyperXTalk 8.1, since the
+versions of MacOS supported by HyperXTalk no longer support resource
 forks.  It should not be used in any new code.
 
 References: copy (command), function (control structure),

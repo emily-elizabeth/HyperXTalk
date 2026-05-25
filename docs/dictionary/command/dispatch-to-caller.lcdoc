@@ -1,0 +1,57 @@
+Name: dispatch to caller
+
+Type: command
+
+Syntax: dispatch <message> to caller [with <argumentList>]
+
+Summary:
+Sends a message from within a worker handler back to the stack that
+dispatched into the worker.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+dispatch "onComputeSquaresResult" to caller with tResults
+
+Example:
+# Inside a worker script:
+on computeSquares pCount
+  local tResults
+  repeat with i = 1 to pCount
+    put i * i & return after tResults
+  end repeat
+  dispatch "onComputeSquaresResult" to caller with tResults
+end computeSquares
+
+# In the calling stack's script:
+on onComputeSquaresResult pResults
+  put pResults into field "output"
+end onComputeSquaresResult
+
+Parameters:
+message:
+The name of the handler to invoke in the calling stack's script.
+
+argumentList:
+A comma-separated list of values to pass as parameters to the handler.
+
+Description:
+Use <dispatch to caller> from within a worker handler to send a message
+back to the stack that called into the worker via <dispatch to worker>.
+
+<dispatch to caller> targets the default stack at the time the
+<dispatch to worker> call was made. The message passes through the normal
+message path of the calling stack.
+
+>*Important:* <dispatch to caller> may only be used from within a
+> handler that was invoked by <dispatch to worker>. Using it outside
+> of a worker context causes an execution error.
+
+References: dispatch to worker (command), create worker (command),
+dispatch (command), worker (keyword), caller (keyword)
+
+Tags: workers

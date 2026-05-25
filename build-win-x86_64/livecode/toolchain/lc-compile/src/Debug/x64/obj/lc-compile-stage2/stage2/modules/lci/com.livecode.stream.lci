@@ -1,6 +1,0 @@
-import module com.livecode.stream
-  foreign type Stream
-  foreign handler MCStreamExecGetStandardOutput(out Stdout as Stream) returns nothing
-  foreign handler MCStreamExecGetStandardError(out Stdout as Stream) returns nothing
-  foreign handler MCStreamExecWriteToStream(in Buffer as Data, in Destination as Stream) returns nothing
-end module

@@ -1,0 +1,70 @@
+Name: showNotification
+
+Type: command
+
+Syntax: showNotification <title> [<body> [<tag>]]
+
+Summary:
+Displays an OS-level notification with a title, optional body text, and an
+optional tag that can be used to update or cancel the notification later.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- Simple notification with a title only
+showNotification "Build complete"
+
+Example:
+-- Notification with title and body text
+showNotification "HyperXTalk" "Your export has finished."
+
+Example:
+-- Tagged notification — can be updated or cancelled by tag
+showNotification "Sync" "Syncing 120 files…" "sync-progress"
+
+Example:
+-- Update an existing tagged notification in place
+showNotification "Sync" "Sync complete." "sync-progress"
+
+Example:
+-- Cancel the notification from a button script
+on mouseUp
+    cancelNotification "sync-progress"
+end mouseUp
+
+Parameters:
+title (string): The headline text shown in the notification. Required.
+body (string): The secondary text shown below the title. Optional.
+tag (string): A unique identifier for this notification. Optional. If a
+notification with the same tag is already visible, the new notification
+replaces it on platforms that support replacement (macOS, Windows).
+If omitted, a unique tag is generated automatically.
+
+Description:
+Use <showNotification> to display a native OS notification outside the
+application window. The notification appears in the system notification
+center or tray area and remains visible until the user dismisses it or
+the engine cancels it.
+
+On macOS and iOS, the application must have previously received
+permission via <requestNotificationPermission>. On Windows and Linux,
+permission is implicitly granted and no separate step is required.
+
+If the user clicks the notification, HyperXTalk fires a
+<notificationClicked> message to the current card of the default stack,
+passing the tag of the notification as a parameter.
+
+Use <cancelNotification> to dismiss a specific tagged notification
+programmatically, or <cancelAllNotifications> to dismiss every pending
+notification.
+
+References: requestNotificationPermission (command),
+cancelNotification (command), cancelAllNotifications (command),
+notificationPermission (function), notificationClicked (message),
+notificationPermissionGranted (message), notificationPermissionDenied (message)
+
+Tags: notifications

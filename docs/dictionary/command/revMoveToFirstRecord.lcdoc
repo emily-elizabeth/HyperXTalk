@@ -9,11 +9,11 @@ Moves to the first <record> of a <record set (glossary)>.
 
 Associations: database library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 
@@ -42,7 +42,7 @@ selected set of <record|records>.
 >*Important:*  The <revMoveToFirstRecord> <command> is part of the 
 > <Database library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure both the 
 > "Database" library checkbox and those of the database drivers you are 
@@ -54,7 +54,7 @@ revdb_movelast (function), revDatabaseColumnNumbered (function),
 revdb_movenext (function), Standalone Application Settings (glossary),
 record (glossary), command (glossary), record set (glossary), 
 standalone application (glossary), database (glossary),
-OpenXTalk custom library (glossary), Database library (library)
+HyperXTalk custom library (glossary), Database library (library)
 
 Tags: database
 

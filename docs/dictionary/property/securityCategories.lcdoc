@@ -7,11 +7,11 @@ Syntax: put the securityCategories
 Summary:
 Returns a list of security categories that can be set in the engine.
 
-Introduced: 6.1.3
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the securityCategories

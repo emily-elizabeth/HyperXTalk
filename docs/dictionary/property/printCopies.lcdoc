@@ -9,7 +9,7 @@ Syntax: get the printCopies
 Summary:
 Reports the number of copies that the next print job will print.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

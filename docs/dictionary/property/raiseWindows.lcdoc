@@ -10,7 +10,7 @@ Summary:
 Set the <raiseWindows> global property to true if you want to force
 xTalk's windows to move as one layer.
 
-Introduced: 2.7.2
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

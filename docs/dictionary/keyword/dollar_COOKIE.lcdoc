@@ -8,7 +8,7 @@ Summary:
 <$_COOKIE> is an array variable that contains the data for all cookies
 set in the visiting browser.
 
-Introduced: 4.6.4
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

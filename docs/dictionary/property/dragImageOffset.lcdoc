@@ -9,7 +9,7 @@ Syntax: get the dragImageOffset
 Summary:
 Specifies the placement of the drag image when dragging an object.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows
 

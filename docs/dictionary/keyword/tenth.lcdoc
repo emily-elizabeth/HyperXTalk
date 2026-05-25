@@ -7,11 +7,11 @@ Syntax: tenth
 Summary:
 Designates the tenth member of a set.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the ID of tenth card into myID

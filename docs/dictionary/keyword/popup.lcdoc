@@ -8,7 +8,7 @@ Summary:
 Specifies one of the <menu> types that can be used with the <menuMode>
 <property>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

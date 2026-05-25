@@ -7,11 +7,11 @@ Syntax: set the playLoudness [of {<audioClip> | <player>}] to <percentage>
 Summary:
 Specifies the volume of sounds played by the play command.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the playLoudness to 100 -- maximum loudness
@@ -30,7 +30,7 @@ Use the playLoudness property to set the speaker volume.
 Setting the playLoudness to zero turns off sounds.
 
 If no audio clip, video clip, or player is specified, the setting of the
-playLoudness property applies to all sounds OpenXTalk makes, including
+playLoudness property applies to all sounds HyperXTalk makes, including
 those made with the <beep> and <play> commands.
 
 Users can manually set the playLoudness of a <player> using the slider

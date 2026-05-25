@@ -9,11 +9,11 @@ Specifies whether visited <card|cards> are added to the
 <recent cards|recent cards list> used by go back, go forth, and go 
 recent.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the lockRecent to true

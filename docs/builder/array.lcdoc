@@ -1,0 +1,312 @@
+Library: com.livecode.array
+
+Type: module
+
+Summary: This library consists of the operations on arrays included in the standard library of Extension Builder.
+
+
+Name: KeysOfArray
+
+Type: operator
+
+Syntax:     the keys of <Target>
+
+Summary: Returns the keys of an array.
+
+Target: An expression which evaluates to an array.
+
+Returns: A list whose elements are the keys of <Target>.
+
+Example:
+variable tArray as Array
+put the empty array into tArray
+put "value1" into tArray["key1"]
+put "value2" into tArray["key2"]
+put "value3" into tArray["key3"]
+
+variable tKeys as List
+put the keys of tArray into tKeys
+sort tKeys in ascending order
+
+variable tKeysString as String
+combine tKeys with "," into tKeysString
+// tKeysString is "key1,key2,key3"
+
+Description: >*Note:* The resulting list is not necessarily ordered in any way. Use the <com.livecode.sort> library to sort the keys.
+
+References: com.livecode.sort(library)
+
+Tags: Arrays
+
+
+
+
+Name: SingletonElementOfArray
+
+Type: operator
+
+Syntax: 	<Target> [ <Key> ]
+
+Summary: Designates the element with key <Key> in <Target>.
+
+Index: An expression which evaluates to a string.
+
+Target: An expression which evaluates to an array.
+
+Example:
+variable tArray as Array
+put the empty array into tArray
+put "value" into tArray["key"]
+
+variable tVar as String
+put tArray["key"] into tVar -- tVar contains "value"
+
+Description: Either locates the element container with the given key for use as the target container of another operation, or evaluates the element with the given key as the source of another operation.
+
+Tags: Arrays
+
+
+
+
+Name: DeleteElementOfArray
+
+Type: statement
+
+Syntax: 	delete <Target> [ <Key> ]
+
+Summary: Deletes the element with key <Key> in <Target>.
+
+Index: An expression which evaluates to a string.
+
+Target: An expression which evaluates to an array.
+
+Example:
+variable tArray as Array
+put the empty array into tArray
+put "value" into tArray["key"]
+
+delete tArray["key"] -- tArray is the empty array
+
+Description: Either locates the element container with the given key for use as the target container of another operation, or evaluates the element with the given key as the source of another operation.
+
+Tags: Arrays
+
+
+
+
+Name: CountElementsOfArray
+
+Type: operator
+
+Syntax:     the number of elements in <Target>
+
+Summary: Returns the number of elements in <Target>
+
+Target: An expression which evaluates to an array.
+
+Example:
+variable tArray as Array
+put the empty array into tArray
+put 1 into tArray["key1"]
+put 2 into tArray["key2"]
+put 3 into tArray["key3"]
+
+variable tVar as Number
+put the number of elements in tArray into tVar -- tVar contains 3
+
+Description: The number of elements in tArray returns the number of key-value pairs stored in the array.
+
+Tags: Arrays
+
+
+
+
+Name: AmongKeysOfArray
+
+Type: operator
+
+Syntax:     <Needle> ( is not | is ) among the keys of <Target>
+
+Summary: Determines if an array has a given key
+
+Needle: An expression which evaluates to an integer, string, or list of integers.
+
+Target: An expression which evaluates to an array.
+
+Returns: Returns true if <Needle> can be found among the keys of <Target>.
+
+Example:
+variable tArray as Array
+put "value" into tArray["key"]
+
+variable tIsAmong as Boolean
+put "key" is among the keys of tArray into tIsAmong -- tIsAmong is true
+
+Description:
+The keys of an array are case insensitive. Thus
+``` tVar is among the keys of tArray```
+is not equivalent to
+``` tVar is in (the keys of tArray) ```
+as the latter <IsInList> operation *is* case sensitive.
+
+References: IsInList (operator)
+
+Tags: Arrays
+
+
+
+
+Name: RepeatForEachElementInArray
+
+Type: iterator
+
+Syntax:     element <Iterand>
+
+Summary: Repeat over the elements of an array.
+
+Iterand: Any variable of appropriate type.
+
+Example:
+    variable tArray as Array
+    put the empty array into tArray
+    put 1 into tArray["key1"]
+    put 2 into tArray["key2"]
+    put 3 into tArray["key3"]
+
+	variable tSum as Number
+	put 0 into tSum
+
+    variable tElement
+    repeat for each element tElement in tArray
+        add tElement to tSum
+    end repeat
+
+    // tSum is 6
+
+Description:
+Use repeat for each element to iterate over the elements of an array in no particular order. On each iteration, the <Iterand> will contain the next element of the array being iterated over.
+
+>*Note:* If <Iterand> is typed, then an error will be thrown if the array being iterated over contains any elements of a different type.
+
+Tags: Arrays
+
+
+
+
+Name: AmongElementsOfArray
+
+Type: operator
+
+Syntax:     <Needle> ( is not | is ) among the elements of <Target>
+
+Summary: Determines if an array contains a given element
+
+Needle: Any expression.
+
+Target: An expression which evaluates to an array.
+
+Returns: Returns true if <Needle> can be found among the elements of <Target>.
+
+Example:
+variable tArray as Array
+put "value" into tArray["key"]
+
+variable tIsAmong as Boolean
+put "value" is among the elements of tArray into tIsAmong -- tIsAmong is true
+
+Description:
+Elements are compared using the default comparison for that type. Thus for a string, ```tString```,
+```tString is among the elements of tArray```
+is a case sensitive search.
+
+Tags: Arrays
+
+
+
+
+Name: ElementsOfArray
+
+Type: operator
+
+Syntax:     the elements of <Target>
+
+Summary: Returns the elements of an array.
+
+Target: An expression which evaluates to an array.
+
+Returns: A list whose elements are the elements of <Target>.
+
+Example:
+variable tArray as Array
+put the empty array into tArray
+put 1 into tArray["key1"]
+put 2 into tArray["key2"]
+put 3 into tArray["key3"]
+
+variable tElements as List
+put the elements of tArray into tElements
+sort tElements in ascending numeric order
+
+// tElements is [1, 2, 3]
+
+Description: >*Note:* The resulting list is not necessarily ordered in any way. Use the <com.livecode.sort> library to sort the elements.
+
+References: com.livecode.sort(library)
+
+Tags: Arrays
+
+
+
+
+Name: EmptyArray
+
+Type: expression
+
+Syntax: 	the empty array
+
+Summary: Designates the array with no elements.
+
+Example:
+variable tVar as Array
+variable tCount as Number
+put the empty array into tVar
+put the number of elements in tVar into tCount -- tCount is 0
+
+Description: Use ```the empty array``` to initialise an array variable.
+
+Tags: Arrays
+
+
+
+
+Name: RepeatForEachKey
+
+Type: iterator
+
+Syntax:     key <Iterand>
+
+Summary: Repeat over the keys of an array.
+
+Iterand: A string container.
+
+Example:
+    variable tArray as Array
+    put the empty array into tArray
+    put 1 into tArray["abc"]
+    put 2 into tArray["def"]
+    put 3 into tArray["ghi"]
+
+	variable tString as String
+	put "" into tString
+
+    variable tKey as String
+    repeat for each key tKey in tArray
+        put tKey after tString
+    end repeat
+
+    variable tBool as Boolean
+    put tString contains "abc" into tBool -- tBool is true
+
+Description: Use repeat for each key to iterate over the keys of an array in no particular order. On each iteration, the <Iterand> will contain the next key of the array being iterated over.
+
+Tags: Arrays, Control structures

@@ -10,13 +10,13 @@ Enters a <password> for a locked <stack>, letting the user modify the
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Edition: indy
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the passKey of this stack to field "Challenge"
@@ -44,9 +44,9 @@ authentication in a <handler>.
     set the password of stack "Secrets" to field "Password"
 
 >**Note:** Setting the <passKey> of a <stack> is only supported in 
-> *OpenXTalk Indy* and *OpenXTalk Business*. In *OpenXTalk Community* and
-> *OpenXTalk Community Plus* setting the <passKey> of a <stack> will
-> result in an execution error, however, *OpenXTalk Community Plus* does
+> *HyperXTalk Indy* and *HyperXTalk Business*. In *HyperXTalk Community* and
+> *HyperXTalk Community Plus* setting the <passKey> of a <stack> will
+> result in an execution error, however, *HyperXTalk Community Plus* does
 > support using <password> protected <stack|stacks>.
     
 References: stacks (function), property (glossary), unlock (glossary),

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -182,6 +166,54 @@ void MCEndsWith::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
         return;
 
     MCStringsEvalEndsWith(ctxt, *t_left, *t_right, t_result);
+
+    MCExecValueTraits<bool>::set(r_value, t_result);
+}
+
+Parse_stat MCMatches::parse(MCScriptPoint& sp, Boolean the)
+{
+    initpoint(sp);
+
+    if (sp . skip_token(SP_SUGAR, TT_UNDEFINED, SG_WILDCARD) == PS_NORMAL)
+    {
+        m_matchmode = MA_WILDCARD;
+    }
+    else if (sp . skip_token(SP_SUGAR, TT_UNDEFINED, SG_REGEX) == PS_NORMAL)
+    {
+        m_matchmode = MA_REGEX;
+    }
+    else
+    {
+        MCperror -> add(PE_MATCHES_NOMODE, sp);
+        return PS_ERROR;
+    }
+
+    // Skip the optional pattern keyword
+    sp.skip_token(SP_SUGAR, TT_UNDEFINED, SG_PATTERN);
+
+    return PS_NORMAL;
+}
+
+void MCMatches::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
+{
+    MCAutoStringRef t_left, t_right;
+    bool t_result;
+
+    if (!ctxt . EvalExprAsStringRef(left, EE_MATCHES_BADLEFT, &t_left)
+        || !ctxt . EvalExprAsStringRef(right, EE_MATCHES_BADRIGHT, &t_right))
+        return;
+
+    if (m_matchmode == MA_REGEX)
+    {
+        MCStringsEvalMatchText(ctxt, *t_left, *t_right, nullptr, 0, t_result);
+    }
+    else
+    {
+        t_result = MCStringWildcardMatch(*t_left,
+                                         MCRangeMake(0, MCStringGetLength(*t_left)),
+                                         *t_right,
+                                         ctxt.GetStringComparisonType());
+    }
 
     MCExecValueTraits<bool>::set(r_value, t_result);
 }

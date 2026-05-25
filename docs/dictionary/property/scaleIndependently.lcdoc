@@ -8,11 +8,11 @@ Summary:
 Specifies whether an <EPS|EPS object's> vertical and horizontal
 dimensions are sized independently or proportionally.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: linux, ios, android
+OS: linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the scaleIndependently of EPS 2 to false

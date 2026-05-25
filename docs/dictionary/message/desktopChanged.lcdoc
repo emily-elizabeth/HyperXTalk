@@ -10,7 +10,7 @@ Sent to the current card of the defaultStack whenever the <screenRect>
 
 Associations: card
 
-Introduced: 2.7
+Introduced: 1.0.0
 
 OS: mac, windows
 
@@ -29,7 +29,7 @@ As the <desktopChanged> message can be sent by the OS at any time, it is
 recommended that you handle the message in the main-stack of your
 application. 
 
->*Note:*  The OpenXTalk IDE broadcasts the <desktopChanged> message to
+>*Note:*  The HyperXTalk IDE broadcasts the <desktopChanged> message to
 > all main stacks that are currently open at the time the engine
 > receives the notification from the OS - this is to improve consistency
 > with behaviour in standalone applications.

@@ -8,7 +8,7 @@ Summary:
 <return|Returns> a list of the <resource|resources> in a <Mac OS>
 <file>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 

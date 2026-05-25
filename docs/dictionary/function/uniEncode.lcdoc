@@ -9,13 +9,13 @@ Syntax: uniEncode(<stringToEncode> [, <language>])
 Summary:
 Converts a <string> from single-byte text to <Unicode>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Deprecated: 7.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 uniEncode("AB") -- returns "A",null,"B",null (on Intel)

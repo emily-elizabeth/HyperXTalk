@@ -8,11 +8,11 @@ Summary:
 Specifies how often the display is updated during <visual effect>,
 <drag>, and <move> <command|commands>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the syncRate to 12

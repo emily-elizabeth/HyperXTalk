@@ -5,14 +5,14 @@ Type: keyword
 Syntax: inverse
 
 Summary:
-Used with the <visual effect> <command>, included in <OpenXTalk> for
+Used with the <visual effect> <command>, included in <HyperXTalk> for
 compatibility with imported <HyperCard> <stacks>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 visual effect dissolve to inverse
@@ -21,11 +21,11 @@ Description:
 In HyperCard, the <inverse> <keyword> indicates that the color inverse
 of the <current card> is shown at the end of the visual effect.
 
-In OpenXTalk, the <inverse> <keyword> is a synonym of the <white>
+In HyperXTalk, the <inverse> <keyword> is a synonym of the <white>
 <keyword>. 
 
 References: visual effect (command), stacks (function),
-keyword (glossary), current card (glossary), OpenXTalk (glossary),
+keyword (glossary), current card (glossary), HyperXTalk (glossary),
 command (glossary), HyperCard (glossary), white (keyword),
 black (keyword)
 

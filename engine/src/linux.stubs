@@ -23,6 +23,13 @@ X11 libX11.so.6
 	XMapWindow: (pointer, integer) -> ()
 	XUnmapWindow: (pointer, integer) -> ()
 	XDestroyWindow: (pointer, integer) -> ()
+	XCreateSimpleWindow: (pointer, integer, integer, integer, integer, integer, integer, integer, integer) -> (integer)
+	XCreateWindow: (pointer, integer, integer, integer, integer, integer, integer, integer, integer, pointer, integer, pointer) -> (integer)
+	XCreateColormap: (pointer, integer, pointer, integer) -> (integer)
+	XFreeColormap: (pointer, integer) -> ()
+	XMatchVisualInfo: (pointer, integer, integer, integer, pointer) -> (integer)
+	XDefaultScreen: (pointer) -> (integer)
+	XFlush: (pointer) -> ()
 
 Xinerama libXinerama.so.1
 	XineramaIsActive: (pointer) -> (integer)

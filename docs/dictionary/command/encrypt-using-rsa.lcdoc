@@ -7,11 +7,11 @@ Syntax: encrypt <message> using rsa with {public | private} key <key> [and passp
 Summary:
 Encrypt data using the RSA algorithm.
 
-Introduced: 4.6
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: network
 

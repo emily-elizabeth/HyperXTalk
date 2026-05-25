@@ -11,7 +11,7 @@ Syntax: XBrowser_Closing <pInstanceId>
 Summary:
 Sent when a browser instance is closing
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 

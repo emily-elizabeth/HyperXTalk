@@ -28,21 +28,12 @@ extern "C" {
  */
 
 /* clang-format off */
-# ifndef OPENSSL_SYS_MACOSX
-#  define OPENSSL_SYS_MACOSX 1
-# endif
 # define OPENSSL_CONFIGURED_API 30600
 # ifndef OPENSSL_RAND_SEED_OS
 #  define OPENSSL_RAND_SEED_OS
 # endif
-# ifndef OPENSSL_THREADS
-#  define OPENSSL_THREADS
-# endif
 # ifndef OPENSSL_NO_ACVP_TESTS
 #  define OPENSSL_NO_ACVP_TESTS
-# endif
-# ifndef OPENSSL_NO_AFALGENG
-#  define OPENSSL_NO_AFALGENG
 # endif
 # ifndef OPENSSL_NO_ALLOCFAIL_TESTS
 #  define OPENSSL_NO_ALLOCFAIL_TESTS
@@ -62,11 +53,17 @@ extern "C" {
 # ifndef OPENSSL_NO_CRYPTO_MDEBUG_BACKTRACE
 #  define OPENSSL_NO_CRYPTO_MDEBUG_BACKTRACE
 # endif
+# ifndef OPENSSL_NO_DEFAULT_THREAD_POOL
+#  define OPENSSL_NO_DEFAULT_THREAD_POOL
+# endif
 # ifndef OPENSSL_NO_DEMOS
 #  define OPENSSL_NO_DEMOS
 # endif
 # ifndef OPENSSL_NO_DEVCRYPTOENG
 #  define OPENSSL_NO_DEVCRYPTOENG
+# endif
+# ifndef OPENSSL_NO_EC_NISTP_64_GCC_128
+#  define OPENSSL_NO_EC_NISTP_64_GCC_128
 # endif
 # ifndef OPENSSL_NO_EGD
 #  define OPENSSL_NO_EGD
@@ -104,6 +101,9 @@ extern "C" {
 # ifndef OPENSSL_NO_LMS
 #  define OPENSSL_NO_LMS
 # endif
+# ifndef OPENSSL_NO_LOADERENG
+#  define OPENSSL_NO_LOADERENG
+# endif
 # ifndef OPENSSL_NO_MD2
 #  define OPENSSL_NO_MD2
 # endif
@@ -130,6 +130,9 @@ extern "C" {
 # endif
 # ifndef OPENSSL_NO_TFO
 #  define OPENSSL_NO_TFO
+# endif
+# ifndef OPENSSL_NO_THREAD_POOL
+#  define OPENSSL_NO_THREAD_POOL
 # endif
 # ifndef OPENSSL_NO_TRACE
 #  define OPENSSL_NO_TRACE
@@ -161,8 +164,8 @@ extern "C" {
 # ifndef OPENSSL_NO_ZSTD_DYNAMIC
 #  define OPENSSL_NO_ZSTD_DYNAMIC
 # endif
-# ifndef OPENSSL_NO_STATIC_ENGINE
-#  define OPENSSL_NO_STATIC_ENGINE
+# ifndef OPENSSL_NO_DYNAMIC_ENGINE
+#  define OPENSSL_NO_DYNAMIC_ENGINE
 # endif
 
 /* clang-format on */

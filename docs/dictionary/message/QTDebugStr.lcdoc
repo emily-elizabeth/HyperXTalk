@@ -10,7 +10,7 @@ performs a "DebugStr" action.
 
 Associations: player
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 
@@ -23,7 +23,7 @@ end qtDebugStr
 
 Parameters:
 pString (string):
-The QuickTime parameter the movie passed to OpenXTalk when it performed
+The QuickTime parameter the movie passed to HyperXTalk when it performed
 the "DebugStr" action.
 
 Description:
@@ -31,7 +31,7 @@ Handle the <qtDebugStr> <message> to respond to actions embedded in a
 <QuickTime> movie.
 
 The movie author sets the <string> during development of the movie.
-When <QuickTime> executes the "DebugStr" action, OpenXTalk sends the
+When <QuickTime> executes the "DebugStr" action, HyperXTalk sends the
 <qtDebugStr> <message> to the <player>, with the <string> the movie
 author specified.
 

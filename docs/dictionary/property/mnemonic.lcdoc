@@ -10,11 +10,11 @@ used with the <Alt key> to <trigger> the <button(keyword)>.
 
 Associations: button
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: windows, ios, android
+OS: windows
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the mnemonic of button "Avant!" to 1 -- uses the first letter, A

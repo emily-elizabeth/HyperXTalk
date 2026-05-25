@@ -1543,7 +1543,7 @@
 			}
 			else
 			{
-				window.location.href = 'https://livecode.com/products/livecode-platform/pricing/';
+				window.location.href = 'https://github.com/emily-elizabeth/HyperXTalk/';
 			}
  		});
 

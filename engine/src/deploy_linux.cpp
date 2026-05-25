@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -493,17 +477,25 @@ static bool MCDeployToLinuxReadHeader(MCDeployFileRef p_file, bool p_is_android,
 	{
 		// MW-2013-04-29: [[ Linux64 ]] Allow any type of machine architecture.
 		//   (in particular, ARM and x64 in addition to x386).
-		if (r_header . e_type != ET_EXEC ||
-			r_header . e_version != EV_CURRENT)
-			return MCDeployThrow(kMCDeployErrorLinuxBadImage);
+		// Also allow ET_DYN for PIE executables built with modern toolchains
+		// (GCC >= 6 / Clang default on most distros since ~2017).
+		switch (r_header . e_type)
+		{
+			case ET_EXEC:
+			case ET_DYN:
+				break;
+			default:
+				return MCDeployThrow(kMCDeployErrorLinuxBadImage);
+		}
 	}
 	else
 	{
 		if (r_header . e_type != ET_DYN ||
-			!MCDeployIsValidAndroidArch(r_header.e_machine) ||
-			r_header . e_version != EV_CURRENT)
+			!MCDeployIsValidAndroidArch(r_header.e_machine))
 			return MCDeployThrow(kMCDeployErrorLinuxBadImage);
 	}
+	if (r_header . e_version != EV_CURRENT)
+	return MCDeployThrow(kMCDeployErrorLinuxBadImage);
 
 	return true;
 }

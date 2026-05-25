@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "osxprefix.h"
 #include "osxprefix-legacy.h"
 
@@ -2299,10 +2283,10 @@ static bool MCS_getentries_for_folder(MCStringRef p_folder, MCSystemListFolderEn
             t_entry.name = t_unicode_name;
             t_entry.data_size = t_catalog_infos[t_i] . dataLogicalSize;
             t_entry.resource_size = t_catalog_infos[t_i] . rsrcLogicalSize;
-            t_entry.creation_time = (uint32_t)t_creation_time;
-            t_entry.modification_time = (uint32_t) t_modification_time;
-            t_entry.access_time = (uint32_t) t_access_time;
-            t_entry.backup_time = (uint32_t) t_backup_time;
+            t_entry.creation_time = (uint64_t)t_creation_time;
+            t_entry.modification_time = (uint64_t)t_modification_time;
+            t_entry.access_time = (uint64_t)t_access_time;
+            t_entry.backup_time = (uint64_t)t_backup_time;
             t_entry.user_id = (uint32_t) t_permissions -> userID;
             t_entry.group_id = (uint32_t) t_permissions -> groupID;
             t_entry.permissions = (uint32_t) t_permissions->mode & 0777;

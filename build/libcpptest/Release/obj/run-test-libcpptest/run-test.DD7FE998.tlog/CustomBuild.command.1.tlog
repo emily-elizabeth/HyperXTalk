@@ -1,3 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\BUILD\LIBCPPTEST\RELEASE\TEST-LIBCPPTEST.EXE
-call call perl "..\..\util\run-tests.pl" "" "C:\Users\user\Documents\GitHub\HyperXTalk\build\libcpptest\Release\test-libcpptest.exe" "C:\Users\user\Documents\GitHub\HyperXTalk\build\libcpptest\Release\test-libcpptest.log"
-if %errorlevel% neq 0 exit /b %errorlevel%

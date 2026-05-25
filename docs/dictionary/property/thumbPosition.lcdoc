@@ -12,11 +12,11 @@ Specifies the current position of a <scrollbar|scrollbar's> draggable
 
 Associations: scrollbar
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the thumbPosition of scrollbar 1 to 400

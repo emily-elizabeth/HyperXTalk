@@ -8,7 +8,7 @@ Summary:
 Specifies how often the sound input should be read during sound
 recording. 
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows
 

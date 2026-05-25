@@ -10,7 +10,7 @@
 ; ============================================================
 
 #define MyAppName      "HyperXTalk"
-#define MyAppVersion   "0.9.11"
+#define MyAppVersion   "0.9.13"
 #define MyAppPublisher "HyperXTalk.com"
 #define MyAppURL       "https://HyperXTalk.com"
 #define MyAppExeName   "HyperXTalk.exe"
@@ -193,12 +193,14 @@ Source: "..\ide\Externals\Database Drivers\Database Drivers.txt"; \
 ;   {app}\Runtime\Windows\x86-64\Externals
 ;       revExternalPath() reads Externals.txt here to resolve DLL paths when the
 ;       standalone builder copies externals into a Windows standalone.
-Source: "{#SourceDir}\revbrowser.dll"; DestDir: "{app}\Externals";                         Flags: ignoreversion
-Source: "{#SourceDir}\revbrowser.dll"; DestDir: "{app}\Runtime\Windows\x86-64\Externals";  Flags: ignoreversion
+Source: "{#SourceDir}\revbrowser.dll"; DestDir: "{app}\Externals";                         Flags: ignoreversion skipifsourcedoesntexist
+Source: "{#SourceDir}\revbrowser.dll"; DestDir: "{app}\Runtime\Windows\x86-64\Externals";  Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SourceDir}\revdb.dll";      DestDir: "{app}\Externals";                         Flags: ignoreversion
 Source: "{#SourceDir}\revdb.dll";      DestDir: "{app}\Runtime\Windows\x86-64\Externals";  Flags: ignoreversion
 Source: "{#SourceDir}\revxml.dll";     DestDir: "{app}\Externals";                         Flags: ignoreversion
 Source: "{#SourceDir}\revxml.dll";     DestDir: "{app}\Runtime\Windows\x86-64\Externals";  Flags: ignoreversion
+Source: "{#SourceDir}\revspeech.dll";  DestDir: "{app}\Externals";                         Flags: ignoreversion
+Source: "{#SourceDir}\revspeech.dll";  DestDir: "{app}\Runtime\Windows\x86-64\Externals";  Flags: ignoreversion
 Source: "{#SourceDir}\revzip.dll";     DestDir: "{app}\Externals";                         Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SourceDir}\revzip.dll";     DestDir: "{app}\Runtime\Windows\x86-64\Externals";  Flags: ignoreversion skipifsourcedoesntexist
 
@@ -221,15 +223,53 @@ Source: "{#SourceDir}\server-revzip.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\tz.dll";   DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SourceDir}\inih.dll"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
+; ---- VLC runtime (optional — video playback) ----
+; libvlc.dll / libvlccore.dll are copied by build-release-x64.bat from the
+; VLC installation on the build machine.  vlc-plugins\ contains the codec
+; and demux plugins that VLC needs at runtime.
+;
+; All three entries use skipifsourcedoesntexist so the installer still builds
+; on machines where VLC is not installed — video playback will simply not work
+; on those installs.
+;
+; EnsureVLCInstance() in vlc-player.cpp probes for plugins in this order:
+;   1. <exedir>\vlc-plugins\plugins\   ← what we install below
+;   2. <exedir>\vlc-plugins\
+;   3. C:\Program Files\VideoLAN\VLC\plugins  (system VLC fallback)
+Source: "{#SourceDir}\libvlc.dll"; \
+    DestDir: "{app}"; \
+    Flags: ignoreversion skipifsourcedoesntexist
+Source: "{#SourceDir}\libvlccore.dll"; \
+    DestDir: "{app}"; \
+    Flags: ignoreversion skipifsourcedoesntexist
+; MinGW runtime DLLs — VLC 3.x is GCC-compiled; these are NOT Windows
+; system DLLs and must ship alongside libvlccore.dll.
+Source: "{#SourceDir}\libgcc_s_seh-1.dll"; \
+    DestDir: "{app}"; \
+    Flags: ignoreversion skipifsourcedoesntexist
+Source: "{#SourceDir}\libstdc++-6.dll"; \
+    DestDir: "{app}"; \
+    Flags: ignoreversion skipifsourcedoesntexist
+Source: "{#SourceDir}\libwinpthread-1.dll"; \
+    DestDir: "{app}"; \
+    Flags: ignoreversion skipifsourcedoesntexist
+Source: "{#SourceDir}\vlc-plugins\*"; \
+    DestDir: "{app}\vlc-plugins"; \
+    Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
+
 ; ---- LCB modules (for extension compilation) ----
 Source: "{#SourceDir}\modules\lci\*"; \
     DestDir: "{app}\modules\lci"; \
     Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; ---- Packaged extensions ----
+; macOS-only, iOS-only and Emscripten-only extensions are excluded — they
+; contain no Windows-compatible binaries and their api.lcdoc files would
+; appear as orphaned entries in the Windows documentation browser.
 Source: "{#SourceDir}\packaged_extensions\*"; \
     DestDir: "{app}\packaged_extensions"; \
-    Flags: ignoreversion recursesubdirs createallsubdirs
+    Flags: ignoreversion recursesubdirs createallsubdirs; \
+    Excludes: "com.hyperxtalk.macos*,com.livecode.library.native.mac.*,com.livecode.widget.native.mac.*,com.livecode.widget.native.ios.*,com.livecode.widget.native.emscripten.*"
 
 ; ---- IDE Toolset (home stack, libraries, palettes, resources) ----
 ; This is the entire development environment UI layer. Without it

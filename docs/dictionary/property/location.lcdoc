@@ -12,11 +12,11 @@ Specifies where an <object(glossary)> is.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image, group
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if the location of button 1 is within the rect of field 1 then selectIt

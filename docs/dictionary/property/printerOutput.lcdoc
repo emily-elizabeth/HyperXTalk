@@ -9,7 +9,7 @@ Syntax: get the printerOutput
 Summary:
 Reports what the destination of a print job should be.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -42,7 +42,7 @@ depends on the printer driver
 -   preview: output to print preview (only supported on Mac OS X).
 -   system: output in a system-specific mode. This setting is read-only,
     and can occur if you configure an output in the answer printer
-    dialog that OpenXTalk does not recognise (e.g. WorkFlow output
+    dialog that HyperXTalk does not recognise (e.g. WorkFlow output
     options on Mac OS X 10.4 and above).
 
 

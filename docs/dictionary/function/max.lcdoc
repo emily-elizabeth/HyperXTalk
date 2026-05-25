@@ -7,11 +7,11 @@ Syntax: max(<numbersList>)
 Summary:
 <return|Returns> the largest number from a list of numbers.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 max(17,34,8,1) -- returns 34

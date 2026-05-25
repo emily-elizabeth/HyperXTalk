@@ -8,7 +8,7 @@ Summary:
 Used with the <disable menu>, <doMenu>, <enable menu>, and <select>
 <command|commands>, to designate a <menu item> in a <menu>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

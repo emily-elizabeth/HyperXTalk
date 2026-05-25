@@ -9,11 +9,11 @@ Resolves a short id or name of an image relative to an object to find
 the long id of the image that will use as an icon or pattern on the
 object. 
 
-Introduced: 6.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 resolve image id 1007 relative to button "Cancel"

@@ -90,15 +90,21 @@ private command buildMenus
 end buildMenus
 
 private command buildFileMenu pContext
-   local tFile
+   local tFile, tObject, tStack, tIsScriptOnly
+   revSEGetCurrentObject
+   put the result into tObject
+   put revTargetStack(tObject) into tStack
+   put tStack is not empty and the scriptOnly of stack tStack into tIsScriptOnly
+
    put "Apply/^Return|Compile" & return & \
    "-" & return & \
    "Save/S" & return & \
+   enableMenuItem("Save as Library...", tIsScriptOnly) & return & \
    "Close/W" & return & \
    "Print/P"  & return & \
    "-"  & return & \
    "Quit" & return into tFile
-   
+
    set the text of button "File" of me to modifyMenu("File", tFile)
 end buildFileMenu
 
@@ -402,6 +408,15 @@ private command handleFileMenuPick pItemName
       break
       case "Save"
          actionSave
+      break
+      case "Save as Library..."
+         local tObject, tStack
+         revSEGetCurrentObject
+         put the result into tObject
+         put revTargetStack(tObject) into tStack
+         if tStack is not empty then
+            revIDEActionSaveAsLibrary the long id of stack tStack
+         end if
       break
       case "Print"
          actionPrint

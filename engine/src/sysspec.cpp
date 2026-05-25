@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -563,6 +547,22 @@ bool MCS_getprocessor(MCStringRef& r_string)
 bool MCS_getmachine(MCStringRef& r_string)
 {
 	return MCsystem->GetMachine(r_string);
+}
+
+// Returns true when the system's "natural scrolling" (aka reverse scrolling)
+// preference is enabled.  On macOS this is the Trackpad → Natural Scrolling
+// setting; on other platforms natural scrolling is not a system-level concept
+// so the function always returns false.
+#if defined(_MAC_DESKTOP)
+extern bool MCMacPlatformGetNaturalScrolling(void);
+#endif
+bool MCS_getnaturalscrolling(void)
+{
+#if defined(_MAC_DESKTOP)
+    return MCMacPlatformGetNaturalScrolling();
+#else
+    return false;
+#endif
 }
 
 bool MCS_getaddress(MCStringRef& r_address)

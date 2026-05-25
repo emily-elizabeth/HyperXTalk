@@ -9,11 +9,11 @@ Deletes a single parameter from an <XML-RPC document> structure.
 
 Associations: xml-rpc library
 
-Introduced: 2.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, process
 
@@ -39,7 +39,7 @@ Use <revXMLRPC_DeleteParam> to delete a single parameter from an XML-RPC
 documents structure.
 
 References: revXMLRPC_DeleteAllDocuments (command), result (function),
-OpenXTalk custom library (glossary),
+HyperXTalk custom library (glossary),
 Standalone Application Settings (glossary),
 standalone application (glossary), command (glossary), XML-RPC (glossary),
 XML-RPC document (glossary), XML-RPC library (library),

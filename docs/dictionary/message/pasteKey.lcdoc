@@ -10,7 +10,7 @@ Sent when the user presses the <key combination> equivalent to the
 
 Associations: card, field
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -30,8 +30,8 @@ Handle the <pasteKey> <message> if you want to change the normal pasting
 process, or prevent use of the Paste <keyboard equivalent> without
 changing the <menu>.
 
-The OpenXTalk development environment traps the <pasteKey> <message>,
-unless "Suspend OpenXTalk UI" is turned on in the Development menu. This
+The HyperXTalk development environment traps the <pasteKey> <message>,
+unless "Suspend HyperXTalk UI" is turned on in the Development menu. This
 means that the <pasteKey> <message> is not received by a <stack> if it's
 running in the <development environment>.
 

@@ -12,11 +12,11 @@ card on the message path.
 
 Associations: group
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the backgroundBehavior of group 1 to false
@@ -66,7 +66,7 @@ true (if it is not already).
 >*Note:* Only groups whose <backgroundBehavior> is true appear in the
 > list reported by the <backgroundNames> and <backgroundIDs> properties.
 
->*Note:* If a stack created in a version of OpenXTalk earlier than 1.1 is
+>*Note:* If a stack created in a version of HyperXTalk earlier than 1.1 is
 > opened in 1.1 or later, the <backgroundBehavior> of all its groups is
 > set to true by default. This also applies to imported HyperCard
 > stacks. 

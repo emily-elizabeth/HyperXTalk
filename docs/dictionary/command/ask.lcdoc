@@ -8,11 +8,11 @@ Summary:
 Displays a <dialog box> with a prompt, a text box for the user to enter
 a response, and OK and Cancel buttons.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 ask "What is your name?"

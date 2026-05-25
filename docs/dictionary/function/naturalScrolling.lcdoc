@@ -1,0 +1,53 @@
+Name: naturalScrolling
+
+Type: function
+
+Syntax: the naturalScrolling
+
+Syntax: naturalScrolling()
+
+Summary:
+<return|Returns> whether the system's natural scrolling preference is enabled.
+
+Introduced: 1.0.0
+
+OS: mac
+
+Platforms: desktop
+
+Example:
+the naturalScrolling
+
+Example:
+if the naturalScrolling then
+   set the vScroll of group "Content" to the vScroll of group "Content" + (pDeltaY * 10)
+else
+   set the vScroll of group "Content" to the vScroll of group "Content" - (pDeltaY * 10)
+end if
+
+Returns (enum):
+The <naturalScrolling> <function> <return|returns> a <boolean>.
+
+- true: The system natural scrolling preference is enabled. Scroll gesture deltas move content in the same direction as the gesture (finger swipe down scrolls content down).
+- false: The system natural scrolling preference is disabled, or the platform does not support natural scrolling. Scroll gesture deltas move content in the opposite direction to the gesture (finger swipe down scrolls content up).
+
+Description:
+Use the <naturalScrolling> function to adapt <scrollWheel> handlers to the
+user's system scrolling preference.
+
+On macOS, natural scrolling is controlled via System Settings → Trackpad →
+Scroll & Zoom → Natural Scrolling (or System Preferences on older versions of
+macOS). When natural scrolling is enabled, the `pDeltaY` parameter passed to a
+<scrollWheel> handler is positive when the user swipes down, and negative when
+the user swipes up. When natural scrolling is disabled, the sign is reversed.
+
+On Windows and Linux, the <naturalScrolling> function always returns false.
+Scripts that use `the naturalScrolling` to branch scroll direction will
+therefore behave consistently on those platforms without any additional logic.
+
+>*Note:* The <naturalScrolling> function reflects the system preference at the
+> time it is called. If the user changes the preference while your application
+> is running, subsequent calls will return the updated value immediately.
+
+References: scrollWheel (message), vScroll (property), hScroll (property),
+boolean (glossary), function (control structure), return (glossary)

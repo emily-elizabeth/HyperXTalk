@@ -8,7 +8,7 @@ Summary:
 Executes a string as web script in the context of the specified browser
 object. 
 
-Introduced: 3.5
+Introduced: 1.0.0
 
 OS: mac, windows
 

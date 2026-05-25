@@ -11,7 +11,7 @@ The ignoreMouseEvents stack property provides a way to make a the mouse
 events on a stack's window pass through the window to windows or the
 desktop beneath the window.
 
-Introduced: 6.7.0
+Introduced: 1.0.0
 
 OS: mac, windows
 

@@ -1,4 +1,4 @@
-﻿script "DocsBuilder"
+script "DocsBuilder"
 
 command docsBuilderProgressUpdate pProgress, pMessage
    builderLog "message", pMessage
@@ -15,7 +15,7 @@ private command pathEnsure pPath
    if pPath is empty then
       exit pathEnsure
    end if
-   
+
    set the itemDelimiter to "/"
    local tPath
    repeat for each item tPart in pPath
@@ -28,16 +28,16 @@ end pathEnsure
 
 command docsBuilderRun pEdition, pVersion
    start using stack (builderRepoFolder() & slash & "ide-support/revdocsparser.livecodescript")
-   
-   builderExtUnpack "Business"
-   
+
+   -- builderExtUnpack "Business"
+
    builderLog "report", "Building guide into" && builderGuideFolder(pEdition) & slash & "distributed_guide.js"
    pathEnsure (builderGuideFolder(pEdition))
    docsBuilderGenerateDistributedGuide pEdition
    builderLog "report", "Building api into" && builderAPIFolder(pEdition)
    pathEnsure (builderAPIFolder(pEdition))
    docsBuilderGenerateDistributedAPI pEdition
-   
+
    docsBuilderGenerateZip pEdition, pVersion
 
    builderLog "report", "Built docs"
@@ -54,10 +54,10 @@ private command addFolderToListIfExists pFolder, pThrowIfNot, @xArray
       addToList pFolder, xArray
       exit addFolderToListIfExists
    end if
-   
+
    if pThrowIfNot then
       logError "Expected docs folder" && pFolder && "doesn't exist"
-   else 
+   else
       builderLog "message", "Folder" && pFolder && "doesn't exist"
    end if
 end addFolderToListIfExists
@@ -66,19 +66,19 @@ private command docsBuilderGetGuideFolders pEdition, @xFolders
    local tRepoGuides
    put builderRepoFolder() & slash & "docs" & slash & "guides" into tRepoGuides
    addFolderToListIfExists tRepoGuides, true, xFolders
-   
+
    local tIDEGuides
    put builderIDEDocsFolder() & slash & "guides" into tIDEGuides
    addFolderToListIfExists tIDEGuides, true, xFolders
-   
+
    local tComponents
    put builderComponentFolders() into tComponents
-   
+
    repeat for each element tComponent in tComponents
       -- each non-community guide should have notes on editon support
       addFolderToListIfExists tComponent["folder"] & slash & "guides", false, xFolders
    end repeat
-   
+
    addFolderToListIfExists builderBuiltGuidesFolder(), false, xFolders
 end docsBuilderGetGuideFolders
 
@@ -99,7 +99,7 @@ command docsBuilderGenerateDistributedGuide pEdition
    local tGuideFoldersA
    docsBuilderGetGuideFolders pEdition, tGuideFoldersA
    docsBuilderGetAdditionalFolders  pEdition, tGuideFoldersA
-   
+
    local tGuideFoldersWithLocationA
    repeat for each element tElement in tGuideFoldersA
       local tGuideWithLocation
@@ -108,11 +108,11 @@ command docsBuilderGenerateDistributedGuide pEdition
       put "ide" into tGuideWithLocation["location"]
       addToList tGuideWithLocation, tGuideFoldersWithLocationA
    end repeat
-   
+
    local tOrderedGuidesA, tOrderFolder
    put builderIDEDocsFolder() & slash & "guides" into tOrderFolder
    put revDocsOrderedGuideData(tGuideFoldersWithLocationA, tOrderFolder) into tOrderedGuidesA
-   
+
    local tGuideData
    repeat for each element tGuideA in tOrderedGuidesA
       docsBuilderProgressUpdate "", "Building guide" && tGuideA["file"]
@@ -135,7 +135,7 @@ private function docsFileGetUTF8Contents pPath, pConvertLineEndings
    return tText
 end docsFileGetUTF8Contents
 
--- Find all lcdoc files in pFolder and add them to the list of docs 
+-- Find all lcdoc files in pFolder and add them to the list of docs
 -- data in xLibraryA
 private command addToDictionaryFromFolder pFolder, pDefaults, @xLibraryA
    docsBuilderProgressUpdate "", "Building dictionary from folder" && pFolder
@@ -157,27 +157,27 @@ end addToDictionaryFromFolder
 /*
 Summary: Parses the current directory into a library array.
 
-pRootDirs (array): An array of paths to the relevant root folders of the 
+pRootDirs (array): An array of paths to the relevant root folders of the
 dictionary.
 */
 
 command docsBuilderParseDictionaryToLibraryArray pComponents, @xDocsA
-   repeat for each element tComponent in pComponents      
+   repeat for each element tComponent in pComponents
       local tDictionaryRoot, tGlossaryRoot
       put tComponent["folder"] & slash & "dictionary" into tDictionaryRoot
       put tComponent["folder"] & slash & "glossary" into tGlossaryRoot
-      
+
       local tDefaults
       delete variable tDefaults
-      if tComponent["metadata"]["edition"] is not empty then
-         put editionDisplayName(tComponent["metadata"]["edition"]) into tDefaults["edition"]
-      end if
-      
+      --      if tComponent["metadata"]["edition"] is not empty then
+      --         put editionDisplayName(tComponent["metadata"]["edition"]) into tDefaults["edition"]
+      --      end if
+
       repeat for each item tRoot in (tDictionaryRoot & "," & tGlossaryRoot)
          if there is not a folder tRoot then
             next repeat
          end if
-         
+
          repeat for each line tLine in folders(tRoot)
             if tLine is ".." then next repeat
             addToDictionaryFromFolder tRoot & slash & tLine, tDefaults, xDocsA
@@ -188,60 +188,60 @@ end docsBuilderParseDictionaryToLibraryArray
 
 command docsBuilderParseAdditionalFoldersToLibraryArray pDirs, @xDocsA
    local tFolder
-   repeat for each element tFolder in pDirs      
+   repeat for each element tFolder in pDirs
       addToDictionaryFromFolder tFolder, empty, xDocsA
    end repeat
 end docsBuilderParseAdditionalFoldersToLibraryArray
 
 function docsBuilderParseDictionary pLibraryName, pAuthor, pComponents, pAdditionalDirsA, pRecursive
    local tLibraryA
-   
+
    put revDocsModifyForUrl(pLibraryName) into tLibraryA["name"]
    put pLibraryName into tLibraryA["display name"]
    put pAuthor into tLibraryA["author"]
    put "dictionary" into tLibraryA["type"]
-   
+
    -- Special case for the dictionary / glossary data extraction
    docsBuilderParseDictionaryToLibraryArray pComponents, tLibraryA["doc"]
-   
+
    -- Add any additional docs to the dictionary
    docsBuilderParseAdditionalFoldersToLibraryArray pAdditionalDirsA, tLibraryA["doc"]
-   
+
    if tLibraryA["doc"] is not empty then
       return tLibraryA
    end if
-   
+
    return empty
 end docsBuilderParseDictionary
 
 command docsBuilderGenerateDistributedAPI pEdition
    local tAdditionalFolders
    docsBuilderGetAdditionalFolders pEdition, tAdditionalFolders
-   
+
    local tLibrariesA
-   
+
    local tComponents
    put builderComponentFolders() into tComponents
-   
+
    -- special case the main docs folder
    local tIndex
    put the number of elements of tComponents + 1 into tIndex
    put builderRepoFolder() & "/docs" into tComponents[tIndex]["folder"]
    put "engine" into tComponents[tIndex]["metadata"]["category"]
    put "community" into tComponents[tIndex]["metadata"]["edition"]
-   
+
    local tLCSDictionaryA
-   put docsBuilderParseDictionary("LiveCode Script", "LiveCode", tComponents, tAdditionalFolders, false) into tLCSDictionaryA
-   
+   put docsBuilderParseDictionary("Script", "", tComponents, tAdditionalFolders, false) into tLCSDictionaryA
+
    if tLCSDictionaryA is empty then
       logError "Couldn't parse script dictionary data for" && pEdition
       exit docsBuilderGenerateDistributedAPI
    end if
-   
+
    put "script" into tLCSDictionaryA["filename"]
-   put "livecode_script" into tLCSDictionaryA["api"]
+   put "script" into tLCSDictionaryA["api"]
    addToList tLCSDictionaryA, tLibrariesA
-   
+
    local tModuleList, tModularA, tModularCount, tBlocksA, tParsedA
    put 1 into tModularCount
    put revDocsGetBuiltinModuleList(builderModuleInterfaceFolder(), builderRepoFolder()) into tModuleList
@@ -258,7 +258,7 @@ command docsBuilderGenerateDistributedAPI pEdition
          add 1 to tModularCount
       end if
    end repeat
-   
+
    local tLCBDictionaryA
    put 1 into tModularCount
    repeat for each element tElement in tModularA
@@ -269,59 +269,59 @@ command docsBuilderGenerateDistributedAPI pEdition
       end repeat
       put empty into tParsedA
    end repeat
-   
+
    if tLCBDictionaryA is empty then
       logError "Couldn't parse builder dictionary data for" && pEdition
       exit docsBuilderGenerateDistributedAPI
    end if
-   
-   put "LiveCode Builder" into tLCBDictionaryA["display name"]
-   put revDocsModifyForUrl("LiveCode Builder") into tLCBDictionaryA["name"]
-   put "LiveCode" into tLCBDictionaryA["author"]
+
+   put "Builder" into tLCBDictionaryA["display name"]
+   put revDocsModifyForUrl("Builder") into tLCBDictionaryA["name"]
+   put "xTalk" into tLCBDictionaryA["author"]
    put "dictionary" into tLCBDictionaryA["type"]
    put "builder" into tLCBDictionaryA["filename"]
-   put "livecode_builder" into tLCBDictionaryA["api"]
+   put "builder" into tLCBDictionaryA["api"]
    addToList tLCBDictionaryA, tLibrariesA
-   
+
    local tDatagridA, tDGDocs
    put builderIDEDocsFolder() & "/dictionary/datagrid.lcdoc" into tDGDocs
-   put revDocsParseDocFileToLibraryArray(tDGDocs, "Data Grid", "LiveCode") \
+   put revDocsParseDocFileToLibraryArray(tDGDocs, "Data Grid", "") \
          into tDataGridA
-   
+
    if tDataGridA is empty then
       builderLog "error", "Couldn't parse datagrid dictionary data for" && pEdition
       exit docsBuilderGenerateDistributedAPI
    end if
-   
+
    put "dictionary" into tDataGridA["type"]
    put "dg" into tDataGridA["filename"]
-   put "livecode_script" into tDataGridA["api"]
-   
+   put "script" into tDataGridA["api"]
+
    addToList tDataGridA, tLibrariesA
-   
+
    local tExtractedDocsFolder
    put builderExtractedDocsFolder() into tExtractedDocsFolder
-   
+
    local tFiles
    put files(tExtractedDocsFolder) into tFiles
    filter tFiles with "*.lcdoc"
-   
+
    set the itemDelimiter to "."
    local tFile
    repeat for each line tFile in tFiles
       local tLibA
-      put revDocsParseDocFileToLibraryArray(tExtractedDocsFolder & slash & tFile, item -2 of tFile, "LiveCode") into tLibA
-      
+      put revDocsParseDocFileToLibraryArray(tExtractedDocsFolder & slash & tFile, item -2 of tFile, "") into tLibA
+
       if tLibA is empty then
          builderLog "error", "Couldn't parse" && item -2 of tFile && "dictionary data for" && pEdition
          exit docsBuilderGenerateDistributedAPI
       end if
       put tLibA["name"] into tLibA["filename"]
-      put "livecode_script" into tLibA["api"]
-      
+      put "script" into tLibA["api"]
+
       addToList tLibA, tLibrariesA
    end repeat
-   
+
    docsBuilderPopulateDatabase pEdition, tLibrariesA
    repeat for each element tLibA in tLibrariesA
       local tJSON, tFolder
@@ -340,19 +340,19 @@ on docsBuilderPopulateDatabase pEdition, pLibrariesA
    if there is a file tExistingAPI then
       delete file tExistingAPI
    end if
-   
+
    local tConnection
    revDocsOpenAPIDatabase builderAPIFolder(pEdition)
-   
+
    put the result into tConnection
    if tConnection is not a number then
       logError the result
       exit docsBuilderPopulateDatabase
    end if
-   
+
    revExecuteSQL tConnection,"BEGIN TRANSACTION"
-   
-   repeat for each element tLib in pLibrariesA   	  
+
+   repeat for each element tLib in pLibrariesA
       builderLog "message", "adding library" && tLib["display name"] && "to docs database"
       revDocsUpdateDatabase tConnection, tLib["api"], tLib
       if the result is not empty then
@@ -360,27 +360,28 @@ on docsBuilderPopulateDatabase pEdition, pLibrariesA
          exit docsBuilderPopulateDatabase
       end if
    end repeat
-   
+
    revExecuteSQL tConnection,"COMMIT"
    revCloseDatabase tConnection
 end docsBuilderPopulateDatabase
 
 private command docsBuilderGenerateZip pEdition, pVersion
    -- Ensure edition string is in titlecase
-   put editionTitleCase(pEdition) into pEdition
+   -- put editionTitleCase(pEdition) into pEdition
+   put "community" into pEdition
    put replaceText(pVersion, "[-,\.]", "_") into pVersion
 
    local tInputs, tZipPath
-   
+
    -- Make a list of folders that need to make it into the archived docs
    -- FIXME This has to be kept in sync with the installer manifest, probably
    docsBuilderGetGuideFolders pEdition, tInputs
    put builderIDEDocsFolder() & slash & "html_viewer" into tInputs[the number of elements in tInputs + 1]
-   
+
    -- Figure out a filename for the docs archive
    put builderOutputFolder() & slash & \
-         merge("LiveCode[[pEdition]]Docs-[[pVersion]].zip") into tZipPath
-   
+         merge("xTalk[[pEdition]]Docs-[[pVersion]].zip") into tZipPath
+
    -- Use the "zip" command to store the data
    local tDocItem, tCmd, tCmdOutput
    repeat for each element tDocItem in tInputs

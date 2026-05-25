@@ -9,11 +9,11 @@ Specifies a set of custom properties applied to an object.
 
 Associations: stack, field, button, graphic, scrollbar, player, image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the customPropertySet of me to "Mac Properties"
@@ -50,7 +50,7 @@ property set named "myCustomSet" :
 
 If using arbitrary custom property names, be aware that it won't be
 possible to access them by changing the <customPropertySet> if they
-clash with OpenXTalk language keywords. Instead, either use the array
+clash with HyperXTalk language keywords. Instead, either use the array
 style notation above, or use a prefix to prevent name clashes (for
 example "uName" instead of "name" ).
 

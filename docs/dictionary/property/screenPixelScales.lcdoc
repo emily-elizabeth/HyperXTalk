@@ -8,11 +8,11 @@ Summary:
 Returns a return-delimited list of the pixel scale of each connected
 display. 
 
-Introduced: 6.6
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 get the screenPixelScales

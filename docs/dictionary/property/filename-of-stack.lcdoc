@@ -9,11 +9,11 @@ Reports the <file path> of the <file> a <stack> is stored in.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local nameToSave
@@ -24,10 +24,10 @@ local savedName
 if the effective filename of this stack is savedName then beep
 
 Example:
-set the filename of this stack to "Test.OpenXTalk"
+set the filename of this stack to "Test.HyperXTalk"
 
 Example:
-set the filename of this stack to "/Volumes/Lizards/Godzilla.OpenXTalk"
+set the filename of this stack to "/Volumes/Lizards/Godzilla.HyperXTalk"
 
 Example:
 # set the defaultFolder to the folder containing the stackfile

@@ -10,7 +10,7 @@ data>, into a <variable>.
 
 Associations: video library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 Deprecated: 9.0
 
@@ -37,7 +37,7 @@ return a meaningful value.
 >*Important:*  The <revVideoGrabSettings> <command> is part of the 
 > <Video library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the
 > "Video Grabber" 
@@ -50,7 +50,7 @@ systems apart from pre OS X 10.8. The Windows build no
 longer supports any <QuickTime> features and setting the <dontUseQT> and
 <dontUseQTEffects> will have no effect.
 
-Support for the "Video Grabber" library on Mac OS X ended in OpenXTalk
+Support for the "Video Grabber" library on Mac OS X ended in HyperXTalk
 9.0.
 
 References: revVideoGrabDialog (command),
@@ -58,7 +58,7 @@ revSetVideoGrabSettings (command), binary file (glossary),
 variable (glossary), video capture (glossary),
 Standalone Application Settings (glossary),
 standalone application (glossary), video grabber (glossary),
-command (glossary), OpenXTalk custom library (glossary),
+command (glossary), HyperXTalk custom library (glossary),
 Video library (library), dontUseQT (property), 
 dontUseQTEffects (property)
 

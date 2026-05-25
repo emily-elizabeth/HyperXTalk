@@ -1,0 +1,58 @@
+Name: cancelButtonClicked
+
+Type: message
+
+Syntax: cancelButtonClicked
+
+Summary:
+Sent to a field after the user clicks its cancel-button × icon and the
+field's content has been cleared.
+
+Associations: field
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+-- Hide search results after the field is cleared
+on cancelButtonClicked
+    hide group "SearchResults"
+    set the label of button "Search" to "Search"
+end cancelButtonClicked
+
+Example:
+-- Reset dependent controls when the field is cleared
+on cancelButtonClicked
+    set the text of field "FilterCount" to "0 results"
+    disable button "Apply"
+end cancelButtonClicked
+
+Example:
+-- Log each clear action for analytics
+on cancelButtonClicked
+    put "Search cleared at" && the time after field "EventLog"
+end cancelButtonClicked
+
+Description:
+The <cancelButtonClicked> message is sent to a <field> after the engine
+has cleared the field's content in response to the user clicking the ×
+icon drawn in the field's right margin. The icon only appears when
+<cancelButton> is true and the field contains text.
+
+By the time the handler runs, the field is already empty. A handler is
+only needed if additional work — such as hiding a results panel or
+resetting other controls — is required.
+
+The message follows the normal HyperXTalk message path. If no handler
+is found in the field's script it travels to the card, the stack, and
+any stack in use.
+
+No action is required in a handler. The clearing and redraw are
+performed by the engine before the message is sent.
+
+References: cancelButton (property), field (object)
+
+Tags: ui

@@ -8,11 +8,11 @@ Summary:
 Places a card's long <ID> in a list, from which it can be retrieved
 later with the <pop> <command>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 push card -- pushes current card

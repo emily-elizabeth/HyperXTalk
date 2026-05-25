@@ -7,11 +7,11 @@ Syntax: get the systemAppearance
 Summary:
 Determins if the system appearance is dark or light mode. 
 
-Introduced: 9.6
+Introduced: 1.0.0
 
-OS: mac, android, ios
+OS: mac
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 if the systemAppearance is "dark" then

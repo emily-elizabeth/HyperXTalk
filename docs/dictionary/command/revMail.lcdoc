@@ -7,11 +7,11 @@ Syntax: revMail <address>, [<ccAddress>, [<mailSubject>, [<messageBody>]]]
 Summary:
 Opens a new email message in the user's email program.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 revMail "guido@example.net"
@@ -20,7 +20,7 @@ Example:
 revMail "help@example.com",,"Help!",field "Message"
 
 Example:
-revMail "support@OpenXTalk.org","me@example.org","Installation Help"
+revMail "support@HyperXTalk.com","me@example.org","Installation Help"
 
 Example:
 revMail the bugAddress of this stack,,"Auto Bug Report",myBugsList
@@ -59,7 +59,7 @@ Description:
 Use the <revMail> <command> to create an email message from within a
 <stack>. 
 
-When OpenXTalk executes the <revMail> <command>, the user's email program
+When HyperXTalk executes the <revMail> <command>, the user's email program
 is opened (if necessary) and a new email message with the specified
 <parameter|parameters> is created. The user can change any of the
 settings before sending the message, and the message is not 

@@ -8,11 +8,11 @@ Summary:
 Places data in a <file> that has been opened with the <open file>
 <command>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 
@@ -51,7 +51,7 @@ The pathName specifies the name and location of the file you want to
 write to. It must be the same as the path you used with the open file
 command. The pathName is case-sensitive, even on platforms where file
 names are not case-sensitive. If you specify the name of a serial port
-on Mac OS or Windows systems, OpenXTalk writes to the specified port. The
+on Mac OS or Windows systems, HyperXTalk writes to the specified port. The
 names of serial ports end in a colon (:).
 
 start (enum):

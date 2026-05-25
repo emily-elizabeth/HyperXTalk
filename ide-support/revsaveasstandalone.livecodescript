@@ -580,8 +580,11 @@ private command revStandaloneCopyInclusions pStack, pStackFileList, pStackSource
    -- copy database drivers
    revCopyDatabaseDrivers pTarget, pStackSourceFile, pStandalonePath, pEngineSourceFile
    -- copy externals
-   // HXT
-   if (revEnvironmentIsInstalled()) AND (the platform = "macOS") then
+   // HXT: revdb.bundle is a macOS-only external; only copy it when actually building
+   // a Mac target. Running this block for Windows/Linux targets incorrectly injects
+   // "Externals/revdb.bundle" into the standalone's externals list and tries to copy
+   // the bundle from a mangled path derived from the Windows engine file.
+   if (revEnvironmentIsInstalled()) AND (the platform = "macOS") AND (pTarget begins with "MacOSX") then
       local tExternalsFolder
       set the itemDelimiter to "/"
       put item 1 to -5 of pEngineSourceFile & "/Externals" into tExternalsFolder
@@ -623,6 +626,10 @@ private command revStandaloneCopyInclusions pStack, pStackFileList, pStackSource
          end if
       end repeat
    end if
+
+   -- VLC runtime bundling is handled in revSaveAsMacStandalone after engine deploy,
+   -- because revStandaloneDeployWithParams recreates the .app bundle and would
+   -- wipe any Resources/ content written here.
 end revStandaloneCopyInclusions
 
 local sLastUsedSettingsA
@@ -722,6 +729,11 @@ command revSaveAsMacStandalone pStack, pRestoreFileName, pFolder, @xStandalonePa
       put tStackPath & "/" before sStandaloneSettingsA["OSX,plist"]
    end if
    
+   -- Determine VLC requirement before the loop: revStandaloneDeployWithParams moves/saves
+   -- the stack, making it unreachable by name inside the loop body.
+   local tNeedsVLC
+   put revSAStandaloneNeedsVLC(pStack) into tNeedsVLC
+
    -- keep a copy of the standalone settings to restore after each build
    local tStandaloneSettingsA
    put sStandaloneSettingsA into tStandaloneSettingsA
@@ -792,24 +804,142 @@ command revSaveAsMacStandalone pStack, pRestoreFileName, pFolder, @xStandalonePa
       revSetMacOS tStandalonePath, tTarget, tEngineSourceFile
       
       revRedirectMacOSResources tStandalonePath
-      
+
+      -- Bundle VLC runtime and patch binary @rpath references after engine deploy.
+      -- Done here (not in revStandaloneCopyInclusions) because revStandaloneDeployWithParams
+      -- recreates the .app bundle, wiping any Resources/ content written before it.
+      -- performAdHocCodesign (--deep -f) below will re-sign everything afterward.
+      --
+      -- The engine binary always hard-links libvlc.dylib (LC_LOAD_DYLIB), so the two
+      -- dylibs must always be present in the bundle to prevent a launch-time crash,
+      -- even in projects that contain no player object.  Only the 340 codec plugins
+      -- (~150 MB) are omitted when there is no player.
+      if tTarget begins with "MacOSX" then
+         local tVLCLibSrcPost
+         put "/Applications/VLC.app/Contents/MacOS/lib" into tVLCLibSrcPost
+         if there is a folder tVLCLibSrcPost then
+            local tVLCContentsPath, tVLCLibDestPost, tVLCPluginsDestPost, tVLCR
+            set the itemDelimiter to slash
+            put item 1 to -3 of tStandalonePath into tVLCContentsPath
+            set the itemDelimiter to ","
+            put tVLCContentsPath & "/Resources/vlc-plugins/lib" into tVLCLibDestPost
+            put tVLCContentsPath & "/Resources/vlc-plugins/plugins" into tVLCPluginsDestPost
+            -- Always create lib dir and copy the two dylibs (required to satisfy the binary dependency)
+            put shell("mkdir -p " & QUOTE & tVLCLibDestPost & QUOTE) into tVLCR
+            put shell("cp -f " & QUOTE & tVLCLibSrcPost & "/libvlc.dylib" & QUOTE & " " & QUOTE & tVLCLibDestPost & "/libvlc.dylib" & QUOTE) into tVLCR
+            put shell("cp -f " & QUOTE & tVLCLibSrcPost & "/libvlccore.dylib" & QUOTE & " " & QUOTE & tVLCLibDestPost & "/libvlccore.dylib" & QUOTE) into tVLCR
+            -- Only copy the codec plugins when a player object is present in the project
+            if tNeedsVLC then
+               put shell("mkdir -p " & QUOTE & tVLCPluginsDestPost & QUOTE) into tVLCR
+               put shell("cp -rn " & QUOTE & "/Applications/VLC.app/Contents/MacOS/plugins/." & QUOTE & " " & QUOTE & tVLCPluginsDestPost & QUOTE) into tVLCR
+            end if
+            -- Patch libvlccore: use @rpath/libvlccore.dylib as install name so it matches
+            -- the reference form already used by both libvlc and all 340 plugin dylibs,
+            -- avoiding any dyld cache key mismatch between @loader_path and @rpath forms.
+            local tVLCLib
+            put tVLCLibDestPost & "/libvlccore.dylib" into tVLCLib
+            put shell("codesign --remove-signature " & QUOTE & tVLCLib & QUOTE) into tVLCR
+            put shell("install_name_tool -id @rpath/libvlccore.dylib " & QUOTE & tVLCLib & QUOTE) into tVLCR
+            put shell("codesign --sign - " & QUOTE & tVLCLib & QUOTE) into tVLCR
+            -- Patch libvlc: dynamically read the actual libvlccore reference (handles
+            -- versioned sonames like @rpath/libvlccore.9.dylib or absolute paths) then
+            -- normalise to @rpath/libvlccore.dylib.
+            put tVLCLibDestPost & "/libvlc.dylib" into tVLCLib
+            put shell("codesign --remove-signature " & QUOTE & tVLCLib & QUOTE) into tVLCR
+            local tLibvlcCoreRefs, tLibvlcCoreRef
+            put shell("otool -L " & QUOTE & tVLCLib & QUOTE & " | grep libvlccore | awk '{print $1}'") into tLibvlcCoreRefs
+            repeat for each line tLibvlcCoreRef in tLibvlcCoreRefs
+               put word 1 of tLibvlcCoreRef into tLibvlcCoreRef
+               if tLibvlcCoreRef is not empty and tLibvlcCoreRef is not "@rpath/libvlccore.dylib" then
+                  put shell("install_name_tool -change " & QUOTE & tLibvlcCoreRef & QUOTE & " @rpath/libvlccore.dylib " & QUOTE & tVLCLib & QUOTE) into tVLCR
+               end if
+            end repeat
+            put shell("install_name_tool -id @rpath/libvlc.dylib " & QUOTE & tVLCLib & QUOTE) into tVLCR
+            -- Add @loader_path as LC_RPATH so that when libvlc (in vlc-plugins/lib/) dlopen's
+            -- a plugin, dyld inherits this rpath and resolves @rpath/libvlccore.dylib →
+            -- vlc-plugins/lib/libvlccore.dylib.  Covers all 340 plugins in one shot.
+            put shell("install_name_tool -add_rpath @loader_path " & QUOTE & tVLCLib & QUOTE) into tVLCR
+            put shell("codesign --sign - " & QUOTE & tVLCLib & QUOTE) into tVLCR
+            -- Patch binary: rewrite @rpath/libvlc and @rpath/libvlccore to @executable_path/../Resources/vlc-plugins/lib/
+            local tVLCLibRef
+            put "@executable_path/../Resources/vlc-plugins/lib" into tVLCLibRef
+            put shell("install_name_tool -change @rpath/libvlc.dylib " & tVLCLibRef & "/libvlc.dylib " & QUOTE & tStandalonePath & QUOTE) into tVLCR
+            put shell("install_name_tool -change @rpath/libvlccore.dylib " & tVLCLibRef & "/libvlccore.dylib " & QUOTE & tStandalonePath & QUOTE) into tVLCR
+            if tNeedsVLC then
+               revStandaloneProgress "VLC player runtime bundled."
+            else
+               revStandaloneProgress "VLC runtime stubs bundled (no player in project)."
+            end if
+         end if
+      end if
+
       --Restore stack to its post-savingStandalone message state
       __RestoreStackFromTemporaryLocation pStack, pRestoreFileName, tOriginalFileName
    end repeat
    
-   if the platform is "MacOS" then
-      local tAppBundle
+   if the platform begins with "Mac" then
+      local tAppBundle, tCertificate, tEntitlementsFile
       set the itemDel to slash
       put item 1 to -4 of tStandalonepath into tAppBundle
       set the itemDel to comma
-      clearExtendedAttributes tAppBundle
-      performAdHocCodesign tAppBundle
+      -- Guard: if no Mac target was actually built (e.g. engine missing → loop never ran),
+      -- tStandalonepath is empty and tAppBundle will be empty too.  Skip codesign in that case
+      -- to avoid "chmod: : No such file or directory" from clearExtendedAttributes.
+      if tAppBundle is not empty then
+         clearExtendedAttributes tAppBundle
+         put sStandaloneSettingsA["OSX,codeSignIdentity"] into tCertificate
+         put sStandaloneSettingsA["OSX,entitlementsFile"] into tEntitlementsFile
+         if tCertificate is not empty then
+            performDeveloperCodesign tAppBundle, tCertificate, tEntitlementsFile
+            if sStandaloneSettingsA["OSX,notarize"] is true then
+               local tAppleID, tTeamID, tPassword
+               put sStandaloneSettingsA["OSX,appleID"] into tAppleID
+               put sStandaloneSettingsA["OSX,teamID"] into tTeamID
+               put retrieveKeychainPassword("HyperXTalk-Notarization", tAppleID) into tPassword
+               if tPassword is not empty then
+                  performNotarization tAppBundle, tAppleID, tTeamID, tPassword
+               else
+                  revStandaloneAddWarning "Notarization skipped: no password found in keychain for" && tAppleID
+               end if
+            end if
+         else
+            revStandaloneAddWarning "No signing certificate set, using ad-hoc signature"
+            performAdHocCodesign tAppBundle
+         end if
+      end if
    end if
-   
+
    revStandalonePostBuild pStack, pFolder
-   
+
    return empty
 end revSaveAsMacStandalone
+
+-- Returns true if pStack (or any of its substacks) contains at least one player control.
+-- Used to gate VLC runtime bundling so the runtime is not copied for projects that
+-- never use a player object.
+private function revSAStandaloneNeedsVLC pStack
+   local tCardNum, tCard, tControlNum, tControl
+   put the number of cards of stack pStack into tCardNum
+   repeat with tCard = 1 to tCardNum
+      put the number of controls of card tCard of stack pStack into tControlNum
+      repeat with tControl = 1 to tControlNum
+         if word 1 of (the long id of control tControl of card tCard of stack pStack) is "player" then
+            return true
+         end if
+      end repeat
+   end repeat
+   -- Also check any in-memory substacks that belong to the same file
+   local tSubstacks, tSubstack
+   put the substacks of stack pStack into tSubstacks
+   repeat for each line tSubstack in tSubstacks
+      if tSubstack is not empty and there is a stack tSubstack then
+         if revSAStandaloneNeedsVLC(tSubstack) then
+            return true
+         end if
+      end if
+   end repeat
+   return false
+end revSAStandaloneNeedsVLC
 
 private command performAdHocCodesign pAppBundle
    local tShell
@@ -819,6 +949,165 @@ private command performAdHocCodesign pAppBundle
       throw "Adding ad-hoc signature failed with error:" && it
    end if
 end performAdHocCodesign
+
+private command performDeveloperCodesign pAppBundle, pCertificate, pEntitlementsFile
+   local tSignBase, tShell, tMergedFile
+
+   -- Build a merged entitlements file: engine baseline cs.* entries + developer additions.
+   -- This ensures the app retains the runtime exception entitlements the engine needs
+   -- (JIT, unsigned memory, dyld env vars, etc.) even when the developer only selected
+   -- a few user-facing entitlements in the settings UI.
+   put buildMergedEntitlements(pEntitlementsFile) into tMergedFile
+
+   -- Base codesign args for nested components (no entitlements on these)
+   put "codesign --force --options runtime -s" && quote & pCertificate & quote into tSignBase
+
+   -- Step 1: Sign all dylibs and shared objects (leaf-level, no sub-components)
+   put "find" && quote & pAppBundle & quote into tShell
+   put tShell && "-type f \( -name '*.dylib' -o -name '*.so' \)" into tShell
+   put tShell && "-exec" && tSignBase && "{} \; 2>/dev/null" into tShell
+   get shell(tShell)
+
+   -- Step 2: Sign nested .framework / .bundle / .appex bundles, deepest path first.
+   -- awk -F/ uses slash as field separator; NF = field count = depth indicator.
+   -- sort -rn puts deepest (highest NF) first so inner bundles are signed before
+   -- the outer bundle that contains them.
+   put "find" && quote & pAppBundle & quote into tShell
+   put tShell && "-type d \( -name '*.framework' -o -name '*.bundle' -o -name '*.appex' \)" into tShell
+   put tShell && "| awk -F/ '{ print NF, $0 }' | sort -rn | cut -d' ' -f2-" into tShell
+   put tShell && "| while IFS= read -r item; do" && tSignBase && quote & "$item" & quote & "; done 2>/dev/null" into tShell
+   get shell(tShell)
+
+   -- Step 3: Sign the outer .app last with the merged entitlements
+   put tSignBase && "--entitlements" && quote & tMergedFile & quote into tShell
+   put tShell && quote & pAppBundle & quote && "2>&1" into tShell
+   local tCodesignOutput, tCodesignResult
+   put shell(tShell) into tCodesignOutput
+   put the result into tCodesignResult
+   -- Delete temp file before throwing so we don't leave it behind on failure
+   delete file tMergedFile
+   if tCodesignResult is not zero then
+      throw "Developer code signing failed:" && return & tCodesignOutput
+   end if
+end performDeveloperCodesign
+
+-- Writes a temp entitlements plist that merges the engine's required cs.* baseline
+-- with whatever the developer selected in the standalone settings UI.
+-- Returns the path to the temp file (caller must delete it after use).
+-- Builds a temp entitlements plist containing the engine's required cs.* baseline
+-- entitlements using PlistBuddy (guarantees valid plist XML — no hand-rolled XML).
+-- Returns the path to the temp file (caller must delete it after use).
+private function buildMergedEntitlements pDeveloperFile
+   local tTempPath, tPB, tShell, tOutput
+
+   put "/private/tmp/hxt_merged_entitlements.plist" into tTempPath
+   put "/usr/libexec/PlistBuddy" into tPB
+
+   -- Remove any stale file from a previous run so PlistBuddy starts fresh
+   delete file tTempPath
+
+   -- Add each required cs.* entitlement. PlistBuddy creates the file on the
+   -- first Add command, so no separate init step is needed.
+   local tKeys
+   put "com.apple.security.cs.allow-jit" & return & \
+       "com.apple.security.cs.allow-unsigned-executable-memory" & return & \
+       "com.apple.security.cs.allow-dyld-environment-variables" & return & \
+       "com.apple.security.cs.disable-library-validation" & return & \
+       "com.apple.security.cs.disable-executable-page-protection" into tKeys
+
+   repeat for each line tKey in tKeys
+      put tPB && "-c" && quote & "Add :" & tKey & " bool true" & quote into tShell
+      put tShell && quote & tTempPath & quote && "2>&1" into tShell
+      put shell(tShell) into tOutput
+      if the result is not zero then
+         throw "PlistBuddy failed adding" && tKey & ":" && tOutput
+      end if
+   end repeat
+
+   return tTempPath
+end buildMergedEntitlements
+
+private function retrieveKeychainPassword pService, pAccount
+   local tShell, tPassword
+   put "security find-generic-password -a" && quote & pAccount & quote into tShell
+   put tShell && "-s" && quote & pService & quote && "-w" into tShell
+   put shell(tShell) into tPassword
+   -- Trim trailing newline from shell output
+   repeat while the last char of tPassword is in (return & LF)
+      delete the last char of tPassword
+   end repeat
+   return tPassword
+end retrieveKeychainPassword
+
+private command performNotarization pAppBundle, pAppleID, pTeamID, pPassword
+   local tShell, tZipPath
+
+   -- Zip the bundle for submission (notarytool requires a zip, dmg, or pkg)
+   set the itemDelimiter to "/"
+   put item 1 to -2 of pAppBundle & "/" & item -1 of pAppBundle & ".zip" into tZipPath
+   set the itemDelimiter to ","
+   put "ditto -c -k --keepParent" && quote & pAppBundle & quote && quote & tZipPath & quote into tShell
+   get shell(tShell)
+   if the result is not zero then
+      throw "Creating zip for notarization failed:" && it
+   end if
+
+   -- Submit and wait for Apple's response
+   put "xcrun notarytool submit" && quote & tZipPath & quote into tShell
+   put tShell && "--apple-id" && quote & pAppleID & quote into tShell
+   put tShell && "--team-id" && quote & pTeamID & quote into tShell
+   put tShell && "--password" && quote & pPassword & quote into tShell
+   put tShell && "--wait 2>&1" into tShell
+   local tNotaryOutput
+   put shell(tShell) into tNotaryOutput
+   delete file tZipPath
+   -- notarytool exits 0 even on some rejections, so check the output text too.
+   -- Note: parentheses around the contains expression are required — without them,
+   -- "not X contains Y" parses as "(not X) contains Y" which always evaluates false.
+   if the result is not zero or not (tNotaryOutput contains "status: Accepted") then
+      -- Fetch Apple's detailed rejection log using the submission ID from the output
+      local tSubmissionID, tLog, tLogShell
+      put tNotaryOutput into tLog
+      -- Extract the submission ID (format: id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+      repeat for each line tLine in tNotaryOutput
+         if tLine contains "id:" then
+            set the itemDelimiter to ":"
+            -- word 1 strips leading/trailing whitespace without needing trim()
+            put word 1 of (item 2 to -1 of tLine) into tSubmissionID
+            set the itemDelimiter to ","
+            if tSubmissionID is not empty then exit repeat
+         end if
+      end repeat
+      if tSubmissionID is not empty then
+         put "xcrun notarytool log" && quote & tSubmissionID & quote into tLogShell
+         put tLogShell && "--apple-id" && quote & pAppleID & quote into tLogShell
+         put tLogShell && "--team-id" && quote & pTeamID & quote into tLogShell
+         put tLogShell && "--password" && quote & pPassword & quote && "2>&1" into tLogShell
+         put return & shell(tLogShell) after tLog
+      end if
+      throw "Notarization rejected by Apple:" && return & tLog
+   end if
+
+   -- Staple the ticket so the app works offline.
+   -- Apple's CDN can take a few seconds to propagate the ticket after notarytool
+   -- returns, so retry up to 5 times with a 10-second wait between attempts.
+   local tStapleResult, tStapleOutput, tAttempt
+   put 0 into tAttempt
+   repeat
+      add 1 to tAttempt
+      -- 2>&1 captures stderr alongside stdout so we see the full reason on failure
+      put "xcrun stapler staple" && quote & pAppBundle & quote && "2>&1" into tShell
+      put shell(tShell) into tStapleOutput
+      put the result into tStapleResult
+      if tStapleResult = 0 then exit repeat
+      if tAttempt >= 5 then
+         throw "Stapling notarization ticket failed:" && return & tStapleOutput & \
+               return & "Notarization output was:" & return & tNotaryOutput
+      end if
+      -- Ticket not yet available — wait 10 seconds and try again
+      wait 10000 milliseconds
+   end repeat
+end performNotarization
 
 private command clearExtendedAttributes pAppBundle
    local tShell
@@ -844,14 +1133,16 @@ command revSaveAsWindowsStandalone pStack, pRestoreFileName, pFolder, @xStandalo
    put the effective filename of stack pStack into tOriginalFileName
    put item 1 to -2 of tOriginalFileName into tStackPath
    
-   -- In installed mode the generic icons live in Resources/Sample Icons (which is
-   -- always present on all platforms).  In dev/repo mode they are expected under
-   -- Runtime/Windows/x86-32/Support/Sample Icons; a separate guard below
-   -- substitutes engine/rsrc/standalone.ico for the repo case anyway.
-   if revEnvironmentIsInstalled() then
-      put revEnvironmentResourcesPath() & "/Sample Icons" into tName
-   else
+   -- Generic Windows icons live in the Runtime folder under the appropriate arch.
+   -- Prefer x86-64 (the current primary Windows target), fall back to x86-32 for
+   -- older/alternate builds, and finally try the Resources/Sample Icons path that
+   -- some LiveCode installer builds use.
+   put revEnvironmentRuntimePath() & "/Windows/x86-64/Support/Sample Icons" into tName
+   if there is not a folder tName then
       put revEnvironmentRuntimePath() & "/Windows/x86-32/Support/Sample Icons" into tName
+   end if
+   if there is not a folder tName and revEnvironmentIsInstalled() then
+      put revEnvironmentResourcesPath() & "/Sample Icons" into tName
    end if
    if sStandaloneSettingsA["Windows,iconFile"] = "" then
       put tName & "/genericapp.ico" into sStandaloneSettingsA["Windows,iconFile"]
@@ -881,6 +1172,11 @@ command revSaveAsWindowsStandalone pStack, pRestoreFileName, pFolder, @xStandalo
       put item 1 to -2 of tName & "/Sample Icons/genericdoc.ico" into sStandaloneSettingsA["Windows,documenticonFile"]
    end if
    
+   -- Determine VLC requirement before the loop: revStandaloneDeployWithParams moves/saves
+   -- the stack, making it unreachable by name inside the loop body.
+   local tNeedsVLC
+   put revSAStandaloneNeedsVLC(pStack) into tNeedsVLC
+
    -- keep a copy of the standalone settings to restore after each build
    local tStandaloneSettingsA
    put sStandaloneSettingsA into tStandaloneSettingsA
@@ -1028,13 +1324,20 @@ command revSaveAsWindowsStandalone pStack, pRestoreFileName, pFolder, @xStandalo
       end if
       
       revStandaloneDeployWithParams tTarget, tStackSourceFile, tDeployInfo
-      
+
+      -- Always copy the two VLC DLLs alongside the .exe — the engine links against
+      -- them at load time and will crash on launch if they are absent, even when no
+      -- player control is used.  Plugins are only copied when the project contains
+      -- a player control.
+      -- tDirectory ends with a path separator; strip it before passing to the helper.
+      revSBCopyVLCToStandalone "Windows", char 1 to -2 of tDirectory, tStandalonePath, tNeedsVLC
+
       --Restore stack to its post-savingStandalone message state
       __RestoreStackFromTemporaryLocation pStack, pRestoreFileName, tOriginalFileName
    end repeat
-   
+
    revStandalonePostBuild pStack, pFolder
-   
+
    return empty
 end revSaveAsWindowsStandalone
 
@@ -1047,6 +1350,11 @@ command revSaveAsLinuxStandalone pStack, pRestoreFileName, pFolder, @xStandalone
    put item 1 to -2 of tOriginalFileName into tStackPath
    set the itemDelimiter to comma
    
+   -- Determine VLC requirement before the loop: revStandaloneDeployWithParams moves/saves
+   -- the stack, making it unreachable by name inside the loop body.
+   local tNeedsVLC
+   put revSAStandaloneNeedsVLC(pStack) into tNeedsVLC
+
    -- keep a copy of the standalone settings to restore after each build
    local tStandaloneSettingsA
    put sStandaloneSettingsA into tStandaloneSettingsA
@@ -1103,13 +1411,19 @@ command revSaveAsLinuxStandalone pStack, pRestoreFileName, pFolder, @xStandalone
             tStandalonePath, tEngineSourceFile) into tDeployInfo
       
       revStandaloneDeployWithParams tTarget, tStackSourceFile, tDeployInfo
-      
+
+      -- Bundle VLC runtime alongside the binary if the project uses player controls.
+      -- tDirectory ends with a path separator; strip it before passing to the helper.
+      if tNeedsVLC then
+         revSBCopyVLCToStandalone "Linux", char 1 to -2 of tDirectory, tStandalonePath, tNeedsVLC
+      end if
+
       --Restore stack to its post-savingStandalone message state
       __RestoreStackFromTemporaryLocation pStack, pRestoreFileName, tOriginalFileName
    end repeat
-   
+
    revStandalonePostBuild pStack, pFolder
-   
+
    return empty
 end revSaveAsLinuxStandalone
 
@@ -1282,11 +1596,16 @@ private command revOutputDirectories pFolder
    if tOSXCount > 0 then add 1 to tPlatforms
    repeat for each item tTarget in tTargets
       if sStandaloneSettingsA[tTarget] = true then
+         -- Never attempt a Mac build on non-Mac hosts: the Mac engine binaries
+         -- are not present and the build tools (install_name_tool etc.) don't exist.
+         if tTarget contains "MacOSX" and the platform is not "MacOS" then
+            next repeat
+         end if
          if not revDownloadEngine(tTarget) then
             revStandaloneAddWarning "Could not build for " & tTarget & " because required files are missing."
             next repeat
          end if
-         
+
          local tPlatform
          put revSBTargetToPlatform(tTarget) into tPlatform
          
@@ -1823,8 +2142,33 @@ private command revSetMacOS pWhatFile, pPlatformCode, pEnginePath
          end if
          put escapeForXml(tDocExtList) into line lineoffset("<key>CFBundleTypeExtensions</key>",tTempPlist) + 2 of tTempPlist
       end if
+      
       set the itemDel to "/"
       put uniDecode(uniEncode(tTempPlist), "UTF8") into URL ("file:" & item 1 to -3 of pWhatFile&"/Info.plist")
+      
+      -- Inject placeholder NSUsageDescription keys for all privacy-sensitive APIs into
+      -- the Info.plist. macOS silently denies access (or App Store review rejects the
+      -- app) if these keys are absent. PlistBuddy's Add command is a no-op if the key
+      -- already exists, so values from a custom plist are preserved. Developers can
+      -- replace the placeholder strings with their own wording afterwards.
+      local tPrivacyInfoPlist, tPB
+      put item 1 to -3 of pWhatFile & "/Info.plist" into tPrivacyInfoPlist
+      put "/usr/libexec/PlistBuddy" into tPB
+      local tPrivacyMapping, tPrivacyMapLine, tPrivacyNSKey, tPrivacyPlaceholder
+      put "NSCameraUsageDescription|This app requires access to the camera." & return & \
+          "NSMicrophoneUsageDescription|This app requires access to the microphone." & return & \
+          "NSLocationUsageDescription|This app requires access to your location." & return & \
+          "NSContactsUsageDescription|This app requires access to your contacts." & return & \
+          "NSCalendarsUsageDescription|This app requires access to your calendars." & return & \
+          "NSPhotoLibraryUsageDescription|This app requires access to your photo library." & return & \
+          "NSAppleEventsUsageDescription|This app requires the ability to send Apple events." into tPrivacyMapping
+      set the itemDelimiter to "|"
+      repeat for each line tPrivacyMapLine in tPrivacyMapping
+         put item 1 of tPrivacyMapLine into tPrivacyNSKey
+         put item 2 of tPrivacyMapLine into tPrivacyPlaceholder
+         get shell(tPB && "-c" && quote & "Add :" & tPrivacyNSKey & " string '" & tPrivacyPlaceholder & "'" & quote && quote & tPrivacyInfoPlist & quote & " 2>/dev/null")
+      end repeat
+      set the itemDelimiter to "/"
       if sStandaloneSettingsA["OSX,signature"] is not empty then
          put "APPL" & sStandaloneSettingsA["OSX,signature"] into URL ("file:" & item 1 to -3 of pWhatFile&"/PkgInfo")
       end if
@@ -2540,13 +2884,18 @@ private command revCopyExternals pPlatform, pStackFilePath, pEnginePath, pStanda
    
    -- sanitise raw list of externals from inclusions pane
    revSBSanitiseExternalsList pPlatform, sStandaloneSettingsA["externals"]
-   
+
    -- create list of externals and paths
+   -- NOTE: This loop handles user-installed third-party externals from the Ext folder only.
+   -- Built-in engine externals (XML, Database, Zip, Speech) are handled below via the
+   -- scriptLibraries loop, which uses revExternalPath with the display name from Externals.txt.
+   -- Built-in externals should NOT be added to sStandaloneSettingsA["externals"]; they should
+   -- be enabled via sStandaloneSettingsA["scriptLibraries"] instead.
    local tExternalPathsA
    repeat for each line tExternalName in sStandaloneSettingsA["externals"]
       put revSBIncludedExternalPath(pPlatform, tExternalName) into tExternalPathsA[tExternalName]
    end repeat
-   
+
    -- check externals that are added to the 'scriptLibraries' key
    repeat for each line tExternalName in revExternalsList()
       -- check this item is selected for installation
@@ -2578,7 +2927,7 @@ private command revCopyExternals pPlatform, pStackFilePath, pEnginePath, pStanda
       // AL-2015-05-07: [[ Bug 15320 ]] Make sure universal external name is used.
       local tExternal
       put revSBExternalNameFromFile(tPlatform, tSourceExternal) into tExternal
-      
+
       revCopyModule tPlatform, tExternal, tSourceExternal, item 1 to -2 of tExternalPath, tCurrentLocation, "Externals", tPlatform is "MacOSX"
       if the result is not empty then
          revStandaloneAddWarning tPlatform && tArch & ", external" && the result & ":" && quote & tExternalPath & quote
@@ -2590,37 +2939,37 @@ private command revCopyExternals pPlatform, pStackFilePath, pEnginePath, pStanda
       end if
       revAddExternal tExternal
    end repeat
-   
+
    local tSourceFile, tSourceFolder, tTargetFolder, tDestFolder
    repeat for each line tLib in sStandaloneSettingsA["jarFiles"]
       set the itemdelimiter to slash
       put item -1 of tLib into tSourceFile
       put item 1 to -2 of tLib into tSourceFolder
       put tCurrentLocation & slash & "Externals/JVM" into tDestFolder
-      
+
       revSBEnsureFolder tDestFolder
       revCopyModule tPlatform, tSourceFile, tSourceFile, \
             tSourceFolder, tCurrentLocation, "Externals/JVM", false
    end repeat
-   
+
    repeat for each line tLib in sStandaloneSettingsA["extension_code_resources"]
       set the itemdelimiter to slash
       put item -1 of tLib into tSourceFile
       put item 1 to -2 of tLib into tSourceFolder
       put tCurrentLocation & slash & "Externals" into tDestFolder
-      
+
       revSBEnsureFolder tDestFolder
       set the itemDelimiter to "."
       revCopyModule tPlatform, item 1 to -2 of tSourceFile, tSourceFile, \
             tSourceFolder, tCurrentLocation, "Externals", there is a folder tLib
    end repeat
-   
+
    // SN-2015-07-01: [[ Bug 15259 ]] We don't want the saving to be trapped by
    //  a saveStackRequest handler in the standalone stack
    lock messages
    save stack pStackFilePath
    unlock messages
-   
+
    -- MM-2013-04-05: [[ Bug 10756 ]] Make sure we're allowed to delete the stack before deleteing.
    set the cantDelete of stack pStackFilePath to false
    delete stack pStackFilePath
@@ -2673,7 +3022,7 @@ command revStandaloneDeployWithParams pTarget, pStackFilePath, pDeployInfo
    if the result is not empty then
       throw "Build failed for " & pTarget & ":" && the result
    end if
-   
+
    -- Again, present in the original, this will remove the stackfile we saved
    -- above.
    revDeleteFile pStackFilePath
@@ -2684,16 +3033,16 @@ command revRedirectMacOSResources pStandalonePath
    set the itemDelimiter to slash
    put item 1 to -2 of pStandalonePath into tOldRFolder
    put (item 1 to -2 of tOldRFolder) & "/Resources/_MacOS" into tNewRFolder
-   
+
    create folder (tOldRFolder & slash & "../Resources")
    create folder (tOldRFolder & slash & "../Resources/_MacOS")
-   
+
    revRedirectMacOSResourcesRecurse tOldRFolder, tNewRFolder
 end revRedirectMacOSResources
 
 command revRedirectMacOSResourcesRecurse pSourceFolder, pTargetFolder
    create folder pTargetFolder
-   
+
    local tFiles
    repeat for each line tFile in files(pSourceFolder)
       if tFile ends with ".dylib" then
@@ -2714,7 +3063,7 @@ command revRedirectMacOSResourcesRecurse pSourceFolder, pTargetFolder
             break
       end switch
    end repeat
-   
+
    local tFolder
    repeat for each line tFolder in folders(pSourceFolder)
       if tFolder is ".." then
@@ -2731,7 +3080,7 @@ command revRedirectMacOSResourcesRecurse pSourceFolder, pTargetFolder
       end if
       revRedirectMacOSResourcesRecurse pSourceFolder & slash & tFolder, pTargetFolder & slash & tFolder
    end repeat
-   
+
    if files(pSourceFolder) is empty and folders(pSourceFolder) is ".." then
       delete folder pSourceFolder
    end if
@@ -2740,7 +3089,7 @@ end revRedirectMacOSResourcesRecurse
 function revRedirectMacOSResourcesIsExecutable pFile
    local tIsExecutable
    put false into tIsExecutable
-   
+
    open file pFile for binary read
    read from file pFile for 1 int4
    if the result is not "eof" then
@@ -2751,7 +3100,7 @@ function revRedirectMacOSResourcesIsExecutable pFile
       end if
    end if
    close file pFile
-   
+
    return tIsExecutable
 end revRedirectMacOSResourcesIsExecutable
 

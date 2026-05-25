@@ -9,7 +9,7 @@ Specifies the name of a <menu bar> to use when a <stack> is frontmost.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 
@@ -29,7 +29,7 @@ Use the <menubar> <property> to specify which <menus> appear in the
 
 On Mac OS systems, the menu bar appears at the top of the screen. On
 Unix and Windows systems, the menu bar appears at the top of the stack
-window. (OpenXTalk menus are created with buttons. Each menu is a button
+window. (HyperXTalk menus are created with buttons. Each menu is a button
 whose menuMode <property> is set to "pulldown" ; these <button|buttons>
 are then grouped to form a <menu bar>.)
 

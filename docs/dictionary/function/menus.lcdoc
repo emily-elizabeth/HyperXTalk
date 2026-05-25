@@ -7,10 +7,10 @@ Syntax: the menus
 Syntax: menus()
 
 Summary:
-Does not <return> a meaningful <value> and is included in <OpenXTalk> for
+Does not <return> a meaningful <value> and is included in <HyperXTalk> for
 compatibility with imported <HyperCard> stacks.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
@@ -18,10 +18,10 @@ Description:
 In HyperCard, the <menus> <function> <return|returns> a list of <menus>
 in the <menubar>.
 
-In OpenXTalk, the <menus> <function> always <return|returns> empty.
+In HyperXTalk, the <menus> <function> always <return|returns> empty.
 
 References: return (constant), function (control structure),
 value (function), menus (function), return (glossary),
-OpenXTalk (glossary), HyperCard (glossary), menu (keyword),
+HyperXTalk (glossary), HyperCard (glossary), menu (keyword),
 defaultMenubar (property), menubar (property)
 

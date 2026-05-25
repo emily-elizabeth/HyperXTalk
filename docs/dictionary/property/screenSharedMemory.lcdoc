@@ -10,7 +10,7 @@ Summary:
 Specifies whether <image|images> are drawn in shared memory on
 <Unix|Unix systems>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

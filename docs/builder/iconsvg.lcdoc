@@ -1,0 +1,458 @@
+Library: com.livecode.library.iconsvg
+
+Type: library
+
+Summary: This is an SVG icon path library.
+
+version: 1.2.0
+
+author: LiveCode
+
+
+Name: setCurrentIconFamily
+
+Type: handler
+
+Syntax: setCurrentIconFamily(<pFamily>)
+
+Summary: Set the current icon family.
+
+pFamily: The icon family.
+
+Description:
+Sets the iconsvg library's current icon family.  Handlers that do not specify
+an icon family will use the current icon family.
+
+References:
+addIconFamily(handler), iconData(handler),
+iconFamilies(handler), iconList(handler), iconNames(handler)
+
+Parameters:
+:
+
+
+
+
+Name: iconCodepointFromName
+
+Type: handler
+
+Syntax: iconCodepointFromName(<pName>)
+
+Summary: Returns the codepoint corresponding to the given icon in the current font.
+
+pName: The name of the icon
+
+Returns: The codepoint of the icon with name <pName>
+
+Description:
+Returns the codepoint corresponding to the icon with name <pName> in the 
+current font.  Use the <iconNames> handler to obtain the names of the 
+icons for which this library is able to access SVG paths.
+
+>Note:  The icon name is accepted in the form "name" or "family/name".  
+If no family is specified, then the current family is searched first.  
+If not found, other families are searched for the provided name.
+
+Related: iconNames(handler), iconNamesForFamily(handler)
+
+
+Parameters:
+:
+
+
+
+
+Name: iconListMatching
+
+Type: handler
+
+Syntax: iconListMatching(<pSearch>)
+
+Summary:
+Return the available icons in the current icon family that match the
+search string.
+
+pSearch: The string used to search icon names.
+
+Returns:
+The icon names for which SVG paths are available matching
+the search string.
+
+Description:
+Return an LCB list of the icon names in the current icon family that match 
+the search string.
+
+For each icon name, the SVG path string can be obtained with
+<iconSVGPathFromName> or its corresponding codepoint with
+<iconCodepointFromName>.
+
+References:
+iconSVGPathFromName(handler), iconCodepointFromName(handler),
+	iconList(handler), iconListForFamily(handler)
+
+Parameters:
+:
+
+
+
+
+Name: addIcon
+
+Type: handler
+
+Syntax: addIcon(<pName>,<pSVG>,<pCodepoint>)
+
+Summary: Add an icon to the iconsvg library.
+
+pName:
+The name of the icon.  By default, new icons are added to the
+"custom" family.  The family may be specified by including the family 
+name and a "/" before the icon name (`bootstrap/adjust`).
+
+pSVG: The SVG path for the icon.
+
+pCodepoint: The codepoint for the icon.
+
+Description:
+Add an icon to the iconsvg library.  By default, new icons are added to
+the "custom" family.  The family may be specified by including the 
+family name and a "/" before the icon name (`bootstrap/adjust`).
+
+References:
+addIconFamily(handler), iconFamilies(handler),
+iconList(handler), iconListForFamily(handler), 
+iconNames(handler), iconNamesForFamily(handler)
+
+Parameters:
+:
+
+
+:
+
+
+:
+
+
+
+
+Name: iconList
+
+Type: handler
+
+Syntax: iconList()
+
+Summary: Return the available icons in the current icon family.
+
+Returns: The icon names for which SVG paths are available.
+
+Description:
+Return an LCB list of the icon names in the iconsvg library's current
+icon family.
+
+For each icon name, the SVG path string can be obtained with
+<iconSVGPathFromName> or its corresponding codepoint with
+<iconCodepointFromName>.
+
+References:
+iconSVGPathFromName(handler), iconCodepointFromName(handler),
+	iconFamilies(handler), iconListForFamily(handler), iconNames(handler),
+	iconNamesForFamily(handler)
+
+
+
+Name: iconNames
+
+Type: handler
+
+Syntax: iconNames()
+
+Summary: Returns the available icons in the current icon family.
+
+Returns:
+The icon names for which SVG paths are available,
+one per line.
+
+Description:
+The <iconNames> handler returns the names of the icons in the library's
+current icon family.
+
+Call <iconSVGPathFromName> or <iconCodepointFromName> to retrieve either the
+SVG path string or codepoint corresponding to the icon with this name.
+
+References:
+iconSVGPathFromName(handler), iconCodepointFromName(handler),
+	iconFamilies(handler), iconList(handler), iconListForFamily(handler),
+	iconNamesForFamily(handler)
+
+
+
+Name: iconSVGPathFromName
+
+Type: handler
+
+Syntax: iconSVGPathFromName(<pName>)
+
+Summary: Returns the SVG path for the given icon.
+
+pName: The name of the icon
+
+Returns: The SVG path to draw the icon with name <pName>
+
+Description:
+Returns the SVG path for the icon with name <pName>. Use the 
+<iconNames> handler to obtain the names of the icons for which this 
+library is able to access SVG paths.
+
+>Note:  The icon name is accepted in the form "name" or "family/name".  
+If no family is specified, then the current family is searched first.  
+If not found, other families are searched for the provided name.
+
+Related: iconNames(handler), iconNamesForFamily(handler)
+
+
+Parameters:
+:
+
+
+
+
+Name: iconNamesForFamily
+
+Type: handler
+
+Syntax: iconNamesForFamily(<pFamily>)
+
+Summary: Returns the available icons in the specified icon family.
+
+pFamily: The name of the icon family
+
+Returns: The icon names for which SVG paths are available, one per line.
+
+Description:
+The <iconNamesForFamily> handler returns the names of the icons in the 
+library of the specified icon family.
+
+Call <iconSVGPathFromName> or <iconCodepointFromName> to retrieve either the
+SVG path string or codepoint corresponding to the icon with this name.
+
+References:
+iconSVGPathFromName(handler), iconCodepointFromName(handler),
+	iconFamilies(handler), iconList(handler), iconListForFamily(handler)
+
+Parameters:
+:
+
+
+
+
+Name: addIconFamily
+
+Type: handler
+
+Syntax: addIconFamily(<pFamily>,<pIconData>)
+
+Summary: Add an icon family to the iconsvg library.
+
+pFamily: The family for the icons.
+
+pIconData:
+The icon data.  Each key is an icon name with
+a key for the SVG data and a key for the codepoint.
+
+Description:
+Add icons to the iconsvg library.
+
+> Note:  If the family already exists, then the data will be merged.
+Icons with matching names will be replaced.
+To replace a family, use <deleteIconFamily> first.
+
+References:
+addIcon(handler), deleteIconFamily(handler),
+iconFamilies(handler), iconList(handler), iconListForFamily(handler), 
+iconNames(handler), iconNamesForFamily(handler)
+
+Parameters:
+:
+
+
+:
+
+
+
+
+Name: iconDataForFamily
+
+Type: handler
+
+Syntax: iconDataForFamily(<pFamily>)
+
+Summary: Return the available icon data in the specified icon family.
+
+pFamily: The name of the icon family
+
+Returns: The specified icon family's data (name, SVG path, codepoint).
+
+Description:
+Return an LCB array of the icon data in the iconsvg library's specified
+icon family.
+
+References:
+addIconFamily(handler), deleteIconFamily(handler),
+iconFamilies(handler), iconListForFamily(handler), 
+iconNamesForFamily(handler)
+
+Parameters:
+:
+
+
+
+
+Name: getCurrentIconFamily
+
+Type: handler
+
+Syntax: getCurrentIconFamily()
+
+Summary: Return the current icon family.
+
+Returns: The current icon family.
+
+Description:
+Returns the iconsvg library's current icon family.  Handlers that do not specify
+an icon family will use the current icon family.  "fontawesome" is the
+current family when the library is first initialized.
+
+References:
+addIconFamily(handler), iconData(handler),
+iconFamilies(handler), iconList(handler), iconNames(handler)
+
+
+
+Name: iconData
+
+Type: handler
+
+Syntax: iconData()
+
+Summary: Return the available icon data in the current icon family.
+
+Returns: The current icon family's data (name, SVG path, codepoint).
+
+Description:
+Return an LCB array of the icon data in the iconsvg library's current
+icon family.
+
+References: iconList(handler), iconNames(handler)
+
+
+
+
+Name: iconFamilies
+
+Type: handler
+
+Syntax: iconFamilies()
+
+Summary: Returns the available icons families.
+
+Returns: The icon family names for which SVG paths are available, one per line.
+
+Description: The <iconFamilies> handler returns the names of the families in the icon library.
+
+References:
+iconSVGPathFromName(handler), iconCodepointFromName(handler),
+	iconList(handler), iconListForFamily(handler),
+	iconNames(handler), iconNamesForFamily(handler)
+
+
+
+Name: deleteIconFamily
+
+Type: handler
+
+Syntax: deleteIconFamily(<pFamily>)
+
+Summary: Delete an icon family from the iconsvg library.
+
+pFamily: The family to delete.
+
+Description:
+Delete an icon family from the iconsvg library.
+
+> Note:  The current icon family may not be deleted.
+
+References:
+addIconFamily(handler), iconFamilies(handler),
+iconListForFamily(handler), iconNamesForFamily(handler)
+
+Parameters:
+:
+
+
+
+
+Name: iconArrayMatchingInAllFamilies
+
+Type: handler
+
+Syntax: iconArrayMatchingInAllFamilies(<pSearch>)
+
+Summary:
+Return the available icons in all icon families that match the
+search string.
+
+pSearch: The string used to search icon names.
+
+Returns:
+Each key is a family that contained icon matches to the
+search string.  Each value is a list of the icon matches.
+
+Description:
+Returns an array of families with icon names matching the search string.
+Each value is a list of the icon matches.
+
+For each icon name, the SVG path string can be obtained with
+<iconSVGPathFromName> or its corresponding codepoint with
+<iconCodepointFromName>.
+
+References:
+iconSVGPathFromName(handler), iconCodepointFromName(handler),
+	iconList(handler), iconListForFamily(handler)
+
+Parameters:
+:
+
+
+
+
+Name: iconListForFamily
+
+Type: handler
+
+Syntax: iconListForFamily(<pFamily>)
+
+Summary: Return the available icons in the specified icon family.
+
+pFamily: The name of the icon family
+
+Returns: The icon names for which SVG paths are available.
+
+Description:
+Return an LCB list of the icon names of the specified family in the 
+iconsvg library.
+
+For each icon name, the SVG path string can be obtained with
+<iconSVGPathFromName> or its corresponding codepoint with
+<iconCodepointFromName>.
+
+References:
+iconSVGPathFromName(handler), iconCodepointFromName(handler),
+	iconFamilies(handler), iconNames(handler), iconNamesForFamily(handler)
+
+Parameters:
+:
+
+
+
+

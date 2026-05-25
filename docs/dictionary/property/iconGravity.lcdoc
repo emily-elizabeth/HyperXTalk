@@ -10,11 +10,11 @@ label.
 
 Associations: button
 
-Introduced: 6.7
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the iconGravity of button "next" to "top"

@@ -7,7 +7,7 @@ Syntax: revMailUnicode <address> [, <ccAddress> [, <mailSubject> [, <messageBody
 Summary:
 Opens a new unicode email message in the user's email program
 
-Introduced: 3.5
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -37,7 +37,7 @@ Description:
 Use the <revMailUnicode> command to create an email message from within
 a stack.
 
-When OpenXTalk executes the <revMailUnicode> command, the user's email
+When HyperXTalk executes the <revMailUnicode> command, the user's email
 program is opened (if necessary) and a new email message with the
 specified parameters is created. The user can change any of the settings
 before sending the message, and the message is not sent automatically:

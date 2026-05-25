@@ -10,11 +10,11 @@ Summary:
 <return|Returns> the equivalent of a Windows Latin 1 <string>, in the
 <Mac OS> <character set>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 ISOToMac("Ab4+")
@@ -39,7 +39,7 @@ Description:
 Use the <ISOToMac> <function> to translate data that was created on a
 <Unix> or <Windows|Windows system> to the <Mac OS> <character set>.
 
-OpenXTalk automatically translates text in fields and scripts, as well as
+HyperXTalk automatically translates text in fields and scripts, as well as
 the names of custom properties, into the appropriate character set when
 you move a stack from one platform to another. It is therefore not
 necessary to translate them. However, the contents of custom properties,

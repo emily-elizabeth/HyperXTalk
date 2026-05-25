@@ -9,11 +9,11 @@ Syntax: get the sharedBehavior of group myGroup
 Summary:
 Specifies whether the group will behave as a shared group.
 
-Introduced: 4.6.4
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the sharedBehavior of group 1 to true

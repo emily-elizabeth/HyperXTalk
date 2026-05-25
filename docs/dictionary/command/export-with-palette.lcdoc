@@ -14,7 +14,7 @@ Summary:
 <export|Exports> the <selected> <image> as a <PBM>, <JPEG>, <GIF>, <BMP>
 or <PNG> <file>.
 
-Introduced: 4.5
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -60,7 +60,7 @@ The export with palette form exports an image in either PNG or GIF
 format with a specific size or type of palette.
 
 If the standard palette form is used, then the image will be
-color-matched to the default 256 color OpenXTalk palette before export.
+color-matched to the default 256 color HyperXTalk palette before export.
 
 If the optimized palette form is used, then a palette with the
 <colorCount> colors will be generated that does its best to approximate

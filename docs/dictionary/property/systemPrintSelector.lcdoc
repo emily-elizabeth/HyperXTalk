@@ -10,7 +10,7 @@ Summary:
 Reports whether to use the engine's stacks or system dialogs for printer
 settings.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -9,11 +9,11 @@ Syntax: play {stop | pause | resume | step {forward | back}} [<clipType>] [<clip
 Summary:
 Plays a movie or sound.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 play "/usr/local/clips/music.aiff"
@@ -92,7 +92,7 @@ the <current card>. You cannot play two sounds at the same time, nor can
 you queue a sound while another sound is playing.
 
 On Unix systems, the "xanim" program must be located in a directory in
-the PATH <environment variable>. You can set the PATH from within OpenXTalk
+the PATH <environment variable>. You can set the PATH from within HyperXTalk
 by using the put <command> :
 
     put newPath into $PATH

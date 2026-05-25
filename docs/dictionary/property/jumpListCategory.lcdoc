@@ -1,0 +1,66 @@
+Name: jumpListCategory
+
+Type: property
+
+Syntax: set the jumpListCategory of <stack> to <categoryName>
+
+Summary:
+Sets the section heading for tasks in the Windows taskbar Jump List.
+
+Associations: stack
+
+Introduced: 1.0.0
+
+OS: windows
+
+Platforms: desktop
+
+Example:
+-- Use a custom section heading
+set the jumpListCategory of this stack to "Actions"
+set the jumpListTasks of this stack to "New Card|newCard,Open Stack...|openStack"
+
+Example:
+-- Revert to the standard Tasks section
+set the jumpListCategory of this stack to empty
+set the jumpListTasks of this stack to "New Card|newCard"
+
+Parameters:
+stack:
+A reference to a stack, or an expression that evaluates to a stack.
+
+categoryName:
+The heading text shown above the task items in the Jump List.
+Pass empty to use the standard pinned "Tasks" section instead.
+
+Value:
+The <jumpListCategory> of a stack returns the string most recently set.
+The default value is empty.
+
+Description:
+Use the <jumpListCategory> property to control where and how task items
+defined by <jumpListTasks> appear in the Windows taskbar Jump List.
+
+When <jumpListCategory> is empty (the default), tasks are placed in the
+standard "Tasks" section, which Windows always pins at the bottom of
+the Jump List below any Recent or Frequent items.
+
+When <jumpListCategory> is set to a non-empty string, tasks are placed
+in a custom named section using that string as the heading. Custom
+sections appear above the Recent/Frequent sections and above the
+standard Tasks section.
+
+Changing <jumpListCategory> takes effect immediately and re-applies the
+current <jumpListTasks> list under the new heading.
+
+>*Note:* The <jumpListCategory> property only has a visual effect on
+> Windows. On macOS and Linux the property is accepted without error
+> but has no effect.
+
+>*Note:* The <jumpListCategory> property is not persistent — it is not
+> saved into the stack file. Set it alongside <jumpListTasks> in a
+> `preOpenStack` or `startUp` handler.
+
+References: jumpListTasks (property), taskbarProgress (property)
+
+Tags: windowing

@@ -7,7 +7,7 @@ Syntax: revBrowserOpenCef( <windowId> [, <url> ] )
 Summary:
 Opens and initialises a new Chrome-based browser.
 
-Introduced: 6.7
+Introduced: 1.0.0
 
 OS: windows
 
@@ -18,7 +18,7 @@ Security: network
 Example:
 local tBrowserId
 put revBrowserOpenCef(the windowId \
-      of this stack, "http://www.OpenXTalk.org" ) into tBrowserId
+      of this stack, "http://www.HyperXTalk.com" ) into tBrowserId
 if tBrowserId is not an integer then
   answer "Failed to open browser"
 end if
@@ -61,7 +61,7 @@ the window with the given windowId. If a url is given, the browser
 immediately navigates to this url.
 
 Changes:
-In OpenXTalk 8.0+, this function is no longer supported on Mac.
+In HyperXTalk 8.0+, this function is no longer supported on Mac.
 
 References: revBrowserStop (command), revBrowserPrint (command),
 revBrowserSet (command), revBrowserMakeTextBigger (command),

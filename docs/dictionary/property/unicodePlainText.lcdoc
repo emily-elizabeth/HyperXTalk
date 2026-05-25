@@ -11,7 +11,7 @@ Returns the contents of a field chunk as plain text.
 
 Associations: field
 
-Introduced: 4.6
+Introduced: 1.0.0
 
 Deprecated:
 In version 7.0 the language was changed to handle unicode

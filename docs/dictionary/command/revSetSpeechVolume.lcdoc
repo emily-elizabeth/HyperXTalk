@@ -9,7 +9,7 @@ Sets the volume at which the revSpeak command speaks.
 
 Associations: speech library
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 
@@ -37,14 +37,14 @@ string.
 Description:
 Use the <revSetSpeechVolume> command to make speech louder or quieter.
 
-The higher the <volume>, the louder OpenXTalk will speak. Setting the
-volume to 0 will cause OpenXTalk to speak silently, and setting the
+The higher the <volume>, the louder HyperXTalk will speak. Setting the
+volume to 0 will cause HyperXTalk to speak silently, and setting the
 volume to 100 will result in the maximum possible speech loudness
 
 >*Important:*  The <revSetSpeechVolume> <command> is part of the 
 > <Speech library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Speech" 
 > library checkbox is checked.
@@ -52,5 +52,5 @@ volume to 100 will result in the maximum possible speech loudness
 References: revSpeak (command), revSetSpeechProvider (command),
 revGetSpeechVolume (function), Standalone Application Settings (glossary),
 standalone application (glossary), command (glossary),
-OpenXTalk custom library (glossary), Speech library (library)
+HyperXTalk custom library (glossary), Speech library (library)
 

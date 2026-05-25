@@ -9,7 +9,7 @@ Specifies the current status of a player object
 
 Associations: player
 
-Introduced: 6.7
+Introduced: 1.0.0
 
 OS: mac
 

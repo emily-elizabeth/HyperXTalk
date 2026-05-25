@@ -9,11 +9,11 @@ Designates the <paint tool> used to draw ovals and circles. It also
 specifies, through the <style> <property>, that a <graphic>
 <object(glossary)> is an oval shape.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the style of the templateGraphic to oval

@@ -1236,7 +1236,15 @@ void MCPlayer::syncbuffering(MCContext *p_dc)
     t_should_buffer = t_should_buffer || getstack() -> gettool(this) != T_BROWSE;
 	
 	if (m_platform_player != nil)
+	{
+#if defined(TARGET_PLATFORM_LINUX)
+		MCRectangle t_video_rect = getactiverect();
+		if (getflag(F_SHOW_CONTROLLER) && t_video_rect.height > CONTROLLER_HEIGHT)
+			t_video_rect.height -= CONTROLLER_HEIGHT;
+		MCPlatformSetPlayerProperty(m_platform_player, kMCPlatformPlayerPropertyRect, kMCPlatformPropertyTypeRectangle, &t_video_rect);
+#endif
 		MCPlatformSetPlayerProperty(m_platform_player, kMCPlatformPlayerPropertyOffscreen, kMCPlatformPropertyTypeBool, &t_should_buffer);
+	}
 }
 
 // MW-2007-08-14: [[ Bug 1949 ]] On Windows ensure we load and unload QT if not
@@ -1502,6 +1510,9 @@ Boolean MCPlayer::prepare(MCStringRef options)
 #if defined(TARGET_PLATFORM_WINDOWS)
 	if (!MCPlatformPlayerSetNativeParentView(m_platform_player, getstack()->getrealwindow()))
 		return False;
+#elif defined(TARGET_PLATFORM_LINUX)
+	if (!MCPlatformPlayerSetNativeParentView(m_platform_player, getstack()->getwindow()))
+		return False;
 #endif
 	
     // PM-2015-01-26: [[ Bug 14435 ]] Avoid prepending the defaultFolder or the stack folder
@@ -1540,7 +1551,16 @@ Boolean MCPlayer::prepare(MCStringRef options)
     }
 	
 	resize(t_movie_rect);
-	
+
+#if defined(TARGET_PLATFORM_LINUX)
+	{
+		MCRectangle t_video_rect = getactiverect();
+		if (getflag(F_SHOW_CONTROLLER) && t_video_rect.height > CONTROLLER_HEIGHT)
+			t_video_rect.height -= CONTROLLER_HEIGHT;
+		MCPlatformSetPlayerProperty(m_platform_player, kMCPlatformPlayerPropertyRect, kMCPlatformPropertyTypeRectangle, &t_video_rect);
+	}
+#endif
+
 	bool t_looping, t_play_selection, t_show_selection, t_mirrored;
 	
 	t_looping = getflag(F_LOOPING);
@@ -1586,13 +1606,20 @@ void MCPlayer::attachplayer()
 {
     if (m_platform_player == nil)
         return;
-	
+
 	if (getflag(F_ALWAYS_BUFFER))
 		return;
-	
+
+#if defined(TARGET_PLATFORM_LINUX)
+	// On Linux, SetNativeParentView() in prepare() already created a GDK
+	// child window and passed its XID to libvlc_media_player_set_xwindow().
+	// The Mac-style native layer attach path is not used.
+	return;
+#endif
+
 	if (getNativeLayer() != nil)
 		return;
-	
+
 	SetNativeView(MCPlatformPlayerGetNativeView(m_platform_player));
 }
 

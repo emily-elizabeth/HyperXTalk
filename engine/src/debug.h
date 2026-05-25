@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #ifndef __MC_DEBUG_H__
 #define __MC_DEBUG_H__
 
@@ -76,7 +60,7 @@ struct Watchvar
 
 #define MAX_CONTEXTS 100
 
-extern MCExecContext *MCECptr;
+extern thread_local MCExecContext *MCECptr;
 extern MCStackHandle MCtracestackptr;
 extern Window MCtracewindow;
 extern Boolean MCtrace;
@@ -94,7 +78,7 @@ extern uint2 MCnwatchedvars;
 extern Watchvar *MCwatchedvars;
 
 extern MCExecContext *MCexecutioncontexts[MAX_CONTEXTS];
-extern uint2 MCnexecutioncontexts;
+extern thread_local uint2 MCnexecutioncontexts;
 extern uint2 MCdebugcontext;
 extern Boolean MCmessagemessages;
 extern MCNameRef MClogmessage;

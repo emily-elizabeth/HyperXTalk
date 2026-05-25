@@ -9,11 +9,11 @@ Syntax: watch
 Summary:
 Equivalent to the number 14.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 set the cursor to watch
@@ -29,7 +29,7 @@ The following two statements are equivalent:
     set the cursor to 14
 
 
-However, the first is easier to read and understand in OpenXTalk.
+However, the first is easier to read and understand in HyperXTalk.
 
 >*Important:*  If you use the <watch> <cursor(property)> or other
 > standard <cursor(glossary)|cursors> in your application, you must

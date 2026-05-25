@@ -8,11 +8,11 @@ Summary:
 Used with the number function to count the number of paragraph chunks in
 a container.
 
-Introduced: 7.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the number of paragraphs in field 1
@@ -29,7 +29,7 @@ Unicode paragraph separator (0x2029).
 
 >*Note:*  The paragraph chunk is identical to the line chunk, except
 > that it is also delimited by the paragraph separator character. This
-> reflects the paragraph breaking exhibited by OpenXTalk fields.
+> reflects the paragraph breaking exhibited by HyperXTalk fields.
 
 References: paragraph (keyword)
 

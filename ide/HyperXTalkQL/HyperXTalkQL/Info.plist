@@ -11,6 +11,7 @@
             <array>
                 <string>com.hyperxtalk.hyperxtalk.stack.native</string>
                 <string>com.hyperxtalk.hyperxtalk.script.native</string>
+                <string>com.hyperxtalk.hyperxtalk.project</string>
             </array>
             <key>QLSupportsSearchableItems</key>
             <false/>

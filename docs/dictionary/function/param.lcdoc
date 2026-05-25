@@ -10,11 +10,11 @@ Summary:
 <return|Returns> the specified <parameter> <pass|passed> to the current
 <handler>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 param(3) -- returns the third parameter
@@ -61,7 +61,7 @@ to assign it a name:
     end product
 
 
-OpenXTalk evaluates the parameters before passing them. So if you call
+HyperXTalk evaluates the parameters before passing them. So if you call
 myHandler with the following statement: 
 
      myHandler 1+1,"A","Hello" && "world" 

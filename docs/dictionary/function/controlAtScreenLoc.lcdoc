@@ -7,7 +7,7 @@ Syntax: controlAtScreenLoc(<coordinates>)
 Summary:
 Returns the control at the specified location.
 
-Introduced: 6.0
+Introduced: 1.0.0
 
 OS: mac, windows
 

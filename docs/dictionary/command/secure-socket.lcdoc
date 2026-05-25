@@ -11,16 +11,16 @@ Secures an open socket.
 
 Associations: ssl & encryption
 
-Introduced: 6.6
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Security: network
 
 Example:
-secure socket "OpenXTalk.org:443"
+secure socket "HyperXTalk.com:443"
 
 Example:
 open socket to "127.0.0.0:8080"
@@ -29,7 +29,7 @@ secure socket "127.0.0.0:8080"
 write "encrypted message" to socket "127.0.0.0:8080"
 
 Example:
-secure socket mySocket with verification for host "OpenXTalk.org"
+secure socket mySocket with verification for host "HyperXTalk.com"
 
 Parameters:
 socket:
@@ -49,7 +49,7 @@ certificates in System/Library/OpenSSL/certs. If a verificationhostname
 is specified, the socket will be verified against that
 verificationhostname. An example of this is when you want to create a
 secure connection with a host while tunnelling through a proxy.
-Specifying the final host allows OpenXTalk to verify the socket against
+Specifying the final host allows HyperXTalk to verify the socket against
 that host, rather than the proxy server.
 
 If 'without verification' is specified then peers credentials are not
@@ -70,7 +70,7 @@ it).
 >*Important:*  The <secure socket> <command> is part of the 
 > <SSL & Encryption library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the
 > "SSL & Encryption" 
@@ -78,7 +78,7 @@ it).
 
 References: open socket (command),
 Standalone Application Settings (glossary), command (glossary),
-OpenXTalk custom library (glossary), 
+HyperXTalk custom library (glossary), 
 standalone application (glossary), SSL & Encryption library (library), 
 message (glossary), socketError (message), property (glossary), 
 sslCertificates (property)

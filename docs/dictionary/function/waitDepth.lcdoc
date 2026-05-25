@@ -10,11 +10,11 @@ Summary:
 <return|Returns> the number of nested <wait commands(command)> currently
 pending. 
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the waitDepth
@@ -30,7 +30,7 @@ Use the <waitDepth> <function> to determine how many <wait>
 <command|commands> are currently awaiting completion.
 
 The wait with messages form of the <wait> <command>, when used in a
-<handler>, pauses that handler while allowing OpenXTalk to <execute>
+<handler>, pauses that handler while allowing HyperXTalk to <execute>
 other <handler|handlers> while waiting. The <waitDepth> <function>
 indicates how many such <statement|statements> are currently
 <execute|executing>--that is, how many <handler|handlers> are currently

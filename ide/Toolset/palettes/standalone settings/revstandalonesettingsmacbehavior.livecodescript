@@ -64,7 +64,9 @@ on preOpenCard
       put computeDefault(tStandaloneSettingsA[tTag], false) into tHiliteArch
       set the hilite of button x of group "Flavors" to tHiliteArch
       if the hilite of button x of group "Flavors" is true then
-         set the enabled of group "OSX" to true
+         if the platform is "MacOS" then
+            set the enabled of group "OSX" to true
+         end if
          put true into tAnyHilited
       end if
       if tFirstButton is empty then put x into tFirstButton
@@ -73,7 +75,8 @@ on preOpenCard
    // If no architecture was previously selected, auto-select the best default so
    // the group is enabled and the user can interact with it.  On Apple Silicon
    // prefer arm64 if present; otherwise fall back to the first available flavor.
-   if not tAnyHilited and tFirstButton is not empty then
+   // Only do this on macOS — on Windows/Linux the user must opt in to Mac builds.
+   if not tAnyHilited and tFirstButton is not empty and the platform is "MacOS" then
       local tDefaultBtn
       repeat with x = 1 to the number of buttons of group "Flavors"
          if the cSettingTag of button x of group "Flavors" contains "arm64" then

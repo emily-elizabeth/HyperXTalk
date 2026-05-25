@@ -10,11 +10,11 @@ Specifies all the patterns of an <object(glossary)>, in shorthand form.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the patterns of button 1 to the patterns of card "Template"
@@ -27,7 +27,7 @@ Value:
 The <patterns> of an <object(glossary)> is a list of pattern specifiers,
 one per <line>. A pattern specifier is a built-in pattern number between
 1 and 164 (corresponding to xTalk's built-in patterns 136 to 300), or
-the <ID> of an <image> to use for a pattern. OpenXTalk looks for the
+the <ID> of an <image> to use for a pattern. HyperXTalk looks for the
 specified <image> first in the <current stack>, then in other open
 <stacks>. The <patterns> of an <object(glossary)> consists of eight
 <lines>, some of which may be empty.

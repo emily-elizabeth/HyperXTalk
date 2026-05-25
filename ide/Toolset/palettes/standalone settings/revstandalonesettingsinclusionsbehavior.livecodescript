@@ -11,26 +11,46 @@ on preOpenCard
    if sHasOpened then
       put the viewProp["vscroll"] of group "extensionList" of me into tScroll
    end if
-   
+
+   -- Auto-detect player controls and enable VLC inclusion if present
+   -- (only when the setting hasn't been explicitly configured yet).
+   local tTargetStack
+   put getTargetStackName() into tTargetStack
+   if tTargetStack is not empty then
+      local tSettings
+      put the customProperties["cRevStandaloneSettings"] of stack tTargetStack into tSettings
+      if tSettings["vlcPlayer"] is empty then
+         local tFileList
+         put the filename of stack tTargetStack into tFileList
+         repeat for each line tEntry in the stackFiles of stack tTargetStack
+            put return & item 1 of tEntry after tFileList
+         end repeat
+         if revSBProjectHasPlayerControls(tFileList) then
+            put true into tSettings["vlcPlayer"]
+            set the customProperties["cRevStandaloneSettings"] of stack tTargetStack to tSettings
+         end if
+      end if
+   end if
+
    put revSBAvailableInclusions() into sExtensionData
    setUpExtensionList
-   
+
    send "renderView" to group "extensionList" of me
    if sHasOpened then
       set the viewProp["vscroll"] of group "extensionList" of me to tScroll
    end if
-   
+
    setExtensionList
-   
+
    local tHeight
    put the bottom of group "cards" of me \
          + kLineHeight * kNumberOfRows into tHeight
    set the cSize of this card to 568, tHeight
-   
+
    unlock screen
-   
+
    put true into sHasOpened
-   
+
    pass preOpenCard
 end preOpenCard
 

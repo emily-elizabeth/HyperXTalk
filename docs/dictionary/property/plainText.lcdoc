@@ -11,7 +11,7 @@ Returns the contents of a field chunk as plain text.
 
 Associations: field
 
-Introduced: 4.6
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

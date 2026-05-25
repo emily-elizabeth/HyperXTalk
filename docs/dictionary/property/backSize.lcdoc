@@ -9,11 +9,11 @@ Specifies the width and height of the specified <background>.
 
 Associations: group
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the backSize of group "Nav Bar" to 160,20
@@ -31,7 +31,7 @@ The second <item> is the height of the group in pixels.
 If you change the <backSize> of a group, the position of its top left
 corner remains unchanged.
 
-This property is included in OpenXTalk for compatibility with imported
+This property is included in HyperXTalk for compatibility with imported
 SuperCard projects.
 
 References: group (command), property (glossary), background (glossary),

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -2353,5 +2337,22 @@ void MCBlock::setcolorforselectedtext(MCDC* dc, MCColor* p_color)
     else if (!IsMacLF()) // TODO: if platform reverses selected text
         f->setforeground(dc, DI_PSEUDO_TEXT_COLOR_SEL_BACK, False, True, true);
     else
-        f->setforeground(dc, DI_PSEUDO_TEXT_COLOR_SEL_FORE, False, True, true);
+    {
+        // On Mac the field uses its own foreground colour for selected text, but
+        // that can be illegible when the system highlight colour is dark (e.g. a
+        // dark accent in light mode, or any accent in dark mode).  Compute the
+        // perceived luminance of the hilite colour (ITU-R BT.601 coefficients)
+        // and choose white or black text so contrast is always maintained.
+        MCColor hc;
+        MCPatternRef t_pattern;
+        int2 t_x = 0, t_y = 0;
+        f->getforecolor(DI_HILITE, False, True, hc, t_pattern, t_x, t_y, dc->gettype(), f);
+        uint32_t r = hc.red   >> 8;
+        uint32_t g = hc.green >> 8;
+        uint32_t b = hc.blue  >> 8;
+        uint32_t luminance = (299 * r + 587 * g + 114 * b) / 1000;
+        MCColor text_color;
+        text_color.red = text_color.green = text_color.blue = (luminance < 128) ? 0xFFFF : 0x0000;
+        dc->setforeground(text_color);
+    }
 }

@@ -10,11 +10,11 @@ represented in <RTF|RTF format>.
 
 Associations: field
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the RTFText of field "Stuff" to URL "file:New Stuff.rtf"
@@ -56,11 +56,11 @@ achieved with both TextEdit (and other Cocoa applications) on Mac, and
 Word and WordPad on Windows.
 >*Note:* Unfortunately, OpenOffice does not have particularly good rtf
 > import / export capabilities (it doesn't even round-trip correctly
-> through itself!) and thus copying / pasting of lists between OpenXTalk
+> through itself!) and thus copying / pasting of lists between HyperXTalk
 > and OpenOffice will not work reliably or correctly.
 
 >*Important:* Because the RTF standard does not include the box,
-> threeDbox, and link styles supported by OpenXTalk, the <RTFText>
+> threeDbox, and link styles supported by HyperXTalk, the <RTFText>
 > property does not necessarily include all information necessary to
 > reproduce the style information in a chunk. To export and re-import
 > field information without losing any style information, use the

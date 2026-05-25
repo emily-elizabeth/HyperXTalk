@@ -11,18 +11,18 @@ Summary:
 <handle|Handles> the <trigger> sent to an <object(glossary)> when you
 change one of its <custom property|custom properties>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Parameters:
 newValue (string):
 
 
 statementList:
-The statementList consists of one or more OpenXTalk statements, and can
+The statementList consists of one or more HyperXTalk statements, and can
 also include if, switch, try, or repeat control structures.
 
 propertyName (string):
@@ -40,7 +40,7 @@ Use the <setProp> <control structure> to check the range of a
 The last line of a <setProp> <handler> consists of the word "end"
 followed by the <property|property's> name.
 
-A <setProp> <handler> can contain any set of <OpenXTalk>
+A <setProp> <handler> can contain any set of <HyperXTalk>
 <statement|statements>. 
 
 The <propertyName> is the name of the <custom property> whose <value> is
@@ -109,7 +109,7 @@ The above <setProp> <handler> responds to changes in the
 
 >*Important:*  You must either include the <pass> <control structure> or
 > set the <property> explicitly in a <setProp> <handler>, if you want
-> OpenXTalk to set the <custom property>. Otherwise, the <setProp>
+> HyperXTalk to set the <custom property>. Otherwise, the <setProp>
 > <handler> <trap|traps> the <call> to set the <property>, and its
 > <value> is not changed.
 
@@ -125,7 +125,7 @@ exit (control structure), setProp (control structure),
 propertyNames (function), paramCount (function), value (function),
 object (glossary), statement (glossary), handler (glossary),
 property (glossary), recursion (glossary), command (glossary),
-OpenXTalk (glossary), control structure (glossary),
+HyperXTalk (glossary), control structure (glossary),
 custom property set (glossary), trigger (glossary),
 custom property (glossary), handle (glossary), message path (glossary),
 trap (glossary), message (glossary), parameter (glossary),

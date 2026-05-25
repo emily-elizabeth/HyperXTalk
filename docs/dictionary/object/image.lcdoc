@@ -9,11 +9,11 @@ Syntax: image
 Summary:
 A <control> that contains a <bitmap|bitmapped> picture.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 hide image "Blinking Star"
@@ -33,7 +33,7 @@ specified by the <image(object)|image's> <filename> <property>.
 An image is contained in a card, group, or background. Images cannot 
 contain other objects.
 
->*Note:* Animated GIFs cannot be resized in OpenXTalk.
+>*Note:* Animated GIFs cannot be resized in HyperXTalk.
 
 References: property (glossary), paint tool (glossary), bitmap (glossary),
 command (glossary), object type (glossary), templateImage (keyword),

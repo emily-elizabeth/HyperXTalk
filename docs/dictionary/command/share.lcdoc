@@ -1,0 +1,87 @@
+Name: share
+
+Type: command
+
+Syntax: share <text> [from <rect>]
+Syntax: share file <filePath> [from <rect>]
+Syntax: share image <imageName> [from <rect>]
+
+Summary:
+Displays the native sharing sheet, allowing the user to share text,
+a file, or an image with other apps and services.
+
+Introduced: 1.0.0
+
+OS: mac
+
+Platforms: desktop
+
+Example:
+share "Check out HyperXTalk!"
+
+Example:
+share field "description"
+
+Example:
+share file tExportPath from the rect of button "Share"
+
+Example:
+share image "screenshot" from the rect of button "Share"
+
+Example:
+on mouseUp
+   share the text of field "note" from the rect of me
+end mouseUp
+
+Parameters:
+text (string):
+A string value to share. The sharing sheet will offer services that
+accept plain text, such as Messages, Mail, and Notes.
+
+filePath (string):
+The full path to a file to share. The sharing sheet will offer services
+appropriate for the file type indicated by the path's extension.
+
+imageName (string):
+The short name of an image object in the current stack. The image's
+pixel data is exported as PNG and shared. Services that accept images,
+such as Photos and Mail, will be offered.
+
+rect (string):
+A rectangle in the format `left,top,right,bottom` in card coordinates,
+used to anchor the sharing popover on macOS. If omitted, the popover
+appears near the centre of the window. Typically `the rect of` a button
+or other control is passed here.
+
+Description:
+Use the <share> command to present the macOS native sharing sheet
+(NSSharingServicePicker). The sheet lists all sharing services installed
+on the system that are compatible with the type of content being shared
+— for example, AirDrop, Mail, Messages, Notes, and any third-party
+extensions the user has enabled.
+
+The three forms of the command share different content types:
+
+- The plain `share <text>` form shares a text string. If the text is a
+  URL, services that accept URLs (such as Safari's Reading List) may
+  also appear.
+- `share file <filePath>` shares a file by its path. The file itself is
+  not copied into the command; the sharing sheet receives a file
+  reference. The file must exist at the time the sheet is shown.
+- `share image <imageName>` locates a named image object in the current
+  default stack, exports its contents as a PNG, and shares the image
+  data. The image name must match the `name` property of an image object
+  in the stack; if no such image is found, an execution error is
+  reported.
+
+The optional `from <rect>` clause positions the sharing popover. On
+macOS the popover is anchored to the specified rectangle, which should
+be in card coordinates (i.e. the same coordinate space used by
+`the rect of <object>`). If the clause is omitted, the popover is
+centred on the window.
+
+On platforms other than macOS, the <share> command is a no-op.
+
+References: answer (command), ask (command)
+
+Tags: ui

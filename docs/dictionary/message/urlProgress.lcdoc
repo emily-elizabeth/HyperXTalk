@@ -7,11 +7,11 @@ Syntax: urlProgress <pUrl>, <pStatus>, [<pMessage>, [<pBytesTotal>]]
 Summary:
 Sent when updates on ongoing url requests are communicated.
 
-Introduced: 4.6.1
+Introduced: 1.0.0
 
-OS: ios, android, html5
+OS: html5
 
-Platforms: mobile, desktop
+Platforms: desktop
 
 Example:
 on urlProgress pUrl, pStatus

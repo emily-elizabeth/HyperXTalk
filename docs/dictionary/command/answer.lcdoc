@@ -7,11 +7,11 @@ Syntax: answer [<iconType>] <prompt> [with <button1> [or <buttons>]] [titled <wi
 Summary:
 Displays a <dialog box> with a <message> and up to seven buttons.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 answer "Go ahead?" with "Yes" or "No" or "Maybe"

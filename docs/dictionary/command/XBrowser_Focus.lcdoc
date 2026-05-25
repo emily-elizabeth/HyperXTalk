@@ -7,7 +7,7 @@ Syntax: XBrowser_Focus [<instanceId>]
 Summary:
 Has no affect, included for backwards comptability
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 

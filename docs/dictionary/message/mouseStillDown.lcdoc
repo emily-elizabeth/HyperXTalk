@@ -10,11 +10,11 @@ Sent periodically while the <mouse button> is being held down.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Parameters:
 pButtonNumber (enum): Specifies which mouse button was pressed:

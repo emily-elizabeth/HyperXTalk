@@ -8,11 +8,11 @@ Summary:
 Copies <selected> text or an <object(glossary)> to the <clipboard> or to
 a <card>, <group>, or <stack>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 copy

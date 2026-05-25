@@ -779,6 +779,39 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword finally none 152,5,23" into pPreferencesArray["colorization,config"]
          break
          
+      case "one dark pro"
+         put "group commands none 225,108,117" & return & \
+               "group properties none 97,175,239" & return & \
+               "group functions none 198,120,221" & return & \
+               "class error none 255,38,0" & return & \
+               "class singlecomment none 127,132,142" & return & \
+               "class multicomment none 127,132,142" & return & \
+               "class identifier none 97,175,239" & return & \
+               "class literal none 152,195,121" & return & \
+               "class number none 243,57,2" & return & \
+               "class keyword none 229,192,123" & return & \
+               "class operator none 198,120,221" & return & \
+               "keyword command none 198,120,221" & return & \
+               "keyword private none 198,120,221" & return & \
+               "keyword on none 198,120,221" & return & \
+               "keyword end none 198,120,221" & return & \
+               "keyword if none 198,120,221" & return & \
+               "keyword then none 198,120,221" & return & \
+               "keyword else none 198,120,221" & return & \
+               "keyword function none 198,120,221" & return & \
+               "keyword setprop none 198,120,221" & return & \
+               "keyword getprop none 198,120,221" & return & \
+               "keyword repeat none 198,120,221" & return & \
+               "keyword switch none 198,120,221" & return & \
+               "keyword try none 198,120,221" & return & \
+               "keyword catch none 198,120,221" & return & \
+               "keyword case none 198,120,221" & return & \
+               "keyword default none 198,120,221" & return & \
+               "keyword finally none 198,120,221" & return & \
+               "keyword next none 198,120,221" & return & \
+               "keyword exit none 255,38,0" into pPreferencesArray["colorization,config"]
+         break
+
       case "no colorization"
          put "group commands none 0,0,0" & return & \
                "group properties none 0,0,0" & return & \

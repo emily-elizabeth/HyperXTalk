@@ -10,7 +10,7 @@ Summary:
 The global property <qtIdleRate> specifies how frequently to idle
 QuickTime movies.
 
-Introduced: 2.7
+Introduced: 1.0.0
 
 OS: mac, windows
 
@@ -41,7 +41,7 @@ Updating gives the player object time to redraw the video or other media
 being played. A higher idle rate will result in smoother playback but
 will also require more cpu time.
 
-OpenXTalk uses the following heuristics to determine how frequently to
+HyperXTalk uses the following heuristics to determine how frequently to
 idle QT players:
 
 If the version of QT &lt; 6 then it idles at the <qtIdleRate> at all

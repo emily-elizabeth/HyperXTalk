@@ -7,7 +7,7 @@ Syntax: player
 Summary:
 A <control> that displays a movie or sound <file>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -2254,6 +2238,46 @@ Exec_stat MCStack::openrect(const MCRectangle &rel, Window_mode wm, MCStack *par
             positionrel(trect, OP_ALIGN_LEFT, OP_ALIGN_TOP);
         }
 		break;
+	case WM_POPOVER:
+	{
+		// rel = anchor control rect in screen coordinates.
+		// wposition encodes the edge: WP_PARENTxxx.
+		// Position the popover centred on the chosen edge of the anchor rect,
+		// then clamp to the display work area so it stays fully on screen.
+		MCRectangle t_anchor = rel;
+		MCRectangle t_mid;
+		MCU_set_rect(t_mid, t_anchor.x + t_anchor.width / 2, t_anchor.y + t_anchor.height / 2, 1, 1);
+		const MCDisplay *t_display = MCscreen->getnearestdisplay(t_mid);
+		MCRectangle t_work = t_display->workarea;
+
+		switch (wposition)
+		{
+		case WP_PARENTTOP:
+			positionrel(t_anchor, OP_CENTER, OP_TOP);
+			break;
+		case WP_PARENTLEFT:
+			positionrel(t_anchor, OP_LEFT, OP_MIDDLE);
+			break;
+		case WP_PARENTRIGHT:
+			positionrel(t_anchor, OP_RIGHT, OP_MIDDLE);
+			break;
+		case WP_PARENTBOTTOM:
+		default:
+			positionrel(t_anchor, OP_CENTER, OP_BOTTOM);
+			break;
+		}
+
+		// Clamp to work area so the popover stays on screen.
+		if (rect.x < t_work.x)
+			rect.x = t_work.x;
+		if (rect.y < t_work.y)
+			rect.y = t_work.y;
+		if (rect.x + rect.width > t_work.x + t_work.width)
+			rect.x = t_work.x + t_work.width - rect.width;
+		if (rect.y + rect.height > t_work.y + t_work.height)
+			rect.y = t_work.y + t_work.height - rect.height;
+		break;
+	}
 	case WM_CASCADE:
 		trect = rel;
 		trect.x -= DEFAULT_BORDER << 1;

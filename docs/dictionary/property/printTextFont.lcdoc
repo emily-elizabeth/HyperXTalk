@@ -8,7 +8,7 @@ Summary:
 Has no effect and is included for compatibility with
 imported <HyperCard> <stacks>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
@@ -16,14 +16,14 @@ Security: printing
 
 Description:
 In HyperCard, the <printTextFont> <property> specifies the <font|font
-face> of printed text. In OpenXTalk, only <card(object)|cards> can be
+face> of printed text. In HyperXTalk, only <card(object)|cards> can be
 printed, and the font of text on the <card(keyword)> is determined by
 the <textFont> <property> of the <object|objects> containing text.
 
 A handler can set the property, but the new setting has no effect.
 
 References: print (command), stacks (function), property (glossary),
-OpenXTalk (glossary), HyperCard (glossary), font (glossary),
+HyperXTalk (glossary), HyperCard (glossary), font (glossary),
 object (glossary), card (keyword), card (object), textFont (property),
 scriptTextFont (property)
 

@@ -9,7 +9,7 @@ Syntax: qtEffects()
 Summary:
 <return|Returns> a list of <QuickTime> special effects.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
 OS: mac
 

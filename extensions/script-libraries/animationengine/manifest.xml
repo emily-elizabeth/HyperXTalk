@@ -1,8 +1,0 @@
-<package version="0.0">
-  <name>com.hyperxtalk.library.animationengine</name>
-  <title>Animation Engine</title>
-  <author>Malte Pfaff-Brill</author>
-  <version>6.0.1</version>
-  <type>library</type>
-  <license>community</license>
-</package>

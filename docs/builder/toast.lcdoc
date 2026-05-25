@@ -1,0 +1,52 @@
+Library: com.livecode.library.toast
+
+Type: library
+
+Summary: A library for displaying toasts on mobile
+
+Description: A toast is a non-modal temporary notification displayed to the user. 
+
+version: 1.0.0
+
+author: LiveCode
+
+os: android
+
+
+Name: mobileToastCancel
+
+Type: handler
+
+Syntax: mobileToastCancel()
+
+Summary: Cancel the current toast
+
+Description: Use <mobileToastCancel> to cancel the currently displayed toast.
+
+
+
+
+Name: mobileToast
+
+Type: handler
+
+Syntax: mobileToast(<pMessage>,<pDuration>)
+
+Summary: Display a toast notification
+
+Example: mobileToast "Hello, I am a toast!", "short"
+
+Parameters: 
+
+pMessage: The message to display
+
+pDuration:
+The duration of the notification. Either a positive integer, the string
+"long" or the string "short".
+
+Description:
+Use the <mobileToast> handler to display a temporary non-modal 
+notification with a specified message, for the given duration.
+
+
+

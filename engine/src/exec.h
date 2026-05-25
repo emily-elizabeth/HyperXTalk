@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #ifndef __MC_EXEC__
 #define __MC_EXEC__
 
@@ -1602,7 +1586,15 @@ public:
 	{
         m_curhandler = p_handler;
 	}
-	
+
+    // Worker-thread support: provide a fallback 'it' variable for contexts
+    // that have no enclosing handler (used by MCWorker::RunLoop and
+    // MCWorkerDeliverCallback so MCEngineExecDispatch can write 'it').
+    void SetWorkerIt(MCVarref *p_it)
+    {
+        m_worker_it = p_it;
+    }
+
     MCHandlerlist *GetHandlerList() const
 	{
         return m_hlist;
@@ -1763,7 +1755,12 @@ private:
 
     MCHandlerlist *m_hlist;
     MCHandler *m_curhandler;
-    
+
+    // Used by worker threads, which have no enclosing handler at dispatch
+    // time.  Set via SetWorkerIt(); checked by GetIt() as a fallback when
+    // m_curhandler is nullptr (non-server builds only).
+    MCVarref *m_worker_it;
+
     MCStringRef m_itemdel;
     MCStringRef m_columndel;
     MCStringRef m_linedel;
@@ -2255,6 +2252,7 @@ void MCInterfaceEvalSelectedObject(MCExecContext& ctxt, MCStringRef& r_string);
 
 void MCInterfaceEvalCapsLockKey(MCExecContext& ctxt, MCNameRef& r_result);
 void MCInterfaceEvalCommandKey(MCExecContext& ctxt, MCNameRef& r_result);
+void MCInterfaceEvalNaturalScrolling(MCExecContext& ctxt, MCStringRef& r_result);
 void MCInterfaceEvalControlKey(MCExecContext& ctxt, MCNameRef& r_result);
 void MCInterfaceEvalOptionKey(MCExecContext& ctxt, MCNameRef& r_result);
 void MCInterfaceEvalShiftKey(MCExecContext& ctxt, MCNameRef& r_result);
@@ -2290,6 +2288,7 @@ void MCInterfaceEvalControlAtLoc(MCExecContext& ctxt, MCPoint p_location, MCStri
 void MCInterfaceEvalControlAtScreenLoc(MCExecContext& ctxt, MCPoint p_location, MCStringRef& r_control);
 
 void MCInterfaceExecBeep(MCExecContext& ctxt, integer_t p_count);
+void MCInterfaceExecBringApplicationToFront(MCExecContext& ctxt);
 void MCInterfaceExecClickCmd(MCExecContext& ctxt, uint2 p_button, MCPoint p_location, uint2 p_modifiers);
 
 void MCInterfaceExecCloseStack(MCExecContext& ctxt, MCStack *p_target);
@@ -2393,6 +2392,8 @@ void MCInterfaceExecOpenStack(MCExecContext& ctxt, MCStack *p_target, int p_mode
 void MCInterfaceExecOpenStackByName(MCExecContext& ctxt, MCNameRef p_target, int p_mode);
 void MCInterfaceExecPopupStack(MCExecContext& ctxt, MCStack *p_target, MCPoint *p_at, int p_mode);
 void MCInterfaceExecPopupStackByName(MCExecContext& ctxt, MCNameRef p_target, MCPoint *p_at, int p_mode);
+void MCInterfaceExecPopoverStack(MCExecContext& ctxt, MCStack *p_target, MCRectangle *p_anchor_rect, int p_edge);
+void MCInterfaceExecPopoverStackByName(MCExecContext& ctxt, MCNameRef p_target, MCRectangle *p_anchor_rect, int p_edge);
 
 void MCInterfaceExecCreateStack(MCExecContext& ctxt, MCStack *p_owner, MCStringRef p_new_name, bool p_force_invisible);
 void MCInterfaceExecCreateScriptOnlyStack(MCExecContext& ctxt, MCStringRef p_new_name);
@@ -4452,5 +4453,28 @@ template<> struct MCExecValueTraits<float>
         return true;
     }
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// Battery
+
+void MCBatteryEvalBatteryLevel(MCExecContext& ctxt, integer_t& r_level);
+void MCBatteryEvalPowerSource(MCExecContext& ctxt, MCStringRef& r_source);
+
+////////////////////////////////////////////////////////////////////////////////
+// Credential storage
+
+void MCCredentialsEvalStoreCredential(MCExecContext& ctxt,
+                                      MCStringRef p_service,
+                                      MCStringRef p_account,
+                                      MCStringRef p_secret,
+                                      bool& r_result);
+void MCCredentialsEvalRetrieveCredential(MCExecContext& ctxt,
+                                         MCStringRef p_service,
+                                         MCStringRef p_account,
+                                         MCStringRef& r_secret);
+void MCCredentialsEvalDeleteCredential(MCExecContext& ctxt,
+                                       MCStringRef p_service,
+                                       MCStringRef p_account,
+                                       bool& r_result);
 
 #endif

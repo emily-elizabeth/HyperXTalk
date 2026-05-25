@@ -9,11 +9,11 @@ Specifies the file associated with a player or image.
 
 Associations: player, image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the filename of image "Animation" to "/HD/Projects/blipvert.gif"
@@ -66,8 +66,8 @@ DirectShow on Windows.
     set the currentTime of player "My Player" to zero
 
 
-If you specify a URL for a streaming a movie file, OpenXTalk displays the
-movie sequentially as it downloads. Otherwise, OpenXTalk must download
+If you specify a URL for a streaming a movie file, HyperXTalk displays the
+movie sequentially as it downloads. Otherwise, HyperXTalk must download
 the entire file before you can play it. To pre-fetch a file from the
 Internet in order to speed up access to it, use the load command before
 visiting the card that holds the player or image that references the

@@ -11,11 +11,11 @@ Syntax: openStacks()
 Summary:
 <return|Returns> a list of the names of all open <stacks>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the openStacks
@@ -30,7 +30,7 @@ The <openStacks> <function> <return|returns> a list with the short
 Description:
 Use the <openStacks> <function> to determine which <stacks> are open.
 
-The list includes stacks that are part of the OpenXTalk development
+The list includes stacks that are part of the HyperXTalk development
 environment (such as the message box and menu bar).
 
 The list also includes open stacks that cannot be seen because their

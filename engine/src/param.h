@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 //
 // MCParameter class declarations
 //
@@ -82,6 +66,10 @@ public:
     /* Count the number of containers which is needed to evaluate the parameter
      * list. This is the number of expressions which have a root var-ref. */
     unsigned count_containers(void);
+
+    // HXT: access the parse-time expression slot.
+    MCExpression *getexp(void) const { return exp; }
+    void          setexp(MCExpression *e) { exp = e; }
 
 private:
 	// Parameter as syntax (i.e. location of the expression

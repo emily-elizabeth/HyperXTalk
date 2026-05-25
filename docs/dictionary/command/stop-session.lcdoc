@@ -8,7 +8,7 @@ Summary:
 Ends the session explicitly, saving the contents of the $_SESSION
 variable. 
 
-Introduced: 5.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

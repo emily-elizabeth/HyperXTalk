@@ -14,11 +14,11 @@ Specifies the area within which an <object(glossary)> is drawn.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the rectangle of button "Tangle" to 20,20,45,200

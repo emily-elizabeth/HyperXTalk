@@ -7,11 +7,11 @@ Syntax: export snapshot {[from rect[angle] <rectangle>] [of <object>] | from <ob
 Summary:
 Creates a picture file from a portion of the screen.
 
-Introduced: 2.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Security: privacy
 
@@ -101,7 +101,7 @@ ink. You can take a snapshot of an object regardless of its visibility
 or open status - in particular, snapshots can be taken of objects that
 are not on the current card or in stacks that are not open.
 
-If you don't specify a <rectangle>, OpenXTalk displays a crosshairs
+If you don't specify a <rectangle>, HyperXTalk displays a crosshairs
 <cursor>. Click at one corner of the rectangle to be imported and drag
 to the opposite corner to <select> the area.
 

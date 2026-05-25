@@ -9,11 +9,11 @@ Syntax: value(<expression> [, <object>])
 Summary:
 <return|Returns> the <value> of an <expression>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the value of 22 + 3 -- returns 25
@@ -45,7 +45,7 @@ function <return|returns> the result of the <evaluate|evaluation>:.
 
 Description:
 Use the <value> <function> to <evaluate> an <expression>, or to force
-OpenXTalk to <evaluate> an <expression> within a <statement>.
+HyperXTalk to <evaluate> an <expression> within a <statement>.
 
     ask "What do you want to compute?"
     answer it && "equals" && the value of it
@@ -59,7 +59,7 @@ example, "button 3" refers to button 3 on the <current card>, not the
 <card> where the <object(glossary)> is located.
 
 If the <expression> is a single <string>, then even if it is enclosed in
-quotes, OpenXTalk attempts to <evaluate> its contents instead of treating
+quotes, HyperXTalk attempts to <evaluate> its contents instead of treating
 it as a <literal string|string literal>. This means that you must be
 careful about <literal string|string literals> that contain
 <operator|operators> such as "and".

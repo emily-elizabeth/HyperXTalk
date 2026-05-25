@@ -11,7 +11,7 @@ Syntax: XBrowser_Click <pElementId>, <pInstanceId>
 Summary:
 Sent when the mouse is clicked in a browser object.
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: windows
 

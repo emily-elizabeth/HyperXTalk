@@ -8,11 +8,11 @@ Summary:
 Equivalent to a carriage return (ASCII 13, Control-M) followed by a line
 feed (ASCII 10, Control-J).
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 read from file myData until CRLF

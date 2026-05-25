@@ -7,11 +7,11 @@ Syntax: visual [effect] <effectName> [<speed>] [to <finalImage>] [with sound <au
 Summary:
 Adds a visual effect transition.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 visual effect "dissolve"

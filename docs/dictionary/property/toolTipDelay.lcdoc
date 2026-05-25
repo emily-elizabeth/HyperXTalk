@@ -8,7 +8,7 @@ Summary:
 Specifies how long the user must <point> to an <object(glossary)> with
 the <mouse pointer> before its <tool tip> appears.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

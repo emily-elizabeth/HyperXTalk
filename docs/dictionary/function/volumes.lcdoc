@@ -11,7 +11,7 @@ Syntax: volumes()
 Summary:
 <return|Returns> a list of volumes.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows
 

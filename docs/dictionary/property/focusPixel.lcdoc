@@ -14,11 +14,11 @@ Specifies which entry in the <color table> is used for the color of an
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the focusPixel of this stack to 33

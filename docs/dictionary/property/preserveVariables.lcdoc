@@ -10,11 +10,11 @@ Summary:
 Specifies that the values of script-local variables should be preserved
 across recompilations of the script.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the preserveVariables to true
@@ -24,7 +24,7 @@ The <preserveVariables> is true or false.
 By default, the <preserveVariables> is set to false.
 
 Description:
-Set the <preserveVariables> to true to make OpenXTalk remember values of
+Set the <preserveVariables> to true to make HyperXTalk remember values of
 script-local variables across recompilation of the script. Script
 recompilation occurs when an object's script property is set. This
 property affects only variables at script scope, that do not have an

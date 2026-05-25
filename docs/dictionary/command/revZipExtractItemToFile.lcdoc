@@ -7,11 +7,11 @@ Syntax: revZipExtractItemToFile <archivePath>, <itemName>, <fileName>
 Summary:
 Extracts an item from a zip archive and places the item in a file.
 
-Introduced: 2.7.3
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 

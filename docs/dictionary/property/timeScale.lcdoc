@@ -9,7 +9,7 @@ Reports the number of intervals per second of a movie or sound.
 
 Associations: player
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -8,7 +8,7 @@ Summary:
 Specifies the explanatory text that pops up in a small box when the user
 <points> to an <object(glossary)>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

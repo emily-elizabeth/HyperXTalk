@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -429,7 +413,7 @@ bool relaunch_startup(MCStringRef p_stack_name)
 	if (t_relaunch_folder == NULL)
 		t_relaunch_folder = get_special_folder(CSIDL_APPDATA, true);
 	if (t_relaunch_folder != NULL)
-		t_relaunch_folder = concatenate(t_relaunch_folder, true, (char *)"\\._LiveCode_.", false);
+		t_relaunch_folder = concatenate(t_relaunch_folder, true, (char *)"\\HyperXTalk", false);
 	if (t_relaunch_folder != NULL)
 		ensure_folder(t_relaunch_folder);
 

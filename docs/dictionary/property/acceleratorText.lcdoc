@@ -12,7 +12,7 @@ Specifies the shortcut hint that appears at the right edge of a
 
 Associations: button
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -42,7 +42,7 @@ button's <acceleratorKey> <property>.
 
 The <acceleratorText> string appears at the right edge of the
 <button(keyword)>, inside the <button(object)|button's> <rightMargin>.
-OpenXTalk does not automatically make room for the <acceleratorText>
+HyperXTalk does not automatically make room for the <acceleratorText>
 <string>, so you might need to enlarge the <button(keyword)> to prevent
 its label from overlapping the <acceleratorText> <string>.
 

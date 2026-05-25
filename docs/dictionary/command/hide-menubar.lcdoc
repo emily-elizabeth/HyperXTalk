@@ -7,7 +7,7 @@ Syntax: hide menubar
 Summary:
 Hides the <menu bar> on <Mac OS|Mac OS systems>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 
@@ -30,7 +30,7 @@ systems, the <hide menubar> <command> also hides the Dock. This
 
 Hiding the menu bar does not affect its appearance in other
 applications; if the user switches to another application, the menu bar
-becomes visible. If the user switches back to OpenXTalk, the menu bar is
+becomes visible. If the user switches back to HyperXTalk, the menu bar is
 hidden again.
 
 References: hide taskbar (command), hide groups (command),

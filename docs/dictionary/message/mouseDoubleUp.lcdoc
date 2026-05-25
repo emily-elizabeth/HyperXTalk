@@ -10,11 +10,11 @@ Sent when the <mouse button> is released at the end of a <double-click>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android,html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on mouseDoubleUp theMouseButton 
@@ -44,7 +44,7 @@ If a tool other than the <Browse tool> is being used, no <mouseDoubleUp>
 <mouse button> 1 or 2, no <mouseDoubleUp> <message> is sent.
 
 The <doubleClickInterval> and <doubleClickDelta> <properties> determine
-what OpenXTalk accepts as a <double-click|double click>.
+what HyperXTalk accepts as a <double-click|double click>.
 
 >*Note:*  If the user clicks a transparent <pixel> in an <image>,
 > the <mouseDoubleUp> <message> is sent to the <object(glossary)> behind

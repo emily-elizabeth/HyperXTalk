@@ -7,9 +7,9 @@ Syntax: cancel printing
 Summary:
 Cancels the current print job.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
 Platforms: desktop
 

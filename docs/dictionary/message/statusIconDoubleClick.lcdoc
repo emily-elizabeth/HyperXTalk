@@ -1,0 +1,43 @@
+Name: statusIconDoubleClick
+
+Type: message
+
+Syntax: statusIconDoubleClick <button>
+
+Summary:
+Sent when the user double-clicks the system tray icon.
+
+Introduced: 1.0.0
+
+OS: windows
+
+Platforms: desktop
+
+Example:
+on statusIconDoubleClick pButton
+    if pButton is 1 then
+        show this stack
+        set the iconic of this stack to false
+    end if
+end statusIconDoubleClick
+
+Parameters:
+button:
+The mouse button that was double-clicked:
+- 1 — left button
+- 2 — right button
+- 3 — middle button
+
+Description:
+The <statusIconDoubleClick> message is sent to the current card of the
+default stack when the user double-clicks the system tray icon.
+
+When a double-click is detected, <statusIconDoubleClick> is sent and the
+corresponding `statusIconClick` message for that action is suppressed.
+The first click of the double-click sequence (which fires a button-up
+before Windows recognises the double-click) does generate a
+`statusIconClick`.
+
+References: statusIconClick (message), statusIcon (property)
+
+Tags: windowing

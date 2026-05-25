@@ -67,7 +67,7 @@ on commandKeyDown pKey
    if pKey is "V" then
       put clipboardData["text"] into the selectedChunk
       revDisplayAutoComplete clipboardData["text"]
-      -- colorization disabled
+      dispatch "revSEColorizeField" to stack "revSEUtilities" with the long id of me
    else
       pass commandKeyDown
    end if

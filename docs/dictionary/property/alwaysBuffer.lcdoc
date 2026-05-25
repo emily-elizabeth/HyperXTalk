@@ -10,11 +10,11 @@ Determines whether the contents of windows, <player|players>, and
 
 Associations: image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, linux, ios, android, windows
+OS: mac, linux, windows
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the alwaysBuffer of this stack to true

@@ -14,11 +14,11 @@ Specifies an <object|object's> background color.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image, group
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the backgroundColor of last button to "white"
@@ -94,7 +94,7 @@ the color specified by <backgroundColor>. The setting of the
 > <backgroundPattern> of the <button(keyword)> is empty. (In this case,
 > none of the <button(object)|button's> color <property|properties> have
 > an effect except for the <foregroundColor> or <foregroundPattern>.)
-> Otherwise, the <button(keyword)> is drawn by OpenXTalk. If the
+> Otherwise, the <button(keyword)> is drawn by HyperXTalk. If the
 > <lookAndFeel> is "Appearance Manager", <button menu|button menus>
 > whose <menuMode> is set to "option" or "comboBox" are always drawn by
 > the operating system, and the setting of the <backgroundColor> does

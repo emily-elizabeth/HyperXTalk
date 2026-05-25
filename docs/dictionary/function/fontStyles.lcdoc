@@ -7,11 +7,11 @@ Syntax: fontStyles (<fontName>, <fontSize>)
 Summary:
 <return|Returns> a list of styles available for a <font> and size.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 fontStyles ("Helvetica", 9)

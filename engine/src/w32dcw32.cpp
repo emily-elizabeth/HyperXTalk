@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 #include "w32dsk-legacy.h"
 
@@ -1686,6 +1670,22 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 		}
 		break;
 	}
+	case WM_ACTIVATE:
+		// Dismiss a popover when it loses activation (user clicked elsewhere
+		// or another window came to the front).  WA_INACTIVE is sent to the
+		// window that is being deactivated, so we only act on that case.
+		if (LOWORD(wParam) == WA_INACTIVE)
+		{
+			LONG_PTR t_mode = GetWindowLongPtrA(hwnd, GWLP_USERDATA);
+			if (t_mode == WM_POPOVER)
+			{
+				MCStack *sptr = MCdispatcher->findstackd(dw);
+				if (sptr != NULL)
+					sptr->close();
+			}
+		}
+		break;
+
 	case WM_ACTIVATEAPP:
 		if (wParam != isactive)
 		{
@@ -1736,26 +1736,31 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 	case WM_MOUSEHWHEEL:
 		if (MCmousestackptr)
 		{
+			int4 val = (short)HIWORD(wParam);
+			int t_dx = 0, t_dy = 0;
+			// WM_MOUSEWHEEL: positive val = wheel up, negative = wheel down.
+			// scrollWheel message convention (matches macOS desktop.cpp):
+			//   pDeltaY negative = up, positive = down  — so invert the sign.
+			if (msg == WM_MOUSEWHEEL)
+				t_dy = val < 0 ? 1 : -1;
+			else
+				t_dx = val < 0 ? 1 : -1;
+
 			MCObject *mfocused = MCmousestackptr->getcard()->getmfocused();
 			if (mfocused == NULL)
-				mfocused = MCmousestackptr -> getcard();
+				mfocused = MCmousestackptr->getcard()->findGroupUnderPoint(MCmousex, MCmousey);
+			if (mfocused == NULL)
+				mfocused = MCmousestackptr->getcard();
 
 			if (mfocused != NULL)
 			{
-				int4 val = (short)HIWORD(wParam);
-				if (msg == WM_MOUSEWHEEL)
+				Exec_stat t_stat = mfocused->message_with_args(MCM_scroll_wheel, t_dx, t_dy);
+				if (t_stat == ES_PASS || t_stat == ES_NOT_HANDLED)
 				{
-					if (val < 0)
-						mfocused->kdown(kMCEmptyString, XK_WheelUp);
-					else
-						mfocused->kdown(kMCEmptyString, XK_WheelDown);
-				}
-				else if (msg == WM_MOUSEHWHEEL)
-				{
-					if (val < 0)
-						mfocused->kdown(kMCEmptyString, XK_WheelLeft);
-					else
-						mfocused->kdown(kMCEmptyString, XK_WheelRight);
+					if (t_dy != 0)
+						mfocused->kdown(kMCEmptyString, t_dy < 0 ? XK_WheelUp : XK_WheelDown);
+					if (t_dx != 0)
+						mfocused->kdown(kMCEmptyString, t_dx < 0 ? XK_WheelLeft : XK_WheelRight);
 				}
 			}
 		}

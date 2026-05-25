@@ -24,14 +24,25 @@ class PreviewViewController: NSViewController, QLPreviewingController {
 
     func preparePreviewOfFile(at url: URL,
                               completionHandler handler: @escaping (Error?) -> Void) {
-        if url.pathExtension.lowercased() == "hyperxtalkscript" {
+        switch url.pathExtension.lowercased() {
+        case "hyperxtalkscript":
             showScript(from: url)
-        } else {
+        case "hyperxtalk":
+            // Stack files store the preview as the com.hyperxtalk.qlpreview xattr.
             if let image = loadPreviewImage(from: url) {
                 showImage(image)
             } else {
                 showPlaceholder()
             }
+        case "hyperxtalk_project":
+            // Project packages contain a preview.png file inside the bundle.
+            if let image = loadPreviewImageFromBundle(at: url) {
+                showImage(image)
+            } else {
+                showPlaceholder()
+            }
+        default:
+            showPlaceholder()
         }
         handler(nil)
     }
@@ -80,6 +91,11 @@ class PreviewViewController: NSViewController, QLPreviewingController {
     }
 
     // MARK: - Stack image loading
+
+    private func loadPreviewImageFromBundle(at url: URL) -> NSImage? {
+        let previewURL = url.appendingPathComponent("preview.png")
+        return NSImage(contentsOf: previewURL)
+    }
 
     private func loadPreviewImage(from url: URL) -> NSImage? {
         let path = url.path

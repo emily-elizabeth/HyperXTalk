@@ -12,18 +12,18 @@ Specifies an <image> to display in a <button> when the <button> is
 
 Associations: button
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the hilitedIcon of button "Management" to 343
 
 Value:
 The <hilitedIcon> <property> is the <ID> or <name> of an <image> to use
-for an icon. OpenXTalk looks for the specified <image> first in the
+for an icon. HyperXTalk looks for the specified <image> first in the
 <current stack>, then in other open <stacks>. By default, the
 <hilitedIcon> <property> of newly created <button|buttons> is set to
 zero. 

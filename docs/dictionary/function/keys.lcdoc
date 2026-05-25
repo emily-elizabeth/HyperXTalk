@@ -9,7 +9,7 @@ Syntax: keys(<arrayName>)
 Summary:
 Returns a list of the <element> names in an <array>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -46,11 +46,11 @@ perform some action on each <element> in an <array>.
     sort lines of myVariable
 
 
->*Note:*  Arrays in OpenXTalk are associative (also known as hash
+>*Note:*  Arrays in HyperXTalk are associative (also known as hash
 > tables). This means that the keys of an array are strings which
-> OpenXTalk uses to "look up" the array elements rather than numeric
+> HyperXTalk uses to "look up" the array elements rather than numeric
 > indices as in C, Pascal and other languages. Of course it is possible
-> to use numeric values for array keys, but OpenXTalk will internally
+> to use numeric values for array keys, but HyperXTalk will internally
 > convert these into strings before retrieving the array elements.
 
 References: combine (command), split (command), sort (command),

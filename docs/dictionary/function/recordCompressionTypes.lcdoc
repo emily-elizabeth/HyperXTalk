@@ -10,7 +10,7 @@ Summary:
 <return|Returns> a list of audio <codec|codecs> supported by the
 currently installed version of <QuickTime>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac
 
@@ -45,7 +45,7 @@ The <recordCompressionTypes> <function> requires <QuickTime> to be
 installed. If <QuickTime> is not installed, the recordFormats <function>
 returns empty.
 
->*Tip:*  It can take OpenXTalk a second or two to load the code needed to
+>*Tip:*  It can take HyperXTalk a second or two to load the code needed to
 > use <QuickTime>, depending on the machine speed. Since this code is
 > only <loaded into memory> once per session, you can speed up the first
 > occurrence of a QuickTime-related action by calling the <QTVersion>

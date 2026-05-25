@@ -8,7 +8,7 @@ Summary:
 Sets the <lockCursor> <property> to true, preventing the <cursor> shape
 from changing.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

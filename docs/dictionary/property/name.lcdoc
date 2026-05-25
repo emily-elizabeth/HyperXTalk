@@ -12,11 +12,11 @@ Specifies the name of an <object(object)>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image, group
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the name of the target to it
@@ -118,7 +118,7 @@ If an object's <name> is empty, getting its <name> yields its <ID>
 reported, regardless of what form of the <name> <property> you request.
 
 >*Warning:*  Avoid naming an <object(object)> with a number. Doing so
-> may cause OpenXTalk to become confused by <object reference|object
+> may cause HyperXTalk to become confused by <object reference|object
 > references> that specify that number, since they might be referring to
 > the <object(object)> by name or to a different <object(object)> by
 > number. 
@@ -129,8 +129,8 @@ reported, regardless of what form of the <name> <property> you request.
 
 >*Warning:*  Avoid using "rev" as the first three <characters> of a
 > <stack's (object)> <name>. These <characters> are reserved for
-> <stacks> that are part of the OpenXTalk <development environment>, and
-> giving a non-OpenXTalk <stack> such a name may cause menus or buttons
+> <stacks> that are part of the HyperXTalk <development environment>, and
+> giving a non-HyperXTalk <stack> such a name may cause menus or buttons
 > to be inappropriately disabled, or other problems. You can use the
 > <characters> "rev" anywhere in a <stack> <name> except the beginning.
 > If you want a name beginning with "rev" to appear in a stack's title

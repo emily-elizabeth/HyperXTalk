@@ -12,13 +12,13 @@ characters).
 
 Associations: field, button
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 Deprecated: 7.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the unicodeText of field 1 to URL "binfile:Chinese.txt"

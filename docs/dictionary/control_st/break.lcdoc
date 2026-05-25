@@ -10,11 +10,11 @@ Summary:
 Skips the rest of the current <switch> <control structure|structure> and
 goes to the <statement> following the <end switch>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 switch thisVariable
@@ -38,7 +38,7 @@ each condition, a set of <statement|statements> is executed. The <break>
 <control structure> ends this set of <statement|statements> and breaks
 out of the <switch> <control structure|structure>.
 
-If no <break> appears, OpenXTalk <execute|executes> each set of
+If no <break> appears, HyperXTalk <execute|executes> each set of
 <statement|statements> in the following case sections, whether or not
 the condition in the case is true. This means that if you leave out the
 <break> <control structure>, more than one case in the <switch>

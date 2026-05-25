@@ -9,11 +9,11 @@ Attaches data to a section of text in a <field>.
 
 Associations: field
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the linkText of line 2 to 3 of field "Contents" to "Leaves of Grass"

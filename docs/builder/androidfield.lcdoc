@@ -1,0 +1,446 @@
+Library: com.livecode.widget.native.android.field
+
+Type: widget
+
+Summary: This widget is a native field on Android.
+
+version: 1.0.0
+
+author: LiveCode
+
+os: android
+
+Name: enabled
+
+Type: property
+
+Syntax: set the enabled of <widget> to {true | false}
+get the enabled of <widget>
+
+Summary: Whether the field is active and responds to user action
+
+Description:
+Use the <enabled> property to enable or disable the native field. When disabled,
+the field has a greyed out appearance.
+
+Name: openField
+
+Type: message
+
+Syntax: openField
+
+Summary: Sent to an unlocked field when you click or select text in that field.
+
+Example:
+on openField -- when clicking in the field, select all its text
+  local tText
+  put the text of the target into tText
+  set the selectedRange of the target to "1," & \
+     the number of chars in tText
+end openField
+
+Description:
+Handle the <openField> message if you want to do something when the user enters
+a field widget. The message is not sent if the field is locked.
+
+Name: closeField
+
+Type: message
+
+Syntax: closeField
+
+Summary:
+Sent to a field when the focus is being removed from that field and the field's
+content has changed.
+
+Example:
+on closeField -- make sure the user has entered a valid date
+  local tText
+  put the text of me into tText
+  if tText is not a date then
+    beep
+    answer "Please enter a date."
+    set the selectedRange of the target to "1," & \
+       the number of chars in tText
+  end if
+end closeField
+
+Description:
+Handle the <closeField> message if you want to make sure a field's content is
+correct after it has been changed.
+
+Name: exitField
+
+Type: message
+
+Syntax: exitField
+
+Summary:
+Sent to the field with the selection when the selection is being removed from
+the field, and its contents have not changed.
+
+Example:
+on exitField -- remove visual signs that the field is being edited
+   set the enabled of the target to false
+end exitField
+
+Description:
+Handle the <exitField> message if you want to do something when the user leaves
+a field that hasn't been changed.
+
+Name: textChanged
+
+Type: message
+
+Syntax: textChanged
+
+Summary: Sent when the native field widget text is changed.
+
+Example:
+on textChanged
+   if the text of me is not a number then
+      beep
+   end if
+end textChanged
+
+Description:
+Handle the <textChanged> message if you want to do something when the text of
+the field is changed through typing.
+
+Name: keyboardType
+
+Type: property
+
+Syntax: set the keyboardType of <widget> to <pType>
+get the keyboardType of <widget>
+
+Summary: The type of keyboard associated to the field widget.
+
+Value:
+- "default": the default keyboard
+- "alphabet": the alphabetic keyboard
+- "numeric": the numeric keyboard with punctuation
+- "URL": the URL entry keyboard
+- "number": the number pad keyboard
+- "phone": the phone number pad keyboard
+- "contact": the phone contact pad keyboard
+- "email": the email keyboard
+- "decimal": the decimal numeric pad keyboard
+
+Example: set the keyboardType of widget "Android Field" to "URL"
+
+Description:
+Use the <keyboardType> property to determine what kind of keyboard should be
+displayed when this field widget is focused.
+
+
+
+Name: editable
+
+Type: property
+
+Syntax: set the editable of <widget> to {true | false}
+get the editable of <widget>
+
+Summary: Whether the field can be edited or not
+
+Description:
+Use the <editable> property to allow or disallow the user to enter text in the
+field.
+
+
+
+Name: text
+
+Type: property
+
+Syntax: set the text of <widget> to <pText>
+get the text of <widget>
+
+Summary: The text contained in the field widget.
+
+Value: A string.
+
+Example: set the text of widget "Android Field" to "Some text"
+
+Description: Use the <text> property to change the text of the field widget.
+
+
+
+
+Name: multiline
+
+Type: property
+
+Syntax: set the multiline of <widget> to {true | false}
+get the multiline of <widget>
+
+Summary: Whether the field can contain multiple lines or not.
+
+Description:
+Use the <multiline> property to allow or disallow the user to enter multiple
+lines of text in the field.
+
+
+
+Name: textAlign
+
+Type: property
+
+Syntax: set the textAlign of <widget> to <pAlign>
+get the textAlign of <widget>
+
+Summary: The horizontal text alignment of the field widget.
+
+Value:
+- "left": Left-aligned text
+- "center": Center-aligned text
+- "right": Right-aligned text
+
+Example: set the textAlign of widget "Android Field" to "center"
+
+Description:
+Use the <textAlign> property to change the horizontal text alignment of the
+field widget.
+
+
+
+Name: autoCorrectionType
+
+Type: property
+
+Syntax: set the autoCorrectionType of <widget> to <pType>
+get the autoCorrectionType of <widget>
+
+Summary: The auto-correction behavior of the field widget.
+
+Value:
+- "default": use the appropriate auto-correct behavior for the current script system
+- "no": disable auto-correct behavior
+- "yes": enable auto-correct behavior
+
+Example: set the autoCorrectionType of widget "Android Field" to "no"
+
+Description:
+Use the <autoCorrectionType> property to determine whether auto-correct behavior
+should be enabled.
+
+
+
+Name: selectedRange
+
+Type: property
+
+Syntax: set the selectedRange of <widget> to <pRange>
+get the selectedRange of <widget>
+
+Summary: The range of text of the widget that is selected.
+
+Value: A comma-delimiter pair of the (1-based) start index and length.
+
+Example:
+-- Select the first 20 chars of the field widget
+set the selectedRange of widget "Android Text" to "1,20"
+
+Description:
+Use the <selectedRange> property to determine the start index and the length of
+the text that is to appear as selected.
+
+
+
+Name: autoCapitalizationType
+
+Type: property
+
+Syntax: set the autoCapitalizationType of <widget> to <pType>
+get the autoCapitalizationType of <widget>
+
+Summary: The auto-capitalization behavior of the field widget.
+
+Value:
+- "none": the shift-key is never automatically enabled
+- "words": the shift-key is enabled at the start of words
+- "sentences": the shift-key is enabled at the start of sentences
+- "all characters": the shift-key is enabled at the start of each character
+
+Example: set the autoCapitalizationType of widget "Android Field" to "sentences"
+
+Description:
+Use the <autoCapitalizationType> property to determine when the shift-key is
+automatically enabled when typing.
+
+
+
+Name: contentType
+
+Type: property
+
+Syntax: set the contentType of <widget> to <pType>
+get the contentType of <widget>
+
+Summary: What kind of content the field contains.
+
+Value:
+- "plain": plain, unstyled text
+- "password": plain text displayed in the standard password style
+
+Example: set the contentType of widget "Android Field" to "password"
+
+Description:
+Use the <contentType> property to determine what kind of content the control
+contains.
+
+
+
+Name: verticalTextAlign
+
+Type: property
+
+Syntax: set the verticalTextAlign of <widget> to <pAlign>
+get the verticalTextAlign of <widget>
+
+Summary: The vertical text alignment of the field widget.
+
+Value:
+- "top": Top-aligned text
+- "middle": Middle-aligned text
+- "bottom": Bottom-aligned text
+
+Example: set the verticalTextAlign of widget "Android Field" to "middle"
+
+Description:
+Use the <textAlign> property to change the vertical text alignment of the
+field widget.
+
+
+
+Name: returnKeyType
+
+Type: property
+
+Syntax: set the returnKeyType of <widget> to <pType>
+get the returnKeyType of <widget>
+
+Summary:
+The type of action assigned to the return key on the keyboard
+associated with this field widget.
+
+Value:
+- "default": the normal return key action
+- "none": no return key action
+- "go": take the user to the target of the text they typed
+- "next": move to the next field that will accept text
+- "previous": move to the previous field that will accept text
+- "search": take the user to the results of searching for the text they have typed
+- "send": deliver the text to its target
+- "done": close IME
+
+Example: set the returnKeyType of widget "Android Field" to "previous"
+
+Description:
+Use the <returnKeyType> property to determine what kind of action should be
+performed when the return key on the keyboard associated with this field widget
+is pressed.
+
+
+
+Name: fieldTextColor
+
+Type: property
+
+Syntax: set the fieldTextColor of <widget> to <pColor>
+get the fieldTextColor of <widget>
+
+Summary: The color of the text of the field widget.
+
+Value: A comma delimited string representing a color in RGB / RGBA format
+
+Example: set the fieldTextColor of widget "Android Field" to "255,0,0,128"
+
+Description:
+Use the <fieldTextColor> property to change the color of the text of the field
+widget.
+
+
+
+Name: scrollingEnabled
+
+Type: property
+
+Syntax: set the scrollingEnabled of <widget> to {true | false}
+get the scrollingEnabled of <widget>
+
+Summary: Whether the field can be scrolled or not.
+
+Description:
+Use the <scrollingEnabled> property to allow or disallow the user to scroll the
+field.
+
+
+
+Name: passReturnKey
+
+Type: property
+
+Syntax: set the passReturnKey of <widget> to {true|false}
+get the passReturnKey of <widget>
+
+Summary: Whether the return key adds a new line to the field
+
+Example:
+command createField
+   create widget as "com.livecode.widget.native.android.field"
+   set the passReturnKey of it to false
+end createField
+
+-- In the widget script
+on returnKey
+   answer "You entered" && the text of the target
+end returnKey
+
+Description:
+Use the <passReturnKey> property to control whether the
+native keyboard return key adds a new line to the field or
+not.
+
+
+
+Name: focused
+
+Type: property
+
+Syntax: set the focused of <widget> to {true | false}
+get the focused of <widget>
+
+Summary: Whether the field is focused or not.
+
+Description: Use the <focused> property to request focus for the native field, or remove it.
+
+
+
+
+Name: dataDetectorTypes
+
+Type: property
+
+Syntax: set the dataDetectorTypes of <widget> to <pType>
+get the dataDetectorTypes of <widget>
+
+Summary: What types of data should be clickable in the field.
+
+Value:
+- "phone number": Phone numbers should be clickable
+- "link": Links should be clickable
+- "email": Email addresses should be clickable
+- "address": Addresses should be clickable
+
+Example: set the dataDetectorTypes of widget "Android Field" to "email,link"
+
+Example: set the dataDetectorTypes of widget "Android Field" to empty
+
+Description:
+Use the <dataDetectorTypes> property to determine what kind of data should be
+detected and automatically converted to clikckable URLs.
+
+
+

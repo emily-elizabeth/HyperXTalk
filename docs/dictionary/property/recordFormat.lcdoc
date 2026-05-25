@@ -8,7 +8,7 @@ Summary:
 Specifies the file format for sound files recorded with the 
 <record sound> <command>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac
 

@@ -8,14 +8,14 @@ Summary:
 Has no effect and is included for compatibility with
 imported <SuperCard> projects.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
 Description:
 In SuperCard, the <allowFieldRedraw> <property> determines whether
 scrolling <field|fields> are <redraw|redrawn> after scrolling. In
-OpenXTalk, scrolling <field|fields> are always <redraw|redrawn>.
+HyperXTalk, scrolling <field|fields> are always <redraw|redrawn>.
 
 The <allowFieldRedraw> <property> is always set to false. A <handler>
 can set it to any value without causing a <error|script error>, but the
@@ -23,6 +23,6 @@ actual <value> is not changed.
 
 References: unlock screen (command), lock screen (command),
 value (function), property (glossary), handler (glossary),
-SuperCard (glossary), OpenXTalk (glossary), redraw (glossary),
+SuperCard (glossary), HyperXTalk (glossary), redraw (glossary),
 error (glossary), field (object)
 

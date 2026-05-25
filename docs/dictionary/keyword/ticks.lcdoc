@@ -9,11 +9,11 @@ Syntax: ticks
 Summary:
 Designates the number of ticks in a time period.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 wait for 10 ticks -- 1/6 of a second

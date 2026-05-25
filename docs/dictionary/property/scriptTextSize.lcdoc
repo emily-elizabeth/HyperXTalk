@@ -7,7 +7,7 @@ Syntax: set the scriptTextSize to <pointSize>
 Summary:
 Get as a property or use as a command in OpenXtalk
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Example:
 Get the scriptTextSize -- should match the script editing text size preference.
@@ -24,7 +24,7 @@ the property was marked as deprecated and to be removed.
 The value is initializes to reflect the current IDE Script Editor text size
 preference, but setting/getting this property thereafter has no relationship
 to the preference setting. This behavior may altered in a future build.
-Additionally in OpenXTalk scriptTextSize may be used in a command form within
+Additionally in HyperXTalk scriptTextSize may be used in a command form within
 the IDE. This acts like a shortcut to setting the Script Editor's
 font size preference and changes the font size of any currently editing scripts.
 You can use this command from the message box to quickly change sizes of text

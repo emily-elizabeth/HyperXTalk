@@ -1,0 +1,61 @@
+Name: itemStyle
+
+Type: property
+
+Syntax: get the itemStyle[<name>] of <toolbar>
+Syntax: set the itemStyle[<name>] of <toolbar> to <style>
+
+Summary:
+The visual style of a toolbar item: button, separator, or space.
+
+Associations: toolbar
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+set the itemStyle["divider"] of toolbar 1 to "separator"
+
+Example:
+set the itemStyle["gap"] of toolbar 1 to "flexSpace"
+
+Example:
+put the itemStyle["saveButton"] of toolbar 1 into tStyle
+
+Value:
+The <itemStyle> of a toolbar item is one of the following strings:
+
+- "button" — a standard clickable toolbar button with an optional icon
+  and label. This is the default for items created via <itemLabel>.
+- "separator" — a non-interactive vertical divider line between groups
+  of buttons.
+- "space" — a fixed-width empty space between items.
+- "flexSpace" — a flexible empty space that expands to fill available
+  width, useful for pushing items to the right edge.
+
+Description:
+Use the <itemStyle> property to query or change the presentation style
+of a named toolbar item.
+
+Separator, space, and flexSpace items do not dispatch
+<toolbarItemClicked> messages when clicked and have no meaningful label,
+tooltip, icon, or enabled state.
+
+On macOS, separator and space items are rendered using the NSToolbar
+system identifiers NSToolbarSeparatorItemIdentifier,
+NSToolbarSpaceItemIdentifier, and NSToolbarFlexibleSpaceItemIdentifier.
+
+On Windows, separator items use the TBSTYLE_SEP button style.
+
+On Linux, separators use GtkSeparatorToolItem; space and flexSpace use
+GtkSeparatorToolItem with the draw property set to false, and flexSpace
+additionally calls gtk_tool_item_set_expand(true).
+
+References: toolbar (object), itemNames (property),
+itemLabel (property), itemIcon (property),
+toolbarItemClicked (message)
+
+Tags: ui

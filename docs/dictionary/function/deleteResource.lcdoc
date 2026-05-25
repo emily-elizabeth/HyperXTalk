@@ -7,7 +7,7 @@ Syntax: deleteResource(<file>, <resourceType>,{<resourceID> | <resourceName>})
 Summary:
 Removes a <resource> from the <resource fork> of a <Mac OS> <file>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 

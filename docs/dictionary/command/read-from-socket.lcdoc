@@ -7,11 +7,11 @@ Syntax: read from socket <socketID> [{until <dataString> | for <readAmount> [<ch
 Summary:
 Accepts data from a <socket> and places the data in the <it> <variable>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 read from socket "www.example.net:80" for 50 -- reads next 50 chars
@@ -33,7 +33,7 @@ by appending the connection name or number that was assigned when the
 socket was opened, separated from the port number by a vertical bar (|).
 
 dataString (string):
-When OpenXTalk encounters the string in the socket data, it stops
+When HyperXTalk encounters the string in the socket data, it stops
 reading. If the string is not encountered, the read from socket command
 continues reading as long as there is data to be read.
 

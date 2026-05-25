@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -34,6 +18,8 @@ MCDateTimeLocale *g_basic_locale;
 static int1 s_datetime_month_length[] = {31,28,31,30,31,30,31,31,30,31,30,31};
 
 static const char *s_internet_date_format = "!%a, %#d %b %Y %H:%M:%S %z";
+static const char *s_sql_date_format = "!%#Y-%m-%d %H:%M:%S";
+static const char *s_short_sql_date_format = "!%#Y-%m-%d";
 static const char *s_items_date_format = "!%#Y,%#m,%#d,%#H,%#M,%#S,%#w";
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,6 +49,7 @@ static const char *s_items_date_format = "!%#Y,%#m,%#d,%#H,%#M,%#S,%#w";
 // short english - %#m/%#d/%y
 // abbrev english - %a, %b %d, %#Y
 // long english - %A, %B %d, %#Y
+// sql date - %#Y-%m-%d %H:%M:%S
 //
 
 bool MCDateTimeInitialize()
@@ -557,12 +544,13 @@ static void datetime_format(const MCDateTimeLocale *p_locale, MCStringRef p_form
 
 	while(t_char != '\0')
 	{
-		if (t_char == '%')
+		if ('%' == t_char)
 		{
 			t_char = MCStringGetCharAtIndex(p_format, t_offset++);
 			
+			// # means don't pad with leading zero
 			bool t_pad;
-			if (t_char == '#')
+			if ('#' == t_char)
 			{
 				t_pad = false;
 				t_char = MCStringGetCharAtIndex(p_format, t_offset++);
@@ -704,12 +692,12 @@ static bool datetime_validate(const MCDateTime& p_datetime)
 
 void MCD_decompose_format(MCExecContext &ctxt, uint4 p_format, uint4& r_length, bool& r_system)
 {
-	if (p_format > CF_SYSTEM)
+	if (p_format > CF_SYSTEM)	// = the system xxx date
 	{
 		r_system = true;
 		r_length = p_format - CF_SYSTEM;
 	}
-	else if (p_format > CF_ENGLISH)
+	else if (p_format > CF_ENGLISH)	// = the working xxx date
 	{
 		r_system = false;
 		r_length = p_format - CF_ENGLISH;
@@ -730,18 +718,32 @@ void MCD_date(MCExecContext &ctxt, Properties p_format, MCStringRef &r_date)
 	uint4 t_length;
 	MCD_decompose_format(ctxt, p_format, t_length, t_use_system);
 
-	if (t_length != P_SHORT && t_length != P_ABBREVIATE && t_length != P_LONG && t_length != P_INTERNET)
-		t_length = P_SHORT;
+	// default to short date length
+//	if (t_length != P_SHORT && t_length != P_ABBREVIATE && t_length != P_LONG && t_length != P_INTERNET && t_length != P_SQL)
+	switch(t_length)
+	{
+		case P_ABBREVIATE:
+		case P_LONG:
+		case P_INTERNET:
+		case P_SQL:
+			break;
+		default:
+			t_length = P_SHORT;
+	}
 
+	// set the locale for the date: default to basic
 	const MCDateTimeLocale *t_locale;
-	if (t_use_system && t_length != P_INTERNET)
+	if (t_use_system && t_length != P_INTERNET && t_length != P_SQL)
 		t_locale = MCS_getdatetimelocale();
 	else
 		t_locale = g_basic_locale;
 
+	// now get the date format
 	MCStringRef t_date_format;
-	if (t_length == P_INTERNET)
+	if (P_INTERNET == t_length)
 		t_date_format = MCSTR(s_internet_date_format);
+	else if (P_SQL == t_length)
+		t_date_format = MCSTR(s_sql_date_format);
 	else
 		t_date_format = t_locale -> date_formats[t_length - P_SHORT];
 
@@ -783,7 +785,7 @@ bool MCD_monthnames(MCExecContext& ctxt, Properties p_format, MCListRef& r_list)
 	uint4 t_length;
 	MCD_decompose_format(ctxt, p_format, t_length, t_use_system);
 
-	if (t_length == P_UNDEFINED)
+	if (P_UNDEFINED == t_length)
 		t_length = P_LONG;
 
 	const MCDateTimeLocale *t_locale;
@@ -816,7 +818,7 @@ bool MCD_weekdaynames(MCExecContext& ctxt, Properties p_format, MCListRef& r_lis
 	uint4 t_length;
 	MCD_decompose_format(ctxt, p_format, t_length, t_use_system);
 
-	if (t_length == P_UNDEFINED)
+	if (P_UNDEFINED == t_length)
 		t_length = P_LONG;
 
 	const MCDateTimeLocale *t_locale;
@@ -850,10 +852,12 @@ void MCD_dateformat(MCExecContext &ctxt, Properties p_length, MCStringRef& r_dat
 	int t_length;
 	t_length = p_length;
 
-	if (t_length >= CF_SYSTEM)
+	// the system date
+	if (t_length >= CF_SYSTEM)	// = 2000
 		t_length -= CF_SYSTEM;
 
-	if (t_length >= CF_ENGLISH)
+	// the working date or the English date
+	if (t_length >= CF_ENGLISH)	// = 1000
 	{
 		t_length -= CF_ENGLISH;
 		t_locale = g_basic_locale;
@@ -880,71 +884,78 @@ void MCD_dateformat(MCExecContext &ctxt, Properties p_length, MCStringRef& r_dat
 	r_dateformat = t_format;
 }
 
-// This function returns true if the format is a time.
+// This function returns true if the format is a time, false if a date.
 //
-static bool MCD_decompose_convert_format(MCExecContext &ctxt, int p_form, const MCDateTimeLocale*& r_locale, MCStringRef &r_format)
+static bool MCD_decompose_convert_format(MCExecContext &ctxt, int p_from, const MCDateTimeLocale*& r_locale, MCStringRef &r_format)
 {
-	bool t_use_system;
+	bool t_use_system = false;
 
-	if (p_form >= CF_SYSTEM)
+//	if (p_from >= CF_SYSTEM)		// = 2000
+	if (p_from > CF_SYSTEM)		// = 2000
 	{
 		t_use_system = true;
-		p_form -= CF_SYSTEM;
+		p_from -= CF_SYSTEM;
 	}
-	else if (p_form >= CF_ENGLISH)
+//	else if (p_from >= CF_ENGLISH)	// = 1000
+	else if (p_from > CF_ENGLISH)	// = 1000
 	{
 		t_use_system = false;
-		p_form -= CF_ENGLISH;
+		p_from -= CF_ENGLISH;
 	}
 	else
 		t_use_system = ctxt.GetUseSystemDate() == True;
 
 	r_locale = t_use_system ? MCS_getdatetimelocale() : g_basic_locale;
 
-	switch(p_form)
+	switch(p_from)
 	{
-	case CF_INTERNET:
-	case CF_INTERNET_DATE:
-		r_format = MCSTR(s_internet_date_format);
-	break;
-	
-	case CF_DATEITEMS:
-		r_format = MCSTR(s_items_date_format);
-	break;
+		case CF_INTERNET:
+		case CF_INTERNET_DATE:
+			r_format = MCSTR(s_internet_date_format);
+			break;
+		
+		case CF_SQL:
+		case CF_SQL_DATE:
+			r_format = MCSTR(s_sql_date_format);
+			break;
+		
+		case CF_DATEITEMS:
+			r_format = MCSTR(s_items_date_format);
+			break;
 
-	case CF_TIME:
-	case CF_SHORT_TIME:
-	case CF_ABBREV_TIME:
-		r_format = MCValueRetain(MCtwelvetime ? r_locale -> time_formats[0] : r_locale -> time24_formats[0]);
-		return true;
-		//r_is_date = false;
+		case CF_TIME:
+		case CF_SHORT_TIME:
+		case CF_ABBREV_TIME:
+			r_format = MCValueRetain(MCtwelvetime ? r_locale -> time_formats[0] : r_locale -> time24_formats[0]);
+			return true;
+			//r_is_date = false;
 
-	case CF_LONG_TIME:
-		r_format = MCValueRetain(MCtwelvetime ? r_locale -> time_formats[1] : r_locale -> time24_formats[1]);
-		return true;
-		//r_is_date = false;
+		case CF_LONG_TIME:
+			r_format = MCValueRetain(MCtwelvetime ? r_locale -> time_formats[1] : r_locale -> time24_formats[1]);
+			return true;
+			//r_is_date = false;
 
-	case CF_DATE:
-	case CF_SHORT_DATE:
-		r_format = MCValueRetain(r_locale -> date_formats[0]);
-		//r_is_date = true;
-	break;
+		case CF_ENGLISH:
+		case CF_DATE:
+		case CF_SHORT_DATE:
+			r_format = MCValueRetain(r_locale -> date_formats[0]);
+			//r_is_date = true;
+			break;
 
-	case CF_ABBREV_DATE:
-		r_format = MCValueRetain(r_locale -> date_formats[1]);
-		//r_is_date = true;
-	break;
+		case CF_ABBREV_DATE:
+			r_format = MCValueRetain(r_locale -> date_formats[1]);
+			//r_is_date = true;
+			break;
 
-	case CF_LONG_DATE:
-		r_format = MCValueRetain(r_locale -> date_formats[2]);
-		//r_is_date = true;
-	break;
+		case CF_LONG_DATE:
+			r_format = MCValueRetain(r_locale -> date_formats[2]);
+			//r_is_date = true;
+			break;
 
-	default:
-		assert(false);
-	break;
+		default:
+			assert(false);
+			break;
 	}
-
 	return false;
 }
 
@@ -1002,10 +1013,10 @@ static bool convert_parse_time(MCExecContext &ctxt, const MCDateTimeLocale *p_lo
 		if (datetime_parse(p_locale, ctxt.GetCutOff(), true, t_time_format, p_input, x_offset, x_datetime, x_valid_dateitems))
 			return true;
 	}
-
 	return false;
 }
 
+// convert to our internal format
 bool MCD_convert_to_datetime(MCExecContext &ctxt, MCValueRef p_input, Convert_form p_primary_from, Convert_form p_secondary_from, MCDateTime &r_datetime)
 {
     bool t_success = true;
@@ -1019,237 +1030,263 @@ bool MCD_convert_to_datetime(MCExecContext &ctxt, MCValueRef p_input, Convert_fo
 	uindex_t t_offset = 0;
 
 	real64_t t_seconds;
-	if (p_primary_from != CF_UNDEFINED)
+	int t_valid_dateitems;
+	MCAutoStringRef t_string;
+	if (CF_UNDEFINED != p_primary_from)
 	{
+		switch (p_primary_from)
+		{
+			case CF_SECONDS:
+				if (!ctxt.ConvertToReal(p_input, t_seconds))
+					return false;
 
-		if (p_primary_from == CF_SECONDS)
-		{
-			if (!ctxt.ConvertToReal(p_input, t_seconds))
-				return false;
-
-			t_success = MCS_secondstodatetime(t_seconds, t_datetime);
-		}
-		else if (p_primary_from == CF_DATEITEMS)
-		{
-			int t_valid_dateitems;
-			t_valid_dateitems = 0;
-            
-			MCAutoStringRef t_string;
-			if (!ctxt.ConvertToString(p_input, &t_string))
-				return false;
-			
-			if (!datetime_parse(g_basic_locale, ctxt.GetCutOff(), false, MCSTR(s_items_date_format), *t_string, t_offset, t_datetime, t_valid_dateitems) || MCStringIsEmpty(*t_string))
-				return false;
-            
-			datetime_normalize(t_datetime);
-            
-			t_success = MCS_datetimetouniversal(t_datetime);
-		}
-		else if (p_primary_from == CF_INTERNET_DATE)
-		{
-			int t_valid_dateitems;
-			t_valid_dateitems = 0;
-            
-			MCAutoStringRef t_string;
-			if (!ctxt.ConvertToString(p_input, &t_string))
-				return false;
-			
-			if (!datetime_parse(g_basic_locale, ctxt.GetCutOff(), false, MCSTR(s_internet_date_format), *t_string, t_offset, t_datetime, t_valid_dateitems) || MCStringIsEmpty(*t_string))
-				return false;
-            
-			if (!datetime_validate(t_datetime))
-				return false;
-            
-			t_datetime . minute -= t_datetime . bias;
-			t_datetime . bias = 0;
-            
-			datetime_normalize(t_datetime);
-		}
-		else
-		{
-			const MCDateTimeLocale *t_locale;
-			MCStringRef t_date_format;
-            
-			int t_valid_dateitems;
-			t_valid_dateitems = 0;
-            
-			MCAutoStringRef t_string;
-			if (!ctxt.ConvertToString(p_input, &t_string))
-				return false;
-			
-			bool t_is_time;
-			t_is_time = MCD_decompose_convert_format(ctxt, p_primary_from, t_locale, t_date_format);
-			if (t_is_time && !convert_parse_time(ctxt, t_locale, *t_string, t_offset, t_datetime, t_valid_dateitems))
-				return false;
-			else if (!t_is_time && !datetime_parse(t_locale, ctxt.GetCutOff(), true, t_date_format, *t_string, t_offset, t_datetime, t_valid_dateitems))
-				return false;
-            
-			if (p_secondary_from != CF_UNDEFINED)
-			{
-				t_is_time = MCD_decompose_convert_format(ctxt, p_secondary_from, t_locale, t_date_format);
+				t_success = MCS_secondstodatetime(t_seconds, t_datetime);
+				break;
+			case CF_DATEITEMS:
+				t_valid_dateitems = 0;
+		        
+				if (!ctxt.ConvertToString(p_input, &t_string))
+					return false;
+				
+				if (!datetime_parse(g_basic_locale, ctxt.GetCutOff(), false, MCSTR(s_items_date_format), *t_string, t_offset, t_datetime, t_valid_dateitems) || MCStringIsEmpty(*t_string))
+					return false;
+		        
+				datetime_normalize(t_datetime);
+		        
+				t_success = MCS_datetimetouniversal(t_datetime);
+				break;
+			case CF_INTERNET_DATE:
+				t_valid_dateitems = 0;
+		        
+				if (!ctxt.ConvertToString(p_input, &t_string))
+					return false;
+				
+				if (!datetime_parse(g_basic_locale, ctxt.GetCutOff(), false, MCSTR(s_internet_date_format), *t_string, t_offset, t_datetime, t_valid_dateitems) || MCStringIsEmpty(*t_string))
+					return false;
+		        
+				if (!datetime_validate(t_datetime))
+					return false;
+		        
+				t_datetime . minute -= t_datetime . bias;
+				t_datetime . bias = 0;
+		        
+				datetime_normalize(t_datetime);
+				break;
+			case CF_SQL_DATE:
+				t_valid_dateitems = 0;
+		        
+				if (!ctxt.ConvertToString(p_input, &t_string))
+					return false;
+				
+				if (!datetime_parse(g_basic_locale, ctxt.GetCutOff(), false, MCSTR(s_sql_date_format), *t_string, t_offset, t_datetime, t_valid_dateitems) || MCStringIsEmpty(*t_string))
+					return false;
+		        
+				if (!datetime_validate(t_datetime))
+					return false;
+		        
+				t_datetime . minute -= t_datetime . bias;
+				t_datetime . bias = 0;
+		        
+				datetime_normalize(t_datetime);
+				break;
+			default:
+				const MCDateTimeLocale *t_locale;
+				MCStringRef t_date_format;
+		        
+				t_valid_dateitems = 0;
+		        
+				if (!ctxt.ConvertToString(p_input, &t_string))
+					return false;
+				
+				bool t_is_time;
+				t_is_time = MCD_decompose_convert_format(ctxt, p_primary_from, t_locale, t_date_format);
 				if (t_is_time && !convert_parse_time(ctxt, t_locale, *t_string, t_offset, t_datetime, t_valid_dateitems))
 					return false;
 				else if (!t_is_time && !datetime_parse(t_locale, ctxt.GetCutOff(), true, t_date_format, *t_string, t_offset, t_datetime, t_valid_dateitems))
 					return false;
-			}
-			
-            // AL-2014-03-04: [[ Bug 12104 ]] If we have more to parse here, then parsing failed.
-			if (MCStringGetLength(*t_string) > t_offset)
-				return false;
             
-			if ((t_valid_dateitems & DATETIME_ITEM_DATE) != DATETIME_ITEM_DATE)
-			{
-				MCDateTime t_today;
-				MCS_getlocaldatetime(t_today);
-                
-				if ((t_valid_dateitems & DATETIME_ITEM_DAY) == 0)
-					t_datetime . day = t_today . day;
-                
-				if ((t_valid_dateitems & DATETIME_ITEM_MONTH) == 0)
-					t_datetime . month = t_today . month;
-                
-				if ((t_valid_dateitems & DATETIME_ITEM_YEAR) == 0)
-					t_datetime . year = t_today . year;
-			}
-            
-			if ((t_valid_dateitems & DATETIME_ITEM_HOUR) == 0)
-			{
-				t_datetime . hour = 0;
-				t_datetime . minute = 0;
-				t_datetime . second = 0;
-				t_datetime . bias = 0;
-			}
-			else if ((t_valid_dateitems & DATETIME_ITEM_SECOND) == 0)
-				t_datetime . second = 0;
-			
-			if (!datetime_validate(t_datetime))
-				return false;
-            
-			t_success = MCS_datetimetouniversal(t_datetime);
-		}
-	}
-	else if (ctxt.ConvertToReal(p_input, t_seconds))
-	{
-		if (t_seconds < SECONDS_MIN || t_seconds > SECONDS_MAX)
-			return false;
-        
-		t_success = MCS_secondstodatetime(t_seconds, t_datetime);
-	}
-	else if (!MCValueIsEmpty(p_input))
-	{
-		const MCDateTimeLocale *t_locale;
-		if (ctxt.GetUseSystemDate())
-			t_locale = MCS_getdatetimelocale();
-		else
-			t_locale = g_basic_locale;
-        
-		int t_valid_dateitems;
-		t_valid_dateitems = 0;
-        
-		// Order for dates:
-		//   long date
-		//   abbrev date
-		//   short date
-		//
-		// Order for times:
-		//   long time
-		//   short time
-		//   long time 24
-		//   short time 24
-        
-		MCAutoStringRef t_string;
-		if (!ctxt.ConvertToString(p_input, &t_string))
-			return false;
-		
-		if (datetime_parse(g_basic_locale, ctxt.GetCutOff(), false, MCSTR(s_items_date_format), *t_string, t_offset, t_datetime, t_valid_dateitems) && !MCStringIsEmpty(*t_string))
-		{
-			datetime_normalize(t_datetime);
-			t_success = MCS_datetimetouniversal(t_datetime);
-		}
-		else if (datetime_parse(g_basic_locale, ctxt.GetCutOff(), false, MCSTR(s_internet_date_format), *t_string, t_offset, t_datetime, t_valid_dateitems) && MCStringIsEmpty(*t_string))
-		{
-			if (!datetime_validate(t_datetime))
-				return false;
-            
-			t_datetime . minute -= t_datetime . bias;
-			t_datetime . bias = 0;
-            
-			datetime_normalize(t_datetime);
-		}
-		else
-		{
-			bool t_date_valid;
-			bool t_time_valid;
-            
-			t_date_valid = false;
-			t_time_valid = false;
-			
-			uindex_t t_length;
-			t_length = MCStringGetLength(*t_string);
-			while(t_offset < t_length && !(t_date_valid && t_time_valid))
-			{
-				bool t_changed;
-				t_changed = false;
-                
-				if (!t_date_valid)
+				if (p_secondary_from != CF_UNDEFINED)
 				{
-					for(uint4 t_format = 0; t_format < 3; ++t_format)
-						if (datetime_parse(t_locale, ctxt.GetCutOff(), true, t_locale -> date_formats[2 - t_format], *t_string, t_offset, t_datetime, t_valid_dateitems))
-						{
-							t_date_valid = true;
-							t_changed = true;
-							break;
-						}
+					t_is_time = MCD_decompose_convert_format(ctxt, p_secondary_from, t_locale, t_date_format);
+					if (t_is_time && !convert_parse_time(ctxt, t_locale, *t_string, t_offset, t_datetime, t_valid_dateitems))
+						return false;
+					else if (!t_is_time && !datetime_parse(t_locale, ctxt.GetCutOff(), true, t_date_format, *t_string, t_offset, t_datetime, t_valid_dateitems))
+						return false;
 				}
-                
-				if (!t_time_valid)
+			
+		        // AL-2014-03-04: [[ Bug 12104 ]] If we have more to parse here, then parsing failed.
+				if (MCStringGetLength(*t_string) > t_offset)
+					return false;
+
+				// assume empty means we're dealing with today's date
+				if (DATETIME_ITEM_DATE != (t_valid_dateitems & DATETIME_ITEM_DATE))
 				{
-					if (convert_parse_time(ctxt, t_locale, *t_string, t_offset, t_datetime, t_valid_dateitems))
+					MCDateTime t_today;
+					MCS_getlocaldatetime(t_today);
+		            
+					if (0 == (t_valid_dateitems & DATETIME_ITEM_DAY))
+						t_datetime . day = t_today . day;
+		            
+					if (0 == (t_valid_dateitems & DATETIME_ITEM_MONTH))
+						t_datetime . month = t_today . month;
+		            
+					if (0 == (t_valid_dateitems & DATETIME_ITEM_YEAR))
+						t_datetime . year = t_today . year;
+				}
+
+				// assume empty means zero hour
+				if (0 == (t_valid_dateitems & DATETIME_ITEM_HOUR))
+				{
+					t_datetime . hour = 0;
+					t_datetime . minute = 0;
+					t_datetime . second = 0;
+					t_datetime . bias = 0;
+				}
+				// seconds = 0 unless explicitly specified
+				else if ((0 == (t_valid_dateitems & DATETIME_ITEM_SECOND)))
+					t_datetime . second = 0;
+				
+				if (!datetime_validate(t_datetime))
+					return false;
+            
+				t_success = MCS_datetimetouniversal(t_datetime);
+			}	// end switch
+		}	// if (CF_UNDEFINED != p_primary_from)
+
+		else if (ctxt.ConvertToReal(p_input, t_seconds))
+		{
+			if (t_seconds < SECONDS_MIN || t_seconds > SECONDS_MAX)
+				return false;
+		    
+			t_success = MCS_secondstodatetime(t_seconds, t_datetime);
+		}
+
+		else if (!MCValueIsEmpty(p_input))
+		{
+			const MCDateTimeLocale *t_locale;
+			if (ctxt.GetUseSystemDate())
+				t_locale = MCS_getdatetimelocale();
+			else
+				t_locale = g_basic_locale;
+		    
+			t_valid_dateitems = 0;
+
+			// Order for dates:
+			//   long date
+			//   abbrev date
+			//   short date
+			//
+			// Order for times:
+			//   long time
+			//   short time
+			//   long time 24
+			//   short time 24
+		    
+			if (!ctxt.ConvertToString(p_input, &t_string))
+				return false;
+
+			if (datetime_parse(g_basic_locale, ctxt.GetCutOff(), false, MCSTR(s_items_date_format), *t_string, t_offset, t_datetime, t_valid_dateitems) && !MCStringIsEmpty(*t_string))
+			{
+				datetime_normalize(t_datetime);
+				t_success = MCS_datetimetouniversal(t_datetime);
+			}
+			else if (datetime_parse(g_basic_locale, ctxt.GetCutOff(), false, MCSTR(s_internet_date_format), *t_string, t_offset, t_datetime, t_valid_dateitems) && MCStringIsEmpty(*t_string))
+			{
+				if (!datetime_validate(t_datetime))
+					return false;
+		        
+				t_datetime . minute -= t_datetime . bias;
+				t_datetime . bias = 0;
+		        
+				datetime_normalize(t_datetime);
+			}
+			else if (datetime_parse(g_basic_locale, ctxt.GetCutOff(), false, MCSTR(s_sql_date_format), *t_string, t_offset, t_datetime, t_valid_dateitems) && MCStringIsEmpty(*t_string))
+			{
+				if (!datetime_validate(t_datetime))
+					return false;
+		        
+				t_datetime . minute -= t_datetime . bias;
+				t_datetime . bias = 0;
+		        
+				datetime_normalize(t_datetime);
+			}
+			else
+			{
+				bool t_date_valid;
+				bool t_time_valid;
+		        
+				t_date_valid = false;
+				t_time_valid = false;
+				
+				uindex_t t_length;
+				t_length = MCStringGetLength(*t_string);
+				while(t_offset < t_length && !(t_date_valid && t_time_valid))
+				{
+					bool t_changed;
+					t_changed = false;
+		            
+					if (!t_date_valid)
 					{
-						t_time_valid = true;
-						t_changed = true;
+						for(uint4 t_format = 0; t_format < 3; ++t_format)
+							if (datetime_parse(t_locale, ctxt.GetCutOff(), true, t_locale -> date_formats[2 - t_format], *t_string, t_offset, t_datetime, t_valid_dateitems))
+							{
+								t_date_valid = true;
+								t_changed = true;
+								break;
+							}
 					}
+
+					if (!t_time_valid)
+					{
+						if (convert_parse_time(ctxt, t_locale, *t_string, t_offset, t_datetime, t_valid_dateitems))
+						{
+							t_time_valid = true;
+							t_changed = true;
+						}
+					}
+
+					if (!t_changed)
+						break;
+				}	// end while
+
+				if (t_offset < t_length)
+					return false;
+		        
+				// assume empty means we're dealing with today's date
+				if (DATETIME_ITEM_DATE != (t_valid_dateitems & DATETIME_ITEM_DATE))
+				{
+					MCDateTime t_today;
+					MCS_getlocaldatetime(t_today);
+		            
+					if ((t_valid_dateitems & DATETIME_ITEM_DAY) == 0)
+						t_datetime . day = t_today . day;
+		            
+					if ((t_valid_dateitems & DATETIME_ITEM_MONTH) == 0)
+						t_datetime . month = t_today . month;
+		            
+					if ((t_valid_dateitems & DATETIME_ITEM_YEAR) == 0)
+						t_datetime . year = t_today . year;
 				}
-                
-				if (!t_changed)
-					break;
+            
+				// assume empty means zero hour
+				if (0 == (t_valid_dateitems & DATETIME_ITEM_HOUR))
+				{
+					t_datetime . hour = 0;
+					t_datetime . minute = 0;
+					t_datetime . second = 0;
+					t_datetime . bias = 0;
+				}
+				// seconds = 0 unless explicitly specified
+				else if (0 == (t_valid_dateitems & DATETIME_ITEM_SECOND))
+					t_datetime . second = 0;
+				
+				if (!datetime_validate(t_datetime))
+					return false;
+		        
+				t_success = MCS_datetimetouniversal(t_datetime);
 			}
-            
-			if (t_offset < t_length)
-				return false;
-            
-			if ((t_valid_dateitems & DATETIME_ITEM_DATE) != DATETIME_ITEM_DATE)
-			{
-				MCDateTime t_today;
-				MCS_getlocaldatetime(t_today);
-                
-				if ((t_valid_dateitems & DATETIME_ITEM_DAY) == 0)
-					t_datetime . day = t_today . day;
-                
-				if ((t_valid_dateitems & DATETIME_ITEM_MONTH) == 0)
-					t_datetime . month = t_today . month;
-                
-				if ((t_valid_dateitems & DATETIME_ITEM_YEAR) == 0)
-					t_datetime . year = t_today . year;
-			}
-            
-			if ((t_valid_dateitems & DATETIME_ITEM_HOUR) == 0)
-			{
-				t_datetime . hour = 0;
-				t_datetime . minute = 0;
-				t_datetime . second = 0;
-				t_datetime . bias = 0;
-			}
-			else if ((t_valid_dateitems & DATETIME_ITEM_SECOND) == 0)
-				t_datetime . second = 0;
-			
-			if (!datetime_validate(t_datetime))
-				return false;
-            
-			t_success = MCS_datetimetouniversal(t_datetime);
-		}
 	}
-    
+
     if (t_success)
         r_datetime = t_datetime;
     
@@ -1260,7 +1297,8 @@ bool MCD_convert_from_datetime(MCExecContext &ctxt, MCDateTime p_datetime, Conve
 {
     bool t_success = true;
     
-	if (p_primary_to == CF_SECONDS)
+	// convert dateitems to seconds
+	if (CF_SECONDS == p_primary_to)
 	{
 		double t_seconds;
         
@@ -1276,43 +1314,74 @@ bool MCD_convert_from_datetime(MCExecContext &ctxt, MCDateTime p_datetime, Conve
 	}
 	else 
 	{
-		if (p_primary_to == CF_INTERNET_DATE || p_secondary_to == CF_DATEITEMS)
-			p_secondary_to = CF_UNDEFINED;
-        
+		// long and short don't apply to internet or sql dates
+		switch (p_primary_to)
+		{
+			case CF_SHORT_DATE:
+			case CF_SHORT:
+			case CF_LONG_DATE:
+			case CF_LONG:
+				switch(p_secondary_to)
+				{
+					case CF_INTERNET:
+					case CF_SQL_DATE:
+					case CF_SQL:
+						p_primary_to = p_secondary_to;
+						p_secondary_to = CF_UNDEFINED;
+						break;
+					default:
+						break;
+				}
+				break;
+			case CF_SQL_DATE:
+			case CF_SQL:
+				p_secondary_to = CF_UNDEFINED;
+				break;
+			default:
+				break;
+		}
+
+		switch (p_secondary_to)
+		{
+			case CF_DATEITEMS:
+				p_secondary_to = CF_UNDEFINED;
+				break;
+			default:
+				break;
+		}
+
 		t_success = MCS_datetimetolocal(p_datetime);
         
 		if (!t_success)
 			return False;
-        
+
 		const MCDateTimeLocale *t_locale;
 		MCAutoStringRef t_date_format;
-        
+
 		MCStringRef t_buffer;
-        
+
 		MCD_decompose_convert_format(ctxt, p_primary_to, t_locale, &t_date_format);
 		datetime_format(t_locale, *t_date_format, p_datetime, t_buffer);
-		
-        
-		if (p_secondary_to != CF_UNDEFINED)
+
+		if (CF_UNDEFINED != p_secondary_to)
 		{
-            MCAutoStringRef t_secondary_format;
+			MCAutoStringRef t_secondary_format;
 			MCStringRef t_buffer_secondary;
 			MCD_decompose_convert_format(ctxt, p_secondary_to, t_locale, &t_secondary_format);
 			datetime_format(t_locale, *t_secondary_format, p_datetime, t_buffer_secondary);
-			
+
 			MCStringRef t_new;
 			/* UNCHECKED */ MCStringFormat(t_new, "%@ %@", t_buffer, t_buffer_secondary);
 			MCValueRelease(t_buffer);
 			MCValueRelease(t_buffer_secondary);
 			t_buffer = t_new;
 		}
-		
+
         // AL-2014-03-04: [[ Bug 12104 ]] The result should be empty if conversion is successful.
 		//ctxt.SetTheResultToValue(t_buffer);
 		r_output = t_buffer;
 	}
-    
-    return t_success;
+    return t_success;	// always true if we reach this point
 }
 
 bool MCD_convert(MCExecContext &ctxt, MCValueRef p_input, Convert_form p_primary_from, Convert_form p_secondary_from, Convert_form p_primary_to, Convert_form p_secondary_to, MCStringRef &r_converted)
@@ -1323,6 +1392,7 @@ bool MCD_convert(MCExecContext &ctxt, MCValueRef p_input, Convert_form p_primary
 	// MM-2012-03-01: [[ BUG 10006]] Primaries and secondaries mixed up
 	MCDateTime t_datetime;
 
+	// convert to our internal format
 	t_success = MCD_convert_to_datetime(ctxt, p_input, p_primary_from, p_secondary_from, t_datetime);
 
 	MCAutoValueRef t_output;

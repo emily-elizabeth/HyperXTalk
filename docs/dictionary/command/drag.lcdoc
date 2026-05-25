@@ -7,11 +7,11 @@ Syntax: drag [button <number>] from <start> to <end> [with <key> [, <key> [<key>
 Summary:
 Simulates a mouse click and drag.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 drag from "120,89" to "180,2"

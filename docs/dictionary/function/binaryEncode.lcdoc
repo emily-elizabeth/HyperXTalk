@@ -7,11 +7,11 @@ Syntax: binaryEncode(<formatsList>, <dataStringList>)
 Summary:
 <encode|Encodes> a set of <value|values> into a set of <binary|binary> values.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 binaryEncode("a","Q") -- returns "Q"

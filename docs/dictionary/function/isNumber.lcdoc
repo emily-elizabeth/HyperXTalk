@@ -9,11 +9,11 @@ Syntax: isNumber(<value>)
 Summary:
 <return|Returns> true if a <value> is a number, false if it is not.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 isNumber(8) -- returns true

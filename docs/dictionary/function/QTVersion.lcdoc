@@ -9,7 +9,7 @@ Syntax: qtVersion()
 Summary:
 <return|Returns> the version of <QuickTime> installed on the system.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 
@@ -35,7 +35,7 @@ On Mac OS and Windows systems, if <QuickTime> is not installed, the
 <qtVersion> function <return|returns> 0.0. Otherwise, it returns the
 <QuickTime> version number.
 
->*Tip:* It can take OpenXTalk a second or two to load the code needed to
+>*Tip:* It can take HyperXTalk a second or two to load the code needed to
 > use <QuickTime>, depending on the machine speed. Since this code is
 > only <loaded into memory> once per session, you can speed up the first
 > occurrence of a QuickTime-related action by calling the <qtVersion>

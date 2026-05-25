@@ -1,0 +1,153 @@
+Name: statusIconMenu
+
+Type: property
+
+Syntax: set the statusIconMenu to <menuString>
+
+Summary:
+Defines the context menu shown when the user right-clicks the system tray icon.
+
+Introduced: 1.0.0
+
+OS: windows
+
+Platforms: desktop
+
+Example:
+-- Simple flat menu with tags
+set the statusIconMenu to "Show App|show" & return \
+    & "Hide App|hide" & return \
+    & "-" & return \
+    & "Quit|quit"
+
+Example:
+-- Menu with a submenu (tab-indented items become children of the item above)
+set the statusIconMenu to "File" & return \
+    & tab & "New|new" & return \
+    & tab & "Open...|open" & return \
+    & "-" & return \
+    & "Quit|quit"
+
+Example:
+-- Disabled item using parenthesis prefix
+set the statusIconMenu to "(No Connection|connect" & return \
+    & "Preferences|prefs" & return \
+    & "-" & return \
+    & "Quit|quit"
+
+Example:
+-- Handle menu picks
+on statusIconMenuPick pTag
+    switch pTag
+        case "show"
+            show this stack
+            break
+        case "hide"
+            hide this stack
+            break
+        case "prefs"
+            go card "Preferences" of stack "Main"
+            break
+        case "quit"
+            quit
+            break
+    end switch
+end statusIconMenuPick
+
+Example:
+-- Handle a submenu pick (path is top-level to selected item, separated by |)
+on statusIconMenuPick pTag
+    -- Selecting "Open..." from the File submenu gives: "File|open"
+    if pTag is "File|open" then
+        answer file "Choose a file:"
+    end if
+end statusIconMenuPick
+
+Example:
+-- Remove the context menu
+set the statusIconMenu to empty
+
+Parameters:
+menuString:
+A return-separated list of menu item definitions. Each line defines one
+item using the following format:
+
+  [tabs][prefix]label[|tag]
+
+- **tabs**: zero or more tab characters that determine submenu depth.
+  Items indented one tab deeper than the item above them become children
+  of that item (see Submenus below).
+
+- **prefix**: an opening parenthesis `(` marks the item as disabled and
+  greyed out. Use `((` as an escaped literal `(` in the label text.
+
+- **label**: the text displayed in the menu. A label of exactly `-`
+  produces a horizontal separator line.
+
+- **|tag**: an optional tag passed to the `statusIconMenuPick` message
+  when the item is chosen. If omitted, the label text is used as the tag.
+
+Value:
+The <statusIconMenu> returns the string most recently set.
+The default value is empty (no context menu).
+
+Description:
+Use the <statusIconMenu> property to define the pop-up menu that appears
+when the user right-clicks the system tray icon. The menu is rebuilt each
+time any of <statusIcon>, <statusIconMenu>, or <statusIconTooltip> is set.
+
+**Item format**
+
+Each return-separated line represents one menu item. The label is the
+visible text; the optional tag (after `|`) is what your script receives
+in `statusIconMenuPick`. If no tag is given, the label is used as the tag.
+
+**Separators**
+
+A line whose label is exactly `-` (a single hyphen, after stripping any
+leading tabs) draws a horizontal separator. Separators cannot be tagged.
+
+**Disabled items**
+
+Prefix a label with `(` to display it greyed-out and unclickable. To
+include a literal `(` at the start of a label, use `((` instead.
+
+**Submenus**
+
+Items are nested into submenus using tab indentation. An item that is
+indented one tab deeper than the previous top-level item becomes a child
+of that item. Multiple levels of nesting are supported.
+
+    "Parent" & return &
+    tab & "Child 1|c1" & return &
+    tab & "Child 2|c2" & return &
+    "Next Top Level|ntl"
+
+**Messages**
+
+When the right-click menu is about to open, the `statusIconMenuOpening`
+message is sent to the current card of the default stack. This lets you
+update the menu contents before it is displayed.
+
+When an item is chosen, `statusIconMenuPick` is sent with a single
+parameter containing the item's tag. For items inside submenus the
+parameter is a `|`-delimited path from the top-level parent down to the
+selected item — for example, selecting "Child 2" from the example above
+produces `"Parent|c2"`.
+
+Setting <statusIconMenu> to empty removes the context menu; right-clicking
+the tray icon will then have no visible effect (though `statusIconClick`
+is still sent for the button-up event).
+
+>*Note:* The <statusIconMenu> property is not persistent — it is not
+> saved into the stack file.
+
+>*Note:* The <statusIconMenu> property only has a visual effect on
+> Windows. On macOS and Linux the property is accepted without error but
+> has no effect.
+
+References: statusIcon (property), statusIconTooltip (property),
+statusIconMenuOpening (message), statusIconMenuPick (message),
+statusIconClick (message)
+
+Tags: windowing

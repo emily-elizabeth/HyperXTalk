@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -930,9 +914,9 @@ struct MCWindowsSystem: public MCSystemInterface
 				t_entry . name = data . cFileName;
 				t_entry . data_size = t_stat . st_size;
 				t_entry . resource_size = 0;
-				t_entry . creation_time = (uint32_t)t_stat . st_ctime;
-				t_entry . modification_time = (uint32_t)t_stat . st_mtime;
-				t_entry . access_time = (uint32_t)t_stat . st_atime;
+				t_entry . creation_time = (uint64_t)t_stat . st_ctime;
+				t_entry . modification_time = (uint64_t)t_stat . st_mtime;
+				t_entry . access_time = (uint64_t)t_stat . st_atime;
 				t_entry . permissions = t_stat . st_mode & 0777;
 				t_entry . is_folder = (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
 
@@ -1298,18 +1282,59 @@ bool MCSystemLockFile(MCSystemFileHandle *p_file, bool p_shared, bool p_wait)
 	if (!p_shared)
 	{
 		DWORD t_flags = 0;
-	
+
 		if (!p_shared)
 			t_flags |= LOCKFILE_EXCLUSIVE_LOCK;
 		if (!p_wait)
 			t_flags |= LOCKFILE_FAIL_IMMEDIATELY;
-	
+
 		OVERLAPPED t_range;
 		ZeroMemory(&t_range, sizeof(t_range));
 		t_success = FALSE != LockFileEx(t_fhandle, t_flags, 0, MAXDWORD, MAXDWORD, &t_range);
 	}
-	
+
 	return t_success;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Windows server stubs for desktop-only platform functions.
+// The desktop implementations live in w32dcs.cpp, w32-jumplist.cpp, and
+// w32-core-compat.cpp which are not compiled for server builds.
+// These stubs satisfy the linker without pulling in any GUI dependencies.
+////////////////////////////////////////////////////////////////////////////////
+
+#include "platform.h"
+
+extern "C" bool MCplatformIsDarkMode(void)
+{
+	// No UI in server mode; always report light mode.
+	return false;
+}
+
+void MCPlatformSetJumpList(MCStringRef /*p_tasks*/, MCStringRef /*p_category*/)
+{
+	// Not applicable in server mode.
+}
+
+void MCPlatformSetTaskbarProgress(void * /*p_hwnd*/, double /*p_value*/)
+{
+	// Not applicable in server mode.
+}
+
+void MCPlatformSetBadge(void * /*p_hwnd*/, uinteger_t /*p_count*/)
+{
+	// Not applicable in server mode.
+}
+
+void MCPlatformSpellCheckText(MCStringRef /*p_text*/, MCRange *&r_errors, uindex_t &r_count)
+{
+	r_errors = nil;
+	r_count  = 0;
+}
+
+void MCPlatformShareContent(MCPlatformWindowRef, MCPlatformShareType, MCValueRef, bool, MCRectangle, MCStringRef)
+{
+	// Not applicable in server mode.
 }
 
 

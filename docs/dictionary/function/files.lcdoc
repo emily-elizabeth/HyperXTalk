@@ -9,11 +9,11 @@ Syntax: files([<targetFolder>[, <outputKind>]])
 Summary:
 List the files in a folder.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 

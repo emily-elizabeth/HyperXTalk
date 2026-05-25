@@ -9,7 +9,7 @@ Summary:
 It is identical to $_GET except that it does not perform any character
 set translation.
 
-Introduced: 4.6.3
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "notify.h"
@@ -88,6 +72,14 @@ static MCNotifySyncEvent *s_sync_events = nil;
 // This is a list of pending notifications.
 static MCNotification *s_notifications = nil;
 static MCNotification *s_safe_notifications = nil;
+
+// Depth counter for safe-notification dispatch.  Incremented by
+// MCNotifyDispatch while it is draining s_safe_notifications; nested calls
+// (e.g. from a modal-dialog event loop) skip the safe list when depth > 0.
+// This prevents callbacks in s_safe_notifications from being re-dispatched
+// re-entrantly, which would allow them to fire while already inside a handler
+// execution context.
+static int s_safe_dispatch_depth = 0;
 
 // The notification system has been initialized.
 static bool s_initialized = false;
@@ -499,9 +491,21 @@ bool MCNotifyDispatch(bool p_safe)
 	bool t_dispatched;
 	t_dispatched = MCNotifyDispatchList(s_notifications);
 
-	if (p_safe)
+	// Guard against re-entrant safe-notification dispatch.  When a safe
+	// notification callback (e.g. a worker callback) triggers a modal event
+	// loop (e.g. via 'answer'), that loop also calls MCNotifyDispatch(true).
+	// Without this guard the s_safe_notifications list is drained from within
+	// the modal-loop callback, causing handler re-entrancy and — if our drain
+	// logic tries to reschedule itself — an infinite loop.  By skipping the
+	// safe list when depth > 0, we leave pending safe notifications in place
+	// for the outer MCNotifyDispatch call to deliver once the modal loop exits.
+	if (p_safe && s_safe_dispatch_depth == 0)
+	{
+		s_safe_dispatch_depth++;
 		if (MCNotifyDispatchList(s_safe_notifications))
 			t_dispatched = true;
+		s_safe_dispatch_depth--;
+	}
 
 	return t_dispatched;
 }

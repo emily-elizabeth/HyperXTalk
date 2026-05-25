@@ -7,14 +7,14 @@ Syntax: print link to [{ url | anchor }] <linkName> with rect <rectArea>
 Summary:
 Defines a hyperlink within a pdf print loop.
 
-Introduced: 4.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
-print link to url "http://www.OpenXTalk.org" with rect 50,50,60,60
+print link to url "http://www.HyperXTalk.com" with rect 50,50,60,60
 
 Example:
 print link to anchor "section 1.1" with rect 100,100,200,200

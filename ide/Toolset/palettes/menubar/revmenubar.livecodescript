@@ -17,9 +17,9 @@ on preOpenStack
    layoutMenu
    revIDEPositionPalette the short name of me
    
-   --   // HXT
-   --   set the backColor of me to (the systemWindowColor)
-   --   set the foregroundColor of me to (the systemTextColor)
+   // HXT
+   set the backColor of me to (the systemWindowColor)
+   set the foregroundColor of me to (the systemTextColor)
    
    dispatch "revIDEPositionPaletteDefault" to stack "revIDElibrary" with "revMenubar"
    
@@ -74,19 +74,30 @@ end setupDevelopmentMenu
 private on setupTextMenu
    local tText
    put toggleMenuItem("Plain/;", false) & return after tText
+   put "!i:textformat " before line -1 of tText  -- added RK 7.4.26
    put toggleMenuItem("&Bold/B", false) & return after tText
+   put "!i:bold " before line -1 of tText  -- added RK 7.4.26
    put toggleMenuItem("&Italic/I", false) & return after tText
+   put "!i:italic " before line -1 of tText  -- added RK 7.4.26
    put toggleMenuItem("&Underline/U", false) & return after tText
+   put "!i:underline " before line -1 of tText  -- added RK 7.4.26
    put toggleMenuItem("Strikeout", false) & return after tText
+   put "!i:strikethrough " before line -1 of tText  -- added RK 7.4.26
    put toggleMenuItem("Box", false) & return after tText
+   put "!i:square " before line -1 of tText  -- added RK 7.4.26
    put toggleMenuItem("3D Box", false) & return after tText
+   put "!i:cube " before line -1 of tText  -- added RK 7.4.26
    put "-" & return after tText
    put toggleMenuItem("Link", false) & return after tText
+   put "!i:link " before line -1 of tText  -- added RK 7.4.26
    put "-" & return after tText
    put toggleMenuItem("Subscript", false) & return after tText
+   put "!i:textformat.subscript " before line -1 of tText  -- added RK 7.4.26
    put toggleMenuItem("Superscript", false) & return after tText
+   put "!i:textformat.superscript " before line -1 of tText  -- added RK 7.4.26
    put "-" & return after tText
    put "Font" & return after tText
+   put "!i:textformat.alt " before line -1 of tText  -- added RK 7.4.26
    
    local tFontNames
    put the fontNames into tFontNames
@@ -114,6 +125,7 @@ private on setupTextMenu
       end if
    end repeat
    put "Size" & return after tText
+   put "!i:textformat.size " before line -1 of tText  -- added RK 7.4.26
    
    local tFontSizes
    put format("Use Owner's Size\n-\n8\n9\n10\n12\n14\n18\n24\n36\n48\n-\nOther...") into tFontSizes
@@ -122,6 +134,7 @@ private on setupTextMenu
       else put "!u" & tab & l & cr after tText
    end repeat
    put "Color" & cr after tText
+   put "!i:paintpalette " before line -1 of tText  -- added RK 7.4.26
    
    local tColors
    put format("Use Owner's Color\n-\nBlack\nWhite\nRed\nGreen\nBlue\nYellow\n-\nPen Color") into tColors
@@ -132,7 +145,11 @@ private on setupTextMenu
          put "!u" & tab & tColor & return after tText
       end if
    end repeat
-   put  "-" & return & "&Align" & return & "!u"  & tab & "Left" & return & "!u" & tab & "Center" & return & "!u" & tab & "Right" after tText
+   --   put  "-" & return & "&Align" & return & "!u"  & tab & "Left" & return & "!u" & tab & "Center" & return & "!u" & tab & "Right" after tText
+   put  "-" & return after tText
+   put "&Align" & return after tText
+   put "!i:text.alignleft " before line -1 of tText
+   put "!u"  & tab & "Left" & return & "!u" & tab & "Center" & return & "!u" & tab & "Right" after tText
    
    # Cache the text menu text in non-disabled state
    put tText into sTextMenuText
@@ -320,6 +337,7 @@ on ideToggleChanged pToggle
       default
          break
    end switch
+   
 end ideToggleChanged
 
 on idePluginsChanged
@@ -1439,6 +1457,7 @@ private function revMenubarFileMenu pContext
    
    local tFile
    put "&New Stack" & return after tFile
+   put "!i:plus " before line -1 of tFile  -- added RK 7.4.26
    put tab & "Default Size/CMD SHIFT N" & return after tFile
    put tab & "-" & return after tFile
    put tab & "Medium (800x600)" & return after tFile
@@ -1452,24 +1471,32 @@ private function revMenubarFileMenu pContext
    
    if tIsUserTarget and not tIsScriptOnly then
       put "&New Substack of" && char 1 to 20 of the mainStack of the topStack & "/|New Substack" & return after tFile
+      put "!i:plus.square.on.square " before line -1 of tFile  -- added RK 7.4.26
    else
       put "(&New Substack" & return after tFile
+      put "!i:plus.square.on.square " before line -1 of tFile  -- added RK 7.4.26
    end if
    
    put "&Open Stack.../O" & return after tFile
+   put "!i:arrow.up.right " before line -1 of tFile  -- added RK 7.4.26
    
    if revMenuBarRecentFiles() is not empty then
       put "Open Recent File" & return after tFile
+      put "!i:clock.arrow.trianglehead.counterclockwise.rotate.90 " before line -1 of tFile  -- added RK 7.4.26
       put revMenuBarRecentFiles() & return after tFile
    else
       put "(Open Recent File" & return after tFile
+      put "!i:clock.arrow.trianglehead.counterclockwise.rotate.90 " before line -1 of tFile  -- added RK 7.4.26
    end if
    
    put enableMenuItem("&Close/W", the mode of the topStack <= 3 and the short name of the topstack is not "revMenubar") & return after tFile
+   put "!i:xmark " before line -1 of tFile  -- added RK 7.4.26
    put enableMenuItem("Close and Remove From Memor&y", tCanSaveStack) & return after tFile
+   put "!i:trash " before line -1 of tFile  -- added RK 7.4.26
    put "-" & return after tFile
    
    put enableMenuItem("Import As Control", tIsUserTarget) & return after tFile
+   put "!i:paperclip " before line -1 of tFile  -- added RK 7.4.26
    put tab & "Image File.../>|image" & return after tFile
    put tab & "Audio File.../|audio" & return after tFile
    put tab & "Video File.../|video" & return after tFile
@@ -1486,6 +1513,7 @@ private function revMenubarFileMenu pContext
    put tab & "All Text Files in Folder.../|text folder" & return after tFile
    
    put enableMenuItem("New Referenced Control", tIsUserTarget) & return after tFile
+   put "!i:link " before line -1 of tFile  -- added RK 7.4.26
    put tab & "Image File.../|image" & return after tFile
    put tab & enableMenuItem("Video File.../|video", the platform is not "Linux") & return after tFile
    put tab & "-" & return after tFile
@@ -1494,21 +1522,33 @@ private function revMenubarFileMenu pContext
    put "-" & return after tFile
    
    put enableMenuItem("&Save/S", tCanSaveStack) & return after tFile
+   put "!i:square.and.arrow.down " before line -1 of tFile  -- added RK 7.4.26
    put enableMenuItem("Save &As...", tCanSaveStack) & return after tFile
+   put "!i:square.and.arrow.down.on.square " before line -1 of tFile  -- added RK 7.4.26
+   put enableMenuItem("Save as &Project...", tCanSaveStack) & return after tFile
+   put "!i:square.and.arrow.down.fill " before line -1 of tFile  -- added RK 7.4.26
    put enableMenuItem("Move S&ubstack to File...", tIsUserTarget and the short name of the topStack is not the mainStack of the topStack) & return after tFile
+   put "!i:square.badge.plus " before line -1 of tFile  -- added RK 7.4.26
    put enableMenuItem("&Revert to Saved...", tIsUserTarget and the effective filename of the topStack is not empty) & return after tFile
+   put "!i:arrow.uturn.backward " before line -1 of tFile  -- added RK 7.4.26
    put "-" & return after tFile
    
    put enableMenuItem("&Share this stack...", tCanSaveStack) & return after tFile
+   put "!i:square.and.arrow.up " before line -1 of tFile  -- added RK 7.4.26
    put "-" & return after tFile
    
    put enableMenuItem("Standalone Application Settings...", tIsUserTarget) & return after tFile
+   put "!i:gearshape " before line -1 of tFile  -- added RK 7.4.26
    put enableMenuItem("Save As Standalone Application...", tIsUserTarget) & return after tFile
+   put "!i:app.badge.checkmark " before line -1 of tFile  -- added RK 7.4.26
    put "-" & return after tFile
    
    put "P&age Setup..." & return after tFile
+   put "!i:text.page " before line -1 of tFile  -- added RK 7.4.26
    put enableMenuItem("&Print Card.../P", tIsUserTarget) & return after tFile
+   put "!i:printer.inverse " before line -1 of tFile  -- added RK 7.4.26
    put enableMenuItem("Print Field...", word 1 of (the selObj) is "field") & return after tFile
+   put "!i:printer " before line -1 of tFile  -- added RK 7.4.26
    
    put "-" & return after tFile
    
@@ -1516,8 +1556,10 @@ private function revMenubarFileMenu pContext
    ## [[Bug 12880]]
    if the platform is "Linux" then
       put "&Quit" & return after tFile
+      -- put "!i:xmark.rectangle " before line -1 of tFile  -- added RK 7.4.26
    else
       put "E&xit" & return after tFile
+      -- put "!i:xmark.rectangle " before line -1 of tFile  -- added RK 7.4.26
    end if
    
    return modifyMenu("File", tFile)
@@ -1577,17 +1619,25 @@ private function revMenubarEditMenu pContext
    put enableMenuItem("&Copy" && tSelectionLabel & "/C|copy", tSelectionLabel is not empty) & return after tEdit
    put enableMenuItem("&Paste"&& tClipboardLabel & "/V|paste", tClipboardLabel is not empty) & return after tEdit
    put enableMenuItem("Paste &Unformatted/Cmd Shift Opt V", tClipboardLabel is "Text") & return after tEdit
+   put "!i:list.clipboard " before line -1 of tEdit  -- added RK 7.4.26
    put enableMenuItem("Clea&r" && tSelectionLabel, tSelectionLabel is not empty) & return after tEdit
+   put "!i:trash " before line -1 of tEdit  -- added RK 7.4.26
    put "-" & return after tEdit
    put enableMenuItem("&Duplicate" && tObjectsLabel &"/D", tObjectsLabel is not empty) & return after tEdit
+   put "!i:plus.square.on.square " before line -1 of tEdit  -- added RK 7.4.26
    put "-" & return after tEdit
    put "Select All/A" & return after tEdit
    put "Deselect All" & return after tEdit
+   put "!i:xmark " before line -1 of tEdit  -- added RK 7.4.26
    put enableMenuItem("In&vert Selection", tObjectsLabel is "Objects") & return after tEdit
+   put "!i:square.lefthalf.filled " before line -1 of tEdit  -- added RK 7.4.26
    put toggleMenuItem("Select Grouped Controls", the selectGroupedControls) & return after tEdit
+   put "!i:pointer.arrow.and.square.on.square.dashed " before line -1 of tEdit  -- added RK 7.4.26
    put toggleMenuItem("Intersected Selections", the selectionMode is "intersect") & return after tEdit
+   put "!i:selection.pin.in.out " before line -1 of tEdit  -- added RK 7.4.26
    put "-" & return after tEdit
    put "Find and Replace.../F" & return after tEdit
+   put "!i:arrow.trianglehead.2.clockwise.rotate.90 " before line -1 of tEdit  -- added RK 7.4.26
    put "-" & return after tEdit
    if (the platform = "MacOS") then
       put "Preferences" after tEdit
@@ -1604,18 +1654,27 @@ private function revMenubarToolsMenu pContext
    local tTools
    
    put markMenuItem("&Browse Tool/9", the tool is "browse tool") & return after tTools
+   put "!i:pointer.arrow " before line -1 of tTools  -- added RK 7.4.26
    put markMenuItem("&Pointer Tool/0", the tool is "pointer tool") & return after tTools
+   put "!i:pointer.arrow.and.square.on.square.dashed " before line -1 of tTools  -- added RK 7.4.26
    put "-" & return after tTools
    put toggleMenuItem("&Tools Palette/T", revIDEPaletteIsVisible("tools")) & return after tTools
+   put "!i:wrench.and.screwdriver " before line -1 of tTools  -- added RK 7.4.26
    put toggleMenuItem("&Paint and Draw Tools", "paint" is among the items of revIDEGetPreference("revTools_show")) & return after tTools
+   put "!i:paintpalette " before line -1 of tTools  -- added RK 7.4.26
    put "-" & return after tTools
    
    put toggleMenuItem("Project Browser/Cmd Shift P", revIDEPaletteIsVisible("project browser")) & return after tTools
+   put "!i:list.bullet.rectangle " before line -1 of tTools  -- added RK 7.4.26
    put toggleMenuItem("&Message Box/M", revIDEPaletteIsVisible("message box")) & return after tTools
+   put "!i:bubble.left " before line -1 of tTools  -- added RK 7.4.26
    put toggleMenuItem("Extension Manager", revIDEPaletteIsVisible("extension manager")) & return after tTools
+   put "!i:puzzlepiece " before line -1 of tTools  -- added RK 7.4.26
    put toggleMenuItem("Extension Builder", revIDEPaletteIsVisible("extension builder")) & return after tTools
+   put "!i:hammer " before line -1 of tTools  -- added RK 7.4.26
    put "-" & return after tTools
    put toggleMenuItem(enableMenuItem("Menu Builder", the mode of the topStack is 1), revIDEPaletteIsVisible("menu builder")) & return after tTools
+   put "!i:menubar.rectangle " before line -1 of tTools  -- added RK 7.4.26
    
    return modifyMenu("Tools", tTools)
 end revMenubarToolsMenu
@@ -1631,7 +1690,7 @@ private function revMenubarTextMenu pContext
       put sTextMenuText into tText   
       if pContext["textMenuSelection"] is "objects" then   
          --selected object   
-         put "(!nSubscript" & return & "(!nSuperscript" into line 11 to 12 of tText   
+         put "(!i:textformat.subscript !nSubscript" & return & "(!i:textformat.superscript !nSuperscript" into line 11 to 12 of tText   
          try
             put the textFont of the selectedObject into tFont   
             put the textSize of the selectedObject into tSize   
@@ -1660,10 +1719,10 @@ private function revMenubarTextMenu pContext
          put the textColor of the selectedChunk into tColor   
          --text shift   
          if tShift is empty then put 0 into tShift   
-         if tShift > 0 then put "!cSubscript" into line 11 of tText   
-         else put "!nSubscript" into line 11 of tText   
-         if tShift < 0 then put "!cSuperscript" into line 12 of tText   
-         else put "!nSuperscript" into line 12 of tText   
+         if tShift > 0 then put "!i:textformat.subscript !cSubscript" into line 11 of tText   
+         else put "!i:textformat.subscript !nSubscript" into line 11 of tText   
+         if tShift < 0 then put "!i:textformat.superscript !cSuperscript" into line 12 of tText   
+         else put "!i:textformat.superscript !nSuperscript" into line 12 of tText   
       end if   
       --font   
       if tFont is empty then put "Use Owner's Font" into tFont   
@@ -1671,7 +1730,8 @@ private function revMenubarTextMenu pContext
       put lineOffset(tFont,tText) into tLineNo   
       if tLineNo is not 0 then   
          --if it is 0, auto unhiliting will occur as text is set to default   
-         put "c" into char 2 of line tLineNo of tText   
+         --         put "c" into char 2 of line tLineNo of tText   
+         replace "!n" with "!c" in line tLineNo of tText
       end if   
       --size   
       local tStartNum
@@ -1681,13 +1741,14 @@ private function revMenubarTextMenu pContext
       put lineOffset(tSize,tText,tStartNum)+tStartNum into tLineNo   
       if tLineNo is not 0 and tSize is not "Multiple" then   
          if tSize is not among the items of "Use Owner's Size,8,9,10,12,14,18,24,36,48" then put lineOffset("Other..."&cr,tText) into tLineNo   
-         put "c" into char 2 of line tLineNo of tText   
+         --         put "c" into char 2 of line tLineNo of tText   
+         replace "!n" with "!c" in line tLineNo of tText
       end if   
       --style   
       replace "threedbox" with "3D Box" in tStyle   
       repeat for each item tItem in tStyle   
          put lineOffset(tItem, tText) into tLineNo   
-         if tLineNo is not 0 then put "c" into char 2 of line tLineNo of tText   
+         if tLineNo is not 0 then replace "!n" with "!c" in line tLineNo of tText //put "c" into char 2 of line tLineNo of tText   
       end repeat   
       --color   
       if tColor is "0,0,0" then put "Black" into tColor   
@@ -1701,7 +1762,8 @@ private function revMenubarTextMenu pContext
       if tColor is the penColor then put "pen color" into tColor   
       put lineOffset(tColor,tText,tStartNum)+tStartNum into tLineNo   
       if tLineNo is not 0 and tLineNo is not tStartNum then   
-         put "c" into char 2 of line tLineNo of tText   
+         --         put "c" into char 2 of line tLineNo of tText   
+         replace "!n" with "!c" in line tLineNo of tText
       end if   
       --align   
       if tAlign is not empty then
@@ -1709,7 +1771,8 @@ private function revMenubarTextMenu pContext
          put lineOffset("&Align",tText) into tAlignSkip
          --items including right,left,center could be included in Font menu
          put lineOffset(tAlign,tText,tAlignSkip) + tAlignSkip into tAlignSkip
-         put "c" into char 2 of line tAlignSkip of tText
+         --         put "c" into char 2 of line tAlignSkip of tText
+         replace "!n" with "!c" in line tAlignSkip of tText
       end if  
    end if
    
@@ -1727,12 +1790,18 @@ private function revMenubarObjectMenu pContext
    
    ### Initial sections
    put enableMenuItem("&Object Inspector/SHIFT CMD K", tIsObjectTarget) & return after tObject
+   put "!i:sidebar.left " before line -1 of tObject  -- added RK 7.4.26
    put enableMenuItem("&Card Inspector/OPT CMD K", tIsUserTarget) & return after tObject
+   put "!i:rectangle " before line -1 of tObject  -- added RK 7.4.26
    put enableMenuItem("&Stack Inspector/K", tIsUserTarget) & return after tObject
+   put "!i:rectangle.stack " before line -1 of tObject  -- added RK 7.4.26
    put "-" & return after tObject
    put enableMenuItem("Object Script/E", tIsObjectTarget) & return after tObject
+   put "!i:square.on.circle " before line -1 of tObject  -- added RK 7.4.26
    put enableMenuItem("Card Script", tIsUserTarget) & return after tObject
+   put "!i:rectangle " before line -1 of tObject  -- added RK 7.4.26
    put enableMenuItem("Stack Script", tIsUserTarget) & return after tObject
+   put "!i:rectangle.stack " before line -1 of tObject  -- added RK 7.4.26
    put "-" & return after tObject
    
    ### Lines 9 to 11: Group, Edit Group, Remove Group
@@ -1765,19 +1834,26 @@ private function revMenubarObjectMenu pContext
    
    ### New Card and Delete Card
    put enableMenuItem("&New Card/N", tIsUserTarget) & return after tObject
+   put "!i:plus.rectangle.on.rectangle " before line -1 of tObject  -- added RK 7.4.26
    put enableMenuItem("Delete Card", tIsUserTarget) & return after tObject
+   put "!i:minus.rectangle " before line -1 of tObject  -- added RK 7.4.26
    put enableMenuItem("New Control", the mode of the topStack is 1) & return after tObject
+   put "!i:plus.square " before line -1 of tObject  -- added RK 7.4.26
    put revMenubarNewControlSubmenu() & return after tObject
    put "-" & return after tObject
    put enableMenuItem("New Widget", the mode of the topStack is 1) & return after tObject
+   put "!i:plus.square.fill " before line -1 of tObject  -- added RK 7.4.26
    put revMenubarNewWidgetSubmenu() & return after tObject
    put "-" & return after tObject
    
    local tFlipText, tRotateText, tReshapeText
    if not pContext["enableFlipAndRotate"] or pContext["selectedObject"] is empty then
       put "(Flip" into tFlipText
+      put "!i:arrow.left.and.right.righttriangle.left.righttriangle.right " before line -1 of tFlipText  -- added RK 7.4.26
       put "(Rotate" into tRotateText
+      put "!i:arrow.trianglehead.clockwise.rotate.90 " before line -1 of tRotateText  -- added RK 7.4.26
       put "(Reshape Graphic" into tReshapeText
+      put "!i:scale.3d " before line -1 of tReshapeText  -- added RK 7.4.26
    else
       if pContext["allImages"] then
          put "Flip Image" into tFlipText
@@ -1811,6 +1887,7 @@ private function revMenubarObjectMenu pContext
    
    ### Align selected controls, with a submenu
    put enableMenuItem("Align Selected Controls", the number of lines in (the selObj) >= 2) & return after tObject
+   put "!i:align.horizontal.left " before line -1 of tObject  -- added RK 7.4.26
    put buildAlignSubmenu() & return after tObject
    
    put "-" & return after tObject
@@ -1850,9 +1927,13 @@ private function revMenubarObjectMenu pContext
    
    ### Send to back, Move Backward, Move Forward and Bring to Front
    put enableMenuItem("&Send to Back", pContext["objectsSelected"] and tCanRelayer and tCanMoveBack) & return after tObject
+   put "!i:square.3.layers.3d.bottom.filled " before line -1 of tObject  -- added RK 7.4.26
    put enableMenuItem("Move Backward/[", pContext["objectsSelected"] and tCanRelayer and tCanMoveBack) & return after tObject
+   put "!i:square.2.layers.3d.bottom.filled " before line -1 of tObject  -- added RK 7.4.26
    put enableMenuItem("Move For&ward/]", pContext["objectsSelected"] and tCanRelayer and tCanMoveForward) & return after tObject
+   put "!i:square.2.layers.3d.top.filled " before line -1 of tObject  -- added RK 7.4.26
    put enableMenuItem("Bring to &Front", pContext["objectsSelected"] and tCanRelayer and tCanMoveForward) & return after tObject
+   put "!i:square.3.layers.3d.top.filled " before line -1 of tObject  -- added RK 7.4.26
    
    return modifyMenu("Object", tObject)
 end revMenubarObjectMenu
@@ -1973,6 +2054,7 @@ private function revMenubarHelpMenu pContext
 //   put "Start Center/|Start Center" & return after tHelp
 //   put "User Guide" & return after tHelp
    put "Documentation/|Dictionary" & return after tHelp
+   put "!i:text.document " before line -1 of tHelp  -- added RK 7.4.26
    
    put "-" & return  after tHelp
    
@@ -1984,7 +2066,9 @@ private function revMenubarHelpMenu pContext
 //   put "Tutorials" & return after tHelp
 //   put "-" & return after tHelp
    put "Forums" & return after tHelp
+   put "!i:bubble.left.and.bubble.right " before line -1 of tHelp  -- added RK 7.4.26
    put "Technical Questions" & return after tHelp
+   put "!i:wrench.and.screwdriver " before line -1 of tHelp  -- added RK 7.4.26
 //   put "Discussion List" & return after tHelp
 //   put "Newsletters" & return after tHelp
 //   put "-" & return after tHelp
@@ -2009,24 +2093,37 @@ private function revMenubarViewMenu pContext
    global gREVPalettes, gREVShowStacks
    
    local tView
-   put enableMenuItem("Go &First/1", the mode of the topStack <= 2 and not revIDEStackIsIDEStack(the topStack)) & return after tView
-   put enableMenuItem("Go Pre&v/2", the mode of the topStack <= 2 and not revIDEStackIsIDEStack(the topStack)) & return after tView
-   put enableMenuItem("Go Ne&xt/3", the mode of the topStack <= 2 and not revIDEStackIsIDEStack(the topStack)) & return after tView
-   put enableMenuItem("Go &Last/4", the mode of the topStack <= 2 and not revIDEStackIsIDEStack(the topStack)) & return after tView
-   put enableMenuItem("Go Recent/5", the mode of the topStack <= 2 and not revIDEStackIsIDEStack(the topStack)) & return after tView
+   put enableMenuItem("Go &First/1", the mode of the topStack is 1) & return after tView
+   put "!i:chevron.backward.to.line " before line -1 of tView  -- added RK 7.4.26
+   put enableMenuItem("Go Pre&v/2", the mode of the topStack is 1) & return after tView
+   put "!i:chevron.backward " before line -1 of tView  -- added RK 7.4.26
+   put enableMenuItem("Go Ne&xt/3", the mode of the topStack is 1) & return after tView
+   put "!i:chevron.forward " before line -1 of tView  -- added RK 7.4.26
+   put enableMenuItem("Go &Last/4", the mode of the topStack is 1) & return after tView
+   put "!i:chevron.right.to.line " before line -1 of tView  -- added RK 7.4.26
+   put enableMenuItem("Go Recent/5", the mode of the topStack is 1) & return after tView
+   put "!i:clock " before line -1 of tView  -- added RK 7.4.26
    put "-" & return after tView
    put toggleMenuItem("Toolbar Text", the cToolbarText of stack "revPreferences") & return after tView
+   put "!i:textformat " before line -1 of tView  -- added RK 7.4.26
    put toggleMenuItem("Toolbar Icons", the cToolbarIcons of stack "revPreferences") & return after tView
+   put "!i:square.grid.2x2 " before line -1 of tView  -- added RK 7.4.26
    put "-" & return after tView
    put toggleMenuItem("Palettes", gREVPalettes is empty) & return after tView
+   put "!i:slider.horizontal.below.square.and.square.filled " before line -1 of tView  -- added RK 7.4.26
    put "-" & return after tView
    put toggleMenuItem("Rulers", the mode of stack "revRulersH" is not 0) & return after tView
+   put "!i:ruler " before line -1 of tView  -- added RK 7.4.26
    put toggleMenuItem("Grid", the grid) & return after tView
+   put "!i:grid " before line -1 of tView  -- added RK 7.4.26
    put toggleMenuItem("Backdrop", the backdrop is not "none") & return after tView
+   put "!i:photo " before line -1 of tView  -- added RK 7.4.26
    --   put toggleMenuItem("Show IDE Stacks In Lists", gREVShowStacks) & return after tView
-   put toggleMenuItem("Show IDE Stacks In Lists", the cShowRevolutionStacks of stack "revPreferences") & return after tView
+   put toggleMenuItem("Show IDE Stacks In Lists", revIDEGetPreference("cShowRevolutionStacks")) & return after tView
+   put "!i:list.bullet.rectangle " before line -1 of tView  -- added RK 7.4.26
    put "-" & return after tView
    put toggleMenuItem("Show &Invisible Objects" , the showInvisibles) & return after tView
+   put "!i:eye.slash " before line -1 of tView  -- added RK 7.4.26
    
    return modifyMenu("View", tView)
 end revMenubarViewMenu
@@ -2069,7 +2166,9 @@ private function revMenubarDevelopmentMenu pContext
    
    local tDevelopment
    put "Object Library" & return after tDevelopment
+   put "!i:square.grid.3x3 " before line -1 of tDevelopment  -- added RK 7.4.26
    put "Image Library" & return after tDevelopment
+   put "!i:photo " before line -1 of tDevelopment  -- added RK 7.4.26
    // HXT
    --   put "Plugins" & return after tDevelopment
    --   if sPluginMenuText is not empty then
@@ -2091,13 +2190,19 @@ private function revMenubarDevelopmentMenu pContext
    end if
    
    put toggleMenuItem("Script Debug Mode", revDebuggerEnabled()) & return after tDevelopment
+   put "!i:ladybug " before line -1 of tDevelopment  -- added RK 7.4.26
    put"Clear All Breakpoints" & return after tDevelopment
+   put "!i:xmark.circle " before line -1 of tDevelopment  -- added RK 7.4.26
    put "Message Watcher" & return after tDevelopment
+   put "!i:eye " before line -1 of tDevelopment  -- added RK 7.4.26
    put "-" & return after tDevelopment
    put toggleMenuItem("Suppress Errors", gREVSuppressErrors) & return after tDevelopment
+   put "!i:exclamationmark.triangle " before line -1 of tDevelopment  -- added RK 7.4.26
    put toggleMenuItem("Suppress Messages", gREVSuppressMessages) & return after tDevelopment
+   put "!i:bell.slash " before line -1 of tDevelopment  -- added RK 7.4.26
    put "-" & return after tDevelopment
    put "Suspend Development Tools" & return after tDevelopment
+   put "!i:pause.circle " before line -1 of tDevelopment  -- added RK 7.4.26
    
    return modifyMenu("Development", tDevelopment)
 end revMenubarDevelopmentMenu
@@ -2115,6 +2220,7 @@ private function revMenubarWindowMenu pContext
       put "(No Windows Open" into tWindow
    else
       put sWindowMenuWindows & return & "-" & return & "Send Window to Back/`" into tWindow
+      put "!i:square.2.layers.3d.bottom.filled " before line -1 of tWindow  -- added RK 7.4.26
    end if
    
    return modifyMenu("Window", tWindow)
@@ -2450,6 +2556,10 @@ function markMenuItem pItem, pMarked
    end if
    return "!u" & pItem
 end markMenuItem
+
+function menuItemIcon pItem, pIcon
+   return "!i:"& pIcon && pItem
+end menuItemIcon
 
 ################################################################################
 
@@ -2804,6 +2914,9 @@ on revMenubarFileMenuPick pWhich
       case "Save As..."
          revIDEActionSaveStackAs the long id of the topStack
          break
+      case "Save as Project..."
+         revIDEActionSaveAsProject the long id of the topStack
+         break
       case "Save As Standalone Application..."
          revIDESaveAsStandalone the long id of the topStack
          break
@@ -2852,7 +2965,13 @@ on revMenubarFileMenuPick pWhich
                   revIDESetPreference "cRecentStackPaths", empty
                   ideMessageSend "ideRecentFilesChanged"
                else
-                  revIDEOpenStack tRecentStack
+                  if tRecentStack ends with ".hyperxtalk_project" then
+                     -- The stored path is the inner JSON file (platform-neutral).
+                     -- Pass it straight to the project loader.
+                     revIDELoadFromProject tRecentStack
+                  else
+                     revIDEOpenStack tRecentStack
+                  end if
                end if
                break
             case "Import As Control"
@@ -3280,11 +3399,10 @@ end revMenubarHelpMenuPick
 
 // HXT
 on systemAppearanceChanged pMode, pWindowColor, pTextColor
-   --   set the backgroundColor of this stack to pWindowColor
-   --   set the foregroundColor of this stack to pTextColor
+   set the backgroundColor of this stack to pWindowColor
+   set the foregroundColor of this stack to pTextColor
    local tDividerCounter
    put 1 into tDividerCounter
-   lock screen
    repeat for each item tItem in revMenubarItems()
       local tModeIsLight, tModeIsDark
       if (pMode is "light") then
@@ -3303,5 +3421,4 @@ on systemAppearanceChanged pMode, pWindowColor, pTextColor
          set the visible of button (tItem & "-DM") of group "Toolbar" of me to tModeIsDark
       end if
    end repeat
-   unlock screen
 end systemAppearanceChanged

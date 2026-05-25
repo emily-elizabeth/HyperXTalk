@@ -9,11 +9,11 @@ Syntax: set the roundRadius [of <graphic>] to <number>
 Summary:
 Specifies how round the corners of a round rectangle are.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the roundRadius to 1

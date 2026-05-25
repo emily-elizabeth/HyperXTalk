@@ -222,10 +222,10 @@ FILE *OpenOutputBytecodeFile(const char **r_filename)
     if (s_output_bytecode_file == NULL)
         return NULL;
 
-	if (NULL != r_filename)
-	{
-		*r_filename = s_output_bytecode_file;
-	}
+    if (NULL != r_filename)
+    {
+        *r_filename = s_output_bytecode_file;
+    }
 
     return fopen(s_output_bytecode_file, "wb");
 }
@@ -235,10 +235,10 @@ FILE *OpenOutputCodeFile(const char **r_filename)
     if (s_output_code_file == NULL)
         return NULL;
     
-	if (NULL != r_filename)
-	{
-		*r_filename = s_output_code_file;
-	}
+    if (NULL != r_filename)
+    {
+        *r_filename = s_output_code_file;
+    }
     
     return fopen(s_output_code_file, "w");
 }
@@ -248,10 +248,10 @@ FILE *OpenOutputGrammarFile(const char **r_filename)
     if (s_output_grammar_file == NULL)
         return NULL;
 
-	if (NULL != r_filename)
-	{
-		*r_filename = s_output_grammar_file;
-	}
+    if (NULL != r_filename)
+    {
+        *r_filename = s_output_grammar_file;
+    }
 
 	if (s_output_grammar_file[0] == '-' &&
 	    s_output_grammar_file[1] == '\0')

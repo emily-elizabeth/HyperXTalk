@@ -1,0 +1,67 @@
+Name: taskbarOverlayIcon
+
+Type: property
+
+Syntax: set the taskbarOverlayIcon of <stack> to <iconPath>
+
+Summary:
+Displays a small overlay icon in the corner of a stack's Windows taskbar button.
+
+Associations: stack
+
+Introduced: 1.0.0
+
+OS: windows
+
+Platforms: desktop
+
+Example:
+-- Show a notification badge icon when new messages arrive
+set the taskbarOverlayIcon of this stack to specialFolderPath("resources") & "/badge-mail.ico"
+
+Example:
+-- Clear the overlay when messages have been read
+set the taskbarOverlayIcon of this stack to empty
+
+Parameters:
+stack:
+A reference to a stack, or an expression that evaluates to a stack.
+
+iconPath:
+The full path to an .ico file to display as the overlay.
+Pass empty to remove any existing overlay icon.
+
+Value:
+The <taskbarOverlayIcon> of a stack returns the path most recently set.
+The default value is empty.
+
+Description:
+Use the <taskbarOverlayIcon> property to draw a small badge icon over the
+lower-right corner of a stack's Windows taskbar button. This is the same
+mechanism used by email clients and messaging apps to signal unread items
+or status changes without requiring the user to bring the window forward.
+
+The overlay is drawn at 16×16 pixels by Windows, regardless of the icon
+file's nominal size. For the sharpest result, supply an .ico file that
+includes a 16×16 frame alongside any larger sizes.
+
+Setting <taskbarOverlayIcon> to empty removes the overlay immediately.
+
+If the path refers to a file that does not exist or cannot be loaded as
+an icon, the call silently has no effect.
+
+>*Note:* The <taskbarOverlayIcon> property only has a visual effect on
+> Windows. On macOS and Linux the property is accepted without error
+> but has no effect.
+
+>*Note:* The <taskbarOverlayIcon> property is not persistent — it is not
+> saved into the stack file. Set it in a `preOpenStack` or `startUp`
+> handler each time the application launches.
+
+>*Note:* Windows reads the overlay icon at the moment
+> <taskbarOverlayIcon> is set. You can safely delete or replace the .ico
+> file afterwards without affecting the currently displayed overlay.
+
+References: taskbarProgress (property), jumpListTasks (property)
+
+Tags: windowing

@@ -209,11 +209,23 @@ private command initializeLineNumbers
    if there is a field "Numbers" of me then
       delete field "Numbers" of me
    end if
-   
+
    clone field "Numbers Template" of me as "Numbers"
    put kInitialLineStore into sCurrentLineStore
    unlock messages
+
+   applyGutterAppearance
 end initializeLineNumbers
+
+private command applyGutterAppearance
+   set the backgroundColor of field "Numbers" of me to iff(the systemAppearance = "dark", "128,128,128", "217,217,217")
+   set the foregroundColor of field "Numbers" of me to iff(the systemAppearance = "dark", "217,217,217", "128,128,128")
+end applyGutterAppearance
+
+on systemAppearanceChanged
+   applyGutterAppearance
+   pass systemAppearanceChanged
+end systemAppearanceChanged
 
 private command initializeMutables
    lock messages

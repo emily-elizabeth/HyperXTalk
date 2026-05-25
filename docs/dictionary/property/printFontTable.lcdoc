@@ -8,7 +8,7 @@ Summary:
 Specifies the <PostScript> <font|fonts> that are substituted for screen
 <font|fonts> when you print on a <PostScript> printer.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

@@ -10,11 +10,11 @@ Summary:
 <evaluate|Evaluates> to true if a <value> is not of the specified type,
 false otherwise.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 22 is not a number

@@ -168,13 +168,18 @@
 			'dependencies':
 			[
 				'kernel-server.gyp:kernel-server',
-				
+
 				'../libfoundation/libfoundation.gyp:libFoundation',
 				'../libgraphics/libgraphics.gyp:libGraphics',
 
 				'lcb-modules.gyp:engine_lcb_modules',
+
+				# Direct dep so Xcode/make generators pick up libcurl include paths.
+				# Windows link settings are handled via all_dependent_settings in
+				# libcurl.gyp so they propagate correctly through the MSVS generator.
+				'../prebuilt/libcurl.gyp:libcurl',
 			],
-			
+
 			'sources':
 			[
 				'<@(engine_security_source_files)',
@@ -208,15 +213,23 @@
 					},
 				],
 			],
-			
+
 			'msvs_settings':
 			{
 				'VCLinkerTool':
 				{
 					'SubSystem': '1',	# /SUBSYSTEM:CONSOLE
+					# Do NOT set AdditionalDependencies or AdditionalLibraryDirectories
+					# here as strings.  GYP collects link_settings.libraries and
+					# link_settings.library_dirs from all_dependent_settings as Python
+					# lists and calls _ToolAppend to merge them.  If msvs_settings
+					# already holds a string for the same key, _ToolSetOrAppend raises
+					# TypeError("Appending list to non-list").  The curl, ICU, OpenSSL
+					# and Thirdparty dirs/libs all propagate correctly through GYP's
+					# own list mechanism; no override is needed here.
 				},
 			},
-			
+
 			'all_dependent_settings':
 			{
 				'variables':
@@ -225,7 +238,7 @@
 				},
 			},
 		},
-		
+
 		{
 			'target_name': 'standalone',
 			'product_name': 'standalone-community',
@@ -245,8 +258,11 @@
 				'kernel-standalone.gyp:kernel-standalone',
 				'engine-common.gyp:security-community',
 				'lcb-modules.gyp:engine_lcb_modules',
+				# encode_version generates revbuild.h into $(SHARED_INTERMEDIATE_DIR)/include.
+				# direct_dependent_settings do not propagate transitively.
+				'engine-common.gyp:encode_version',
 			],
-			
+
 			'sources':
 			[
 				'>@(builtin_lcb_modules)',
@@ -691,6 +707,12 @@
 				'encode_environment_stack',
 				'engine-common.gyp:security-community',
 				'lcb-modules.gyp:engine_lcb_modules',
+				# encode_version generates revbuild.h into $(SHARED_INTERMEDIATE_DIR)/include.
+				# Its direct_dependent_settings propagate that include dir to this target so
+				# both the C++ compiler and the RC compiler (for development.rc) can find
+				# revbuild.h.  Without this direct dependency the path is two hops away and
+				# GYP's direct_dependent_settings do not propagate that far.
+				'engine-common.gyp:encode_version',
 			],
 			
 			'sources':

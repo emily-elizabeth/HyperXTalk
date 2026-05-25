@@ -7,14 +7,14 @@ Syntax: the processID
 Syntax: processID()
 
 Summary:
-<return|Returns> the <process> ID of OpenXTalk (or a 
+<return|Returns> the <process> ID of HyperXTalk (or a 
 <standalone application>). 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: linux, ios, android
+OS: linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: process
 
@@ -32,7 +32,7 @@ Use the <processID> function to communicate with another application.
 
 On Unix systems, the <processID> uniquely identifies the <process>
 belonging to the running <application>. Other <process|processes> can
-use the <processID> to address OpenXTalk.
+use the <processID> to address HyperXTalk.
 
 The <processID> function does not <return> a meaningful value on 
 <Mac OS> or <Windows|Windows systems>.

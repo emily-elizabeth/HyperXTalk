@@ -58,6 +58,10 @@ on openStack
    layoutpalette
    registerForMessages
    
+   // HXT dark mode
+   set the backColor of me to (the systemWindowColor)
+   set the foreColor of me to (the systemTextColor)
+   
    --   set the visible of me to true
    unlock screen
 end openStack
@@ -117,9 +121,6 @@ on ideToolChanged
    set the itemdelimiter to "\n"
    if tTool is among the items of kPolygonMenu then
       put "paint polygon shape tool" into tTool
-      local tImgCmd
-      put hCreateSuitableImage (tTool) into tImgCmd
-      send "tDoImgCmd" to me in 1 ticks
    end if
    
    local tControlID
@@ -543,9 +544,6 @@ on mouseDown pButton
          put the cToolName of the target into tTool
          revToolsConfigurePaint
          revIDESetTool tTool
-         local tImgCmd
-         put hCreateSuitableImage (tTool) into tImgCmd
-         send "tDoImgCmd" to me in 1 ticks
          
          -- Set the tool cursor
          -- The tool does not actually work without doing this
@@ -620,23 +618,23 @@ on mouseDown pButton
    set the decorations of the templateStack to "noShadow"
    set the blendLevel of the templateStack to 25
    set the loc of the templatestack to -500,-500
-   
+
    create invisible stack
    reset the templatestack
    set the defaultStack to "revDragControl"
-   
+
    # Create a control and Generate a drag image
-   
+
    revIDECreateObject tObjectTypeID, the long ID of card 1 of this stack, "0,0"
    if the result is false then exit mouseDown
-   
+
    local tControlLongID
    put the result into tControlLongID
-   
+
    set the width of this stack to the width of tControlLongID
    set the height of this stack to the height of tControlLongID
    set the topleft of tControlLongID to 0,0
-   
+
    -- Newly created widget controls don't inherit the palette's foreground
    -- colour.  Apply the correct icon colour for the current appearance so
    -- the drag image is visible in both light and dark mode.
@@ -701,6 +699,19 @@ on mouseDown pButton
             __hiliteRemove
          end if
       end if
+      ## test if another stack at the screenmouseLoc is more relevant e.g. overlapping stacks
+      local tTestID
+      repeat with x = 1 to the number of elements in tValidDropStacks
+         put tValidDropStacks[x]["long id"] into tStackID
+         if tScreenmouseloc is within tValidDropStacks[x]["rect"] then
+            put tStackID into tTestID
+            if tTestID <> tTargetStack then
+               put empty into tTargetStack
+            end if
+            exit repeat
+         end if
+      end repeat
+      ## End test if another stack at the screenmouseLoc is more relevant
    end repeat
    
    # Change the cursor back
@@ -1294,7 +1305,13 @@ function toolIconColor pMode
    end if
 end toolIconColor
 
-on systemAppearanceChanged pMode, pWindowColor, pTextColor   
+on systemAppearanceChanged pMode, pWindowColor, pTextColor
+   local tBgColor
+   put revIDEColor("palette_background") into tBgColor
+   set the backgroundColor of this stack to pWindowColor
+   --   set the backgroundColor of this card to tBgColor
+   set the foregroundColor of this stack to pTextColor
+   
    -- LCB widgets sit outside the LiveCode Script message hierarchy and cannot
    -- receive SystemAppearanceChanged themselves.  Drive the appearance change
    -- by updating the foregroundColor of every SVG path widget in the palette;
@@ -1317,44 +1334,3 @@ on systemAppearanceChanged pMode, pWindowColor, pTextColor
       end repeat
    end if
 end systemAppearanceChanged
-
-
-function hCreateSuitableImage tTool
-   -- bug found (tperry, richmond62, & micmac 22-4-24)
-   --put "the tool is: " & tTool -- debug (tperry 22-4-24)
-   local tTheCurrentStackName, tCardID, tImgCount, tNewPaintName, tSuitableImageSetup
-   put the short name of the topStack into tTheCurrentStackName
-   put the last word of the currentcard of stack tTheCurrentStackName into tCardID
-   put the number of images of card id tCardID of stack tTheCurrentStackName into tImgCount
-   put "suitable-paintimage" into tNewPaintName
-   --
-   if there is an image (tNewPaintName) of card id tCardID of stack tTheCurrentStackName then
-      set the tNewImgCmd of stack "revTools" to ""
-      return true
-      exit hCreateSuitableImage
-   else
-      -- no suitable images on the card
-      put "create image " & QUOTE & (tNewPaintName) & QUOTE & " in card id " & tCardID & " of stack " & QUOTE & tTheCurrentStackName & QUOTE into tSuitableImageSetup
-      set the tNewImgCmd of stack "revTools" to tSuitableImageSetup
-      return false
-   end if
-end hCreateSuitableImage
-
-
-on tDoImgCmd -- handler to actually create the paint image we are missing (tperry 22-4-24)
-   local tImgCmd, tImgName, tImgID, tImgStack
-   if tImgCmd is true then exit tDoImgCmd
-   if the tNewImgCmd of stack "revTools" is "" then exit tDoImgCmd
-   put the tNewImgCmd of stack "revTools" into tImgCmd
-   do tImgCmd
-   replace QUOTE with return in tImgCmd
-   delete line 1 of tImgCmd
-   put word 4 of line 2 of tImgCmd into line 2 of tImgCmd
-   -- 
-   put line 1 of tImgCmd into tImgName
-   put line 2 of tImgCmd into tImgID
-   put line 3 of tImgCmd into tImgStack
-   --
-   set the rect of image tImgName of card id tImgID of stack tImgStack to 0,0,the width of stack tImgStack, the height of stack tImgStack
-   set the layer of image tImgName of card id tImgID of stack tImgStack to bottom -- just to make sure it doesn't obscure any buttons (tperry 23-4-24)
-end tDoImgCmd

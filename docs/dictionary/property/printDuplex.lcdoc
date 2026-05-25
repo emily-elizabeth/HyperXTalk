@@ -9,7 +9,7 @@ Syntax: get the printDuplex
 Summary:
 Reports whether the next print job should print double sided.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

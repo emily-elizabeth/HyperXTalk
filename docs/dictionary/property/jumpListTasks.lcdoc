@@ -1,0 +1,99 @@
+Name: jumpListTasks
+
+Type: property
+
+Syntax: set the jumpListTasks of <stack> to <taskList>
+
+Summary:
+Defines the tasks shown in the Windows taskbar Jump List for a stack's window.
+
+Associations: stack
+
+Introduced: 1.0.0
+
+OS: windows
+
+Platforms: desktop
+
+Example:
+-- Simple task list
+set the jumpListTasks of this stack to "New Card|newCard,Open Stack...|openStack"
+
+Example:
+-- With a separator between groups of tasks
+set the jumpListTasks of this stack to "New Card|newCard,New Stack|newStack,-,Open Recent|openRecent"
+
+Example:
+-- Clear the jump list
+set the jumpListTasks of this stack to empty
+
+Example:
+-- Read back the current value
+put the jumpListTasks of this stack into tCurrentTasks
+
+Parameters:
+stack:
+A reference to a stack, or an expression that evaluates to a stack.
+
+taskList:
+A comma-separated list of task definitions. Each item takes one of two
+forms:
+
+- **"Label|tag"**: a clickable task. *Label* is the text displayed in
+  the Jump List; *tag* is the value passed to the `relaunch` handler
+  when the task is clicked.
+- **"-"**: a separator line between groups of tasks.
+
+Setting <jumpListTasks> to empty or to the empty string removes the
+Jump List entirely.
+
+Value:
+The <jumpListTasks> of a stack returns the string most recently set.
+The default value is empty.
+
+Description:
+Use the <jumpListTasks> property to add quick-action items to the
+right-click menu of a stack's Windows taskbar button (the Jump List).
+This allows users to trigger common actions in your application without
+first bringing the window to the foreground.
+
+Each task item is written as `"Label|tag"`, mirroring the tag syntax
+used by button menus. The *Label* is shown to the user in the Jump
+List. The *tag* is the identifier your script receives when the item is
+chosen.
+
+When a task is clicked, Windows relaunches the application executable
+with the argument `--jumplist-task=<tag>` appended to its command line.
+Because the application is typically already running, the single-instance
+mechanism intercepts this new process and fires a `relaunch` message in
+the existing instance, passing the full argument string.
+
+Handle the `relaunch` message to respond to Jump List task clicks:
+
+    on relaunch pArgs
+        if pArgs contains "--jumplist-task=" then
+            set the itemDelimiter to "="
+            send (item 2 of pArgs) to this card
+        end if
+    end relaunch
+
+The task list applies to the entire process — whichever stack sets it
+last takes effect. To display a named section heading above the tasks
+rather than placing them in the standard "Tasks" section, set the
+<jumpListCategory> property before or after setting <jumpListTasks>.
+
+>*Note:* The <jumpListTasks> property only has a visual effect on
+> Windows. On macOS and Linux the property is accepted without error
+> but has no effect.
+
+>*Note:* The <jumpListTasks> property is not persistent — it is not
+> saved into the stack file. Set it in a `preOpenStack` or `startUp`
+> handler each time the application launches.
+
+>*Note:* Windows limits Jump Lists to approximately 10–20 visible
+> items depending on the user's taskbar settings. Items beyond the
+> limit are silently truncated.
+
+References: jumpListCategory (property), taskbarProgress (property)
+
+Tags: windowing

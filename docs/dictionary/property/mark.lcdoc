@@ -10,11 +10,11 @@ Specifies whether a <card> has been marked for later access by the
 
 Associations: card
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the mark of card 1 to false

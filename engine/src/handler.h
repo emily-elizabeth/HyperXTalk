@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #ifndef __MC_HANDLER__
 #define	__MC_HANDLER__
 
@@ -38,6 +22,9 @@ struct MCHandlerConstantInfo
 	MCNameRef name;
 	MCValueRef value;
 };
+
+class MCHXTASTWriter;
+class MCHXTASTReader;
 
 class MCHandler
 {
@@ -75,6 +62,14 @@ class MCHandler
 public:
 	MCHandler(uint1 htype, bool p_is_private = false);
 	~MCHandler();
+
+    // HXT: AST serialization.
+    // hxt_serialize() writes the full handler record (type, name, params,
+    // locals, globals, statement list) into w.
+    // hxt_deserialize() is a static factory that reads a handler record
+    // and returns a fully initialised MCHandler, or nullptr on error.
+    bool hxt_serialize(MCHXTASTWriter &w) const;
+    static MCHandler *hxt_deserialize(MCHXTASTReader &r);
 
 	MCNameRef getname(void)
 	{

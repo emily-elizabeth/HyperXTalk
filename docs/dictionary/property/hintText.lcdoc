@@ -1,0 +1,52 @@
+Name: hintText
+
+Type: property
+
+Syntax: set the hintText of field to <hintString>
+
+Summary:
+Specifies placeholder text displayed inside a field when it is empty.
+
+Associations: field
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+set the hintText of field "Search" to "Type to search..."
+
+Example:
+set the hintText of field "Email" to "name@example.com"
+
+Example:
+set the hintText of field "Username" to empty -- remove hint text
+
+Value:
+The <hintText> of a <field> is a <string>. By default, the <hintText>
+of a newly created <field> is empty.
+
+Description:
+Use the <hintText> property to display a short prompt or example value
+inside a field when the field contains no text. This is commonly used
+to label an input field without requiring a separate label object, or
+to show the expected format of an entry such as a date or email address.
+
+The hint text is drawn in a grey colour and disappears as soon as the
+field contains any content. It is for display only and is never included
+in the field's <text> property or any other text-retrieving expression.
+
+Setting the <hintText> property to empty removes the hint.
+
+>*Note:* The <hintText> property is distinct from the field's <label>
+> property. The <label> is shown outside the field as its visible name,
+> while <hintText> is shown inside the field and is only visible when the
+> field is empty.
+
+References: text (property), label (property), field (object),
+string (keyword)
+
+Tags: ui
+

@@ -8,7 +8,7 @@ Summary:
 Used as a URL type with such commands as <load> and <get> to designate
 the resource fork of a Mac OS file.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 
@@ -30,7 +30,7 @@ a <resource fork>. The resource fork contains defined resources such as
 icons, menu definitions, dialog boxes, fonts, and so forth.
 
 A <URL> container can be used anywhere another container type is used. The
-OpenXTalk-specific scheme "resfile" indicates the resource fork of a file
+HyperXTalk-specific scheme "resfile" indicates the resource fork of a file
 which is located on the user's system. The file is specified by either
 an absolute path starting with "/", or a relative path from the
 defaultFolder. 

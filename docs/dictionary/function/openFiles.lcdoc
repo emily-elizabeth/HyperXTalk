@@ -10,11 +10,11 @@ Summary:
 <return|Returns> a list of <files> that have been opened with the 
 <open file> <command>, but not yet closed with the <close file> <command>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 
@@ -38,7 +38,7 @@ it or writing to it.
 
 The list of file paths is in the same order that the files were opened.
 
-Open files that were not opened by OpenXTalk are not included in the list
+Open files that were not opened by HyperXTalk are not included in the list
 returned by the <openFiles> <function>.
 
 References: close file (command), open file (command),

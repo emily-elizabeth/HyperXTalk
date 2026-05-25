@@ -7,7 +7,7 @@ Syntax: start using font file <fontFile> [globally]
 Summary:
 Loads a font from a font file into memory.
 
-Introduced: 6.5
+Introduced: 1.0.0
 
 OS: mac, windows
 

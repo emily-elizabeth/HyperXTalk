@@ -46,6 +46,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include <string.h>  // memcpy, strlen, wcscpy_s
 
 #pragma comment(lib, "comctl32.lib")
+#pragma comment(lib, "WebView2LoaderStatic.lib")
 
 using Microsoft::WRL::Callback;
 using Microsoft::WRL::ComPtr;

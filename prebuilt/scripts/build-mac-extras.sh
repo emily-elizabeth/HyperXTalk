@@ -3,14 +3,10 @@
 # build-mac-extras.sh — populate the macOS prebuilt/ tree with the bits
 # that BUILD1.md + the existing prebuilt/scripts scripts don't cover.
 #
-# Run this AFTER:
-#   1. sh prebuilt/scripts/build-libffi-mac-arm64.sh
-#   2. the seven xcodebuild thirdparty libs (libskia libsqlite libxml libzip
-#      libcairo libxslt libiodbc)
-#   3. sh prebuilt/scripts/build-libz-mac-arm64.sh  (or a prebuilt libz.a)
-#   4. the copy step into prebuilt/lib/mac
-#   5. sh prebuilt/scripts/build-icu-mac-arm64.sh
-#      (builds icupkg AND the five libicu*.a static libs in one step)
+# Run this AFTER build-libffi-mac-arm64.sh and build-libz-mac-arm64.sh, and
+# BEFORE build-libcairo-mac-arm64.sh — cairo is configured to link the
+# libpng.a that this script produces.  See the prebuilt-mac step order in
+# Makefile.Mac.
 #
 # Then this script:
 #   - Builds libgif/libjpeg/libpng/libpcre via xcodebuild and installs them
@@ -59,8 +55,14 @@ if [ -z "${OPENSSL_PREFIX}" ] || [ ! -f "${OPENSSL_PREFIX}/lib/libcrypto.a" ]; t
     echo "ERROR: Homebrew openssl@3 not installed. Run: brew install openssl@3"
     exit 1
 fi
-cp "${OPENSSL_PREFIX}/lib/libcrypto.a" "${PREBUILT_LIB}/libcustomcrypto.a"
-cp "${OPENSSL_PREFIX}/lib/libssl.a"    "${PREBUILT_LIB}/libcustomssl.a"
+# Homebrew installs these archives read-only. A plain `cp` copies the
+# source's permission bits, so the destination also becomes read-only and
+# the *next* `make prebuilt-mac` run fails with "Permission denied" here
+# (set -e then aborts the whole script). `cp -f` replaces a read-only
+# destination; the chmod keeps the installed copies writable thereafter.
+cp -f "${OPENSSL_PREFIX}/lib/libcrypto.a" "${PREBUILT_LIB}/libcustomcrypto.a"
+cp -f "${OPENSSL_PREFIX}/lib/libssl.a"    "${PREBUILT_LIB}/libcustomssl.a"
+chmod u+w "${PREBUILT_LIB}/libcustomcrypto.a" "${PREBUILT_LIB}/libcustomssl.a"
 
 # ── 3. Stub libpq.a and libmysql.a ───────────────────────────────────────────
 # dbpostgresql.bundle and dbmysql.dylib link with -undefined dynamic_lookup

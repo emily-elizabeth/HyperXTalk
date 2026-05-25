@@ -568,9 +568,8 @@ command checkScriptEditor pScriptEditor, pObject, pLineNumber
    end if
 end checkScriptEditor
 
-
-on CommandKeyDown pWhich
-   if (pWhich = "w") then
+on CommandKeyDown pKey
+   if (pKey = "w") then
       close this stack
    else
       pass CommandKeyDown

@@ -1,53 +1,26 @@
-﻿script "revIDEExtensionManagerBehavior" with behavior "revPaletteBehavior"
+﻿script "revIDEExtensionManagerBehavior"
 on preOpenStack
    lock screen
    dispatch "setAsBehavior" to revIDEFrameBehavior() with the long id of this me
    
-   --   set the behavior of card "search" of me to the long id of stack "revIDEExtensionManagerStoreBehavior"
+   set the behavior of card "search" of me to the long id of stack "revIDEExtensionManagerStoreBehavior"
    set the behavior of card "list" of me to the long id of stack "revIDEExtensionManagerListBehavior"
    set the zoomBox of this stack to false
-   
-   set the backgroundColor of this stack to (the systemWindowColor)
-   set the foregroundColor of this stack to (the systemTextColor)
    
    clearFrameData
    
    # Navigation
    addFrameItem "widget","header", "navigation", "Widgets", "", "","showList", the long id of me,"widget"
    addFrameItem "library","header", "navigation", "Libraries", "", "","showList", the long id of me,"library"
-   --   addFrameItem "sample","header", "navigation", "Sample Stacks", "", "","showList", the long id of me,"sample"
-   --   addFrameItem "snippet","header", "navigation", "Snippets", "", "","showList", the long id of me,"snippet"
-   --   addFrameItem "store","header", "navigation", "Store", "", "","showExtensionStore", the long id of me,"store"
+   addFrameItem "sample","header", "navigation", "Sample Stacks", "", "","showList", the long id of me,"sample"
+   addFrameItem "snippet","header", "navigation", "Snippets", "", "","showList", the long id of me,"snippet"
+   addFrameItem "store","header", "navigation", "Store", "", "","showExtensionStore", the long id of me,"store"
    addFrameItem "install", "header", "action", "Install extension", "plus", "","installNew", the long id of me
    
    set the hilitedTabColor of me to "255,255,255"
    set the navigationDisplayStyle of me to "names"
    unlock screen
 end preOpenStack
-
-on SystemAppearanceChanged pMode, pWindowColor, pTextColor
-   set the backgroundColor of this stack to pWindowColor
-   set the foregroundColor of this stack to pTextColor
-   -- Update the extension list row colours. viewProp["row color"] alone is
-   -- not sufficient: the baked row template widgets paint their own Background
-   -- graphic directly, so we must set backgroundColor on the group and the
-   -- internal dvBackground graphic too (same pattern as the Project Browser).
-   if there is a card "list" of me then
-      local tRowColor
-      put revIDEColor("dataView_rowColor") into tRowColor
-      if there is a group "extensionList" of card "list" then
-         set the backgroundColor of group "extensionList" of card "list" to tRowColor
-         try
-            set the backgroundColor of graphic "dvBackground" of group "extensionList" of card "list" to tRowColor
-         end try
-         set the viewProp["row color"] of group "extensionList" of card "list" to tRowColor
-         set the viewProp["alternate row color"] of group "extensionList" of card "list" to revIDEColor("dataView_rowAlternateColor")
-         set the viewProp["hilite color"] of group "extensionList" of card "list" to ideColorGet("pb_line_selected")
-         send "renderView" to group "extensionList" of card "list"
-      end if
-   end if
-   pass SystemAppearanceChanged
-end SystemAppearanceChanged
 
 on showList pSection
    lock screen

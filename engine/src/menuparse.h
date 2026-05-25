@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #ifndef MENUITEM_H
 #define MENUITEM_H
 
@@ -32,8 +16,10 @@ struct MCMenuItem
 	uint1 modifiers;
 	uint4 mnemonic;
 	MCStringRef tag;
+	// SF Symbol name set via the !i:<name> flag (empty string = no icon).
+	MCStringRef icon;
 	uint1 menumode;
-	
+
 	MCMenuItem()
 	{
 		depth = 0;
@@ -48,14 +34,16 @@ struct MCMenuItem
 		tag = MCValueRetain(kMCEmptyString);
         // SN-2014-07-29: [[ Bug 12998 ]] has_tag member put back
         has_tag = false;
+		icon = MCValueRetain(kMCEmptyString);
 		menumode = 0;
 	}
-	
+
 	~MCMenuItem()
 	{
 		MCValueRelease(label);
 		MCValueRelease(accelerator_name);
 		MCValueRelease(tag);
+		MCValueRelease(icon);
 	}
 	
 	void assignFrom(MCMenuItem *p_from);

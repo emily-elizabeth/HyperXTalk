@@ -1,3 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\PREBUILT\FETCH-LIBRARIES.SH
-call call .\fetch-libraries.sh "..\..\prebuilt\android" "..\..\prebuilt\x86"
-if %errorlevel% neq 0 exit /b %errorlevel%

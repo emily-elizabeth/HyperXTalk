@@ -8,7 +8,7 @@ Summary:
 Sends input to a <process> that was opened with the <open process>
 <command>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

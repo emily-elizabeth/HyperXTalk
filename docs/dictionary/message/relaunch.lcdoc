@@ -6,12 +6,12 @@ Syntax: relaunch <pCommandLineArguments>
 
 Summary:
 After having launched an application, upon launching a successive
-instance the OpenXTalk engine will send a relaunch message to the first
+instance the HyperXTalk engine will send a relaunch message to the first
 stack of the application.
 
 Associations: stack
 
-Introduced: 2.7.3
+Introduced: 1.0.0
 
 OS: windows
 
@@ -52,7 +52,7 @@ each word has any leading and trailing quotes stripped and '\' is
 replaced by '/'.
 
 A basic example stack demonstrating the relaunch command can be found in
-the Resources/Examples folder within this OpenXTalk distribution folder.
+the Resources/Examples folder within this HyperXTalk distribution folder.
 
 >*Note:* The new instance will wait for an existing instance to respond
 > to the message before continuing.

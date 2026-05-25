@@ -970,41 +970,41 @@ bool MCUnicodeFirstIndexOf(const void *p_string, uindex_t p_string_length, bool 
     // Avoid potential problems
     if (p_string_length == 0 || p_needle_length == 0)
         return false;
-    
-    // Shortcut for native char - for which we are sure to have only one char to compare, and no composing characters
-	if (p_needle_length == 1)
-	{
-		codepoint_t t_needle;
-		bool t_ok_fast;
-		if (p_needle_native)
-		{
-			t_needle = codepoint_t(*reinterpret_cast<const char_t *>(p_needle));
-			t_ok_fast = t_needle < 0x80; /* Needle is one ASCII char */
-		}
-		else
-		{
-			t_needle = codepoint_t(*reinterpret_cast<const unichar_t *>(p_needle));
-			t_ok_fast = t_needle < 0xd800; /* Needle is in BMP */
-		}
 
-		if (t_ok_fast)
-		{
-			// if we got here, the string should not have been native.
-			MCAssert(!p_string_native);
-			return MCUnicodeFirstIndexOfChar((const unichar_t *)p_string, p_string_length, t_needle, p_option, r_index);
-		}
-	}
-    
+    // Shortcut for native char - for which we are sure to have only one char to compare, and no composing characters
+    if (p_needle_length == 1)
+    {
+        codepoint_t t_needle;
+        bool t_ok_fast;
+        if (p_needle_native)
+        {
+            t_needle = codepoint_t(*reinterpret_cast<const char_t *>(p_needle));
+            t_ok_fast = t_needle < 0x80; /* Needle is one ASCII char */
+        }
+        else
+        {
+            t_needle = codepoint_t(*reinterpret_cast<const unichar_t *>(p_needle));
+            t_ok_fast = t_needle < 0xd800; /* Needle is in BMP */
+        }
+
+        if (t_ok_fast)
+        {
+            // if we got here, the string should not have been native.
+            MCAssert(!p_string_native);
+            return MCUnicodeFirstIndexOfChar((const unichar_t *)p_string, p_string_length, t_needle, p_option, r_index);
+        }
+    }
+
     // Create filter chains for the strings being searched
-	MCAutoPointer<MCTextFilter> t_string_filter =
-			MCTextFilterCreate(p_string, p_string_length, p_string_native ? kMCStringEncodingNative : kMCStringEncodingUTF16, p_option);
-	
-	MCAutoPointer<MCTextFilter> t_needle_filter =
-			MCTextFilterCreate(p_needle, p_needle_length, p_needle_native ? kMCStringEncodingNative : kMCStringEncodingUTF16, p_option);
+    MCAutoPointer<MCTextFilter> t_string_filter =
+            MCTextFilterCreate(p_string, p_string_length, p_string_native ? kMCStringEncodingNative : kMCStringEncodingUTF16, p_option);
+
+    MCAutoPointer<MCTextFilter> t_needle_filter =
+            MCTextFilterCreate(p_needle, p_needle_length, p_needle_native ? kMCStringEncodingNative : kMCStringEncodingUTF16, p_option);
 
     // We only want the first codepoint of the needle (for now)
     codepoint_t t_needle_start = t_needle_filter->GetNextCodepoint();
-    
+
     // Search for the beginning of the needle
     while (t_string_filter->HasData())
     {
@@ -1025,7 +1025,7 @@ bool MCUnicodeFirstIndexOf(const void *p_string, uindex_t p_string_length, bool 
         
         t_string_filter->AdvanceCursor();
     }
-    
+
     // No match was found
     return false;
 }

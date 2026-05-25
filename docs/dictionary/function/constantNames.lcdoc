@@ -8,13 +8,13 @@ Syntax: constantNames()
 
 Summary:
 <return|Returns> a list of all built-in <constant|constants> in
-<OpenXTalk>. 
+<HyperXTalk>. 
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the constantNames
@@ -28,16 +28,16 @@ names, one per <line>.
 
 Description:
 Use the <constantNames> <function> to check whether a particular
-<constant(command)> already exists in <OpenXTalk>, to avoid using a
+<constant(command)> already exists in <HyperXTalk>, to avoid using a
 <reserved word> for your own <constant(glossary)|constants> and
 <variable|variables>. 
 
 The <constantNames> <function> <return|returns> all the
-<constant(glossary)|constants> that are predefined in <OpenXTalk>,
+<constant(glossary)|constants> that are predefined in <HyperXTalk>,
 including synonyms.
 
 References: constant (command), function (control structure),
 propertyNames (function), functionNames (function), constant (glossary),
-OpenXTalk (glossary), variable (glossary), return (glossary),
+HyperXTalk (glossary), variable (glossary), return (glossary),
 reserved word (glossary), line (keyword)
 

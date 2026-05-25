@@ -7,9 +7,9 @@ Syntax: clone [invisible] <object> [as <newName>]
 Summary:
 Duplicates an <object(glossary)>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
 Platforms: desktop, server
 

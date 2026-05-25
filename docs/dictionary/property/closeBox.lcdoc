@@ -9,7 +9,7 @@ Shows a window's <close box>.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -41,7 +41,7 @@ briefly.
 
 Changes:
 The closeBox property was fully implemented in version 2.1. In previous
-versions, it was included in OpenXTalk for compatibility with imported
+versions, it was included in HyperXTalk for compatibility with imported
 SuperCard projects, but setting it had no effect.
 
 References: property (glossary), stack window (glossary),

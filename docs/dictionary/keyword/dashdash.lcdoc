@@ -9,11 +9,11 @@ Syntax: --
 Summary:
 Indicates the start of a <comment>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 myVar -- myVar holds the index
@@ -23,7 +23,7 @@ Example:
 
 Description:
 Anything between -- and the end of the current script line is treated as
-a comment and is ignored by OpenXTalk when executing the handler.
+a comment and is ignored by HyperXTalk when executing the handler.
 
 Comments are useful for documenting and explaining your code, either for
 others who might need to read and modify it, or for yourself. (The code
@@ -37,7 +37,7 @@ containing the section name and any other useful information. This
 practice helps you keep long scripts organized. Similarly, a lengthy
 handler can be made more readable by explanatory comments.
 
-Comments can contain any text, including lines of OpenXTalk. If the code
+Comments can contain any text, including lines of HyperXTalk. If the code
 is within a comment, it's ignored. You can temporarily remove sections
 of code for debugging by putting those sections inside a comment.
 

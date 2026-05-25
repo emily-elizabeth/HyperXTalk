@@ -7,11 +7,11 @@ Syntax: uuid ([<uuidType>, [<namespace>, <uuidName>]])
 Summary:
 Genrates a universally unique identifier (UUID)
 
-Introduced: 6.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 get uuid()

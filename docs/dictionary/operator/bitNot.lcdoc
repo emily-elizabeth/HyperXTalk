@@ -8,11 +8,11 @@ Summary:
 Performs a "bitwise not" <operation> on the <binary> representation of a
 number as an unsigned, 32-bit integer
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 bitNot 1 -- evaluates to 4294967294
@@ -29,11 +29,11 @@ Description:
 Use the <bitNot> <operator> to operate directly on the <bit|bits> of a
 number. 
 
-To perform the <bitNot> <operation>, OpenXTalk first converts the
+To perform the <bitNot> <operation>, HyperXTalk first converts the
 <operand> to its <binary> equivalent, a string of ones and zeroes. 1 is
 equivalent to true, and 0 is equivalent to false.
 
-For each bit of the <number>, OpenXTalk performs a <not> <operation>. A
+For each bit of the <number>, HyperXTalk performs a <not> <operation>. A
 <bit> is 0 if the corresponding <bit> of the <number> is 1, and 1 if the
 corresponding <bit> of the <number> is 0.
 

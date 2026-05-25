@@ -8,7 +8,7 @@ Summary:
 Switches key actions between standard actions and those used in the
 <Emacs> text editor.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -26,7 +26,7 @@ Use the <emacsKeyBindings> <property> if you're familiar with <Emacs>
 and prefer to use its standard keystrokes for text editing.
 
 Emacs is a text editor which is popular among Unix users. It uses
-keystrokes and key combinations different from the standard OpenXTalk
+keystrokes and key combinations different from the standard HyperXTalk
 keys. For example:
 * Control-V moves the insertion point down a page
 * Control-Y pastes the contents of the clipboard

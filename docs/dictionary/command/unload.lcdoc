@@ -8,7 +8,7 @@ Summary:
 Removes a <file> that was placed in the local <cache> by the <load>
 <command>, or cancels a <download> or <upload> in progress.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux, html5
 

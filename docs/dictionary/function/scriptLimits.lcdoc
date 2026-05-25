@@ -10,13 +10,13 @@ Summary:
 Previously returned the limits on dynamic scripting in the current
 environment. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Deprecated: 6.7
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Returns:
 The scriptLimits function now always returns 0,0,0,0.

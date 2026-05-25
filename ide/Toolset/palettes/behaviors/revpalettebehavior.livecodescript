@@ -582,20 +582,18 @@ end openStack
 -- this handler ensures every palette switches between light and dark
 -- automatically – without each palette needing its own handler.
 on systemAppearanceChanged pMode, pWindowColor, pTextColor
-   --   -- HXT: update this palette's background whenever the OS appearance changes.
-   --   -- Use revIDEColor("palette_background") so the correct platform color is
-   --   -- used: on Win32 light mode that is "240,240,240"; on dark mode it is the
-   --   -- live systemWindowColor ("#1e1e1e").  We set both the stack AND the card
-   --   -- because binary stack files often store the card backgroundColor
-   --   -- explicitly, which overrides the stack background if not also updated.
-   --   local tBgColor
-   --   put revIDEColor("palette_background") into tBgColor
-   --   set the backgroundColor of this stack to tBgColor
-   --   set the backgroundColor of this card to tBgColor
-   --   set the foregroundColor of this stack to revIDEColor("text_1")
-   --   --   set the backgroundColor of this stack to pWindowColor
-   --   --   set the foregroundColor of this stack to pTextColor
-   --   --   pass systemAppearanceChanged
+   -- HXT: update this palette's background whenever the OS appearance changes.
+   -- Use revIDEColor("palette_background") so the correct platform color is
+   -- used: on Win32 light mode that is "240,240,240"; on dark mode it is the
+   -- live systemWindowColor ("#1e1e1e").  We set both the stack AND the card
+   -- because binary stack files often store the card backgroundColor
+   -- explicitly, which overrides the stack background if not also updated.
+   local tBgColor
+   put revIDEColor("palette_background") into tBgColor
+   set the backgroundColor of this stack to tBgColor
+   set the backgroundColor of this card to tBgColor
+   set the foregroundColor of this stack to revIDEColor("text_1")
+   pass systemAppearanceChanged
 end systemAppearanceChanged
 
 # MDW-2015-12-21 [[ unsubscribe_on_closestack]] plays well with others

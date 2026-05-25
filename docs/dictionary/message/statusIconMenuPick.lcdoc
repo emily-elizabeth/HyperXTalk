@@ -1,0 +1,79 @@
+Name: statusIconMenuPick
+
+Type: message
+
+Syntax: statusIconMenuPick <tag>
+
+Summary:
+Sent when the user selects an item from the system tray icon's context menu.
+
+Introduced: 1.0.0
+
+OS: windows
+
+Platforms: desktop
+
+Example:
+-- Flat menu handling
+on statusIconMenuPick pTag
+    switch pTag
+        case "show"
+            show this stack
+            break
+        case "hide"
+            hide this stack
+            break
+        case "quit"
+            quit
+            break
+    end switch
+end statusIconMenuPick
+
+Example:
+-- Submenu handling
+-- Menu was: "File\n\tNew|new\n\tOpen...|open\n-\nQuit|quit"
+on statusIconMenuPick pTag
+    -- Selecting "Open..." produces pTag = "File|open"
+    set the itemDelimiter to "|"
+    put the last item of pTag into tLeaf
+    switch tLeaf
+        case "new"
+            newFile
+            break
+        case "open"
+            openFile
+            break
+        case "quit"
+            quit
+            break
+    end switch
+end statusIconMenuPick
+
+Parameters:
+tag:
+The tag of the selected menu item, as defined in <statusIconMenu>.
+If the item has no explicit tag, its label text is used instead.
+
+For items inside submenus, the parameter contains the full path from
+the topmost parent to the selected item, with each level separated by
+`|`. For example, selecting "Open..." from a "File" submenu produces
+`"File|open"` (assuming the item was defined as `tab & "Open...|open"`).
+
+Description:
+The <statusIconMenuPick> message is sent to the current card of the
+default stack when the user chooses an item from the right-click context
+menu of the system tray icon.
+
+The <tag> parameter corresponds to the tag portion of the item definition
+in <statusIconMenu> (the text after `|`). If no tag was specified, the
+item's visible label is passed instead.
+
+For nested submenus, the path is constructed from the outermost parent
+down to the selected leaf item, with `|` as the separator. Only leaf
+items (those without submenus) can be selected; parent items that open
+a submenu on hover never generate a <statusIconMenuPick>.
+
+References: statusIconMenuOpening (message), statusIconClick (message),
+statusIconMenu (property), statusIcon (property)
+
+Tags: windowing

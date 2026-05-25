@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -921,6 +905,50 @@ void MCField::adjustpixmapoffset(MCContext *dc, uint2 index, int4 dy)
 	dc -> setfillstyle(t_current_style, t_current_pixmap, t_offset_x, t_offset_y);
 }
 
+void MCField::drawSpellingErrors(MCDC *dc, const MCRectangle &dirty)
+{
+    // Set up red colour for squiggly underlines.
+    MCColor t_red;
+    t_red.red   = 0xFFFF;
+    t_red.green = 0x0000;
+    t_red.blue  = 0x0000;
+    dc->setforeground(t_red);
+    dc->setlineatts(1, LineSolid, CapButt, JoinBevel);
+
+    for (uindex_t i = 0; i < m_spell_error_count; i++)
+    {
+        // firstRectForCharacterRange modifies its arguments (clips to first line),
+        // so pass copies.
+        int32_t t_si = (int32_t)m_spell_errors[i].start;
+        int32_t t_ei = (int32_t)m_spell_errors[i].end;
+        MCRectangle t_rect = firstRectForCharacterRange(t_si, t_ei);
+
+        // Skip rects that don't intersect the dirty region.
+        MCRectangle t_isect = MCU_intersect_rect(t_rect, dirty);
+        if (t_isect.width == 0 || t_isect.height == 0)
+            continue;
+
+        // Draw a zigzag underline 1px below the text baseline.
+        // Teeth are 2px wide and 2px tall.
+        int32_t t_y    = t_rect.y + t_rect.height;
+        int32_t t_x    = t_rect.x;
+        int32_t t_endx = t_rect.x + t_rect.width;
+        bool t_up = false;
+        while (t_x + 2 <= t_endx)
+        {
+            if (t_up)
+                dc->drawline(t_x, t_y - 2, t_x + 2, t_y);
+            else
+                dc->drawline(t_x, t_y, t_x + 2, t_y - 2);
+            t_x  += 2;
+            t_up  = !t_up;
+        }
+    }
+
+    // Restore default line attributes.
+    dc->setlineatts(0, LineSolid, CapButt, JoinBevel);
+}
+
 void MCField::drawrect(MCDC *dc, const MCRectangle &dirty)
 {
 	MCRectangle frect = getfrect();
@@ -1315,6 +1343,9 @@ void MCField::drawrect(MCDC *dc, const MCRectangle &dirty)
                     break;
 			}
 		}
+
+		if (m_spell_check && m_spell_error_count > 0)
+			drawSpellingErrors(dc, dirty);
 
 		if (cursoron && cursorfield == this)
 			drawcursor(dc, dirty);

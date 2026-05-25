@@ -9,11 +9,11 @@ Syntax: create card [<cardName>] [in stack <stack>]
 Summary:
 Makes a new <card> with the same <background> (s) as the <current card>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 create card

@@ -13,11 +13,11 @@ Syntax: print break
 Summary:
 Prints one or more <card|cards>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Security: printing
 
@@ -119,7 +119,7 @@ The print break form forces a page break.
 > at the top left corner. To print the entire <card(keyword)>, use the
 > <print>...into pageRect form to scale the card to the page.
 
-OpenXTalk visits each card as it's printed, returning to the original
+HyperXTalk visits each card as it's printed, returning to the original
 card when the printing is done, but it doesn't send any system messages
 such as <openCard> while moving from <card(keyword)> to <card(keyword)>
 during printing. If you don't want the user to see these card changes,

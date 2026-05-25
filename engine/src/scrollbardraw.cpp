@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -990,6 +974,11 @@ uint2 MCScrollbar::getwidgetthemetype()
 		return WTHEME_TYPE_SLIDER;
 	// HXT: SMALLSCROLLBAR (spin-arrows) is used for three cases:
 	//   1. Horizontal bar whose thickness is below the platform minimum — too thin for track+thumb.
+	//      NOT applied on IsMacLFAM(): the native Mac theme's THEME_DRAW_TYPE_SCROLLBAR path
+	//      already applies a CGContext scale in the thickness axis, so it renders correctly at
+	//      any height.  Classifying a thin horizontal field scrollbar as WTHEME_TYPE_SMALLSCROLLBAR
+	//      on Mac native routes it to THEME_DRAW_TYPE_SPIN (stepper), which draws two tiny
+	//      buttons and leaves the rest of the bar blank — i.e. the scrollbar appears to vanish.
 	//   2. Zero-width vertical bar — guard against division-by-zero elsewhere.
 	//   3. A genuine stepper control: vertical, compact (height < 2×smallscrollbarsize) AND
 	//      not very elongated (ratio < 3).  NSStepper regular height is ~27 pt; on Mac
@@ -997,7 +986,7 @@ uint2 MCScrollbar::getwidgetthemetype()
 	//      ceiling the ratio check incorrectly classifies wide (>16 px) scrollbars in short
 	//      fields as steppers — adding the ceiling limits the stepper path to controls that
 	//      are genuinely tiny, which field scrollbars never are in practice.
-	else if ((rect.width > rect.height && rect.height < smallscrollbarsize) ||
+	else if ((!IsMacLFAM() && rect.width > rect.height && rect.height < smallscrollbarsize) ||
 	         (rect.height > rect.width && rect.width == 0) ||
 	         (rect.height > rect.width && rect.height < 2 * smallscrollbarsize &&
 	          rect.height / rect.width < 3))

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  Private Header File:
@@ -32,6 +16,10 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #define	DISPATCH_H
 
 #include "object.h"
+
+// Forward declarations for HXT ASTN helper.
+namespace hxtlib { struct Document; }
+class MCHandlerlist;
 
 typedef bool (*MCStackForEachCallback)(MCStack *p_stack, void *p_context);
 
@@ -267,6 +255,21 @@ public:
     
     virtual bool recomputefonts(MCFontRef parent_font, bool force);
     
+    // HXT: Try to read a .hxtlib compiled library from the file at p_openpath.
+    // The stream is not used (hxtlib has its own I/O); p_openpath is the
+    // resolved file path.  On IO_NORMAL the file was not a .hxtlib file and
+    // r_stack is left unchanged.  On IO_ERROR an error message is in r_result.
+    IO_stat trytoreadhxtlibstack(MCStringRef p_openpath,
+                                 MCObject* p_parent,
+                                 MCStack* &r_stack,
+                                 const char* &r_result);
+
+    // HXT: Serialize p_hlist into doc.astn_bytes using MCHXTASTWriter.
+    // Returns false if serialization fails; caller should leave astn_bytes
+    // empty and rely on the SRCS fallback in the loader.
+    static bool hxtlib_serialize_hlist(const MCHandlerlist *p_hlist,
+                                       hxtlib::Document    &doc);
+
     // Try to read a binary stack from the stream. If the return value is
     // IO_ERROR, a reason is returned in r_result. If the return value is
     // IO_NORMAL, there was no error but the stream did not contain a binary

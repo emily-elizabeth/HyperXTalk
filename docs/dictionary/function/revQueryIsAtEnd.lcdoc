@@ -9,11 +9,11 @@ Syntax: revQueryIsAtEnd(<recordSetID>)
 Summary:
 Returns whether the end of a record set has been reached or not.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 

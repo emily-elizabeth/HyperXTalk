@@ -9,7 +9,7 @@ Sets the <timeout> value for <FTP> transfers.
 
 Associations: internet library
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -32,25 +32,25 @@ Description:
 Use the <libURLSetFTPStopTime> <command> to increase the efficiency of
 multiple FTP transfers.
 
-When OpenXTalk opens a socket to a host in order to upload or download a
+When HyperXTalk opens a socket to a host in order to upload or download a
 file via <ftp>, or to delete a file, it leaves the connection open for a
 time after the transaction completes. If another <file> is requested
-from the same FTP <server> during that time, OpenXTalk uses the same
+from the same FTP <server> during that time, HyperXTalk uses the same
 <socket> instead of opening another one. This saves time if you are
 transferring multiple files with the same <server>, since the <socket>
 does not need to be set up again for each file.
 
 By default, the timeout value is 15 seconds.
 
->*Note:* If the <server> closes the connection, OpenXTalk does not
+>*Note:* If the <server> closes the connection, HyperXTalk does not
 > attempt to keep it open. The <timeout> set by <libURLSetFTPStopTime>
-> controls when OpenXTalk closes the connection from its end, but if the
+> controls when HyperXTalk closes the connection from its end, but if the
 > <server> closes the connection, a longer <timeout> has no effect.
 
 >*Important:* The <libURLSetFTPStopTime> <command> is part of the 
 > <Internet library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
@@ -61,7 +61,7 @@ timeout (glossary), application (glossary), main stack (glossary),
 handler (glossary), group (glossary), socket (glossary),
 standalone application (glossary),
 Standalone Application Settings (glossary), message (glossary),
-server (glossary), command (glossary), OpenXTalk custom library (glossary),
+server (glossary), command (glossary), HyperXTalk custom library (glossary),
 ftp (keyword), file (keyword), Internet library (library),
 library (library), startup (message), openBackground (message),
 preOpenStack (message), openStack (message), preOpenCard (message)

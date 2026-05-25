@@ -7,11 +7,11 @@ Syntax: textEncode(<stringToEncode>, <encoding>)
 Summary:
 Converts from text to binary data.
 
-Introduced: 7.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 textEncode("A","UTF16")
@@ -51,9 +51,9 @@ The <textEncode> function takes text, and returns it as binary data,
 encoded with the specified encoding.
 
 It is highly recommended that any time you interface with things outside
-OpenXTalk (files, network sockets, processes, etc) that you explicitly
-<textEncode> any text you send outside OpenXTalk and <textDecode> all
-text received into OpenXTalk. If this doesnt happen, a platform-dependent
+HyperXTalk (files, network sockets, processes, etc) that you explicitly
+<textEncode> any text you send outside HyperXTalk and <textDecode> all
+text received into HyperXTalk. If this doesnt happen, a platform-dependent
 encoding will be used (which normally does not support Unicode text).
 
 It is not, in general, possible to reliably auto-detect text encodings

@@ -13,11 +13,11 @@ from another <object(glossary)>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image, widget
 
-Introduced: 3.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local tNewGroup
@@ -43,7 +43,7 @@ use.  The format stored in the object it's assigned to is similar to a
 includes the full path to the <stack file>, the form stored in the
 <behavior> includes only the stack <name>, allowing the reference to
 continue to work after the <stack file> has been moved to another
-computer. If you set the <behavior> to a long ID, OpenXTalk converts it
+computer. If you set the <behavior> to a long ID, HyperXTalk converts it
 to a rugged form without the stack <file path>.
 
 By default, the <behavior> of newly created objects is <empty>.
@@ -60,7 +60,7 @@ anywhere. In particular this allows for it be located in a <password>
 protected stack, allowing you to protect the <script> without need to
 protect the controls using it.
 
-Behaviors are resolved by OpenXTalk immediately after loading a stack
+Behaviors are resolved by HyperXTalk immediately after loading a stack
 file. The engine acts as though it is resolving a <control> reference
 of the form:
 
@@ -74,7 +74,7 @@ The <behavior> property does not track changes to the <name> of the
 stack and/or <substack> - if the name of a stack containing <behavior>
 objects is changed, then all references to these <behavior|behaviors>
 will be broken. This apparent strictness is necessary to ensure that
-behaviors act consistently while OpenXTalk is running.
+behaviors act consistently while HyperXTalk is running.
 
 For example, let's say you have the following setup:
 

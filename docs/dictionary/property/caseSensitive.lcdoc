@@ -8,11 +8,11 @@ Summary:
 Specifies whether comparisons treat uppercase and lowercase letters as
 different. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the caseSensitive to true
@@ -32,7 +32,7 @@ all <string> comparisons, including the comparison <operator|operators>
 <find>, and <replace>; and the <function|functions> <offset>, 
 <itemOffset>, <wordOffset>, <lineOffset>, and <replaceText>.
 
-If the <caseSensitive> <property> is set to true, all the <OpenXTalk>
+If the <caseSensitive> <property> is set to true, all the <HyperXTalk>
 terms listed above, as well as all other <string> comparisons, treat
 uppercase and lowercase letters as different. For example, a search for
 "Apple" does not find the <string> "apple" or "APPLE", and the
@@ -59,7 +59,7 @@ one <handler> does not affect its <value> in other <handler|handlers> it
 <call|calls>. 
 
 >*Important:* <message|Messages>, <object(glossary)> names, and
-> <OpenXTalk> terms are never treated as <case-sensitive>, even if the
+> <HyperXTalk> terms are never treated as <case-sensitive>, even if the
 > <caseSensitive> is set to true.
 
 References: replace (command), find (command), filter (command),
@@ -70,7 +70,7 @@ element (glossary), call (glossary), property (glossary),
 evaluate (glossary), behavior (glossary), operator (glossary),
 case-sensitive (glossary), array (glossary), execute (glossary),
 expression (glossary), command (glossary), function (glossary),
-OpenXTalk (glossary), custom property (glossary), key (glossary),
+HyperXTalk (glossary), custom property (glossary), key (glossary),
 message (glossary), handler (glossary), 
 string (keyword), = (operator), contains (operator), &gt; (operator),
 &gt;= (operator), is among (operator), is not among (operator), 

@@ -7,7 +7,7 @@ Syntax: show menubar
 Summary:
 Displays the <menu bar> on <Mac OS|Mac OS systems>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 
@@ -27,9 +27,9 @@ show it only if the user moves the mouse to the top of the screen.
 The menu bar can be hidden only on Mac OS systems. This command has no
 effect on Windows or Unix systems.
 
-Hiding the menu bar in OpenXTalk does not affect its appearance in other
+Hiding the menu bar in HyperXTalk does not affect its appearance in other
 applications; if the user switches to another application, the menu bar
-becomes visible. If the user switches back to OpenXTalk, the menu bar is
+becomes visible. If the user switches back to HyperXTalk, the menu bar is
 hidden again.
 
 References: show groups (command), show taskbar (command),

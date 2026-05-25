@@ -7,11 +7,11 @@ Syntax: set the accentColor to {<colorName> | <RGBColor>}
 Summary:
 Specifies the <highlight> color used for the active <menu item>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, ios, android
+OS: mac, windows
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the accentColor to "blue"
@@ -42,7 +42,7 @@ This property is used only when the lookAndFeel <property> is set to
 "Appearance Manager" or "Motif", the <accentColor> has no effect.
 
 The <accentColor> <property> is copied from the system settings every
-time OpenXTalk starts up, but can be changed by a <handler>.
+time HyperXTalk starts up, but can be changed by a <handler>.
 
 References: hilite (command), property (glossary), highlight (glossary),
 menu item (glossary), handler (glossary), color reference (glossary),

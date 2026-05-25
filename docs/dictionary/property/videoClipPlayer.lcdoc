@@ -9,7 +9,7 @@ Syntax: set the videoClipPlayer to <playerPath>
 Summary:
 Specifies the name of the program used to play movies and sounds.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

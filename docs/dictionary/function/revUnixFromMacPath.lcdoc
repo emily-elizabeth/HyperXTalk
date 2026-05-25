@@ -8,7 +8,7 @@ Summary:
 Converts a <Mac OS>-style <file path|pathname> to a <Unix>-style 
 <file path|pathname>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -41,7 +41,7 @@ a <Mac OS>-style path; otherwise, it assumes the <macPathname> is a
 
 Description:
 Use the <revUnixFromMacPath> <function> to convert a <Mac OS>-style file
-path to the OpenXTalk <file path> format (for example, to convert a 
+path to the HyperXTalk <file path> format (for example, to convert a 
 <file path|pathname> returned by an XFCN).
 
 The <revUnixFromMacPath> <function> converts colons (:) to slashes (/),
@@ -57,7 +57,7 @@ folder that the file is in. If a file or folder is on a disk other than
 the startup disk, its absolute path starts with "Volumes", followed by
 the disk name.
 
-The OS X path convention is used by OpenXTalk, but the old Mac OS-style
+The OS X path convention is used by HyperXTalk, but the old Mac OS-style
 path convention is used by certain applications (such as AppleScript),
 even on OS X systems. If the <convertOSX> is true (or if you don't
 specify the <convertOSX> and the application is running under <OS X>),
@@ -66,11 +66,11 @@ the <revUnixFromMacPath> <function> assumes that
 <convertOSX> is false, the <revUnixFromMacPath> <function> assumes that
 absolute paths use the <Mac OS> convention.
 
-OpenXTalk always uses the Unix pathname standard for cross-platform
+HyperXTalk always uses the Unix pathname standard for cross-platform
 compatibility. You need to convert the pathname only if you are passing
-it to another program or external. If you are using only OpenXTalk
+it to another program or external. If you are using only HyperXTalk
 commands and functions, you do not need to convert the pathname, since
-OpenXTalk does it for you.
+HyperXTalk does it for you.
 
 >*Note:* When included in a <standalone application>, the 
 > <Common library> is implemented as a hidden <group> and made available 

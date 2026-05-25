@@ -52,6 +52,15 @@ echo compile-printer.bat [%CONFIG%] started: %DATE% %TIME% > "%LOGFILE%"
 echo [Config: %CONFIG%]
 echo.
 
+:: Ensure the OBJ output directory exists (MSBuild creates it during a
+:: normal kernel build, but compile-printer.bat may run on a clean tree
+:: where kernel.vcxproj has not yet written any intermediate files).
+if not exist "%OBJDIR%" (
+    mkdir "%OBJDIR%"
+    if errorlevel 1 ( echo ERROR: Cannot create OBJ dir: %OBJDIR% & exit /b 1 )
+    echo Created OBJ dir: %OBJDIR%
+)
+
 :: ============================================================
 :: Validate inputs
 :: ============================================================
@@ -103,6 +112,32 @@ call "%VCVARS%" >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo ERROR: vcvars64.bat failed. & exit /b 1 )
 
 :: ============================================================
+:: Detect versioned prebuilt directories
+::
+:: ICU: the repo ships v145 and v142; the CI workflow aliases v145 → v143
+:: so MSBuild (v143 toolset) can resolve them.  Search v143 first, then
+:: v145, then v142 as a last resort.
+::
+:: OpenSSL: only v142 is shipped; use it directly.
+:: ============================================================
+set "ICU_INCLUDE="
+for %%T in (v143 v145 v142) do (
+    if not defined ICU_INCLUDE (
+        if exist "%~dp0prebuilt\unpacked\icu\x86_64-win32-%%T_static_!CONFIG!\include" (
+            set "ICU_INCLUDE=%~dp0prebuilt\unpacked\icu\x86_64-win32-%%T_static_!CONFIG!\include"
+        )
+    )
+)
+if not defined ICU_INCLUDE (
+    echo WARNING: ICU include directory not found - compilation may fail
+    set "ICU_INCLUDE=%~dp0prebuilt\unpacked\icu\x86_64-win32-v142_static_!CONFIG!\include"
+)
+echo ICU include: !ICU_INCLUDE!
+
+set "OPENSSL_INCLUDE=%~dp0prebuilt\unpacked\openssl3\x86_64-win32-v142_static_!CONFIG!\include"
+echo OpenSSL include: !OPENSSL_INCLUDE!
+
+:: ============================================================
 :: Step 3: Write cl.exe response file (shared flags for both files)
 :: ============================================================
 echo Step 3: Preparing compiler options ...
@@ -146,13 +181,13 @@ echo /I"%IBASE%\x64\obj\global_intermediate\src" >> "%RSP%"
 echo /I"%IBASE%\x64\obj\global_intermediate\include" >> "%RSP%"
 echo /I"%~dp0engine\include" >> "%RSP%"
 echo /I"%~dp0engine\src" >> "%RSP%"
-echo /I"%~dp0build-win-x86_64\livecode\prebuilt\unpacked\icu\x86_64-win32-v142_static_Debug\include" >> "%RSP%"
+echo /I"!ICU_INCLUDE!" >> "%RSP%"
 echo /I"%~dp0prebuilt\include" >> "%RSP%"
 echo /I"%~dp0libfoundation\include" >> "%RSP%"
 echo /I"%~dp0libgraphics\include" >> "%RSP%"
 echo /I"%~dp0libscript\include" >> "%RSP%"
 echo /I"%~dp0libbrowser\include" >> "%RSP%"
-echo /I"%~dp0build-win-x86_64\livecode\prebuilt\unpacked\openssl3\x86_64-win32-v142_static_Debug\include" >> "%RSP%"
+echo /I"!OPENSSL_INCLUDE!" >> "%RSP%"
 echo /I"%~dp0prebuilt\include\openssl" >> "%RSP%"
 echo /I"%~dp0thirdparty\libpcre\include" >> "%RSP%"
 echo /I"%~dp0thirdparty\libjpeg\include" >> "%RSP%"

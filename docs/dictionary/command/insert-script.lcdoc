@@ -7,11 +7,11 @@ Syntax: insert [the] script of <object> into {front | back}
 Summary:
 Places an <object|object's> <script> into the <message path>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 insert the script of button "Message Library" into back

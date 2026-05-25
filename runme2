@@ -1,0 +1,8 @@
+#!/bin/bash
+# Missing build deps for HyperXTalk on Ubuntu 24.04
+# Run: sudo sh runme2
+
+apt-get install -y \
+  gawk \
+  libmysqlclient-dev \
+  libpq-dev

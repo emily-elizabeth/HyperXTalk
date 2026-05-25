@@ -1,0 +1,49 @@
+Name: itemTooltip
+
+Type: property
+
+Syntax: get the itemTooltip[<name>] of <toolbar>
+Syntax: set the itemTooltip[<name>] of <toolbar> to <tipString>
+
+Summary:
+The tooltip text shown when the user hovers over a toolbar item.
+
+Associations: toolbar
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+set the itemTooltip["saveButton"] of toolbar 1 to "Save the current file"
+
+Example:
+set the itemTooltip["newDoc"] of toolbar "mainBar" to "Create a new document"
+
+Example:
+put the itemTooltip["saveButton"] of toolbar 1 into tTip
+
+Value:
+The <itemTooltip> of a toolbar item is a string. The default value is the
+empty string, meaning no tooltip is shown.
+
+Description:
+Use the <itemTooltip> property to provide a brief description of a
+toolbar item's action. The tooltip appears in a small floating window when
+the user rests the pointer over the item.
+
+On macOS, the tooltip is applied to NSToolbarItem's toolTip property and
+updated live when the item is currently displayed in the toolbar.
+
+On Windows, tooltip text is delivered through the toolbar's built-in
+tooltip window (TBSTYLE_TOOLTIPS).
+
+On Linux, the tooltip is set via gtk_tool_item_set_tooltip_text.
+
+Setting <itemTooltip> to empty removes the tooltip.
+
+References: toolbar (object), itemLabel (property), itemNames (property)
+
+Tags: ui

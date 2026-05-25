@@ -7,11 +7,11 @@ Syntax: set the cantSelect of <object> to {true | false}
 Summary:
 Specifies whether a <control> can be <selected> with the Pointer <tool>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the cantSelect of field "Background" to true
@@ -31,7 +31,7 @@ have <cantSelect> set to true (i.e. They will also not be selectable.)
 You can use 'the <effective> <cantSelect> ' to determine if the object,
 or any of its ancestors have <cantSelect> set.
 
-When the user clicks the control with the <Pointer tool>, OpenXTalk acts
+When the user clicks the control with the <Pointer tool>, HyperXTalk acts
 as though it has been clicked with the <Browse tool>. If the
 <cantSelect> is false, the user can click the <control> with the
 <Pointer tool> to <select> it.

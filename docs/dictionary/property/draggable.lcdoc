@@ -9,7 +9,7 @@ Shows a <stack|stack's> <title bar>.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -22,7 +22,7 @@ with imported <SuperCard> projects.
 In SuperCard, the <draggable> <property> determines whether a window can
 be dragged by its <title bar>.
 
-In OpenXTalk, setting this property sets the stack's <decorations>
+In HyperXTalk, setting this property sets the stack's <decorations>
 <property> to "title". Setting the <stack|stack's> <draggable> back to
 false does not change the <stack|stack's> decorations.
 
@@ -30,7 +30,7 @@ Setting the <draggable> <property> causes the <stack window> to flash
 briefly. 
 
 References: property (glossary), title bar (glossary),
-SuperCard (glossary), OpenXTalk (glossary), stack window (glossary),
+SuperCard (glossary), HyperXTalk (glossary), stack window (glossary),
 title (keyword), stack (object), decorations (property),
 systemWindow (property), zoomBox (property)
 

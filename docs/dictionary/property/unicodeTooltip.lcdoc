@@ -10,16 +10,16 @@ box when the user points to an object.
 
 Associations: field, button, graphic, scrollbar, player, image
 
-Introduced: 5.5
+Introduced: 1.0.0
 
 Deprecated:
 In version 7.0 the language was changed to handle unicode
 transparently. This means that language functionality which previously
 aided unicode text manipulation is no longer required.
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the unicodeTooltip of button 1 to tUnicodeString

@@ -9,7 +9,7 @@ Disables the ability to use <QuickTime>.
 
 Associations: player
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 
@@ -52,7 +52,7 @@ if <dontUseQT> is false:
 * Using the <QTVersion> function
 
 
->*Tip:*  It may take OpenXTalk a second or two to load the code needed to
+>*Tip:*  It may take HyperXTalk a second or two to load the code needed to
 > use QuickTime, depending on the machine speed. Since this code is only
 > loaded into memory once per session, you can speed up the first
 > occurrence of an action listed above by calling the QTVersion func
@@ -70,7 +70,7 @@ longer supports any <QuickTime> features and setting the <dontUseQT> and
 not include 64 bit support and therefore can not be supported on OS X 64
 bit builds.
 
-In OpenXTalk 6.7.0 the default for <dontUseQT> was changed from false to
+In HyperXTalk 6.7.0 the default for <dontUseQT> was changed from false to
 true on OS X 10.8 and up because of the implementation of the 
 AVFoundation player on Windows.
 

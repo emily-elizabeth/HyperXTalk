@@ -9,7 +9,7 @@ Syntax: videoClip
 Summary:
 An <object type> that contains movie data.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Deprecated: 8.1
 

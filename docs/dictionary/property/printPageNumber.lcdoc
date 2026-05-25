@@ -7,11 +7,11 @@ Syntax: get the printPageNumber
 Summary:
 Reports the index of the page currently being printed.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: printing
 

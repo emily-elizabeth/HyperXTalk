@@ -10,7 +10,7 @@ be run due to an <execution error>.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -24,7 +24,7 @@ end errorDialog
 
 Parameters:
 pExecutionError: Describes the error that occurred in the form of a 
-standard OpenXTalk error backtrace: error-code,line-number,column-number[,
+standard HyperXTalk error backtrace: error-code,line-number,column-number[,
 hint] 
 
 pParseError: Deprecated

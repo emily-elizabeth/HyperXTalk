@@ -8,11 +8,11 @@ Summary:
 Takes data from a <file> that has been opened with the <open file>
 <command>, and places the data in the <it> <variable>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 
@@ -47,7 +47,7 @@ the beginning of the file; a negative number begins start characters
 before the end of the file.
 
 string (string):
-When OpenXTalk encounters the string in the file, it stops reading. If
+When HyperXTalk encounters the string in the file, it stops reading. If
 the string is not encountered, the read from file command continues
 reading until it reaches the end of the file.
 
@@ -99,7 +99,7 @@ where you want to begin reading. A positive number begins <start>
 begins <start> <characters> before the end of the <file>.
 
 The <string> is any <expression> that <evaluate|evaluates> to a
-<string>. When OpenXTalk encounters the <string> in the <file>, it stops
+<string>. When HyperXTalk encounters the <string> in the <file>, it stops
 reading. If the <string> is not encountered, the <read from file>
 <command> continues reading until it reaches the end of the <file>.
 
@@ -118,7 +118,7 @@ uInt1, int2, uint2, int4, or uint4. The <read from file> <command> reads
 The <time> is the time to wait for the read to be completed, in
 <milliseconds>, seconds, or <ticks>.
 
-If you don't specify a <start>, OpenXTalk begins at the position
+If you don't specify a <start>, HyperXTalk begins at the position
 determined by the <seek> <command>, or wherever the last 
 <read from file> or <write to file> <command> to that <file> left off, 
 or at the first <character>, if the <file> has not been accessed since 

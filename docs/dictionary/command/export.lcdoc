@@ -10,11 +10,11 @@ Summary:
 <export|Exports> the <selected> <image> as a <PBM>, <JPEG>, <GIF>, <BMP>
 or <PNG> <file>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Security: disk
 

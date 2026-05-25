@@ -9,11 +9,11 @@ Syntax: processor()
 Summary:
 <return|Returns> a <string> describing the system's architecture.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the processor

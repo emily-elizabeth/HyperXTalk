@@ -10,9 +10,9 @@ is on or off.
 
 Associations: group
 
-Introduced: 4.6
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
 Platforms: desktop, server
 

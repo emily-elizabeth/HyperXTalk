@@ -10,11 +10,11 @@ Sent when the <mouse pointer> moves out of an <object(glossary)>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on mouseLeave -- hide another object
@@ -41,7 +41,7 @@ released.
 
 If a <control> is hidden (by changing its visible <property> to false or
 using the <hide> <command>), and the <mouse pointer> is over the
-<control> when it is hidden, OpenXTalk sends a <mouseLeave> <message> to
+<control> when it is hidden, HyperXTalk sends a <mouseLeave> <message> to
 the <control>.
 
 >*Note:* Take care when using both <mouseEnter> and <mouseLeave> in the

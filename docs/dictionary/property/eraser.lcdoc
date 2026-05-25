@@ -7,11 +7,11 @@ Syntax: set the eraser to {<brushID> | <imageID>}
 Summary:
 Specifies the shape used for the Eraser <paint tool>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the eraser to 12
@@ -21,7 +21,7 @@ The <eraser> is a brush specifier.
 A <brushID> is a built-in brush number between 1 and 36. (These brushes
 correspond to xTalk's built-in patterns 101 to 136.)
 
-An <imageID> is the ID of an <image> to use for erasing. OpenXTalk looks
+An <imageID> is the ID of an <image> to use for erasing. HyperXTalk looks
 for the specified <image> first in the <current stack>, then in other
 open <stacks>.
 

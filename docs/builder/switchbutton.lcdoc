@@ -1,0 +1,126 @@
+Library: com.livecode.widget.switchbutton
+
+Type: widget
+
+Summary: This widget is a switch button, consisting of two mutually exclusive choices or states.
+
+author: LiveCode
+
+version: 2.0.0
+
+Name: hiliteChanged
+
+Type: message
+
+Syntax: hiliteChanged
+
+Summary: Sent when the switch is changed to either the on or off position
+
+Example:
+on hiliteChanged
+	set the visible of group 1 to the highlight of me
+end hiliteChanged
+
+Description:
+Handle the hiliteChanged message in the widget's object script to respond to
+the user switching the button on or off.
+
+Name: backColor
+
+Type: property
+
+Syntax: get the backColor of <widget>
+
+Syntax: set the backColor of <widget> to <pColor>
+
+Summary: Controls the background color of the switch button
+
+Description:
+Use the <backColor> property to control the off-position fill color of the
+switch button.
+
+Name: hiliteColor
+
+Type: property
+
+Syntax: get the hiliteColor of <widget>
+
+Syntax: set the hiliteColor of <widget> to <pColor>
+
+Summary: Controls the color of the switch button when it is in the on position
+
+Description:
+Use the <hiliteColor> property to control the on-position fill color of the
+switch button.
+
+Name: borderColor
+
+Type: property
+
+Syntax: get the borderColor of <widget>
+
+Syntax: set the borderColor of <widget> to <pColor>
+
+Summary: Controls the color of the switch button when it is in the on position
+
+Description:
+Use the <borderColor> property to control the on-position fill color of the
+switch button.
+
+Name: theme
+
+Type: property
+
+Syntax: get the theme of <widget>
+
+Syntax: set the theme of <widget> to <pWidgetTheme>
+
+Summary: Specifies the theme to use when drawing the switch button.
+
+Value:
+The <theme> of the switch button is a name identifying the
+style to use when drawing it.
+
+Description:
+Use the <theme> property to control the general appearance of the switch
+button.  The currently-supported values are "native", "iOS" and "Android".
+
+**Note**: The value of the <theme> property is not saved by the switch button.
+Set the <theme> property to preview the way the switch button will appear when
+used on an Android or iOS device.
+
+
+
+Name: highlight
+
+Type: property
+
+Syntax: get the highlight of <widget>
+
+Syntax: set the highlight of <widget> to {true | false}
+
+Summary: Whether the switch is on or off
+
+Value: `true` if the switch is in the on position; `false` otherwise.
+
+Description: Use this property to determine whether the switch button displays as on.
+
+
+
+
+Name: showBorder
+
+Type: property
+
+Syntax: get the showBorder of <widget>
+
+Syntax: set the showBorder of <widget> to {true|false}
+
+Summary: Whether the widget has a border or not.
+
+Description:
+Use the <showBorder> property to control whether the switch button has a border
+around it or not
+
+
+

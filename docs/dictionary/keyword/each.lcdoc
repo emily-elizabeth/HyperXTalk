@@ -11,11 +11,11 @@ with the <for> <keyword> in a <repeat> <control structure> to specify
 that the <loop|repeat loop> should be executed for each <chunk> of the
 specified <string> or each <element> of the specified <array>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 sort lines of field "Address" by word 2 of each

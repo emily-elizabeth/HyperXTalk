@@ -10,7 +10,7 @@ Specifies a list of <files> containing external code that are to be
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -36,8 +36,8 @@ The files are executed when the stack is opened, making the externals in
 them available to handlers in the stack.
 
 >*Important:*  When you install a new <external> by setting a
-> <stack|stack's> <externals> <property>, OpenXTalk cannot use it until
-> you either quit OpenXTalk and then reopen the <stack>, or close the
+> <stack|stack's> <externals> <property>, HyperXTalk cannot use it until
+> you either quit HyperXTalk and then reopen the <stack>, or close the
 > <stack> (after setting its <destroyWindow> <property> to true) and
 > then reopen it.
 

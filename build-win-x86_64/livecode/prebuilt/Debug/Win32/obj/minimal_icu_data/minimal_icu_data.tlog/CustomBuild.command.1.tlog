@@ -1,9 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\PREBUILT\UNPACKED\ICU\X86_64-WIN32-V142_STATIC_DEBUG\SHARE\ICUDT58L.DAT
-call call C:\Users\user\Documents\GitHub\HyperXTalk\build-win-x86_64\livecode\prebuilt\..\..\..\prebuilt\unpacked\icu\x86_64-win32-v142_static_Debug\bin\icupkg "--list" "..\..\..\prebuilt\unpacked\icu\x86_64-win32-v142_static_Debug\share\icudt58l.dat" "--auto_toc_prefix" "--outlist" "Debug\Win32\obj\minimal_icu_data\data\icudata-full-list.txt"
-if %errorlevel% neq 0 exit /b %errorlevel%
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\BUILD-WIN-X86_64\LIVECODE\PREBUILT\DEBUG\WIN32\OBJ\MINIMAL_ICU_DATA\DATA\ICUDATA-FULL-LIST.TXT
-call call python "..\..\..\util\remove_matching.py" "Debug\Win32\obj\minimal_icu_data\data\icudata-full-list.txt" "..\..\..\prebuilt\rsrc\icudata-minimal-list.txt" "Debug\Win32\obj\minimal_icu_data\data\icudata-remove-list.txt"
-if %errorlevel% neq 0 exit /b %errorlevel%
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\BUILD-WIN-X86_64\LIVECODE\PREBUILT\DEBUG\WIN32\OBJ\MINIMAL_ICU_DATA\DATA\ICUDATA-REMOVE-LIST.TXT
-call call C:\Users\user\Documents\GitHub\HyperXTalk\build-win-x86_64\livecode\prebuilt\..\..\..\prebuilt\unpacked\icu\x86_64-win32-v142_static_Debug\bin\icupkg "--remove" "Debug\Win32\obj\minimal_icu_data\data\icudata-remove-list.txt" "--auto_toc_prefix" "..\..\..\prebuilt\unpacked\icu\x86_64-win32-v142_static_Debug\share\icudt58l.dat" "\..\shared_intermediate\data\icudata-minimal.dat"
-if %errorlevel% neq 0 exit /b %errorlevel%

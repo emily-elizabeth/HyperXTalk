@@ -10,7 +10,7 @@ imported <SuperCard> projects.
 
 Associations: field
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop
 
@@ -19,13 +19,13 @@ In SuperCard, the <allowKeyInField> <property> determines whether a
 "keyInField" <message> is sent when a key is pressed while the
 <insertion point> is in a <field>.
 
-In OpenXTalk, the "keyInField" message is not sent.
+In HyperXTalk, the "keyInField" message is not sent.
 
 The <allowKeyInField> <property> is always true. A <handler> can set it
 to any value without causing a <error|script error>, but the actual
 <value> is not changed.
 
-References: value (function), property (glossary), OpenXTalk (glossary),
+References: value (function), property (glossary), HyperXTalk (glossary),
 error (glossary), handler (glossary), insertion point (glossary),
 message (glossary), SuperCard (glossary), field (keyword),
 enterInField (message)

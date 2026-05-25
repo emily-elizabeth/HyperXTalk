@@ -194,8 +194,10 @@ getProp editorWidth
 end editorWidth
 
 local sPopupData
+local sSavedSelection
+
 on editorPopup pClickLoc
-   
+
 end editorPopup
 
 after editorPopup pClickLoc
@@ -203,6 +205,14 @@ after editorPopup pClickLoc
    put popupStackName() into tStackName
    if tStackName is in the openstacks then
       exit editorPopup
+   end if
+   // Clean up any closed-but-not-yet-deleted popup stack with this name.
+   // This can happen because popupDismissed is sent asynchronously (in 0 ms),
+   // leaving a window where the stack is closed but still exists.  If we don't
+   // delete it here, 'create invisible stack' silently creates a numbered copy,
+   // leaving the old one (with its OK button) as debris.
+   if there is a stack tStackName then
+      delete stack tStackName
    end if
    create invisible stack tStackName
    dispatch "setAsBehavior" to stack \
@@ -218,6 +228,11 @@ after editorPopup pClickLoc
    set the height of stack tStackName to \
          the formattedHeight of group "inspector" of stack tStackName
    set the title of stack tStackName to the rowLabel of the owner of me
+   // Save the IDE selection before going modeless. The modeless window takes
+   // OS focus, which causes the IDE to clear its selection and the PI to
+   // switch context to the stack.  We restore the selection when the popup
+   // is dismissed so the inspected object stays selected throughout.
+   put revIDESelectedObjects() into sSavedSelection
    modeless stack tStackName
 end editorPopup
 
@@ -250,6 +265,13 @@ end editorDeletePopup
 
 after popupDismissed
    editorDeletePopup
+   // Restore the IDE selection that was active when the popup opened.
+   // The modeless window stole OS focus, causing the IDE to deselect the
+   // inspected object.  Re-selecting it here keeps the PI on the right context.
+   if sSavedSelection is not empty then
+      revIDESelectObjects sSavedSelection
+      put empty into sSavedSelection
+   end if
 end popupDismissed
 
 getProp storedValue

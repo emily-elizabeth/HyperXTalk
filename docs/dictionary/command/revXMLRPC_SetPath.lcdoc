@@ -9,11 +9,11 @@ Sets the path in an <XML-RPC document> structure.
 
 Associations: xml-rpc library
 
-Introduced: 2.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, process
 
@@ -45,7 +45,7 @@ which method is being called specifically within that resource.
 
 References: revXMLRPC_SetMethod (command), revXMLRPC_GetPath (function),
 result (function), revXMLRPC_CreateRequest (function),
-OpenXTalk custom library (glossary),
+HyperXTalk custom library (glossary),
 Standalone Application Settings (glossary),
 standalone application (glossary), command (glossary),
 XML-RPC document (glossary), XML-RPC library (library)

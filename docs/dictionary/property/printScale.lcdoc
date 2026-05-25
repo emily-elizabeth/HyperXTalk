@@ -7,11 +7,11 @@ Syntax: set the printScale to <ratio>
 Summary:
 Specifies how much <card|cards> are shrunk or expanded when printing.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: printing
 

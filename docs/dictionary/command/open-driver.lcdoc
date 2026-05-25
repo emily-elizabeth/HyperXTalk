@@ -8,7 +8,7 @@ Summary:
 Establishes a connection to a <peripheral device|device> so you can send
 data to it or get data from it.
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

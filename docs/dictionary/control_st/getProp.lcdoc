@@ -11,18 +11,18 @@ Summary:
 <handle|Handles> the <message> sent to an <object(glossary)> when you
 access one of its <custom property|custom properties>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Parameters:
 propertyName:
 The name of a custom property.
 
 statementList:
-The statementList consists of one or more OpenXTalk statements, and can
+The statementList consists of one or more HyperXTalk statements, and can
 also include if, switch, try, or repeat control structures.
 
 Description:

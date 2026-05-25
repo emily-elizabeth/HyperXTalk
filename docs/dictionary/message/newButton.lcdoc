@@ -9,11 +9,11 @@ Sent to a new button right after it's created.
 
 Associations: button
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on newButton -- put new buttons at a random location

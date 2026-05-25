@@ -10,11 +10,11 @@ Reports which <object(glossary)> is next in the <object hierarchy>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image, group
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if the owner of me is not the name of card 1 then go to previous card

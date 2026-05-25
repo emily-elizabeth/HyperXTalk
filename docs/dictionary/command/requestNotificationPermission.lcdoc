@@ -1,0 +1,60 @@
+Name: requestNotificationPermission
+
+Type: command
+
+Syntax: requestNotificationPermission
+
+Summary:
+Asks the operating system to grant permission to display notifications.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- Request permission when the app first launches
+on startUp
+    if notificationPermission() is not "granted" then
+        requestNotificationPermission
+    end if
+end startUp
+
+Example:
+-- Handle the result in the card's script
+on notificationPermissionGranted
+    -- Notifications are now available; show a welcome notification.
+    showNotification "Ready" "Notifications are enabled."
+end notificationPermissionGranted
+
+on notificationPermissionDenied
+    answer "Please enable notifications in System Settings to receive alerts."
+end notificationPermissionDenied
+
+Description:
+On platforms that require explicit user consent before displaying
+notifications (macOS 10.14+, iOS 10+, Android 13+), call
+<requestNotificationPermission> to trigger the system permission dialog.
+
+The request is handled asynchronously. When the user responds to the
+system prompt, HyperXTalk fires one of two messages to the current card
+of the default stack:
+
+- <notificationPermissionGranted> — the user approved, or permission was
+  already granted.
+- <notificationPermissionDenied> — the user declined, or permission was
+  previously denied and cannot be re-requested.
+
+On Windows and Linux, permission is always considered granted. Calling
+this command on those platforms fires <notificationPermissionGranted>
+synchronously without showing any system dialog.
+
+Use <notificationPermission> to query the current permission state
+without triggering a prompt.
+
+References: showNotification (command), cancelNotification (command),
+cancelAllNotifications (command), notificationPermission (function),
+notificationPermissionGranted (message), notificationPermissionDenied (message)
+
+Tags: notifications

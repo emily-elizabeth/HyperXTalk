@@ -1,20 +1,6 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
+
+#include <cstdio> // fprintf, stderr
 
 #include "globdefs.h"
 #include "filedefs.h"
@@ -36,6 +22,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "dispatch.h"
 #include "globals.h"
 #include "cmds.h"
+#include "mcworker.h"
 #include "license.h"
 #include "redraw.h"
 #include "keywords.h"
@@ -434,18 +421,23 @@ Exec_stat MCHandler::exec(MCExecContext& ctxt, MCParameter *plist)
 	ctxt . SetTheResultToEmpty();
 	Exec_stat stat = ES_NORMAL;
 	MCStatement *tspr = statements;
-    
-	if ((MCtrace || MCnbreakpoints) && tspr != NULL)
+
+    // Worker threads must not call MCB_trace: it performs main-thread GUI
+    // operations (message sends, screen updates) that are not safe from a
+    // background thread.  All debugging is suppressed for worker handlers.
+    const bool t_is_worker = (MCWorkerGetCurrent() != nullptr);
+
+	if ((MCtrace || MCnbreakpoints) && tspr != NULL && !t_is_worker)
 	{
 		MCB_trace(ctxt, firstline, 0);
-        
+
 		// OK-2008-09-05: [[Bug 7115]] - Debugger doesn't stop if traceAbort is set following a breakpoint on the first line of a handler.
 		if (MCexitall)
 			tspr = NULL;
 	}
 	while (tspr != NULL)
 	{
-		if (MCtrace || MCnbreakpoints)
+		if ((MCtrace || MCnbreakpoints) && !t_is_worker)
 		{
 			MCB_trace(ctxt, tspr->getline(), tspr->getpos());
 			if (MCexitall)

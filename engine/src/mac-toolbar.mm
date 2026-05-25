@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 //
 // macOS NSToolbar backend for MCToolbar.
 // Ported from the org.openxtalk.nstoolbar extension (Emily-Elizabeth Howard).
@@ -28,6 +12,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "platform.h"
 #include "platform-internal.h"
 #include "mac-internal.h"
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Forward declare C++ backend so ObjC delegate can hold a pointer to it.
@@ -608,12 +593,15 @@ private:
 
 @implementation MCNSToolbarDelegate (MCBackendActions)
 
-- (void)toolbarItemClicked:(NSToolbarItem *)item
+- (void)toolbarItemClicked:(id)sender
 {
     if (!_backend)
         return;
 
-    NSString *ident = item.itemIdentifier;
+    NSString *ident = [(NSToolbarItem *)sender itemIdentifier];
+    if (ident == nil)
+        return;
+
     MCAutoStringRef t_str;
     /* UNCHECKED */ MCStringCreateWithCString([ident UTF8String], &t_str);
     MCNewAutoNameRef t_name;

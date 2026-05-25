@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #ifndef	COMMANDS_H
 #define	COMMANDS_H
 
@@ -109,6 +93,8 @@ public:
 	virtual Parse_stat parse(MCScriptPoint &);
 	void deletestatements(MCStatement *statements);
 	virtual void exec_ctxt(MCExecContext& ctxt);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCDebugDo : public MCDo
@@ -187,6 +173,8 @@ public:
 	virtual ~MCGet();
 	virtual Parse_stat parse(MCScriptPoint &);
 	virtual void exec_ctxt(MCExecContext&);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCMarking : public MCStatement
@@ -279,6 +267,8 @@ public:
 	virtual ~MCPut();
 	virtual Parse_stat parse(MCScriptPoint &);
 	virtual void exec_ctxt(MCExecContext &);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCQuit : public MCStatement
@@ -325,6 +315,8 @@ public:
 	virtual Parse_stat parse(MCScriptPoint &);
     virtual void exec_ctxt(MCExecContext &ctxt);
 	virtual uint4 linecount();
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 // relayer <control> ( before | after ) layer <expr>
@@ -379,6 +371,8 @@ public:
 	virtual ~MCSet();
 	virtual Parse_stat parse(MCScriptPoint &);
 	virtual void exec_ctxt(MCExecContext &);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCSort : public MCStatement
@@ -570,6 +564,8 @@ public:
 	virtual ~MCDelete();
 	virtual Parse_stat parse(MCScriptPoint &);
 	virtual void exec_ctxt(MCExecContext &);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCChangeProp : public MCStatement
@@ -948,6 +944,12 @@ public:
 	virtual void exec_ctxt(MCExecContext &);
 };
 
+class MCBringApplicationToFront : public MCStatement
+{
+public:
+	virtual void exec_ctxt(MCExecContext &);
+};
+
 class MCCancel : public MCStatement
 {
 	MCExpression *m_id;
@@ -1081,6 +1083,8 @@ public:
 
 	virtual Parse_stat parse(MCScriptPoint& sp);
     virtual void exec_ctxt(MCExecContext &ctxt);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCLogCmd: public MCStatement
@@ -1156,6 +1160,8 @@ public:
     }
 	virtual Parse_stat parse(MCScriptPoint &);
     virtual void exec_ctxt(MCExecContext &ctxt);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCCall : public MCMessage
@@ -1660,6 +1666,8 @@ public:
 	virtual ~MCAdd();
 	virtual Parse_stat parse(MCScriptPoint &);
     virtual void exec_ctxt(MCExecContext &ctxt);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCDivide : public MCStatement
@@ -1677,6 +1685,8 @@ public:
 	virtual ~MCDivide();
 	virtual Parse_stat parse(MCScriptPoint &);
     virtual void exec_ctxt(MCExecContext &ctxt);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCMultiply : public MCStatement
@@ -1694,6 +1704,8 @@ public:
 	virtual ~MCMultiply();
 	virtual Parse_stat parse(MCScriptPoint &);
     virtual void exec_ctxt(MCExecContext &ctxt);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCSubtract : public MCStatement
@@ -1711,6 +1723,8 @@ public:
 	virtual ~MCSubtract();
 	virtual Parse_stat parse(MCScriptPoint &);
     virtual void exec_ctxt(MCExecContext &ctxt);
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCArrayOp : public MCStatement
@@ -1922,8 +1936,12 @@ class MCSave : public MCStatement
 	MCExpression *filename;
 	MCExpression *format;
 	bool newest_format;
+    // HXT: "save <stack> as library to <path>" mode.
+    bool as_library;
+    MCExpression *library_path;   // optional explicit output path
 public:
-	MCSave() : target(NULL), filename(NULL), format(NULL), newest_format(false) {}
+	MCSave() : target(NULL), filename(NULL), format(NULL), newest_format(false),
+               as_library(false), library_path(NULL) {}
 	virtual ~MCSave();
 	virtual Parse_stat parse(MCScriptPoint &);
     virtual void exec_ctxt(MCExecContext &ctxt);
@@ -2058,6 +2076,21 @@ public:
 	{
 		mode = WM_DRAWER;
 	}
+};
+
+// Popover window: popover stack <target> [anchored to <control>] [on edge <edge>]
+// The popover floats near an anchor control, on the specified edge.
+// Edge strings: "top", "bottom" (default), "left", "right".
+class MCPopover : public MCStatement
+{
+	MCChunk *target;   // the stack to show
+	MCChunk *anchor;   // the control to anchor to (optional)
+	MCExpression *edge; // edge string expression (optional)
+public:
+	MCPopover();
+	virtual ~MCPopover();
+	virtual Parse_stat parse(MCScriptPoint &);
+	virtual void exec_ctxt(MCExecContext &ctxt);
 };
 
 class MCUnlock : public MCStatement

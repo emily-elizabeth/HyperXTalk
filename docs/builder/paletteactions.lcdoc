@@ -1,0 +1,259 @@
+Library: com.livecode.widget.paletteactions
+
+Type: widget
+
+Summary: Palette header bar widget.
+
+author: LiveCode
+
+version: 1.0.1
+
+Name: menuPick
+
+Type: message
+
+Syntax: menuPick <pPick>
+
+Summary: Sent when a menu item is chosen
+
+Parameters: 
+
+pPick: The item picked
+
+Name: actionSelected
+
+Type: message
+
+Syntax: actionSelected <pItemName>
+
+Summary: Sent when an action item is clicked
+
+Parameters: 
+
+pItemName: The name of the clicked action item
+
+Name: navSelected
+
+Type: message
+
+Syntax: navSelected <pItemName>
+
+Summary: Sent when a nav item is selected
+
+Parameters: 
+
+pItemName: The name of the selected nav item
+
+Name: navChanged
+
+Type: message
+
+
+Syntax: navChanged
+
+Summary: Sent when the nav items property is changed
+
+Name: minWidth
+
+Type: property
+
+Syntax: get the minWidth of <widget>
+
+
+Summary: The minimum width needed to display nav items and action items
+
+
+
+Name: selectedNavItem
+
+Type: property
+
+Syntax: set the selectedNavItem of <widget> to <pItemName>
+get the selectedNavItem of <widget>
+
+Summary: The name of the currently selected nav item
+
+Value: The item in the <navNames> corresponding to the selected nav item
+
+References: navNames
+
+
+
+
+Name: selectedNavColor
+
+Type: property
+
+Syntax: set the selectedNavColor of <widget> to <pColor>
+get the selectedNavColor of <widget>
+
+Summary: The color to use for the selected nav item
+
+Value: The color of the selected nav item, in RGB form
+
+
+
+
+Name: navIcons
+
+Type: property
+
+Syntax: set the navIcons of <widget> to <pIconList>
+get the navIcons of <widget>
+
+Summary: The icons of the nav items
+
+Value: A list of icons of the nav items
+
+
+
+
+Name: navBarRight
+
+Type: property
+
+Syntax: get the navBarRight of <widget>
+
+
+Summary: The horizontal extent of the rendered navigation items 
+
+
+
+Name: navData
+
+Type: property
+
+Syntax: set the navData of <widget> to <pNavArray>
+get the navData of <widget>
+
+Summary: The array of navigation data
+
+Value: An array describing the <navNames>, <navIcons> and <navLabels> of the widget.
+
+References: navNames, navIcons, navLabels
+
+
+
+
+Name: actionNames
+
+Type: property
+
+Syntax: set the actionNames of <widget> to <pNameList>
+get the actionNames of <widget>
+
+Summary: The names of the action items
+
+Value: A list of names of the action items
+
+
+
+
+Name: navNames
+
+Type: property
+
+Syntax: set the navNames of <widget> to <pNameList>
+get the navNames of <widget>
+
+Summary: The names of the nav items
+
+Value: A list of names of the nav items
+
+
+
+
+Name: showActionIcons
+
+Type: property
+
+Syntax: set the showActionIcons of <widget> to { true | false }
+get the showActionIcons of <widget>
+
+
+Summary: Whether to show the action icons or not
+
+
+
+Name: isHeader
+
+Type: property
+
+Syntax: set the isHeader of <widget> to { true | false }
+get the isHeader of <widget>
+
+
+Summary: Whether the widget is a header or footer
+
+
+
+Name: showNavIcons
+
+Type: property
+
+Syntax: set the showNavIcons of <widget> to { true | false }
+get the showNavIcons of <widget>
+
+
+Summary: Whether to show the nav icons or not
+
+
+
+Name: actionIcons
+
+Type: property
+
+Syntax: set the actionIcons of <widget> to <pIconList>
+get the actionIcons of <widget>
+
+Summary: The icons of the action items
+
+Value: A list of icons of the action items
+
+
+
+
+Name: navLabels
+
+Type: property
+
+Syntax: set the navLabels of <widget> to <pLabelList>
+get the navLabels of <widget>
+
+Summary: The labels of the nav items
+
+Value: A list of labels of the nav items
+
+
+
+
+Name: actionLabels
+
+Type: property
+
+Syntax: set the actionLabels of <widget> to <pLabelList>
+get the actionLabels of <widget>
+
+Summary: The labels of the action items
+
+Value: A list of labels of the action items
+
+
+
+
+Name: actionData
+
+Type: property
+
+Syntax: set the actionData of <widget> to <pActionArray>
+get the actionData of <widget>
+
+Summary: The array of action data
+
+Value: An array describing the <actionNames>, <actionIcons> and <actionLabels> of the widget.
+
+References: actionNames, actionIcons, actionLabels
+
+
+
+

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -82,6 +66,9 @@ static MCColor vgapalette[16] =
 		{0xFFFF, 0xFFFF, 0xFFFF},
     };
 
+// Forward declaration for MCplatformIsDarkMode, defined later in this file.
+extern "C" bool MCplatformIsDarkMode(void);
+
 void MCScreenDC::setstatus(MCStringRef status)
 { //No action
 }
@@ -138,6 +125,12 @@ Boolean MCScreenDC::open()
 		FreeLibrary(tdll);
 	}
 	if (RegisterClassA(&wc) == 0)
+		return FALSE;
+	// Wide version of the menu/popup class — used by CreateWindowExW for
+	// popovers, pulldowns, and tooltips so they get the CS_DROPSHADOW style.
+	wwc.style = wc.style; // inherits CS_DROPSHADOW if UxTheme was loaded
+	wwc.lpszClassName = MC_MENU_WIN_CLASS_NAME_W;
+	if (RegisterClassW(&wwc) == 0)
 		return FALSE;
 	// Define the VIDEO CLIP window. Has its own DC
 	wc.style         = /*CS_OWNDC | */CS_VREDRAW | CS_HREDRAW;
@@ -245,6 +238,55 @@ Boolean MCScreenDC::open()
 	invisiblehwnd = CreateWindowA(MC_WIN_CLASS_NAME, "MCdummy",
 	                             WS_POPUP, 0, 0, 8, 8,
 	                             NULL, NULL, MChInst, NULL);
+
+	// Prime uxtheme dark-mode NOW — before MCNativeTheme::load() later calls
+	// OpenThemeData(invisiblehwnd, "Menu").  uxtheme only returns a dark HTHEME
+	// when BOTH SetPreferredAppMode(AllowDark) AND AllowDarkModeForWindow(hwnd)
+	// have been called first.  updatedesktop() handles this on WM_SETTINGCHANGE,
+	// but that message never arrives at cold startup, so we do it here inline.
+	// We call uxtheme ordinals directly to avoid forward-referencing the static
+	// helpers (s_ensure_uxtheme_dark etc.) that are defined later in this file.
+	{
+		typedef BOOL (WINAPI *AllowDarkModeForWindowFn)(HWND, BOOL);
+		typedef int  (WINAPI *SetPreferredAppModeFn)(int);
+		typedef void (WINAPI *FlushMenuThemesFn)(void);
+
+		HMODULE t_ux = GetModuleHandleA("uxtheme.dll");
+		if (t_ux == NULL)
+			t_ux = LoadLibraryA("uxtheme.dll");
+		if (t_ux != NULL)
+		{
+			auto t_set_mode   = (SetPreferredAppModeFn)    GetProcAddress(t_ux, MAKEINTRESOURCEA(135));
+			auto t_allow_dark = (AllowDarkModeForWindowFn) GetProcAddress(t_ux, MAKEINTRESOURCEA(133));
+			auto t_flush      = (FlushMenuThemesFn)        GetProcAddress(t_ux, MAKEINTRESOURCEA(136));
+			if (t_set_mode && t_allow_dark && t_flush)
+			{
+				BOOL t_dark = MCplatformIsDarkMode() ? TRUE : FALSE;
+				t_set_mode(1 /* AllowDark */);
+				t_allow_dark(invisiblehwnd, t_dark);
+				// Apply DWM title-bar attribute via GetProcAddress — the rest of
+				// the file also loads dwmapi.dll dynamically (no #include <dwmapi.h>).
+				typedef HRESULT (WINAPI *DwmSetWindowAttributeFn)(HWND, DWORD, LPCVOID, DWORD);
+				HMODULE t_dwm = GetModuleHandleA("dwmapi.dll");
+				if (t_dwm == NULL)
+					t_dwm = LoadLibraryA("dwmapi.dll");
+				if (t_dwm != NULL)
+				{
+					auto t_dwm_set = (DwmSetWindowAttributeFn)
+					    GetProcAddress(t_dwm, "DwmSetWindowAttribute");
+					if (t_dwm_set)
+					{
+						DWORD t_attr = t_dark;
+						t_dwm_set(invisiblehwnd,
+						          20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */,
+						          &t_attr, sizeof(t_attr));
+					}
+				}
+				t_flush();
+			}
+		}
+	}
+
 	mutex = CreateMutexA(NULL, False, NULL);
 
 	MCblinkrate = GetCaretBlinkTime();
@@ -459,6 +501,12 @@ void MCScreenDC::openwindow(Window w, Boolean override)
 			ShowWindow((HWND)w->handle.window, SW_RESTORE);
 		else
 			ShowWindow((HWND)w->handle.window, SW_SHOW);
+
+	// Give popover windows foreground focus immediately on open so that
+	// WM_ACTIVATE/WA_INACTIVE fires when the user clicks elsewhere — without
+	// requiring an initial click on the popover first.
+	if (t_stack != NULL && t_stack->getmode() == WM_POPOVER)
+		SetForegroundWindow((HWND)w->handle.window);
 
 	if (t_stack != NULL)
 	{

@@ -11,11 +11,11 @@ Creates an <image> of a portion of the screen, a portion of a stack
 window, or a specific object and sets <it> to the long id of the 
 created <image>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Security: privacy
 
@@ -76,7 +76,7 @@ iOS supports both the object and screen snapshot variants of the
 are given relative to the top-left of the screen, including the 
 area where status bar is, but not including the status bar itself.
 
-If you do not specify the rect[angle] <token> or an <objectRef>, OpenXTalk 
+If you do not specify the rect[angle] <token> or an <objectRef>, HyperXTalk 
 displays a crosshairs <cursor>. Click at one corner of the rectangular
 area to be imported and drag to the opposite corner to <select> the area.
 
@@ -104,7 +104,7 @@ the current card or in stacks that are not open.
 Use the `at size sizeDescription` extension if you wish the engine 
 to resize the snapshot taken to the dimensions specified.
 
-While you take the snapshot, OpenXTalk hides its own IDE windows (such 
+While you take the snapshot, HyperXTalk hides its own IDE windows (such 
 as the Tools palette).
 
 The format of the resulting <image> depends on the current setting of the

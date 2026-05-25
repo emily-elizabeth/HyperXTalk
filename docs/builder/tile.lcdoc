@@ -1,0 +1,145 @@
+Library: com.livecode.widget.tile
+
+Type: widget
+
+Summary: A tile widget with icon and label
+
+author: LiveCode
+
+version: 1.0.0
+
+Name: mouseUp
+
+Type: message
+
+Syntax: mouseUp
+
+Summary: Sent when the tile is clicked
+
+Name: mouseEnter
+
+Type: message
+
+Syntax: mouseEnter
+
+Summary: Sent when the mouse enters the tile
+
+Name: mouseLeave
+
+Type: message
+
+
+Syntax: mouseLeave
+
+Summary: Sent when the mouse leaves the tile
+
+Name: tileLabel
+
+Type: property
+
+Syntax: set the titleLabel of <widget> to <pLabel>
+get the titleLabel of <widget>
+
+Summary: The label to display
+
+Value: The label string
+
+
+
+
+Name: fgHoverColor
+
+Type: property
+
+Syntax: set the fgHoverColor of <widget> to <pColor>
+get the fgHoverColor of <widget>
+
+Summary: The foreground hover color of the tile
+
+Value: A color in RGB form - comma separated values from 0 - 255
+
+
+
+
+Name: bgHoverColor
+
+Type: property
+
+Syntax: set the bgHoverColor of <widget> to <pColor>
+get the bgHoverColor of <widget>
+
+Summary: The background hover color of the tile
+
+Value: A color in RGB form - comma separated values from 0 - 255
+
+
+
+
+Name: iconName
+
+Type: property
+
+Syntax: set the iconName of <widget> to <pName>
+get the iconName of <widget>
+
+Summary: The name of the icon to display
+
+Value: The icon name
+
+
+
+
+Name: hoverIconName
+
+Type: property
+
+Syntax: set the hoverIconName of <widget> to <pName>
+get the hoverIconName of <widget>
+
+Summary: The name of the icon to display when hovering over the tile
+
+Value: The icon name
+
+
+
+
+Name: fgColor
+
+Type: property
+
+Syntax: set the fgColor of <widget> to <pColor>
+get the fgColor of <widget>
+
+Summary: The foreground color of the tile
+
+Value: A color in RGB form - comma separated values from 0 - 255
+
+
+
+
+Name: bgColor
+
+Type: property
+
+Syntax: set the bgColor of <widget> to <pColor>
+get the bgColor of <widget>
+
+Summary: The background color of the tile
+
+Value: A color in RGB form - comma separated values from 0 - 255
+
+
+
+
+Name: hoverState
+
+Type: property
+
+Syntax: set the hoverState of <widget> to { true | false }
+get the hoverState of <widget>
+
+
+Summary: The hover state of the tile
+
+
+

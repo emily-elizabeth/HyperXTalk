@@ -8,11 +8,11 @@ Summary:
 Specifies how many digits before and after the <decimal point> a
 computed number should have.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the numberFormat to "#.00" -- dollar format
@@ -67,7 +67,7 @@ one <handler> does not affect its value in other <handler|handlers> it
 <call|calls>. (The <numberFormat> of a <scrollbar(keyword)> is not
 <reset> in this way.)
 
->*Note:* Since OpenXTalk does not use decimal numbers for its internal
+>*Note:* Since HyperXTalk does not use decimal numbers for its internal
 > calculations (for reasons of speed), the decimal representation of a
 > number is sometimes slightly off the correct number. For example,
 > 10^-1 is equal to 0.1, but is calculated (to eighteen decimal places)

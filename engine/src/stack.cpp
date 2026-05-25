@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -63,6 +47,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include "resolution.h"
+#include "hxtast.h"      // MCHXTASTReader (for setascompiledlib_from_astn)
 
 static int4 s_last_stack_time = 0;
 static int4 s_last_stack_index = 0;
@@ -207,6 +192,12 @@ MCPropertyInfo MCStack::kProperties[] =
 	DEFINE_RO_OBJ_EFFECTIVE_PROPERTY(P_SHOW_INVISIBLES, Bool, MCStack, ShowInvisibleObjects)
     
     DEFINE_RO_OBJ_PROPERTY(P_MIN_STACK_FILE_VERSION, String, MCStack, MinStackFileVersion)
+
+    DEFINE_RW_OBJ_PROPERTY(P_BADGE, UInt16, MCStack, Badge)
+    DEFINE_RW_OBJ_PROPERTY(P_TASKBAR_OVERLAY_ICON, String, MCStack, TaskbarOverlayIcon)
+    DEFINE_RW_OBJ_PROPERTY(P_TASKBAR_PROGRESS, Double, MCStack, TaskbarProgress)
+    DEFINE_RW_OBJ_PROPERTY(P_JUMP_LIST_TASKS, String, MCStack, JumpListTasks)
+    DEFINE_RW_OBJ_PROPERTY(P_JUMP_LIST_CATEGORY, String, MCStack, JumpListCategory)
 };
 
 MCObjectPropertyTable MCStack::kPropertyTable =
@@ -302,7 +293,10 @@ MCStack::MCStack()
 	
     // MW-2014-09-30: [[ ScriptOnlyStack ]] Stacks are not script-only by default.
     m_is_script_only = false;
-    
+
+    // HXT: Not a compiled library by default.
+    m_is_compiled_lib = false;
+
     // BWM-2017-08-16: [[ Bug 17810 ]] Script-only-stack line endings default to LF.
     m_line_encoding_style = kMCStringLineEndingStyleLF;
 
@@ -322,9 +316,15 @@ MCStack::MCStack()
 	old_rect.x = old_rect.y = old_rect.width = old_rect.height = 0 ;
 
     m_attachments = nil;
-    
+
+    m_badge = 0;
+    m_taskbar_overlay_icon = MCValueRetain(kMCEmptyString);
+    m_taskbar_progress = 0.0;
+    m_jump_list_tasks    = MCValueRetain(kMCEmptyString);
+    m_jump_list_category = MCValueRetain(kMCEmptyString);
+
 	view_init();
-    
+
     m_is_ide_stack = false;
 }
 
@@ -523,6 +523,9 @@ MCStack::MCStack(const MCStack &sref)
 	
     // MW-2014-09-30: [[ ScriptOnlyStack ]] Stacks copy the source script-onlyness.
     m_is_script_only = sref.m_is_script_only;
+
+    // HXT: Compiled-library flag is copied.
+    m_is_compiled_lib = sref.m_is_compiled_lib;
     
 	// IM-2014-05-27: [[ Bug 12321 ]] No fonts to purge yet
 	m_purge_fonts = false;
@@ -537,9 +540,16 @@ MCStack::MCStack(const MCStack &sref)
     
     // MERG-2015-10-12: [[ DocumentFilename ]] No document filename to begin with
     m_document_filename = MCValueRetain(kMCEmptyString);
-    
+
+    // Badge, overlay, progress, and jump list are not copied — new window starts clean.
+    m_badge = 0;
+    m_taskbar_overlay_icon = MCValueRetain(kMCEmptyString);
+    m_taskbar_progress     = 0.0;
+    m_jump_list_tasks      = MCValueRetain(kMCEmptyString);
+    m_jump_list_category   = MCValueRetain(kMCEmptyString);
+
 	view_copy(sref);
-    
+
     m_is_ide_stack = sref.m_is_ide_stack;
 }
 
@@ -1597,10 +1607,14 @@ Exec_stat MCStack::handle(Handler_type htype, MCNameRef message, MCParameter *pa
 	{
 		if (window == NULL && !MCNameIsEqualToCaseless(message, MCM_start_up)
 #ifdef _MACOSX
-		        && !(state & CS_DELETE_STACK))
+		        && !(state & CS_DELETE_STACK)
 #else
-				&& !MCStringIsEmpty(externalfiles) && !(state & CS_DELETE_STACK))
+				&& !MCStringIsEmpty(externalfiles) && !(state & CS_DELETE_STACK)
 #endif
+                // Worker backing stacks are script-only and must never create
+                // a platform window — createwindow() is not thread-safe and
+                // would be called from the worker's background thread.
+                && !m_is_script_only)
 		{
 			// IM-2014-01-16: [[ StackScale ]] Ensure view has the current stack rect
 			view_setstackviewport(rect);
@@ -2060,15 +2074,97 @@ void MCStack::setasscriptonly(MCStringRef p_script)
 {
     MCExecContext ctxt(nil,nil,nil);
     /* UNCHECKED */ SetScript(ctxt, p_script);
-    
+
     m_is_script_only = true;
-    
+
     // Make sure we have at least one card.
     if (cards == NULL)
     {
         curcard = cards = MCtemplatecard->clone(False, False);
         cards->setparent(this);
     }
+}
+
+// HXT: Set up this stack as a compiled library loaded from a .hxtlib file.
+// The stack is treated as a script-only stack (invisible, at least one card),
+// but marked immutable so the source script cannot be read or modified via
+// the scripting API.
+//
+// p_script is the source text from the SRCS section of the .hxtlib file.
+// We call SetScript at the C++ level here — before m_is_compiled_lib is
+// set — so that the guard in exec-interface-object.cpp does not block it.
+// This populates hlist so that handler dispatch works normally.
+//
+// When the AST serialisation layer is defined, this should reconstruct
+// hlist directly from the ASTN nodes instead of re-parsing source text,
+// at which point SRCS can be omitted from the .hxtlib format.
+void MCStack::setascompiledlib(MCStringRef p_script)
+{
+    // Populate hlist from source text (if present) before locking the stack.
+    if (p_script != nil && !MCStringIsEmpty(p_script))
+    {
+        MCExecContext ctxt(nil, nil, nil);
+        /* UNCHECKED */ SetScript(ctxt, p_script);
+    }
+
+    m_is_script_only   = true;
+    m_is_compiled_lib  = true;
+
+    // Make sure we have at least one card.
+    if (cards == NULL)
+    {
+        curcard = cards = MCtemplatecard->clone(False, False);
+        cards->setparent(this);
+    }
+}
+
+// HXT: Reconstruct the handler list from the raw ASTN binary section produced
+// by MCHXTASTWriter::finalise().  On success the stack is marked as a compiled
+// library (same flags as setascompiledlib) and true is returned; the caller
+// can then skip the SRCS / SetScript fallback path.
+//
+// On any failure (magic mismatch, truncated data, reader error) false is
+// returned and the stack is left unchanged so the caller can fall back to SRCS.
+bool MCStack::setascompiledlib_from_astn(const uint8_t *p_astn_data, size_t p_astn_len)
+{
+    // Quick sanity check: must start with the HXTASTN magic.
+    if (p_astn_len < 8 || memcmp(p_astn_data, kASTNMagic, 8) != 0)
+        return false;
+
+    // Allocate a fresh handler list.
+    MCHandlerlist *t_hlist = new (nothrow) MCHandlerlist;
+    if (t_hlist == nullptr)
+        return false;
+
+    // Attach parent before deserialization so any internal lookups work.
+    t_hlist->setparent(this);
+
+    // Open the reader and reconstruct all handlers and script locals.
+    MCHXTASTReader t_reader;
+    if (!t_reader.open(p_astn_data, p_astn_len) ||
+        !t_hlist->hxt_deserialize(t_reader)      ||
+        !t_reader.ok())
+    {
+        delete t_hlist;
+        return false;
+    }
+
+    // Replace any existing handler list.
+    delete hlist;
+    hlist = t_hlist;
+
+    // Mark the stack immutable and script-only.
+    m_is_script_only  = true;
+    m_is_compiled_lib = true;
+
+    // Ensure there is at least one card (required by the engine).
+    if (cards == NULL)
+    {
+        curcard = cards = MCtemplatecard->clone(False, False);
+        cards->setparent(this);
+    }
+
+    return true;
 }
 
 MCPlatformControlType MCStack::getcontroltype()

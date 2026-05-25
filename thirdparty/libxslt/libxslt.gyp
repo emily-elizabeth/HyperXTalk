@@ -92,6 +92,13 @@
 							[
 								'include',
 							],
+
+							'defines':
+							[
+								# libxslt is built as a static library; consumers must
+								# suppress __declspec(dllimport) in the libxslt headers.
+								'LIBXSLT_STATIC=1',
+							],
 						},
 					},
 					{

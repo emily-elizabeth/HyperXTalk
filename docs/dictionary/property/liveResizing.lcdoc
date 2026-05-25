@@ -10,7 +10,7 @@ resizing, instead of redrawing the contents after the window is resized.
 
 Associations: stack
 
-Introduced: 2.1
+Introduced: 1.0.0
 
 Deprecated:
 8.0
@@ -30,7 +30,7 @@ false.
 
 Description:
 **Note:** The <liveResizing> property is deprecated, since it has no
-effect on any operating system currently supported by OpenXTalk. Its
+effect on any operating system currently supported by HyperXTalk. Its
 value is always treated as true.
 
 Use the <liveResizing> property to create a smooth visual appearance

@@ -7,11 +7,11 @@ Syntax: four
 Summary:
 Equivalent to the number 4.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 divide quarterlyRevenue by four -- same as "...by 4"

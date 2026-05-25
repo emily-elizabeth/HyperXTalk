@@ -7,11 +7,11 @@ Syntax: bucket
 Summary:
 Designates the <paint tool> used to fill an area in an <image>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 choose bucket tool

@@ -11,7 +11,7 @@ Syntax: XBrowser_BeforeNavigate <pUrl>, <pInstanceId>
 Summary:
 Sent before a browser navigates to a new url.
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 

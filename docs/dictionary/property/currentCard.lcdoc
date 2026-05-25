@@ -1,7 +1,7 @@
 Name: currentCard
 Type: property
 
-Introduced: 2.7.2
+Introduced: 1.0.0
 
 Syntax: 
 get the currentCard of <stack>
@@ -12,8 +12,8 @@ The short name of the <current card> of a stack
 
 Associations: stack
 
-OS: mac, windows, linux, ios, android
-Platforms: desktop, server, mobile
+OS: mac, windows, linux
+Platforms: desktop, server
 
 Example:
 -- The following results in the same value as
@@ -29,7 +29,7 @@ put the currentCard of this stack
 Example:
 -- The currentCard property can be retrieved or set for a
 -- stack that is not currently an opened file
-set currentCard of stack "~/Desktop/example.OpenXTalk" \
+set currentCard of stack "~/Desktop/example.HyperXTalk" \
       to "ExampleCardName"
 
 Value: The short name of a card in a stack

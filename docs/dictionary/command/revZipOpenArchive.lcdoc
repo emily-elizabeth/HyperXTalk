@@ -5,13 +5,13 @@ Type: command
 Syntax: revZipOpenArchive <archivePath>, <mode>
 
 Summary:
-Opens a zip archive for processing in OpenXTalk.
+Opens a zip archive for processing in HyperXTalk.
 
-Introduced: 2.7.3
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 

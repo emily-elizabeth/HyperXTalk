@@ -10,11 +10,11 @@ cell boundaries.
 
 Associations: field
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the vGrid of the templateField to true
@@ -31,7 +31,7 @@ Description:
 Use the <vGrid> <property> to make a field behave like a spreadsheet
 with a grid of cells.
 
-If the  <vGrid> <property> is true, OpenXTalk draws a vertical line at
+If the  <vGrid> <property> is true, HyperXTalk draws a vertical line at
 each <tab stop> position in the <field(keyword)>. The lines are drawn in
 the <field(object)|field's> <borderColor>. This <property> is useful for
 <field(object)|fields> that are used like a spreadsheet, with each 

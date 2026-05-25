@@ -255,8 +255,24 @@ NSWindow *MCMacPlatformApplicationPseudoModalFor(void);
 	NSEvent *m_input_method_event;
     // Whether to pass events through the IME or not.
     bool m_use_input_method : 1;
-    
+
 	NSDragOperation m_allowed_drag_operations;
+
+    // --- Text substitution (user text replacements via NSSpellChecker) ---
+    // When the user finishes typing a known abbreviation (e.g. "omw"), we show
+    // a lightweight custom panel with the proposed replacement ("On my way! ×").
+    // Space (or another boundary char) confirms; × cancels.
+    //
+    // We use our own NSPanel rather than NSSpellChecker's correction indicator
+    // because showCorrectionIndicatorOfType: calls setMarkedText: internally,
+    // which in our implementation commits text immediately and interferes with
+    // both field content and AppKit's rendering pipeline in ways that cannot be
+    // cleanly suppressed.
+    //
+    // m_pending_subst_range.location == NSNotFound means no substitution pending.
+    NSRange    m_pending_subst_range;   // field range of the matched abbreviation
+    NSString  *m_pending_subst_string;  // replacement string (e.g. "On my way!")
+    NSPanel   *m_subst_panel;           // the floating suggestion panel (nil if hidden)
 }
 
 - (id)initWithPlatformWindow:(MCMacPlatformWindow *)window;
@@ -516,6 +532,7 @@ protected:
 	
 	virtual void DoShow(void);
 	virtual void DoShowAsSheet(MCPlatformWindowRef parent);
+	virtual void DoShowAsPopover(MCRectangle anchor_rect, MCPlatformWindowEdge edge);
 	virtual void DoHide(void);
 	virtual void DoFocus(void);
 	virtual void DoRaise(void);
@@ -569,13 +586,17 @@ private:
 	
 	// A window might map to one of several different classes, so we use a
 	// union for the different types to avoid casts everywhere.
-	union 
+	union
 	{
 		id m_handle;
 		NSWindow *m_window_handle;
 		NSPanel *m_panel_handle;
 	};
-	
+
+	// Native popover (macOS 10.7+). Non-nil when the stack is displayed as a popover.
+	// Forward-declared as id to keep this header free of full AppKit imports.
+	id m_popover_handle;
+
 	// The parent pointer for sheets and drawers.
 	MCPlatformWindowRef m_parent;
 	
@@ -599,6 +620,13 @@ void MCMacPlatformHandleMousePress(uint32_t p_button, bool p_is_down);
 void MCMacPlatformHandleMouseMove(MCPoint p_screen_location);
 void MCMacPlatformHandleMouseScroll(CGFloat dx, CGFloat dy);
 void MCMacPlatformHandleMouseSync(void);
+
+// Popover window registry — lets MCPlatformGetWindowAtPoint find the engine
+// platform window behind an NSPopover's private _NSPopoverWindow.
+void MCMacPlatformRegisterPopoverWindow(NSWindow *p_ns_window, MCMacPlatformWindow *p_platform_window);
+void MCMacPlatformUnregisterPopoverWindow(NSWindow *p_ns_window);
+MCMacPlatformWindow *MCMacPlatformFindPopoverWindow(NSInteger p_window_number);
+bool MCMacPlatformGetNaturalScrolling(void);
 void MCMacPlatformHandleDrawSync(NSWindow *window);
 void MCMacPlatformHandleMouseAfterWindowHidden(void);
 

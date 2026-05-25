@@ -10,11 +10,11 @@ information stored with the field chunk but not visible to the user.
 
 Associations: field
 
-Introduced: 5.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the metadata of word 6 of field 1 to "extra information hidden from the user"

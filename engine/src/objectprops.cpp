@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -474,25 +458,46 @@ bool MCObject::getprop(MCExecContext& ctxt, uint32_t p_part_id, Properties p_whi
 	// MW-2011-11-23: [[ Array Chunk Props ]] If index is nil or empty, then its just a normal
 	//   prop, else its an array prop.
 	t_is_array_prop = (p_index != nil && !MCNameIsEmpty(p_index));
-	
+
 	MCPropertyInfo *t_info;
-	t_info = lookup_object_property(getpropertytable(), p_which, p_effective == True, t_is_array_prop, kMCPropertyInfoChunkTypeNone);
-	if (t_info == nil)
-		t_info = lookup_object_property(getmodepropertytable(), p_which, p_effective == True, t_is_array_prop, kMCPropertyInfoChunkTypeNone);
-	
+
+    // HXT: 1-slot inline property dispatch cache.
+    // Only active for the common case: non-effective, non-array-prop.
+    // The cache key is the Properties enum value; the cached MCPropertyInfo* lives
+    // in a static class table so it never moves or becomes stale.
+    if (!p_effective && !t_is_array_prop
+            && m_ic_prop_key == p_which && m_ic_prop_info != nullptr)
+    {
+        // Cache hit — skip the linear table scan entirely.
+        t_info = m_ic_prop_info;
+    }
+    else
+    {
+        t_info = lookup_object_property(getpropertytable(), p_which, p_effective == True, t_is_array_prop, kMCPropertyInfoChunkTypeNone);
+        if (t_info == nil)
+            t_info = lookup_object_property(getmodepropertytable(), p_which, p_effective == True, t_is_array_prop, kMCPropertyInfoChunkTypeNone);
+
+        // Populate cache for next access (non-effective, non-array only).
+        if (!p_effective && !t_is_array_prop && t_info != nullptr)
+        {
+            m_ic_prop_key  = p_which;
+            m_ic_prop_info = t_info;
+        }
+    }
+
 	if (t_info == nil || t_info -> getter == nil)
 	{
 		MCeerror -> add(EE_OBJECT_GETNOPROP, 0, 0);
 		return false;
 	}
-	
+
 	if (t_is_array_prop)
 	{
 		MCObjectIndexPtr t_object;
 		t_object . object = this;
 		t_object . part_id = p_part_id;
 		t_object . index = p_index;
-		
+
 		MCExecFetchProperty(ctxt, t_info, &t_object, r_value);
 	}
 	else
@@ -500,10 +505,10 @@ bool MCObject::getprop(MCExecContext& ctxt, uint32_t p_part_id, Properties p_whi
 		MCObjectPtr t_object;
 		t_object . object = this;
 		t_object . part_id = p_part_id;
-		
+
 		MCExecFetchProperty(ctxt, t_info, &t_object, r_value);
 	}
-	
+
     return (!ctxt . HasError());
 }
 
@@ -513,26 +518,43 @@ bool MCObject::setprop(MCExecContext& ctxt, uint32_t p_part_id, Properties p_whi
 	// MW-2011-11-23: [[ Array Chunk Props ]] If index is nil or empty, then its just a normal
 	//   prop, else its an array prop.
 	t_is_array_prop = (p_index != nil && !MCNameIsEmpty(p_index));
-	
+
 	MCPropertyInfo *t_info;
-	t_info = lookup_object_property(getpropertytable(), p_which, p_effective == True, t_is_array_prop, kMCPropertyInfoChunkTypeNone);
-	if (t_info == nil)
-		t_info = lookup_object_property(getmodepropertytable(), p_which, p_effective == True, t_is_array_prop, kMCPropertyInfoChunkTypeNone);
-	
+
+    // HXT: 1-slot inline property dispatch cache — shared with the getter.
+    // MCPropertyInfo stores both getter and setter pointers, so the same cached
+    // entry serves both directions.
+    if (!p_effective && !t_is_array_prop
+            && m_ic_prop_key == p_which && m_ic_prop_info != nullptr)
+    {
+        t_info = m_ic_prop_info;
+    }
+    else
+    {
+        t_info = lookup_object_property(getpropertytable(), p_which, p_effective == True, t_is_array_prop, kMCPropertyInfoChunkTypeNone);
+        if (t_info == nil)
+            t_info = lookup_object_property(getmodepropertytable(), p_which, p_effective == True, t_is_array_prop, kMCPropertyInfoChunkTypeNone);
+
+        if (!p_effective && !t_is_array_prop && t_info != nullptr)
+        {
+            m_ic_prop_key  = p_which;
+            m_ic_prop_info = t_info;
+        }
+    }
+
 	if (t_info == nil || t_info -> setter == nil)
 	{
 		MCeerror -> add(EE_OBJECT_SETNOPROP, 0, 0);
 		return false;
 	}
-	
+
 	if (t_is_array_prop)
 	{
-		
 		MCObjectIndexPtr t_object;
 		t_object . object = this;
 		t_object . part_id = p_part_id;
 		t_object . index = p_index;
-		
+
 		MCExecStoreProperty(ctxt, t_info, &t_object, p_value);
 	}
 	else
@@ -540,10 +562,10 @@ bool MCObject::setprop(MCExecContext& ctxt, uint32_t p_part_id, Properties p_whi
 		MCObjectPtr t_object;
 		t_object . object = this;
 		t_object . part_id = p_part_id;
-		
+
 		MCExecStoreProperty(ctxt, t_info, &t_object, p_value);
 	}
-	
+
     return (!ctxt . HasError());
 }
 

@@ -8,7 +8,7 @@ Summary:
 Sets the <lockColorMap> <property> to true, preventing the screen from
 being <redraw|redrawn> when the <color table> is changed.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

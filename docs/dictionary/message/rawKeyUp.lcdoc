@@ -10,11 +10,11 @@ Sent when the user releases any key that was pressed (other than a
 
 Associations: field
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on rawKeyUp theCode -- boldface all asterisks

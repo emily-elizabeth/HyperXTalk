@@ -7,11 +7,11 @@ Syntax: hand
 Summary:
 Equivalent to the number 28.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the cursor to hand
@@ -28,7 +28,7 @@ The following two statements are equivalent:
     
     set the cursor to 28
 
-However, the first is easier to read and understand in OpenXTalk.
+However, the first is easier to read and understand in HyperXTalk.
 
 >*Important:*  If you use the hand cursor or other standard cursors in
 > your application, you must include it when you create your standalone.

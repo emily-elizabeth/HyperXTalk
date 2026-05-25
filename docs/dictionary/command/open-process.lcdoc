@@ -7,7 +7,7 @@ Syntax: open [elevated] process <appName> [for [[{<encoding>] text | binary}] {r
 Summary:
 Starts a program.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

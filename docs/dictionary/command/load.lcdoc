@@ -10,11 +10,11 @@ it can be used by another <handler>.
 
 Associations: internet library
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: network
 
@@ -46,7 +46,7 @@ order to speed up access when using it in an <expression> with the
 
 To use a file that has been downloaded by the <load> <command>, refer
 to it using the <URL> <keyword> as usual. When you request the 
-original <URL>, OpenXTalk uses the <cache|cached> <file> automatically.
+original <URL>, HyperXTalk uses the <cache|cached> <file> automatically.
 
 The <callbackMessage> is sent to the <object(glossary)> whose <script> 
 contains the <load> <command>, after the <URL> is <load|loaded>, so you 
@@ -81,7 +81,7 @@ remove it from the <cache>.
 >*Important:*  The <load> <command> is part of the 
 > <Internet library> on desktop platforms. To ensure that the <command> 
 > works in a desktop <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
@@ -111,7 +111,7 @@ libURLDownloadToFile (command), get (command),
 group (command), function (control structure),
 libURLLastRHHeaders (function), URLEncode (function), files (function),
 libURLErrorData (function), URLStatus (function), cachedURLs (function),
-object (glossary), OpenXTalk custom library (glossary),
+object (glossary), HyperXTalk custom library (glossary),
 application (glossary), standalone application (glossary),
 load (glossary), cache (glossary), command (glossary),
 main stack (glossary), expression (glossary), keyword (glossary), 

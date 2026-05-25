@@ -10,16 +10,16 @@ its showName property is true.
 
 Associations: button, graphic
 
-Introduced: 5.5
+Introduced: 1.0.0
 
 Deprecated:
 In version 7.0 the language was changed to handle unicode
 transparently. This means that language functionality which previously
 aided unicode text manipulation is no longer required. 
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the unicodeLabel of button 1 to tUnicodeString

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #ifndef	__MC_VARIABLE__
 #define	__MC_VARIABLE__
 
@@ -380,7 +364,25 @@ public:
     {}
 
     virtual ~MCVarref();
-    
+
+    // HXT: serialize scope(u8) + index(u16) + dimensions(u8) + dim exprs.
+    // Deserialization is handled specially in MCExpression::hxt_deserialize()
+    // because MCVarref has no default constructor.
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+
+    // HXT deserialization helpers — called from MCExpression::hxt_deserialize()
+    // after the varref is constructed.  Not for general use.
+    void hxt_set_dim1(MCExpression *e)
+    {
+        dimensions = 1;
+        exp = e;
+    }
+    void hxt_set_dims(uint8_t n, MCExpression **ea)
+    {
+        dimensions = n;
+        exps = ea;
+    }
+
     void eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value);
     virtual bool evalcontainer(MCExecContext &ctxt, MCContainer& r_container);
 

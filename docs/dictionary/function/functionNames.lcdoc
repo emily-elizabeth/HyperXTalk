@@ -8,13 +8,13 @@ Syntax: functionNames()
 
 Summary:
 <return|Returns> a list of all built-in <function|functions> in
-<OpenXTalk>. 
+<HyperXTalk>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the functionNames
@@ -28,17 +28,17 @@ The <functionNames> function <return|returns> one <function> name per
 
 Description:
 Use the <functionNames> <function(control structure)> to check whether a
-particular <function(control structure)> already exists in <OpenXTalk>,
+particular <function(control structure)> already exists in <HyperXTalk>,
 to avoid using a <reserved word> for your own <custom function>
 <handler|handlers>. 
 
 The <functionNames> <function(control structure)> <return|returns> all
 the built-in <function(glossary)|functions> that can be used in
-<OpenXTalk>, including synonyms.
+<HyperXTalk>, including synonyms.
 
 References: function (control structure), constantNames (function),
 propertyNames (function), commandNames (function),
 variableNames (function), colorNames (function), handler (glossary),
-OpenXTalk (glossary), custom function (glossary), function (glossary),
+HyperXTalk (glossary), custom function (glossary), function (glossary),
 return (glossary), reserved word (glossary), line (keyword)
 

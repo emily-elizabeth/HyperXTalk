@@ -9,7 +9,7 @@ Puts the current <frame> in the <video grabber> into a <variable>.
 
 Associations: video library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: windows
 
@@ -63,19 +63,19 @@ x 100 <pixels>, but you specify 200 as the <frameWidth> and 100 as the
 >*Important:*  The <revVideoFrameImage> <command> is part of the 
 > <Video library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the
 > "Video Grabber" 
 > library checkbox is checked.
 
 Changes:
-Support for the "Video Grabber" library on Mac OS X ended in OpenXTalk
+Support for the "Video Grabber" library on Mac OS X ended in HyperXTalk
 9.0.
 
 References: revPreviewVideo (command), revRecordVideo (command),
 function (control structure), format (function), value (function),
-OpenXTalk custom library (glossary), property (glossary),
+HyperXTalk custom library (glossary), property (glossary),
 binary file (glossary), variable (glossary), frame (glossary),
 return (glossary), Standalone Application Settings (glossary),
 video grabber (glossary), standalone application (glossary),

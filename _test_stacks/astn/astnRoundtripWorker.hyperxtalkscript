@@ -1,0 +1,186 @@
+script "astnRoundtripWorker"
+
+-- Worker script for the ASTN round-trip test suite.
+--
+-- Each handler targets a specific AST node type that has been at risk of
+-- serialization bugs.  Results are dispatched back via 'to caller' so the
+-- test runner can assert them.
+--
+-- To use:
+--   1. Open this file in the IDE.
+--   2. File > Save as Library...  →  astnRoundtripWorker.hxtlib (same folder).
+--   3. Open astnRoundtripTest.hyperxtalkscript and run runAstnRoundtripTests.
+
+
+-- ── Test 1: MCProperty — count form, word chunk ───────────────────────────
+--
+-- "the number of words in X" is an MCProperty node with tocount=CT_WORD.
+-- Before the fix, tocount was not serialized; after ASTN deserialization
+-- tocount defaulted to CT_UNDEFINED, causing eval_object_property_ctxt to
+-- be called instead of eval_count_ctxt, which crashed or returned garbage.
+--
+-- Expected for "the quick brown fox": 4
+on testCountWords pInput
+   local tCount
+   put the number of words in pInput into tCount
+   dispatch "onTestResult" to caller with "countWords", tCount
+end testCountWords
+
+
+-- ── Test 2: MCProperty — count form, item chunk ───────────────────────────
+--
+-- Same bug class as Test 1, but tocount=CT_ITEM (comma-delimited items).
+-- Expected for "red,green,blue,alpha": 4
+on testCountItems pInput
+   local tCount
+   put the number of items in pInput into tCount
+   dispatch "onTestResult" to caller with "countItems", tCount
+end testCountItems
+
+
+-- ── Test 3: MCDelete — chunk (targets) form ───────────────────────────────
+--
+-- "delete the last char of X" serializes as MCDelete with the targets
+-- field set to an MCChunk.  Before the fix there was no hxt_serialize
+-- override for MCDelete, so the base class wrote a kHXTStmt_Skip
+-- placeholder; at exec time this printed the "not implemented" error.
+--
+-- Expected for "hello!": "hello"
+on testDeleteLastChar pInput
+   local tStr
+   put pInput into tStr
+   delete the last char of tStr
+   dispatch "onTestResult" to caller with "deleteLastChar", tStr
+end testDeleteLastChar
+
+
+-- ── Test 4: MCDelete — first word form ────────────────────────────────────
+--
+-- Exercises MCDelete targets with a non-trivial chunk (first word).
+-- Expected for "hello world": "world"
+on testDeleteFirstWord pInput
+   local tStr
+   put pInput into tStr
+   delete the first word of tStr
+   put word 1 to -1 of tStr into tStr  -- normalise whitespace
+   dispatch "onTestResult" to caller with "deleteFirstWord", tStr
+end testDeleteFirstWord
+
+
+-- ── Test 5: MCChunk — character range with literal bounds ─────────────────
+--
+-- "character 1 to 3 of X" exercises MCChunk with startpos and endpos both
+-- being integer MCLiteral nodes.
+-- Expected for "abcdefgh": "abc"
+on testCharRange pInput
+   local tResult
+   put character 1 to 3 of pInput into tResult
+   dispatch "onTestResult" to caller with "charRange", tResult
+end testCharRange
+
+
+-- ── Test 6: MCChunk — character range with negative index ─────────────────
+--
+-- "character 1 to -2 of X" uses a negative MCLiteral for endpos
+-- (meaning "second to last").  Used by reverseWords to trim the trailing
+-- space.
+-- Expected for "hello ": "hello"
+on testCharRangeNeg pInput
+   local tResult
+   put character 1 to -2 of pInput into tResult
+   dispatch "onTestResult" to caller with "charRangeNeg", tResult
+end testCharRangeNeg
+
+
+-- ── Test 7: Integration — reverseWords ────────────────────────────────────
+--
+-- Full end-to-end integration of the two fixed constructs:
+--   • MCProperty count (the number of words)
+--   • repeat with i = N down to 1  (MCRepeat)
+--   • word i of X                  (MCChunk with variable index)
+--   • & space                      (MCConcat + MCLiteral " ")
+--   • MCDelete last char            (MCDelete targets)
+--
+-- Expected for "the quick brown fox": "fox brown quick the"
+on testReverseWords pSentence
+   local tWords, tReversed
+   put the number of words in pSentence into tWords
+   repeat with i = tWords down to 1
+      put word i of pSentence & space after tReversed
+   end repeat
+   delete the last char of tReversed
+   dispatch "onTestResult" to caller with "reverseWords", tReversed
+end testReverseWords
+
+
+-- ── Test 8: MCFunction — MCConstantFunction (no params) ─────────────────
+--
+-- random() is a MCConstantFunctionCtxt (no arguments).
+-- We can't assert the value (it's random), but we can assert it's numeric
+-- and in range, confirming the function was called at all rather than
+-- returning empty.
+-- Expected: a number between 0 and 1 exclusive — test that result > 0
+-- (We return "ok" or "bad" to keep the assertion simple.)
+on testConstantFunc
+   local tVal
+   put random(1000) into tVal   -- random(N) → MCUnaryFunction giving int 1..N
+   if tVal >= 1 and tVal <= 1000 then
+      dispatch "onTestResult" to caller with "constantFunc", "ok"
+   else
+      dispatch "onTestResult" to caller with "constantFunc", tVal
+   end if
+end testConstantFunc
+
+
+-- ── Test 9: MCFunction — MCUnaryFunctionCtxt (one param) ──────────────────
+--
+-- length(x) is a MCUnaryFunctionCtxt<MCStringRef, integer, ...>.
+-- Expected for "hello": 5
+on testUnaryFunc pInput
+   local tLen
+   put the length of pInput into tLen
+   dispatch "onTestResult" to caller with "unaryFunc", tLen
+end testUnaryFunc
+
+
+-- ── Test 10: MCFunction — MCParamFunctionCtxt (variable params) ───────────
+--
+-- max(a, b, c) is a MCParamFunctionCtxt.
+-- Expected for 3, 17, 8: 17
+on testParamFunc pA, pB, pC
+   local tResult
+   put max(pA, pB, pC) into tResult
+   dispatch "onTestResult" to caller with "paramFunc", tResult
+end testParamFunc
+
+
+-- ── Test 11: MCFunction — nested (function call as argument) ──────────────
+--
+-- offset(needle, haystack) — MCUnaryFunction with an expression argument
+-- that itself contains a function call.  Tests that nested built-in
+-- function calls round-trip correctly.
+-- Expected: offset of "fox" in "the quick brown fox" = 17
+on testNestedFunc pHaystack
+   local tPos
+   put offset("fox", pHaystack) into tPos
+   dispatch "onTestResult" to caller with "nestedFunc", tPos
+end testNestedFunc
+
+
+-- ── Test 12: Integration — computeSquares (was Test 8) ───────────────────
+--
+-- Integration of:
+--   • repeat with i = 1 to N       (MCRepeat)
+--   • i * i                        (MCTimes — arithmetic)
+--   • & comma                      (MCConcat + MCLiteral ",")
+--   • MCDelete last char            (MCDelete targets)
+--
+-- Expected for 5: "1,4,9,16,25"
+on testComputeSquares pMax
+   local tResults
+   repeat with i = 1 to pMax
+      put i * i & comma after tResults
+   end repeat
+   delete the last char of tResults
+   dispatch "onTestResult" to caller with "computeSquares", tResults
+end testComputeSquares

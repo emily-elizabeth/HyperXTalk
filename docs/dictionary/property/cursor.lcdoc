@@ -7,7 +7,7 @@ Syntax: set the cursor to {<cursorName> | <imageID>}
 Summary:
 Specifies the shape of the <cursor>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -32,7 +32,7 @@ example, a watch <cursor(property)> shows the user that a <handler> is
 <execute|executing>, while an I-beam <cursor(property)> indicates that
 the text under the <mouse pointer> is editable.
 
-OpenXTalk looks for the specified image in the following order:
+HyperXTalk looks for the specified image in the following order:
 
 1. The stack of the current object's behavior (if applicable)
 2. The stack of the owner of the current object's behavior (if
@@ -43,7 +43,7 @@ applicable)
 6. The current object's stack's mainstacks substacks
 7. The list of open stacks, in order they were loaded
 
-OpenXTalk includes several built-in cursors whose names you can use in
+HyperXTalk includes several built-in cursors whose names you can use in
 place of their image IDs.
 
 The built-in cursors and their recommended uses are:
@@ -88,14 +88,14 @@ transparent color.
 >*Note:* Alpha-blending support depends on the current screen depth on
 > some platforms.
 
-If the <lockCursor> <property> is set to false, OpenXTalk automatically
+If the <lockCursor> <property> is set to false, HyperXTalk automatically
 sets the <cursor(property)> according to its location once the <handler>
 finishes. (For example, the <cursor(property)> normally turns into an
 arrow over a menu, an I-beam over an editable text <field>, and so on.)
 To retain the <cursor> <property> after a <handler> finishes, use the
 <lock cursor> <command>.
 
-You can force OpenXTalk to use the operating system's cursors with the
+You can force HyperXTalk to use the operating system's cursors with the
 following two statements:
 
     delete stack "revCursors"
@@ -107,7 +107,7 @@ Caution! If you use the <delete stack> command to remove the
 permanently deleted and you will need to <download> a new cursors
 <stack> to restore them.
 
-If you change the set of built-in OpenXTalk cursors in the "revCursors"
+If you change the set of built-in HyperXTalk cursors in the "revCursors"
 stack, you must either quit and restart the application or use the reset
 cursors <command> to begin using the new <cursor(property)> shapes.
 

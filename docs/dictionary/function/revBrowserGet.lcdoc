@@ -11,7 +11,7 @@ Syntax: XBrowser_Get(<propertyName> [, <instanceId>])
 Summary:
 Retrieves a property from the specified browser object.
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 
@@ -81,7 +81,7 @@ The name of the property to retrieve, see below for a full list.
 -   "version": The version of the browser external. If propertyName is
     set to "version" then the instanceId is ignored. This property is
     deprecated and is only available when using the XBrowser_Get
-    synonym. The browser external is now part of OpenXTalk and its
+    synonym. The browser external is now part of HyperXTalk and its
     version is the same as xTalk's version.
 -   "htmlimage": The image data of what is being displayed in the
     browser. This property is deprecated and is only available when

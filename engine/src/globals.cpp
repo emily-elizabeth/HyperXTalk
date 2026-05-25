@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -176,6 +160,10 @@ int2 MCclicklocx;
 int2 MCclicklocy;
 int2 MCmousex;
 int2 MCmousey;
+MCRectangle MCpopoveranchor = {0, 0, 0, 0};
+int MCpopoveredge = 0; // kMCPlatformWindowEdgeBottom
+MCStack *MCpopoverstack = nullptr;
+MCStack *MCpopoverparentstack = nullptr; // stack containing the anchor control
 uint2 MCsiguser1;
 uint2 MCsiguser2;
 int4 MCinputfd = -1;
@@ -234,7 +222,7 @@ char MCrecordinput[5] = "dflt";
 Boolean MCuselzw;
 
 real8 MCinfinity = 0.0;
-char *MCstackbottom;
+thread_local char *MCstackbottom;
 Boolean MCcheckstack = True;
 Boolean MCswapbytes;
 Boolean MCtranslatechars;
@@ -273,16 +261,16 @@ MCCardlist *MCrecent;
 MCCardlist *MCcstack;
 MCDispatch *MCdispatcher;
 MCStackHandle MCtopstackptr;
-MCStackHandle MCdefaultstackptr;
+thread_local MCStackHandle MCdefaultstackptr;
 MCStackHandle MCstaticdefaultstackptr;
 MCStackHandle MCmousestackptr;
 MCStackHandle MCclickstackptr;
 MCStackHandle MCfocusedstackptr;
-MCCardHandle MCdynamiccard;
-Boolean MCdynamicpath;
-MCObjectHandle MCerrorptr;
+thread_local MCCardHandle MCdynamiccard;
+thread_local Boolean MCdynamicpath;
+thread_local MCObjectHandle MCerrorptr;
 MCObjectHandle MCerrorlockptr;
-MCObjectPartHandle MCtargetptr;
+thread_local MCObjectPartHandle MCtargetptr;
 MCGroup *MCsavegroupptr;
 MCObjectHandle MCmenuobjectptr;
 MCGroupHandle MCdefaultmenubar;
@@ -349,7 +337,7 @@ uint2 MCerrorlimit = 1024;
 uint2 MCwmwidth = 20;
 uint2 MCwmheight = 32;
 uint2 MCcharset = 1;
-Boolean MCabortscript;
+thread_local Boolean MCabortscript;
 Boolean MCalarm;
 Boolean MCallowinterrupts = True;
 Boolean MCinterrupt;
@@ -386,10 +374,10 @@ MCVariable *MCeach;
 MCVariable *MCdialogdata;
 MCStringRef MChcstat;
 
-MCVariable *MCresult;
-MCExecResultMode MCresultmode;
+thread_local MCVariable *MCresult;
+thread_local MCExecResultMode MCresultmode;
 MCVariable *MCurlresult;
-Boolean MCexitall;
+thread_local Boolean MCexitall;
 int4 MCretcode;
 Boolean MCrecording;
 #ifdef FEATURE_PLATFORM_RECORDER
@@ -415,7 +403,7 @@ uint2 MClockscreen;
 Boolean MClockcolormap;
 Boolean MClockerrors;
 Boolean MClockmenus;
-Boolean MClockmessages;
+thread_local Boolean MClockmessages;
 Boolean MClockrecent;
 Boolean MCtwelvetime = True;
 Boolean MCuseprivatecmap;
@@ -508,7 +496,7 @@ char *MCsysencoding = nil;
 MCLocaleRef kMCBasicLocale = nil;
 MCLocaleRef kMCSystemLocale = nil;
 
-uint32_t MCactionsrequired = 0;
+thread_local uint32_t MCactionsrequired = 0;
 
 MCArrayRef MCenvironmentvariables;
 

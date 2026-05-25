@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 #include <AclAPI.h>
 
@@ -2354,7 +2338,7 @@ struct MCWindowsDesktop: public MCSystemInterface, public MCWindowsSystemService
     }
 	
 	// Utility function: converts FILETIME to a Unix time
-	static uint32_t FiletimeToUnix(const FILETIME& ft)
+	static uint64_t FiletimeToUnix(const FILETIME& ft)
 	{
 		// Assemble the FILETIME into a 64-bit integer
 		uint64_t u64;
@@ -2367,8 +2351,7 @@ struct MCWindowsDesktop: public MCSystemInterface, public MCWindowsSystemService
 		// Convert from 100ns intervals into seconds
 		u64 /= 10000000;
 
-		// Like all Unix times, this will overflow in 2038
-		return uint32_t(u64);
+		return u64;
 	}
 
 	virtual bool ListFolderEntries(MCStringRef p_folder, MCSystemListFolderEntriesCallback p_callback, void *x_context)

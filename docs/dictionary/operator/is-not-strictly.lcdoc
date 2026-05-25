@@ -8,11 +8,11 @@ Summary:
 Evaluates to true if the actual type of <value> is not the specified
 type. 
 
-Introduced: 8.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 "Hello World!" is not strictly a string -- evaluates to false

@@ -9,11 +9,11 @@ Syntax: version()
 Summary:
 <return|Returns> the <engine|application engine's> version number.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the version into field "Version" of me
@@ -26,17 +26,17 @@ end if
 
 Returns:
 The <version> <function> <return|returns> a string describing the
-version of OpenXTalk running.
+version of HyperXTalk running.
 
 Description:
 Use the <version> function to determine whether the <application>
 supports a particular feature.
 
-The version number belongs to either the OpenXTalk application (if the
-stack is being used with OpenXTalk) or to the running standalone
+The version number belongs to either the HyperXTalk application (if the
+stack is being used with HyperXTalk) or to the running standalone
 application. The engine <version> of a <standalone
 application|standalone> is the same as the <engine> <version> of
-OpenXTalk that was used to create it.
+HyperXTalk that was used to create it.
 
 References: function (control structure), environment (function),
 libURLVersion (function), buildNumber (function), application (glossary),

@@ -20,11 +20,11 @@ Summary:
 <return|Returns> the number of <object|objects> of a certain kind, or
 the number of <chunk|chunks> in a <string>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 repeat for the number of words in inputString

@@ -7,11 +7,11 @@ Syntax: load extension {from file <filePath> | from data <moduleData>} [ with re
 Summary:
 Load a Builder extension.
 
-Introduced: 8.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 load extension from file "packaged_extensions/com.livecodewidget.navbar/module.lcm"
@@ -46,13 +46,13 @@ extension could not be loaded.
 
 Description:
 Use the <load extension> <command> to load a
-<OpenXTalk Builder extension>. If the extension is a library, its
+<HyperXTalk Builder extension>. If the extension is a library, its
 public handlers will be added to the bottom of the message path.
 If it is a widget, it will be available as a control in the tools
 palette to drag out, or to create with the <create widget> <command>.
 
 If the <moduleData> or the data loaded from <filePath> contains more
-than one OpenXTalk Builder module, then the first module is treated as
+than one HyperXTalk Builder module, then the first module is treated as
 the extension's main module and the remaining modules are treated as
 support modules.  Support modules are only kept loaded if they are
 used by the main module.  Support modules' names must begin with the
@@ -60,7 +60,7 @@ name of the main module.
 
 References: unload extension (command), create widget (command),
 loadedExtensions (function), result (function),
-OpenXTalk Builder extension (glossary), command (glossary)
+HyperXTalk Builder extension (glossary), command (glossary)
 
 Changes:
 The ability to load multiple modules in a single <load extension>

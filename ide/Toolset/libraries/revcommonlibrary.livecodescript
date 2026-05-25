@@ -18,7 +18,7 @@ function revTargetStack pWhich
    then put the long id of pWhich into tParse
    else put the long id of the target into tParse
    get wordOffset("stack",tParse)
-
+   
    local tStackName
    put word (it) to (it+1) of tParse into tStackName
    put the short name of tStackName into tStackName
@@ -30,33 +30,24 @@ on revGoURL pUrl
    global gREVWebBrowser
    revSetWindowsShellCommand
    
-   -- revRunningWindowsNT is not used for anything in this handler -- Paul McClernan - 1/11/2022
-   --   local tNT
-   --   put revRunningWindowsNT() into tNT
-   
+   local tNT
+   put revRunningWindowsNT() into tNT
    if "file://" is not in pUrl then
       replace "file:/" with "file:///" in pUrl
    end if
    
    if char 1 to 4 of pUrl is not "file" \
-         and char 1 to 4 of pUrl is not "http" \
-         and char 1 to 7 of pUrl is not "mailto:" \
-         and char 1 to 3 of pUrl is not "ftp" \
-         and char 1 to 4 of pUrl is not "feed" \
-         and char 1 to 11 of pUrl is not "x-man-page:"\
-         and char 1 to 5 of pUrl is not "dav:/"\
-         and char 1 to 5 of pUrl is not "tel:/"\
-         and char 1 to 11 of pUrl is not "facetime://"\
-         and char 1 to 6 of pUrl is not "sms://"\
-   then
-      put "https://" before pUrl
+          and char 1 to 4 of pUrl is not "http" \
+          and char 1 to 7 of pUrl is not "mailto:" \
+          and char 1 to 3 of pUrl is not "ftp" \
+          and char 1 to 4 of pUrl is not "feed" then 
+      put "http://" before pUrl
    end if
+   
    launch url pUrl
 end revGoURL
 
 on revGoPDF pFilename
-   -- This is a good spot for inserting a PDF Widget display
-   -- if no PDF Wiget available then launch with System default PDF Viewer App
   launch document pFilename
 end revGoPDF
 
@@ -77,7 +68,7 @@ command revMailUnicode pTo, pCC, pSubject, pBody
    put urlEncode(pBody) into pBody
    replace "+" with "%20" in pSubject
    replace "+" with "%20" in pBody
-
+   
    local tURL
    if the paramcount is 1 then
       put "mailto:" & pTo into tURL
@@ -86,7 +77,7 @@ command revMailUnicode pTo, pCC, pSubject, pBody
       if pCC is not empty then put true into tCC
       if pSubject is not empty then put true into tSubject
       if pBody is not empty then put true into tBody
-
+      
       put "mailto:" & pTo into tURL
       if tCC then
          if (tURL contains "?Subject=") or (tURL contains "?Body=") then
@@ -114,7 +105,7 @@ command revMailUnicode pTo, pCC, pSubject, pBody
          put "&Content-Type:text/plain;"&"charset=utf-8" after tURL
       end if
    end if
-
+   
    if the platform is not "win32" then
       launch url tURL
    else
@@ -130,6 +121,7 @@ command revMailUnicode pTo, pCC, pSubject, pBody
    end if
 end revMailUnicode
 
+
 function revRunningWindowsNT
   if the platform is not "Win32" then return false
   if word 1 of the systemVersion is "Windows"
@@ -138,10 +130,11 @@ function revRunningWindowsNT
 end revRunningWindowsNT
 
 on revSetWindowsShellCommand
-   if the platform is not "Win32" then exit revSetWindowsShellCommand
-   set the hideConsoleWindows to true
-   set the shellCommand to $COMSPEC -- instead of the environmental variable, could probably use a different shell here.
+  if the platform is not "Win32" then exit revSetWindowsShellCommand
+  set the hideConsoleWindows to true
+  set the shellCommand to $COMSPEC
 end revSetWindowsShellCommand
+
 
 getProp revProfile
   return the cREVGeneral["profile"] of the target
@@ -153,19 +146,19 @@ getProp cREVGeneral[pWhichProp]
       local tRevUniqueID
       put the cREVGeneral["revUniqueID"] of the target into tRevUniqueID
       unlock messages
-
+      
       if tRevUniqueID is empty then
          put the milliseconds into tRevUniqueID
          set the cREVGeneral["revUniqueID"] of the target to tRevUniqueID
       end if
       return tRevUniqueID
    end if
-
+   
    # OK-2009-02-11 : Global not declared...
    global gREVSuppressMessages
    if pWhichProp is not "profile" then if not gREVSuppressMessages or (gREVSuppressMessages and revOKTarget()) then pass cREVGeneral
    lock messages
-
+   
    local tProfile
    put the cREVGeneral["profile"] of the target into tProfile
    if tProfile is empty or tProfile is the cREVGeneral["masterName"] of the target then put "Master" into tProfile
@@ -181,20 +174,20 @@ end revProfile
 setProp cREVGeneral[pWhichProp] pWhichProfile
    local tTarget
    put the long id of the target into tTarget
-
+   
    if pWhichProp is not "profile" and pWhichProp is not "inLineImages" and \
          pWhichProp is not "virtualWidth" and pWhichProp is not "virtualHeight" \
          then pass cREVGeneral
-
+   
    if pWhichProp is "virtualWidth" then
       lock messages
       local tOriginalWidth
       put the cREVGeneral["virtualWidth"] of tTarget into tOriginalWidth
       set the cREVGeneral["virtualWidth"] of tTarget to pWhichProfile
-
+      
       local tDifference
       put tOriginalWidth - pWhichProfile into tDifference
-
+      
       local tRect
       put the rect of stack revTargetStack() into tRect
       put item 3 of tRect + tDifference into item 3 of tRect
@@ -202,7 +195,7 @@ setProp cREVGeneral[pWhichProp] pWhichProfile
       unlock messages
       exit cREVGeneral
    end if
-
+   
    if pWhichProp is "virtualHeight" then
       lock messages
       local tOriginalHeight
@@ -215,7 +208,7 @@ setProp cREVGeneral[pWhichProp] pWhichProfile
       unlock messages
       exit cREVGeneral
    end if
-
+   
    if pWhichProp is "inLineImages" then
       if pWhichProfile is true then
          lock messages
@@ -225,7 +218,7 @@ setProp cREVGeneral[pWhichProp] pWhichProfile
          set the name of the templateGroup to the short name of tTarget&"images"&the number of this cd
          create group
          reset the templateGroup
-
+         
          local tGroupName
          put the short name of tTarget & "images"&the number of this cd into tGroupName
          --now pad the group so it can scroll
@@ -239,14 +232,14 @@ setProp cREVGeneral[pWhichProp] pWhichProfile
          set the scroll of tTarget to 0
          set the cREVGeneral["preInlineText"&the number of this cd] of tTarget to the text of tTarget
          set the itemDel to "/"
-
+         
          local tSubtract
          put 0 into tSubtract
-
+         
          local tFinalExit
          repeat
             if tFinalExit then exit repeat
-
+            
             local tLineCount
             put 0 into tLineCount
             set the scroll of group tGroupName to 0
@@ -258,21 +251,21 @@ setProp cREVGeneral[pWhichProp] pWhichProfile
                   do "put empty into line tLineCount of" && tTarget
                   reset the templateImage
                   set the fileName of the templateImage to item 3 to -1 of l
-
+                  
                   local tFieldName
                   put the short name of tTarget into tFieldName
-
+                  
                   local tTop
                   put (the formattedHeight of line 1 to tLineCount of fld tFieldName + the top of tTarget) into tTop
                   set the width of the templateImage to the formattedWidth of the templateImage
-
+                  
                   local tImageHeight
                   put the formattedHeight of the templateImage into tImageHeight
                   set the height of the templateImage to tImageHeight
                   set the lockLoc of the templateImage to true
                   set the topLeft of the templateImage to the left of tTarget+8,tTop-tSubtract
                   create image in group tGroupName
-
+                  
                   local tNewLines
                   put 0 into tNewLines
                   repeat
@@ -316,7 +309,7 @@ setProp cREVGeneral[pWhichProp] pWhichProfile
          reset the templateButton
          reset the templateImage
          --now pad the group so it can scroll
-
+         
          local tFieldHeight
          put the formattedHeight of fld tFieldName into tFieldHeight
          reset the templateGraphic
@@ -337,17 +330,17 @@ setProp cREVGeneral[pWhichProp] pWhichProfile
       set the cREVGEneral["inLineImages"&the number of this cd] of tTarget to pWhichProfile
       exit cREVGeneral
    end if --inLineImages
-
+   
    -- pWhichProp is "profile"
    global gREVProfileReadOnly, gREVAutoCreateProfiles
    lock screen
    lock messages
-
+   
    local tReturnSet
    put the customPropertySet of tTarget into tReturnSet
    set the cREVGeometryCache["order"] of this card to empty
    if the customkeys["cRevGeometry"] of tTarget is not empty then
-      if "revUpdateGeometry" is in the pendingMessages then
+      if "revUpdateGeometry" is in the pendingMessages then 
          cancel item 1 of line (lineOffset("revUpdateGeometry",the pendingMessages)) of the pendingMessages
       end if
       send "revUpdateGeometry" to stack revTargetStack(tTarget) in 250 milliseconds -- update geometry
@@ -362,7 +355,7 @@ setProp cREVGeneral[pWhichProp] pWhichProfile
       --its in master, going out
       if not gREVProfileReadOnly then
          set the customPropertySet of tTarget to "cREVTempMaster"
-
+         
          local tTempArray
          put the properties of tTarget into tTempArray
          set the customProperties of tTarget to tTempArray
@@ -370,29 +363,29 @@ setProp cREVGeneral[pWhichProp] pWhichProfile
    else
       --its another profile, going into or through master
       set the customPropertySet of tTarget to "cREVMaster"
-
+      
       local tCurrentMasterArray
       if the customKeys["cREVMaster"] of tTarget is not empty then put the customProperties of tTarget into tCurrentMasterArray
       if not gREVProfileReadOnly then
          set the customPropertySet of tTarget to "cREVTempMaster"
-
+         
          local tTempMasterArray
          put the customProperties of tTarget into tTempMasterArray
-
+         
          local tCurrentPropertiesArray
          put the properties of tTarget into tCurrentPropertiesArray
          --compare the temporary master with the current properties
          --any changes:
          --the original tempMaster value gets added to the current master array
          --and the new value gets created in the current profile array
-
+         
          local tCurrentPropertyKeys
          put keys(tCurrentPropertiesArray) into tCurrentPropertyKeys
          set the caseSensitive to true
          repeat for each line l in tCurrentPropertyKeys
             if tTempMasterArray[l] is not tCurrentPropertiesArray[l] then
                put tTempMasterArray[l] into tCurrentMasterArray[l]
-
+               
                local tProfileArray
                put tCurrentPropertiesArray[l] into tProfileArray[l]
             end if
@@ -404,7 +397,7 @@ setProp cREVGeneral[pWhichProp] pWhichProfile
          set the customPropertySet of tTarget to "cREVMaster"
          set the customProperties of tTarget to tCurrentMasterArray
       end if
-
+      
       # MW-2010-10-14: [[ Bug 9060 ]] In 4.5 the 'id' property of objects became mutable - we never
       #    want to set this property as part of a profile, so make sure its never in the array.
       delete variable tCurrentMasterArray["id"]
@@ -414,10 +407,10 @@ setProp cREVGeneral[pWhichProp] pWhichProfile
    if pWhichProfile is not empty and pWhichProfile is not "master" and pWhichProfile is not the cREVGeneral["masterName"] of tTarget then
       set the cREVGeneral["profile"] of tTarget to pWhichProfile
       set the customPropertySet of tTarget to "cREVDiverged"&pWhichProfile
-
+      
       local tTempArray1
       if the customKeys of tTarget is not empty then put the customProperties of tTarget into tTempArray1
-
+      
       # MW-2010-10-14: [[ Bug 9060 ]] In 4.5 the 'id' property of objects became mutable - we never
       #    want to set this property as part of a profile, so make sure its never in the array.
       delete variable tTempArray1["id"]
@@ -429,12 +422,12 @@ setProp cREVGeneral[pWhichProp] pWhichProfile
 end cREVGeneral
 
 function revAppVersion
-  return the version & "DPE"
+  return the version
 end revAppVersion
 
 function revLoadedStacks pWhich
    global gREVShowStacks
-
+   
    local tMainstacks
    put the mainStacks into tMainStacks
    switch pWhich
@@ -447,7 +440,7 @@ function revLoadedStacks pWhich
       default
          put revFilterStacksList(tMainStacks) into tMainStacks
    end switch
-
+   
    local tStacksInMemory
    put empty into tStacksInMemory
    repeat for each line l in tMainStacks
@@ -466,17 +459,11 @@ function revStackNameIsIDEStack pStackName
       return true
    else if pStackName begins with "com.livecode." then
       return true
-   else if pStackName begins with "org.openxtalk." then
-     return true
    else if pStackName is among the lines of revInternal__ListLoadedLibraries() then
       return true
-   else if pStackName begins with "oxt" then
-      return true
-   else if (pStackName begins with "hxt") then
-      return TRUE
    else
       return pStackName begins with "rev"
-   end if
+   end if   
 end revStackNameIsIDEStack
 
 -- MW-2010-09-29: Slight tweak to this so that IDE stacks never appear in lists - regardless of mode.
@@ -486,7 +473,7 @@ function revFilterStacksList pStacks
       if revStackNameIsIDEStack(l) then
          next repeat
       end if
-
+      
       -- This allows a hook function somewhere in the message path to do extra filtering on stacks.
       dispatch function "revHookIsUserStack" to me with the long id of stack l
       if it is not "handled" or the result then
@@ -513,7 +500,7 @@ command revRotatePoly pGraphic, pAngle
     local tSinAngle, tCosAngle
     local tCurrentH, tCurrentV, tTransformedH, tTransformedV
     local tOrigLeft, tOrigTop
-
+    
     lock screen
     lock messages
     if the realPoints of pGraphic is empty then
@@ -548,41 +535,41 @@ end revRotatePoly
 command revRotatePolygonOld pGraphic, pAngle
   local tTopLeft
   put the topLeft of pGraphic into tTopLeft
-
+  
   local tPoints
   put revPoints(pGraphic) into tPoints
-
+  
   local tLoc
   put the loc of pGraphic into tLoc
-
+  
   local tSinAngle
   put sin(pAngle * (pi / 180)) into tSinAngle
-
+  
   local tCosAngle
   put cos(pAngle * (pi / 180)) into tCosAngle
-
+  
   local tLineCount
   put (the number of lines of tPoints) into tLineCount
-
+  
   local tCurrentH, tCurrentV, tTransformedH, tTransformedV, tFinalPoints
   repeat for each line tPoint in tPoints
     if tPoint is empty then
       put empty & return after tFinalPoints
       next repeat
-    end if
-
+    end if 
+    
     put item 1 of tPoint into tCurrentH
     put item 2 of tPoint into tCurrentV
-
+    
     put trunc((tCosAngle * tCurrentH) - (tSinAngle * tCurrentV)) into tTransformedH
     put trunc((tSinAngle * tCurrentH) + (tCosAngle * tCurrentV)) into tTransformedV
     put tTransformedH + (item 1 of line 1 of tPoints) into tCurrentH
     put tTransformedV + (item 2 of line 1 of tPoints) into tCurrentV
-
+    
     put tCurrentH,tCurrentV & return after tFinalPoints
   end repeat
   delete the last char of tFinalPoints
-
+  
   set the points of pGraphic to tFinalPoints
   set the topLeft of pGraphic to tTopLeft
 end revRotatePolygonOld
@@ -592,39 +579,39 @@ end revRotatePolygonOld
 # Returns
 #   A return delimited list of points in the same format as the points property.
 # Description
-#   Note that the return format is different to the old behavior (changed in 2.9-0-dp-1). The
+#   Note that the return format is different to the old behavior (changed in 2.9-0-dp-1). The 
 #   points returned by this function are relative to the centre of the graphic,
 #   unlike the points returned by the engine which are absolute.
 function revPoints pGraphic
   local tNumPoints
   put the number of lines in the points of pGraphic into tNumPoints
-
+  
   local tCentreH
   put item 1 of loc of pGraphic into tCentreH
-
+  
   local tCentreV
   put item 2 of loc of pGraphic into tCentreV
-
+  
   local tPoints
   put the points of pGraphic into tPoints
-
+   
   local tResult
   repeat for each line tPoint in tPoints
     if tPoint is empty then
       put empty & return after tResult
       next repeat
     end if
-
+    
     local tAbsolutePointH
     put item 1 of tPoint into tAbsolutePointH
-
+    
     local tAbsolutePointV
     put item 2 of tPoint into tAbsolutePointV
-
+    
     put tAbsolutePointH - tCentreH & comma & tAbsolutePointV - tCentreV & return after tResult
   end repeat
   delete the last char of tResult
-
+  
   return tResult
 end revPoints
 
@@ -632,7 +619,7 @@ end revPoints
 
 function revUnixFromMacPath thePath
    local numberOfLevels
-
+   
    if char 1 of thePath is colon then -- relative path
       repeat while char 1 of thePath is colon
          delete char 1 of thePath
@@ -651,7 +638,7 @@ function revUnixFromMacPath thePath
       else put "Volumes:" before thePath -- non-startup drives are rooted in the Volumes dir on OS X
       put colon before thePath -- will be transformed to slash
    end if
-
+   
    replace colon with linefeed in thePath
    replace "/" with colon in thePath
    replace linefeed with "/" in thePath
@@ -660,19 +647,19 @@ end revUnixFromMacPath
 
 function revMacFromUnixPath thePath
   local numberOfLevels
-
+  
   -- MW-2008-02-28: [[ Bug 5678 ]] Make sure we resolve the UNIX ~ component as MacOS
   --   paths don't support this
   if char 1 of thePath is "~" then
     local tOldFolder
     put the folder into tOldFolder
-
+    
     set the itemDelimiter to "/"
     set the folder to item 1 of thePath
     put the folder & slash & item 2 to -1 of thePath into thePath
     set the folder to tOldFolder
   end if
-
+  
   replace colon with linefeed in thePath
   if char 1 of thePath is "/" then delete char 1 of thePath
   replace "/" with colon in thePath
@@ -687,7 +674,7 @@ function revMacFromUnixPath thePath
       put ":" before thePath
     end repeat
   end if
-
+  
   if char 1 of thePath is not ":" then
     -- it's an absolute path, so adjust for OS X if necessary
     set the itemDelimiter to ":"
@@ -697,7 +684,10 @@ function revMacFromUnixPath thePath
   return thePath
 end revMacFromUnixPath
 
---- convert Posix style file path to Windows OS path format
+
+
+
+--File transfer functions
 function revWindowsFromUnixPath pUnixPath
   replace "/" with "\" in pUnixPath
   return pUnixPath
@@ -706,18 +696,18 @@ end revWindowsFromUnixPath
 on revCopyFile pSrcFile, pDestFile
    replace "//" with "/" in pSrcFile
    replace "//" with "/" in pDestFile
-
+   
    # If the two paths are identical, this is a no-op as we are replacing the file with itself
    if pSrcFile is pDestFile then
       return empty
    end if
-
+   
    # If the destination is a folder, and its the same folder as the file already resides in, this is also a no-op.
    set the itemDelimiter to slash
    if item 1 to -2 of pSrcFile is pDestFile and there is a folder pDestFile then
       return empty
    end if
-
+   
    if the platform is "MacOS" then
       if "applescript" is in the alternateLanguages then
          if there is a file pDestFile then delete file pDestfile -- overwrite before copying
@@ -733,18 +723,18 @@ on revCopyFile pSrcFile, pDestFile
       else return "Error: AppleScript not installed"
    else if the platform is "Win32" then
       revSetWindowsShellCommand
-
+      
       # OK-2008-03-24 : Bug 6180, standardise the paths so that we can refer to items in them,
       # The paths will get converted back into Windows paths by revWindowsFromUnixPath.
       replace "\" with "/" in pDestFile
       replace "\" with "/" in pSrcFile
-
+      
       if there is a directory pDestFile then
          set the itemDel to "/"
          if char -1 of pDestFile is "/" then
             delete char -1 of pDestFile
          end if
-
+         
          local tDestFileName
          put item -1 of pSrcFile into tDestFileName
          set the itemDel to comma
@@ -766,10 +756,10 @@ on mouseDoubleUp pButtonNo, pTarget
    --pTarget set in suppress messages frontscript
    if pTarget is empty
    then put the long id of the target into pTarget
-
+   
    local tStack
    put revTargetStack(pTarget) into tStack
-
+   
    local tDefaultStack
    put the defaultStack into tDefaultStack
    set the defaultStack to tStack
@@ -800,13 +790,13 @@ on revCopyFolder pSrcFolder, pDestFolder
       if there is a directory pDestFolder then
          set the itemDel to "/"
          if char -1 of pDestFolder is "/" then delete char -1 of pDestFolder
-
+         
          local tLastItemOfSrcFolder
          put item -1 of pSrcFolder into tLastItemofSrcFolder
          put "/" & tLastItemofSrcFolder after pDestFolder
          create directory pDestFolder
       end if
-
+      
       # TH-2008-03-11 : Fix for 5465, should remedy problem with copy sometimes crashing on vista
       # now use robocopy instead of xcopy if operating under vista.
       if the systemVersion is "NT 6.0" then
@@ -814,7 +804,7 @@ on revCopyFolder pSrcFolder, pDestFolder
       else
          get shell ("xcopy /I /E /Y /R" && revWindowsFromUnixPath(quote&pSrcFolder&quote) && revWindowsFromUnixPath(quote&pDestFolder&quote))
       end if
-
+      
    else
       get shell ("cp -rf" && quote&pSrcFolder&quote && quote&pDestFolder&quote)
    end if
@@ -841,13 +831,13 @@ on revCopyFolder__Standalone pSrcFolder, pDestFolder
       if there is a directory pDestFolder then
          set the itemDel to "/"
          if char -1 of pDestFolder is "/" then delete char -1 of pDestFolder
-
+         
          local tLastItemOfSrcFolder
          put item -1 of pSrcFolder into tLastItemofSrcFolder
          put "/" & tLastItemofSrcFolder after pDestFolder
          create directory pDestFolder
       end if
-
+      
       # TH-2008-03-11 : Fix for 5465, should remedy problem with copy sometimes crashing on vista
       # now use robocopy instead of xcopy if operating under vista.
       if the systemVersion is "NT 6.0" then
@@ -855,12 +845,14 @@ on revCopyFolder__Standalone pSrcFolder, pDestFolder
       else
          get shell ("xcopy /I /E /Y /R" && revWindowsFromUnixPath(quote&pSrcFolder&quote) && revWindowsFromUnixPath(quote&pDestFolder&quote))
       end if
-
+      
    else
       get shell ("cp -rf" && quote&pSrcFolder&quote && quote&pDestFolder&quote)
    end if
    return the result
 end revCopyFolder__Standalone
+
+
 
 on revCopyPackage pSrcFolder, pDestFolder
    if the platform is "MacOS" then
@@ -875,13 +867,13 @@ on revCopyPackage pSrcFolder, pDestFolder
       if there is a directory pDestFolder then
          set the itemDel to "/"
          if char -1 of pDestFolder is "/" then delete char -1 of pDestFolder
-
+         
          local tLastItemOfSrcFolder
          put item -1 of pSrcFolder into tLastItemofSrcFolder
          put "/" & tLastItemofSrcFolder after pDestFolder
          create directory pDestFolder
       end if
-
+      
       # TH-2008-03-11 : Fix for 5465, should remedy problem with copy sometimes crashing on vista
       # now use robocopy instead of xcopy if operating under vista.
       if the systemVersion is "NT 6.0" then
@@ -889,8 +881,8 @@ on revCopyPackage pSrcFolder, pDestFolder
       else
          get shell ("xcopy /I /E /Y /R" && revWindowsFromUnixPath(quote&pSrcFolder&quote) && revWindowsFromUnixPath(quote&pDestFolder&quote))
       end if
-
-
+      
+      
    else
       get shell ("cp -rf" && quote&pSrcFolder&quote && quote&pDestFolder&quote)
    end if
@@ -931,8 +923,6 @@ on revMoveFolder pSrcFolder, pDestFolder
    return the result
 end revMoveFolder
 
--- escapes special characters for AS
--- AppleScript also supports macOS classic style paths with ":" (colon) delimiter
 function revPathtoApplescript pPath
    local tApplescript
    put empty into tApplescript
@@ -947,26 +937,26 @@ end revPathtoApplescript
 # the parameters into an absolute file path in case we want to use this in the future.
 private function createCopyFileResult pPath, pDestination
    return empty
-
+   
    local tPath
    put pPath into tPath
    if char 1 of tPath is quote and char -1 of tPath is quote then
       delete char 1 of tPath
       delete char -1 of tPath
    end if
-
+   
    local tIsFilename
    if tPath contains ":" then
       put false into tIsFilename
    else
       put true into tIsFilename
    end if
-
+   
    if not tIsFilename then
       # Assume absolute path and convert
       local tUnixPath
       put revUnixFromMacPath(tPath) into tUnixPath
-
+      
       replace ("\" & quote) with quote in tUnixPath
       replace "\\" with "\" in tUnixPath
       return tUnixPath
@@ -980,7 +970,7 @@ private function createCopyFileResult pPath, pDestination
          put item 1 to -2 of pDestination into tFolder
          set the itemDelimiter to comma
       end if
-
+      
       return tFolder & slash & tPath
    end if
 end createCopyFileResult
@@ -1015,20 +1005,20 @@ private function buildCopyFileApplescript pSrc, pDest, pReplace
    if pSrc is pDest then
       return empty
    end if
-
+   
    # Convert the source path into applescript
    local tSource
    put revPathToAppleScript(pSrc) into tSource
-
+   
    # Get the name of the destination file, this will only be used if pDest was not a folder
    local tName
    set the itemDelimiter to slash
    put item -1 of pDest into tName
-
+   
    # Get the source folder so we can compare it to the destination folder
    local tSourceFolder, tDestinationFolder, tDestWasFolder
    put item 1 to -2 of pSrc into tSourceFolder
-
+   
    # Work out whether the destination is a folder or not
    if there is a folder pDest then
       put pDest into tDestinationFolder
@@ -1037,9 +1027,9 @@ private function buildCopyFileApplescript pSrc, pDest, pReplace
       put item 1 to -2 of pDest into tDestinationFolder
       put false into tDestWasFolder
    end if
-
+   
    local tScript
-
+   
    local tDestination
    if tSourceFolder is tDestinationFolder and tDestWasFolder then
       # If we are copying to the same folder and not renaming the file then either its a no-op, or we let applescript rename the file for us.
@@ -1061,50 +1051,50 @@ private function buildCopyFileApplescript pSrc, pDest, pReplace
    else
       # We are copying to a different folder and also renaming the file.
       put revPathToAppleScript(item 1 to -2 of pDest) into tDestination
-
+      
       local tNewPath
       put revPathToAppleScript(item 1 to -2 of pDest & slash & item -1 of pSrc) into tNewPath
       put merge("tell application [[quote]]Finder[[quote]][[return]][[tab]]duplicate file [[tSource]] to folder [[tDestination]] with replacing[[return]][[tab]]set the name of file [[tNewPath]] to [[quote]][[tName]][[quote]][[return]][[tab]]return the result as text[[return]]end tell") into tScript
    end if
-
+   
    return tScript
 end buildCopyFileApplescript
 
 on revChangeWindowSize pWidth, pHeight, pSlide, pCard, pDelay
    global gREVResizeTime
    -- set total time
-
+   
    local tTotalTime
    if pDelay is not empty then put pDelay into tTotalTime
    else if gREVResizeTime is not empty then put gREVResizeTime into tTotalTime
    else put 250 into tTotalTime
-
+   
    local tWidthTotal, tHeightTotal
    put pWidth - the width of this stack into tWidthTotal
    put pHeight - the height of this stack into tHeightTotal
-
+   
    local tWidthFraction
    if tWidthTotal is 0 then put 0 into tWidthFraction
    else put tTotalTime / tWidthTotal into tWidthFraction
-
+   
    local tHeightFraction
    if tHeightTotal is 0 then put 0 into tHeightFraction
    else put tTotalTime / tHeightTotal into tHeightFraction
    if tWidthFraction is 0 and tHeightFraction is 0 then exit revChangeWindowSize
-
+   
    local tStackBottom
    put the bottom of this stack into tStackBottom
-
+   
    local tStackRight
    put the right of this stack into tStackRight
-
+   
    local tStart
    put the milliseconds into tStart
-
+   
    local tTopLeft
    put item 1 to 2 of the rect of this stack into tTopLeft
    lock messages
-
+   
    local tReturnCard
    if pCard is not empty and (tWidthTotal is not 0 or tHeightTotal is not 0) then
       put the number of this card into tReturnCard
@@ -1114,7 +1104,7 @@ on revChangeWindowSize pWidth, pHeight, pSlide, pCard, pDelay
       repeat
          local tMillisecs
          put the milliseconds into tMillisecs
-
+         
          local tWidthPosition, tHeightPosition
          if tWidthFraction is 0 then put 0 into tWidthPosition
          else put round((tMillisecs - tStart)/tWidthFraction) into tWidthPosition
@@ -1131,15 +1121,15 @@ on revChangeWindowSize pWidth, pHeight, pSlide, pCard, pDelay
 end revChangeWindowSize
 
 on revChangePage
-    -- I wonder what these are about?
+  
 end revChangePage
 
 on revUpdateCellValue
-    -- ?
+  
 end revUpdateCellValue
 
 on revMoveCellDirection
-   -- ?
+  
 end revMoveCellDirection
 
 on revDatabaseError pType, pError, pDataLinkedObject
@@ -1148,10 +1138,10 @@ on revDatabaseError pType, pError, pDataLinkedObject
    if tResult is a number then
       exit revDatabaseError
    end if
-   if tResult is "empty" then
+   if tResult is "empty" then 
       put empty into tResult
    end if
-
+   
    local tErrorMessage
    switch pType
       case "Connect"
@@ -1174,68 +1164,65 @@ on revDatabaseError pType, pError, pDataLinkedObject
          break
       case "ExecuteQuery"
          put "An error resulted for the SQL command in the database:" && short name of pError & cr & "Revdb error:" && tResult into tErrorMessage
-         break
+         break 
       case "EmptyView"
          put "No records returned in the database:" && short name of pError into tErrorMessage
          break
       default
          put "An error has occurred with the database:" && short name of pError & cr & "Revdb error:" && tResult into tErrorMessage
    end switch
-
+   
    answer error tErrorMessage
 end revDatabaseError
 
 function revAnswerFile pType, pPrompt
-   -- KM 4th June 2005
-   -- handler takes file type and brings up answer file with all types listed
-   -- any corrections can be made in one place
-   switch pType
-      case "stack"
-         answer file pPrompt with type "Stacks|hyperxtalk,hyperxtalkscript,livecode,rev,mc,livecodescript,oxtstack,oxtstackscript|RSTK,MSTK,STAK" or type "All Files|"
-         break
-      case "image" -- add svg
-         answer file pPrompt with type "All Picture Files|png,gif,jpg,jpeg,bmp,pct,xbm,xpm,xwd,pbm,ppm,pgm" or type "Portable Network Graphics|png" or type "Joint Photographics Experts Group|jpg,jpeg" or type "Graphics Interchange Format|gif" or type "Windows Bitmap|bmp" or type "Unix Formats|xbm,xpm,xwd,pbm,ppm,pgm" or type "Macintosh PICT - displays on MacOS only|pct" or type "All Files|"
-         break
-      case "quicktime"
-         answer file pPrompt with type "QuickTime Movies|mov" or type "All Files|"
-         break
-      case "audio" -- implement - Paul
-         answer file pPrompt with type "Wave Auidio|wav" or type "Audio Imterchange|aif,aiff" or type "AU (*nix)|au" or type "MP3 Compressed|mp3" or type "All Auidio Files|wav,au,aif,mp3,m4a" or type "All Files|"
-         break
-      case "video"
-      case "text"
-      case "eps"
-      default
-         answer file pPrompt
-         break
-   end switch
-   return it
+  -- KM 4th June 2005
+  -- handler takes file type and brings up answer file with all types listed
+  -- any corrections can be made in one place
+  switch pType
+  case "stack"
+    answer file pPrompt with type "HyperXTalk Stacks|hyperxtalk,hyperxtalkscript,livecode,rev,mc|RSTK,MSTK" or type "All Files|"
+    break
+  case "image"
+    answer file pPrompt with type "All Picture Files|png,gif,jpg,jpeg,bmp,pct,xbm,xpm,xwd,pbm,ppm,pgm" or type "Portable Network Graphics|png" or type "Joint Photographics Experts Group|jpg,jpeg" or type "Graphics Interchange Format|gif" or type "Windows Bitmap|bmp" or type "Unix Formats|xbm,xpm,xwd,pbm,ppm,pgm" or type "Macintosh PICT - displays on MacOS only|pct" or type "All Files|"
+    break
+  case "quicktime"
+    answer file pPrompt with type "QuickTime Movies|mov" or type "All Files|"
+    break
+  case "audio" -- implement later
+  case "video"
+  case "text"
+  case "eps"
+  default
+    answer file pPrompt
+    break
+  end switch
+  return it
 end revAnswerFile
 
 # MJVH 13/09/2006 Adding in the ability to open multiple stacks at once. Thus we need to use fileS instead of file.
 function revAnswerFiles pType, pPrompt
-   switch pType
-      case "stack"
-         answer files pPrompt with type "Stacks|hyperxtalk,hyperxtalkscript,livecode,rev,mc,livecodescript,oxtstack,oxtstackscript|RSTK,MSTK,STAK" or type "All Files|"
-         break
-      case "image"
-         answer files pPrompt with type "All Picture Files|png,gif,jpg,jpeg,bmp,pct,xbm,xpm,xwd,pbm,ppm,pgm" or type "Portable Network Graphics|png" or type "Joint Photographics Experts Group|jpg,jpeg" or type "Graphics Interchange Format|gif" or type "Windows Bitmap|bmp" or type "Unix Formats|xbm,xpm,xwd,pbm,ppm,pgm" or type "Macintosh PICT - displays on MacOS only|pct" or type "All Files|"
-         break
-      case "quicktime"
-         answer files pPrompt with type "QuickTime Movies|mov" or type "All Files|"
-         break
-      case "audio" -- implement - Paul
-         answer files pPrompt with type "Wave Auidio|wav" or type "Audio Imterchange|aif,aiff" or type "AU (*nix)|au" or type "MP3 Compressed|mp3" or type "All Auidio Files|wav,au,aif,mp3,m4a" or type "All Files|"
-         break
-      case "video"
-      case "text"
-      case "eps"
-      default
-         answer files pPrompt
-         break
-   end switch
-   return it
+  switch pType
+  case "stack"
+    answer files pPrompt with type "HyperXTalk Stacks|hyperxtalk,hyperxtalkscript,livecode,rev,mc,livecodescript|RSTK,MSTK" or type "All Files|"
+    break
+  case "image"
+    answer files pPrompt with type "All Picture Files|png,gif,jpg,jpeg,bmp,pct,xbm,xpm,xwd,pbm,ppm,pgm" or type "Portable Network Graphics|png" or type "Joint Photographics Experts Group|jpg,jpeg" or type "Graphics Interchange Format|gif" or type "Windows Bitmap|bmp" or type "Unix Formats|xbm,xpm,xwd,pbm,ppm,pgm" or type "Macintosh PICT - displays on MacOS only|pct" or type "All Files|"
+    break
+  case "quicktime"
+    answer files pPrompt with type "QuickTime Movies|mov" or type "All Files|"
+    break
+  case "audio" -- implement later
+  case "video"
+  case "text"
+  case "eps"
+  default
+    answer files pPrompt
+    break
+  end switch
+  return it
 end revAnswerFiles
+
 
 command scrollUp
    local tScrollValue
@@ -1262,7 +1249,7 @@ command scrollRight
 end scrollRight
 
 # Parameters
-#   pObject : reference to any object that can contain text (field, button, group, card, stack)
+#   pObject : reference to any LiveCode object that can contain text (field, button, group, card, stack)
 #   pSize : The font size to use. If empty, uses default system font size
 #  pStyles : A list of styles to apply (eg bold,italic,underline). If empty, uses system default.
 # Description
@@ -1271,21 +1258,21 @@ end scrollRight
 command revFontApplySystemStyle pObject, pSize, pStyles
    local tFont
    put revFontGetSystemFont() into tFont
-
+   
    local tSize
    if pSize is empty then
       put revFontGetSystemFontSize() into tSize
    else
       put pSize into tSize
    end if
-
+   
    local tStyles
    if pStyles is empty then
       put revFontGetSystemFontStyles() into tStyles
    else
       put pStyles into tStyles
    end if
-
+   
    _revFontApplyStylesToObject pObject, tFont, tSize, tStyles
 end revFontApplySystemStyle
 
@@ -1302,16 +1289,11 @@ function revFontGetSystemFont
          break
          
       case "MacOS X"
-         if "SF Pro Regular" is among the lines of the fontNames then
-            return "SF Pro Regular" -- "San Francisco Pro Text"
-         else
-            return "Lucida Grande"
-         end if
-         
+         return "Lucida Grande"
          break
          
       case "Linux"
-         return "Ubuntu"
+         return "Helvetica"
          break
          
       case "iphone"
@@ -1323,41 +1305,6 @@ function revFontGetSystemFont
          break
          
    end switch
-   -- Default sans-serif font in MacOS
-   -- MacOS (El Capitan and newer) San Francisco
-   -- MacOS (Yosemite) Helvetica Neue
-   -- MacOS (older versions) Lucida Grande
-   -- Please note that ‚Äî although for interface San Francisco is the default
-   -- sans-serif font ‚Äî for web -apple-system will need to be used, as the
-   -- sans-serif fallback will display Helvetica instead of San Francisco.
-   --(this is one of the quirks I mentioned earlier)
-   
-   -- Default sans-serif font in Windows
-   -- The difference between Microsoft Sans Serif and MS Sans Serif is that MS Sans Serif was a
-   -- bitmap/raster font available in 8, 10, 12, 14, 18, and 24 sizes and Microsoft Sans Serif is a TrueType scalable font.
-   
-   -- MS Sans Serif was based on Helvetica and in all versions up to Windows 3.1 it was called Helv.
-   -- Windows (Vista and newer, including Windows 10) Segoe UI
-   -- Windows (XP) Tahoma
-   -- Windows (2000) Microsoft Sans Serif
-   -- Windows (95, NT, Millennium) MS Sans Serif
-   -- Windows (older versions including Windows 3) Helv
-   -- Default sans-serif font in Linux: Many Linux users re-configure defaults to other fonts like Inter UI or others.
-   -- So it‚Äôs almost impossible to accurately mention defaults, except for the Ubuntu distro
-   --  which has its own font as default.
-   -- Red Hat also has commissioned its own fonts Red Hat Display and Red Hat Text.
-   
-   -- Ubuntu - Ubuntu
-   -- Red Hat = Red Hat
-   -- Other distros (Arch Linux, Debian, Fedora etc.) varies, can be DejaVu Sans, Noto Sans, Liberation Sans etc.
-   
-   -- iOS (9 and newer)and iPadOS San Francisco
-   -- iOS (8 and older) Helvetica/Helvetica Neue
-   
-   -- watchOS = San Francisco Compact
-   -- Android (4.0+) Roboto
-   -- Android (older versions) Droid Sans
-   
 end revFontGetSystemFont
 
 function revFontGetSystemFontSize
@@ -1371,23 +1318,23 @@ function revFontGetSystemFontSize
             return 10
          end if
          break
-
+         
       case "MacOS X"
          return 11
          break
-
+         
       case "Linux"
          return 12
          break
-
+         
       case "iphone"
          return 17
          break
-
+      
       case "android"
          return 14
          break
-
+      
    end switch
 end revFontGetSystemFontSize
 
@@ -1400,7 +1347,7 @@ private command _revFontApplyStylesToObject pObject, pFont, pSize, pStyle
    set the textFont of pObject to pFont
    set the textSize of pObject to pSize
    set the textStyle of pObject to pStyle
-
+   
    if word 1 of the name of pObject is "field" then
       set the textFont of char 1 to -1 of pObject to empty
       set the textSize of char 1 to -1  of pObject to empty
@@ -1416,17 +1363,17 @@ end _revFontGetPlatform
 # Duplicated from home stack to make available in standalones for now.
 private function _revEnvironmentPlatform
    local tPlatform
-
+   
    switch the platform
       case "Linux"
          put "Linux" into tPlatform
          break
       case "MacOS"
-         -- if char 1 of the systemVersion is 1 then
-           put "MacOS X" into tPlatform
-         -- else
-         --   put "MacOS Classic" into tPlatform
-         -- end if
+         --         if char 1 of the systemVersion is 1 then
+         put "MacOS X" into tPlatform
+         --         else
+         --         put "MacOS Classic" into tPlatform
+         --      end if
          break
       case "Win32"
          put "Windows" into tPlatform
@@ -1444,7 +1391,7 @@ private function _revEnvironmentPlatform
          put "Unsupported" into tPlatform
          break
    end switch
-
+   
    return tPlatform
 end _revEnvironmentPlatform
 
@@ -1460,11 +1407,11 @@ command revEnsurePath pPath
    if pPath is empty then
       exit revEnsurePath
    end if
-
+   
    if there is a folder pPath or there is a file pPath then
       exit revEnsurePath
    end if
-
+   
    local tPath, tPart
    set the itemDelimiter to slash
    repeat for each item tPart in pPath
@@ -1479,7 +1426,7 @@ end revEnsurePath
 # Function to return license type in 6.0
 function revLicenseType
    if the environment is "development" then
-      return "community" --- return tolower(value("line 3 of revLicenseInfo"))
+      return "community"
    end if
    return the environment
 end revLicenseType
@@ -1505,9 +1452,9 @@ end macVersionLessThan
 #   The "rugged" id of the object. This can be used the same as a long id,
 #   but is slightly more resistant to stuff like objects being grouped, renamed etc.
 #   The script editor uses rugged ids to store object ids when there is a chance that the object
-#   could be renamed or grouped etc.
+#   could be renamed or grouped etc. 
 function revRuggedId pObject
-   # First get the long id of our object. If pObject is a valid object reference we just get the
+   # First get the long id of our object. If pObject is a valid object reference we just get the 
    # object's long id. If its not a valid reference, this does not always mean the object doesn't
    # exist (because of edit group mode), in this case we assume that pObject is the long id of the object
    # we want, and parse it directly to obtain the rugged id, without needing to refer to the actual
@@ -1522,8 +1469,8 @@ function revRuggedId pObject
          put the long id of the target into tObject
       end if
    end if
-
-   # Find out what the name of the stack owning the object is. We are only interested in the
+   
+   # Find out what the name of the stack owning the object is. We are only interested in the 
    # stack that immediately owns the object, which could be a substack. To find this we can
    # simply search from the front and find the first ocurrence of "of stack".
    local tSubStack, tMainstack
@@ -1544,7 +1491,7 @@ function revRuggedId pObject
       end if
       add 1 to tWordNumber
    end repeat
-
+   
    try
       local tStack
       if tSubStack is not empty then
@@ -1553,9 +1500,9 @@ function revRuggedId pObject
          put (the name of stack (char 2 to -2 of tMainStack)) into tStack
       end if
    catch tError
-
+      
    end try
-
+   
    # MW-2008-09-08: [[ Bug 7142 ]] If the hcAddressing of the stack is true, then the long id
    #    is in a different form than this expects. Thus we temporarily fetch it while hcAddressing
    #    is false.
@@ -1564,10 +1511,10 @@ function revRuggedId pObject
       put the long id of pObject into tObject
       set the hcAddressing of tStack to true
    end if
-
+   
    local tType
    put word 1 of tObject into tType
-
+   
    local tId
    if tType is "stack" then
       # With stacks, the name is the most robust way to refer to them. We assume that the stack exists...
@@ -1580,7 +1527,7 @@ function revRuggedId pObject
       # With any other object, the safest thing is to return the object id and the name of its owning stack.
       # For cards we use "card id..." for other objects "control id..". This is significant because when in
       # edit group mode, the group being edited can be referred to as "control id.." but *not* "group id..."
-
+      
       local tPrefix
       if tType is "card" then
          put "card" into tPrefix
@@ -1589,7 +1536,7 @@ function revRuggedId pObject
       end if
       put tPrefix & " id " & word 3 of tObject & " of " & tStack into tId
    end if
-
+   
    return tId
 end revRuggedId
 
@@ -1598,7 +1545,7 @@ function revAbsoluteFolderListing pDirectory
 
    local tFiles
    put files(pDirectory) into tFiles
-
+   
    local tOutput
    repeat for each line tFile in tFiles
       put pDirectory & slash & tFile & return after tOutput
@@ -1611,7 +1558,7 @@ end revAbsoluteFolderListing
 function revCombineFilePaths pPaths, pPaths2
    -- combines file paths based on last item, where duplicates keeps list 1
    set the itemDel to slash
-
+   
    local tPaths
    repeat for each line l in pPaths2
       if the number of words in l is 0 then next repeat
@@ -1621,7 +1568,7 @@ function revCombineFilePaths pPaths, pPaths2
       if the number of words in l is 0 then next repeat
       put l into tPaths[item -1 of l]
    end repeat
-
+   
    local tReturn
    repeat for each element e in tPaths
       put e & cr after tReturn

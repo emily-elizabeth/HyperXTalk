@@ -27,9 +27,5 @@ fi
 fetchBinary
 untarBinary
 buildSrcLibrary
-# copy config.h
-cp -u ${BUILDDIR}/${ARCHIVE_DESTINATION}/build/*.h ${INCLUDE_DIRECTORY}
-# cairo-features.h is maintained in-tree with platform-conditional defines;
-# don't overwrite it with the meson-generated single-platform version.
-#cp -u ${BUILDDIR}/${ARCHIVE_DESTINATION}/build/src/*.h ${INCLUDE_DIRECTORY}
+cp -u ${BUILDDIR}/${ARCHIVE_DESTINATION}/build/src/*.h ${INCLUDE_DIRECTORY}
 

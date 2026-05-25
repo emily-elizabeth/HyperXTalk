@@ -8,9 +8,9 @@ Summary:
 Reports a list of all the network interfaces available on the current
 system. 
 
-Introduced: 4.6.3
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
 Platforms: desktop, server
 

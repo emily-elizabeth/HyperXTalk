@@ -8,7 +8,7 @@ Summary:
 Returns the width, size or bounds of the unicode text drawn with the
 effective font attribute of the given object.
 
-Introduced: 6.5
+Introduced: 1.0.0
 
 Deprecated:
 In version 7.0 the language was changed to handle unicode
@@ -17,9 +17,9 @@ aided unicode text manipulation is no longer required. This function
 should not be used in new code. measureUnicodeText(tText) is equivalent
 to measureText(textDecode(tText, "UTF16" )).
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put measureUnicodeText(theText,me) into theTextWidth

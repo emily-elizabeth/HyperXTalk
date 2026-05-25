@@ -9,11 +9,11 @@ Syntax: numToByte(<numericValue>)
 Summary:
 Returns the byte corresponding to a numeric value in the range 0-255.
 
-Introduced: 4.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 numToByte(65) -- returns a byte with numeric value 65

@@ -9,11 +9,11 @@ Syntax: exit to top
 Summary:
 Halts the current <handler> and all pending <handler|handlers>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if the result is not empty then exit to top -- stop everything

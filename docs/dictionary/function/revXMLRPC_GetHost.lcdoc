@@ -9,11 +9,11 @@ This function returns the target host of an XML-RPC document.
 
 Associations: xml-rpc library
 
-Introduced: 2.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, process
 
@@ -44,7 +44,7 @@ revXMLRPC_CreateRequest (function), return (glossary), host (glossary),
 XML-RPC (glossary), Standalone Application Settings (glossary),
 IP address (glossary), standalone application (glossary),
 XML-RPC document (glossary), function (glossary), domain name (glossary),
-OpenXTalk custom library (glossary), XML-RPC library (library),
+HyperXTalk custom library (glossary), XML-RPC library (library),
 revXMLRPC_Execute (function)
 
 Tags: networking

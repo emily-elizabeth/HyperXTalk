@@ -1,0 +1,47 @@
+Name: notificationPermissionDenied
+
+Type: message
+
+Syntax: notificationPermissionDenied
+
+Summary:
+Sent to the current card of the default stack after the user denies
+notification permission, or when permission has previously been blocked.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- Inform the user how to re-enable notifications manually
+on notificationPermissionDenied
+    answer "Notifications are blocked." & return & \
+        "To enable them, open System Settings → Notifications → " & \
+        the short name of this stack & " and choose Allow."
+end notificationPermissionDenied
+
+Description:
+HyperXTalk fires <notificationPermissionDenied> after a call to
+<requestNotificationPermission> when the operating system confirms that
+the application is not permitted to show notifications. This happens in
+two situations:
+
+1. The user responded to the system permission dialog by choosing "Don't
+   Allow" or equivalent.
+2. The user had previously denied permission, so the system returned the
+   stored "denied" state immediately without showing a dialog.
+
+When permission has been denied, calling <requestNotificationPermission>
+again will not re-show the system dialog. The user must manually enable
+notifications for the application in the OS settings. Scripts that
+handle <notificationPermissionDenied> should guide the user there.
+
+The message is delivered to the current card of the default stack.
+
+References: requestNotificationPermission (command),
+notificationPermissionGranted (message),
+notificationPermission (function), showNotification (command)
+
+Tags: notifications

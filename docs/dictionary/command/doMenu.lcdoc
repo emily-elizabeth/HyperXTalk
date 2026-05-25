@@ -7,7 +7,7 @@ Syntax: doMenu <menuItem> [of menu <menuName>]
 Summary:
 Simulates a choice from a <menu>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -34,7 +34,7 @@ items>. This command is included for compatibility with
 imported <HyperCard> stacks.
 
 References: copy (command), enable menu (command), paste (command),
-OpenXTalk (glossary), command (glossary), menu item (glossary),
+HyperXTalk (glossary), command (glossary), menu item (glossary),
 HyperCard (glossary), menuItem (keyword), menu (keyword)
 
 Tags: menus

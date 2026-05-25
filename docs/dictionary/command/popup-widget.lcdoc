@@ -6,7 +6,7 @@ Syntax: popup widget <kind> [at <location>] [with <properties>]
 
 Summary: Opens a widget within a popup window.
 
-Introduced: 8.0
+Introduced: 1.0.0
 
 OS: mac,windows,linux
 

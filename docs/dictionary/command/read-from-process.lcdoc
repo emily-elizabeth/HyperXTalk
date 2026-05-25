@@ -8,7 +8,7 @@ Summary:
 Accepts the output of a <process> that was opened with the <open
 process> <command>, placing the data in the <it> <variable>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -52,7 +52,7 @@ The <time> is the time to wait for the read to be completed, in
 
 string (string):
 The <string> is any <expression> that <evaluate|evaluates> to a
-<string>. When OpenXTalk encounters the <string> in the <process> output,
+<string>. When HyperXTalk encounters the <string> in the <process> output,
 it stops reading. If the <string> is not encountered, the <read from
 process> <command> continues reading as long as there is data to be
 read.

@@ -1,0 +1,163 @@
+script "astnRoundtripTest"
+
+-- ASTN round-trip test suite.
+--
+-- Verifies that handlers loaded from a compiled .hxtlib file produce the
+-- same results as the source-text version, catching silent semantic loss
+-- during ASTN serialize → deserialize.
+--
+-- Setup:
+--   1. Open astnRoundtripWorker.hyperxtalkscript in the IDE.
+--   2. File > Save as Library... → astnRoundtripWorker.hxtlib (same folder).
+--   3. Open this file.
+--   4. Run  runAstnRoundtripTests  from the message box or a button.
+--
+-- Each test dispatches one handler into the compiled worker.  The worker
+-- dispatches "onTestResult" back with (testName, actualValue).  The
+-- onTestResult handler here compares against the expected value and
+-- tallies pass / fail.  A summary dialog appears when all results are in.
+
+
+local sWorkerLibPath
+local sTestsPending, sPassCount, sFailCount, sFailLog
+
+
+-- ── Lifecycle ─────────────────────────────────────────────────────────────
+
+on openStack
+   set the itemdelimiter to "/"
+   put item 1 to -1 of the filename of me into sWorkerLibPath
+   -- Trim the filename component; keep the folder.
+   put item 1 to -2 of sWorkerLibPath into sWorkerLibPath
+   put sWorkerLibPath & "/astnRoundtripWorker.hxtlib" into sWorkerLibPath
+end openStack
+
+on closeStack
+   if (there is a worker "astnRoundtripWorker") then
+      destroy worker "astnRoundtripWorker"
+   end if
+end closeStack
+
+
+-- ── Entry point ───────────────────────────────────────────────────────────
+
+on runAstnRoundtripTests
+   put 0 into sPassCount
+   put 0 into sFailCount
+   put "" into sFailLog
+
+   -- Twelve individual test dispatches below.
+   put 12 into sTestsPending
+
+   -- Tear down any leftover worker from a previous run.
+   if (there is a worker "astnRoundtripWorker") then
+      destroy worker "astnRoundtripWorker"
+   end if
+   create worker "astnRoundtripWorker" from sWorkerLibPath
+
+   -- Fire all tests.  Results come back asynchronously via onTestResult.
+   dispatch "testCountWords"    to worker "astnRoundtripWorker" with "the quick brown fox"
+   dispatch "testCountItems"    to worker "astnRoundtripWorker" with "red,green,blue,alpha"
+   dispatch "testDeleteLastChar" to worker "astnRoundtripWorker" with "hello!"
+   dispatch "testDeleteFirstWord" to worker "astnRoundtripWorker" with "hello world"
+   dispatch "testCharRange"     to worker "astnRoundtripWorker" with "abcdefgh"
+   dispatch "testCharRangeNeg"  to worker "astnRoundtripWorker" with "hello "
+   dispatch "testReverseWords"  to worker "astnRoundtripWorker" with "the quick brown fox"
+   dispatch "testComputeSquares" to worker "astnRoundtripWorker" with 5
+   -- MCFunction tests (built-in functions)
+   dispatch "testConstantFunc"  to worker "astnRoundtripWorker"
+   dispatch "testUnaryFunc"     to worker "astnRoundtripWorker" with "hello"
+   dispatch "testParamFunc"     to worker "astnRoundtripWorker" with 3, 17, 8
+   dispatch "testNestedFunc"    to worker "astnRoundtripWorker" with "the quick brown fox"
+end runAstnRoundtripTests
+
+
+-- ── Assert helper ─────────────────────────────────────────────────────────
+
+on assertResult pName, pGot, pExpected
+   if pGot is pExpected then
+      add 1 to sPassCount
+   else
+      add 1 to sFailCount
+      put sFailLog & "FAIL  " & pName & return \
+                   & "      got:      [" & pGot & "]" & return \
+                   & "      expected: [" & pExpected & "]" & return \
+          into sFailLog
+   end if
+   subtract 1 from sTestsPending
+   if sTestsPending = 0 then reportResults
+end assertResult
+
+on reportResults
+   local tTotal, tMsg
+   put sPassCount + sFailCount into tTotal
+   put "ASTN round-trip: " & sPassCount & "/" & tTotal & " passed" into tMsg
+   if sFailCount > 0 then
+      put return & return & sFailLog after tMsg
+   end if
+   answer tMsg
+   if (there is a worker "astnRoundtripWorker") then
+      destroy worker "astnRoundtripWorker"
+   end if
+end reportResults
+
+
+-- ── Callbacks — dispatched here by the worker via 'to caller' ─────────────
+
+on onTestResult pName, pResult
+   if pName is "countWords" then
+      -- "the quick brown fox" has 4 words.
+      assertResult pName, pResult, 4
+
+   else if pName is "countItems" then
+      -- "red,green,blue,alpha" has 4 comma-delimited items.
+      assertResult pName, pResult, 4
+
+   else if pName is "deleteLastChar" then
+      -- delete the last char of "hello!" → "hello"
+      assertResult pName, pResult, "hello"
+
+   else if pName is "deleteFirstWord" then
+      -- delete the first word of "hello world" → "world"
+      assertResult pName, pResult, "world"
+
+   else if pName is "charRange" then
+      -- character 1 to 3 of "abcdefgh" → "abc"
+      assertResult pName, pResult, "abc"
+
+   else if pName is "charRangeNeg" then
+      -- character 1 to -2 of "hello " → "hello"
+      assertResult pName, pResult, "hello"
+
+   else if pName is "reverseWords" then
+      -- reverseWords "the quick brown fox" → "fox brown quick the"
+      assertResult pName, pResult, "fox brown quick the"
+
+   else if pName is "computeSquares" then
+      -- squares 1..5 → "1,4,9,16,25"
+      assertResult pName, pResult, "1,4,9,16,25"
+
+   else if pName is "constantFunc" then
+      -- random(1000) should be in range 1..1000
+      assertResult pName, pResult, "ok"
+
+   else if pName is "unaryFunc" then
+      -- length("hello") = 5
+      assertResult pName, pResult, 5
+
+   else if pName is "paramFunc" then
+      -- max(3, 17, 8) = 17
+      assertResult pName, pResult, 17
+
+   else if pName is "nestedFunc" then
+      -- offset("fox", "the quick brown fox") = 17
+      assertResult pName, pResult, 17
+
+   else
+      -- Unknown test name — count as a failure so sTestsPending still drains.
+      add 1 to sFailCount
+      put sFailLog & "FAIL  (unknown test name: " & pName & ")" & return into sFailLog
+      subtract 1 from sTestsPending
+      if sTestsPending = 0 then reportResults
+   end if
+end onTestResult

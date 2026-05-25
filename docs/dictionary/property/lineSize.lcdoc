@@ -12,11 +12,11 @@ the <paint tool|paint tools>, or the thickness of lines and borders of graphic o
 
 Associations: graphic
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the lineSize to 3 -- 3-pixels lines will be used in paint tools

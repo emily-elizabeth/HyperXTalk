@@ -8,11 +8,11 @@ Summary:
 Specifies how long to wait for a <read from socket> or <write to socket>
 <command> to finish before <timeout|timing out>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the socketTimeoutInterval to 100 -- one-tenth of a second
@@ -30,7 +30,7 @@ yet, the <socketTimeout> <message> is sent to the <object(glossary)>
 whose <script> contains the <read from socket> or <write to socket>
 <command>. 
 
-OpenXTalk checks the <socketTimeoutInterval> every time a 
+HyperXTalk checks the <socketTimeoutInterval> every time a 
 <read from socket> or <write to socket> <command> is <execute|executed>, 
 so you can specify different intervals for different <command|commands> 
 by changing the <socketTimeoutInterval> before issuing the <command>.

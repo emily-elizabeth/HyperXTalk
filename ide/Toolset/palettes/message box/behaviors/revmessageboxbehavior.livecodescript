@@ -555,7 +555,10 @@ end __UpdateMessageColors
 // background/font update path. Also nudges the stack chrome so the border
 // picks up the new palette.
 on SystemAppearanceChanged pMode, pWindowColor, pTextColor
-   set the backgroundColor of me to pWindowColor
+   local tBgColor
+   put revIDEColor("palette_background") into tBgColor
+   set the backgroundColor of me to tBgColor
+   set the backgroundColor of this card to tBgColor
    set the foregroundColor of me to pTextColor
    __UpdateMessageColors
 end SystemAppearanceChanged

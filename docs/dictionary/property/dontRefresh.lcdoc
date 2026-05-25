@@ -8,11 +8,11 @@ Summary:
 Specifies whether the last <frame> of a <video clip> remains visible or
 is cleared at the end of the movie.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the dontRefresh of videoclip "Sample Movie" to true

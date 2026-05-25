@@ -7,11 +7,11 @@ Syntax: pi
 Summary:
 Equal to the ratio of a circle's circumference to its diameter.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 get tan((tAngleInDegrees * pi/180) + tSecondAngleInRadians)

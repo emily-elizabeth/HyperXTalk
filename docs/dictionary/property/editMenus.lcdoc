@@ -9,11 +9,11 @@ Specifies that the <menu bar> appears at the top of the <stack window>.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, ios, android
+OS: mac
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the editMenus of this stack to true

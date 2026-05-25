@@ -8,7 +8,7 @@ Summary:
 Specifies the <creator signature> and <type signature|file type> for
 saved <stack file|stack files>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 
@@ -35,7 +35,7 @@ determine which applications (other than the owner) can work with the
 file.
 
 >*Note:* xTalk's <creator signature> is 'OXTk'. The file type for a
-> <stack file> created by OpenXTalk is 'STAK'.
+> <stack file> created by HyperXTalk is 'STAK'.
 
 The <stackFileType> <property> is used to set the <type signature|file
 type> and <creator signature|creator> for <stack file|stack files> your

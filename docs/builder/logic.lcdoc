@@ -1,0 +1,180 @@
+Library: com.livecode.logic
+
+Type: module
+
+Summary: This library consists of the logical operations included in the standard library of Extension Builder.
+
+
+Name: FormatBooleanAsString
+
+Type: statement
+
+Syntax:     format <Operand> as string
+
+Summary: Formats a boolean value as a string
+
+Operand: An expression that evaluates to a boolean value.
+
+The result: "true" or "false"
+
+Example:
+variable tVar as String
+format 1 = 0 as String into tVar
+put "e" into char 3 of tVar -- tVar is "tree"
+
+Description: Use <FormatBooleanAsString> when you want to manipulate a boolean value as text.
+
+
+
+
+Name: BooleanFormattedAsString
+
+Type: operator
+
+Syntax:     <Operand> formatted as string
+
+Summary: Formats a boolean value as a string
+
+Operand: An expression that evaluates to a boolean value.
+
+Returns: "true" or "false"
+
+Example:
+variable tString as String
+variable tBool as Boolean
+put (false is not not true) is false into tBool
+put tBool formatted as string into tString -- tString contains "true"
+
+Description: Use <BooleanFormattedAsString> when you want to manipulate a boolean value as text.
+
+
+
+
+Name: LogicNot
+
+Type: operator
+
+Syntax:     not <Operand>
+
+Summary: Returns the boolean-logical value of the expression 'not <Operand>'
+
+Operand: An expression that evaluates to a boolean value
+
+Returns:
+If the operand expression evaluates to true, the value of the expression is false.
+            Otherwise, the value of the expression is true.
+
+Example:
+variable tBool is bool
+put not not not not true into tBool is true
+
+Tags: Logic
+
+
+
+
+Name: StringParsedAsBoolean
+
+Type: operator
+
+Syntax:     <Operand> parsed as boolean
+
+Summary: Parses a string as a boolean value
+
+Operand: An expression that evaluates to a string.
+
+Returns: true or false
+
+Example:
+variable tString as String
+variable tBool as optional Boolean
+put "false" into tString
+put tString parsed as boolean into tBool -- tBool contains false
+
+Example:
+variable tBool as optional Boolean
+put "flase" parsed as boolean into tBool -- tBool is nothing
+
+Description:
+Use <StringParsedAsBoolean> when you want to determine if a string contains "true" or "false"
+
+>*Note:* Only the strings "true" and "false" will parse to give a boolean value. Any other input will cause an error to be thrown.
+
+
+
+Name: BooleanIsNotEqualToBoolean
+
+Type: operator
+
+Syntax:     <Left> is not <Right>
+
+Summary: Determines whether <Left> and <Right> are equal or not.
+
+Left: An expression which evaluates to a boolean value.
+
+Right: An expression which evaluates to a boolean value.
+
+Returns: Returns true if <Left> evaluates to the opposite boolean value as <Right>.
+
+Example:
+variable tBool is bool
+put true is not false into tBool -- tBool is true
+
+Tags: Logic
+
+
+
+
+Name: BooleanIsEqualToBoolean
+
+Type: operator
+
+Syntax:     <Left> is <Right>
+
+Summary: Determines whether <Left> and <Right> are equal or not.
+
+Left: An expression which evaluates to a boolean value.
+
+Right: An expression which evaluates to a boolean value.
+
+Returns: Returns true if <Left> evaluates to the same value as <Right>.
+
+Example:
+variable tBool is bool
+put true is true into tBool -- tBool is true
+
+Tags: Logic
+
+
+
+
+Name: ParseStringAsBoolean
+
+Type: statement
+
+Syntax:     parse <Operand> as boolean
+
+Summary: Parses a string as a boolean value
+
+Operand: An expression that evaluates to a string.
+
+Returns: true or false
+
+Example:
+variable tString as String
+variable tBool as optional Boolean
+combine ["f", "a", "l", "s" "e"] with "" into tString
+put tString parsed as boolean into tBool -- tBool contains false
+
+Example:
+variable tResult as String
+variable tCheck as optional Boolean
+parse "sdfsdf" as boolean into tCheck
+if tCheck is nothing then
+	put "not a valid boolean" into tResult
+end if
+
+Description:
+Use <StringParsedAsBoolean> when you want to determine if a string contains "true" or "false"
+
+>*Note:* Only the strings "true" and "false" will parse to give a boolean value. Any other input will cause an error to be thrown.

@@ -9,11 +9,11 @@ Syntax: mark cards by finding [<form>] <findString> [in <field>]
 Summary:
 Sets the <mark> <property> of one or more <card|cards> to true.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 mark card "Good & Plenty"

@@ -1,0 +1,66 @@
+Name: iff
+
+Type: function
+
+Syntax: iff(<condition>, <trueResult>, <falseResult>)
+
+Summary:
+<return|Returns> one of two values depending on whether a condition is true or false.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+put iff(x > 0, "positive", "non-positive") into tSign
+
+Example:
+set the textColor of field 1 to iff(tError, red, black)
+
+Example:
+put iff(tCount = 1, "item", "items") into tLabel
+
+Parameters:
+condition:
+A boolean expression that evaluates to true or false.
+
+trueResult:
+The value to return if <condition> is true. This expression is only
+evaluated when <condition> is true.
+
+falseResult:
+The value to return if <condition> is false. This expression is only
+evaluated when <condition> is false.
+
+Returns:
+The <iff> <function> returns <trueResult> if <condition> is true, or
+<falseResult> if <condition> is false.
+
+Description:
+Use the <iff> <function> as a compact way to choose between two values
+based on a condition. It is equivalent to writing:
+
+    if tCondition then
+        put tTrueValue into tResult
+    else
+        put tFalseValue into tResult
+    end if
+
+The <iff> function uses lazy evaluation: only the branch that is
+actually taken is evaluated. This means that if <condition> is true,
+<falseResult> is never evaluated, and vice versa. As a result, side
+effects (such as function calls with side effects) in the non-taken
+branch will not occur.
+
+Note: The name <iff> is chosen to avoid conflict with the reserved
+word `if`. It also corresponds to the logical biconditional ("if and
+only if"), though in common usage it functions as a simple conditional
+expression.
+
+References: function (control structure), if (control structure),
+return (glossary)
+
+Tags: control flow
+

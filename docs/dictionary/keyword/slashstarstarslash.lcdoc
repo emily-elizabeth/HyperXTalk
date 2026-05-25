@@ -9,11 +9,11 @@ Syntax: /**/
 Summary:
 <delimit|Delimits> a <block comment>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local whichPrompt
@@ -26,7 +26,7 @@ Example:
 
 Description:
 Anything between /&ast; and &ast;/ is treated as a
-<comment> and is ignored by OpenXTalk when <execute|executing> the
+<comment> and is ignored by HyperXTalk when <execute|executing> the
 <handler>.
 
 <comment|Comments> are useful for documenting and explaining your code,
@@ -51,7 +51,7 @@ This practice helps you keep long <script|scripts> organized. Similarly,
 a lengthy handler can be made more readable by explanatory comments.
 
 <comment|Comments> can contain any text, including <line(glossary)lines>
-of OpenXTalk scripting. If the code is within a <comment>, it's ignored.
+of HyperXTalk scripting. If the code is within a <comment>, it's ignored.
 You can temporarily remove sections of code for debugging by putting
 those sections inside a <comment>.
 

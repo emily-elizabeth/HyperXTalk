@@ -10,11 +10,11 @@ from the field, and its contents have not changed.
 
 Associations: field
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on exitField -- remove visual signs that the field is being edited

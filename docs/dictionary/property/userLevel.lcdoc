@@ -8,13 +8,13 @@ Summary:
 Has no effect and is included for compatibility with
 imported <HyperCard> stacks.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
 Description:
 In HyperCard, the <userLevel> <property> determines what actions the
-user can perform. In OpenXTalk, there are no separate user levels.
+user can perform. In HyperXTalk, there are no separate user levels.
 
 By default, the <userLevel> <property> is set to 8. (This is greater
 than any of the <value|values> permitted in HyperCard for the
@@ -27,7 +27,7 @@ A handler can set the <userLevel> to any number without causing a
 changed. 
 
 References: edit (command), choose (command), stacks (function),
-property (glossary), OpenXTalk (glossary), behavior (glossary),
+property (glossary), HyperXTalk (glossary), behavior (glossary),
 value (glossary), error (glossary), import (glossary),
 HyperCard (glossary), application (glossary), cantModify (property)
 

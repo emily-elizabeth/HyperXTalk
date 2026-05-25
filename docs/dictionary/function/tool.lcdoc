@@ -9,11 +9,11 @@ Syntax: tool()
 Summary:
 <return|Returns> the name of the currently chosen <tool>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 the tool

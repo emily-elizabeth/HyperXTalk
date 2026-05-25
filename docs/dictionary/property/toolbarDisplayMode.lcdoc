@@ -1,0 +1,55 @@
+Name: displayMode
+
+Type: property
+
+Syntax: set the displayMode of <toolbar> to <mode>
+
+Summary:
+Controls whether toolbar items show their icon, label, or both.
+
+Associations: toolbar
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+set the displayMode of toolbar 1 to "iconAndLabel"
+
+Example:
+set the displayMode of toolbar "editBar" to "iconOnly"
+
+Example:
+put the displayMode of toolbar 1 into tMode
+
+Value:
+The <displayMode> of a <toolbar> is one of the following strings:
+
+- "default" — the platform's default presentation.
+- "iconOnly" — items show only their icon image.
+- "labelOnly" — items show only their text label.
+- "iconAndLabel" — items show both the icon and the label.
+
+By default, the <displayMode> of a newly created <toolbar> is "default".
+
+Description:
+Use the <displayMode> property to control how toolbar items are rendered.
+The visual result depends on the platform.
+
+On macOS, this maps directly to NSToolbar's displayMode property
+(NSToolbarDisplayModeDefault, NSToolbarDisplayModeIconOnly, etc.).
+
+On Windows, icon-only mode hides item label strings; label-only mode
+removes the image list association.
+
+On Linux, this maps to gtk_toolbar_set_style with GTK_TOOLBAR_ICONS,
+GTK_TOOLBAR_TEXT, or GTK_TOOLBAR_BOTH.
+
+This property is saved with the stack and restored when the stack is
+opened.
+
+References: toolbar (object), itemIcon (property), itemLabel (property)
+
+Tags: ui

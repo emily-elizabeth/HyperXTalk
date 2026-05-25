@@ -11,11 +11,11 @@ Selects <record|records> in a <database> according to a <SQL query>.
 
 Associations: database library
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 
@@ -115,7 +115,7 @@ you can check whether the query was successful by checking whether the
 >*Important:*  The <revQueryDatabase> <function> is part of the 
 > <Database library>. To ensure that the <function> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure both the 
 > "Database" library checkbox and those of the database drivers you are 
@@ -127,7 +127,7 @@ The revQueryDatabase synonym was added in version 2.0.
 References: command (glossary), revCloseCursor (command), 
 revDataFromQuery (function), revExecuteSQL (command), 
 function (control structure), revQueryIsAtStart (function), 
-OpenXTalk custom library (glossary), variable (glossary), element (glossary),
+HyperXTalk custom library (glossary), variable (glossary), element (glossary),
 standalone application (glossary), binary file (glossary),
 array (glossary), prepend (glossary), SQL query (glossary),
 record set (glossary), return value (glossary),

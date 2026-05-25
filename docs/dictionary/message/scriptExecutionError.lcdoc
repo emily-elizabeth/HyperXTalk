@@ -8,7 +8,7 @@ Summary:
 The <scriptExecutionError> message is sent to the global script (home
 stack) when an uncaught error is encountered.
 
-Introduced: 4.6.3
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

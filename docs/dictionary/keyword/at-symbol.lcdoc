@@ -9,11 +9,11 @@ The character @ (at sign) is used with a parameter declaration, to
 indicate that a reference to the parameter is passed instead of its
 value. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on setVariable @incomingVar -- notice the @ before the parameter name

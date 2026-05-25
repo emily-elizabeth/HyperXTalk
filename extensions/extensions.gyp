@@ -84,6 +84,7 @@
 				'script-libraries/messageauthentication/messageauthentication.livecodescript',
 				'script-libraries/httpd/httpd.livecodescript',
 				'script-libraries/qr/qr.livecodescript',
+				'script-libraries/shakecontrol/shakecontrol.livecodescript',
 			],
 			
 			'dependencies':
@@ -151,19 +152,13 @@
 				'libraries/timezone/timezone.lcb',
 				'libraries/macstatusmenu/macstatusmenu.lcb',
 				'libraries/macoswindowresizeanimation/macoswindowresizeanimation.lcb',
-				'libraries/macosrequestuserattention/macosrequestuserattention.lcb',
-				'libraries/macoscontacts/macoscontacts.lcb',
-				'libraries/macosdock/macosdock.lcb',
-				'libraries/macosfsevents/macosfsevents.lcb',
-				'libraries/macoskeychain/macoskeychain.lcb',
-				'libraries/macosmenubar/macosmenubar.lcb',
 
 				#'widgets/androidbutton/androidbutton.lcb',  # Android-only, no androidutils on macOS
 				#'widgets/androidfield/androidfield.lcb',    # Android-only
 				#'widgets/html5button/html5button.lcb',
 				'widgets/macbutton/macbutton.lcb',
 				'widgets/mactextfield/mactextfield.lcb',
-				'widgets/iosbutton/iosbutton.lcb',
+				#'widgets/iosbutton/iosbutton.lcb',
 				'widgets/browser/browser.lcb',
 				#’widgets/chart/chart.lcb',
 				#'widgets/checkbox/checkbox.lcb',

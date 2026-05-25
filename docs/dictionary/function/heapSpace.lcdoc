@@ -10,7 +10,7 @@ Summary:
 <return|Returns> the number of free <byte|bytes> in the application heap
 on <Mac OS|Mac OS systems>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 

@@ -8,7 +8,7 @@ Summary:
 Has no effect and is included for compatibility with
 imported <SuperCard> projects.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
@@ -28,4 +28,4 @@ with the set <command>, without creating it first, so this <command> is
 not needed.
 
 References: undefine (command), custom property (glossary),
-SuperCard (glossary), command (glossary), OpenXTalk (glossary)
+SuperCard (glossary), command (glossary), HyperXTalk (glossary)

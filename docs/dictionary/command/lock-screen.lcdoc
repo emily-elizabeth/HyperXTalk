@@ -8,11 +8,11 @@ Summary:
 Sets the <lockScreen> property to true, temporarily preventing the screen
 from being updated.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 lock screen
@@ -55,7 +55,7 @@ A <handler> may need to open a stack and then close it before the
 of objects on the screen. If the screen is locked before these changes 
 occur, the user does not see the changes happen on screen. Locking the 
 screen can prevent user confusion or unsightly screen flashing. It also 
-increases the speed of the handler, since OpenXTalk does not have to 
+increases the speed of the handler, since HyperXTalk does not have to 
 redraw all the intermediate states of the screen.
 
 The <lock screen> command sets the <lockScreen> property to true. When 

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 //
 // Windows notification backend.
 //
@@ -30,11 +14,16 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 //     so that MCPlatformCancelNotification can remove it by ID.
 //
 
-#include "prefix.h"
-#include "mcstring.h"
-#include "notification.h"
+// ── WRL / WinRT and C++ standard headers MUST come first ─────────────────────
+// Windows SDK 10.0.26100.0 wrl/implements.h uses 'string' as a template
+// parameter identifier.  Engine headers pulled in by prefix.h (via w32prefix.h
+// → windows.h and sysdefs.h macros) can corrupt the preprocessor environment
+// in a way that makes MSVC emit C2059 "syntax error: 'string'" inside WRL.
+// Including WRL before any engine header keeps WRL in a clean macro environment.
+#include <string>
+#include <mutex>
+#include <unordered_map>
 
-// ── WRL / WinRT headers ───────────────────────────────────────────────────────
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -49,9 +38,10 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 // Link WinRT bootstrap library (RoInitialize, RoGetActivationFactory, etc.)
 #pragma comment(lib, "runtimeobject.lib")
 
-#include <string>
-#include <mutex>
-#include <unordered_map>
+// ── Engine headers (after WRL to avoid macro pollution) ───────────────────────
+#include "prefix.h"
+#include "mcstring.h"
+#include "notification.h"
 
 using namespace Microsoft::WRL;
 using namespace Microsoft::WRL::Wrappers;

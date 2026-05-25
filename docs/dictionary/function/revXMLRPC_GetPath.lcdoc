@@ -9,11 +9,11 @@ This function returns the target path of an XML-RPC document.
 
 Associations: xml-rpc library
 
-Introduced: 2.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, process
 
@@ -46,6 +46,6 @@ function (control structure), return (glossary), host (glossary),
 XML-RPC (glossary), Standalone Application Settings (glossary),
 XML-RPC document (glossary), standalone application (glossary),
 file path (glossary), function (glossary),
-OpenXTalk custom library (glossary), XML-RPC library (library)
+HyperXTalk custom library (glossary), XML-RPC library (library)
 
 Tags: networking

@@ -9,7 +9,7 @@ Takes incoming data from a <peripheral device|device> that has been
 opened with the <open driver> <command>, and places the data in the <it>
 <variable>. 
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -31,7 +31,7 @@ The start specifies the character or byte position in the device's input
 where you want to begin reading.
 
 string (string):
-When OpenXTalk encounters the string in the data coming in from the
+When HyperXTalk encounters the string in the data coming in from the
 device, it stops reading. If the string is not encountered, the read
 from driver command continues reading as long as there is data to be
 read. 

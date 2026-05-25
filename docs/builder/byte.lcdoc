@@ -1,0 +1,445 @@
+Library: com.livecode.byte
+
+Type: module
+
+Summary: This library consists of the operations on bytes included in the standard library of Extension Builder.
+
+
+Name: DeleteSingletonByteOf
+
+Type: statement
+
+Syntax: 	delete byte <Index> of <Target>
+
+Summary: Deletes the byte of data at index <Index> in <Target>.
+
+Index: An expression which evaluates to a valid integer index of <Target>.
+
+Target: A container of binary data.
+
+Description:
+Replaces the byte at the given index with the empty data.
+
+>*Note:* It is an error if <Index> is out of range.
+
+Tags: Binary
+
+
+
+
+Name: DeleteRangeByteOf
+
+Type: statement
+
+Syntax: 	delete byte <Start> to <Finish> of <Target>
+
+Summary: Deletes the bytes of data between indices <Start> and <Finish> in <Target>.
+
+Start: An expression which evaluates to a valid integer index of <Target>.
+
+Finish: An expression which evaluates to a valid integer index of <Target>.
+
+Target: A container of binary data.
+
+Description:
+Replaces the bytes between the given indices with the empty data.
+
+>*Note:* It is an error if either <Start> or <Finish> are out of range.
+
+Tags: Binary
+
+
+
+
+Name: RepeatForEachByte
+
+Type: iterator
+
+Syntax:     byte <Iterand>
+
+Summary: Repeat over the bytes of some data
+
+Iterand: A container of binary data.
+
+Description: Use repeat for each to perform an operation on each byte of some data. On each iteration, the <Iterand> will contain the next char of the string being iterated over.
+
+Tags: Binary, Control structures
+
+
+
+
+Name: ByteOffset
+
+Type: operator
+
+Syntax:     the ( first | last ) offset of <Needle> in <Target>
+
+Summary: Finds the first or last occurrence of <Needle> within <Target>
+
+Needle: An expression which evaluates to binary data.
+
+Target: An expression which evaluates to binary data.
+
+Returns: Returns the offset of <Needle> in <Target>.
+
+Description: The first (respectively last) offset of <Needle> in <Target> is number of bytes between the first byte of <Target> and the first (respectively last) occurrence of <Needle>. If neither first or last is specified, then the first offset is found. If <Needle> does not occur in <Target>, then the output is 0.
+
+Tags: Binary
+
+
+
+
+Name: FirstByteOf
+
+Type: operator
+
+Syntax: 	the first byte of <Target>
+
+Summary: Designates the first byte of data in <Target>.
+
+Target: An expression which evaluates to binary data.
+
+Description:
+Either locates the first byte for use as the target container of another operation, or evaluates the first byte as the source of another operation.
+
+>*Note:* It is an error if <Target> is empty.
+
+Tags: Binary
+
+
+
+
+Name: ReverseBytesOf
+
+Type: statement
+
+Syntax: 	reverse <Target>
+
+Summary: Reverse binary data
+
+Target: A binary data string
+
+Example:
+variable tForward
+put 5 random bytes into tForward
+
+variable tReversed
+put tForward into tReversed
+reverse tReversed
+
+expect that the first byte of tForward is the last byte of tReversed
+expect that the last byte of tForward is the first byte of tReversed
+
+Description: Reverses the order of bytes in the <Target>.
+
+Tags: Binary
+
+
+
+
+Name: ByteIsInData
+
+Type: operator
+
+Syntax:     <Needle> is in <Target>
+
+Summary: Determines whether <Needle> is in <Target>.
+
+Needle: An expression which evaluates to a single byte of binary data.
+
+Target: An expression which evaluates to binary data.
+
+Returns: True if <Needle> is among the bytes of <Target>, and false otherwise.
+
+Description: >*Note:* It is an error if <Needle> evaluates to data consisting of more than one byte.
+
+Tags: Binary
+
+
+
+
+Name: EndsWithBytes
+
+Type: operator
+
+Syntax:     <Target> ends with <Needle>
+
+Summary: Determines whether <Target> ends with <Needle>.
+
+Needle: An expression which evaluates to binary data.
+
+Target: An expression which evaluates to binary data.
+
+Returns: True if the bytes of <Needle> occur as a final subsequence of the bytes of <Target>, and false otherwise.
+
+Description: >*Note:* Since the empty data is a final subsequence of every sequence of bytes, every sequence of bytes ends with the empty data.
+
+Tags: Binary
+
+
+
+
+Name: BeginsWithBytes
+
+Type: operator
+
+Syntax:     <Target> begins with <Needle>
+
+Summary: Determines whether <Target> begins with <Needle>.
+
+Needle: An expression which evaluates to binary data.
+
+Target: An expression which evaluates to binary data.
+
+Returns: True if the bytes of <Needle> occur as an initial subsequence of the bytes of <Target>, and false otherwise.
+
+Description: >*Note:* Since the empty data is an initial subsequence of every sequence of bytes, every sequence of bytes begins with the empty data.
+
+Tags: Binary
+
+
+
+
+Name: RangeByteOf
+
+Type: operator
+
+Syntax: 	byte <Start> to <Finish> of <Target>
+
+Summary: Designates the bytes of data between indices <Start> and <Finish> in <Target>.
+
+Start: An expression which evaluates to a valid integer index of <Target>.
+
+Finish: An expression which evaluates to a valid integer index of <Target>.
+
+Target: An expression which evaluates to binary data.
+
+Description:
+Either locates the bytes between the given indices for use as the target container of another operation, or evaluates the bytes at the given indices as the source of another operation.
+
+>*Note:* It is an error if either <Start> or <Finish> are out of range.
+
+Tags: Binary
+
+
+
+
+Name: CodeOfByte
+
+Type: operator
+
+Syntax: 	the code of <Target>
+
+Summary: Get the numeric value of a single byte.
+
+Target: A 1-byte binary data value.
+
+Description: Returns the numeric representation of a single byte of binary data.
+
+Tags: Binary
+
+
+
+
+Name: DeleteFirstByteOf
+
+Type: statement
+
+Syntax: 	delete the first byte of <Target>
+
+Summary: Deletes the first byte in <Target>.
+
+Target: A binary data container.
+
+Description:
+Replaces the first byte in <Target> with the empty data.
+
+>*Note:* It is an error if <Target> is the empty data.
+
+Tags: Binary
+
+
+
+
+Name: SingletonByteOf
+
+Type: operator
+
+Syntax: 	byte <Index> of <Target>
+
+Summary: Designates the byte of data at index <Index> in <Target>.
+
+Index: An expression which evaluates to a valid integer index of <Target>.
+
+Target: An expression which evaluates to binary data.
+
+Description:
+Either locates the byte at the given index for use as the target container of another operation, or evaluates the byte at the given index as the source of another operation.
+
+>*Note:* It is an error if <Index> is out of range.
+
+Tags: Binary
+
+
+
+
+Name: ContainsBytes
+
+Type: operator
+
+Syntax:     <Target> contains <Needle>
+
+Summary: Determines whether <Needle> contains <Target>.
+
+Needle: An expression which evaluates to binary data.
+
+Target: An expression which evaluates to binary data.
+
+Returns: True if the bytes of <Needle> occur as a subsequence of the bytes of <Target>, and false otherwise.
+
+Description: >*Note:* Since the empty data is a subsequence of every sequence of bytes, every sequence of bytes contains the empty data.
+
+Tags: Binary
+
+
+
+
+Name: LastByteOf
+
+Type: operator
+
+Syntax: 	the last byte of <Target>
+
+Summary: Designates the first byte of data in <Target>.
+
+Target: An expression which evaluates to binary data.
+
+Description:
+Either locates the first byte for use as the target container of another operation, or evaluates the first byte as the source of another operation.
+
+>*Note:* It is an error if <Target> is empty.
+
+Tags: Binary
+
+
+
+
+Name: DeleteLastByteOf
+
+Type: statement
+
+Syntax: 	delete the last byte of <Target>
+
+Summary: Deletes the last byte in <Target>.
+
+Target: A binary data container.
+
+Description:
+Replaces the last byte in <Target> with the empty data.
+
+>*Note:* It is an error if <Target> is the empty data.
+
+Tags: Binary
+
+
+
+
+Name: ByteOffsetBefore
+
+Type: operator
+
+Syntax:     the ( first | last ) offset of <Needle> before <Before> in <Target>
+
+Summary: Finds the first or last occurrence of <Needle> before a specified index in <Target>.
+
+Needle: An expression which evaluates to binary data.
+
+Target: An expression which evaluates to binary data.
+
+Before: An expression which evaluates to a valid integer index of Target.
+
+Returns: Returns the offset of <Needle> before index <Before> in <Target>.
+
+Description: The first (respectively last) offset of <Needle> in <Target> is number of bytes between the first byte of <Target> and the first (respectively last) occurrence of <Needle> before <Before>. If neither first or last is specified, then the last offset is found. If <Needle> does not occur before <Before> in <Target>, then the output is 0.
+
+Tags: Binary
+
+
+
+
+Name: ByteWithCode
+
+Type: operator
+
+Syntax: 	the byte with code <Value>
+
+Summary: Create a 1-byte data value from a number
+
+Value: The value for the new data value
+
+Description:
+Returns a byte of binary data, created using the given value.  The
+<Value> must be between 0 and 255 (inclusive).
+
+Tags: Binary
+
+
+
+
+Name: ByteOffsetAfter
+
+Type: operator
+
+Syntax: 	the ( first | last ) offset of <Needle> after <After> in <Target>
+
+Summary: Finds the first or last occurrence of <Needle> after a specified index in <Target>
+
+Needle: An expression which evaluates to binary data.
+
+Target: An expression which evaluates to binary data.
+
+After: An expression which evaluates to a valid integer index of Target.
+
+Returns: Returns the offset of <Needle> after index <After> in <Target>.
+
+Description: The first (respectively last) offset of <Needle> in <Target> is number of bytes between byte <After> of <Target> and the first (respectively last) occurrence of <Needle> after <After>. If neither first or last is specified, then the first offset is found. If <Needle> does not occur after <After> in <Target>, then the output is 0.
+
+Tags: Binary
+
+
+
+
+Name: CountBytesOf
+
+Type: operator
+
+Syntax: 	the number of bytes in <Target>
+
+Summary: Counts the number of bytes in <Target>.
+
+Target: An expression which evaluates to binary data.
+
+Returns: The number of bytes in <Target>
+
+Description:
+
+Tags: Binary
+
+
+
+
+Name: RandomBytes
+
+Type: operator
+
+Syntax: 	<Count> random bytes
+
+Summary: Generate random data
+
+Count: Expression evaluating to the number of bytes to generate
+
+Description:
+Generates the requested number of bytes of cryptographic-quality
+random data.
+
+Tags: Binary, Random

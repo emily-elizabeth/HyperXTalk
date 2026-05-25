@@ -8,11 +8,11 @@ Summary:
 Allows the construction of compound <boolean> expressions, which <evaluate> to true 
 if both <operand|operands> are true, false otherwise. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put (1 > 0) and (1 = 0)
@@ -51,18 +51,18 @@ the entire <expression> <evaluate|evaluates> to false. You can combine
 the <logical> <operator|operators> <and>, <or>, and <not> 
 in an <expression>.
 
->*Note:* OpenXTalk uses what is known as "short-circuit evaluation" for
+>*Note:* HyperXTalk uses what is known as "short-circuit evaluation" for
 > <logical> <operator(glossary)|operators>. This means that <leftValue> is
 > <evaluate|evaluated> first. If <leftValue> is false, the <expression>
 > `leftValue and rightValue` is false regardless of what <rightValue> is (because the
 > <expression> <evaluate|evaluates> to false unless both the values are
-> true). In this case, OpenXTalk does not <evaluate> <rightValue>, since
+> true). In this case, HyperXTalk does not <evaluate> <rightValue>, since
 > doing so is not necessary to determine the <value(function)> of <leftValue>
 > or <rightValue>. For example, evaluating the <expression> `asin(2)` normally
 > causes an <execution error> (because 2 is not a legal <argument> for the
 > arc sine function), but <evaluate|evaluating> the <expression> 
 > `(1 = 0) and (asin(2) = 1)` does not cause an error: since `(1 = 0)` is 
-> always false, the whole statement is always false and OpenXTalk never tries 
+> always false, the whole statement is always false and HyperXTalk never tries 
 > to <evaluate> the <asin> <function>.
 
 References: argument (glossary), asin (function), bitAnd (operator), 

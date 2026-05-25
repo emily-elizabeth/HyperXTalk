@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "platform.h"
 #include "globdefs.h"
 #include "filedefs.h"
@@ -30,6 +14,7 @@
 #include "util.h"
 #include "stack.h"
 #include "card.h"
+#include "objptr.h"
 #include "debug.h"
 #include "dispatch.h"
 #include "mccontrol.h"
@@ -681,27 +666,48 @@ void MCPlatformHandleMouseScroll(MCPlatformWindowRef p_window, int p_dx, int p_d
 	t_stack = MCdispatcher -> findstackd(p_window);
 	if (t_stack == nil)
 		return;
-	
+
 	if (!MCmousestackptr.IsBoundTo(t_stack))
 		return;
-	
+
 	MCObject *mfocused;
-	
+
+	// getmfocused() drills through groups to the deepest child under the mouse.
+	// When the mouse is over empty space inside a group (no focused child),
+	// it returns NULL. In that case, do a direct bounds check to find the
+	// frontmost group whose rect contains the current mouse position.
 	mfocused = MCmousestackptr->getcard()->getmfocused();
+	if (mfocused == NULL)
+		mfocused = MCmousestackptr->getcard()->findGroupUnderPoint(MCmousex, MCmousey);
 	if (mfocused == NULL)
 		mfocused = MCmousestackptr -> getcard();
 	if (mfocused == NULL)
 		mfocused = MCmousestackptr;
-	
+
+	// First offer the scroll event to script via the scrollWheel message.
+	// It bubbles naturally up the object hierarchy, so a group script or behavior
+	// will receive it whether the mouse is over a child control or empty space.
+	// pDeltaX/pDeltaY: negative = left/up, positive = right/down.
+	if (p_dx != 0 || p_dy != 0)
+	{
+		Exec_stat t_stat = mfocused->message_with_args(MCM_scroll_wheel, p_dx, p_dy);
+		if (t_stat != ES_PASS && t_stat != ES_NOT_HANDLED)
+			return;
+	}
+
+	// Not handled by script — fall through to the built-in kdown behavior
+	// (fields scroll themselves, scrollbars respond, etc.).
 	if (p_dy != 0)
 		mfocused -> kdown(kMCEmptyString, p_dy < 0 ? XK_WheelUp : XK_WheelDown);
-	
+
 	mfocused = MCmousestackptr->getcard()->getmfocused();
+	if (mfocused == NULL)
+		mfocused = MCmousestackptr->getcard()->findGroupUnderPoint(MCmousex, MCmousey);
 	if (mfocused == NULL)
 		mfocused = MCmousestackptr -> getcard();
 	if (mfocused == NULL)
 		mfocused = MCmousestackptr;
-	
+
 	if (p_dx != 0)
 		mfocused -> kdown(kMCEmptyString, p_dx < 0 ? XK_WheelLeft : XK_WheelRight);
 }

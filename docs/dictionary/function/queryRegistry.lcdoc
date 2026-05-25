@@ -10,7 +10,7 @@ Summary:
 The <queryRegistry> <function> <return|returns> the <value> of an entry
 in the <registry|Windows system registry>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: windows
 

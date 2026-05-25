@@ -1,0 +1,65 @@
+Name: badge
+
+Type: property
+
+Syntax: set the badge of <stack> to <count>
+
+Summary:
+Displays a numeric badge on the application icon.
+
+Associations: stack
+
+Introduced: 1.0.0
+
+OS: mac, windows
+
+Platforms: desktop
+
+Example:
+-- Show a count of unread messages
+set the badge of this stack to the number of lines of tUnreadMessages
+
+Example:
+-- Clear the badge when the window is brought to the front
+on openStack
+    set the badge of this stack to 0
+end openStack
+
+Parameters:
+stack:
+A reference to a stack, or an expression that evaluates to a stack.
+
+count:
+A non-negative integer. Pass 0 to remove the badge entirely.
+Values above 99 are displayed as "99+".
+
+Value:
+The <badge> of a stack returns the integer most recently set.
+The default value is 0 (no badge).
+
+Description:
+Use the <badge> property to show a numeric notification count on the
+application icon. This is a standard convention used by email clients,
+messaging apps, and other tools to indicate pending items without
+requiring the user to switch to the application.
+
+On macOS the count appears as a red label on the application's Dock icon.
+It is process-wide: setting the <badge> on any stack updates the single
+Dock badge for the whole application.
+
+On Windows the count is rendered as a small red circle overlay icon in
+the lower-right corner of the stack's taskbar button. The number is drawn
+in white text automatically — no icon file is required.
+
+Setting <badge> to 0 removes the badge on both platforms.
+
+>*Note:* The <badge> property is not persistent — it is not saved into
+> the stack file. Set it in a `preOpenStack` or `startUp` handler, and
+> update it whenever the underlying count changes.
+
+>*Note:* On Linux the property is accepted without error but has no
+> visual effect.
+
+References: taskbarProgress (property), taskbarOverlayIcon (property)
+
+Tags: windowing

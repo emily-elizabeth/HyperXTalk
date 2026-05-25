@@ -1,3 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\UTIL\WEAK_STUB_MAKER.PY
-call python "..\..\..\util\weak_stub_maker.py" "--foundation" "..\..\..\libfoundation\jvm.stubs" "Debug\x64\obj\libFoundation\src\libfoundationjvm.stubs.cpp"
-if %errorlevel% neq 0 exit /b %errorlevel%

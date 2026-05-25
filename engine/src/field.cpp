@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -37,6 +21,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "debug.h"
 #include "mctheme.h"
 #include "stacklst.h"
+#include "platform.h"
 #include "dispatch.h"
 #include "mode.h"
 #include "globals.h"
@@ -86,6 +71,7 @@ MCPropertyInfo MCField::kProperties[] =
 	DEFINE_RW_OBJ_PROPERTY(P_FIXED_HEIGHT, Bool, MCField, FixedHeight)
 	DEFINE_RW_OBJ_PROPERTY(P_LOCK_TEXT, Bool, MCField, LockText)
 	DEFINE_RW_OBJ_PROPERTY(P_SHARED_TEXT, Bool, MCField, SharedText)
+	DEFINE_RW_OBJ_PROPERTY(P_SPELL_CHECK, Bool, MCField, SpellCheck)
 	DEFINE_RW_OBJ_PROPERTY(P_SHOW_LINES, Bool, MCField, ShowLines)
 	DEFINE_RW_OBJ_PROPERTY(P_HGRID, Bool, MCField, HGrid)
 	DEFINE_RW_OBJ_PROPERTY(P_VGRID, Bool, MCField, VGrid)
@@ -264,10 +250,15 @@ MCField::MCField()
     m_password_field = false;
     m_password_toggle = false;
     m_cancel_button = false;
+    m_spell_check = false;
     m_hint_text = MCValueRetain(kMCEmptyString);
 
     // MM-2014-08-11: [[ Bug 13149 ]] Used to flag if a recompute is required during the next draw.
     m_recompute = false;
+
+    // Spell checking.
+    m_spell_errors = nil;
+    m_spell_error_count = 0;
 
     keyboard_type = kMCInterfaceKeyboardTypeNone;
     return_key_type = kMCInterfaceReturnKeyTypeNone;
@@ -352,12 +343,17 @@ MCField::MCField(const MCField &fref) : MCControl(fref)
 	m_password_field = fref.m_password_field;
     m_password_toggle = fref.m_password_toggle;
     m_cancel_button = fref.m_cancel_button;
+    m_spell_check = false;   // spell errors are not copied; will re-check if needed
 	MCValueRetain(fref.m_hint_text);
 	m_hint_text = fref.m_hint_text;
 	state &= ~CS_KFOCUSED;
 
     // MM-2014-08-11: [[ Bug 13149 ]] Used to flag if a recompute is required during the next draw.
     m_recompute = false;
+
+    // Spell checking — copy constructor does not inherit error state.
+    m_spell_errors = nil;
+    m_spell_error_count = 0;
 }
 
 MCField::~MCField()
@@ -402,6 +398,7 @@ MCField::~MCField()
 
 	MCValueRelease(label);
 	MCValueRelease(m_hint_text);
+    delete[] m_spell_errors;
 }
 
 Chunk_term MCField::gettype() const
@@ -1058,7 +1055,7 @@ Boolean MCField::mdown(uint2 which)
             if (m_password_toggle && MCU_point_in_rect(_passwordToggleIconRect(), mx, my))
             {
                 m_password_field = !m_password_field;
-                message(MCM_password_toggle_clicked);
+                message_with_valueref_args(MCM_password_toggle_clicked, m_password_field ? MCSTR("true") : MCSTR("false"));
                 layer_redrawrect(getfrect());
                 return True;
             }
@@ -2281,6 +2278,54 @@ void MCField::textchanged(void)
 	setstate(True, CS_IN_TEXTCHANGED);
 	message(MCM_text_changed);
 	setstate(False, CS_IN_TEXTCHANGED);
+
+    if (m_spell_check)
+        updateSpellingErrors();
+}
+
+void MCField::clearSpellingErrors(void)
+{
+    delete[] m_spell_errors;
+    m_spell_errors = nil;
+    m_spell_error_count = 0;
+}
+
+void MCField::updateSpellingErrors(void)
+{
+    clearSpellingErrors();
+
+    // Collect the full plain text of the field for spell checking.
+    MCStringRef t_text = nil;
+    if (!exportasplaintext((uinteger_t)0, 0, INT32_MAX, t_text))
+        return;
+    if (MCStringIsEmpty(t_text))
+    {
+        MCValueRelease(t_text);
+        return;
+    }
+
+    // Ask the platform for a list of misspelled character ranges.
+    MCRange *t_ranges = nil;
+    uindex_t t_count = 0;
+    MCPlatformSpellCheckText(t_text, t_ranges, t_count);
+    MCValueRelease(t_text);
+
+    if (t_count == 0)
+        return;
+
+    m_spell_errors = new (nothrow) MCSpellError[t_count];
+    if (m_spell_errors == nil)
+    {
+        delete[] t_ranges;
+        return;
+    }
+    for (uindex_t i = 0; i < t_count; i++)
+    {
+        m_spell_errors[i].start = (findex_t)t_ranges[i].offset;
+        m_spell_errors[i].end   = (findex_t)(t_ranges[i].offset + t_ranges[i].length);
+    }
+    m_spell_error_count = t_count;
+    delete[] t_ranges;
 }
 
 // MW-2012-02-14: [[ FontRefs ]] Update the field's fontref and all its blocks

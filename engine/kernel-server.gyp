@@ -73,14 +73,17 @@
 			[
 				'include',
 				'src',
+				'../hxtlib',
 				'/opt/homebrew/Cellar/openssl@3/3.6.1/include',
+				'../prebuilt/include',
 			],
-			
+
 			'sources':
 			[
 				'<@(engine_common_source_files)',
 				'<@(engine_server_source_files)',
 				'<@(engine_module_source_files)',
+				'../hxtlib/hxtlib.cpp',
 			],
 			
 			'sources!':
@@ -93,6 +96,14 @@
 				[
 					'OS == "linux"',
 					{
+						'sources':
+						[
+							# Linux server needs the same platform stubs as the desktop build.
+							# These symbols (MCPlatformSetBadge, MCPlatformShareContent, etc.)
+							# are only in engine_desktop_source_files, so we add the file here.
+							'src/lnx-core-compat.cpp',
+						],
+
 						'dependencies':
 						[
 							'../thirdparty/libcairo/libcairo.gyp:libcairo',
@@ -137,6 +148,7 @@
 								'$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
 								'$(SDKROOT)/System/Library/Frameworks/IOKit.framework',
 								'$(SDKROOT)/System/Library/Frameworks/Security.framework',
+								'$(SDKROOT)/System/Library/Frameworks/UserNotifications.framework',
 							],
 						},
 					],

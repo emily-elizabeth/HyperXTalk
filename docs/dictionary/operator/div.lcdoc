@@ -8,11 +8,11 @@ Summary:
 Divides one number by another and <return|returns> the <integer> part of
 the result.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 4 div 2 -- evaluates to 2

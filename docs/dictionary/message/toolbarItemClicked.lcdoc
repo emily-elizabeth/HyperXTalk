@@ -1,0 +1,66 @@
+Name: toolbarItemClicked
+
+Type: message
+
+Syntax: toolbarItemClicked <pItemName>
+
+Summary:
+Sent to a toolbar when the user clicks one of its items.
+
+Associations: toolbar
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+on toolbarItemClicked pItemName
+    if pItemName is "saveButton" then
+        save this stack
+    end if
+end toolbarItemClicked
+
+Example:
+on toolbarItemClicked pItemName
+    switch pItemName
+        case "bold"
+            set the textStyle of the selectedChunk to "bold"
+            break
+        case "italic"
+            set the textStyle of the selectedChunk to "italic"
+            break
+        case "underline"
+            set the textStyle of the selectedChunk to "underline"
+            break
+    end switch
+end toolbarItemClicked
+
+Example:
+-- Handle clicks in the stack script to catch all toolbars
+on toolbarItemClicked pItemName
+    dispatch "handle_" & pItemName
+end toolbarItemClicked
+
+Parameters:
+pItemName (string): The name of the toolbar item that was clicked, as
+set when the item was created via <itemLabel>.
+
+Description:
+The <toolbarItemClicked> message is dispatched to a <toolbar> object when
+the user activates one of its button items. The parameter identifies which
+item was clicked by the name originally given to it.
+
+Separator, space, and flexible-space items (those whose <itemStyle> is
+not "button") do not generate this message. Disabled items (where
+<itemEnabled> is false) do not generate this message either.
+
+The message follows the normal HyperXTalk message path: if no handler is
+found in the toolbar's script it travels to the card, the stack, and any
+stack in use.
+
+References: toolbar (object), itemNames (property),
+itemEnabled (property), itemStyle (property)
+
+Tags: ui

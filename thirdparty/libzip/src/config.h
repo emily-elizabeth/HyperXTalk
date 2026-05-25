@@ -19,12 +19,18 @@
 #if defined(_WIN32) || defined(_WIN64)
 
 /* ── Windows / MSVC ────────────────────────────────────────────────────── */
-/* HAVE_CRYPTO tells zip_random_win32.c to include zip_crypto.h, which pulls
-   in zip_crypto_win.h and defines HAVE_SECURE_RANDOM, suppressing the
-   duplicate CryptGenRandom fallback that would otherwise collide with the
-   BCryptGenRandom implementation in zip_crypto_win.c (LNK2005). */
-#define HAVE_CRYPTO
-#define HAVE_WINDOWS_CRYPTO
+/* HAVE_CRYPTO and HAVE_WINDOWS_CRYPTO are intentionally NOT defined here.
+   We exclude all crypto backends (zip_crypto_win.c, zip_source_winzip_aes_*.c)
+   from the build.  Defining HAVE_CRYPTO without those files causes three
+   unresolved-external errors at link time:
+     - zip_source_winzip_aes_decode / zip_source_winzip_aes_encode
+       (referenced by zip_get_encryption_implementation.c under HAVE_CRYPTO)
+     - zip_secure_random
+       (HAVE_CRYPTO → HAVE_SECURE_RANDOM suppresses the CryptGenRandom fallback
+        in zip_random_win32.c, leaving no definition of zip_secure_random)
+   Without HAVE_CRYPTO, zip_random_win32.c provides zip_secure_random via
+   CryptGenRandom (the #ifndef HAVE_SECURE_RANDOM block), and the AES winzip
+   branch in zip_get_encryption_implementation.c is compiled out. */
 #define HAVE__CLOSE
 #define HAVE__DUP
 #define HAVE__FDOPEN

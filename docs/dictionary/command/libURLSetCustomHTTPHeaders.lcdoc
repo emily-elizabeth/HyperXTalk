@@ -9,7 +9,7 @@ Sets the headers to be sent with each request to an <HTTP> <server>.
 
 Associations: internet library
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux, html5
 
@@ -31,7 +31,7 @@ Description:
 Use the <libURLSetCustomHTTPHeaders> <command> to implement an <HTTP>
 method other than GET, POST, DELETE, or PUT.
 
-Whenever OpenXTalk contacts a web server (with the load <command>, the
+Whenever HyperXTalk contacts a web server (with the load <command>, the
 <post> command, or by using an <HTTP> <URL> in an <expression>), the
 <headersList> is sent to the <web server>.
 
@@ -65,7 +65,7 @@ headers set by <libURLSetCustomHTTPHeaders> are used instead.
 >*Important:* The <libURLSetCustomHTTPHeaders> <command> is part of the 
 > <Internet library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
@@ -75,7 +75,7 @@ HTTP 1.1 protocol, see [RFC 2616](https://tools.ietf.org/html/rfc2616).
 
 References: post (command), libURLSetCustomHTTPHeaders (command),
 group (command), libURLLastHTTPHeaders (function),
-OpenXTalk custom library (glossary), application (glossary),
+HyperXTalk custom library (glossary), application (glossary),
 standalone application (glossary), property (glossary),
 web server (glossary), command (glossary), expression (glossary),
 main stack (glossary), Standalone Application Settings (glossary),

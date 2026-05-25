@@ -1,0 +1,88 @@
+Name: toolbar
+
+Type: object
+
+Syntax: toolbar
+
+Summary:
+A native platform toolbar displayed at the top of a stack window.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+create toolbar "mainBar" in this stack
+
+Example:
+-- Build a toolbar from scratch
+create toolbar "mainBar" in this stack
+set the itemLabel["fileNew"]  of toolbar "mainBar" to "New"
+set the itemLabel["fileOpen"] of toolbar "mainBar" to "Open"
+set the itemLabel["fileSave"] of toolbar "mainBar" to "Save"
+set the itemIcon["fileNew"]   of toolbar "mainBar" to "doc.badge.plus"
+set the itemIcon["fileOpen"]  of toolbar "mainBar" to "folder"
+set the itemIcon["fileSave"]  of toolbar "mainBar" to "square.and.arrow.down"
+set the itemNames of toolbar "mainBar" to "fileNew" & return & "fileOpen" & return & "fileSave"
+set the toolbarVisible of toolbar "mainBar" to true
+
+Example:
+on toolbarItemClicked pItemName
+    switch pItemName
+        case "fileNew"
+            doMenu "New Stack"
+            break
+        case "fileSave"
+            save this stack
+            break
+    end switch
+end toolbarItemClicked
+
+Description:
+Use the <toolbar> object type to add a native platform toolbar to a stack
+window. On macOS the toolbar appears as an NSToolbar integrated into the
+window title bar area; on Windows it is rendered as a ToolbarWindow32
+control; on Linux it uses GtkToolbar (GTK 3).
+
+**Creating items**
+
+Items are created by setting the <itemLabel> property for a name that
+does not yet exist in the toolbar. This auto-create behaviour means you
+build up a toolbar's contents incrementally:
+
+    set the itemLabel["saveBtn"] of toolbar "myBar" to "Save"
+
+Once an item exists you can independently set its <itemIcon>,
+<itemTooltip>, <itemEnabled>, and <itemStyle>.
+
+**Ordering and removing items**
+
+Setting the <itemNames> property reorders the toolbar to match the
+supplied newline-delimited list. Items whose names do not appear in the
+list are removed; names in the list that do not correspond to an existing
+item are silently ignored. Use <itemLabel> to create new items first, then
+<itemNames> to arrange them.
+
+**Responding to clicks**
+
+When the user clicks a toolbar button a <toolbarItemClicked> message is
+dispatched to the toolbar object carrying the item name as a parameter.
+The message bubbles up the message path in the normal way.
+
+**Persistence**
+
+Toolbars are first-class objects in the HyperXTalk object hierarchy. They
+are saved with the stack file, including all item names, labels, tooltips,
+icon name strings, enabled states, and styles. Icon images that reference
+stack MCImage objects are resolved by name each time the stack is opened,
+so the image data does not need to be stored separately.
+
+References: toolbarVisible (property), displayMode (property),
+itemNames (property), itemLabel (property),
+itemTooltip (property), itemEnabled (property),
+itemIcon (property), itemStyle (property),
+toolbarItemClicked (message), control (keyword)
+
+Tags: objects, ui

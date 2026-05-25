@@ -8,11 +8,11 @@ Summary:
 Creates an <image>, <EPS>, <audio clip>, or <video clip> and copies the
 contents of a <file> into the <object(glossary)>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Security: disk
 

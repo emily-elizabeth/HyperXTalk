@@ -8,7 +8,7 @@ Summary:
 Specifies the location of the top edge of an <EPS|EPS object's>
 <postScript> code.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

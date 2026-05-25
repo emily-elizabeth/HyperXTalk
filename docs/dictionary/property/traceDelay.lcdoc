@@ -8,7 +8,7 @@ Summary:
 Used by the <debugger|script debugger> to specify how long to wait
 between lines when a <handler> is being traced.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

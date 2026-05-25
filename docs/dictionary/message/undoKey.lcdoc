@@ -8,7 +8,7 @@ Summary:
 Sent when the user presses the <key combination> equivalent to the
 "Undo" <menu item>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -25,8 +25,8 @@ Handle the <undoKey> message if you want to change the normal <Undo>
 process, or prevent use of the <Undo> <keyboard equivalent> without
 changing the menu.
 
-The OpenXTalk development environment traps the <undoKey> <message>,
-unless "Suspend OpenXTalk UI" is turned on in the Development <menu>.
+The HyperXTalk development environment traps the <undoKey> <message>,
+unless "Suspend HyperXTalk UI" is turned on in the Development <menu>.
 This means that the <undoKey> <message> is not received by a <stack> if
 it's running in the <development environment>.
 

@@ -11,7 +11,7 @@ Syntax: XBrowser_NewInstance <pInstanceId>
 Summary:
 Sent when a new browser instance is created.
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 

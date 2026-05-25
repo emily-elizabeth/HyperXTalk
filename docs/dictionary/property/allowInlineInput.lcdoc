@@ -8,7 +8,7 @@ Summary:
 Specifies whether the user can type non-Roman text directly into a
 <field>. 
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows
 
@@ -37,7 +37,7 @@ If the <allowInlineInput> is false, if the <insertion point> is in a
 <field(keyword)> and a double-byte language is currently selected, a
 text-entry <palette> appears where the user can enter the <characters>.
 (This palette is displayed by the operating system's language software,
-not by OpenXTalk.) When the user presses Enter, the <characters> are
+not by HyperXTalk.) When the user presses Enter, the <characters> are
 placed in the <field(keyword)>.
 
 References: palette (command), property (glossary),

@@ -6,8 +6,12 @@
 XCODEBUILD_FILTER ?=
 
 # Build all macOS arm64 prebuilt dependencies in one pass.
-# Replaces the 7-step manual ritual previously documented in BUILD1.md.
-# Requires Homebrew prereqs: openssl@3, libpq, mysql-client.
+# Replaces the manual ritual previously documented in BUILD1.md.
+# Requires Homebrew prereqs: openssl@3, libpq, mysql-client, pixman.
+#
+# Step order matters: build-libcairo is configured to link the repo's own
+# zlib and libpng, so build-libz and build-mac-extras (which produces
+# libpng.a) must run before it.
 prebuilt-mac:
 	@echo "=== Verifying Homebrew prereqs ==="
 	@for formula in openssl@3 libpq mysql-client pixman; do \
@@ -24,11 +28,11 @@ prebuilt-mac:
 	  fi; \
 	done
 	sh prebuilt/scripts/build-libffi-mac-arm64.sh
+	sh prebuilt/scripts/build-libz-mac-arm64.sh
+	sh prebuilt/scripts/build-mac-extras.sh
 	sh prebuilt/scripts/build-libcairo-mac-arm64.sh
 	sh prebuilt/scripts/build-thirdparty-mac-arm64.sh
-	sh prebuilt/scripts/build-libz-mac-arm64.sh
 	sh prebuilt/scripts/build-icu-mac-arm64.sh
-	sh prebuilt/scripts/build-mac-extras.sh
 	sh prebuilt/scripts/build-libpq-mac-arm64.sh
 	sh prebuilt/scripts/build-libmysql-mac-arm64.sh
 	@echo ""
@@ -643,6 +647,50 @@ package-mac-bin:
 	    echo "Embedded HyperXTalkQL.appex."; \
 	else \
 	    echo "Warning: HyperXTalkQL.appex not found; skipping Quick Look extension."; \
+	fi
+	@# ----------------------------------------------------------------
+	@# VLC: bundle libvlc + libvlccore + plugins from VLC.app.
+	@# Must happen before xattr -cr and the re-sign pass so that
+	@# the copied dylibs are included in the final codesign sweep.
+	@# ----------------------------------------------------------------
+	@VLC_APP="/Applications/VLC.app/Contents/MacOS"; \
+	VLC_FW="$(MACBIN_BUNDLE)/Contents/Frameworks"; \
+	VLC_RS="$(MACBIN_BUNDLE)/Contents/Resources"; \
+	if [ -f "$$VLC_APP/lib/libvlc.dylib" ]; then \
+	  echo "Bundling VLC libraries..."; \
+	  mkdir -p "$$VLC_FW" "$$VLC_RS"; \
+	  cp "$$VLC_APP/lib/libvlc.dylib"     "$$VLC_FW/libvlc.dylib"; \
+	  cp "$$VLC_APP/lib/libvlccore.dylib" "$$VLC_FW/libvlccore.dylib"; \
+	  cp -R "$$VLC_APP/plugins" "$$VLC_RS/vlc-plugins"; \
+	  find "$$VLC_RS/vlc-plugins" -name "plugins.dat" -delete; \
+	  echo "Fixing VLC dylib install names..."; \
+	  install_name_tool -id "@executable_path/../Frameworks/libvlc.dylib" \
+	      "$$VLC_FW/libvlc.dylib"; \
+	  install_name_tool -id "@executable_path/../Frameworks/libvlccore.dylib" \
+	      "$$VLC_FW/libvlccore.dylib"; \
+	  OLD_CORE=$$(otool -L "$$VLC_FW/libvlc.dylib" | awk '/libvlccore/{print $$1}'); \
+	  [ -n "$$OLD_CORE" ] && install_name_tool \
+	      -change "$$OLD_CORE" \
+	      "@executable_path/../Frameworks/libvlccore.dylib" \
+	      "$$VLC_FW/libvlc.dylib" || true; \
+	  HYPERXTALK_BIN="$(MACBIN_BUNDLE)/Contents/MacOS/HyperXTalk"; \
+	  OLD_VLC=$$(otool -L "$$HYPERXTALK_BIN" 2>/dev/null | awk '/libvlc\.dylib/{print $$1}'); \
+	  [ -n "$$OLD_VLC" ] && install_name_tool \
+	      -change "$$OLD_VLC" \
+	      "@executable_path/../Frameworks/libvlc.dylib" \
+	      "$$HYPERXTALK_BIN" || true; \
+	  OLD_VLCC=$$(otool -L "$$HYPERXTALK_BIN" 2>/dev/null | awk '/libvlccore\.dylib/{print $$1}'); \
+	  [ -n "$$OLD_VLCC" ] && install_name_tool \
+	      -change "$$OLD_VLCC" \
+	      "@executable_path/../Frameworks/libvlccore.dylib" \
+	      "$$HYPERXTALK_BIN" || true; \
+	  echo "Adding Frameworks rpath so VLC plugins can resolve @rpath/libvlccore.dylib..."; \
+	  install_name_tool -add_rpath "@executable_path/../Frameworks" \
+	      "$$HYPERXTALK_BIN" 2>/dev/null || true; \
+	  echo "VLC bundled successfully."; \
+	else \
+	  echo "WARNING: VLC.app not found at $$VLC_APP — skipping VLC bundling."; \
+	  echo "         Install VLC ARM64 from https://www.videolan.org/ to enable media playback."; \
 	fi
 	@# ----------------------------------------------------------------
 	@# Strip extended attributes (resource forks, Finder info, etc.)

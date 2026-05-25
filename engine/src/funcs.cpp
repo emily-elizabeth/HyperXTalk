@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -157,6 +141,118 @@ void MCArrayEncode::eval_ctxt(MCExecContext& ctxt, MCExecValue& r_value)
     if (!ctxt . HasError())
         r_value . type = kMCExecValueTypeDataRef;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// deleteCredential(service, account)
+
+MCDeleteCredential::~MCDeleteCredential()
+{
+    delete service;
+    delete account;
+}
+
+Parse_stat MCDeleteCredential::parse(MCScriptPoint &sp, Boolean the)
+{
+    if (get2params(sp, &service, &account) != PS_NORMAL)
+    {
+        MCperror->add(PE_DELETECREDENTIAL_BADPARAM, sp);
+        return PS_ERROR;
+    }
+    return PS_NORMAL;
+}
+
+void MCDeleteCredential::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
+{
+    MCAutoStringRef t_service;
+    if (!ctxt.EvalExprAsStringRef(service, EE_DELETECREDENTIAL_BADSERVICE,
+                                  &t_service))
+        return;
+    MCAutoStringRef t_account;
+    if (!ctxt.EvalExprAsStringRef(account, EE_DELETECREDENTIAL_BADACCOUNT,
+                                  &t_account))
+        return;
+
+    MCCredentialsEvalDeleteCredential(ctxt, *t_service, *t_account,
+                                      r_value.bool_value);
+    r_value.type = kMCExecValueTypeBool;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// retrieveCredential(service, account)
+
+MCRetrieveCredential::~MCRetrieveCredential()
+{
+    delete service;
+    delete account;
+}
+
+Parse_stat MCRetrieveCredential::parse(MCScriptPoint &sp, Boolean the)
+{
+    if (get2params(sp, &service, &account) != PS_NORMAL)
+    {
+        MCperror->add(PE_RETRIEVECREDENTIAL_BADPARAM, sp);
+        return PS_ERROR;
+    }
+    return PS_NORMAL;
+}
+
+void MCRetrieveCredential::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
+{
+    MCAutoStringRef t_service;
+    if (!ctxt.EvalExprAsStringRef(service, EE_RETRIEVECREDENTIAL_BADSERVICE,
+                                  &t_service))
+        return;
+    MCAutoStringRef t_account;
+    if (!ctxt.EvalExprAsStringRef(account, EE_RETRIEVECREDENTIAL_BADACCOUNT,
+                                  &t_account))
+        return;
+
+    MCCredentialsEvalRetrieveCredential(ctxt, *t_service, *t_account,
+                                        r_value.stringref_value);
+    r_value.type = kMCExecValueTypeStringRef;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// storeCredential(service, account, secret)
+
+MCStoreCredential::~MCStoreCredential()
+{
+    delete service;
+    delete account;
+    delete secret;
+}
+
+Parse_stat MCStoreCredential::parse(MCScriptPoint &sp, Boolean the)
+{
+    if (get3params(sp, &service, &account, &secret) != PS_NORMAL || secret == NULL)
+    {
+        MCperror->add(PE_STORECREDENTIAL_BADPARAM, sp);
+        return PS_ERROR;
+    }
+    return PS_NORMAL;
+}
+
+void MCStoreCredential::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
+{
+    MCAutoStringRef t_service;
+    if (!ctxt.EvalExprAsStringRef(service, EE_STORECREDENTIAL_BADSERVICE,
+                                  &t_service))
+        return;
+    MCAutoStringRef t_account;
+    if (!ctxt.EvalExprAsStringRef(account, EE_STORECREDENTIAL_BADACCOUNT,
+                                  &t_account))
+        return;
+    MCAutoStringRef t_secret;
+    if (!ctxt.EvalExprAsStringRef(secret, EE_STORECREDENTIAL_BADSECRET,
+                                  &t_secret))
+        return;
+
+    MCCredentialsEvalStoreCredential(ctxt, *t_service, *t_account, *t_secret,
+                                     r_value.bool_value);
+    r_value.type = kMCExecValueTypeBool;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 MCBaseConvert::~MCBaseConvert()
 {
@@ -749,6 +845,43 @@ void MCInsertScripts::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
     r_value . type = kMCExecValueTypeStringRef;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// MCIff - iff(condition, trueResult, falseResult)
+// Lazy conditional: evaluates and returns trueResult if condition is true,
+// falseResult otherwise. Only the taken branch is evaluated.
+
+MCIff::~MCIff()
+{
+    delete condition;
+    delete true_expr;
+    delete false_expr;
+}
+
+Parse_stat MCIff::parse(MCScriptPoint &sp, Boolean the)
+{
+    if (get3params(sp, &condition, &true_expr, &false_expr) != PS_NORMAL)
+    {
+        MCperror->add(PE_IFF_BADPARAM, sp);
+        return PS_ERROR;
+    }
+    return PS_NORMAL;
+}
+
+void MCIff::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
+{
+    bool t_cond;
+    if (!ctxt.EvalExprAsBool(condition, EE_IFF_BADCONDITION, t_cond))
+        return;
+
+    MCValueRef t_result;
+    if (!ctxt.EvalExprAsValueRef(t_cond ? true_expr : false_expr, EE_IFF_BADRESULT, t_result))
+        return;
+
+    MCExecTypeSetValueRef(r_value, t_result);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 MCIntersect::~MCIntersect()
 {

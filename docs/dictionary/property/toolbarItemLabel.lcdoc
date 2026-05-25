@@ -1,0 +1,63 @@
+Name: itemLabel
+
+Type: property
+
+Syntax: get the itemLabel[<name>] of <toolbar>
+Syntax: set the itemLabel[<name>] of <toolbar> to <labelString>
+
+Summary:
+The visible text label of a named toolbar item. Setting the label for a
+new name auto-creates that item.
+
+Associations: toolbar
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+set the itemLabel["saveButton"] of toolbar 1 to "Save"
+
+Example:
+set the itemLabel["newDoc"] of toolbar "mainBar" to "New"
+
+Example:
+put the itemLabel["saveButton"] of toolbar 1 into tLabel
+
+Value:
+The <itemLabel> of a toolbar item is a string. The default value is the
+empty string.
+
+Description:
+Use the <itemLabel> property to get or set the text shown on a toolbar
+item. The label appears below (or instead of) the item's icon depending
+on the toolbar's <displayMode>.
+
+**Auto-creating items**
+
+Setting <itemLabel> for a name that does not yet exist in the toolbar
+automatically creates a new button item with that name and label. This is
+the primary way to add items to a toolbar:
+
+    set the itemLabel["fileNew"]  of toolbar "myBar" to "New"
+    set the itemLabel["fileOpen"] of toolbar "myBar" to "Open"
+    set the itemLabel["fileSave"] of toolbar "myBar" to "Save"
+
+After creating items you can set their <itemIcon>, <itemTooltip>,
+<itemEnabled>, and <itemStyle>, then arrange them with <itemNames>.
+
+**Updating existing items**
+
+Setting <itemLabel> on an existing item changes its label immediately on
+a visible toolbar. The item's name is unaffected.
+
+On macOS, the label is applied to both NSToolbarItem's label and
+paletteLabel properties. On Windows it updates the button string in the
+toolbar's string table. On Linux it calls gtk_tool_button_set_label.
+
+References: toolbar (object), displayMode (property),
+itemNames (property), itemIcon (property), itemTooltip (property)
+
+Tags: ui

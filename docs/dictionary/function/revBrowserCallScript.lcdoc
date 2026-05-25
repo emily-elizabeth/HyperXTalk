@@ -7,7 +7,7 @@ Syntax: revBrowserCallScript(<instanceId>, <functionName> [, <functionParameter>
 Summary:
 Calls a web script function in the current browser object
 
-Introduced: 3.5
+Introduced: 1.0.0
 
 OS: mac, windows
 

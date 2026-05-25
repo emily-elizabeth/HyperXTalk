@@ -10,11 +10,11 @@ Summary:
 Reports the <stacks> that have been placed in the <message path> by the
 <start using> <command>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if the short name of this stack is not among the lines \

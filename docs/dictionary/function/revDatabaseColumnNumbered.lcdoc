@@ -11,11 +11,11 @@ Summary:
 
 Associations: database library
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 
@@ -67,7 +67,7 @@ begins with the <string> "revdberr".
 >*Important:*  The <revDatabaseColumnNumbered> <function> is part of
 > the <Database library>. To ensure that the <function> works in a
 > <standalone application>, you must include this
-> <OpenXTalk custom library|custom library> when you create your
+> <HyperXTalk custom library|custom library> when you create your
 > <standalone application|standalone>. In the Inclusions pane of the
 > <Standalone Application Settings> window, make sure both the
 > "Database" library checkbox and those of the database drivers you are
@@ -82,7 +82,7 @@ revMoveToNextRecord (command), function (control structure),
 empty (constant),
 revDatabaseColumnCount (function), revCurrentRecord (function),
 revDatabaseColumnNamed (function), revDatabaseColumnLengths (function),
-revDatabaseColumnIsNull (function), OpenXTalk custom library (glossary),
+revDatabaseColumnIsNull (function), HyperXTalk custom library (glossary),
 return (glossary), variable (glossary),
 record set (glossary), record (glossary),
 Standalone Application Settings (glossary),

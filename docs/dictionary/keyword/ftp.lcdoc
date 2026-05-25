@@ -10,11 +10,11 @@ designate a <file> or <folder|directory> on an FTP <server>.
 
 Associations: internet library
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: network
 
@@ -78,7 +78,7 @@ standard port for FTP.)
 >*Note:* Most public FTP <server|servers> do not require a user name and
 > password. For such <server|servers>, you need not specify any user
 > name or password. If you don't specify a user name or password,
-> OpenXTalk adds the "anonymous" user name and a dummy password
+> HyperXTalk adds the "anonymous" user name and a dummy password
 > automatically, in accordance with the conventions for public FTP
 > <server|servers>. 
 
@@ -107,7 +107,7 @@ FTP port
 
 An <ftp> <URL> is a <container>, and you can use the <expression> 
 `URL ftpURL` in any statement where any other <container> type is used. 
-When you get the <value> of an <ftp> <URL>, OpenXTalk <download|downloads> 
+When you get the <value> of an <ftp> <URL>, HyperXTalk <download|downloads> 
 the <URL> from the <server>. (If you have previously <cache|cached> the 
 URL with the <load> <command>, it fetches the <URL> from the <cache>.)
 
@@ -125,7 +125,7 @@ since the <put> <command> will not do it for you.
 
 >*Note:* <download|Downloading> a <URL> by using it in an <expression>
 > is a <blocking> operation: that is, the <handler> pauses until
-> OpenXTalk is finished getting the <URL>. Since contacting a <server>
+> HyperXTalk is finished getting the <URL>. Since contacting a <server>
 > may take some time due to network lag, <URL> operations may take long
 > enough to be noticeable, so you may want to set the cursor to the
 > watch or otherwise indicate a delay to the user.
@@ -157,7 +157,7 @@ For technical information about URLs and the <ftp> <URL> scheme, see
 >*Important:*  The <ftp> <keyword> is part of the 
 > <Internet library> on desktop platforms. To ensure that the <keyword> 
 > works in a desktop <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
@@ -179,7 +179,7 @@ get (command), post (command), put (command), load (command),
 group (command), delete URL (command), libURLftpUpload (command),
 libURLDownloadToFile (command), function (control structure),
 result (function), files (function), libURLErrorData (function),
-value (function), OpenXTalk custom library (glossary), flag (glossary),
+value (function), HyperXTalk custom library (glossary), flag (glossary),
 standalone application (glossary), upload (glossary), folder (glossary),
 command (glossary), main stack (glossary), blocking (glossary),
 text file (glossary), statement (glossary), message (glossary),

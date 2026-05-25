@@ -8,7 +8,7 @@ Summary:
 Sent to the <object(glossary)> a <drag and drop> started from, when the
 data is dropped.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 Associations: field, button, graphic, scrollbar, player, image
 
@@ -30,10 +30,10 @@ The <dragEnd> <message> is sent to the <control> that the drag started
 from. If the data is not dropped onto a <control> that accepts it, the
 <dragEnd> <message> is still sent.
 
-OpenXTalk automatically handles the mechanics of dragging and dropping
+HyperXTalk automatically handles the mechanics of dragging and dropping
 text between and within unlocked fields. To support this type of drag
 and drop operation, you don't need to do any scripting: the text is
-deleted from the source field automatically when OpenXTalk receives the
+deleted from the source field automatically when HyperXTalk receives the
 <dragEnd> <message>.
 
 To prevent the dragged text from being automatically deleted from the

@@ -7,11 +7,11 @@ Syntax: the temporary folder
 Summary:
 Returns the path to the folder used for storage of temporary files.
 
-Introduced: 5.0.2
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 get the temporary folder

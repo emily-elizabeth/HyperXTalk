@@ -10,11 +10,11 @@ Summary:
 <return|Returns> true if the specified amount of memory is available,
 false otherwise.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 hasMemory(2*1024*1024) -- returns true if 2M available
@@ -33,7 +33,7 @@ available for an action (such as displaying a large <graphic>) before
 you do it.
 
 This function is only partially implemented, and may not return useful
-values on some platforms. It is included in OpenXTalk for compatibility
+values on some platforms. It is included in HyperXTalk for compatibility
 with imported SuperCard projects.
 
 >*Cross-platform note:*  On <Mac OS|Mac OS systems>, the <value>
@@ -41,7 +41,7 @@ with imported SuperCard projects.
 > application heap and does not take available temporary memory into
 > account. This means that even if the <hasMemory> <function>
 > <return|returns> false, there may be enough system memory available
-> for the task, since OpenXTalk uses temporary memory when necessary.
+> for the task, since HyperXTalk uses temporary memory when necessary.
 
 References: revUnloadSpeech (command), function (control structure),
 heapSpace (function), stackSpace (function), value (function),

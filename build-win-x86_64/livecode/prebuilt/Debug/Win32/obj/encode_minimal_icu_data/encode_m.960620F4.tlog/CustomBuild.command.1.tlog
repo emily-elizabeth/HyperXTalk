@@ -1,3 +1,0 @@
-^C:\SHARED_INTERMEDIATE\DATA\ICUDATA-MINIMAL.DAT
-call call python "..\..\..\util\encode_data.py" "\..\shared_intermediate\data\icudata-minimal.dat" "\..\shared_intermediate\src\icudata-minimal.cpp" "s_icudata"
-if %errorlevel% neq 0 exit /b %errorlevel%

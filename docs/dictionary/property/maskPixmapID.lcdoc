@@ -9,7 +9,7 @@ Specifies the window ID of the X11 <pixmap> used to <mask> an <image>.
 
 Associations: image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

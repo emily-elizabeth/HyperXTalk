@@ -22,7 +22,7 @@
 				'include',
 				'../libcore/include',
 			],
-			
+
 			'sources':
 			[
 				'include/libbrowser.h',
@@ -36,7 +36,11 @@
 				'src/libbrowser_cef.h',
 				'src/libbrowser_cef_lnx.cpp',
 				'src/libbrowser_cef_win.cpp',
-				
+
+				'src/libbrowser_webview2.cpp',
+				'src/libbrowser_webview2.h',
+				'src/libbrowser_webview2_win.cpp',
+
 				'src/libbrowser_win.rc.h',
 				'src/libbrowser_win.rc',
 				
@@ -65,9 +69,9 @@
 			'target_conditions':
 			[
 				## Exclusions
-				# Only use CEF on Windows
+				# CEF is not used on any platform; exclude everywhere
 				[
-					'toolset_os != "win"',
+					'toolset_os != "never_exists"',
 					{
 						'sources!':
 						[
@@ -76,6 +80,17 @@
 					},
 				],
 
+				# libbrowser_cef_win.cpp is legacy CEF-Win code; Windows now uses WebView2
+				[
+					'toolset_os == "win"',
+					{
+						'sources!':
+						[
+							'src/libbrowser_cef_win.cpp',
+						],
+					},
+				],
+				
 				# WebKitGTK is Linux only
 				[
 					'toolset_os != "linux"',
@@ -121,31 +136,34 @@
 							'src/libbrowser_cef_win.cpp',
 							'src/libbrowser_win.rc.h',
 							'src/libbrowser_win.rc',
-							
+
+							'src/libbrowser_webview2.cpp',
+							'src/libbrowser_webview2.h',
+							'src/libbrowser_webview2_win.cpp',
+
 							'src/libbrowser_win_factories.cpp',
 						],
 					},
 				],
 				
+				# CEF Linux files not used; excluded everywhere
 				[
-					'toolset_os != "linux"',
+					'toolset_os != "never_exists"',
 					{
 						'sources!':
 						[
 							'src/signal_restore_posix.cpp',
-
-							'src/libbrowser_lnx_factories.cpp',
 						],
 					},
 				],
 
 				# CEF Linux files are replaced by WebKitGTK
 				[
-					'toolset_os == "linux"',
+					'toolset_os != "linux"',
 					{
 						'sources!':
 						[
-							'src/libbrowser_cef_lnx.cpp',
+							'src/libbrowser_lnx_factories.cpp',
 						],
 					},
 				],
@@ -213,21 +231,6 @@
 			'conditions':
 			[
 				[
-					# Only Windows needs CEF
-					'OS == "win" or host_os == "win"',
-					{
-						'dependencies':
-						[
-							'libbrowser-cefprocess',
-							'../prebuilt/libcef.gyp:libcef',
-							'../prebuilt/libicu.gyp:libicu',
-							'../thirdparty/libcef/libcef.gyp:libcef_library_wrapper',
-							'../thirdparty/libcef/libcef.gyp:libcef_stubs',
-						],
-					},
-				],
-
-				[
 					# Linux uses WebKitGTK
 					'OS == "linux" or host_os == "linux"',
 					{
@@ -249,16 +252,11 @@
 				
 				[
 					'OS == "win"',
-					{	
-						'copies':
+					{
+						'include_dirs':
 						[
-							{
-								'destination':'<(PRODUCT_DIR)/Externals/CEF/',
-								'files':
-								[
-									'<(PRODUCT_DIR)/libbrowser-cefprocess.exe',
-								],
-							},
+							# WebView2 NuGet SDK headers (restored by the CI workflow)
+							'../packages/Microsoft.Web.WebView2.1.0.3912.50/build/native/include',
 						],
 					},
 				],
@@ -289,139 +287,9 @@
 			
 			'xcode_settings':
 			{
-#				'INFOPLIST_FILE': 'rsrc/libbrowser-Info.plist',
+#\t\t\t\t'INFOPLIST_FILE': 'rsrc/libbrowser-Info.plist',
 				'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
 			},
 		},
-    ],
-    
-    'conditions':
-    [
-        [
-            'OS == "win" or host_os == "win"',
-            {
-                'targets':
-                [
-                    {
-                        'target_name': 'libbrowser-cefprocess',
-                        'type': 'executable',
-                        'mac_bundle': 1,
-                        'product_name': 'libbrowser-cefprocess',
-                        
-			'toolsets': ['host', 'target'],
-
-                        'dependencies':
-                        [
-                            '../libcore/libcore.gyp:libCore',
-                            '../libfoundation/libfoundation.gyp:libFoundation',
-                            '../thirdparty/libcef/libcef.gyp:libcef_library_wrapper',
-                            '../prebuilt/libcef.gyp:libcef',
-                        ],
-
-                        'include_dirs':
-                        [
-                            'include',
-                        ],
-                        
-                        'sources':
-                        [
-                            'src/libbrowser_memory.cpp',
-                            'src/libbrowser_cefprocess.cpp',
-                            'src/libbrowser_cefprocess_lnx.cpp',
-                            'src/libbrowser_cefprocess_win.cpp',
-                        ],
-                        
-                        'target_conditions':
-                        [
-                            [
-								'toolset_os not in ("win", "linux")',
-								{
-									'type': 'none',
-								},
-							],
-							## Exclusions
-                            [
-                                'toolset_os != "win"',
-                                {
-                                    'sources!':
-                                    [
-                                        'src/libbrowser_cefprocess_win.cpp',
-                                    ],
-                                },
-                            ],
-                            
-                            [
-                                'toolset_os != "linux"',
-                                {
-                                    'sources!':
-                                    [
-                                        'src/libbrowser_cefprocess_lnx.cpp',
-                                    ],
-                                },
-                            ],
-                            
-                            [
-                                'toolset_os == "win"',
-                                {	
-                                    'library_dirs':
-                                    [
-                                        '../prebuilt/unpacked/cef/<(uniform_arch)-win32-$(PlatformToolset)_static_$(ConfigurationName)/lib/CEF/',
-                                    ],
-
-                                    'libraries':
-                                    [
-                                        '-llibcef.lib',
-                                    ],
-                                },
-                            ],
-                            
-                            [
-                                'toolset_os == "linux"',
-                                {
-                                    'library_dirs':
-                                    [
-                                        '../prebuilt/lib/linux/>(toolset_arch)/CEF/',
-                                    ],
-                    
-                                    'libraries':
-                                    [
-                                        '-lcef',
-                                    ],
-                                   
-                                    'ldflags':
-                                    [
-                                        '-Wl,--allow-shlib-undefined',
-                                        '-Wl,-rpath=\\$$ORIGIN/Externals/CEF',
-                                    ],
-                                },
-                            ],
-
-                            [
-                                'toolset_os == "linux" and not toolset_arch in ("x86", "x86_64")',
-                                {
-                                    'type': 'none',
-                                },
-                            ],
-                        ],
-
-			'all_dependent_settings':
-			{
-				'conditions':
-				[
-					[
-						'OS == "win" or (OS == "linux" and target_arch in ("x86", "x86_64"))',
-						{
-							'variables':
-							{
-								'dist_files': [ '<(PRODUCT_DIR)/<(_product_name)>(exe_suffix)' ],
-							},
-						},
-					],
-				],
-			},
-                    },
-                ],
-            },
-        ],
     ],
 }

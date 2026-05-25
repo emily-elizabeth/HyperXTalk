@@ -7,7 +7,7 @@ Syntax: hide taskbar
 Summary:
 Hides the <task bar> on <Windows|Windows systems>.
 
-Introduced: 2.1
+Introduced: 1.0.0
 
 OS: windows
 
@@ -35,7 +35,7 @@ supported:
 
 This is the case where the <backdrop> is visible but the task bar is 
 hidden when the application is active.
-After these two commands, the task bar is hidden for the OpenXTalk
+After these two commands, the task bar is hidden for the HyperXTalk
 application, the backdrop fills the screen and the task bar reappears
 when switching to other applications.
 

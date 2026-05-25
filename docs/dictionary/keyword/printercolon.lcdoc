@@ -9,7 +9,7 @@ Used with the <open file>, <read from file>, <write to file>, and
 <close file> <command|commands> to specify the printer <port> on 
 <Mac OS|Mac OS systems>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
@@ -30,7 +30,7 @@ specifying the <keyword> 'printer:' as the file to read from.
 To write data to the printer port, use the <write to file> <command>.
 
 To use the modem port on Mac OS systems, use the 'modem:' <keyword>.
-(OpenXTalk does not support additional serial <port|ports>.) To use
+(HyperXTalk does not support additional serial <port|ports>.) To use
 serial <port|ports> on <Windows|Windows systems>, use the <COMn:|COM1:>
 through <COMn:|COM9:> <keyword|keywords>.
 

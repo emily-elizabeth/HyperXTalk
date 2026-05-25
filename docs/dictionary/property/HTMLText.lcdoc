@@ -13,11 +13,11 @@ Specifies the contents of a <field>, including all text
 
 Associations: field
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the HTMLText of field "White Paper" to "&lt;b&gt;&lt;i&gt;Click here!&lt;/i&gt;&lt;/b&gt;"
@@ -51,7 +51,7 @@ the <HTML> of the field with explicit formatting. For example if the
 but is included in the <effective> <HTMLText>.
 
 The <HTMLText> <property> is a representation of the styled text and
-paragraph formatting of the <field(object)>. OpenXTalk uses a subset of
+paragraph formatting of the <field(object)>. HyperXTalk uses a subset of
 <HTML> tags that includes font, size, style, and text color information,
 along with paragraph alignment, indentation, spacing, padding and other
 information. 
@@ -218,11 +218,11 @@ tag | textSize
 &lt;h6&gt; | 10 point
 
 When <set|setting> the <HTMLText> of a <field(object) to an
-<HTML>-formatted string, you can use OpenXTalk color references for the
-"color" and "bgcolor" attributes. OpenXTalk translates these into
+<HTML>-formatted string, you can use HyperXTalk color references for the
+"color" and "bgcolor" attributes. HyperXTalk translates these into
 standard HTML-style color specifications.
 
-If a chunk of text includes more than one of the above styles, OpenXTalk
+If a chunk of text includes more than one of the above styles, HyperXTalk
 encloses the text in the tags corresponding to each style, from the
 inside out. For example, if the word "Flail" in a field is underlined
 and bold, its corresponding <HTMLText> is
@@ -231,7 +231,7 @@ and bold, its corresponding <HTMLText> is
 Special characters (whose ASCII value is greater than 127) are encoded
 as <HTML> entities. Named <HTML> entities are enclosed by a leading
 ampersand and trailing semicolon; e.g. &amp;agrave; for &agrave; and
-&amp;euro; for &euro;. OpenXTalk recognizes all 253 entities defined in
+&amp;euro; for &euro;. HyperXTalk recognizes all 253 entities defined in
 the XHTML specification at
 <http://www.w3.org/TR/html4/sgml/entities.html>. 
 
@@ -252,7 +252,7 @@ settings of the source field, if you want the text in both
 >*Important:* The <HTMLText> <property> uses a tag structure that is
 > HTML-like, but is not completely standard <HTML>,
 in order to accommodate the full range of text styling available in
-OpenXTalk. Specifically:
+HyperXTalk. Specifically:
 
 * The link, box and threedbox tags, as well as the bgColor attribute of
   the font tag, have been added to accommodate styles that don't exist
@@ -278,7 +278,7 @@ The following enhancements were added in version 5.5:
 * Support for representing metadata in text runs by means of a
   &lt;span&gt; tag and metadata attribute;
 * Complete support for HTML entities;
-* Complete support for representing all OpenXTalk text styles in HTML
+* Complete support for representing all HyperXTalk text styles in HTML
   tags; 
 * Improved representation of linkText and imageSource by means of
   &lt;a&gt; tag attributes and &lt;img&gt; tag attributes respectively.

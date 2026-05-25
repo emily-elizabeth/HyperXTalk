@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "lnxprefix.h"
 
 #include "osspec.h"
@@ -459,15 +443,12 @@ static void handle_signal(int sig)
         break;
     case SIGCHLD:
         {
-#if defined(_LINUX_DESKTOP)
+#ifdef FEATURE_MPLAYER
             MCPlayerHandle t_player = MCplayers;
-            // If we have some players waiting then deal with these first
             waitedpid = -1;
             if (t_player.IsValid())
             {
                 waitedpid = wait(NULL);
-                // Moving these two lines half fixes bug 5966 - however it still isn't quite right
-                // as there will still be some interaction between a player and shell command
                 while(t_player.IsValid())
                 {
                     if (t_player.IsValid() && waitedpid == t_player->getpid())
@@ -485,10 +466,6 @@ static void handle_signal(int sig)
             }
             else
             {
-                // Check to see if we have created a video window. If we have got to here it means
-                // that we could not start mplayer -- so the child thread has exited, but the player
-                // object has not had a chance to be created yet. TODO - investigate if there is a
-                // cleaner way of dealing with this situation.
                 if ( MClastvideowindow != DNULL )
                 {
                     gdk_window_hide(MClastvideowindow);
@@ -500,7 +477,9 @@ static void handle_signal(int sig)
                     MCS_checkprocesses();
                 }
             }
-#endif /* LINUX_DESKTOP */
+#else
+            MCS_checkprocesses();
+#endif
         }
         break;
     case SIGALRM:
@@ -1274,7 +1253,28 @@ virtual real64_t GetCurrentMicroseconds(void)
     // NOTE: 'GetTemporaryFileName' returns a standard (not native) path.
     virtual bool GetTemporaryFileName(MCStringRef& r_tmp_name)
     {
-        return MCStringCreateWithSysString(tmpnam(NULL), r_tmp_name);
+		// mdw 2023.09.08 tmpnam has been deprecated
+		int t_fd;
+		bool t_success;
+
+ 		char filename[] = "/tmp/prefXXXXXX";
+		/* UNCHECKED */ t_fd = mkstemp(filename);
+		t_success = t_fd != -1;
+
+		if (t_success)
+		{
+			close(t_fd);
+			t_success = unlink(filename) == 0;
+		}
+
+		if (t_success)
+			t_success = MCStringCreateWithSysString(filename, r_tmp_name);
+
+		if (!t_success)
+            r_tmp_name = MCValueRetain(kMCEmptyString);
+
+ //        return MCStringCreateWithSysString(tmpnam(NULL), r_tmp_name);
+		return t_success;
     }
 
     virtual bool ListFolderEntries(MCStringRef p_folder, MCSystemListFolderEntriesCallback p_callback, void *x_context)
@@ -1331,8 +1331,8 @@ virtual real64_t GetCurrentMicroseconds(void)
             {
                 p_entry.name = *t_unicode_name;
                 p_entry.data_size = buf.st_size;
-                p_entry.modification_time = (uint32_t)buf.st_mtime;
-                p_entry.access_time = (uint32_t)buf.st_atime;
+                p_entry.modification_time = (uint64_t)buf.st_mtime;
+                p_entry.access_time = (uint64_t)buf.st_atime;
                 p_entry.group_id = buf.st_uid;
                 p_entry.user_id = buf.st_uid;
                 p_entry.permissions = buf.st_mode & 0777;

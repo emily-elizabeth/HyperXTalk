@@ -9,13 +9,13 @@ Syntax: uniDecode(<stringToDecode> [, <language>])
 Summary:
 Converts a string from <Unicode> to single-byte text.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Deprecated: 7.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 uniDecode("A" & numToChar(zero)) -- returns "A" (on PPC)

@@ -10,11 +10,11 @@ Summary:
 <evaluate|Evaluates> to true if a <value> is of the specified type,
 false otherwise.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 "1/16/98" is a date -- evaluates to true
@@ -72,11 +72,11 @@ white space characters.
 
 >*Note:* To ensure compatibility with SuperCard stacks, the is a color
 > operator returns true for any integer, although integers
-are not valid colors in OpenXTalk. If you need to strictly verify a color
+are not valid colors in HyperXTalk. If you need to strictly verify a color
 then you can write a wrapper function to do so that checks that the
 color is not an integer.
 
->*Note:* The range of dates that OpenXTalk can handle is limited by the
+>*Note:* The range of dates that HyperXTalk can handle is limited by the
 > operating system's date routines. In particular, Windows
 systems are limited to dates after 1/1/1970. This means that the is a
 date operator will return false for dates before 1/1/1970 on Windows.

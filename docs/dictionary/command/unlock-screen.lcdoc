@@ -8,11 +8,11 @@ Summary:
 Sets the <lockScreen> <property> to false, updating the screen and
 displaying any changes made since the screen was <lock|locked>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 lock screen

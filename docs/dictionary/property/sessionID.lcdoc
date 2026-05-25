@@ -7,7 +7,7 @@ Syntax: set the sessionID to <sessionID>
 Summary:
 Specifies the identifier of the session to be started.
 
-Introduced: 5.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -68,11 +68,7 @@ guess_engine_flags_script := \
 	fi
 guess_engine_flags := $(shell $(guess_engine_flags_script))
 
-ifeq ($(guess_platform),mac)
-	bin_dir ?= $(top_srcdir)/_build/mac/$(BUILDTYPE)
-else
-	bin_dir ?= $(top_srcdir)/$(guess_platform)-bin
-endif
+bin_dir ?= $(top_srcdir)/$(guess_platform)-bin
 
-guess_engine := $(if $(filter mac,$(guess_platform)),$(bin_dir)/Standalone-Community.app/Contents/MacOS/Standalone-Community,$(bin_dir)/standalone-community)
-guess_dev_engine := $(if $(filter mac,$(guess_platform)),$(bin_dir)/LiveCode-Community.app/Contents/MacOS/LiveCode-Community,$(bin_dir)/LiveCode-Community)
+guess_engine := $(if $(filter mac,$(guess_platform)),$(bin_dir)/HyperXTalk.app/Contents/MacOS/HyperXTalk,$(bin_dir)/HyperXTalk)
+guess_dev_engine := $(if $(filter mac,$(guess_platform)),$(bin_dir)/HyperXTalk.app/Contents/MacOS/HyperXTalk,$(bin_dir)/HyperXTalk)

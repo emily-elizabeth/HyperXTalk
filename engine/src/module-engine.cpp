@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "prefix.h"
@@ -501,10 +485,10 @@ MCValueRef MCEngineDoSendToObjectWithArguments(bool p_is_function, MCStringRef p
     
     if (!MCEngineConvertToScriptParameters(ctxt, p_arguments, &t_params))
         return nullptr;
-    
-	/* Clear any existing value from the result to enable testing
-	 * whether dispatching generated a result. */
-	MCresult->clear();
+
+    /* Clear any existing value from the result to enable testing
+        * whether dispatching generated a result. */
+    MCresult->clear();
 
     Exec_stat t_stat;
     t_stat = p_object -> dispatch(!p_is_function ? HT_MESSAGE : HT_FUNCTION, *t_message_as_name, *t_params);
@@ -513,7 +497,7 @@ MCValueRef MCEngineDoSendToObjectWithArguments(bool p_is_function, MCStringRef p
         MCEngineThrowScriptError();
         return nullptr;
     }
-    
+
     if (t_stat == ES_NORMAL)
         s_last_message_was_handled = true;
     else
@@ -526,12 +510,12 @@ extern "C" MC_DLLEXPORT_DEF MCValueRef MCEngineExecSendToScriptObjectWithArgumen
 {
     if (!MCEngineEnsureScriptObjectAccessIsAllowed())
         return nil;
-    
-	MCObject *t_object;
-	uint32_t t_part_id;
-	if (!MCEngineEvalObjectOfScriptObject(p_object, t_object, t_part_id))
-		return nil;
-	
+
+    MCObject *t_object;
+    uint32_t t_part_id;
+    if (!MCEngineEvalObjectOfScriptObject(p_object, t_object, t_part_id))
+        return nil;
+
     return MCEngineDoSendToObjectWithArguments(p_is_function, p_message, t_object, p_arguments);
 }
 
@@ -605,12 +589,12 @@ extern "C" MC_DLLEXPORT_DEF void MCEngineExecPostToScriptObjectWithArguments(MCS
 {
     if (!MCEngineEnsureScriptObjectAccessIsAllowed())
         return;
-    
-	MCObject *t_object;
-	uint32_t t_part_id;
-	if (!MCEngineEvalObjectOfScriptObject(p_object, t_object, t_part_id))
-		return;
-    
+
+    MCObject *t_object;
+    uint32_t t_part_id;
+    if (!MCEngineEvalObjectOfScriptObject(p_object, t_object, t_part_id))
+        return;
+
     MCEngineDoPostToObjectWithArguments(p_message, t_object, p_arguments);
 }
 
@@ -652,7 +636,7 @@ extern "C" MC_DLLEXPORT_DEF void MCEngineEvalMessageWasNotHandled(bool& r_not_ha
     r_not_handled = !t_handled;
 }
 
-extern MCExecContext *MCECptr;
+extern thread_local MCExecContext *MCECptr;
 extern "C" MC_DLLEXPORT_DEF void MCEngineEvalCaller(MCScriptObjectRef& r_script_object)
 {
     if (!MCEngineScriptObjectCreate(MCECptr->GetObject(), 0, r_script_object))
@@ -943,7 +927,7 @@ extern "C" MC_DLLEXPORT_DEF void MCEngineRunloopBreakWait()
 
 ////////////////////////////////////////////////////////////////////////////////
 
-extern MCExecContext *MCECptr;
+extern thread_local MCExecContext *MCECptr;
 
 extern "C" MC_DLLEXPORT_DEF void
 MCEngineEvalTheColumnDelimiter(MCStringRef& r_del)

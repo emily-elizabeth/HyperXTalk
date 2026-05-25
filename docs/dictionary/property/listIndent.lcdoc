@@ -9,11 +9,11 @@ Specifies the size of the margins used when indenting lists.
 
 Associations: field
 
-Introduced: 5.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the listIndent of line 1 to -1 of field 1 to 20
@@ -35,7 +35,7 @@ used to indent the list line(s).
 
 Description:
 Use the <listIndent> property to control the size of the margins used by
-OpenXTalk when indenting lists.
+HyperXTalk when indenting lists.
 
 References: borderWidth (property), vgrid (property),
 textAlign (property), dontWrap (property), formattedText (property),

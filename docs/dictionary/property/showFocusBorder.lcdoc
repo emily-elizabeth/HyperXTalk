@@ -10,11 +10,11 @@ Displays a border around the <active control>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, linux, ios, android
+OS: mac, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the showFocusBorder of field "Answer" to false

@@ -1,0 +1,55 @@
+Name: notificationClicked
+
+Type: message
+
+Syntax: notificationClicked <tag>
+
+Summary:
+Sent to the current card of the default stack when the user clicks a
+notification posted by the application.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- Navigate to a specific card when the notification is clicked
+on notificationClicked pTag
+    switch pTag
+        case "new-message"
+            go card "Inbox"
+        case "sync-complete"
+            go card "Dashboard"
+        default
+            -- bring the application to the front
+            go stack (the defaultStack)
+    end switch
+end notificationClicked
+
+Parameters:
+tag (string): The tag that was supplied to <showNotification>. If no tag
+was provided when the notification was created, this parameter contains
+the auto-generated tag used internally.
+
+Description:
+HyperXTalk fires <notificationClicked> when the user clicks or taps a
+notification banner or alert. The message is always delivered to the
+current card of the default stack, regardless of which card or stack is
+frontmost at the time.
+
+The <tag> parameter identifies which notification was clicked, allowing
+scripts to route different notifications to different parts of the
+application.
+
+On Linux, <notificationClicked> is only fired if the notification daemon
+supports the ActionInvoked D-Bus signal. Some minimal daemon
+implementations omit this signal; in that case the message will not be
+sent.
+
+References: showNotification (command), cancelNotification (command),
+notificationPermissionGranted (message),
+notificationPermissionDenied (message)
+
+Tags: notifications

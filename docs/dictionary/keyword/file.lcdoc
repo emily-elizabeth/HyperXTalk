@@ -8,11 +8,11 @@ Summary:
 Used as a <URL> type with such <command|commands> as <put> and <get> to
 designate a <local file>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the htmlText of field 1 into URL "file:/Drive/Folder/File"
@@ -40,7 +40,7 @@ Different operating systems use different characters to mark the end of
 a line. Mac OS and OS X use a return character (ASCII 13), Unix systems
 use a linefeed character (ASCII 10), and Windows systems use a return
 followed by a linefeed. When you use a <file> <URL> as a <container>,
-OpenXTalk automatically uses the current system's standard 
+HyperXTalk automatically uses the current system's standard 
 <end-of-line marker> and xTalk's linefeed character.
 
 >*Tip:*  To put data into, or get data from, a <binary file>, use the

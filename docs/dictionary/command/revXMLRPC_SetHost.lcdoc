@@ -9,16 +9,16 @@ Sets the host and optionally the port of an <XML-RPC document> structure.
 
 Associations: xml-rpc library
 
-Introduced: 2.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, process
 
 Example:
-revXMLRPC_SetHost theRequest,"www.OpenXTalk.org"
+revXMLRPC_SetHost theRequest,"www.HyperXTalk.com"
 
 Example:
 revXMLRPC_SetHost myRequest,"example.com",10000
@@ -47,7 +47,7 @@ port that is the target of the execution of an <XML-RPC> request.
 
 
 References: revXMLRPC_SetPort (command), result (function),
-revXMLRPC_GetHost (function), OpenXTalk custom library (glossary),
+revXMLRPC_GetHost (function), HyperXTalk custom library (glossary),
 Standalone Application Settings (glossary),
 standalone application (glossary), command (glossary),
 XML-RPC (glossary), XML-RPC library (library),

@@ -7,11 +7,11 @@ Syntax: two
 Summary:
 Equivalent to the number 2.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 go to card two -- same as "go to card 2"

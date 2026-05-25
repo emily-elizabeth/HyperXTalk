@@ -8,11 +8,11 @@ Summary:
 Specifies whether a <button>, <field>, or stack window is drawn with a
 drop shadow.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the shadow of field ID 18 to true

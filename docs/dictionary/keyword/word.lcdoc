@@ -8,11 +8,11 @@ Summary:
 Designates a space-<delimit|delimited> or <quoted> <string> as part of a
 <chunk expression>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 get last word of the long name of this stack
@@ -35,7 +35,7 @@ but not multiple <line|lines>.
 
 >*Note:* <Words(keyword)> are <delimit|delimited> by 
 > <double quote|double quotes> ("), but not by curved quotes 
-> (&ldquo;&rdquo;). OpenXTalk does not treat curved quotes as 
+> (&ldquo;&rdquo;). HyperXTalk does not treat curved quotes as 
 > <double quote|quotes>.
 
 >*Note:* To refer to actual words in a chunk expression, i.e., words 

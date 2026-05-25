@@ -1,0 +1,62 @@
+Name: statusIconClick
+
+Type: message
+
+Syntax: statusIconClick <button>
+
+Summary:
+Sent when the user clicks the system tray icon.
+
+Introduced: 1.0.0
+
+OS: windows
+
+Platforms: desktop
+
+Example:
+on statusIconClick pButton
+    if pButton is 1 then
+        -- Left click: toggle window visibility
+        if the visible of this stack then
+            hide this stack
+        else
+            show this stack
+        end if
+    end if
+end statusIconClick
+
+Example:
+-- Restore the window on any click
+on statusIconClick
+    show this stack
+    set the iconic of this stack to false
+end statusIconClick
+
+Parameters:
+button:
+The mouse button that was released:
+- 1 — left button
+- 2 — right button
+- 3 — middle button
+
+Description:
+The <statusIconClick> message is sent to the current card of the default
+stack when the user releases a mouse button over the system tray icon.
+
+The message is sent on button-up, not button-down, so a single physical
+click generates one <statusIconClick>. If the user double-clicks,
+`statusIconDoubleClick` is sent for the double-click event and
+<statusIconClick> is suppressed for that action.
+
+When a right-click context menu is configured via <statusIconMenu>, the
+menu is shown on the right button-down event and <statusIconClick> is
+still sent when the right button is released. If you want right-click to
+only open the menu, check for `pButton is 2` and exit the handler early.
+
+<statusIconClick> is also sent when the user clicks a system balloon
+notification associated with the tray icon.
+
+References: statusIconDoubleClick (message), statusIconMenuOpening (message),
+statusIconMenuPick (message), statusIcon (property), statusIconMenu (property)
+
+Tags: windowing

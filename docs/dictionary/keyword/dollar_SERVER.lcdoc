@@ -8,7 +8,7 @@ Summary:
 <$_SERVER> is an array variable containing the CGI interface related
 variables, along with any HTTP_* variables that are available.
 
-Introduced: 4.6.3
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

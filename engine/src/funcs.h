@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 //
 // MCFunction class declarations
 //
@@ -26,6 +10,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "mcerror.h"
 
 #include "exec.h"
+#include "exec-battery.h"
+#include "exec-credentials.h"
 #include "param.h"
 #include "scriptpt.h"
 
@@ -38,25 +24,57 @@ public:
 	Parse_stat parsetarget(MCScriptPoint &spt, Boolean the,
 	                       Boolean needone, MCChunk *&chunk);
     bool params_to_doubles(MCExecContext& ctxt, MCParameter *p_params, real64_t*& r_doubles, uindex_t& r_count);
+
+    // HXT: AST serialization.
+    //
+    // m_hxt_func_id holds the Functions enum value for this instance.
+    // MCN_new_function assigns it via static_cast immediately after construction,
+    // so the value is always correct when hxt_serialize is called.
+    //
+    // Subclasses DO NOT override hxt_serialize or hxt_deserialize_body.
+    // Instead, the three intermediate classes (MCConstantFunction,
+    // MCUnaryFunction, MCParamFunction) override hxt_write_params /
+    // hxt_read_params to handle their specific parameter layouts.
+    int2 m_hxt_func_id;
+    MCFunction();
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
+
+    // Serialize / deserialize the parameter expressions for this function.
+    // The base implementation writes / reads a count of 0 (constant functions).
+    // MCUnaryFunction and MCParamFunction override these.
+    virtual bool hxt_write_params(MCHXTASTWriter &w) const;
+    virtual bool hxt_read_params(MCHXTASTReader &r);
 };
 
 // Helper class that simplifies compiling of functions not taking any arguments.
 class MCConstantFunction: public MCFunction
 {
 public:
+    // Inherits base hxt_write_params / hxt_read_params (count = 0).
 };
 
-// Helper class that simplifies compiling of functions taking one arguments.
+// Helper class that simplifies compiling of functions taking one argument.
 class MCUnaryFunction: public MCFunction
 {
 public:
+    MCUnaryFunction() : m_expression(nullptr) {}
+
+    virtual bool hxt_write_params(MCHXTASTWriter &w) const override;
+    virtual bool hxt_read_params(MCHXTASTReader &r) override;
+
+protected:
+    MCExpression *m_expression;
 };
 
-// Helper class that simplifies compiling of functions taking a variable number of of MCParameters.
+// Helper class that simplifies compiling of functions taking a variable number of MCParameters.
 class MCParamFunction: public MCFunction
 {
 public:
     bool params_to_doubles(MCExecContext &ctxt, real64_t *&r_doubles, uindex_t &r_count);
+
+    virtual bool hxt_write_params(MCHXTASTWriter &w) const override;
+    virtual bool hxt_read_params(MCHXTASTReader &r) override;
 
 protected:
     MCParameter* params;
@@ -88,7 +106,8 @@ template<typename ParamType,
 class MCUnaryFunctionCtxt: public MCUnaryFunction
 {
 public:
-    MCUnaryFunctionCtxt() { m_expression = nil; }
+    // m_expression is declared and initialised to nullptr in MCUnaryFunction.
+    MCUnaryFunctionCtxt() {}
 
     virtual ~MCUnaryFunctionCtxt() { delete m_expression; }
 
@@ -124,9 +143,7 @@ public:
         if (!ctxt . HasError())
             MCExecValueTraits<ReturnType>::set(r_value, t_result);
     }
-
-protected:
-    MCExpression *m_expression;
+    // m_expression is in MCUnaryFunction (base class).
 };
 
 template<void (*EvalExprMethod)(MCExecContext &, real64_t*, uindex_t, real64_t&),
@@ -270,6 +287,11 @@ public:
 	virtual void eval_ctxt(MCExecContext &, MCExecValue &);
 };
 
+class MCBatteryLevel : public MCConstantFunctionCtxt<integer_t, MCBatteryEvalBatteryLevel>
+{
+public:
+};
+
 class MCBuildNumber : public MCConstantFunctionCtxt<integer_t, MCEngineEvalBuildNumber>
 {
 public:
@@ -314,6 +336,14 @@ public:
 	virtual ~MCChunkOffset();
 	virtual Parse_stat parse(MCScriptPoint &, Boolean the);
 	virtual void eval_ctxt(MCExecContext &, MCExecValue &);
+
+    // HXT: AST serialization.
+    // Format: <expr> part  + <expr> whole  + <expr> offset (kHXTExpr_Null if absent).
+    // The 'delimiter' field does not need to be saved: it is set by each
+    // concrete subclass constructor and will be restored when MCN_new_function
+    // recreates the correct subclass during deserialization.
+    virtual bool hxt_serialize(MCHXTASTWriter &w) const override;
+    virtual bool hxt_deserialize_body(MCHXTASTReader &r) override;
 };
 
 class MCClipboardFunc : public MCConstantFunctionCtxt<MCNameRef, MCPasteboardEvalClipboard>
@@ -865,6 +895,20 @@ class MCInterrupt : public MCConstantFunctionCtxt<bool, MCEngineEvalInterrupt>
 public:
 };
 
+// iff(condition, trueResult, falseResult) — lazy conditional function.
+// Only the branch that is actually taken is evaluated.
+class MCIff : public MCFunction
+{
+    MCExpression *condition;
+    MCExpression *true_expr;
+    MCExpression *false_expr;
+public:
+    MCIff() : condition(NULL), true_expr(NULL), false_expr(NULL) {}
+    virtual ~MCIff();
+    virtual Parse_stat parse(MCScriptPoint &, Boolean the);
+    virtual void eval_ctxt(MCExecContext &, MCExecValue &);
+};
+
 class MCIntersect : public MCFunction
 {
 	MCChunk *o1;
@@ -1127,6 +1171,13 @@ public:
     virtual ~MCNativeCharToNum(){}
 };
 
+class MCNaturalScrolling : public MCConstantFunctionCtxt<MCStringRef, MCInterfaceEvalNaturalScrolling>
+{
+public:
+    MCNaturalScrolling(){}
+    virtual ~MCNaturalScrolling(){}
+};
+
 class MCNumToChar: public MCUnaryFunctionCtxt<uinteger_t, MCValueRef, MCStringsEvalNumToChar, EE_NUMTOCHAR_BADSOURCE, PE_NUMTOCHAR_BADPARAM>
 {
 public:
@@ -1253,6 +1304,12 @@ public:
     virtual ~MCPopulationVariance(){}
 };
 
+// powerSource() — returns "battery", "ac", or "unknown".
+class MCPowerSource : public MCConstantFunctionCtxt<MCStringRef, MCBatteryEvalPowerSource>
+{
+public:
+};
+
 class MCProcessor : public MCConstantFunctionCtxt<MCStringRef, MCEngineEvalProcessor>
 {
 public:
@@ -1266,6 +1323,18 @@ public:
 class MCQTVersion : public MCConstantFunctionCtxt<MCStringRef, MCMultimediaEvalQTVersion>
 {
 public:
+};
+
+// retrieveCredential(service, account) — returns a stored secret string.
+class MCRetrieveCredential : public MCFunction
+{
+    MCExpression *service;
+    MCExpression *account;
+public:
+    MCRetrieveCredential() : service(NULL), account(NULL) {}
+    virtual ~MCRetrieveCredential();
+    virtual Parse_stat parse(MCScriptPoint &, Boolean the);
+    virtual void eval_ctxt(MCExecContext &, MCExecValue &);
 };
 
 class MCReplaceText : public MCFunction
@@ -1439,6 +1508,19 @@ public:
 class MCSound : public MCConstantFunctionCtxt<MCStringRef, MCMultimediaEvalSound>
 {
 public:
+};
+
+// storeCredential(service, account, secret) — stores a secret securely.
+class MCStoreCredential : public MCFunction
+{
+    MCExpression *service;
+    MCExpression *account;
+    MCExpression *secret;
+public:
+    MCStoreCredential() : service(NULL), account(NULL), secret(NULL) {}
+    virtual ~MCStoreCredential();
+    virtual Parse_stat parse(MCScriptPoint &, Boolean the);
+    virtual void eval_ctxt(MCExecContext &, MCExecValue &);
 };
 
 class MCStacks : public MCConstantFunctionCtxt<MCStringRef, MCInterfaceEvalStacks>
@@ -1705,6 +1787,18 @@ public:
 	virtual ~MCMCISendString();
 	virtual Parse_stat parse(MCScriptPoint &, Boolean the);
     virtual void eval_ctxt(MCExecContext& ctxt, MCExecValue &r_value);
+};
+
+// deleteCredential(service, account) — removes a stored credential.
+class MCDeleteCredential : public MCFunction
+{
+    MCExpression *service;
+    MCExpression *account;
+public:
+    MCDeleteCredential() : service(NULL), account(NULL) {}
+    virtual ~MCDeleteCredential();
+    virtual Parse_stat parse(MCScriptPoint &, Boolean the);
+    virtual void eval_ctxt(MCExecContext &, MCExecValue &);
 };
 
 class MCDeleteRegistry : public MCUnaryFunctionCtxt<MCStringRef, bool, MCFilesEvalDeleteRegistry, EE_SETREGISTRY_BADEXP, PE_SETREGISTRY_BADPARAM>

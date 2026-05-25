@@ -8,7 +8,7 @@ Summary:
 Used with the <write to file> <command> to designate the 
 <standard output>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -30,7 +30,7 @@ On a server in CGI mode, writing to <stdout> for the first time triggers
 any headers to be generated.
 
 When you use the <write to file> <command> with the <stdout> <keyword>,
-OpenXTalk writes data to the <standard output>.
+HyperXTalk writes data to the <standard output>.
 
 >*Note:* On <OS X|OS X systems>, the <standard output> is the Console
 > window, not the Terminal window.

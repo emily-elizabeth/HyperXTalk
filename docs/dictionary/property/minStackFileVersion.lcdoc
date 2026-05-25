@@ -10,11 +10,11 @@ will allow it to be safely <save|saved> without data loss.
 
 Associations: stack
 
-Introduced: 8.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 save this stack with format (the minStackFileVersion of this stack)

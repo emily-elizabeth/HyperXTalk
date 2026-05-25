@@ -129,6 +129,23 @@ for f in libicudata.a libicui18n.a libicuio.a libicutu.a libicuuc.a; do
     cp "${ICU_INSTALL}/lib/${f}" "${PREBUILT_LIB}/${f}"
 done
 
+# ── 4b. Place icudt58l.dat where the minimal_icu_data Xcode script expects it ─
+# The Xcode build phase runs from prebuilt/ and calls:
+#   icupkg share/icudt58l.dat ...
+# so the file must live at prebuilt/share/icudt58l.dat.
+ICU_DAT="${ICU_INSTALL}/share/icu/${ICU_VERSION}/icudt${ICU_VERSION_ALT%_*}l.dat"
+if [ ! -f "${ICU_DAT}" ]; then
+    # Fallback: search for any icudt*.dat under the install tree
+    ICU_DAT="$(find "${ICU_INSTALL}/share" -name "icudt*.dat" | head -1)"
+fi
+if [ -z "${ICU_DAT}" ] || [ ! -f "${ICU_DAT}" ]; then
+    echo "ERROR: icudt58l.dat not found under ${ICU_INSTALL}/share"
+    exit 1
+fi
+mkdir -p "${REPO_ROOT}/prebuilt/share"
+cp "${ICU_DAT}" "${REPO_ROOT}/prebuilt/share/icudt58l.dat"
+echo "Installed ICU data: prebuilt/share/icudt58l.dat"
+
 # ── 5. Summary ────────────────────────────────────────────────────────────────
 echo ""
 echo "=== Done. Installed artifacts: ==="

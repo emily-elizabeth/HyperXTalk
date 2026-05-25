@@ -7,7 +7,7 @@ Syntax: answer record
 Summary:
 Displays the <QuickTime> sound-recording settings <dialog box>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 Deprecated:
 8.1

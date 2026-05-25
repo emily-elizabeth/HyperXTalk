@@ -8,7 +8,7 @@ Summary:
 The <include> command executes the given script in the context
 of the global environment.
 
-Introduced: 4.6.3
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -39,7 +39,7 @@ Use the <include> command to load scripts contained in other files.
 
 <Include> is only available when running in <CGI> mode (Server).
 
->*Note:* OpenXTalk server scripts do not require specific file
+>*Note:* HyperXTalk server scripts do not require specific file
 >extensions. Common extensions used include ".irev" and ".lc". 
 >
 >*Note:* Upon <include> a script is loaded into memory and parsed. Any

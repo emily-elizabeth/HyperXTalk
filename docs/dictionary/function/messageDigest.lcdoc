@@ -7,22 +7,22 @@ Syntax: messageDigest(<message>, <digestType>)
 Summary:
 Computes a cryptographic message digest.
 
-Introduced: 9.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 -- Compute a message digest and store the result in "it"
-get messageDigest("OpenXTalk", "SHA3-256")
+get messageDigest("HyperXTalk", "SHA3-256")
 
 Example:
 -- Compute a simplified hash-based message authentication code (HMAC)
 -- for a message using SHA3-256.  Consider using the full RFC 2104
 -- HMAC algorithm.
 put randomBytes(32) into tKey -- Save this key for later!
-put textEncode("Try my OpenXTalk app", "UTF-8") into tMessage
+put textEncode("Try my HyperXTalk app", "UTF-8") into tMessage
 get messageDigest(tKey & messageDigest(tKey & tMessage, \
             "SHA3-256"), "SHA3-256")
 

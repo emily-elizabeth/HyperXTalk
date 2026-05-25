@@ -9,7 +9,7 @@ A special <global|global variable> that specifies the application icon
 to be used on <OS X|OS X systems> with the <ask>, <ask password>, and
 <answer> <command|commands>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac
 
@@ -27,8 +27,8 @@ should appear in modal dialog boxes to identify which application the
 dialog box belongs to. Use the <gRevAppIcon> <keyword> to specify which
 <image> to use for the icon.
 
-In the OpenXTalk development environment, when running on an OS X system,
-the OpenXTalk icon is displayed in the <ask>, <ask password>, and
+In the HyperXTalk development environment, when running on an OS X system,
+the HyperXTalk icon is displayed in the <ask>, <ask password>, and
 <answer> <dialog box|dialog boxes>. In your own applications, however,
 the <application|application's> icon should appear instead.
 

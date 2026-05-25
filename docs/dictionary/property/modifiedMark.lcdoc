@@ -10,7 +10,7 @@ close-box of a stack.
 
 Associations: stack
 
-Introduced: 4.6
+Introduced: 1.0.0
 
 OS: mac
 
@@ -28,7 +28,7 @@ stack.
 
 Standard Mac document windows typically display the modified state of
 the document they represent by adding a dark dot to the close-box. It is
-possible to control the display of this dot in OpenXTalk by using the
+possible to control the display of this dot in HyperXTalk by using the
 <modifiedMark> property.
 
 The indicator will be displayed when the property is set to true.

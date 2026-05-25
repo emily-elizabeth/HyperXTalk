@@ -8,7 +8,7 @@ Summary:
 Has no effect and is included for compatibility with
 imported <HyperCard> stacks.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
@@ -16,7 +16,7 @@ Security: printing
 
 Description:
 In HyperCard, the <printTextStyle> <property> specifies the styles of
-printed text. In OpenXTalk, only <card(object)|cards> can be printed, and
+printed text. In HyperXTalk, only <card(object)|cards> can be printed, and
 the style of text on the <card(keyword)> is determined by the
 <textStyle> <property> of <object|objects> that display text.
 
@@ -24,6 +24,6 @@ By default, the value of <printTextStyle> is plain. A handler can set
 the <property>, but the new setting has no effect.
 
 References: fontStyles (function), property (glossary),
-OpenXTalk (glossary), HyperCard (glossary), object (glossary),
+HyperXTalk (glossary), HyperCard (glossary), object (glossary),
 card (keyword), card (object), textStyle (property)
 

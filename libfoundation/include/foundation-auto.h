@@ -804,6 +804,7 @@ public:
     /* Return the pointer managed by the MCAutoPointer, or nullptr if
      * there is no managed pointer. */
     pointer Get() { return m_ptr; }
+    pointer Get() const { return m_ptr; }
 
     MCAutoPointer& operator=(MCAutoPointer&& other)
     {
@@ -885,6 +886,7 @@ public:
     /* Return the pointer managed by the MCAutoPointer, or nullptr if
      * there is no managed pointer. */
     pointer Get() { return m_ptr; }
+    pointer Get() const { return m_ptr; }
 
     MCAutoPointer& operator=(MCAutoPointer&& other)
     {

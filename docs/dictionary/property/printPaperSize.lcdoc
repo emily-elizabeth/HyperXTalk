@@ -9,11 +9,11 @@ Syntax: get the printPaperSize
 Summary:
 Reports the size of the paper to print to.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: printing
 

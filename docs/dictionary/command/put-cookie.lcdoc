@@ -7,7 +7,7 @@ Syntax: put [secure] [httponly] cookie <cookieName> [for <filePath>] [on <cookie
 Summary:
 Sets a cookie in a visiting browser for a given URL.
 
-Introduced: 4.6.4
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -22,14 +22,14 @@ put cookie "testcookie2" with "some cookie value" until (the seconds + 60 * 60 *
 
 Example:
 -- Cookie available across whole website
-put cookie "testcookie3" for "/" on "www.OpenXTalk.org" with "some cookie value"
+put cookie "testcookie3" for "/" on "www.HyperXTalk.com" with "some cookie value"
 
 Example:
 -- Cookie available to specific pages
-put cookie "testcookie4" for "/products/" on "www.OpenXTalk.org" with "some cookie value" until (the seconds + 60 * 60 * 24 * 365)
+put cookie "testcookie4" for "/products/" on "www.HyperXTalk.com" with "some cookie value" until (the seconds + 60 * 60 * 24 * 365)
 
 Example:
-put secure httponly cookie "testcookie4" for "/products/" on "www.OpenXTalk.org" with "some cookie value" until (the seconds + 60 * 60 * 24 * 365)
+put secure httponly cookie "testcookie4" for "/products/" on "www.HyperXTalk.com" with "some cookie value" until (the seconds + 60 * 60 * 24 * 365)
 
 Parameters:
 cookieName (string):
@@ -76,13 +76,13 @@ visits.
 
 When setting a cookie you can specify a path. Cookies are returned to 
 all URLs within the specified path. For example, a cookie set on the 
-domain "www.OpenXTalk.org" with the following path:
+domain "www.HyperXTalk.com" with the following path:
 
     /products/
 
 
 is available to all pages within and under 
-http://www.OpenXTalk.org/products/
+http://www.HyperXTalk.com/products/
 
 To make the cookie available across your entire website, set the path 
 to "/".

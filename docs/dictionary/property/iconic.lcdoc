@@ -9,7 +9,7 @@ Specifies whether a <stack window> is <minimize|minimized>.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

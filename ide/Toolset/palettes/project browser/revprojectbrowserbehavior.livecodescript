@@ -1,4 +1,4 @@
-﻿script "revProjectBrowserBehavior" with behavior "revPaletteBehavior"
+script "revProjectBrowserBehavior" with behavior "revPaletteBehavior"
 local sDisplayArray, sLongIDToRow, sObjectToParent
 
 on arrowKey pDirection
@@ -76,7 +76,7 @@ on preOpenStack
    addFrameItem "groupControl","footer", "action", "Group controls", "folder open alt", "","groupControls", the long id of me
    addFrameItem "cloneControl","footer", "action", "Clone control", "files alt", "","cloneControls", the long id of me
    addFrameItem "deleteControl","footer", "action", "Delete control", "trash", "","deleteControls", the long id of me
-   
+   addFrameItem "refreshControl","footer", "action", "Refresh display", "refresh", "","pbRefresh", the long id of me
    
    # Preferences
    addFrameItem "pb_indicator", "header", "preference", "Object type indicator", "enum","Text,Icon", "preferenceChanged", the long id of me   
@@ -125,7 +125,7 @@ on preOpenStack
    
    // HXT dark mode
    hxtApplyAppearance
-
+   
    put empty into sDisplayArray
    loadImages
    setUpProjectView
@@ -218,7 +218,7 @@ on ideNewControl pTarget
    
    local tSortType,tSortOrder
    revIDEGetPBSortPreferences "pb_controlSort", tSortType, tSortOrder
-   if word  1 of pTarget is "group" and tSortType is "number" then
+   if word  1 of pTarget is "group" and tSortType is "layer" then
       addGroupToProjectBrowser pTarget
    else
       addControlToProjectBrowser pTarget
@@ -332,7 +332,7 @@ end ideMainstackChanged
 
 on preferenceChanged pPreference, pValue
    local tOldValue, tSortType, tSortOrder
-   
+   set the wholeMatches to true
    switch pPreference
       case "pb_sections"
          local tCurrentPreferenceValue, tPreferencePosition
@@ -459,7 +459,7 @@ command buildProjectView pRememberExpansion
    local tLibraryStacks, tOldArray,tOldExpandedControls, tOldExpandedRows
    local tSections
    local tIndex
-   
+   set the wholeMatches to true
    lock screen
    
    put revIDEGetPreference("pb_sections") into tSections
@@ -467,14 +467,16 @@ command buildProjectView pRememberExpansion
    if pRememberExpansion then
       repeat for each key tKey in sDisplayArray["objects"]
          if sDisplayArray["objects"][tKey]["expanded"] is true then
-            if sDisplayArray["objects"][tKey]["type"] is "stack" or sDisplayArray["objects"][tKey]["type"] is "substack" then
+            if sDisplayArray["objects"][tKey]["type"] is "stack" then
                put sDisplayArray["objects"][tKey]["long id"] & comma & 1 &  return after tOldExpandedControls
-            else if  sDisplayArray["objects"][tKey]["type"] is "card" then
+            else if sDisplayArray["objects"][tKey]["type"] is "substack" then
                put sDisplayArray["objects"][tKey]["long id"] & comma & 2 &  return after tOldExpandedControls
-            else if  sDisplayArray["objects"][tKey]["type"] is "group" then
+            else if  sDisplayArray["objects"][tKey]["type"] is "card" then
                put sDisplayArray["objects"][tKey]["long id"] & comma & 3 &  return after tOldExpandedControls
-            else
+            else if  sDisplayArray["objects"][tKey]["type"] is "group" then
                put sDisplayArray["objects"][tKey]["long id"] & comma & 4 &  return after tOldExpandedControls
+            else
+               put sDisplayArray["objects"][tKey]["long id"] & comma & 5 &  return after tOldExpandedControls
             end if
          end if
       end repeat
@@ -526,6 +528,9 @@ command buildProjectView pRememberExpansion
       if exists(tExpandedControl) then
          put getRow(tExpandedControl) into tChildRow
          put itemOffset(tChildRow, tVisibleRows) into tVisibleRowNumber
+         if tVisibleRowNumber is 0 then
+            next repeat
+         end if
          if sDisplayArray["objects"][tChildRow]["childCount"] is not 0 then
             addChildren tExpandedControl, tChildRow, false
          end if
@@ -639,6 +644,7 @@ end topLevelRows
 # Indicate that pObjects are selected
 command highlightObjects pObjects, pForceScroll
    local tVisibleRows,tRow,tRows
+   set the wholeMatches to true
    put sDisplayArray["visible object keys"] into tVisibleRows
    repeat for each line tObject in pObjects      
       put getRow(tObject) into tRow
@@ -661,7 +667,7 @@ command showObjects pObject
    ### Highlight the parent trail
    put getOwners(pObject,tOwners) into tOwners
    set the cOwners of group "objectList" of me to tOwners
-   
+   set the wholeMatches to true
    lock screen
    repeat for each line tObject in tOwners      
       ## Expand if necessary
@@ -793,6 +799,16 @@ on goToObject pObjectID
       revIDESelectObjects pObjectID
    end if
 end goToObject
+
+on pbRefresh
+   lock screen
+   set the cursor to busy
+   setUpProjectView
+   set the cursor to busy
+   buildProjectView true
+   set the cursor to busy
+   unlock screen
+end pbRefresh
 
 ########### Footer actions ############
 ####################################
@@ -1100,6 +1116,7 @@ end getAbsoluteRow
 
 function getVisibleRow pLongID
    local tRow
+   set the wholeMatches to true
    put getRow(pLongID) into tRow
    set the wholeMatches to true
    return itemOffset(tRow, sDisplayArray["visible object keys"])
@@ -1133,6 +1150,9 @@ end getRowExpanded
 
 function getLastSibling pVisibleRows, pRowList
    local tLastPosition, tItemPos, tLastRow
+   
+   set the wholeMatches to true
+   
    put 0 into tLastPosition
    repeat for each item tRow in pRowList
       put itemOffset(tRow, pVisibleRows) into tItemPos
@@ -1294,6 +1314,8 @@ end itemise
 on refreshChildren pParentList, pNewControl, pExpanded
    local tCardRow, tDescendants, tVisibleRows, tItem
    local tExpandedChildren, tChildRow, tVisibleRowNumber
+   
+   set the wholeMatches to true
    
    lock screen   
    ## Remember open controls
@@ -1632,6 +1654,8 @@ on addSubstackToProjectBrowser pTarget
    local tParentID, tParentRow, tIndex, tParentExpanded, tVisibleRows, tVisibleRows2
    local tChildren, tSubStackInfo, tLevelConnectors
    
+   set the wholeMatches to true
+   
    put sDisplayArray["visible object keys"] into tVisibleRows
    put ideMainStackOfObject(pTarget) into tParentID
    put getRow(tParentID) into tParentRow
@@ -1700,6 +1724,8 @@ end addSubstackToProjectBrowser
 on addCardToProjectBrowser pTarget
    local tParentID, tVisibleRows, tParentRow, theIndex, tChildren, tParentExpanded
    local tCardInfo, tLevelConnectors, tLastChildChild, tCardNumber, tLastCardNumber
+   
+   set the wholeMatches to true
    
    put word 5 to -1 of pTarget into tParentID   
    put the number of pTarget into tCardNumber
@@ -1811,6 +1837,8 @@ on addGroupToProjectBrowser pTarget
    local tCards, theIndex, theNewChildren, tChildArray, tKeys
    local tVisibleRows, tChildVisible, tParentExpanded
    local tChildOffset, tExpandedSiblings, tLastChild
+  
+   set the wholeMatches to true
    
    put word 5 to -1 of pTarget into pParentID   
    put sDisplayArray["visible object keys"] into tVisibleRows
@@ -1831,6 +1859,9 @@ on addGroupToProjectBrowser pTarget
    --   end if
    
    put sDisplayArray["objects"][tParentRow]["expanded"] into tParentExpanded
+   
+   put allparentsExpanded(pParentID)into tParendExpanded
+   
    if tParentExpanded is false then exit addGroupToProjectBrowser
    
    local tControlInfo
@@ -1929,6 +1960,8 @@ on addControlToProjectBrowser pTarget
    local tVisibleRows, tChildVisible, tParentExpanded
    local tChildOffset, tExpandedSiblings, tLevelConnectors, tDescendants
    
+   set the wholeMatches to true
+   
    put word 5 to -1 of pTarget into pParentID
    
    put sDisplayArray["visible object keys"] into tVisibleRows
@@ -1946,12 +1979,15 @@ on addControlToProjectBrowser pTarget
    dispatch function "TreeDescendantNodesOfNode" to group "objectList" with sDisplayArray, tParentRow,false
    put the result into tDescendants
    
-   --   if tChildren is empty then
+   -- if tChildren is empty then
    put sDisplayArray["objects"][tParentRow]["children"] into tChildren
-   --end if
+   -- end if
    
    put sDisplayArray["objects"][tParentRow]["expanded"] into tParentExpanded
+   -- check all parents
    
+   put allParentsExpanded(pTarget) into tParentExpanded
+  
    local tControlInfo
    put revIDEControlProperties(pTarget,sDisplayArray["objects"][tParentRow]["level"]+1) into tControlInfo
    put tControlInfo into sDisplayArray["objects"][theIndex]
@@ -2003,6 +2039,8 @@ on deleteStackFromProjectBrowser pTarget
    
    local tVisibleRows, tChildren, tChildOffset
    
+   set the wholeMatches to true
+   
    put sDisplayArray["visible object keys"] into tVisibleRows
    
    ## Only update if expanded
@@ -2037,12 +2075,15 @@ on deleteStackFromProjectBrowser pTarget
    put tVisibleRows into sDisplayArray["visible object keys"]
    
    refreshProjectView
+   buildProjectView true ## added bn
    return true
 end deleteStackFromProjectBrowser
 
 on deleteCardFromProjectBrowser pTarget
    local tParentID, tVisibleRows, tParentRow, theIndex, tChildren, tParentExpanded
    local tRow, tCardChildren
+   
+   set the wholeMatches to true
    
    put word 5 to -1 of pTarget into tParentID   
    put sDisplayArray["visible object keys"] into tVisibleRows
@@ -2105,6 +2146,8 @@ on deleteControlFromProjectBrowser pTarget
    local tChildOffset, tExpandedSiblings
    local tRow, tLevelConnectors, tLevelCount
    
+   set the wholeMatches to true
+   
    put word 5 to -1 of pTarget into pParentID
    
    put sDisplayArray["visible object keys"] into tVisibleRows
@@ -2153,7 +2196,22 @@ on deleteControlFromProjectBrowser pTarget
    refreshChildren pParentID
    
    refreshProjectView
-end deleteControlFromProjectBrowser   
+end deleteControlFromProjectBrowser
+
+function allParentsExpanded pParentID
+   local tOwners, tOwnerRow
+   
+   get getOwners(pParentID, tOwners)
+   repeat for each line anOwner in tOwners
+      put getRow(anOwner) into tOwnerRow
+      if tOwnerRow is empty then return false
+      if not sDisplayArray["objects"][tOwnerRow]["expanded"] then
+         return false
+      end if
+   end repeat
+   return true
+end allParentsExpanded
+
 
 ####### Dragging/Rearranging handlers #######
 ########################################
@@ -2412,7 +2470,6 @@ on loadImages
 end loadImages
 
 on revUpdatePalette
-   refreshProjectView
    ## Do nothing
 end revUpdatePalette
 

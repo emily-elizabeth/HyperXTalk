@@ -10,11 +10,11 @@ Finds the <node> in an <XML tree> where the specified attribute of the
 
 Associations: xml library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 
@@ -69,7 +69,7 @@ If the <revXMLMatchingNode> <function> encounters an error, it
 >*Important:*  The <revXMLMatchingNode> <function> is part of the 
 > <XML library>. To ensure that the <function> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "XML" 
 > checkbox is checked.
@@ -77,7 +77,7 @@ If the <revXMLMatchingNode> <function> encounters an error, it
 References: function (control structure),
 revXMLAttributeValues (function), revXMLChildNames (function),
 revXMLTree (function), revXMLAttributes (function),
-OpenXTalk custom library (glossary), node (glossary),
+HyperXTalk custom library (glossary), node (glossary),
 Standalone Application Settings (glossary),
 standalone application (glossary), XML tree (glossary), return (glossary),
 attribute (glossary), XML library (library)

@@ -1,0 +1,60 @@
+Name: batteryLevel
+
+Type: function
+
+Syntax: batteryLevel()
+
+Summary:
+<return|Returns> the current battery charge level as a percentage.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+put batteryLevel() into tLevel
+if tLevel = -1 then
+   put "No battery (AC only)" into field "status"
+else
+   put tLevel & "%" into field "status"
+end if
+
+Example:
+if batteryLevel() < 20 and powerSource() = "battery" then
+   answer "Battery is low. Please plug in your charger."
+end if
+
+Returns:
+An integer between 0 and 100 representing the battery charge percentage, or
+-1 if no battery is present (for example, on a desktop computer running on
+AC power only).
+
+Description:
+Use the <batteryLevel> <function> to determine how much charge remains in
+the system battery. The value is a whole-number percentage from 0 (empty) to
+100 (full).
+
+A return value of -1 indicates that no battery was detected. This is normal
+for desktop machines that do not contain a battery. It does not indicate an
+error; <the result> is not set in this case.
+
+On macOS, battery information is read from the IOKit Power Sources API
+(IOPowerSources.h). No entitlement or user permission is required.
+
+On Windows, the value comes from `GetSystemPowerStatus`. If the system
+reports the battery status as unknown (for example, during a brief
+measurement gap), -1 is returned.
+
+On Linux, the charge is read from the kernel's power supply sysfs interface
+at `/sys/class/power_supply/<name>/capacity`. If no battery node is found
+(common in virtual machines and containers), -1 is returned.
+
+To determine whether the device is running on battery or AC power, use
+<powerSource>.
+
+References: powerSource (function), function (control structure),
+return (glossary)
+
+Tags: battery, power

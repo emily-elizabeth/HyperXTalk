@@ -8,11 +8,11 @@ Summary:
 Specifies the rectangle in which windows may open and <zoom> or
 <maximize>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 set the windowBoundingRect to 100,20,800,600

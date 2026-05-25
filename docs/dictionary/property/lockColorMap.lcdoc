@@ -8,7 +8,7 @@ Summary:
 Specifies whether changes to the <color table> cause the screen to be
 <redraw|redrawn> with the new <color table>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -30,7 +30,7 @@ and possible screen flashing when the <bit depth> of the screen is 8
 
 If the <lockColorMap> <property> is set to false, newly-displayed
 <image(object)|images>, <video clip|videoclips>, and
-<player(object)|players> can change the <color table> used by OpenXTalk.
+<player(object)|players> can change the <color table> used by HyperXTalk.
 This displays the colors in <image(object)|images> and movies more
 accurately, but can cause screen flashing. (To minimize screen flashing
 when the <lockColorMap> is false, go to the <card> containing the

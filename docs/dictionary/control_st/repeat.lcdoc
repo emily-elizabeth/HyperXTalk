@@ -31,11 +31,11 @@ end repeat
 Summary:
 <execute|Executes> a set of <statement|statements> repeatedly.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 -- counter variables in repeat with loops may use 0
@@ -65,7 +65,7 @@ end repeat
 
 Parameters:
 statementList:
-One or more OpenXTalk statements, and can also include `if`, `switch`,
+One or more HyperXTalk statements, and can also include `if`, `switch`,
 `try`, or `repeat` <control structure|control structures>.
 
 condition (bool):
@@ -149,7 +149,7 @@ If no <loopForm> is specified, the `forever` form is used.
 #####<until|Until> and <while>
 The `until` <conditional|condition> and `while` <conditional|condition>
 forms repeat the <statementList> as long as the <conditional|condition>
-is false or as long as it is true, respectively. OpenXTalk re-evaluates
+is false or as long as it is true, respectively. HyperXTalk re-evaluates
 the <conditional|condition> before each <iteration>.
 
 Use the `until `*`condition`* or `while `*`condition`* form if you want

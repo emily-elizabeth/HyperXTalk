@@ -9,11 +9,11 @@ Syntax: byteToNum(<byte>)
 Summary:
 Returns the numeric value of a byte.
 
-Introduced: 4.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 byteToNum(byte 1 of tString)

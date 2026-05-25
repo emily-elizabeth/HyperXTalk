@@ -10,11 +10,11 @@ changes.
 
 Associations: card
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, ios, android
+OS: mac
 
-Platforms: desktop,mobile
+Platforms: desktop
 
 Example:
 on systemAppearanceChanged

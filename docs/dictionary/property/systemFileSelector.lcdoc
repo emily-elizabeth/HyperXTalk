@@ -10,7 +10,7 @@ Specifies whether the <ask file>, <answer file>, and <answer folder>
 built in to the current operating system, or a built-in
 <file dialog box>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows
 

@@ -8,7 +8,7 @@ Summary:
 Sent to the <active control(glossary)>, or to the <current card> if no
 <control> is <focus|focused>, when the user presses an arrow key.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Associations: card, field
 
@@ -36,7 +36,7 @@ Handle the <arrowKey> <message> if you want to do something special when
 the user presses an arrow key.
 
 If the <arrowKey> <handler> does not <pass> the <message> or <send> it
-to a further <object(glossary)> in the <message path>, OpenXTalk does not
+to a further <object(glossary)> in the <message path>, HyperXTalk does not
 perform the usual arrow key action (moving the <insertion point>, moving
 the <selected> <object(glossary)>, or navigating to another card).
 <pass|Passing> the <message> lets the arrow key action take place.

@@ -7,7 +7,7 @@ Syntax: revPrintReport
 Summary:
 Prints a report from the report viewers on the <current card>. 
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -39,7 +39,7 @@ in the Report Builder.
 >*Important:*  The <revPrintReport> <command> is part of the 
 > <Printing library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Printing" 
 > library checkbox is checked.
@@ -49,7 +49,7 @@ revPrintText (command), report viewer (glossary), current card (glossary),
 command (glossary), Report Builder (glossary), error (glossary),
 standalone application (glossary),
 Standalone Application Settings (glossary),
-OpenXTalk custom library (glossary), Printing library (library)
+HyperXTalk custom library (glossary), Printing library (library)
 
 Tags: printing
 

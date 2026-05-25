@@ -10,7 +10,7 @@ imported <HyperCard> stacks.
 
 Associations: card
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
@@ -18,10 +18,10 @@ Description:
 In HyperCard, the <showPict> <property> determines whether the <card>
 <image> is visible.
 
-In OpenXTalk, setting this property does not cause a script error, but
+In HyperXTalk, setting this property does not cause a script error, but
 doing so has no effect.
 
 References: show (command), hide (command), property (glossary),
-OpenXTalk (glossary), HyperCard (glossary), card (keyword),
+HyperXTalk (glossary), HyperCard (glossary), card (keyword),
 image (keyword), visible (property)
 

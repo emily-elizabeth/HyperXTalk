@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "platform.h"
 
 #include <cstdio>   // sscanf (used by MCParseHexColor)
@@ -418,7 +402,17 @@ void MCScreenDC::openwindow(Window w, Boolean override)
 	if (t_stack != nil)
 		t_parent = t_stack -> getparentwindow();
 		
-	if (t_stack -> getmode() != WM_SHEET)
+	if (t_stack->getmode() == WM_POPOVER)
+	{
+		MCPlatformShowWindowAsPopover(w, MCpopoveranchor, (MCPlatformWindowEdge)MCpopoveredge);
+#ifdef _LINUX_DESKTOP
+		// On Linux there is no native popover widget, so we track the open
+		// popover stack here. The GDK button-press handler in lnxdclnx.cpp
+		// checks this to implement click-outside dismiss.
+		MCpopoverstack = t_stack;
+#endif
+	}
+	else if (t_stack->getmode() != WM_SHEET)
 		MCPlatformShowWindow(w);
 	else
 		MCPlatformShowWindowAsSheet(w, t_parent);
@@ -426,6 +420,11 @@ void MCScreenDC::openwindow(Window w, Boolean override)
 
 void MCScreenDC::closewindow(Window window)
 {
+#ifdef _LINUX_DESKTOP
+	// Clear the popover tracker if this window is the current popover.
+	if (MCpopoverstack != nullptr && MCpopoverstack->getw() == window)
+		MCpopoverstack = nullptr;
+#endif
 	MCPlatformHideWindow(window);
 }
 
@@ -1015,6 +1014,10 @@ void MCScreenDC::updatesystemcolors(void)
     MCColor t_txt_color;
     if (MCParseHexColor(t_txt_buf, t_txt_color))
         system_fore_pixel = t_txt_color;
+
+    // Keep the selection highlight colour current so dark-mode switches are
+    // reflected immediately (e.g. in combo-box list popups).
+    MCPlatformGetSystemProperty(kMCPlatformSystemPropertyHiliteColor, kMCPlatformPropertyTypeColor, &MChilitecolor);
 #endif
 }
 

@@ -9,7 +9,7 @@ Reports a pointer to a movie's controller.
 
 Associations: player
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Deprecated: 8.1
 

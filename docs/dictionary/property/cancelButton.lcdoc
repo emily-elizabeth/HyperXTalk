@@ -1,0 +1,69 @@
+Name: cancelButton
+
+Type: property
+
+Syntax: get the cancelButton of <field>
+Syntax: set the cancelButton of <field> to {true | false}
+
+Summary:
+Shows a clickable × icon in the right margin of a field that clears its
+content when clicked.
+
+Associations: field
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+-- Add a clear button to a search field
+set the cancelButton of field "Search" to true
+
+Example:
+-- Remove the clear button
+set the cancelButton of field "Search" to false
+
+Example:
+-- Respond to the clear action in the field's script
+on cancelButtonClicked
+    -- hide search results after the field is cleared
+    hide group "SearchResults"
+end cancelButtonClicked
+
+Example:
+-- cancelButton and passwordToggle can coexist on the same field;
+-- the × appears to the left of the eye icon
+set the passwordField of field "Password" to true
+set the passwordToggle of field "Password" to true
+set the cancelButton of field "Password" to true
+
+Value:
+The <cancelButton> of a <field> is true or false. The default value
+for a newly created field is false.
+
+Description:
+Use the <cancelButton> property to display a small × icon in the right
+margin of a field. Clicking the icon clears the field's content and
+sends a <cancelButtonClicked> message to the field.
+
+The icon is only visible when the field contains text. When the field
+is empty the icon disappears automatically, so there is no need to
+toggle <cancelButton> on and off based on whether content is present.
+
+When <cancelButton> and <passwordToggle> are both true, the × icon
+appears to the left of the eye icon.
+
+Each time the user clicks the × icon, HyperXTalk clears the field's
+content and then sends a <cancelButtonClicked> message to the field.
+Scripts can handle this message to perform additional work such as
+hiding a results panel or resetting dependent controls.
+
+The icon is drawn in the field's right margin and does not affect the
+layout or wrapping of the field's text content.
+
+References: cancelButtonClicked (message), passwordToggle (property),
+field (object)
+
+Tags: ui

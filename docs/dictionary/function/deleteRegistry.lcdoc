@@ -7,7 +7,7 @@ Syntax: deleteRegistry(<keyPath>)
 Summary:
 Removes an entry from the <registry|Windows system registry>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: windows
 

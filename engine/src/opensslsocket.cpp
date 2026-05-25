@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -2388,8 +2372,8 @@ static bool ssl_match_identity(const char *p_pattern, const char *p_string)
 // MW-2005-02-17: Integrated standard SSL post connection check logic.
 static long post_connection_check(SSL *ssl, char *host)
 {
-	X509 *cert;
-	X509_NAME	*subj;
+	const X509 *cert;
+	const X509_NAME *subj;
 	char data[256];
 	int ok = 0;
 
@@ -2412,7 +2396,7 @@ static long post_connection_check(SSL *ssl, char *host)
 		}
 		GENERAL_NAMES_free(t_alt_names);
 	}
-		
+
 	if (!ok && (subj = X509_get_subject_name(cert)) &&
 	        X509_NAME_get_text_by_NID(subj, NID_commonName, data, 256) > 0)
 	{
@@ -2421,12 +2405,13 @@ static long post_connection_check(SSL *ssl, char *host)
 			goto err_occurred;
 	}
 
-	X509_free(cert);
+	if (NULL != cert)
+		X509_free((X509*)cert);
 	return SSL_get_verify_result(ssl);
 
 err_occurred:
-	if (cert)
-		X509_free(cert);
+	if (NULL != cert)
+		X509_free((X509*)cert);
 
 	return X509_V_ERR_APPLICATION_VERIFICATION;
 }
@@ -2529,7 +2514,7 @@ static int verify_callback(int ok, X509_STORE_CTX *store)
 
 	if (!ok)
 	{
-		X509 *cert = X509_STORE_CTX_get_current_cert(store);
+		const X509 *cert = X509_STORE_CTX_get_current_cert(store);
 		int  depth = X509_STORE_CTX_get_error_depth(store);
 		int  err = X509_STORE_CTX_get_error(store);
 		

@@ -243,7 +243,9 @@
 							'libraries':
 							[
 								'-lsicuin',
-								'-lsicuio',
+								# sicuio (ICU I/O) is not used by HyperXTalk; the stub
+								# lib in prebuilt is an empty archive that causes LNK1107
+								# on MSVC — omit it entirely.
 								'-lsicutu',
 								'-lsicuuc',
 								'-lsicudt',

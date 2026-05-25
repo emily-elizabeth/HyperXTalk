@@ -8,7 +8,7 @@ Summary:
 The <request> data gets information from another application via 
 <Apple Event|Apple Events>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 
@@ -36,7 +36,7 @@ can omit both the zone and the computer name.
 It:
 The <request> <command> sends an eval <Apple Event> to the
 <programAddress>. If the program supports this <Apple Event>, it
-evaluates the expression and sends the result back to OpenXTalk, which
+evaluates the expression and sends the result back to HyperXTalk, which
 places it in the <it> <variable>.
 
 The result:

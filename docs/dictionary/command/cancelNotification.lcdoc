@@ -1,0 +1,45 @@
+Name: cancelNotification
+
+Type: command
+
+Syntax: cancelNotification <tag>
+
+Summary:
+Removes a previously shown notification identified by its tag.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- Cancel a specific notification
+cancelNotification "sync-progress"
+
+Example:
+-- Show a notification, wait, then cancel it
+showNotification "Processing" "Working…" "progress"
+wait 5 seconds
+cancelNotification "progress"
+
+Parameters:
+tag (string): The tag that was passed to <showNotification> when the
+notification was created. If no notification with this tag exists, the
+command has no effect.
+
+Description:
+Use <cancelNotification> to programmatically remove a notification that
+was previously posted with <showNotification>. The notification is
+removed from the notification center and the system tray.
+
+If the tag does not match any current notification, the command silently
+does nothing. Tags are case-sensitive.
+
+To remove every pending notification at once, use <cancelAllNotifications>.
+
+References: showNotification (command), cancelAllNotifications (command),
+requestNotificationPermission (command),
+notificationPermission (function)
+
+Tags: notifications

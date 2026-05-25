@@ -7,7 +7,7 @@ Syntax: set the prolog of <EPSObject> to <PostScriptString>
 Summary:
 Specifies the <PostScript> prolog code of an <EPS|EPS object>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

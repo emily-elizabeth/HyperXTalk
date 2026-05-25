@@ -8,7 +8,7 @@ Summary:
 Has no effect and is included for compatibility with
 imported <HyperCard> stacks.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
@@ -16,7 +16,7 @@ Security: printing
 
 Description:
 In HyperCard, the <printTextAlign> <property> specifies the alignment of
-printed text. In OpenXTalk, only <card(object)|cards> can be printed, and
+printed text. In HyperXTalk, only <card(object)|cards> can be printed, and
 the alignment of text on the <card(keyword)> is determined by the
 <card(keyword)> layout and the <properties> of its <object|objects>.
 
@@ -24,6 +24,6 @@ By default, the value of <printTextAlign> is center. A handler can set
 the <property>, but the new setting has no effect.
 
 References: print (command), object (glossary), property (glossary),
-OpenXTalk (glossary), HyperCard (glossary), card (keyword), card (object),
+HyperXTalk (glossary), HyperCard (glossary), card (keyword), card (object),
 properties (property), textAlign (property)
 

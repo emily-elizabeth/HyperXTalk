@@ -8,11 +8,11 @@ Summary:
 Reports information about <stacks> that are being <import|imported> from
 <HyperCard>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, ios, android
+OS: mac
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the HCImportStat into field "Progress"
@@ -27,7 +27,7 @@ Use the <HCImportStat> <property> to check the status of a <HyperCard>
 stack that's being <import|imported>.
 
 To import a HyperCard stack, use the <go> <command> to open the <stack>.
-OpenXTalk automatically converts it to a OpenXTalk <stack>.
+HyperXTalk automatically converts it to a HyperXTalk <stack>.
 
 If no stack has been imported during the current session, the
 <HCImportStat> <property> reports empty.

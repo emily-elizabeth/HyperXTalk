@@ -8,7 +8,7 @@ Summary:
 Converts a Unix-style <file path|pathname> to a <Mac OS>-style <file
 path|pathname>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -22,11 +22,11 @@ revMacFromUnixPath(it)
 
 Parameters:
 unixPathname:
-A file or folder pathname in the standard format used by OpenXTalk for
+A file or folder pathname in the standard format used by HyperXTalk for
 file paths.
 
 convertOSX (bool):
-If you don't specify the <convertOSX>, if OS X is running, OpenXTalk
+If you don't specify the <convertOSX>, if OS X is running, HyperXTalk
 assumes you want to convert an OS X-style path to a Mac OS-style path;
 otherwise, it assumes you don't want to convert between the OS X style
 and Mac OS style.
@@ -36,7 +36,7 @@ The <revMacFromUnixPath> <function> returns a <string> with the <file
 path> in the format expected by the <Mac OS>.
 
 Description:
-Use the <revMacFromUnixPath> <function> to convert a OpenXTalk-style
+Use the <revMacFromUnixPath> <function> to convert a HyperXTalk-style
 <file path> to the <Mac OS> <file path> format (for example, if you need
 to pass a <file path|pathname> to an <external>).
 
@@ -54,7 +54,7 @@ folder that the file is in. If a file or folder is on a disk other than
 the startup disk, its absolute path starts with "Volumes", followed by
 the disk name.
 
-The OS X path convention is used by OpenXTalk, but the old Mac OS-style
+The OS X path convention is used by HyperXTalk, but the old Mac OS-style
 path convention is required by certain applications (such as
 AppleScript), even on OS X systems. If the <convertOSX> is true (or if
 you don't specify the <convertOSX> and the application is running under
@@ -66,12 +66,12 @@ not on the startup disk. If the <convertOSX> is false, the
 <revMacFromUnixPath> <function> does not make these changes to <absolute
 file path|absolute paths>.
 
-OpenXTalk always uses the Unix pathname standard for cross-platform
+HyperXTalk always uses the Unix pathname standard for cross-platform
 compatibility, and automatically converts pathnames to the correct
 standard for the current platform when executing commands. You need to
 convert the pathname only if you are passing it to another program or
-external. If you are using only OpenXTalk commands and functions, you do
-not need to convert the pathname, since OpenXTalk does it for you.
+external. If you are using only HyperXTalk commands and functions, you do
+not need to convert the pathname, since HyperXTalk does it for you.
 
 >*Note:* When included in a <standalone application>, the <Common
 > library> is implemented as a hidden <group> and made available when

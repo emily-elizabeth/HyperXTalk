@@ -27,10 +27,10 @@ on preOpenCard
    revIDESubscribe "ideExtensionsChanged"
    revIDESubscribe "ideExtensionStatusChanged"
    revIDESubscribe "idePreferenceChanged:ideExtensionManager_showInactiveExtensions"
-
+   
    lock screen
-   setSection
-   setUpExtensionList
+   setSection	
+   setUpExtensionList   
    set the rect of group "extensionList" of me to the contentRect of this stack of me
    send "resetView" to group "extensionList" of me
    unlock screen
@@ -73,6 +73,7 @@ on setUpExtensionList
    set the viewProp["row style templates"] of group "extensionList" of card "list" of this stack to theStylesA
    set the viewProp["hilite color"] of group "extensionList" of card "list" of this stack to ideColorGet("pb_line_selected")
    set the viewProp["background color"] of group "extensionList" of card "list" of this stack to empty
+   
    set the viewProp["row color"] of group "extensionList" of card "list" of this stack to revIDEColor("dataView_rowColor")
    set the viewProp["alternate row color"] of group "extensionList" of card "list" of this stack to revIDEColor("dataView_rowAlternateColor")        
    

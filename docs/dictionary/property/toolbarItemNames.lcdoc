@@ -1,0 +1,75 @@
+Name: itemNames
+
+Type: property
+
+Syntax: get the itemNames of <toolbar>
+Syntax: set the itemNames of <toolbar> to <nameList>
+
+Summary:
+The ordered list of item names in a toolbar; setting it reorders and
+prunes the toolbar's items.
+
+Associations: toolbar
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+put the itemNames of toolbar 1 into tNames
+
+Example:
+-- Reorder and remove items in one operation
+set the itemNames of toolbar "mainBar" to \
+    "fileNew" & return & "fileOpen" & return & "fileSave"
+
+Example:
+-- Check whether a named item is present
+if "saveButton" is among the lines of the itemNames of toolbar 1 then
+    set the itemEnabled["saveButton"] of toolbar 1 to true
+end if
+
+Example:
+-- Iterate over every item
+repeat for each line tName in the itemNames of toolbar 1
+    set the itemEnabled[tName] of toolbar 1 to true
+end repeat
+
+Value:
+The <itemNames> of a <toolbar> is a string containing one item name per
+line, in the order the items appear in the toolbar from left to right.
+Separator, space, and flexible-space items are included. An empty string
+is returned when the toolbar has no items.
+
+Description:
+Use the <itemNames> property to read the current item order or to reorder
+and prune the toolbar's items in a single operation.
+
+**Getting**
+
+Reading <itemNames> returns the names of all current items, one per line,
+in display order.
+
+**Setting**
+
+Setting <itemNames> to a newline-delimited list of names reorders and
+prunes the toolbar:
+
+- Items whose names appear in the list are kept and rearranged to match
+  the supplied order.
+- Items whose names do not appear in the list are removed.
+- Names in the list that do not correspond to an existing item are
+  silently ignored — they do not create new items.
+
+To create a new item, set its <itemLabel> first (which auto-creates it),
+then use <itemNames> to position it alongside existing items.
+
+This property is saved with the stack and restored when the stack is
+opened.
+
+References: toolbar (object), itemLabel (property),
+itemEnabled (property), toolbarItemClicked (message)
+
+Tags: ui

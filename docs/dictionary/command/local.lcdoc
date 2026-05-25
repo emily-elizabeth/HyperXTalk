@@ -8,11 +8,11 @@ Summary:
 <declare|Declares> one or more <local variable|local variables> and
 assigns initial <value|values> to them.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local currentStatus -- creates one local variable
@@ -78,7 +78,7 @@ preservation turned off, script locals lose their values when the script
 is recompiled.
 
 It is recommended that naming conventions are followed for <variable>s in 
-OpenXTalk <script>s. For handler <local variable>s prefix with a lowercase 't' 
+HyperXTalk <script>s. For handler <local variable>s prefix with a lowercase 't' 
 and for <script local variable>s prefix with a lowercase 's' (as in 
 tMyVariable and sMyVariable). This enables anyone reading the code to 
 identify the <scope> of a variable when it is used, without having to 

@@ -8,11 +8,11 @@ Summary:
 Used with the <repeat> <control structure> to specify that the <loop> is
 to repeat as long as the specified condition remains true.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 repeat while the mouse is down
@@ -24,13 +24,13 @@ Description:
 Use the <while> <keyword> to repeat a sequence of instructions as long
 as a condition continues to be true.
 
-OpenXTalk evaluates the condition each time the loop repeats, at the top
+HyperXTalk evaluates the condition each time the loop repeats, at the top
 of the loop (before the statements in the <repeat structure> are
 executed). If the condition is false, the <loop> is skipped and
 <execute|execution> <resume|resumes> with the <statement> after the 
 <end repeat> statement.
 
-If the condition is already false when OpenXTalk reaches the <repeat>
+If the condition is already false when HyperXTalk reaches the <repeat>
 statement, the <loop> is not <execute|executed> at all.
 
 References: repeat (control structure),

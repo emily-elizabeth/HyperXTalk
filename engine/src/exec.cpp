@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -1163,6 +1147,12 @@ MCVarref* MCExecContext::GetIt() const
     // MCServerScript object.
     return static_cast<MCServerScript *>(m_object . object) -> GetIt();
 #else
+    // Worker threads dispatch at the top level with no enclosing handler.
+    // They provide a dedicated variable via SetWorkerIt() so that
+    // MCEngineExecDispatch's post-dispatch SetItToValue() call can succeed.
+    if (m_worker_it != nil)
+        return m_worker_it;
+
     // We should never get here as execution only occurs within handlers unless
     // in server mode.
     assert(false);
@@ -1227,7 +1217,7 @@ void MCExecContext::UserThrow(MCStringRef p_error)
 
 MCObjectHandle MCExecContext::GetObjectHandle(void) const
 {
-    extern MCExecContext *MCECptr;
+    extern thread_local MCExecContext *MCECptr;
 	return MCECptr->GetObject()->GetHandle();
 }
 

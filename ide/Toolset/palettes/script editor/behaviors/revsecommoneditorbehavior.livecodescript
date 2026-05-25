@@ -1,4 +1,76 @@
 script "com.livecode.scripteditor.behavior.editorcommon"
+
+-- Autocomplete is always enabled in HyperXTalk.
+-- Defined here so it is always in the message path regardless of
+-- whether ideautocompletelibrary has been inserted into back yet.
+function ideAutocompleteIsEnabled
+   return true
+end ideAutocompleteIsEnabled
+
+--------------------------------------------------------------------------------
+-- Autocomplete entry-point stubs
+-- Dispatch to the library stack directly so there is no dependency on
+-- back-script insertion order.  Each stub is a safe no-op when the library
+-- stack is not yet loaded.
+--------------------------------------------------------------------------------
+
+command ideAutocompleteCancelFind pEditorId
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteCancelFind" to stack "ideautocompletelibrary" with pEditorId
+   end if
+end ideAutocompleteCancelFind
+
+command ideAutocompleteClearObjectCache pObject
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteClearObjectCache" to stack "ideautocompletelibrary" with pObject
+   end if
+end ideAutocompleteClearObjectCache
+
+command ideAutocompleteUpdate pEditorId, pObjectId, pClasses
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteUpdate" to stack "ideautocompletelibrary" with pEditorId, pObjectId, pClasses
+   end if
+end ideAutocompleteUpdate
+
+command ideAutocompleteIntrospectMessagePath pObjectId
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteIntrospectMessagePath" to stack "ideautocompletelibrary" with pObjectId
+   end if
+end ideAutocompleteIntrospectMessagePath
+
+-- Tab/arrow/help return a boolean; default to true (pass the key through)
+-- when the library is not loaded.
+command ideAutocompleteHandleTab pEditorId, pObjectId, @pPlaceholders, @pEditPlaceholder, @pEditChunks
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteHandleTab" to stack "ideautocompletelibrary" with pEditorId, pObjectId
+      if it is "handled" then return the result
+   end if
+   return true
+end ideAutocompleteHandleTab
+
+command ideAutocompleteHandleArrow pEditorId, pKeyName, pObjectId, @pPlaceholders, @pEditPlaceholder, @pEditChunks
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteHandleArrow" to stack "ideautocompletelibrary" with pEditorId, pKeyName, pObjectId
+      if it is "handled" then return the result
+   end if
+   return true
+end ideAutocompleteHandleArrow
+
+command ideAutocompleteHandleHelp pEditorId, pObjectId
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteHandleHelp" to stack "ideautocompletelibrary" with pEditorId, pObjectId
+      if it is "handled" then return the result
+   end if
+   return false
+end ideAutocompleteHandleHelp
+
+-- Called by ideautocompletelibrary to insert an autocomplete word.
+-- Wraps textReplace so it is always called from within the behavior's own
+-- context rather than dispatched from the back-script library.
+command ideAutocompleteInsertCompletion pOffset, pOldText, pNewText
+   textReplace pOffset, pOldText, pNewText
+end ideAutocompleteInsertCompletion
+
 local sObjectId
 
 # The following variables store information used for the undo / redo system.
@@ -75,7 +147,7 @@ command setObjectID pObjectID
       if tRuggedID is not sObjectID then
          put tRuggedID into sObjectID
          if exists(sObjectId) and \
-               revEnvironmentEditionProperty("autocomplete") then
+               ideAutocompleteIsEnabled() then
             ideAutocompleteIntrospectMessagePath sObjectId
          end if
       end if
@@ -127,7 +199,7 @@ command clearCache pObject, pDontCheckId
    end if
    delete variable sScriptCache[tObject]
 
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteClearObjectCache tObject
    end if
 end clearCache
@@ -1405,35 +1477,35 @@ on selectionUpdate
 end selectionUpdate
 
 on mouseMove
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteCancelFind the long id of me
    end if
    pass mouseMove
 end mouseMove
 
 on closeField
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteCancelFind the long id of me
    end if
    pass closeField
 end closeField
 
 on exitField
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteCancelFind the long id of me
    end if
    pass exitField
 end exitField
 
 on escapeKey
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteCancelFind the long id of me
    end if
    pass escapeKey
 end escapeKey
 
 on help
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteHandleHelp the long id of me, sObjectId
       if the result then
          pass help
@@ -1621,7 +1693,7 @@ on returnInField
       exit returnInField
    end if
    
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteCancelFind the long id of me
    end if
    
@@ -2565,7 +2637,7 @@ on tabKey
    local tDoTab = true
    
    if tProviderCompletion and \
-         revEnvironmentEditionProperty("autocomplete") then
+         ideAutocompleteIsEnabled() then
       ideAutocompleteHandleTab the long id of me, sObjectId, sPlaceholders, sEditPlaceholder, sEditChunks
       put the result into tDoTab
    end if
@@ -2834,7 +2906,7 @@ on rawKeyDown pKey
    end switch
    
    local tPass = true
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteHandleArrow the long id of me, tKeyName, sObjectId, sPlaceholders, sEditPlaceholder, sEditChunks
       put the result into tPass
    end if
@@ -3803,7 +3875,7 @@ end __LookForPair
 private command __UpdateAutoCompleteList pUUID
    local tProviderCompletion
    put __GetPreference("editor,providercompletion", true) into tProviderCompletion
-   if tProviderCompletion and revEnvironmentEditionProperty("autocomplete") then
+   if tProviderCompletion and ideAutocompleteIsEnabled() then
       ideAutocompleteUpdate the long id of me, sObjectID, sPlaceholders[pUUID]["classes"]
    end if
 end __UpdateAutoCompleteList

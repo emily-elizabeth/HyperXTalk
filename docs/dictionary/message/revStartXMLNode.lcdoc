@@ -10,11 +10,11 @@ Sent to the <current card> when the <revXMLCreateTreeFromFile>
 
 Associations: card
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 

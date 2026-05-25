@@ -9,11 +9,11 @@ Specifies the size the fragments of object images it caches should be.
 
 Associations: stack
 
-Introduced: 5.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 set the compositorTileSize of this stack to 128

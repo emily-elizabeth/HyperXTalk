@@ -7,11 +7,11 @@ Syntax: throw <errorString>
 Summary:
 <return|Returns> an error message to a <control structure>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 open file tFile for text read
@@ -34,7 +34,7 @@ within a <try> <control structure>.
 **Form:** The <throw> <statement> appears on a line by itself, anywhere 
 inside a <handler>.
 
-If OpenXTalk generates the error (for example, an execution error from a
+If HyperXTalk generates the error (for example, an execution error from a
 built-in command), it returns a positive number to the <try> 
 <control structure>. To avoid confusion, therefore, a <throw> 
 <control structure> should return a <negative> number, or a 

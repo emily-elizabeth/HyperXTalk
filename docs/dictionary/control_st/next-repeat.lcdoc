@@ -8,11 +8,11 @@ Summary:
 Skips the rest of the current <iteration> and goes back to the top of
 the <repeat> <control structure|structure>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Description:
 Use the <next repeat> <control structure> to skip part of a <repeat>

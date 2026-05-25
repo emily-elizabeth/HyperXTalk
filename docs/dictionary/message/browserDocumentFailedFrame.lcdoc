@@ -8,7 +8,7 @@ Summary:
 Sent when a browser object has encountered an error when loading a url
 in a frame
 
-Introduced: 6.7.3
+Introduced: 1.0.0
 
 OS: mac, windows
 

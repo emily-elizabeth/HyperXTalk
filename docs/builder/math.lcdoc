@@ -1,0 +1,496 @@
+Library: com.livecode.math
+
+Type: module
+
+Summary: This library consists of the mathematical operations included in the standard library of Extension Builder.
+
+
+Name: MinListOperator
+
+Type: operator
+
+Syntax:     the minimum value of <ValueList>
+
+Summary: Min operator.
+
+List: An expression that evaluates to a list.
+
+Returns: The minimal value attained by the elements of <List>.
+
+Description: >*Note:* It is an error if any element of <List> is non-numeric.
+
+Tags: Math
+
+
+
+
+Name: Base10LogOperator
+
+Type: operator
+
+Syntax: log(<Operand>)
+
+Summary: Base 10 log operator.
+
+Operand: An expression that evaluates to a number.
+
+Example:
+variable tVar as Number
+put the log of 10000 into tVar -- tVar contains 5
+
+Tags: Math
+
+
+
+
+Name: BaseConvertTo
+
+Type: operator
+
+Syntax:     <Operand> converted to base <Target>
+
+Summary: Converts the base of <Operand>
+
+Operand: An expression that evaluates to an integer.
+
+Target: An expression that evaluates to an integer.
+
+Returns: A string representation of <Operand> in base <Target>.
+
+Description:
+Converts a decimal into the desired base, and returns a string representation.
+
+>*Note:* The destination base must be an integer between 2 and 32.
+
+Tags: Math
+
+
+
+
+Name: AbsOperator
+
+Type: operator
+
+Syntax:     the abs of <Operand>
+
+Summary: Absolute value operator.
+
+Operand: An expression that evaluates to a number.
+
+Returns: The absolute value of <Operand>.
+
+Example:
+variable tVar as Number
+put the trunc of 3.9 into tVar -- tVar contains 3
+
+Description: The absolute value of <Operand> is the value of <Operand> if it is greater than or equal to 0, or the negation of the value of <Operand> if it is less than zero.
+
+Tags: Math
+
+
+
+
+Name: RandomNumber
+
+Type: expression
+
+Syntax:     any number
+
+Summary: Generates a pseudo-random number.
+
+Returns: A real between 0.0 and 1.0.
+
+Example:
+variable tVar as Number
+put any number into tVar -- 0 <= tVar <= 1
+
+Tags: Math
+
+
+
+
+Name: TanOperator
+
+Type: operator
+
+Syntax: tan(<Operand>)
+
+Summary: Tan operator.
+
+Operand: An expression that evaluates to a number.
+
+Example:
+variable tVar as Number
+put the tan(pi) into tVar -- tVar contains 0
+
+Example:
+variable tVar as Number
+put the tangent of pi /4 into tVar -- tVar contains approximately 1
+
+Tags: Math
+
+
+
+
+Name: PowOperator
+
+Type: operator
+
+Syntax:     <Left> ^ <Right>
+
+Summary: Binary exponentiation operation.
+
+Left: An expression that evaluates to a number.
+
+Right: An expression that evaluates to a number.
+
+Returns: The result of raising <Left> to the power <Right>.
+
+Example:
+variable tVar as Number
+put 5^2 into tVar -- tVar contains 25
+
+Tags: Math
+
+
+
+
+Name: ArctanOperator
+
+Type: operator
+
+Syntax: atan(<Operand>)
+
+Summary: Arctan operator.
+
+Operand: An expression that evaluates to a number.
+
+Example:
+variable tVar as Number
+put atan(-1) into tVar -- tVar contains -pi / 4
+
+Example:
+variable tVar as Number
+put the arctangent of 1 into tVar -- tVar contains pi / 4
+
+Description: The inverse of the tan operator.
+
+Tags: Math
+
+
+
+
+Name: SinOperator
+
+Type: operator
+
+Syntax: sin(<Operand>)
+
+Summary: Sin operator.
+
+Operand: An expression that evaluates to a number.
+
+Example:
+variable tVar as Number
+put sin(pi / 2) into tVar -- tVar contains 1
+
+Example:
+variable tVar as Number
+put the sine of pi into tVar -- tVar contains 0
+
+Tags: Math
+
+
+
+
+Name: BaseConvertFrom
+
+Type: operator
+
+Syntax:     <Operand> converted from base <Source>
+
+Summary: Converts the base of <Operand>
+
+Operand: An expression that evaluates to a string.
+
+Source: An expression that evaluates to an integer.
+
+Returns: <Operand> converted to base 10.
+
+Description:
+Interprets a string in the desired base and converts it to decimal.
+
+>*Note:* The source base must be an integer between 2 and 32.
+
+Tags: Math
+
+
+
+
+Name: BaseELogOperator
+
+Type: operator
+
+Syntax: ln(<Operand>)
+
+Summary: Natural log operator.
+
+Operand: An expression that evaluates to a number.
+
+Example:
+variable tVar as Number
+put ln(exp(3)) into tVar -- tVar contains approximately 3
+
+Tags: Math
+
+
+
+
+Name: MaxListOperator
+
+Type: operator
+
+Syntax:     the maximum value of <ValueList>
+
+Summary: Max operator.
+
+List: An expression that evaluates to a list.
+
+Returns: The maximum value attained by the elements of <List>.
+
+Description: >*Note:* It is an error if any element of <List> is non-numeric.
+
+Tags: Math
+
+
+
+
+Name: TruncOperator
+
+Type: operator
+
+Syntax:     the trunc of <Operand>
+
+Summary: Truncation operator.
+
+Operand: An expression that evaluates to a number.
+
+Returns: <Operand> truncated.
+
+Example:
+variable tVar as Number
+put the trunc of 3.9 into tVar -- tVar contains 3
+
+Description: The trunc of <Operand> is the integer part of the decimal representation of <Operand>.
+
+Tags: Math
+
+
+
+
+Name: CosOperator
+
+Type: operator
+
+Syntax: cos(<Operand>)
+
+Summary: Cos operator.
+
+Operand: An expression that evaluates to a number.
+
+Example:
+variable tVar as Number
+put cos(pi) into tVar -- tVar contains -1
+
+Tags: Math
+
+
+
+
+Name: MaxOperator
+
+Type: operator
+
+Syntax:     the maximum of <Left> and <Right>
+
+Summary: Max operator.
+
+Left: An expression that evaluates to a number.
+
+Right: An expression that evaluates to a number.
+
+Returns: The value of <Left>, if it is greater than the value of <Right>, and the value of <Right> otherwise.
+
+Tags: Math
+
+
+
+
+Name: ArccosOperator
+
+Type: operator
+
+Syntax: acos(<Operand>)
+
+Summary: Arccos operator.
+
+Operand: An expression that evaluates to a number.
+
+Example:
+variable tVar as Number
+put acos(0) into tVar -- tVar contains pi/2
+
+Example:
+variable tVar as Number
+put the arccosine of -1 into tVar -- tVar contains pi
+
+Description: The inverse of the cos operator.
+
+Tags: Math
+
+
+
+
+Name: MinOperator
+
+Type: operator
+
+Syntax:     the minimum of <Left> and <Right>
+
+Summary: Min operator.
+
+Left: An expression that evaluates to a number.
+
+Right: An expression that evaluates to a number.
+
+Returns: The value of <Left>, if it is less than the value of <Right>, and the value of <Right> otherwise.
+
+Tags: Math
+
+
+
+
+Name: SquareRootOperator
+
+Type: operator
+
+Syntax: sqrt(<Operand>)
+
+Summary: Square root operator.
+
+Operand: An expression that evaluates to a number.
+
+Example:
+variable tVar as Number
+put sqrt(9) into tVar -- tVar contains 3
+
+Example:
+variable tVar as Number
+put the square root of 4 into tVar -- tVar contains 2
+
+Description:
+The square root of a number is the number which must be
+squared to obtain number : sqrt(number)^2 is equal to number.
+
+Tags: Math
+
+
+
+
+Name: ArcsinOperator
+
+Type: operator
+
+Syntax: asin(<Operand>)
+
+Summary: Arcsin operator.
+
+Operand: An expression that evaluates to a number.
+
+Example:
+variable tVar as Number
+put the asin(-1) into tVar -- tVar contains -pi/2
+
+Example:
+variable tVar as Number
+put the arcsine of 1 into tVar -- tVar contains pi/2
+
+Description: The inverse of the sin operator.
+
+Tags: Math
+
+
+
+
+Name: BinaryArctanOperator
+
+Type: operator
+
+Syntax: atan2(<yCoord>,<xCoord>)
+
+Summary: Binary arctan operator.
+
+yCoord: An expression that evaluates to a number.
+
+xCoord: An expression that evaluates to a number.
+
+Example:
+    variable tVar as Number
+    put atan2(-1,-1) into tVar --tVar contains −3π/4.
+
+Example:
+    variable tVar as Number
+    put the binary arctangent of -1 and -1 into tVar --tVar contains −3π/4.
+
+Description:
+The binary arctan operator returns the angle in radians between the x-axis and the line from the origin to the point (xCoord, yCoord).
+The angle returned has absolute value less than pi: −π < arctan2(y, x) ≤ π.
+
+Tags: Math
+
+
+
+
+Name: ExpOperator
+
+Type: operator
+
+Syntax: exp(<Operand>)
+
+Summary: Exponentiation operator.
+
+Operand: An expression that evaluates to a number.
+
+Returns: e to the power of <Operand>
+
+Example:
+variable tVar as Number
+put the exp(ln(100)) into tVar -- tVar contains approximately 100
+
+Tags: Math
+
+
+
+
+Name: BaseConvert
+
+Type: operator
+
+Syntax:     <Operand> converted from base <Source> to base <Target>
+
+Summary: Converts the base of <Operand>
+
+Operand: An expression that evaluates to a string.
+
+Source: An expression that evaluates to an integer.
+
+Target: An expression that evaluates to an integer.
+
+Returns: A string representation <Operand> interpreted as a number in base <From>, converted to base <To>.
+
+Description:
+Interprets a string in the desired source base and converts it to the desired target base, and returns a string representation.
+
+>*Note:* The source and destination bases must be integers between 2 and 32.
+
+Tags: Math

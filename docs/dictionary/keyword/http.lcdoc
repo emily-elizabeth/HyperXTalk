@@ -10,11 +10,11 @@ designate a <file> on the World Wide Web.
 
 Associations: internet library
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: network
 
@@ -104,7 +104,7 @@ Here are some examples of valid <http> <URL(glossary)|URLs>:
 An <http> <URL(keyword)> is a <container>, and you can use the
 <expression> URL httpURL in any statement where any other <container>
 type is used. When you get the <value> of an <http> <URL(keyword)>,
-OpenXTalk downloads the <URL(keyword)> from the <server>. (If you have
+HyperXTalk downloads the <URL(keyword)> from the <server>. (If you have
 previously <cache|cached> the URL with the <load> <command>, it fetches
 the <URL(keyword)> from the <cache>.)
 
@@ -119,7 +119,7 @@ usually will not be successful. (Check with the server's administrator
 to find out how and where to upload files.)
 
 >*Note:* Transferring a <URL(keyword)> by using it in an <expression> is
-> a <blocking> operation: that is, the <handler> pauses until OpenXTalk
+> a <blocking> operation: that is, the <handler> pauses until HyperXTalk
 > is finished getting the <URL(keyword)>. Since contacting a <server>
 > may take some time due to network lag, <URL(keyword)> operations may
 > take long enough to be noticeable to the user.
@@ -148,7 +148,7 @@ scheme, see [RFC 1630](https://tools.ietf.org/html/rfc1630).
 >*Important:*  The <http> <keyword> is part of the 
 > <Internet library> on desktop platforms. To ensure that the <keyword> 
 > works in a desktop <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
@@ -170,7 +170,7 @@ put (command), load (command), group (command), delete URL (command),
 get (command), libURLSetCustomHTTPHeaders (command),
 function (control structure), libURLLastRHHeaders (function),
 result (function), files (function), libURLErrorData (function),
-value (function), OpenXTalk custom library (glossary),
+value (function), HyperXTalk custom library (glossary),
 application (glossary), standalone application (glossary),
 evaluate (glossary), server (glossary), blocking (glossary),
 cache (glossary), statement (glossary), URL (glossary),

@@ -7,7 +7,7 @@ Syntax: answer effect
 Summary:
 Displays the <QuickTime> special effects <dialog box>.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
 Deprecated:
 8.1

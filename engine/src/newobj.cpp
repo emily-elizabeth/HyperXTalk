@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -30,6 +14,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "ask.h"
 #include "internal.h"
 #include "notification.h"
+#include "share.h"
 
 #include "mode.h"
 
@@ -52,6 +37,8 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCAssertCmd;
 	case S_BEEP:
 		return new MCBeep;
+	case S_BRING_APPLICATION_TO_FRONT:
+		return new MCBringApplicationToFront;
 	case S_BREAK:
 		return new MCBreak;
 	case S_BREAKPOINT:
@@ -201,6 +188,8 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCPop;
 	case S_POPUP:
 		return new MCPopup;
+	case S_POPOVER:
+		return new MCPopover;
 	case S_POST:
 		return new MCPost;
 	case S_PREPARE:
@@ -262,6 +251,8 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCSelect;
 	case S_SEND:
 		return new MCSend;
+	case S_SHARE:
+		return new MCShare;
 	case S_SET:
 		return new MCSet;
 	case S_SHEET:
@@ -326,570 +317,599 @@ MCStatement *MCN_new_statement(int2 which)
 	return new MCStatement;
 }
 
+
+
+
+
+// s_hxt_new_func_id thread_local removed: func_id now set post-construction.
+
 MCExpression *MCN_new_function(int2 which)
 {
+	MCExpression *t_new_function = nullptr;
 	switch (which)
 	{
 	case F_ABS:
-		return new MCAbsFunction;
+		t_new_function = new MCAbsFunction; break;
 	case F_ACOS:
-		return new MCAcos;
+		t_new_function = new MCAcos; break;
 	case F_ALIAS_REFERENCE:
-		return new MCAliasReference;
+		t_new_function = new MCAliasReference; break;
 	case F_ALTERNATE_LANGUAGES:
-		return new MCAlternateLanguages;
+		t_new_function = new MCAlternateLanguages; break;
 	case F_ANNUITY:
-		return new MCAnnuity;
+		t_new_function = new MCAnnuity; break;
 	// JS-2013-06-19: [[ StatsFunctions ]] Constructor for 'arithmeticMean' (was average)
 	case F_ARI_MEAN:
-		return new MCArithmeticMean;
+		t_new_function = new MCArithmeticMean; break;
 	case F_ARRAY_DECODE:
-		return new MCArrayDecode;
+		t_new_function = new MCArrayDecode; break;
 	case F_ARRAY_ENCODE:
-		return new MCArrayEncode;
+		t_new_function = new MCArrayEncode; break;
 	case F_ASIN:
-		return new MCAsin;
+		t_new_function = new MCAsin; break;
 	case F_ATAN2:
-		return new MCAtan2;
+		t_new_function = new MCAtan2; break;
 	case F_ATAN:
-		return new MCAtan;
+		t_new_function = new MCAtan; break;
 	// JS-2013-06-19: [[ StatsFunctions ]] Constructor for 'averageDeviation'
 	case F_AVG_DEV:
-		return new MCAvgDev;
+		t_new_function = new MCAvgDev; break;
 	case F_BACK_SCRIPTS:
-		return new MCBackScripts;
+		t_new_function = new MCBackScripts; break;
 	case F_BASE64_DECODE:
-		return new MCBase64Decode;
+		t_new_function = new MCBase64Decode; break;
 	case F_BASE64_ENCODE:
-		return new MCBase64Encode;
+		t_new_function = new MCBase64Encode; break;
 	case F_BASE_CONVERT:
-		return new MCBaseConvert;
+		t_new_function = new MCBaseConvert; break;
+	case F_BATTERY_LEVEL:
+		t_new_function = new MCBatteryLevel; break;
     // AL-2014-10-17: [[ BiDi ]] Returns the result of applying the bi-directional algorithm to text
     case F_BIDI_DIRECTION:
-        return new MCBidiDirection;
+        t_new_function = new MCBidiDirection; break;
 	case F_BINARY_ENCODE:
-		return new MCBinaryEncode;
+		t_new_function = new MCBinaryEncode; break;
 	case F_BINARY_DECODE:
-		return new MCBinaryDecode;
+		t_new_function = new MCBinaryDecode; break;
 	case F_BUILD_NUMBER:
-		return new MCBuildNumber;
+		t_new_function = new MCBuildNumber; break;
     case F_BYTE_OFFSET:
-        return new MCByteOffset;
+        t_new_function = new MCByteOffset; break;
 	case F_CACHED_URLS:
-		return new MCCachedUrls;
+		t_new_function = new MCCachedUrls; break;
 	case F_CAPS_LOCK_KEY:
-		return new MCCapsLockKey;
+		t_new_function = new MCCapsLockKey; break;
 	case F_CHAR_TO_NUM:
-		return new MCCharToNum;
+		t_new_function = new MCCharToNum; break;
 	case F_BYTE_TO_NUM:
-		return new MCByteToNum;
+		t_new_function = new MCByteToNum; break;
 	case F_CIPHER_NAMES:
-		return new MCCipherNames;
+		t_new_function = new MCCipherNames; break;
 	case F_CLICK_CHAR:
-		return new MCClickChar;
+		t_new_function = new MCClickChar; break;
 	case F_CLICK_CHAR_CHUNK:
-		return new MCClickCharChunk;
+		t_new_function = new MCClickCharChunk; break;
 	case F_CLICK_CHUNK:
-		return new MCClickChunk;
+		t_new_function = new MCClickChunk; break;
 	case F_CLICK_FIELD:
-		return new MCClickField;
+		t_new_function = new MCClickField; break;
 	case F_CLICK_H:
-		return new MCClickH;
+		t_new_function = new MCClickH; break;
 	case F_CLICK_LINE:
-		return new MCClickLine;
+		t_new_function = new MCClickLine; break;
 	case F_CLICK_LOC:
-		return new MCClickLoc;
+		t_new_function = new MCClickLoc; break;
 	case F_CLICK_STACK:
-		return new MCClickStack;
+		t_new_function = new MCClickStack; break;
 	case F_CLICK_TEXT:
-		return new MCClickText;
+		t_new_function = new MCClickText; break;
 	case F_CLICK_V:
-		return new MCClickV;
+		t_new_function = new MCClickV; break;
 	case F_CLIPBOARD:
-		return new MCClipboardFunc;
+		t_new_function = new MCClipboardFunc; break;
     case F_CODEPOINT_OFFSET:
-        return new MCCodepointOffset;
+        t_new_function = new MCCodepointOffset; break;
     case F_CODEUNIT_OFFSET:
-        return new MCCodeunitOffset;
+        t_new_function = new MCCodeunitOffset; break;
 	case F_COLOR_NAMES:
-		return new MCColorNames;
+		t_new_function = new MCColorNames; break;
     case F_COMMAND_ARGUMENTS:
-        return new MCCommandArguments;
+        t_new_function = new MCCommandArguments; break;
 	case F_COMMAND_KEY:
-		return new MCCommandKey;
+		t_new_function = new MCCommandKey; break;
     case F_COMMAND_NAME:
-        return new MCCommandName;
+        t_new_function = new MCCommandName; break;
 	case F_COMMAND_NAMES:
-		return new MCCommandNames;
+		t_new_function = new MCCommandNames; break;
 	case F_COMPOUND:
-		return new MCCompound;
+		t_new_function = new MCCompound; break;
 	case F_COMPRESS:
-		return new MCCompress;
+		t_new_function = new MCCompress; break;
 	case F_CONSTANT_NAMES:
-		return new MCConstantNames;
+		t_new_function = new MCConstantNames; break;
 	case F_CONTROL_KEY:
-		return new MCControlKey;
+		t_new_function = new MCControlKey; break;
 	case F_COPY_RESOURCE:
-		return new MCCopyResource;
+		t_new_function = new MCCopyResource; break;
 	case F_COS:
-		return new MCCos;
+		t_new_function = new MCCos; break;
 	case F_DATE:
-		return new MCDate;
+		t_new_function = new MCDate; break;
 	case F_DATE_FORMAT:
-		return new MCDateFormat;
+		t_new_function = new MCDateFormat; break;
 	case F_DECOMPRESS:
-		return new MCDecompress;
+		t_new_function = new MCDecompress; break;
+	case F_DELETE_CREDENTIAL:
+		t_new_function = new MCDeleteCredential; break;
 	case F_DELETE_REGISTRY:
-		return new MCDeleteRegistry;
+		t_new_function = new MCDeleteRegistry; break;
 	case F_DELETE_RESOURCE:
-		return new MCDeleteResource;
+		t_new_function = new MCDeleteResource; break;
 	case F_DIRECTORIES:
-		return new MCFileItems(false);
+		t_new_function = new MCFileItems(false); break;
 	case F_DISK_SPACE:
-		return new MCDiskSpace;
+		t_new_function = new MCDiskSpace; break;
 	case F_DNS_SERVERS:
-		return new MCDNSServers;
+		t_new_function = new MCDNSServers; break;
 	case F_DRAG_DESTINATION:
-		return new MCDragDestination;
+		t_new_function = new MCDragDestination; break;
 	case F_DRAG_SOURCE:
-		return new MCDragSource;
+		t_new_function = new MCDragSource; break;
 	case F_DRIVER_NAMES:
-		return new MCDriverNames;
+		t_new_function = new MCDriverNames; break;
 	case F_DRIVES:
-		return new MCDrives;
+		t_new_function = new MCDrives; break;
 	case F_DROP_CHUNK:
-		return new MCDropChunk;
+		t_new_function = new MCDropChunk; break;
 	case F_ENCRYPT:
-		return new MCEncrypt;
+		t_new_function = new MCEncrypt; break;
 	case F_ENVIRONMENT:
-		return new MCEnvironment;
+		t_new_function = new MCEnvironment; break;
     case F_EVENT_CAPSLOCK_KEY:
-        return new MCEventCapsLockKey;
+        t_new_function = new MCEventCapsLockKey; break;
     case F_EVENT_COMMAND_KEY:
-        return new MCEventCommandKey;
+        t_new_function = new MCEventCommandKey; break;
     case F_EVENT_CONTROL_KEY:
-        return new MCEventControlKey;
+        t_new_function = new MCEventControlKey; break;
     case F_EVENT_OPTION_KEY:
-        return new MCEventOptionKey;
+        t_new_function = new MCEventOptionKey; break;
     case F_EVENT_SHIFT_KEY:
-        return new MCEventShiftKey;
+        t_new_function = new MCEventShiftKey; break;
 	case F_EXISTS:
-		return new MCExists;
+		t_new_function = new MCExists; break;
 	case F_EXP:
-		return new MCExp;
+		t_new_function = new MCExp; break;
 	case F_EXP1:
-		return new MCExp1;
+		t_new_function = new MCExp1; break;
 	case F_EXP10:
-		return new MCExp10;
+		t_new_function = new MCExp10; break;
 	case F_EXP2:
-		return new MCExp2;
+		t_new_function = new MCExp2; break;
 	case F_EXTENTS:
-		return new MCExtents;
+		t_new_function = new MCExtents; break;
 	case F_FILES:
-		return new MCFileItems(true);
+		t_new_function = new MCFileItems(true); break;
 	case F_FLUSH_EVENTS:
-		return new MCFlushEvents;
+		t_new_function = new MCFlushEvents; break;
 	case F_FOCUSED_OBJECT:
-		return new MCFocusedObject;
+		t_new_function = new MCFocusedObject; break;
 	case F_FONT_NAMES:
-		return new MCFontNames;
+		t_new_function = new MCFontNames; break;
 	case F_FONT_LANGUAGE:
-		return new MCFontLanguage;
+		t_new_function = new MCFontLanguage; break;
 	case F_FONT_SIZES:
-		return new MCFontSizes;
+		t_new_function = new MCFontSizes; break;
 	case F_FONT_STYLES:
-		return new MCFontStyles;
+		t_new_function = new MCFontStyles; break;
 	case F_FORMAT:
-		return new MCFormat;
+		t_new_function = new MCFormat; break;
 	case F_FOUND_CHUNK:
-		return new MCFoundChunk;
+		t_new_function = new MCFoundChunk; break;
 	case F_FOUND_FIELD:
-		return new MCFoundField;
+		t_new_function = new MCFoundField; break;
 	case F_FOUND_LINE:
-		return new MCFoundLine;
+		t_new_function = new MCFoundLine; break;
 	case F_FOUND_LOC:
-		return new MCFoundLoc;
+		t_new_function = new MCFoundLoc; break;
 	case F_FOUND_TEXT:
-		return new MCFoundText;
+		t_new_function = new MCFoundText; break;
 	case F_FRONT_SCRIPTS:
-		return new MCFrontScripts;
+		t_new_function = new MCFrontScripts; break;
 	case F_FUNCTION_NAMES:
-		return new MCFunctionNames;
+		t_new_function = new MCFunctionNames; break;
 	case F_GET_RESOURCE:
-		return new MCGetResource;
+		t_new_function = new MCGetResource; break;
 	case F_GET_RESOURCES:
-		return new MCGetResources;
+		t_new_function = new MCGetResources; break;
 	// JS-2013-06-19: [[ StatsFunctions ]] Constructor for 'geometricMean'
 	case F_GEO_MEAN:
-		return new MCGeometricMean;
+		t_new_function = new MCGeometricMean; break;
 	case F_GLOBAL_LOC:
-		return new MCGlobalLoc;
+		t_new_function = new MCGlobalLoc; break;
 	case F_GLOBALS:
-		return new MCGlobals;
+		t_new_function = new MCGlobals; break;
 	// JS-2013-06-19: [[ StatsFunctions ]] Constructor for 'harmonicMean'
 	case F_HAR_MEAN:
-		return new MCHarmonicMean;
+		t_new_function = new MCHarmonicMean; break;
 	case F_HAS_MEMORY:
-		return new MCHasMemory;
+		t_new_function = new MCHasMemory; break;
 	case F_HEAP_SPACE:
-		return new MCHeapSpace;
+		t_new_function = new MCHeapSpace; break;
 	case F_HTTP_PROXY_FOR_URL:
-		return new MCHTTPProxyForURL;
+		t_new_function = new MCHTTPProxyForURL; break;
+	case F_IFF:
+		t_new_function = new MCIff; break;
 	case F_INTERRUPT:
-		return new MCInterrupt;
+		t_new_function = new MCInterrupt; break;
 	case F_HA:
-		return new MCHostAddress;
+		t_new_function = new MCHostAddress; break;
 	case F_HATON:
-		return new MCHostAtoN;
+		t_new_function = new MCHostAtoN; break;
 	case F_HN:
-		return new MCHostName;
+		t_new_function = new MCHostName; break;
 	case F_HNTOA:
-		return new MCHostNtoA;
+		t_new_function = new MCHostNtoA; break;
 	case F_INTERSECT:
-		return new MCIntersect;
+		t_new_function = new MCIntersect; break;
 	case F_IS_NUMBER:
-		return new MCIsNumber;
+		t_new_function = new MCIsNumber; break;
 	case F_ISO_TO_MAC:
-		return new MCIsoToMac;
+		t_new_function = new MCIsoToMac; break;
 	case F_ITEM_OFFSET:
-		return new MCItemOffset;
+		t_new_function = new MCItemOffset; break;
 	case F_KEYS:
-		return new MCKeys;
+		t_new_function = new MCKeys; break;
 	case F_KEYS_DOWN:
-		return new MCKeysDown;
+		t_new_function = new MCKeysDown; break;
 	case F_LENGTH:
-		return new MCLength;
+		t_new_function = new MCLength; break;
 	case F_LICENSED:
-		return new MCLicensed;
+		t_new_function = new MCLicensed; break;
 	case F_LINE_OFFSET:
-		return new MCLineOffset;
+		t_new_function = new MCLineOffset; break;
 	case F_LIST_REGISTRY:
-		return new MCListRegistry;
+		t_new_function = new MCListRegistry; break;
 	case F_LN1:
-		return new MCLn1;
+		t_new_function = new MCLn1; break;
 	case F_LN:
-		return new MCLn;
+		t_new_function = new MCLn; break;
 	case F_LOCAL_LOC:
-		return new MCLocalLoc;
+		t_new_function = new MCLocalLoc; break;
 	case F_LOCALS:
-		return new MCLocals;
+		t_new_function = new MCLocals; break;
 	case F_LONG_FILE_PATH:
-		return new MCLongFilePath;
+		t_new_function = new MCLongFilePath; break;
 	case F_LOG10:
-		return new MCLog10;
+		t_new_function = new MCLog10; break;
 	case F_LOG2:
-		return new MCLog2;
+		t_new_function = new MCLog2; break;
 	case F_MACHINE:
-		return new MCMachine;
+		t_new_function = new MCMachine; break;
 	case F_MAC_TO_ISO:
-		return new MCMacToIso;
+		t_new_function = new MCMacToIso; break;
 	case F_MAIN_STACKS:
-		return new MCMainStacks;
+		t_new_function = new MCMainStacks; break;
 	case F_MATCH_CHUNK:
-		return new MCMatchChunk;
+		t_new_function = new MCMatchChunk; break;
 	case F_MATCH_TEXT:
-		return new MCMatchText;
+		t_new_function = new MCMatchText; break;
 	case F_MATRIX_MULTIPLY:
-		return new MCMatrixMultiply;
+		t_new_function = new MCMatrixMultiply; break;
 	case F_MAX:
-		return new MCMaxFunction;
+		t_new_function = new MCMaxFunction; break;
 	case F_MCI_SEND_STRING:
-		return new MCMCISendString;
+		t_new_function = new MCMCISendString; break;
 	case F_MD5_DIGEST:
-		return new MCMD5Digest;
+		t_new_function = new MCMD5Digest; break;
 	case F_MICROSECS:
-		return new MCMicrosecs;
+		t_new_function = new MCMicrosecs; break;
 	case F_ME:
-		return new MCMe;
+		t_new_function = new MCMe; break;
 	case F_MEDIAN:
-		return new MCMedian;
+		t_new_function = new MCMedian; break;
 	case F_MENUS:
-		return new MCMenus;
+		t_new_function = new MCMenus; break;
 	case F_MENU_OBJECT:
-		return new MCMenuObject;
+		t_new_function = new MCMenuObject; break;
 	case F_MERGE:
-		return new MCMerge;
+		t_new_function = new MCMerge; break;
     case F_MESSAGE_DIGEST:
-        return new MCMessageDigestFunc;
+        t_new_function = new MCMessageDigestFunc; break;
 	case F_MILLISECS:
-		return new MCMillisecs;
+		t_new_function = new MCMillisecs; break;
 	case F_MIN:
-		return new MCMinFunction;
+		t_new_function = new MCMinFunction; break;
 	case F_MONTH_NAMES:
-		return new MCMonthNames;
+		t_new_function = new MCMonthNames; break;
 	case F_MOUSE:
-		return new MCMouse;
+		t_new_function = new MCMouse; break;
 	case F_MOUSE_CHAR:
-		return new MCMouseChar;
+		t_new_function = new MCMouseChar; break;
 	case F_MOUSE_CHAR_CHUNK:
-		return new MCMouseCharChunk;
+		t_new_function = new MCMouseCharChunk; break;
 	case F_MOUSE_CHUNK:
-		return new MCMouseChunk;
+		t_new_function = new MCMouseChunk; break;
 	case F_MOUSE_CLICK:
-		return new MCMouseClick;
+		t_new_function = new MCMouseClick; break;
 	case F_MOUSE_COLOR:
-		return new MCMouseColor;
+		t_new_function = new MCMouseColor; break;
 	case F_MOUSE_CONTROL:
-		return new MCMouseControl;
+		t_new_function = new MCMouseControl; break;
 	case F_MOUSE_H:
-		return new MCMouseH;
+		t_new_function = new MCMouseH; break;
 	case F_MOUSE_LINE:
-		return new MCMouseLine;
+		t_new_function = new MCMouseLine; break;
 	case F_MOUSE_LOC:
-		return new MCMouseLoc;
+		t_new_function = new MCMouseLoc; break;
 	case F_MOUSE_STACK:
-		return new MCMouseStack;
+		t_new_function = new MCMouseStack; break;
 	case F_MOUSE_TEXT:
-		return new MCMouseText;
+		t_new_function = new MCMouseText; break;
 	case F_MOUSE_V:
-		return new MCMouseV;
+		t_new_function = new MCMouseV; break;
 	case F_MOVIE:
-		return new MCMovie;
+		t_new_function = new MCMovie; break;
 	case F_MOVING_CONTROLS:
-		return new MCMovingControls;
+		t_new_function = new MCMovingControls; break;
     case F_NATIVE_CHAR_TO_NUM:
-        return new MCNativeCharToNum;
+        t_new_function = new MCNativeCharToNum; break;
+    case F_NATURAL_SCROLLING:
+        t_new_function = new MCNaturalScrolling; break;
 	case F_NUM_TO_CHAR:
-		return new MCNumToChar;
+		t_new_function = new MCNumToChar; break;
     case F_NUM_TO_NATIVE_CHAR:
-        return new MCNumToNativeChar;
+        t_new_function = new MCNumToNativeChar; break;
     case F_NUM_TO_UNICODE_CHAR:
-        return new MCNumToUnicodeChar;
+        t_new_function = new MCNumToUnicodeChar; break;
 	case F_NUM_TO_BYTE:
-		return new MCNumToByte;
+		t_new_function = new MCNumToByte; break;
 	case F_OFFSET:
-		return new MCOffset;
+		t_new_function = new MCOffset; break;
 	case F_OPEN_FILES:
-		return new MCOpenFiles;
+		t_new_function = new MCOpenFiles; break;
 	case F_OPEN_PROCESSES:
-		return new MCOpenProcesses;
+		t_new_function = new MCOpenProcesses; break;
 	case F_OPEN_PROCESS_IDS:
-		return new MCOpenProcessIds;
+		t_new_function = new MCOpenProcessIds; break;
 	case F_OPEN_SOCKETS:
-		return new MCOpenSockets;
+		t_new_function = new MCOpenSockets; break;
 	case F_OPEN_STACKS:
-		return new MCOpenStacks;
+		t_new_function = new MCOpenStacks; break;
 	case F_OPTION_KEY:
-		return new MCOptionKey;
+		t_new_function = new MCOptionKey; break;
 	// MW-2008-11-05: [[ Owner Reference ]] Create a new MCOwner function object for syntax of
 	//   the form 'the owner of ...'. 
 	case F_OWNER:
-		return new MCOwner;
+		t_new_function = new MCOwner; break;
 	case F_PA:
-		return new MCPeerAddress;
+		t_new_function = new MCPeerAddress; break;
     case F_PARAGRAPH_OFFSET:
-        return new MCParagraphOffset;
+        t_new_function = new MCParagraphOffset; break;
 	case F_PARAM:
-		return new MCParam;
+		t_new_function = new MCParam; break;
 	case F_PARAMS:
-		return new MCParams;
+		t_new_function = new MCParams; break;
 	case F_PARAM_COUNT:
-		return new MCParamCount;
+		t_new_function = new MCParamCount; break;
 	case F_NOTIFICATION_PERMISSION:
-		return new MCNotificationPermissionFunc;
+		t_new_function = new MCNotificationPermissionFunc; break;
 	case F_PENDING_MESSAGES:
-		return new MCPendingMessages;
+		t_new_function = new MCPendingMessages; break;
 	case F_PLATFORM:
-		return new MCPlatform;
+		t_new_function = new MCPlatform; break;
 	// JS-2013-06-19: [[ StatsFunctions ]] Constructor for 'populationStdDev'
 	case F_POP_STD_DEV:
-			return new MCPopulationStdDev;
+			t_new_function = new MCPopulationStdDev; break;
 	// JS-2013-06-19: [[ StatsFunctions ]] Constructor for 'populationVariance'
 	case F_POP_VARIANCE:
-		return new MCPopulationVariance;
+		t_new_function = new MCPopulationVariance; break;
+	case F_POWER_SOURCE:
+		t_new_function = new MCPowerSource; break;
 	case F_PROCESSOR:
-		return new MCProcessor;
+		t_new_function = new MCProcessor; break;
 	case F_PROCESS_ID:
-		return new MCPid;
+		t_new_function = new MCPid; break;
 	case F_PROPERTY_NAMES:
-		return new MCPropertyNames;
+		t_new_function = new MCPropertyNames; break;
 	case F_QT_EFFECTS:
-		return new MCQTEffects;
+		t_new_function = new MCQTEffects; break;
 	case F_QT_VERSION:
-		return new MCQTVersion;
+		t_new_function = new MCQTVersion; break;
 	case F_QUERY_REGISTRY:
-		return new MCQueryRegistry;
+		t_new_function = new MCQueryRegistry; break;
 	case F_RANDOM:
-		return new MCRandom;
+		t_new_function = new MCRandom; break;
 	case F_RECORD_COMPRESSION_TYPES:
-		return new MCRecordCompressionTypes;
+		t_new_function = new MCRecordCompressionTypes; break;
     case F_RECORD_FORMATS:
-        return new MCRecordFormats;
+        t_new_function = new MCRecordFormats; break;
 	case F_RECORD_LOUDNESS:
-		return new MCRecordLoudness;
+		t_new_function = new MCRecordLoudness; break;
 	case F_REPLACE_TEXT:
-		return new MCReplaceText;
+		t_new_function = new MCReplaceText; break;
 	case F_RESULT:
-		return new MCTheResult;
+		t_new_function = new MCTheResult; break;
+	case F_RETRIEVE_CREDENTIAL:
+		t_new_function = new MCRetrieveCredential; break;
 	case F_ROUND:
-		return new MCRound;
+		t_new_function = new MCRound; break;
 	case F_SCREEN_COLORS:
-		return new MCScreenColors;
+		t_new_function = new MCScreenColors; break;
 	case F_SCREEN_DEPTH:
-		return new MCScreenDepth;
+		t_new_function = new MCScreenDepth; break;
 	case F_SCREEN_LOC:
-		return new MCScreenLoc;
+		t_new_function = new MCScreenLoc; break;
 	case F_SCREEN_NAME:
-		return new MCScreenName;
+		t_new_function = new MCScreenName; break;
 	case F_SCREEN_RECT:
 	case F_SCREEN_RECTS:
-		return new MCScreenRect(which == F_SCREEN_RECTS);
+		t_new_function = new MCScreenRect(which == F_SCREEN_RECTS); break;
 	case F_SCREEN_TYPE:
-		return new MCScreenType;
+		t_new_function = new MCScreenType; break;
 	case F_SCREEN_VENDOR:
-		return new MCScreenVendor;
+		t_new_function = new MCScreenVendor; break;
 	case F_SCRIPT_LIMITS:
-		return new MCScriptLimits;
+		t_new_function = new MCScriptLimits; break;
 	case F_SECONDS:
-		return new MCSeconds;
+		t_new_function = new MCSeconds; break;
 	case F_SELECTED_BUTTON:
-		return new MCSelectedButton;
+		t_new_function = new MCSelectedButton; break;
 	case F_SELECTED_CHUNK:
-		return new MCSelectedChunk;
+		t_new_function = new MCSelectedChunk; break;
 	case F_SELECTED_FIELD:
-		return new MCSelectedField;
+		t_new_function = new MCSelectedField; break;
 	case F_SELECTED_IMAGE:
-		return new MCSelectedImage;
+		t_new_function = new MCSelectedImage; break;
 	case F_SELECTED_LINE:
-		return new MCSelectedLine;
+		t_new_function = new MCSelectedLine; break;
 	case F_SELECTED_LOC:
-		return new MCSelectedLoc;
+		t_new_function = new MCSelectedLoc; break;
 	case F_SELECTED_OBJECT:
-		return new MCSelectedObject;
+		t_new_function = new MCSelectedObject; break;
 	case F_SELECTED_TEXT:
-		return new MCSelectedText;
+		t_new_function = new MCSelectedText; break;
     case F_SENTENCE_OFFSET:
-        return new MCSentenceOffset;
+        t_new_function = new MCSentenceOffset; break;
 	case F_SET_REGISTRY:
-		return new MCSetRegistry;
+		t_new_function = new MCSetRegistry; break;
 	case F_SET_RESOURCE:
-		return new MCSetResource;
+		t_new_function = new MCSetResource; break;
 	case F_SHA1_DIGEST:
-		return new MCSHA1Digest;
+		t_new_function = new MCSHA1Digest; break;
 	case F_SHELL:
-		return new MCShell;
+		t_new_function = new MCShell; break;
 	case F_SHIFT_KEY:
-		return new MCShiftKey;
+		t_new_function = new MCShiftKey; break;
 	case F_SHORT_FILE_PATH:
-		return new MCShortFilePath;
+		t_new_function = new MCShortFilePath; break;
 	case F_SIN:
-		return new MCSin;
+		t_new_function = new MCSin; break;
 	// JS-2013-06-19: [[ StatsFunctions ]] Constructor for 'sampleStdDev' (was stdDev)
 	case F_SMP_STD_DEV:
-		return new MCSampleStdDev;
+		t_new_function = new MCSampleStdDev; break;
 	// JS-2013-06-19: [[ StatsFunctions ]] Constructor for 'sampleVariance'
 	case F_SMP_VARIANCE:
-		return new MCSampleVariance;
+		t_new_function = new MCSampleVariance; break;
 	case F_SOUND:
-		return new MCSound;
+		t_new_function = new MCSound; break;
 	case F_SPECIAL_FOLDER_PATH:
-		return new MCSpecialFolderPath;
+		t_new_function = new MCSpecialFolderPath; break;
 	case F_SQRT:
-		return new MCSqrt;
+		t_new_function = new MCSqrt; break;
 	case F_STACKS:
-		return new MCStacks;
+		t_new_function = new MCStacks; break;
+	case F_STORE_CREDENTIAL:
+		t_new_function = new MCStoreCredential; break;
 	case F_STACK_SPACE:
-		return new MCStackSpace;
+		t_new_function = new MCStackSpace; break;
 	case F_STAT_ROUND:
-		return new MCStatRound;
+		t_new_function = new MCStatRound; break;
 	case F_SUM:
-		return new MCSum;
+		t_new_function = new MCSum; break;
 	case F_SYS_ERROR:
-		return new MCSysError;
+		t_new_function = new MCSysError; break;
 	case F_SYSTEM_VERSION:
-		return new MCSystemVersion;
+		t_new_function = new MCSystemVersion; break;
 	case F_TAN:
-		return new MCTan;
+		t_new_function = new MCTan; break;
 	case F_TARGET:
-		return new MCTarget;
+		t_new_function = new MCTarget; break;
 	case F_TEMP_NAME:
-		return new MCTempName;
+		t_new_function = new MCTempName; break;
     case F_TEXT_DECODE:
-        return new MCTextDecode;
+        t_new_function = new MCTextDecode; break;
     case F_TEXT_ENCODE:
-        return new MCTextEncode;
+        t_new_function = new MCTextEncode; break;
 	case F_TEXT_HEIGHT_SUM:
-		return new MCTextHeightSum;
+		t_new_function = new MCTextHeightSum; break;
 	case F_TICKS:
-		return new MCTicks;
+		t_new_function = new MCTicks; break;
 	case F_TIME:
-		return new MCTheTime;
+		t_new_function = new MCTheTime; break;
     case F_TOKEN_OFFSET:
-        return new MCTokenOffset;
+        t_new_function = new MCTokenOffset; break;
     case F_TOP_STACK:
-		return new MCTopStack;
+		t_new_function = new MCTopStack; break;
 	case F_TO_LOWER:
-		return new MCToLower;
+		t_new_function = new MCToLower; break;
 	case F_TO_UPPER:
-		return new MCToUpper;
+		t_new_function = new MCToUpper; break;
 	case F_TRANSPOSE:
-		return new MCTranspose;
+		t_new_function = new MCTranspose; break;
     case F_TRUEWORD_OFFSET:
-        return new MCTrueWordOffset;
+        t_new_function = new MCTrueWordOffset; break;
 	case F_TRUNC:
-		return new MCTrunc;
+		t_new_function = new MCTrunc; break;
     case F_UNICODE_CHAR_TO_NUM:
-        return new MCUnicodeCharToNum;
+        t_new_function = new MCUnicodeCharToNum; break;
 	// MDW-2014-08-23 : [[ feature_floor ]]
 	case F_FLOOR:
-		return new MCFloor;
+		t_new_function = new MCFloor; break;
 	// MDW-2014-08-23 : [[ feature_floor ]]
 	case F_CEIL:
-		return new MCCeil;
+		t_new_function = new MCCeil; break;
 	case F_VALUE:
-		return new MCValue;
+		t_new_function = new MCValue; break;
 	case F_VARIABLES:
-		return new MCVariables;
+		t_new_function = new MCVariables; break;
     case F_VECTOR_DOT_PRODUCT:
-        return new MCVectorDotProduct;
+        t_new_function = new MCVectorDotProduct; break;
 	case F_VERSION:
-		return new MCVersion;
+		t_new_function = new MCVersion; break;
 	case F_WAIT_DEPTH:
-		return new MCWaitDepth;
+		t_new_function = new MCWaitDepth; break;
 	case F_WEEK_DAY_NAMES:
-		return new MCWeekDayNames;
+		t_new_function = new MCWeekDayNames; break;
 	case F_WITHIN:
-		return new MCWithin;
+		t_new_function = new MCWithin; break;
 	case F_WORD_OFFSET:
-		return new MCWordOffset;
+		t_new_function = new MCWordOffset; break;
 	case F_UNI_DECODE:
-		return new MCUniDecode;
+		t_new_function = new MCUniDecode; break;
 	case F_UNI_ENCODE:
-		return new MCUniEncode;
+		t_new_function = new MCUniEncode; break;
 	case F_URL_DECODE:
-		return new MCUrlDecode;
+		t_new_function = new MCUrlDecode; break;
 	case F_URL_ENCODE:
-		return new MCUrlEncode;
+		t_new_function = new MCUrlEncode; break;
 	case F_URL_STATUS:
-		return new MCUrlStatus;
+		t_new_function = new MCUrlStatus; break;
 	case F_RANDOM_BYTES:
-		return new MCRandomBytes;
+		t_new_function = new MCRandomBytes; break;
 	case F_CONTROL_AT_LOC:
-		return new MCControlAtLoc(false);
+		t_new_function = new MCControlAtLoc(false); break;
 	case F_CONTROL_AT_SCREEN_LOC:
-		return new MCControlAtLoc(true);
+		t_new_function = new MCControlAtLoc(true); break;
 	// MW-2013-05-08: [[ Uuid ]] Constructor for uuid function.
 	case F_UUID:
-		return new MCUuidFunc;
+		t_new_function = new MCUuidFunc; break;
     // MERG-2013-08-14: [[ MeasureText ]] Measure text relative to the effective font on an object
     case F_MEASURE_TEXT:
-        return new MCMeasureText(false);
+        t_new_function = new MCMeasureText(false); break;
     case F_MEASURE_UNICODE_TEXT:
-        return new MCMeasureText(true);
+        t_new_function = new MCMeasureText(true); break;
     case F_NORMALIZE_TEXT:
-        return new MCNormalizeText;
+        t_new_function = new MCNormalizeText; break;
     case F_CODEPOINT_PROPERTY:
-        return new MCCodepointProperty;
+        t_new_function = new MCCodepointProperty; break;
     default:
 		break;
 	}
 
-	MCExpression *t_new_function;
-	t_new_function = MCModeNewFunction(which);
 
     // SN-2014-11-25: [[ Bug 14088 ]] A NULL pointer is returned if no function exists.
     //  (that avoids to get a MCFunction which does not implement eval_ctxt).
-	return t_new_function;
+    // Fall back to mode-specific functions only if the main switch didn't match.
+    if (t_new_function == nullptr)
+        t_new_function = MCModeNewFunction(which);
+
+    // Post-assign the func_id so hxt_serialize writes the correct Functions enum
+    // value without per-subclass boilerplate.  All paths that produce a non-null
+    // result (main switch + MCModeNewFunction) yield MCFunction subclasses.
+    if (t_new_function != nullptr)
+        static_cast<MCFunction*>(t_new_function)->m_hxt_func_id = which;
+
+    return t_new_function;
 }
 
 MCExpression *MCN_new_operator(int2 which)
@@ -954,6 +974,8 @@ MCExpression *MCN_new_operator(int2 which)
 		return new MCBeginsWith;
 	case O_ENDS_WITH:
 		return new MCEndsWith;
+	case O_MATCHES:
+		return new MCMatches;
 	default:
 		return new MCExpression;
 	}

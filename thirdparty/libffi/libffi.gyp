@@ -190,16 +190,16 @@
 
 				'silence_warnings': 1,
 			},
-			
+
 			'sources':
 			[
 			],
-			
+
 			'include_dirs':
 			[
 				'<@(_platform_include_dirs)',
 			],
-			
+
 			'direct_dependent_settings':
 			{
 				'include_dirs':
@@ -303,13 +303,26 @@
 					},
 				],
 				[
-					'toolset_os == "win" and toolset_arch == "x64"',
+					'toolset_os == "win" and (toolset_arch == "x64" or toolset_arch == "x86_64")',
 					{
 						'platform_include_dirs':
 						[
 							'<@(libffi_public_headers_win64_dir)',
 						],
-						
+
+						'include_dirs':
+						[
+							'<@(libffi_public_headers_win64_dir)',
+						],
+
+						'direct_dependent_settings':
+						{
+							'include_dirs':
+							[
+								'<@(libffi_public_headers_win64_dir)',
+							],
+						},
+
 						'sources':
 						[
 							'<@(libffi_win64_source_files)',

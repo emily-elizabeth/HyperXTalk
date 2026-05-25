@@ -12,33 +12,9 @@ on extensionFinalize
 end extensionFinalize
 
 private on ideDocsEnsureDatabase pLocation
-   -- Always read from the shipped (app bundle) location, not the cache.
-   -- revIDESpecialFolderPath("API") redirects to the cache on installed
-   -- builds, creating a circular lookup where source and destination are the
-   -- same empty directory.  Build the source path from stack "home" directly.
-   local tSource
-   set the itemdel to "/"
-   put item 1 to -3 of the filename of stack "home" & \
-         "/Documentation/html_viewer/resources/data/api/api.sqlite" into tSource
-   if there is not a file tSource then exit ideDocsEnsureDatabase
-
-   local tDest
-   put pLocation & slash & "api.sqlite" into tDest
-
-   -- Copy if the destination is absent OR is smaller than the shipped
-   -- database.  A previous broken launch may have let revDocsOpenAPIDatabase
-   -- create a tiny stub file here; we must overwrite it with the real data.
-   local tShouldCopy
-   if there is not a file tDest then
-      put true into tShouldCopy
-   end if
-
-   if tShouldCopy then
-      local tSourceData
-      put url ("binfile:" & tSource) into tSourceData
-      if tSourceData is not empty then
-         put tSourceData into url ("binfile:" & tDest)
-      end if
+   if there is not a file (pLocation & slash & "api.sqlite") then
+      put url ("binfile:" & revIDESpecialFolderPath("API") & slash & "api.sqlite") into \
+            url ("binfile:" & pLocation & slash & "api.sqlite")
    end if
 end ideDocsEnsureDatabase
 
@@ -56,10 +32,6 @@ command ideDocsInitialize pDistributed
    else
       put "cache" into tKey
       put revIDESpecialFolderPath("documentation cache") into tLocation
-      -- Ensure the versioned cache directory exists before trying to open or
-      -- create api.sqlite inside it (SQLite cannot create the file when its
-      -- parent folder is absent).
-      revIDEEnsurePath tLocation
       ideDocsEnsureDatabase tLocation
    end if
    put sConnectionsA[tKey] into tConnection

@@ -7,11 +7,11 @@ Syntax: numToCodepoint(<number>)
 Summary:
 Converts an integer to a Unicode codepoint.
 
-Introduced: 7.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 numToCodepoint(0x41) -- returns "A"

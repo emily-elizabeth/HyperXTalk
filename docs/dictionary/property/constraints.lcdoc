@@ -9,13 +9,13 @@ Limits the <pan>, <tilt>, and <zoom> in a <QuickTime VR> movie.
 
 Associations: player
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Deprecated: 8.1
 
-OS: mac, windows, ios, android
+OS: mac, windows
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 get the constraints of player "Arctic"

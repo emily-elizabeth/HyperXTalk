@@ -9,7 +9,7 @@ Sent to a <player> when the user pauses it.
 
 Associations: player
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

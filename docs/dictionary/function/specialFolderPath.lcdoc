@@ -9,11 +9,11 @@ Syntax: specialFolderPath(<folderIdentifier>)
 Summary:
 Returns the names and locations of system-related <folders>.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 
@@ -89,7 +89,7 @@ The following <folderIdentifier> values are supported:
   * "start": The folder that contains Start Menu items
   * "fonts": The folder that contains fonts
   * "temporary": The folder where temporary files can be placed
-  * "engine": The folder containing the OpenXTalk engine and the
+  * "engine": The folder containing the HyperXTalk engine and the
     executable files copied in the standalone application
   * "resources": In development mode, the current stack's folder. In a
     standalone, the resources folder where files or folders specified
@@ -116,7 +116,7 @@ are supported:
 * "system": The System Folder (usually `/System`)
 * "fonts": The folder that contains fonts
 * "temporary": The folder where temporary files can be placed
-* "engine": The folder containing the OpenXTalk engine and the executable
+* "engine": The folder containing the HyperXTalk engine and the executable
   files copied in the <standalone application>
 * "resources": In development mode, the current stack's folder. In 
  a <standalone application|standalone>, the resources folder where files 
@@ -167,8 +167,8 @@ application should be stored in a folder named with the
 An Android application is installed on the device as a ZIP package.  
 This means that any assets that are included are not available as
 separate files in the device's native file system.  In order to manage
-this, OpenXTalk "virtualizes" the asset files you include, allowing
-read-only access with all the standard OpenXTalk file and folder handling
+this, HyperXTalk "virtualizes" the asset files you include, allowing
+read-only access with all the standard HyperXTalk file and folder handling
 commands and functions. To access the assets you have included with your
 application, use file names relative to `specialFolderPath("engine")`.
 
@@ -180,7 +180,7 @@ The following <folderIdentifier> values are supported:
   placed (typically not valuable)
 * "temporary": Same as "cache"
 * "engine": The (virtual) folder containing the
-  <application|application's> OpenXTalk <engine>  and other resources
+  <application|application's> HyperXTalk <engine>  and other resources
   that were copied into the <application> at build time
 * "resources": Same as "engine".
 * "external documents": The folder on the primary shared/external 
@@ -199,7 +199,7 @@ are supported:
 * "home": The current user's home folder
 * "desktop": The current user's desktop folder
 * "temporary": The folder where temporary files can be placed
-* "engine": The folder containing the OpenXTalk engine and the executable
+* "engine": The folder containing the HyperXTalk engine and the executable
   files copied in the <standalone application>
 * "resources": In development mode, the current stack's folder. In a
   standalone, the resources folder where files or folders specified
@@ -212,7 +212,7 @@ are supported:
 since the whole file system is virtual and temporary. For compatibility
 purposes, the following <folderIdentifier> values are supported:
 
-* "home": Always `/OpenXTalk`
+* "home": Always `/HyperXTalk`
 * "fonts": The folder that contains fonts
 * "temporary": A folder where temporary files can be placed
 * "engine": The folder where the standalone initial file system is

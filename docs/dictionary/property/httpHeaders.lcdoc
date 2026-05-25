@@ -8,11 +8,11 @@ Summary:
 Specifies custom headers to be sent with each GET, POST or PUT request
 to an <HTTP> <server>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the httpHeaders to field "Headers" & return & field "Special"
@@ -25,7 +25,7 @@ Description:
 Use the <httpHeaders> <property> to supply custom headers when
 interacting with <HTTP> <server|servers> that require them.
 
-Whenever OpenXTalk contacts a web server to download a page (with the
+Whenever HyperXTalk contacts a web server to download a page (with the
 load <command> or by using a <URL> in an <expression>) or to post data
 (with the <post> <command>), the contents of the <httpHeaders>
 <property> is sent to the <web server> along with the <default> headers.

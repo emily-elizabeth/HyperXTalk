@@ -9,11 +9,11 @@ Syntax: monthNames()
 Summary:
 <return|Returns> a list of month names used by the <date> <function>.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the monthNames into listToDelete

@@ -10,11 +10,11 @@ Summary:
 Specifies the color of <grouped text> that has been clicked during the
 current session.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the linkVisitedColor to "purple"

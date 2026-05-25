@@ -10,7 +10,7 @@ Stops a <video capture> that was started with the <revRecordVideo>
 
 Associations: video library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: windows
 
@@ -35,20 +35,20 @@ has no effect.
 >*Important:*  The <revStopRecordingVideo> <command> is part of the 
 > <Video library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the
 > "Video Grabber" 
 > library checkbox is checked.
 
 Changes:
-Support for the "Video Grabber" library on Mac OS X ended in OpenXTalk
+Support for the "Video Grabber" library on Mac OS X ended in HyperXTalk
 9.0.
 
 References: revStopPreviewingVideo (command), revRecordVideo (command),
 stop recording (command), video capture (glossary),
 Standalone Application Settings (glossary), command (glossary),
-standalone application (glossary), OpenXTalk custom library (glossary),
+standalone application (glossary), HyperXTalk custom library (glossary),
 file (keyword), Video library (library)
 
 Tags: multimedia

@@ -96,6 +96,7 @@
 			'src/cmdsm.cpp',
 			'src/cmdsp.cpp',
 			'src/cmdss.cpp',
+			'src/share.cpp',
 			'src/date.cpp',
 			'src/express.cpp',
 			'src/external.cpp',
@@ -121,7 +122,18 @@
 			'src/statemnt.cpp',
 			'src/variable.cpp',
 			'src/visual.cpp',
-			
+
+			# Group "Core - HyperXTalk AST serialization"
+			'src/hxtast.h',
+			'src/hxtast.cpp',
+			'src/hxtast-base.cpp',
+			'src/hxtast-hlist.cpp',
+			'src/hxtast-stmts.cpp',
+			'src/hxtast-exprs.cpp',
+			'src/hxt-cmds.cpp',
+			'../hxtlib/hxtlib.h',
+			'../hxtlib/hxtlib.cpp',
+
 			# Group "Core - Misc"
 			'<(SHARED_INTERMEDIATE_DIR)/include/revbuild.h',
 			'src/capsule.h',
@@ -626,6 +638,20 @@
 
 			'src/mixin-refcounted.h',
 
+			# Battery status
+			'src/exec-battery.h',
+			'src/exec-battery.cpp',
+			'src/lnx-battery.cpp',
+			'src/mac-battery.mm',
+			'src/w32-battery.cpp',
+
+			# Credential storage
+			'src/exec-credentials.h',
+			'src/exec-credentials.cpp',
+			'src/lnx-credentials.cpp',
+			'src/mac-credentials.mm',
+			'src/w32-credentials.cpp',
+
 			# Notifications
 			'src/notification.h',
 			'src/notification.cpp',
@@ -663,6 +689,10 @@
 			'src/platform-recorder.cpp',
 			'src/platform-surface.cpp',
 			'src/platform-window.cpp',
+
+			# Group "VLC Player"
+			'src/vlc-player.h',
+			'src/vlc-player.cpp',
 			
 			# Group "Native Layer"
 			'src/native-layer.cpp',
@@ -673,8 +703,8 @@
 			'src/native-layer-ios.mm',
 			'src/native-layer-mac.h',
 			'src/native-layer-mac.mm',
-			'src/native-layer-win32.cpp',
-			'src/native-layer-win32.h',
+			'src/native-layer-win32-wv2.cpp',
+			'src/native-layer-win32-wv2.h',
 			'src/native-layer-x11.cpp',
 			'src/native-layer-x11.h',
 			
@@ -705,6 +735,8 @@
 			'src/lnxkeymapping.cpp',
 			'src/lnxmisc.cpp',
 			'src/lnxmplayer.cpp',
+			'src/lnx-activate.cpp',
+			'src/lnx-core-compat.cpp',
 			'src/lnxpsprinter.cpp',
 			'src/lnxspec.cpp',
 			'src/lnxstack.cpp',
@@ -721,6 +753,7 @@
 			'src/coretextlayout.mm',
 			'src/mac-abort.mm',
 			'src/mac-av-player.mm',
+			'src/vlc-player-mac.mm',
 			'src/mac-color.mm',
 			'src/mac-core.mm',
 			'src/mac-cursor.mm',
@@ -773,6 +806,7 @@
 			'src/w32image.cpp',
 			'src/w32misc.cpp',
 			'src/w32-ds-player.cpp',
+			'src/w32-jumplist.cpp',
 			'src/w32prefix.cpp',
 			'src/w32printer.cpp',
 			'src/w32relaunch.cpp',
@@ -1137,7 +1171,7 @@
 					'sources!':
 					[
 						'src/srvwindows.cpp',
-						'src/native-layer-win32.cpp',
+						'src/native-layer-win32-wv2.cpp',
 						'src/w32-notification.cpp',
 					],
 				},
@@ -1259,7 +1293,8 @@
 				{
 					'sources!':
 					[
-						'src/player-platform.cpp',
+						'src/player-legacy.cpp',
+						'src/lnxmplayer.cpp',
 						'src/tilecachegl.cpp',
 						'src/tilecachegl3.x.cpp',
 						'src/glcontext.cpp',

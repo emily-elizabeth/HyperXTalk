@@ -5,21 +5,21 @@ Type: property
 Syntax: set the soundChannel to <channelNumber>
 
 Summary:
-Included for compatibility with <HyperCard>, now used in OpenXTalk for MIDI
+Included for compatibility with <HyperCard>, now used in HyperXTalk for MIDI
 message channel.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
 Description:
 In HyperCard, the <soundChannel> <property> determines which sound
 channel is used when <Mac OS> sound <resource|resources> are played.
-In OpenXTalk this <property> defaults to 0, but may store the most recently selected
+In HyperXTalk this <property> defaults to 0, but may store the most recently selected
 MIDI channel used by a musical API such as FluidSynth or CoreMIDI, typically in
 the range of 1 to 16. A <handler> can set it to any number without
 causing a <error|script error>.
 
 References: play (command), sound (function), property (glossary),
-OpenXTalk (glossary), error (glossary), handler (glossary),
+HyperXTalk (glossary), error (glossary), handler (glossary),
 resource (glossary), HyperCard (glossary), Mac OS (glossary)

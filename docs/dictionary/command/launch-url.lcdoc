@@ -7,16 +7,16 @@ Syntax: launch url <urlToLaunch>
 Summary:
 Launches a url in the appropriate manner for the current system.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Security: process
 
 Example:
-launch url "http://www.OpenXTalk.org"
+launch url "http://www.HyperXTalk.com"
 
 Example:
 launch url "file:/Users/ben/Desktop/test.pdf"
@@ -29,7 +29,7 @@ urlToLaunch:
 The <URL(glossary)> to launch.
 
 The result:
-When <launch url> is called, OpenXTalk checks to see if an application is
+When <launch url> is called, HyperXTalk checks to see if an application is
 available to handle the URL. If no such application exists, the command
 returns "no association" in the result.
 

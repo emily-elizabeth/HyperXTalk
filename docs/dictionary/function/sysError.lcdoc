@@ -9,7 +9,7 @@ Syntax: sysError()
 Summary:
 <return|Returns> the operating system's error status.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -26,10 +26,10 @@ The <sysError> <function> <return|returns> an <integer>.
 
 The result:
 Most operating system requests have to do with actions on files. For
-example, when you open a file or copy a resource, OpenXTalk requests the
+example, when you open a file or copy a resource, HyperXTalk requests the
 operating system to complete the action. If the action fails, the
 <result> is set to an error message, and the <sysError> <function>
-contains the <error message> the operating system reported to OpenXTalk.
+contains the <error message> the operating system reported to HyperXTalk.
 >*Note:* When using the <sysError> <function> to check whether a
 > <command> succeeded, be sure to check the <result> first. The
 > <sysError> reports the operating system's error report, and some

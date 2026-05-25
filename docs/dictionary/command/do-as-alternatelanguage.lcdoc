@@ -6,7 +6,7 @@ Syntax: do <script> as <alternateLanguage>
 
 Summary: Evaluate a script written in another programming language
 
-Introduced: 1.1
+Introduced: 1.0.0
 
 OS: mac, windows, html5
 

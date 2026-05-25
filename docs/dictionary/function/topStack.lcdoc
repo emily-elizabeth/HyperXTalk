@@ -11,11 +11,11 @@ Syntax: topStack()
 Summary:
 <return|Returns> the long <name> of the topmost <stack>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the topStack
@@ -31,7 +31,7 @@ Use the <topStack> <function> to find out which <stack> is in the
 <current stack>.
 
 In most applications, the active window holds the current document, and
-menu commands operate on the active window. In OpenXTalk, because of the
+menu commands operate on the active window. In HyperXTalk, because of the
 ability to open stacks in various modes, this is not necessarily the
 case. 
 

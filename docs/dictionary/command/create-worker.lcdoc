@@ -1,0 +1,67 @@
+Name: create worker
+
+Type: command
+
+Syntax: create worker <workerName> [from <scriptFile>]
+
+Summary:
+Creates a named worker — a sandboxed script object that can receive and
+send messages independently of the main UI stack.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+create worker "mathWorker"
+
+Example:
+create worker "mathWorker" from "/path/to/mathWorker.livecodescript"
+
+Example:
+on mouseUp
+  local tWorkerScript
+  put the folder & "/workers/mathWorker.livecodescript" into tWorkerScript
+  create worker "mathWorker" from tWorkerScript
+  dispatch "computeSquares" to worker "mathWorker" with 8
+end mouseUp
+
+Parameters:
+workerName:
+A string used to identify the worker. This name must be unique — if a
+worker with the same name already exists, an execution error is thrown.
+
+scriptFile:
+An optional path to a LiveCode script file (.livecodescript) whose
+contents are loaded as the worker's script. If omitted, the worker is
+created with an empty script.
+
+It:
+After a successful <create worker>, <it> is set to the name of the
+newly created worker.
+
+Description:
+Use <create worker> to create a lightweight, named script object that
+runs within the same engine process but with its own isolated script
+context. Workers are useful for separating business logic from UI code
+and for dispatching long-running computations without blocking the UI.
+
+Each worker is backed by an invisible, script-only stack. The worker's
+script can define handlers that are invoked using <dispatch to worker>.
+From within a worker handler, use <dispatch to caller> to send results
+back to the stack that initiated the call.
+
+Workers persist until explicitly removed with <destroy worker> or
+<delete worker>.
+
+>*Note:* Workers run synchronously within the same engine thread. They
+> do not provide true concurrency, but they do provide clean separation
+> of script contexts and message routing.
+
+References: destroy worker (command), delete worker (command),
+dispatch to worker (command), dispatch to caller (command),
+worker (keyword), caller (keyword)
+
+Tags: workers

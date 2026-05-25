@@ -12,11 +12,11 @@ end <messageName>
 Summary:
 Defines a <message handler>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on resizeStack pNewWidth, pNewHeight
@@ -30,7 +30,7 @@ end processData
 
 Parameters:
 messageName:
-The name of the handler. The messageName must not be a OpenXTalk reserved
+The name of the handler. The messageName must not be a HyperXTalk reserved
 word. 
 
 parametersList:
@@ -38,7 +38,7 @@ The parametersList consists of one or more parameter names, separated by
 commas. 
 
 statementList:
-The statementList consists of one or more OpenXTalk statements.
+The statementList consists of one or more HyperXTalk statements.
 
 The result:
 >*Note:* As the <result> is a global property, if you do not explicitly
@@ -60,13 +60,13 @@ by the handler's name.
 The purpose of a message handler is to perform an action, or actions,
 when the message is received.
 
-A message handler can contain any set of OpenXTalk statements.
+A message handler can contain any set of HyperXTalk statements.
 
 The <messageName> is the name of the <message> to be <handle|handled>.
 This can be either a built-in <message> (such as <mouseDown> or
 <openCard>) or a <message> that triggers a custom command <handler>. In
 either case, when a <message> called <messageName>, traversing the
-<message path>, arrives at an <object(glossary)>, OpenXTalk checks that
+<message path>, arrives at an <object(glossary)>, HyperXTalk checks that
 <object|object's> <script> to see whether it has a <message handler>
 corresponding to the <message>. If it does, the <statement|statements>
 in that <message handler> are <execute|executed>.

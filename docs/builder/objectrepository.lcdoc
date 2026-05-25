@@ -1,0 +1,88 @@
+Library: com.livecode.library.objectrepository
+
+Type: library
+
+Summary: This library provides support persistent object references within a session
+
+version: 1.0.0
+
+author: LiveCode
+
+
+Name: objectRepositoryStore
+
+Type: handler
+
+Syntax: objectRepositoryStore(<pObject>)
+
+Summary: Store an object in the object repository and get its ID
+
+Description:
+As long ID of an object may mutate during a session the IDE needs an
+object reference that can handle that mutation.
+
+Parameters: 
+
+pObject: An object long ID
+
+Returns:
+An object repository ID which can be used to get the current long id of
+the object
+
+
+
+Name: objectRepositoryFlush
+
+Type: handler
+
+Syntax: objectRepositoryFlush()
+
+Summary: Flush deleted objects from the repository
+
+Description:
+As long ID of an object may mutate during a session the IDE needs an
+object reference that can handle that mutation.
+
+
+
+Name: objectRepositoryRetrieve
+
+Type: handler
+
+Syntax: objectRepositoryRetrieve(<pID>)
+
+Summary: Retrieve an object long id from the object repository
+
+Description:
+As long ID of an object may mutate during a session the IDE needs an
+object reference that can handle that mutation.
+
+Parameters: 
+
+pID: An object repository ID
+
+Returns:
+An object long ID or empty if the object is not in the repository or
+no longer exists
+
+
+
+Name: objectRepositoryRemove
+
+Type: handler
+
+Syntax: objectRepositoryRemove(<pID>)
+
+Summary: Remove and object from the object repository
+
+Description:
+As long ID of an object may mutate during a session the IDE needs an
+object reference that can handle that mutation.
+
+Parameters: 
+
+pID: An object repository ID
+
+
+
+

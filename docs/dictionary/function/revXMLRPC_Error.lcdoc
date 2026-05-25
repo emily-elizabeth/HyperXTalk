@@ -10,11 +10,11 @@ function returns the error.
 
 Associations: xml-rpc library
 
-Introduced: 2.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, process
 
@@ -40,7 +40,7 @@ during the execution of an <XML-RPC> request.
 
 
 References: revXMLRPC_GetResponse (function),
-OpenXTalk custom library (glossary),
+HyperXTalk custom library (glossary),
 Standalone Application Settings (glossary),
 standalone application (glossary), function (glossary),
 XML-RPC (glossary), XML-RPC library (library)

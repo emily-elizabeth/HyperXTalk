@@ -8,9 +8,9 @@ Summary:
 <execute|Executes> the specified <handler> in any <object(glossary)|object's>
 <script>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
 Platforms: desktop, server
 

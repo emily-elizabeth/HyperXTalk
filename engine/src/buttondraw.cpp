@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -51,6 +35,11 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 // actually queries NSAppearance.  On Mach-O a non-weak definition always
 // wins over a weak one, so server/non-GUI targets silently use this stub
 // while the GUI target uses the real implementation.
+extern "C" __attribute__((weak)) bool MCplatformIsDarkMode(void) { return false; }
+#elif defined(_LINUX)
+// Linux weak stub — GUI builds override this with the real implementation.
+// __attribute__((weak)) is GCC/Clang only; MSVC (Windows) gets its
+// implementation from w32dcs.cpp so no stub is needed there.
 extern "C" __attribute__((weak)) bool MCplatformIsDarkMode(void) { return false; }
 #endif
 
@@ -2204,9 +2193,13 @@ void MCButton::unlockshape(MCObjectShape& p_shape)
 
 int16_t MCButton::GetCheckSize() const
 {
-    // If we aren't using GTK at the theming engine, return the fixed size
+    // If we aren't using GTK as the theming engine, return the fixed size
     if (!IsNativeGTK())
         return CHECK_SIZE;
-    
-    return MCcurtheme -> getmetric(WTHEME_METRIC_CHECKBUTTON_INDICATORSIZE);
+
+    // For GTK, ask the theme for the actual indicator size
+    if (MCcurtheme != NULL)
+        return (int16_t)MCcurtheme->getmetric(WTHEME_METRIC_CHECKBUTTON_INDICATORSIZE);
+
+    return CHECK_SIZE;
 }

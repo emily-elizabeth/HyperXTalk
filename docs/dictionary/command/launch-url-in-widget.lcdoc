@@ -7,14 +7,14 @@ Syntax: launch url <url> in <widget>
 Summary:
 Launches a url in a widget.
 
-Introduced: 8.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
-launch url "http://www.OpenXTalk.org" in widget "myWebBrowser"
+launch url "http://www.HyperXTalk.com" in widget "myWebBrowser"
 
 Parameters:
 url (string):
@@ -26,7 +26,7 @@ A widget reference.
 
 Description:
 Use the <launch url> command to open a url within a widget. When <launch
-url in widget> is called, OpenXTalk sends a "OnLaunchURL" message to that
+url in widget> is called, HyperXTalk sends a "OnLaunchURL" message to that
 widget with <url> as the parameter. The widget can then display the url
 in an appropriate manner.
 

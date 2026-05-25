@@ -1,0 +1,97 @@
+Name: itemIcon
+
+Type: property
+
+Syntax: get the itemIcon[<name>] of <toolbar>
+Syntax: set the itemIcon[<name>] of <toolbar> to <iconRef>
+
+Summary:
+The icon image shown on a toolbar item.
+
+Associations: toolbar
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- SF Symbol (macOS 11+), auto-detected
+set the itemIcon["fileSave"] of toolbar 1 to "square.and.arrow.down"
+
+Example:
+-- Stack MCImage object by name
+set the itemIcon["myButton"] of toolbar "mainBar" to "MyToolbarIcon"
+
+Example:
+-- Explicit SF Symbol prefix
+set the itemIcon["newDoc"] of toolbar 1 to "sf:doc.badge.plus"
+
+Example:
+-- Absolute file path
+set the itemIcon["logo"] of toolbar 1 to "/Users/me/Images/logo.png"
+
+Example:
+-- Home-relative path
+set the itemIcon["logo"] of toolbar 1 to "~/Images/logo.png"
+
+Example:
+put the itemIcon["fileSave"] of toolbar 1 into tIconRef
+
+Value:
+The <itemIcon> of a toolbar item is a string identifying the icon source.
+The default value is the empty string, meaning no icon is shown.
+
+Description:
+Use the <itemIcon> property to assign an icon to a toolbar item. The icon
+string is resolved through a cascade of sources at the time it is set and
+again each time the stack is opened.
+
+**macOS icon resolution (tried in order)**
+
+1. Stack MCImage object — if the name matches an image object in the
+   stack (looked up with the same rules as `resolveimagename`), the
+   image's raw data is extracted via its `text` property (PNG bytes) and
+   used directly. This is the recommended approach for custom icons stored
+   inside the stack file.
+
+2. Explicit `sf:` prefix — `"sf:symbolName"` looks up an SF Symbol by
+   name (requires macOS 11 or later). No further fallback is attempted.
+
+3. Explicit `file:` prefix — `"file:/path/to/image.png"` or
+   `"file:~/path/to/image.png"` loads an image from the file system.
+
+4. Bare name, SF Symbol — if no prefix is present, the name is tried as
+   an SF Symbol (macOS 11+, silent failure if not found).
+
+5. Bare name, named image — the name is passed to
+   `[NSImage imageNamed:]`, which covers the app's asset catalog, any
+   image files in the bundle's Resources folder, and all built-in
+   NSImage system-name constants such as `NSImageNameApplicationIcon`.
+
+6. Bare path — if the string begins with `/` or `~` it is treated as a
+   file path.
+
+Setting the icon to empty clears any existing icon and causes the item to
+display in label-only mode.
+
+**Windows and Linux**
+
+On Windows, the icon name is used to locate an image in the toolbar's
+HIMAGELIST. On Linux, the name is passed to
+`gtk_image_new_from_icon_name` at GTK_ICON_SIZE_LARGE_TOOLBAR size,
+resolving from the active icon theme. Stack MCImage lookup is macOS-only
+at this time.
+
+**Persistence**
+
+Only the icon name string is saved to the stack file; image pixel data is
+not duplicated. When the stack is opened, each icon name that matches a
+stack MCImage object is re-resolved automatically so images appear
+correctly without any extra scripting.
+
+References: toolbar (object), itemLabel (property),
+displayMode (property), itemNames (property)
+
+Tags: ui

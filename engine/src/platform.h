@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #ifndef __MC_PLATFORM__
 #define __MC_PLATFORM__
 
@@ -563,6 +547,61 @@ void MCPlatformFlushEvents(MCPlatformEventMask mask);
 // Produce a system beep.
 void MCPlatformBeep(void);
 
+// Set (or clear) the Windows taskbar Jump List for this process.
+// p_tasks:    comma-separated "Label|tag" pairs; use "-" for a separator.
+//             Pass nil or an empty string to delete the Jump List entirely.
+// p_category: the section heading shown in the Jump List.
+//             Pass nil or empty to use the standard pinned "Tasks" section.
+// When a task is clicked Windows relaunches the exe with
+//   --jumplist-task=<tag>  appended to its arguments.
+// No-op on macOS and Linux.
+void MCPlatformSetJumpList(MCStringRef p_tasks, MCStringRef p_category);
+
+// Set the taskbar button progress indicator for the given native window.
+// p_hwnd:  on Windows, the HWND cast to void*.  Ignored on other platforms.
+// p_value: 0.0  = hide the progress bar (TBPF_NOPROGRESS)
+//          >0.0 = fill fraction 0..1 (TBPF_NORMAL); values >1.0 are clamped.
+//          <0.0 = indeterminate spinner (TBPF_INDETERMINATE).
+void MCPlatformSetTaskbarProgress(void *p_hwnd, double p_value);
+
+// Set (or clear) the overlay icon shown in the corner of a taskbar button.
+// p_hwnd:      on Windows, the HWND cast to void*.  Ignored on other platforms.
+// p_icon_path: path to a .ico file to display, or nil/empty to clear the icon.
+// No-op on macOS and Linux.
+void MCPlatformSetTaskbarOverlayIcon(void *p_hwnd, MCStringRef p_icon_path);
+
+// Set (or clear) the badge count shown on the app icon.
+// p_hwnd:   on Windows, the HWND cast to void* (overlay icon on taskbar button).
+//           Ignored on macOS (Dock tile badge) and Linux (no-op).
+// p_count:  0 clears the badge; any positive value draws that number.
+void MCPlatformSetBadge(void *p_hwnd, uinteger_t p_count);
+
+// Spell-check p_text using the platform's spell checker.
+// r_errors receives a newly-allocated array of MCRange (caller must delete[]).
+// r_count receives the number of entries; 0 means no errors / not supported.
+void MCPlatformSpellCheckText(MCStringRef p_text, MCRange*& r_errors, uindex_t& r_count);
+
+// Share content using the platform's native sharing UI (macOS share sheet etc.).
+// p_window         - the platform window to anchor the popover to.
+// p_type           - kMCPlatformShareText, kMCPlatformShareFile, or kMCPlatformShareImage.
+// p_data           - text / file path (MCStringRef) or encoded image bytes (MCDataRef).
+// p_has_rect       - whether p_anchor is valid (ignored when p_toolbar_item is set).
+// p_anchor         - card-coordinate rect of the control that triggered the share.
+// p_toolbar_item   - if non-nil, anchor the picker to this toolbar item name instead
+//                    of using p_anchor (macOS 13+: showRelativeToToolbarItem:).
+enum MCPlatformShareType
+{
+    kMCPlatformShareText,
+    kMCPlatformShareFile,
+    kMCPlatformShareImage,
+};
+void MCPlatformShareContent(MCPlatformWindowRef p_window,
+                            MCPlatformShareType p_type,
+                            MCValueRef p_data,
+                            bool p_has_rect,
+                            MCRectangle p_anchor,
+                            MCStringRef p_toolbar_item = nil);
+
 ////////////////////////////////////////////////////////////////////////////////
 
 void MCPlatformGetScreenCount(uindex_t& r_count);
@@ -616,6 +655,8 @@ enum MCPlatformMenuItemProperty
 	kMCPlatformMenuItemPropertyEnabled,
 	kMCPlatformMenuItemPropertySubmenu,
 	kMCPlatformMenuItemPropertyHighlight,
+	// SF Symbol name for the menu item icon (macOS 11+; no-op on other platforms).
+	kMCPlatformMenuItemPropertyIcon,
 };
 
 enum MCPlatformMenuItemHighlight
@@ -734,6 +775,7 @@ enum MCPlatformWindowStyle
 	kMCPlatformWindowStyleUtility,
 	kMCPlatformWindowStylePopUp,
 	kMCPlatformWindowStyleToolTip,
+	kMCPlatformWindowStylePopOver,
 };
 
 enum MCPlatformWindowEdge
@@ -756,6 +798,7 @@ void MCPlatformUpdateWindow(MCPlatformWindowRef window);
 void MCPlatformShowWindow(MCPlatformWindowRef window);
 void MCPlatformShowWindowAsSheet(MCPlatformWindowRef window, MCPlatformWindowRef parent_window);
 void MCPlatformShowWindowAsDrawer(MCPlatformWindowRef window, MCPlatformWindowRef parent_window, MCPlatformWindowEdge edge);
+void MCPlatformShowWindowAsPopover(MCPlatformWindowRef window, MCRectangle anchor_rect, MCPlatformWindowEdge edge);
 void MCPlatformHideWindow(MCPlatformWindowRef window);
 void MCPlatformFocusWindow(MCPlatformWindowRef window);
 void MCPlatformRaiseWindow(MCPlatformWindowRef window);

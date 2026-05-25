@@ -10,7 +10,7 @@ system uses to hold the screen <image> of the <current card>.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -28,7 +28,7 @@ Use the <pixmapID> <property> to pass to an <external> that needs to
 manipulate the window.
 
 >*Important:*  The pixmapID property is not supported in version 2.7 of
-> OpenXTalk and always returns 0.
+> HyperXTalk and always returns 0.
 
 The pixmap ID is provided by the operating system.
 

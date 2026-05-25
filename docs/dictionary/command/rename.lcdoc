@@ -8,11 +8,11 @@ Summary:
 Gives a <file> or <folder> a new name or moves it to a new location or
 both. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 rename file "Foo.txt" to "Bar.txt"

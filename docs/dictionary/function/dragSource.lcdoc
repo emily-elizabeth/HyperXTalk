@@ -10,7 +10,7 @@ Summary:
 <return|Returns> the long ID of the <object(glossary)> that dragged data
 was dragged from.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

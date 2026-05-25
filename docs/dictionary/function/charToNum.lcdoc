@@ -9,13 +9,13 @@ Syntax: charToNum(<character>)
 Summary:
 <return|Returns> the <ASCII|ASCII value> of a <character>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Deprecated: 7.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 charToNum("A")

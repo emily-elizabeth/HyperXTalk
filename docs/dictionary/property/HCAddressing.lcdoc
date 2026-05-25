@@ -11,24 +11,24 @@ Determines whether <grouped control|grouped fields> and
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the HCAddressing of stack nextImport to true
 
 Value (bool):
 The <HCAddressing> of a <stack> is true or false.
-By default, the <HCAddressing> of <stacks> you create in OpenXTalk is set
+By default, the <HCAddressing> of <stacks> you create in HyperXTalk is set
 to false.
 
 Description:
 Use the <HCAddressing> <property> for compatibility with <HyperCard>.
 
-When you open a HyperCard stack and convert it to a OpenXTalk stack, the
+When you open a HyperCard stack and convert it to a HyperXTalk stack, the
 new stack's <HCAddressing> <property> is set to true.
 
 If the <HCAddressing> <property> is set to true,

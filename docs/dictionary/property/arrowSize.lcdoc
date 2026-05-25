@@ -10,11 +10,11 @@ Specifies the size of an an arrow at one end of a <line> or <polygon>
 
 Associations: graphic
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the arrowSize of last graphic to 20

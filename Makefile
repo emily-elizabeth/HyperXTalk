@@ -24,7 +24,7 @@ WINE ?= wine
 EMMAKE ?= emmake
 
 # Choose the correct build type
-MODE ?= debug
+MODE ?= release
 
 # Where to run the build command depends on community vs commercial
 ifeq ($(BUILD_EDITION),commercial)

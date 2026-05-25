@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -49,6 +33,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "osspec.h"
 #include "stackfileformat.h"
 #include "mcerror.h"
+#include "platform.h"
 
 //////////
 
@@ -376,6 +361,84 @@ void MCStack::SetFullscreenMode(MCExecContext& ctxt, intenum_t p_mode)
     
     if ((t_ideal_layout != getuseideallayout()) && opened)
         purgefonts();
+}
+
+void MCStack::GetBadge(MCExecContext& ctxt, uinteger_t& r_value)
+{
+    r_value = m_badge;
+}
+
+void MCStack::SetBadge(MCExecContext& ctxt, uinteger_t p_value)
+{
+    m_badge = p_value;
+    void *t_hwnd = nil;
+#ifdef TARGET_PLATFORM_WINDOWS
+    Window t_win = getwindow();
+    if (t_win != nil)
+        t_hwnd = (void *)t_win->handle.window;
+#endif
+    MCPlatformSetBadge(t_hwnd, p_value);
+}
+
+void MCStack::GetTaskbarOverlayIcon(MCExecContext& ctxt, MCStringRef& r_value)
+{
+    r_value = MCValueRetain(m_taskbar_overlay_icon);
+}
+
+void MCStack::SetTaskbarOverlayIcon(MCExecContext& ctxt, MCStringRef p_value)
+{
+    MCValueAssign(m_taskbar_overlay_icon, p_value);
+#ifdef TARGET_PLATFORM_WINDOWS
+    void *t_hwnd = nil;
+    Window t_win = getwindow();
+    if (t_win != nil)
+        t_hwnd = (void *)t_win->handle.window;
+    MCPlatformSetTaskbarOverlayIcon(t_hwnd, p_value);
+#endif
+}
+
+void MCStack::GetTaskbarProgress(MCExecContext& ctxt, double& r_value)
+{
+    r_value = m_taskbar_progress;
+}
+
+void MCStack::SetTaskbarProgress(MCExecContext& ctxt, double p_value)
+{
+    m_taskbar_progress = p_value;
+
+    // Obtain the native window handle and forward to the platform layer.
+    // On Windows, getwindow() returns _Drawable* and handle.window is the HWND.
+    // On all other platforms the platform function is a no-op.
+    void *t_hwnd = nil;
+    Window t_win = getwindow();
+#ifdef TARGET_PLATFORM_WINDOWS
+    if (t_win != nil)
+        t_hwnd = (void *)t_win->handle.window;
+#endif
+    MCPlatformSetTaskbarProgress(t_hwnd, p_value);
+}
+
+void MCStack::GetJumpListTasks(MCExecContext& ctxt, MCStringRef& r_value)
+{
+    r_value = MCValueRetain(m_jump_list_tasks);
+}
+
+void MCStack::SetJumpListTasks(MCExecContext& ctxt, MCStringRef p_value)
+{
+    MCValueAssign(m_jump_list_tasks, p_value);
+    MCPlatformSetJumpList(m_jump_list_tasks, m_jump_list_category);
+}
+
+void MCStack::GetJumpListCategory(MCExecContext& ctxt, MCStringRef& r_value)
+{
+    r_value = MCValueRetain(m_jump_list_category);
+}
+
+void MCStack::SetJumpListCategory(MCExecContext& ctxt, MCStringRef p_value)
+{
+    MCValueAssign(m_jump_list_category, p_value);
+    // Re-apply the jump list so the new category name takes effect immediately.
+    MCPlatformSetJumpList(m_jump_list_tasks, m_jump_list_category);
 }
 
 void MCStack::GetScaleFactor(MCExecContext& ctxt, double& r_scale)

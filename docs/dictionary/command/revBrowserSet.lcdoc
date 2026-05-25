@@ -11,7 +11,7 @@ Syntax: XBrowser_Set <propertyName>, <propertyValue> ,[<instanceid>]
 Summary:
 Sets a given property of a specified browser.
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 
@@ -20,7 +20,7 @@ Platforms: desktop
 Security: network
 
 Example:
-revBrowserSet tBrowserId, "url", "http://www.OpenXTalk.org"
+revBrowserSet tBrowserId, "url", "http://www.HyperXTalk.com"
 
 Example:
 answer file "Please choose a file to display"
@@ -133,7 +133,7 @@ both platforms is like this:
 
     on browserOpen
         put revBrowserOpen(the windowId \
-          of me, http://www.OpenXTalk.org) into sBrowserId
+          of me, http://www.HyperXTalk.com) into sBrowserId
         if the platform is MacOS then
             send browserDisableScrollbars to me in 1 second
         else

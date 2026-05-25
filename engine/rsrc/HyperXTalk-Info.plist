@@ -28,6 +28,18 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 		</dict>
+		<dict>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>hyperxtalk_project</string>
+			</array>
+			<key>CFBundleTypeName</key>
+			<string>HyperXTalk Project</string>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>LSTypeIsPackage</key>
+			<true/>
+		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(PRODUCT_NAME)</string>
@@ -51,6 +63,8 @@
 	<string>Revo</string>
 	<key>CFBundleVersion</key>
 	<string>$(BUILD_LONG_VERSION)</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>HyperXTalk needs to send Apple events to control other applications via AppleScript.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>This app reads your contacts</string>
 	<key>CSResourcesFileMapped</key>
@@ -77,6 +91,23 @@
 	<string>Copyright 2000-2020, HyperXTalk Ltd., All Rights Reserved.</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+			</array>
+			<key>UTTypeDescription</key>
+			<string>HyperXTalk Project</string>
+			<key>UTTypeIdentifier</key>
+			<string>com.hyperxtalk.hyperxtalk.project</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>hyperxtalk_project</string>
+				</array>
+			</dict>
+		</dict>
 		<dict>
 			<key>UTTypeConformsTo</key>
 			<array>

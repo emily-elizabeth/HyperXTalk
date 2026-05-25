@@ -9,11 +9,11 @@ Syntax: button
 Summary:
 A <control> that is clickable.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the hilite of button "Warning" to false
@@ -36,7 +36,7 @@ A button is contained in a card, group, or background. Buttons cannot
 contain other objects.
 
 >*Note:* A standard button is rendered by the operating system, not 
-OpenXTalk. Changing certain properties of such a button will cause the 
+HyperXTalk. Changing certain properties of such a button will cause the 
 button to stop honouring the native theme. Properties that affect the 
 button's colour and border may cause this issue.
 

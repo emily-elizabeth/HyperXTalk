@@ -1,0 +1,49 @@
+Name: statusIconMenuOpening
+
+Type: message
+
+Syntax: statusIconMenuOpening
+
+Summary:
+Sent just before the system tray icon's context menu is displayed.
+
+Introduced: 1.0.0
+
+OS: windows
+
+Platforms: desktop
+
+Example:
+-- Dynamically update the menu before it opens
+on statusIconMenuOpening
+    put "Show App|show" & return into tMenu
+    if the visible of this stack then
+        put "Hide App|hide" & return after tMenu
+    end if
+    put "-" & return after tMenu
+    put "Quit|quit" after tMenu
+    set the statusIconMenu to tMenu
+end statusIconMenuOpening
+
+Description:
+The <statusIconMenuOpening> message is sent to the current card of the
+default stack immediately before the right-click context menu defined by
+<statusIconMenu> is shown to the user.
+
+Handle <statusIconMenuOpening> to update <statusIconMenu> dynamically
+based on the current application state — for example, toggling between
+"Show" and "Hide" items, enabling or disabling options, or changing
+labels to reflect live data.
+
+The menu is rebuilt from the current value of <statusIconMenu> each time
+<statusIconMenuOpening> is handled, so changes made inside the handler
+take effect for that opening.
+
+<statusIconMenuOpening> is only sent when a menu is configured. If
+<statusIconMenu> is empty, right-clicking the tray icon does not send
+this message.
+
+References: statusIconMenuPick (message), statusIconMenu (property),
+statusIcon (property)
+
+Tags: windowing

@@ -9,11 +9,11 @@ Specifies the gradient to use to fill the graphic object.
 
 Associations: graphic
 
-Introduced: 3.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the fillGradient of graphic 1 to tPropertiesArray

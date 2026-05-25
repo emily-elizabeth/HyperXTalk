@@ -8,7 +8,7 @@ Summary:
 Specifies that the <date> and <time> <function|functions> should be
 formatted in accordance with the user's system preferences.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

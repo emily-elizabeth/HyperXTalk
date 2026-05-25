@@ -10,13 +10,13 @@ Summary:
 Specifies the <character|character(s)> used to separate rows in a
 string. 
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 Changed: 7.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the rowDelimiter to comma

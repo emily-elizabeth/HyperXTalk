@@ -149,7 +149,8 @@
 
 							'-Wno-conversion',
 							'-Wno-shorten-64-to-32',
-							'-Wno-enum-constexpr-conversion',
+                            # This is a permanent error as of Clang 20
+							#'-Wno-enum-constexpr-conversion',
 
 							'-Werror=declaration-after-statement',
 							'-Werror=delete-non-virtual-dtor',

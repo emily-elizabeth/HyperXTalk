@@ -10,11 +10,11 @@ not retain any objects or custom properties
 
 Associations: stack
 
-Introduced: 8.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile, server
+Platforms: desktop, server
 
 Example:
 -- git blame on a script only stack
@@ -35,12 +35,12 @@ if the scriptOnly of stack theStack then
   set the password of stack theStack to uuid()
   put the filename of stack theStack into theFilename
   set the itemDelimiter to "."
-  put "OpenXTalk" into the last item of theFilename
+  put "HyperXTalk" into the last item of theFilename
   set the filename of stack theStack to theFilename
   save stack theStack
   set the password of stack theStack to empty
   set the scriptOnly of stack theStack to true
-  put "OpenXTalkscript" into the last item of theFilename
+  put "HyperXTalkscript" into the last item of theFilename
 end if
 
 Parameters:

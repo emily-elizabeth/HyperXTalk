@@ -7,11 +7,11 @@ Syntax: italic
 Summary:
 Used with the <textStyle> <property> to indicate italicized text.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the textStyle of button "Check It" to italic

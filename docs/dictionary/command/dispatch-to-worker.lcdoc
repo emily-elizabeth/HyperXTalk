@@ -1,0 +1,62 @@
+Name: dispatch to worker
+
+Type: command
+
+Syntax: dispatch <message> to worker <workerName> [with <argumentList>]
+
+Summary:
+Sends a message to a named worker's script.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+dispatch "computeSquares" to worker "mathWorker" with 8
+
+Example:
+on mouseUp
+  local tData
+  put field "inputField" into tData
+  dispatch "processData" to worker "dataWorker" with tData
+end mouseUp
+
+Example:
+# Dispatching a function and using the return value
+dispatch function "squareRoot" to worker "mathWorker" with 144
+put the result into tAnswer
+
+Parameters:
+message:
+The name of the handler to invoke in the worker's script.
+
+workerName:
+The name of a worker previously created with <create worker>. If no
+worker with this name exists, an execution error is thrown.
+
+argumentList:
+A comma-separated list of values to pass as parameters to the handler.
+Arrays are valid arguments.
+
+Description:
+Use <dispatch to worker> to invoke a handler in a named worker's script.
+The worker's handler runs synchronously — execution in the calling script
+pauses until the worker handler completes or passes the message.
+
+The <dispatch> command's standard <it> behaviour applies: after the call,
+<it> is set to "handled", "unhandled", or "passed" depending on whether
+a matching handler was found in the worker.
+
+From within the worker handler, use <dispatch to caller> to send messages
+or results back to the stack that made the call.
+
+Use <dispatch function ... to worker> to invoke a function handler and
+retrieve a return value via <the result>.
+
+References: create worker (command), destroy worker (command),
+dispatch to caller (command), dispatch (command),
+worker (keyword), caller (keyword), it (keyword)
+
+Tags: workers

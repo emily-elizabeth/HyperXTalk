@@ -9,7 +9,7 @@ Syntax: set the dragData[<dataType>] to <dataToDrag>
 Summary:
 Specifies what data is being dragged during a drag and drop.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -35,9 +35,9 @@ The <dragData> is an <array> with one or more of the following
 - image: The data of an image in PNG, JPEG or GIF format
 - files: The name and location of the file or files being dragged, 
   one per line
-- styles: Styled text in OpenXTalk internal styled text format 
+- styles: Styled text in HyperXTalk internal styled text format 
 - private: An arbitrary application-defined string. This format will
-  only be visible within the same OpenXTalk process (i.e. when the
+  only be visible within the same HyperXTalk process (i.e. when the
   current application is acting as source and target for the current 
   drag-drop operation). The private dragData array element holds binary
   (single byte) data only. To place Unicode text in dragData["private"]
@@ -48,14 +48,14 @@ Description:
 Use the <dragData> <property> to find out what is being dragged or to
 change the data being dragged during the drag.
 
-If OpenXTalk is acting as the target of a drag-drop operation (i.e.
+If HyperXTalk is acting as the target of a drag-drop operation (i.e.
 during the context of a <dragEnter>, <dragMove>, <dragDrop> or
 <dragLeave> <message>), the dataData property can be queried for the data
 the source application is offering.
 
 Setting a type of data during a <mouseDown> or <dragStart> handler will
 cause a drop-drop operation to commence when the handler finishes. Only
-one type of data can be set at once, although OpenXTalk will
+one type of data can be set at once, although HyperXTalk will
 automatically convert between all the text formats.
 
 You can query the keys of the dragData to find out what data types are
@@ -70,7 +70,7 @@ dragData["text"] to ignore the styles, while an ordinary field's
 <dragDrop> <handler> might use the dragData["HTML"] to retain the 
 styles.
 
-OpenXTalk will automatically synthesize the three text properties text,
+HyperXTalk will automatically synthesize the three text properties text,
 html and rtf if any text data is present. For example setting the
 dragData["text"] will result in the dragData["html"] being set
 appropriately. 
@@ -80,7 +80,7 @@ sets the dragData["text"].
 
 >*Note:* It is necessary to use double quotes around the keys of the
 > <dragData> array because some of the key names (such as "files") are
-> OpenXTalk reserved words. Quoting array indexes (other than integers)
+> HyperXTalk reserved words. Quoting array indexes (other than integers)
 > is a good practice anyway, but in the case of this property, it's
 > necessary to avoid script errors.
 

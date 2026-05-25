@@ -9,11 +9,11 @@ This function returns the protocol of an XML-RPC document.
 
 Associations: xml-rpc library
 
-Introduced: 2.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, process
 
@@ -44,7 +44,7 @@ If the <revXMLRPC_GetProtocol> <function> encounters an error, it
 References: revXMLRPC_SetProtocol (command), function (control structure),
 Standalone Application Settings (glossary), host (glossary),
 standalone application (glossary), return (glossary), function (glossary),
-XML-RPC (glossary), OpenXTalk custom library (glossary),
+XML-RPC (glossary), HyperXTalk custom library (glossary),
 https (keyword), http (keyword), XML-RPC library (library),
 revXMLRPC_CreateRequest (function), revXMLRPC_Execute (function)
 

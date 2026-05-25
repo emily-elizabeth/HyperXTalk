@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -988,7 +972,7 @@ static bool MCDeploySignWindowsAddTimeStamp(const MCDeploySignParameters& p_para
 			t_data . setvalueref_argument(*t_req_base64);
 			t_data . setnext(&t_url);
 			t_url . setvalueref_argument(p_params . timestamper);
-            extern MCExecContext *MCECptr;
+            extern thread_local MCExecContext *MCECptr;
 			if (MCECptr->GetObject() -> message(MCM_post_url, &t_data, False, True) == ES_NORMAL &&
 				MCresult -> isempty())
 			{
@@ -1011,7 +995,7 @@ static bool MCDeploySignWindowsAddTimeStamp(const MCDeploySignParameters& p_para
     MCAutoValueRef t_result_value;
     MCAutoStringRef t_result_base64;
     MCAutoDataRef t_result_data;
-    extern MCExecContext *MCECptr;
+    extern thread_local MCExecContext *MCECptr;
 	
     if (t_success)
     {

@@ -7,11 +7,11 @@ Syntax: <number1> * <number2>
 Summary:
 Multiplies two numbers or arrays containing numbers.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local thisNumber

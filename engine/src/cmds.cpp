@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -197,7 +181,8 @@ Parse_stat MCConvert::parsedtformat(MCScriptPoint &sp, Convert_form &firstform,
 		case CF_SHORT:
 		case CF_LONG:
 		case CF_INTERNET:
-			if (firstform == CF_UNDEFINED)
+		case CF_SQL:
+			if (CF_UNDEFINED == firstform)
 				firstform = (Convert_form)te->which;
 			else
 				secondform = (Convert_form)te->which;
@@ -208,12 +193,12 @@ Parse_stat MCConvert::parsedtformat(MCScriptPoint &sp, Convert_form &firstform,
 			break;
 		case CF_DATE:
 		case CF_TIME:
-			if (firstform == CF_UNDEFINED)
+			if (CF_UNDEFINED == firstform)
 				firstform = (Convert_form)(te->which + 1 + localeform);
 			else
 				if (firstform > CF_INTERNET)
 				{
-					if (secondform == CF_UNDEFINED)
+					if (CF_UNDEFINED == secondform)
 						secondform = (Convert_form)(te->which + 1 + localeform);
 					else
 					{

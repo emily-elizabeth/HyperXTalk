@@ -8,7 +8,7 @@ Summary:
 Reports the files that have been loaded into memory by the 
 <start using font> <command>.
 
-Introduced: 6.5
+Introduced: 1.0.0
 
 OS: mac, windows
 

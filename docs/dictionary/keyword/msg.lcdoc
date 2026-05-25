@@ -10,11 +10,11 @@ Summary:
 A special <global> <variable> that is used with the <put> command when
 no other destination container is specified.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, HTML5
+OS: mac, windows, linux, HTML5
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 -- set msg to foobar
@@ -29,7 +29,7 @@ to the object that modified it. If the <msgChanged> <message> is
 unhandled or passed then the value of <msg> will be written to the
 system log or in no ui mode (command line) to <stdout>.
 
-In OpenXTalk IDE <msg> and the <msgChanged> <message> are used to implement
+In HyperXTalk IDE <msg> and the <msgChanged> <message> are used to implement
 the message box.
 
 References: put (command), msgChanged (message), keyword (glossary),

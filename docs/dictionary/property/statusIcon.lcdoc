@@ -1,0 +1,70 @@
+Name: statusIcon
+
+Type: property
+
+Syntax: set the statusIcon to <imageID>
+
+Summary:
+Shows or hides the application's system tray icon (Windows notification area).
+
+Introduced: 1.0.0
+
+OS: windows
+
+Platforms: desktop
+
+Example:
+-- Show the tray icon using an image stored in the stack
+set the statusIcon to the ID of image "TrayIcon" of stack "Main"
+
+Example:
+-- Configure icon, tooltip, and menu together
+set the statusIconTooltip to "My App is running"
+set the statusIconMenu to "Show|show" & return & "Quit|quit"
+set the statusIcon to the ID of image "TrayIcon" of stack "Main"
+
+Example:
+-- Remove the tray icon
+set the statusIcon to 0
+
+Parameters:
+imageID:
+The numeric ID of an image object in the running application.
+Pass 0 to remove the tray icon.
+
+Value:
+The <statusIcon> returns the image ID most recently set.
+The default value is 0 (no tray icon shown).
+
+Description:
+Use the <statusIcon> property to display a persistent icon in the Windows
+taskbar notification area (the "system tray"). Once set, the icon remains
+visible until the <statusIcon> is set to 0 or the application exits.
+
+The value must be the numeric ID of an image object reachable via the
+application dispatcher — typically an image on a stack that is open in
+memory. Use `the ID of image "name" of stack "stackName"` to retrieve it.
+
+The image is scaled to the system icon size (typically 16×16 or 32×32
+pixels depending on the user's taskbar DPI settings). Supply a reasonably
+high-resolution image for best results on high-DPI displays.
+
+Setting <statusIcon> to a valid image ID creates the tray icon if one does
+not already exist, or updates the icon image if one is already showing.
+Setting it to 0 removes the icon.
+
+The current values of <statusIconTooltip> and <statusIconMenu> are applied
+whenever <statusIcon> is set, so you can configure all three properties
+before setting <statusIcon> to avoid intermediate states.
+
+>*Note:* The <statusIcon> property is not persistent — it is not saved
+> into the stack file. Set it in a `startUp` or `preOpenStack` handler.
+
+>*Note:* The <statusIcon> property only has a visual effect on Windows.
+> On macOS and Linux the property is accepted without error but has no
+> effect.
+
+References: statusIconTooltip (property), statusIconMenu (property),
+statusIconClick (message), statusIconDoubleClick (message)
+
+Tags: windowing

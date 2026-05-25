@@ -9,7 +9,7 @@ Loads the operating system's text-to-speech software from memory.
 
 Associations: speech library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows
 
@@ -30,7 +30,7 @@ should be removed from memory when it is no longer needed by using the
 >*Important:*  The <revLoadSpeech> <command> is part of the 
 > <Speech library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Speech" 
 > library checkbox is checked.
@@ -38,5 +38,5 @@ should be removed from memory when it is no longer needed by using the
 References: revUnloadSpeech (command), revUnloadSpeech (command),
 Standalone Application Settings (glossary),
 standalone application (glossary), command (glossary),
-OpenXTalk custom library (glossary), Speech library (library)
+HyperXTalk custom library (glossary), Speech library (library)
 

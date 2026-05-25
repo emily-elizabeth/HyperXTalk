@@ -1732,8 +1732,8 @@ def _CollapseSingles(parent, node):
   # such projects up one level.
   if (type(node) == dict and
       len(node) == 1 and
-      node.keys()[0] == parent + '.vcproj'):
-    return node[node.keys()[0]]
+      list(node.keys())[0] == parent + '.vcproj'):
+    return node[list(node.keys())[0]]
   if type(node) != dict:
     return node
   for child in node:
@@ -1752,8 +1752,8 @@ def _GatherSolutionFolders(sln_projects, project_objects, flat):
   # Walk down from the top until we hit a folder that has more than one entry.
   # In practice, this strips the top-level "src/" dir from the hierarchy in
   # the solution.
-  while len(root) == 1 and type(root[root.keys()[0]]) == dict:
-    root = root[root.keys()[0]]
+  while len(root) == 1 and type(root[list(root.keys())[0]]) == dict:
+    root = root[list(root.keys())[0]]
   # Collapse singles.
   root = _CollapseSingles('', root)
   # Merge buckets until everything is a root entry.

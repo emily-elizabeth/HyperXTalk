@@ -8,11 +8,11 @@ Summary:
 The selectionHandlerColor <property> specifies the color of the handle
 boxes used to resize a <selected> <object(glossary)>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the selectionHandleColor to "red"

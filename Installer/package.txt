@@ -386,11 +386,6 @@ component Resources
 		file "ide:Documentation/rev/Supported Platforms Referen.rev"
 		file "ide:Documentation/rev/videos.rev"
 
-	into [[ToolsFolder]]/Documentation place
-		rfolder "repo:docs/guides"
-		rfolder "ide:Documentation/guides"
-		rfolder "docs:guides"
-	
 	into [[ToolsFolder]]/Documentation/html_viewer place
 		file "ide:Documentation/html_viewer/api.html.template"
 		file "ide:Documentation/html_viewer/guide.html.template"

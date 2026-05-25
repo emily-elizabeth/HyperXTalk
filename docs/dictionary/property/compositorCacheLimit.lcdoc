@@ -10,11 +10,11 @@ content for the stack.
 
 Associations: stack
 
-Introduced: 5.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 set the compositorCacheLimit of this stack to 8388608 -- 8Mb
@@ -40,7 +40,7 @@ and the default rendering used instead.
 >*Note:* The required size of the <compositorCacheLimit> can be
 > determined by the objects whose <layerMode> property is set to
 > 'dynamic'. The compositorCacheLimit should be set to the amount of
-> memory the OpenXTalk engine needs to cache them. If you have 10 layers
+> memory the HyperXTalk engine needs to cache them. If you have 10 layers
 > all 400x400 pixels, you need roughly 10*400*400*4 bytes.
 > Experimentation is required to find the optimal value.
 

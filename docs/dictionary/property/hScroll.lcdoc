@@ -9,11 +9,11 @@ Specifies the horizontal scroll of a <field> or <group>.
 
 Associations: field, group
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the hScroll of field "Wasps" to the width of field "Wasp"

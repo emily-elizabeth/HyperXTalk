@@ -9,11 +9,11 @@ Reports the amount of disk space taken by an <object(glossary)>.
 
 Associations: image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if the size of image myImage &gt; 20000 then beep
@@ -40,7 +40,7 @@ The <size> <property> of a <stack> is always 10000. For <stacks>, this
 
 References: heapSpace (function), hasMemory (function), stacks (function),
 files (function), diskSpace (function), object (glossary),
-property (glossary), OpenXTalk (glossary), audio clip (glossary),
+property (glossary), HyperXTalk (glossary), audio clip (glossary),
 EPS (glossary), HyperCard (glossary), video clip (glossary),
 byte (glossary), image (keyword), integer (keyword), stack (object),
 filename (property)

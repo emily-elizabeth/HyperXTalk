@@ -8,16 +8,16 @@ Summary:
 Has no effect and is included for compatibility with
 imported <HyperCard> stacks.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
 Description:
 In HyperCard, the <multiSpace> <property> determines the amount of space
-left between multiple paint shapes. In OpenXTalk, the <paint tool|paint
+left between multiple paint shapes. In HyperXTalk, the <paint tool|paint
 tools> draw a single shape, so the <multiSpace> <property> has no
 effect. 
 
 References: property (glossary), paint tool (glossary),
-OpenXTalk (glossary), HyperCard (glossary), multiple (property)
+HyperXTalk (glossary), HyperCard (glossary), multiple (property)
 

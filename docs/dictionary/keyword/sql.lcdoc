@@ -1,0 +1,66 @@
+Name: sql
+
+Type: keyword
+
+Syntax: sql [date]
+
+Summary:
+Specifies a <format> for the <convert> <command> that is compatible with
+SQL database datetime columns.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+convert the date && the time to sql date
+put it into tTimestamp -- e.g. "2026-05-01 14:30:00"
+
+Example:
+convert tTimestamp from sql date to long date and long time
+
+Example:
+put "INSERT INTO log (created_at) VALUES ('" & tTimestamp & "')" into tSQL
+
+Description:
+Use the <sql> <keyword> with the <convert> <command> to work with dates
+and times in a format that is directly compatible with SQL `DATETIME` and
+`TIMESTAMP` column types (ISO 8601 combined date and time).
+
+The <sql> date format is:
+
+    YYYY-MM-DD HH:MM:SS
+
+where the date parts are separated by hyphens and the time parts are
+separated by colons, with a single space between the date and the time.
+For example, May 1 2026 at 2:30 PM is represented as:
+
+    2026-05-01 14:30:00
+
+The time is always in 24-hour format. Unlike the <internet> format, the
+<sql> format does not include a time-zone offset; the stored value is
+treated as local time, consistent with how most SQL databases handle
+`DATETIME` columns.
+
+You can use the optional `date` modifier (`sql date`) as an explicit
+reminder that this is a date-and-time format; the two forms are
+equivalent and produce the same result.
+
+You can use the modifiers <long>, <short>, and <abbreviated> in
+conjunction with the <sql> <keyword> without causing a
+<error|script error>, but they have no effect on the resulting format.
+
+>*Note:* The <sql> <keyword> is implemented internally as a
+> <property> and appears in the <propertyNames>. However, it cannot be
+> used as a <property> in an <expression>, nor with the <set> <command>.
+
+References: convert (command), set (command),
+function (control structure), format (function), propertyNames (function),
+date (function), keyword (glossary), property (glossary),
+command (glossary), error (glossary), expression (glossary),
+short (keyword), long (keyword), abbreviated (keyword),
+internet (keyword), dateItems (keyword), seconds (keyword)
+
+Tags: math

@@ -10,7 +10,7 @@ Summary:
 <return|Returns> the <process> IDs of <process|processes> that have been
 opened with the <open process> <command>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -43,7 +43,7 @@ The list of process IDs is in the same order used by openProcesses
 <function>, which is the same order that the <process|processes> were
 opened.
 
-Programs that were not started by OpenXTalk are not included in the list
+Programs that were not started by HyperXTalk are not included in the list
 returned by the <openProcessIDs> <function>.
 
 References: launch (command), kill (command), open process (command),

@@ -7,11 +7,11 @@ Syntax: get <expression>
 Summary:
 Places the <value> of an <expression> in the <it> <variable>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 get the colors of button 1
@@ -23,7 +23,7 @@ Example:
 get message -- evaluates expression in message box
 
 Example:
-get URL "https://www.OpenXTalk.org"
+get URL "https://www.HyperXTalk.com"
 
 Parameters:
 expression:

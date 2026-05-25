@@ -25,11 +25,11 @@ Chooses among several possible <value(glossary)|values> for an
 <expression>, and <execute|executes> a set of <statement|statements>
 that depends on the <value(function)>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: mobile
+Platforms: 
 
 Parameters:
 switchExpression:
@@ -46,12 +46,12 @@ Any <expression> that <evaluate|evaluates> to true or false. (If the
 for that <case> section.)
 
 statementList:
-Of one or more <OpenXTalk> <statement|statements>, and can also include
+Of one or more <HyperXTalk> <statement|statements>, and can also include
 <if>, <switch>, <try>, or <repeat> 
 <control structure|control structures>. 
 
 defaultStatementList:
-Of one or more <OpenXTalk> <statement|statements>.
+Of one or more <HyperXTalk> <statement|statements>.
 
 Description:
 Use the <switch> <control structure> to select among multiple possible
@@ -65,7 +65,7 @@ The <switch> line is followed by one or more <case> sections. Each
 <caseValue> (if a <switchExpression> was included on the <switch> line)
 or a <caseCondition> (if no <switchExpression> was included). If the
 <caseValue> is equal to the <switchExpression>, or the <caseCondition>
-<evaluate|evaluates> to true, OpenXTalk begins <execute|executing> the
+<evaluate|evaluates> to true, HyperXTalk begins <execute|executing> the
 following <statement|statements>.
 
 The <case> sections may be followed by an optional <default> section. If
@@ -76,7 +76,7 @@ are executed.
 The <switch> structure ends with an <end switch> <statement>.   
 
 Flow of control in a <switch> <control structure|structure> is less
-complicated than it looks. In general, when OpenXTalk enters a <switch>
+complicated than it looks. In general, when HyperXTalk enters a <switch>
 <control structure>, it looks for the first <case> section whose
 <caseValue> is equal to the <switchExpression>, or whose <caseCondition>
 is true. When a matching condition is found, all <statement|statements>
@@ -113,7 +113,7 @@ next <card> otherwise:
 
 There is no limit to the number of <case> sections you can include in a
 <switch> <control structure>, although the more <case> sections there
-are, the more <expression|expressions> OpenXTalk must <evaluate> and the
+are, the more <expression|expressions> HyperXTalk must <evaluate> and the
 more slowly the <switch> <control structure|structure>
 <execute|executes>. 
 

@@ -8,11 +8,11 @@ Summary:
 Returns a <format|formatted> <string> that has been transformed
 according to the rules of the C "printf()" <function>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 format("Hello world")
@@ -162,7 +162,7 @@ character:
 - \xnn character whose ASCII value is the hex number represented by nn
 
 > *Note:* Transformation of values in <valuesList> uses the standard 
-> OpenXTalk conversion rules. For example, if empty is passed for a numeric
+> HyperXTalk conversion rules. For example, if empty is passed for a numeric
 > incantation it will be taken as the value 0.
 
 References: function (control structure), binaryEncode (function),

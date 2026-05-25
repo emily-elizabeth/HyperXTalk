@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 //
 // globals for MetaCard
 //
@@ -109,6 +93,16 @@ extern int2 MCclicklocx;
 extern int2 MCclicklocy;
 extern int2 MCmousex;
 extern int2 MCmousey;
+// Anchor rect (screen coords) and preferred edge for the next WM_POPOVER show.
+// Set by MCInterfaceExecPopoverStack; read by openwindow() in desktop-dc.cpp.
+extern MCRectangle MCpopoveranchor;
+extern int MCpopoveredge; // MCPlatformWindowEdge value
+// Currently open popover stack (nil if none). Used on Linux to implement
+// click-outside dismiss without a native popover widget.
+extern MCStack *MCpopoverstack;
+// Stack that contains the anchor control for the open popover (nil if none).
+// On Linux, used to detect when the parent moves so the popover can be dismissed.
+extern MCStack *MCpopoverparentstack;
 extern uint2 MCsiguser1;
 extern uint2 MCsiguser2;
 extern int4 MCinputfd;
@@ -164,7 +158,7 @@ extern char MCrecordinput[5];
 extern Boolean MCuselzw;
 
 extern real8 MCinfinity;
-extern char* MCstackbottom;
+extern thread_local char* MCstackbottom;
 extern Boolean MCcheckstack;
 extern Boolean MCswapbytes;
 extern Boolean MCtranslatechars;
@@ -193,17 +187,17 @@ extern MCCardlist *MCrecent;
 extern MCCardlist *MCcstack;
 extern MCDispatch *MCdispatcher;
 extern MCStackHandle MCtopstackptr;
-extern MCStackHandle MCdefaultstackptr;
+extern thread_local MCStackHandle MCdefaultstackptr;
 extern MCStackHandle MCstaticdefaultstackptr;
 extern MCStackHandle MCmousestackptr;
 extern MCStackHandle MCclickstackptr;
 extern MCStackHandle MCfocusedstackptr;
-extern MCObjectPartHandle MCtargetptr;
+extern thread_local MCObjectPartHandle MCtargetptr;
 extern MCObjectHandle MCmenuobjectptr;
-extern MCCardHandle MCdynamiccard;
-extern Boolean MCdynamicpath;
+extern thread_local MCCardHandle MCdynamiccard;
+extern thread_local Boolean MCdynamicpath;
 extern MCGroup *MCsavegroupptr;
-extern MCObjectHandle MCerrorptr;
+extern thread_local MCObjectHandle MCerrorptr;
 extern MCObjectHandle MCerrorlockptr;
 extern MCGroupHandle MCdefaultmenubar;
 extern MCGroupHandle MCmenubar;
@@ -269,7 +263,7 @@ extern uint2 MCwmwidth;
 extern uint2 MCwmheight;
 extern uint2 MCcharset;
 extern uint2 MCet;
-extern Boolean MCabortscript;
+extern thread_local Boolean MCabortscript;
 extern Boolean MCalarm;
 extern Boolean MCallowinterrupts;
 extern Boolean MCinterrupt;
@@ -302,13 +296,13 @@ extern MCError *MCperror;
 extern MCError *MCeerror;
 extern MCVariable *MCmb;
 extern MCVariable *MCeach;
-extern MCVariable *MCresult;
-extern MCExecResultMode MCresultmode;
+extern thread_local MCVariable *MCresult;
+extern thread_local MCExecResultMode MCresultmode;
 extern MCVariable *MCurlresult;
 extern MCVariable *MCglobals;
 extern MCVariable *MCdialogdata;
 extern MCStringRef MChcstat;
-extern Boolean MCexitall;
+extern thread_local Boolean MCexitall;
 extern int4 MCretcode;
 extern Boolean MCrecording;
 
@@ -340,7 +334,7 @@ extern uint2 MClockscreen;
 extern Boolean MClockcolormap;
 extern Boolean MClockerrors;
 extern Boolean MClockmenus;
-extern Boolean MClockmessages;
+extern thread_local Boolean MClockmessages;
 extern Boolean MClockrecent;
 extern Boolean MCtwelvetime;
 extern Boolean MCuseprivatecmap;
@@ -543,7 +537,7 @@ enum
     kMCActionsDrainDeletedObjects = 1 << 2,
 };
 
-extern uint32_t MCactionsrequired;
+extern thread_local uint32_t MCactionsrequired;
 extern void MCActionsDoRunSome(uint32_t mask);
 
 inline void MCActionsSchedule(uint32_t mask)

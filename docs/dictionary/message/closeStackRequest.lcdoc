@@ -9,11 +9,11 @@ Sent to the <current card> when the user tries to close a <stack>.
 
 Associations: card
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on closeStackRequest 
@@ -32,7 +32,7 @@ to close.
 
 The <closeStackRequest> message is only sent if the request to close a
 stack is initiated by the user (eg by clicking file -&gt; close in the
-OpenXTalk menu). If the request is initiated from a script (eg
+HyperXTalk menu). If the request is initiated from a script (eg
 "close this stack" ) then the <closeStackRequest> message is not sent.
 
 References: close (command), pass (control structure), object (glossary),

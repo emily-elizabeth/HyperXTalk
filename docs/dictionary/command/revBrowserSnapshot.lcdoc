@@ -7,7 +7,7 @@ Syntax: revBrowserSnapshot <instanceId>, <variableName>
 Summary:
 Takes a snapshot of the current browser page.
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 

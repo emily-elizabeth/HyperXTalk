@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -389,6 +373,7 @@ static const PropList fieldprops[] =
         {"shadowOffset", P_SHADOW_OFFSET},
         {"shadowPattern", P_SHADOW_PATTERN},
         {"sharedText", P_SHARED_TEXT},
+        {"spellCheck", P_SPELL_CHECK},
         {"showBorder", P_SHOW_BORDER},
         {"showFocusBorder", P_SHOW_FOCUS_BORDER},
         {"showLines", P_SHOW_LINES},
@@ -1577,6 +1562,13 @@ void MCObject::GetScript(MCExecContext& ctxt, MCStringRef& r_script)
 		return;
 	}
 
+	// HXT: Compiled libraries are immutable — return empty script.
+	if (getstack() -> iscompiledlib())
+	{
+		r_script = MCValueRetain(kMCEmptyString);
+		return;
+	}
+
 	if (!getstack() -> iskeyed())
 	{
 		ctxt . LegacyThrow(EE_STACK_NOKEY);
@@ -1595,6 +1587,11 @@ void MCObject::SetScript(MCExecContext& ctxt, MCStringRef new_script)
 		ctxt . LegacyThrow(EE_OBJECT_NOHOME);
 		return;
 	}
+
+	// HXT: Compiled libraries are immutable — silently ignore set the script.
+	if (getstack()->iscompiledlib())
+		return;
+
 	if (!getstack()->iskeyed())
 	{
 		ctxt . LegacyThrow(EE_STACK_NOKEY);

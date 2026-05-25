@@ -8,11 +8,11 @@ Summary:
 A special <local variable> that is used with commands such as <get>,
 <read from file>, <convert>, <ask>, and <answer>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 get the date

@@ -5,10 +5,10 @@ Type: property
 Syntax: set the privateColors to true
 
 Summary:
-Specifies whether OpenXTalk uses its own <color table> or the system
+Specifies whether HyperXTalk uses its own <color table> or the system
 <color table> on <Unix|Unix systems>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 
@@ -31,7 +31,7 @@ colors that aren't in the <default> <color table>. This has the
 advantage of letting the <stack> display more colors than normally
 possible on an 8- <bit> display. The disadvantage is that if the
 <privateColors> is true, the colors of other applications' windows may
-be distorted while OpenXTalk is the foreground application.
+be distorted while HyperXTalk is the foreground application.
 
 When the <privateColors> is set to false, the <engine> uses the system
 <color table>. When it is set to true, the <engine> uses its own custom

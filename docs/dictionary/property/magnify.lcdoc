@@ -9,7 +9,7 @@ Shows or hides a window showing a magnified view of an <image>.
 
 Associations: image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

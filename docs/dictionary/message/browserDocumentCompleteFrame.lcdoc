@@ -11,7 +11,7 @@ Syntax: XBrowser_DocumentCompleteFrame <pUrl>, <pInstanceId>
 Summary:
 Sent when a browser object finishes loading a url in a frame
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 

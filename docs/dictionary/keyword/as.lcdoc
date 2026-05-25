@@ -10,11 +10,11 @@ the <export> <command> to specify the file <format> to <export> to; used
 with the <go> <command> to specify the mode of a <stack>; used with the
 <save> <command> to specify the <file> <file path|name and location>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux, html5
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 do field 1 as "Javascript"

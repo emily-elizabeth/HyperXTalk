@@ -7,7 +7,7 @@ Syntax: set the traceStack to <stackName>
 Summary:
 Reports the name of the <stack> currently being <debug|debugged>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

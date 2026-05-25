@@ -11,7 +11,7 @@ frame.
 
 Associations: animation library
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 
@@ -34,7 +34,7 @@ The number of any frame.
 
 Description:
 The revGoToFramePaused command operates on animations created with the
-Animation Builder, which was included in versions of OpenXTalk older than
+Animation Builder, which was included in versions of HyperXTalk older than
 2.5. It is no longer supported.
 
 Use the <revGoToFramePaused> <command> to move an animation to its
@@ -60,7 +60,7 @@ revGoToFramePause <command> repeatedly for each frame, using the <send>
 >*Important:*  The <revGoToFramePaused> <command> is part of the
 > <Animation library>. To ensure that the <command> works in a
 > <standalone application>, you must include this
-> <OpenXTalk custom library|custom library> when you create your
+> <HyperXTalk custom library|custom library> when you create your
 > <standalone application|standalone>. In the Inclusions pane of the
 > <Standalone Application Settings> window, make sure the "Animation"
 > library checkbox is checked.
@@ -70,7 +70,7 @@ send (command), current card (glossary), main stack (glossary),
 handler (glossary), frame (glossary), message (glossary),
 Standalone Application Settings (glossary),
 standalone application (glossary), command (glossary),
-application (glossary), OpenXTalk custom library (glossary),
+application (glossary), HyperXTalk custom library (glossary),
 Animation library (library), library (library), startup (message),
 openBackground (message), preOpenStack (message), openStack (message),
 preOpenCard (message), defaultStack (property)

@@ -10,11 +10,11 @@ Designates a return-<delimit|delimited> <string> as part of a
 line shapes and specifies, through the <style> <property>, that a 
 <graphic> is a line.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 get line 3 of the stacks
@@ -46,7 +46,7 @@ unlike painted lines, can be changed and reshaped: use the <points>
 
 >*Note:* To avoid script errors, enclose the word "line" in 
 > <double quote|double quotes> when you use it to indicate a
-> <graphic(object)|graphic's> <style>. This prevents <OpenXTalk> from
+> <graphic(object)|graphic's> <style>. This prevents <HyperXTalk> from
 > getting confused about whether you mean the line style, or the
 > contents of a line in a <container>.
 
@@ -59,7 +59,7 @@ A line is a string of characters delimited by a single return character
 can contain multiple <characters>, multiple <words>, and multiple
 <items>. 
 
->*Note:* In OpenXTalk, if the last character of a string is return, this
+>*Note:* In HyperXTalk, if the last character of a string is return, this
 > is ignored by the <line> keyword. For example the last line of the
 > following string is "Line 3" :
 
@@ -78,7 +78,7 @@ chunk (glossary), chunk expression (glossary), container (glossary),
 delimit (glossary), double quote (glossary), graphic (keyword), 
 graphic (object), items (keyword), keyword (glossary), line (keyword), 
 lineDelimiter (property), lineOffset (function), lines (keyword), 
-OpenXTalk (glossary), paint tool (glossary), paragraph (keyword), 
+HyperXTalk (glossary), paint tool (glossary), paragraph (keyword), 
 penColor (property), points (property), property (glossary), 
 string (keyword), style (property), trueWord (keyword), word (keyword), 
 words (keyword), Unicode (glossary)

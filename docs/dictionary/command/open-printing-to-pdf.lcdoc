@@ -8,11 +8,11 @@ Summary:
 Starts a print loop that outputs directly to pdf rather that the
 currently configured printer.
 
-Introduced: 4.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 open printing to pdf "mypdf.pdf"

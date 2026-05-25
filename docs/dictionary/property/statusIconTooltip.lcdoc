@@ -1,0 +1,59 @@
+Name: statusIconTooltip
+
+Type: property
+
+Syntax: set the statusIconTooltip to <tooltipText>
+
+Summary:
+Sets the tooltip shown when the user hovers over the system tray icon.
+
+Introduced: 1.0.0
+
+OS: windows
+
+Platforms: desktop
+
+Example:
+-- Plain tooltip
+set the statusIconTooltip to "My App"
+
+Example:
+-- Dynamic tooltip showing application state
+set the statusIconTooltip to "My App — " & tUnreadCount & " unread messages"
+set the statusIcon to the ID of image "TrayIcon" of stack "Main"
+
+Example:
+-- Clear the tooltip
+set the statusIconTooltip to empty
+
+Parameters:
+tooltipText:
+The text to display in the tooltip. Pass empty to show no tooltip.
+Maximum 127 characters; longer strings are silently truncated.
+
+Value:
+The <statusIconTooltip> returns the string most recently set.
+The default value is empty.
+
+Description:
+Use the <statusIconTooltip> property to set the text shown in the small
+tooltip that appears when the user hovers their mouse over the application's
+system tray icon.
+
+The tooltip is limited to 127 characters by the Windows NOTIFYICONDATA
+structure. Any text beyond that limit is silently discarded.
+
+Setting <statusIconTooltip> takes effect immediately if a tray icon is
+already showing. If <statusIcon> has not been set yet, the tooltip value
+is stored and applied when <statusIcon> is next set.
+
+>*Note:* The <statusIconTooltip> property is not persistent — it is not
+> saved into the stack file.
+
+>*Note:* The <statusIconTooltip> property only has a visual effect on
+> Windows. On macOS and Linux the property is accepted without error but
+> has no effect.
+
+References: statusIcon (property), statusIconMenu (property)
+
+Tags: windowing

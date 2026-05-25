@@ -1,0 +1,64 @@
+Name: powerSource
+
+Type: function
+
+Syntax: powerSource()
+
+Summary:
+<return|Returns> the current power source as a string.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+if powerSource() = "battery" then
+   -- reduce background work to save power
+end if
+
+Example:
+put powerSource() into tSource
+switch tSource
+   case "battery"
+      put "Running on battery" into field "powerStatus"
+      break
+   case "ac"
+      put "Plugged in" into field "powerStatus"
+      break
+   default
+      put "Power source unknown" into field "powerStatus"
+end switch
+
+Returns:
+One of the following strings:
+
+- `"battery"` — the device is running on battery power.
+- `"ac"` — the device is connected to external (mains) power.
+- `"unknown"` — the power source could not be determined.
+
+Description:
+Use the <powerSource> <function> to find out whether the device is running
+on battery or plugged into mains power. Desktop computers that have no
+battery will always return `"ac"`.
+
+On macOS, the value is obtained from `IOPSGetProvidingPowerSourceType` in
+the IOKit Power Sources API. No entitlement or user permission is required.
+
+On Windows, the value comes from the `ACLineStatus` field of
+`GetSystemPowerStatus`. A status of 0 maps to `"battery"`, 1 maps to
+`"ac"`, and any other value maps to `"unknown"`.
+
+On Linux, the result is derived from the kernel's power supply sysfs
+interface. If any AC adapter node under `/sys/class/power_supply/` reports
+`online = 1`, the source is `"ac"`. If a battery node is present but no AC
+adapter is online, the source is `"battery"`. On machines with no battery
+node at all (desktops, most VMs), `"ac"` is returned.
+
+To check the remaining charge when running on battery, use <batteryLevel>.
+
+References: batteryLevel (function), function (control structure),
+return (glossary)
+
+Tags: battery, power

@@ -11,7 +11,7 @@ Syntax: XBrowser_Navigate <url> [, <instanceId>]
 Summary:
 Navigates a browser to a given url.
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
 OS: mac, windows
 
@@ -28,8 +28,8 @@ The instanceId  is an integer that identifies a browser control opened
 by the revBrowserOpen function.
 
 url:
-Any url that the browser supports. Eg "http://www.OpenXTalk.org",
-"https://OpenXTalk.org". 
+Any url that the browser supports. Eg "http://www.HyperXTalk.com",
+"https://HyperXTalk.com". 
 
 The result:
 The <revBrowserNavigate> command places empty into the result.

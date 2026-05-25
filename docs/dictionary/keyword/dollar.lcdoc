@@ -9,11 +9,11 @@ The character <$> (dollar sign) is used to indicate an
 <environment variable> on <Unix|Unix systems> and a command-line
 parameter on <Unix> or <Windows|Windows systems>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put $LOGNAME into field "Login Name"

@@ -9,7 +9,7 @@ Syntax: screenType()
 Summary:
 <return|Returns> the color capability of the screen.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -39,7 +39,7 @@ grayscale values the current screen can use.
 
 If the <screenType> is "StaticGray" or "StaticColor", the available
 colors are predefined in a <color table>. Any colors displayed by
-OpenXTalk are changed to the closest available color.
+HyperXTalk are changed to the closest available color.
 
 If the <screenType> is "GrayScale", "PseudoColor", or "TrueColor", a
 predefined number of color slots is available, and the <engine> can

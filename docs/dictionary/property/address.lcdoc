@@ -7,11 +7,11 @@ Syntax: get the address
 Summary:
 Reports the name of the system the <application> is running on.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the address into myAddress
@@ -28,9 +28,9 @@ Description:
 Use the <address> <property> to find out the path to the <application>,
 or the name of the system.
 
-For example, if OpenXTalk is running on a Mac OS system named "Heliand",
-and the OpenXTalk folder is located on a volume called "Fnord", its
-<address> <property> is Heliand:/Fnord/OpenXTalk/OpenXTalk.
+For example, if HyperXTalk is running on a Mac OS system named "Heliand",
+and the HyperXTalk folder is located on a volume called "Fnord", its
+<address> <property> is Heliand:/Fnord/HyperXTalk/HyperXTalk.
 
 On Unix systems, the computer's name is its <domain name>. On <Mac
 OS|Mac OS systems>, the name is the one set in the File Sharing control

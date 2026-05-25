@@ -7,7 +7,7 @@ Syntax: browserDocumentFailed <pInstanceId>, <pUrl>, <pErrorMessage>
 Summary:
 Sent when a browser object has encountered an error when loading a url
 
-Introduced: 6.7.3
+Introduced: 1.0.0
 
 OS: mac, windows
 

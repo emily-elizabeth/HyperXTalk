@@ -9,7 +9,7 @@ Prints formatted or unformatted text.
 
 Associations: printing library
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -120,7 +120,7 @@ To show the standard print dialog box, use the revShowPrintDialog
 >*Important:*  The <revPrintText> <command> is part of the 
 > <Printing library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Printing" 
 > library checkbox is checked.
@@ -130,7 +130,7 @@ The fieldTemplate parameter was added in version 2.0.
 
 References: revPrintReport (command), answer printer (command),
 revPrintField (command), platform (function), 
-OpenXTalk custom library (glossary), application (glossary), 
+HyperXTalk custom library (glossary), application (glossary), 
 standalone application (glossary), evaluate (glossary), 
 property (glossary), text (glossary), execute (glossary), HTML (glossary), 
 command (glossary), object reference (glossary), expression (glossary), 

@@ -7,11 +7,11 @@ Syntax: print anchor <anchorName> at <anchorPoint>
 Summary:
 Defines a target for an internal hyperlink within a PDF document.
 
-Introduced: 4.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 print anchor "section 1.1" at 50,50

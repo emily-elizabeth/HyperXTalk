@@ -9,7 +9,7 @@ Displays a dialog box for configuring <VFW|Video for Windows> <video capture>.
 
 Associations: video library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 Deprecated: 9.0
 
@@ -54,7 +54,7 @@ want to show.
 >*Important:*  The <revVideoGrabDialog> <command> is part of the 
 > <Video library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the
 > "Video Grabber" 
@@ -67,7 +67,7 @@ systems apart from pre OS X 10.8. The Windows build no
 longer supports any <QuickTime> features and setting the <dontUseQT> and
 <dontUseQTEffects> will have no effect.
 
-Support for the "Video Grabber" library on Mac OS X ended in OpenXTalk
+Support for the "Video Grabber" library on Mac OS X ended in HyperXTalk
 9.0.
 
 References: revVideoGrabSettings (command), command (glossary),
@@ -75,7 +75,7 @@ video capture (glossary), VFW (glossary),
 Standalone Application Settings (glossary), QuickTime (glossary),
 statement (glossary), standalone application (glossary),
 parameter (glossary), video grabber (glossary), dialog box (glossary),
-OpenXTalk custom library (glossary), Video library (library),
+HyperXTalk custom library (glossary), Video library (library),
 dontUseQT (property), dontUseQTEffects (property)
 
 Tags: multimedia

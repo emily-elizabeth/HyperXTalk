@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <foundation.h>
 #include <foundation-auto.h>
 
@@ -1730,30 +1714,30 @@ void MCScriptEmitBytecodeInModuleA(MCScriptModuleBuilderRef self, uindex_t p_opc
 {
     if (self == nil || !self -> valid)
         return;
-	
-	const MCScriptBytecodeOpInfo *t_info;
-	if (!MCScriptDescribeBytecodeOp(p_opcode, t_info) ||
-		!MCScriptCheckBytecodeParameterCount(p_opcode, p_argument_count))
-	{
-		self -> valid = false;
-		return;
-	}
-    
+
+    const MCScriptBytecodeOpInfo *t_info;
+    if (!MCScriptDescribeBytecodeOp(p_opcode, t_info) ||
+        !MCScriptCheckBytecodeParameterCount(p_opcode, p_argument_count))
+    {
+        self -> valid = false;
+        return;
+    }
+
     for(uindex_t i = 0; i < p_argument_count; i++)
     {
         MCScriptBytecodeParameterType t_param_type;
         t_param_type = MCScriptDescribeBytecodeParameter(p_opcode,
-                                                         i);
+                                                            i);
         switch(t_param_type)
         {
-			case kMCScriptBytecodeParameterTypeUnknown:
+            case kMCScriptBytecodeParameterTypeUnknown:
                 self -> valid = false;
                 return;
                 
             case kMCScriptBytecodeParameterTypeLabel:
                 if (p_arguments[i] == 0 ||
                     p_arguments[i] > self -> label_count)
-				{
+                {
                     self -> valid = false;
                     return;
                 }
@@ -1765,7 +1749,7 @@ void MCScriptEmitBytecodeInModuleA(MCScriptModuleBuilderRef self, uindex_t p_opc
                 
             case kMCScriptBytecodeParameterTypeConstant:
                 if (p_arguments[i] >= self -> module . value_count)
-				{
+                {
                     self -> valid = false;
                     return;
                 }
@@ -1773,7 +1757,7 @@ void MCScriptEmitBytecodeInModuleA(MCScriptModuleBuilderRef self, uindex_t p_opc
                 
             case kMCScriptBytecodeParameterTypeDefinition:
                 if (!__is_valid_definition(self, p_arguments[i]))
-				{
+                {
                     self -> valid = false;
                     return;
                 }
@@ -1781,7 +1765,7 @@ void MCScriptEmitBytecodeInModuleA(MCScriptModuleBuilderRef self, uindex_t p_opc
                 
             case kMCScriptBytecodeParameterTypeVariable:
                 if (!__is_valid_variable_definition(self, p_arguments[i]))
-				{
+                {
                     self -> valid = false;
                     return;
                 }
@@ -1789,19 +1773,19 @@ void MCScriptEmitBytecodeInModuleA(MCScriptModuleBuilderRef self, uindex_t p_opc
                 
             case kMCScriptBytecodeParameterTypeHandler:
                 if (!__is_valid_handler_definition(self, p_arguments[i]))
-				{
+                {
                     self -> valid = false;
                     return;
                 }
                 break;
         }
     }
-    
+
     __begin_instruction(self,
                         t_info->code);
     for(uindex_t i = 0; i < p_argument_count; i++)
         __continue_instruction(self,
-                               p_arguments[i]);
+                                p_arguments[i]);
     __end_instruction(self);
 }
 

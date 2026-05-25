@@ -10,11 +10,11 @@ Specifies a list of <stacks> and their file names, to be used when a
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the stackFiles of this stack to "My Dialog,Custom Dialogs.oxtstack"
@@ -84,7 +84,7 @@ References: call (glossary), command (glossary),
 defaultFolder (property), file path (glossary),
 filename of stack (property), folder (glossary), handler (glossary),
 insert script (command), library (library), line (keyword),
-OpenXTalk (glossary), load (glossary), loaded into memory (glossary),
+HyperXTalk (glossary), load (glossary), loaded into memory (glossary),
 long (keyword), main stack (glossary), mainStack (property),
 mainStacks (function), name (property), object (glossary),
 properties (property), property (glossary),

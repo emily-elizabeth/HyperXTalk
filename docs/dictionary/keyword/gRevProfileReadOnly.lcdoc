@@ -11,11 +11,11 @@ changes to the current <property profile|profile> when you switch
 
 Associations: profile library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 global gRevProfileReadOnly
@@ -41,7 +41,7 @@ another profile.
 The <gRevProfileReadOnly> <global|global variable> can also be changed
 in the Preferences dialog box:
 
-1. Choose OpenXTalk → Preferences from the menubar.
+1. Choose HyperXTalk → Preferences from the menubar.
 2. Choose "Property Profiles" from the menu at the top.
 3. Click "Don't save settings when switching profiles".
 

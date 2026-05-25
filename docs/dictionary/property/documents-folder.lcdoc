@@ -7,11 +7,11 @@ Syntax: the documents folder
 Summary:
 Returns the path to the current user's documents folder.
 
-Introduced: 5.0.2
+Introduced: 1.0.0
 
-OS: mac, windows, ios, android
+OS: mac, windows
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 get the documents folder

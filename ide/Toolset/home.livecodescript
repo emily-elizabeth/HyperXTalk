@@ -252,10 +252,7 @@ on revInternal__openStack
    
    revInternal__Log "Leave", "revInternal__openStack"
    revInternal__Log "End"
- 
-  -- Add "usr/local" and new HomeBrew path (shell install path on AppleSilicon) - Paul McClernan
-  put $PATH &":/usr/local/bin:/opt/homebrew" into $PATH
-
+   
    -- Now the home stack has loaded, we can allow interrupts..
    set the allowInterrupts to true
 end revInternal__openStack
@@ -1215,16 +1212,17 @@ command revInternal__InitialiseLibraries
    put return & "revProfilesLibrary" after tLoadList 
    put return & "revTableLibrary" after tLoadList 
    // HXT put return & "revhtml5urllibrary" after tLoadList
-
-
+   
+   
    if revEnvironmentEditionProperty("autocomplete_pro") then
       put cr & "autocomplete-pro" after tLoadList
    end if
    
+   put return & "ideAutoCompleteLibrary" after tLoadList
    if revEnvironmentEditionProperty("autocomplete") then
       put cr & "autocomplete" after tLoadList
    end if
-
+   
    
    local tBackList
    put "revidedeveloperextensionlibrary" into tBackList
@@ -1244,9 +1242,9 @@ command revInternal__InitialiseLibraries
    repeat for each line tLib in tLoadList	 
       revInternal__Log "Message", "Loading library" && tLib	
       revInternal__LoadLibrary tLib
-	  if the result is not empty then
-	     revInternal__Log "Error", the result 
-	  end if
+      if the result is not empty then
+         revInternal__Log "Error", the result 
+      end if
    end repeat
    
    try	

@@ -26,7 +26,7 @@
 						{
 							'include_dirs':
 							[
-								'unpacked/openssl/<(uniform_arch)-win32-$(PlatformToolset)_static_$(ConfigurationName)/include',
+								'unpacked/openssl3/<(uniform_arch)-win32-$(PlatformToolset)_static_$(ConfigurationName)/include',
 							],
 						},
 					],
@@ -62,7 +62,10 @@
 						{
 							'include_dirs':
 							[
-								'../prebuilt/include/openssl',
+								# Must be 'prebuilt/include', not 'prebuilt/include/openssl':
+								# consumers use #include "openssl/evp.h" so the dir must be
+								# the parent of the 'openssl' subdirectory.
+								'../prebuilt/include',
 							],
 						},
 					],
@@ -151,13 +154,13 @@
 						{
 							'library_dirs':
 							[
-								'unpacked/openssl/<(uniform_arch)-win32-$(PlatformToolset)_static_$(ConfigurationName)/lib',
+								'unpacked/openssl3/<(uniform_arch)-win32-$(PlatformToolset)_static_$(ConfigurationName)/lib',
 							],
 
 							'libraries':
 							[
-								'-llibeay32',
-								'-lssleay32',
+								'-llibcrypto',
+								'-llibssl',
 							],
 						},
 					],

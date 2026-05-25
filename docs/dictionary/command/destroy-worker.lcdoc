@@ -1,0 +1,50 @@
+Name: destroy worker
+
+Synonyms: delete worker
+
+Type: command
+
+Syntax: destroy worker <workerName>
+Syntax: delete worker <workerName>
+
+Summary:
+Removes a named worker and releases its backing script stack.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+destroy worker "mathWorker"
+
+Example:
+delete worker "mathWorker"
+
+Example:
+on mouseUp
+  dispatch "computeSquares" to worker "mathWorker" with 8
+  destroy worker "mathWorker"
+end mouseUp
+
+Parameters:
+workerName:
+The name of the worker to destroy. If no worker with this name exists,
+an execution error is thrown.
+
+Description:
+Use <destroy worker> to remove a worker that was previously created with
+<create worker>. The worker's backing stack is removed from the engine
+and all references to it are released.
+
+Both <destroy worker> and <delete worker> are equivalent — use
+whichever reads more naturally in your code.
+
+>*Important:* Do not destroy a worker from within one of its own
+> handlers. Destroy workers only from the calling context.
+
+References: create worker (command), dispatch to worker (command),
+worker (keyword)
+
+Tags: workers

@@ -12,11 +12,11 @@ Used with the <sort> <command>, <number> <function>, and <is among> and
 separate portion of a <string>. Also used with the <find> <command> to
 search for a string of characters.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 get the number of chars of field "Entry"

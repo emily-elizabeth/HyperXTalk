@@ -5,15 +5,15 @@ Type: property
 Syntax: set the resizeQuality of <image> to <qualityValue>
 
 Summary:
-Specifies which method OpenXTalk should use to scale an image.
+Specifies which method HyperXTalk should use to scale an image.
 
 Associations: image
 
-Introduced: 2.5.1
+Introduced: 1.0.0
 
-OS: mac, windows, ios, android
+OS: mac, windows
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 get the resizeQuality of image "myImage"

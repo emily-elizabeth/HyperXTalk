@@ -1,0 +1,41 @@
+Name: caller
+
+Type: keyword
+
+Syntax: caller
+
+Summary:
+Used with <dispatch> inside a worker handler to target the stack that
+dispatched into the current worker.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+dispatch "onComputeSquaresResult" to caller with tResults
+
+Example:
+# Worker script:
+on processData pInput
+  local tOutput
+  -- do work ...
+  dispatch "onProcessDataComplete" to caller with tOutput
+end processData
+
+Description:
+The <caller> keyword is used as the target of a <dispatch> command from
+within a worker handler. It resolves to the stack that invoked the
+worker via <dispatch to worker>, allowing the worker to send messages
+or return data back to the originating context.
+
+<caller> may only be used as a dispatch target inside a handler that was
+itself invoked by <dispatch to worker>. Using <dispatch to caller> outside
+of a worker context produces an execution error.
+
+References: dispatch to caller (command), dispatch to worker (command),
+create worker (command), worker (keyword)
+
+Tags: workers

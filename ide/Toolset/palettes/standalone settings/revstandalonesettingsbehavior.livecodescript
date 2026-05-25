@@ -51,7 +51,7 @@ private command updateTabButtons pSettings
    repeat for each item tItem in "MacOSX,MacOSX PowerPC-32,MacOSX x86-32,MacOSX x86-64,MacOSX arm64"
       put tEnableMacTick or pSettings[tItem] into tEnableMacTick
    end repeat
-   set the visible of button "OSXchecked" of group "checks" of me to tEnableMacTick
+   set the visible of button "OSXchecked" of group "checks" of me to (tEnableMacTick and the platform is "MacOS")
    
    set the visible of button "Windowschecked" of group "checks" of me to pSettings["Windows"] = true or \
          pSettings["Windows x86-64"] = true
@@ -93,7 +93,7 @@ private command updateTabButtons pSettings
    end repeat
    
    set the wholeMatches to true
-   set the enabled of button "OS X" of group "cards" of me to TRUE  // HXT ("Mac OS X" is among the items of line 5 of the revLicenseInfo)
+   set the enabled of button "OS X" of group "cards" of me to (the platform is "MacOS")
    set the enabled of button "Windows" of group "cards" of me to TRUE  // HXT ("Windows" is among the items of line 5 of the revLicenseInfo)
    set the enabled of button "Unix" of group "cards" of me to TRUE  // HXT ("Linux" is among the items of line 5 of the revLicenseInfo)
 end updateTabButtons

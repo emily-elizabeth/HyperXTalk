@@ -10,11 +10,11 @@ Sent when the <mouse pointer> moves into an <object(glossary)>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on mouseEnter -- show a Help field for the control the mouse is over
@@ -42,7 +42,7 @@ while the pointer is still in the <control>.
 
 If a <control> is shown (by changing its visible <property> to true or
 using the <show> <command>), and the <mouse pointer> is over the
-<control> when it is shown, OpenXTalk sends a <mouseEnter> <message> to
+<control> when it is shown, HyperXTalk sends a <mouseEnter> <message> to
 the <control>.
 
 >*Note:* Take care when using both <mouseEnter> and <mouseLeave> in the

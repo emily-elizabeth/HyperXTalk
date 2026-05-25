@@ -9,11 +9,11 @@ Specifies which <main stack> a <substack> belongs to.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the mainStack of this stack to "Central"
@@ -32,7 +32,7 @@ a <stack>. By default, the <mainStack> <property> of newly created
 Description:
 Use the <mainStack> <property> to organize <stacks> in <files>.
 
-Each OpenXTalk file contains either a single main stack, or a main stack
+Each HyperXTalk file contains either a single main stack, or a main stack
 and one or more substacks. You can use this capability to bundle several
 related stacks into a single file for easy distribution, or to organize
 the stacks into categories, or to allow several stacks to inherit
@@ -53,7 +53,7 @@ specified <mainStack>.
 Changing a substack's <mainStack> <property> to itself makes the
 <substack> into an independent <main stack> (and removes it from the
 original <main stack|main stack's> <substacks> property). The next time
-you save the <stack>, OpenXTalk will <prompt> you for a file name and
+you save the <stack>, HyperXTalk will <prompt> you for a file name and
 location for the <stack>.
 
 You can set the <mainStack> property of a <stack> to the name of any

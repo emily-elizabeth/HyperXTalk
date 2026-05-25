@@ -10,11 +10,11 @@ Specifies an <image> to be displayed in place of the specified
 
 Associations: field
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the imageSource of char 1 of line 2 of field "This" to 2533

@@ -7,11 +7,11 @@ Syntax: (<expression>)
 Summary:
 <group|Groups> <operand|operands> together.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local quantity, priceEach, shippingCost
@@ -25,14 +25,14 @@ Example:
 
 Parameters:
 expression:
-Any OpenXTalk expression.
+Any HyperXTalk expression.
 
 Description:
 Use parentheses ( ) to group <operand|operands> together in order to
 control the order <operation|operations> are performed in, or to make
 the <control structure|structure> of a complex <expression> clearer.
 
-When OpenXTalk evaluates an expression, operations enclosed within
+When HyperXTalk evaluates an expression, operations enclosed within
 parentheses are performed first. If parentheses are nested, the
 <expression> within the innermost set of parentheses is evaluated first.
 

@@ -8,7 +8,7 @@ Summary:
 Sets the <lockErrorDialogs> <property> to false, allowing the error
 window to be displayed when an <execution error> occurs.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -21,7 +21,7 @@ Example:
 if the platform is not "Win32" then unlock error dialogs
 
 Description:
-Use the <unlock error dialogs> <command> to allow OpenXTalk to display
+Use the <unlock error dialogs> <command> to allow HyperXTalk to display
 the standard error window when an <execution error> occurs.
 
 The <unlock error dialogs> command sets the <lockErrorDialogs>

@@ -9,11 +9,11 @@ Syntax: hostName()
 Summary:
 <return|Returns> the <domain name> of the local system.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if the hostName is "localhost.example.org" then return empty
@@ -24,7 +24,7 @@ computer.
 
 Description:
 Use the <hostName> <function> to find the <domain name> of the computer
-that OpenXTalk is running on.
+that HyperXTalk is running on.
 
 The <hostName> <function> does a reverse <DNS> lookup on the
 <hostAddress> in order to find the <domain name>. This means that the

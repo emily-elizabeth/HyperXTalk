@@ -8,11 +8,11 @@ Summary:
 Replaces text in a field container with other text with control over
 what happens to existing styling.
 
-Introduced: 8.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 replace "A" with "N" in field 1 preserving styles -- changes all As to Ns; the Ns will retain the styling of the As

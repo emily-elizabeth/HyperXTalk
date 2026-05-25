@@ -8,7 +8,7 @@ Summary:
 Specifies whether palettes have the same appearance when active and
 inactive. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -21,7 +21,7 @@ Example:
 if the activatePalettes then hideAllPalettes
 
 Description:
-By default, the activatePalettes is true if OpenXTalk is running on a Mac
+By default, the activatePalettes is true if HyperXTalk is running on a Mac
 OS system and false otherwise.
 
 If the <activatePalettes> is true, all palettes look the same. If it is

@@ -1,0 +1,5 @@
+# Un-ignore DLLs in this directory tree so the Windows Runtime files
+# (externals, support libs, database drivers) can be committed and used
+# when building Windows standalones on Mac.
+!*.dll
+!**/*.dll

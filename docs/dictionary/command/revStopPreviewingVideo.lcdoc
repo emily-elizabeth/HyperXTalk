@@ -10,7 +10,7 @@ grabber window>.
 
 Associations: video library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: windows
 
@@ -33,7 +33,7 @@ screen.
 >*Important:*  The <revStopPreviewingVideo> <command> is part of the 
 > <Video library>. To ensure that the <command> works in a 
 > <standalone application>, you must include this 
-> <OpenXTalk custom library|custom library> when you create your 
+> <HyperXTalk custom library|custom library> when you create your 
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the
 > "Video Grabber" 
@@ -43,11 +43,11 @@ References: revInitializeVideoGrabber (command),
 revPreviewVideo (command), revStopRecordingVideo (command),
 Standalone Application Settings (glossary),
 standalone application (glossary), video grabber (glossary),
-command (glossary), OpenXTalk custom library (glossary),
+command (glossary), HyperXTalk custom library (glossary),
 Video library (library)
 
 Changes:
-Support for the "Video Grabber" library on Mac OS X ended in OpenXTalk
+Support for the "Video Grabber" library on Mac OS X ended in HyperXTalk
 9.0.
 
 Tags: multimedia

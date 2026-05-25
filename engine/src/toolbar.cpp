@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -434,8 +418,15 @@ MCToolbarItem *MCToolbar::FindItem(MCNameRef p_name)
 
 void MCToolbar::itemClicked(MCNameRef p_item_name)
 {
-    message_with_valueref_args(MCM_toolbar_item_clicked,
-                               MCNameGetString(p_item_name));
+    // The toolbar is parented to the stack, not a card, so a bare
+    // message_with_valueref_args would dispatch toolbar → stack, skipping the
+    // current card entirely.  Send through the current card instead so the
+    // message follows the normal card → stack path that scripts expect.
+    MCStack *t_stack = getstack();
+    MCCard  *t_card  = t_stack != nil ? t_stack->getcurcard() : nil;
+    MCObject *t_target = t_card != nil ? (MCObject *)t_card : (MCObject *)this;
+    t_target->message_with_valueref_args(MCM_toolbar_item_clicked,
+                                         MCNameGetString(p_item_name));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
