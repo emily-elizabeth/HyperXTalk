@@ -153,6 +153,7 @@
 						'sources!':
 						[
 							'src/signal_restore_posix.cpp',
+							'src/libbrowser_cef_lnx.cpp',
 						],
 					},
 				],
