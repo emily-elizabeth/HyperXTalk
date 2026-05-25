@@ -101,6 +101,12 @@ public:
 
         _applyDisplayMode();
 
+        // Watch for the toolbar being destroyed externally (e.g. when the
+        // parent GtkWindow is torn down before Destroy() is called). The
+        // callback nulls m_toolbar so Destroy() knows not to touch it.
+        g_signal_connect(m_toolbar, "destroy",
+                         G_CALLBACK(_onToolbarWidgetDestroyed), this);
+
         // Pack the toolbar at the top of the parent window's vbox.
         // The engine's Linux window is a GtkWindow with a GtkVBox as the
         // top-level container.
@@ -129,6 +135,10 @@ public:
 #if GTK_MAJOR_VERSION < 4
         if (m_toolbar)
         {
+            // Disconnect our destroy-watcher before explicitly destroying so
+            // the callback doesn't fire redundantly during gtk_widget_destroy.
+            g_signal_handlers_disconnect_by_func(
+                m_toolbar, (gpointer)_onToolbarWidgetDestroyed, this);
             gtk_widget_destroy(m_toolbar);
             m_toolbar = NULL;
         }
@@ -416,6 +426,14 @@ private:
         }
         gtk_toolbar_set_style(GTK_TOOLBAR(m_toolbar), t_style);
 #endif
+    }
+
+    // Called when the GtkToolbar widget is destroyed by GTK (e.g. as a child
+    // of a closing GtkWindow) before Destroy() is called. Nulls m_toolbar so
+    // Destroy() doesn't call gtk_widget_destroy on an already-dead widget.
+    static void _onToolbarWidgetDestroyed(GtkWidget * /*widget*/, gpointer user_data)
+    {
+        static_cast<MCToolbarLinuxBackend *>(user_data)->m_toolbar = NULL;
     }
 
     // Click callback: reads the item name stored on the button widget so the
