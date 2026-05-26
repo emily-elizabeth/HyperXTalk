@@ -30,6 +30,7 @@ void gdk_x11_grab_server(void);
 
 #include <gtk/gtk.h>
 
+GdkDevice *get_pointer_device();
 
 class MCEventnode : public MCDLlist
 {

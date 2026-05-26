@@ -187,7 +187,7 @@ void MCScreenDC::platform_querymouse(int16_t &x, int16_t &y)
 	device_querymouse(x, y);
 }
 
-static GdkDevice *get_pointer_device()
+GdkDevice *get_pointer_device()
 {
 	GdkSeat *t_seat = gdk_display_get_default_seat(MCdpy);
 	if (t_seat != NULL)
@@ -215,7 +215,11 @@ uint2 MCScreenDC::querymods()
     GdkModifierType state = (GdkModifierType)0;
 	GdkDevice *t_device = get_pointer_device();
 	if (t_device != NULL)
-		gdk_device_get_state(t_device, NULL, NULL, &state);
+	{
+		GdkScreen *t_screen = gdk_display_get_default_screen(MCdpy);
+		GdkWindow *t_root = gdk_screen_get_root_window(t_screen);
+		gdk_device_get_state(t_device, t_root, NULL, &state);
+	}
 
 	// MW-2010-10-13: [[ Bug 9059 ]] Map the X masks to our masks correctly - previously
 	//   this ditched the capsLock mask.
@@ -266,7 +270,11 @@ Boolean MCScreenDC::getmouse(uint2 button, Boolean& r_abort)
     GdkModifierType state = (GdkModifierType)0;
 	GdkDevice *t_device = get_pointer_device();
 	if (t_device != NULL)
-		gdk_device_get_state(t_device, NULL, NULL, &state);
+	{
+		GdkScreen *t_screen = gdk_display_get_default_screen(MCdpy);
+		GdkWindow *t_root = gdk_screen_get_root_window(t_screen);
+		gdk_device_get_state(t_device, t_root, NULL, &state);
+	}
 
     switch (button)
     {

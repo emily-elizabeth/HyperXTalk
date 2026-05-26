@@ -583,14 +583,18 @@ uint2 MCScreenDC::getdepth(void)
 
 void MCScreenDC::grabpointer(Window w)
 {
-    gdk_pointer_grab(w, False,
-                     GdkEventMask(GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK),
-                     NULL, NULL, MCeventtime);
+	GdkDevice *t_device = get_pointer_device();
+	if (t_device != NULL)
+		gdk_device_grab(t_device, w, GDK_OWNERSHIP_NONE, FALSE,
+						GdkEventMask(GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK),
+						NULL, MCeventtime);
 }
 
 void MCScreenDC::ungrabpointer()
 {
-	gdk_display_pointer_ungrab(dpy, MCeventtime);
+	GdkDevice *t_device = get_pointer_device();
+	if (t_device != NULL)
+		gdk_device_ungrab(t_device, MCeventtime);
 }
 
 // IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
@@ -1008,9 +1012,11 @@ MCImageBitmap *MCScreenDC::snapshot(MCRectangle &r, uint4 window, MCStringRef di
 		// MDW bugfix_17257
         // GdkCursor *t_cursor = gdk_cursor_new(GDK_PLUS);
         GdkCursor *t_cursor = gdk_cursor_new_from_name(dpy, "crosshair");
-        if (gdk_pointer_grab(t_root, False,
-                             GdkEventMask(GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK),
-                             NULL, t_cursor, GDK_CURRENT_TIME) != GDK_GRAB_SUCCESS)
+        GdkDevice *t_device = get_pointer_device();
+        if (t_device == NULL ||
+            gdk_device_grab(t_device, t_root, GDK_OWNERSHIP_NONE, FALSE,
+                            GdkEventMask(GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK),
+                            t_cursor, GDK_CURRENT_TIME) != GDK_GRAB_SUCCESS)
         {
             // Could not grab the pointer
             return NULL;
@@ -1127,7 +1133,9 @@ MCImageBitmap *MCScreenDC::snapshot(MCRectangle &r, uint4 window, MCStringRef di
         }
         
         // Release the grabs and other resources that were acquired
-        gdk_display_pointer_ungrab(dpy, GDK_CURRENT_TIME);
+        t_device = get_pointer_device();
+        if (t_device != NULL)
+            gdk_device_ungrab(t_device, GDK_CURRENT_TIME);
         gdk_cursor_unref(t_cursor);
         cairo_destroy(t_gc);
         gdk_display_flush(t_display);
