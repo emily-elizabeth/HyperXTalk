@@ -23,7 +23,7 @@ src/hashedstrings.cpp: src/lextable.cpp ../util/perfect/perfect.linux-$(ARCH)
 
 encodederrors.cpp: src/executionerrors.h src/parseerrors.h
 #	../prebuilt/bin/Revolution.lnx "./encode_errors.rev"  "./src" "./src/encodederrors.cpp"
-	../util/encode_errors.pl ./src ./src/encodederrors.cpp
+	../util/encode_errors.py ./src ./src/encodederrors.cpp
 
 $(CACHE_DIR)/ide.o: src/hashedstrings.cpp
 

@@ -112,7 +112,7 @@ linuxstubs.cpp: src/linux.stubs ../util/weak_stub_maker.pl
 	../util/weak_stub_maker.pl <./src/linux.stubs >./src/linuxstubs.cpp
 
 encodederrors.cpp: src/executionerrors.h src/parseerrors.h
-	../util/encode_errors.pl ./src ./src/encodederrors.cpp
+	../util/encode_errors.py ./src ./src/encodederrors.cpp
 
 $(CACHE_DIR)/mcstring.o: include/revbuild.h
 

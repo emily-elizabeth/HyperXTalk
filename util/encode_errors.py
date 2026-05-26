@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Python replacement for encode_errors.pl - generates C string arrays from error enum headers"""
+"""Usage: python3 encode_errors.py infolder outfile"""
 
 import sys
 import os
@@ -9,13 +10,14 @@ def generate_errors_list(source_file, name):
     with open(source_file, 'r') as f:
         lines = f.readlines()
 
-    array = "const char * %s = \n" % name
+    errorStrings = 'const char * %s = \n\n\"' % name
 
     found = False
     for line in lines:
         # If the first word of the line is "enum" we have found the error list
-        if re.match(r'^\s*enum\s', line):
+        if re.match(r'^{', line):
             found = True
+            continue
 
         # Continue reading lines until we get to the enum
         if not found:
@@ -25,22 +27,16 @@ def generate_errors_list(source_file, name):
         if '};' in line:
             break
 
-        # The comment contains the error message for this error
-        if re.match(r'^\s*//\s*\{', line):
-            # Remove the newline character
-            line = line.rstrip('\n').rstrip('\r')
+        # only use lines with quoted strings
+        # extract the string, add it to the result
+        line_match = re.search('\".*\"', line)
+        if line_match:
+           noquotes = line_match.group().replace('"', '')
+           noslash = noquotes.replace('\\', '\\\\')
+           errorStrings += '%s\\n' % noslash
 
-            # Remove the prefix from the error message
-            line = re.sub(r'^\s*//\s*\{[^\}]*\}\s*', '', line)
-
-            # Protect any quotation marks
-            line = line.replace('"', '\\"')
-
-            # Output the message
-            array += '\t"%s\\n"\n' % line
-
-    array += ";\n"
-    return array
+    errorStrings += '\";\n'
+    return errorStrings
 
 # Need to generate the error lists for both the parse and execution errors
 path = sys.argv[1]
