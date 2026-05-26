@@ -168,7 +168,7 @@ void MCScreenDC::freecursor(MCCursorRef c)
 		return;
 
 	if (c -> handle != nil)
-		gdk_cursor_unref(c->handle);
+		g_object_unref(c->handle);
 
 	delete c;
 }

@@ -583,18 +583,17 @@ uint2 MCScreenDC::getdepth(void)
 
 void MCScreenDC::grabpointer(Window w)
 {
-	GdkDevice *t_device = get_pointer_device();
-	if (t_device != NULL)
-		gdk_device_grab(t_device, w, GDK_OWNERSHIP_NONE, FALSE,
-						GdkEventMask(GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK),
-						NULL, MCeventtime);
+	GdkSeat *t_seat = gdk_display_get_default_seat(MCdpy);
+	if (t_seat != NULL)
+		gdk_seat_grab(t_seat, w, GDK_SEAT_CAPABILITY_POINTER, FALSE,
+					  NULL, NULL, NULL, NULL);
 }
 
 void MCScreenDC::ungrabpointer()
 {
-	GdkDevice *t_device = get_pointer_device();
-	if (t_device != NULL)
-		gdk_device_ungrab(t_device, MCeventtime);
+	GdkSeat *t_seat = gdk_display_get_default_seat(MCdpy);
+	if (t_seat != NULL)
+		gdk_seat_ungrab(t_seat);
 }
 
 // IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
@@ -605,7 +604,20 @@ uint16_t MCScreenDC::platform_getwidth(void)
 
 uint16_t MCScreenDC::device_getwidth(void)
 {
-	return gdk_screen_get_width(getscreen());
+	GdkDisplay *t_display = gdk_display_get_default();
+	if (t_display != NULL)
+	{
+		GdkMonitor *t_monitor = gdk_display_get_primary_monitor(t_display);
+		if (t_monitor == NULL)
+			t_monitor = gdk_display_get_monitor(t_display, 0);
+		if (t_monitor != NULL)
+		{
+			GdkRectangle t_geom;
+			gdk_monitor_get_geometry(t_monitor, &t_geom);
+			return t_geom.width;
+		}
+	}
+	return 0;
 }
 
 // IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
@@ -616,17 +628,48 @@ uint16_t MCScreenDC::platform_getheight(void)
 
 uint16_t MCScreenDC::device_getheight(void)
 {
-	return gdk_screen_get_height(getscreen());
+	GdkDisplay *t_display = gdk_display_get_default();
+	if (t_display != NULL)
+	{
+		GdkMonitor *t_monitor = gdk_display_get_primary_monitor(t_display);
+		if (t_monitor == NULL)
+			t_monitor = gdk_display_get_monitor(t_display, 0);
+		if (t_monitor != NULL)
+		{
+			GdkRectangle t_geom;
+			gdk_monitor_get_geometry(t_monitor, &t_geom);
+			return t_geom.height;
+		}
+	}
+	return 0;
 }
 
 uint2 MCScreenDC::getwidthmm()
 {
-	return gdk_screen_get_width_mm(getscreen());
+	GdkDisplay *t_display = gdk_display_get_default();
+	if (t_display != NULL)
+	{
+		GdkMonitor *t_monitor = gdk_display_get_primary_monitor(t_display);
+		if (t_monitor == NULL)
+			t_monitor = gdk_display_get_monitor(t_display, 0);
+		if (t_monitor != NULL)
+			return gdk_monitor_get_width_mm(t_monitor);
+	}
+	return 0;
 }
 
 uint2 MCScreenDC::getheightmm()
 {
-	return gdk_screen_get_height_mm(getscreen());
+	GdkDisplay *t_display = gdk_display_get_default();
+	if (t_display != NULL)
+	{
+		GdkMonitor *t_monitor = gdk_display_get_primary_monitor(t_display);
+		if (t_monitor == NULL)
+			t_monitor = gdk_display_get_monitor(t_display, 0);
+		if (t_monitor != NULL)
+			return gdk_monitor_get_height_mm(t_monitor);
+	}
+	return 0;
 }
 
 // MW-2005-09-24: We shouldn't be accessing the display structure like this
@@ -749,7 +792,7 @@ void MCScreenDC::flush(Window w)
 
 void MCScreenDC::beep()
 {
-	gdk_beep();
+	gdk_display_beep(gdk_display_get_default());
 }
 
 void MCScreenDC::setinputfocus(Window window)
@@ -837,12 +880,15 @@ void MCScreenDC::copyarea(Drawable s, Drawable d, int2 depth,
 	if (s == nil || d == nil)
 		return;
 
-    cairo_t *t_cr = gdk_cairo_create(d);
+	cairo_region_t *t_region = cairo_region_create();
+	GdkDrawingContext *t_context = gdk_window_begin_draw_frame(d, t_region);
+	cairo_t *t_cr = gdk_drawing_context_get_cairo_context(t_context);
     cairo_set_operator(t_cr, CAIRO_OPERATOR_SOURCE);
     gdk_cairo_set_source_window(t_cr, s, dx - sx, dy - sy);
     cairo_rectangle(t_cr, dx, dy, sw, sh);
     cairo_fill(t_cr);
-    cairo_destroy(t_cr);
+	gdk_window_end_draw_frame(d, t_context);
+	cairo_region_destroy(t_region);
 }
 
 MCBitmap *MCScreenDC::createimage(uint16_t depth, uint16_t width, uint16_t height, bool set, uint8_t value)
@@ -875,13 +921,16 @@ void MCScreenDC::putimage(Drawable d, MCBitmap *source, int2 sx, int2 sy,
     // If we use gdk_draw_pixbuf, the pixbuf gets blended with the existing
     // contents of the window - something that we definitely do not want. We
     // need to use Cairo directly to do the drawing to the window surface.
-    cairo_t *t_cr = gdk_cairo_create(d);
+	cairo_region_t *t_region = cairo_region_create();
+	GdkDrawingContext *t_context = gdk_window_begin_draw_frame(d, t_region);
+	cairo_t *t_cr = gdk_drawing_context_get_cairo_context(t_context);
     cairo_set_operator(t_cr, CAIRO_OPERATOR_SOURCE);
     cairo_rectangle(t_cr, dx, dy, w, h);
     cairo_clip(t_cr);
     gdk_cairo_set_source_pixbuf(t_cr, source, dx-sx, dy-sy);
     cairo_paint(t_cr);
-    cairo_destroy(t_cr);
+	gdk_window_end_draw_frame(d, t_context);
+	cairo_region_destroy(t_region);
 }
 
 MCBitmap *MCScreenDC::getimage(Drawable d, int2 x, int2 y, uint2 w, uint2 h)
@@ -1012,34 +1061,30 @@ MCImageBitmap *MCScreenDC::snapshot(MCRectangle &r, uint4 window, MCStringRef di
 		// MDW bugfix_17257
         // GdkCursor *t_cursor = gdk_cursor_new(GDK_PLUS);
         GdkCursor *t_cursor = gdk_cursor_new_from_name(dpy, "crosshair");
-        GdkDevice *t_device = get_pointer_device();
-        if (t_device == NULL ||
-            gdk_device_grab(t_device, t_root, GDK_OWNERSHIP_NONE, FALSE,
-                            GdkEventMask(GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK),
-                            t_cursor, GDK_CURRENT_TIME) != GDK_GRAB_SUCCESS)
+        GdkSeat *t_seat = gdk_display_get_default_seat(t_display);
+        if (t_seat == NULL ||
+            gdk_seat_grab(t_seat, t_root, GDK_SEAT_CAPABILITY_POINTER, FALSE,
+                          t_cursor, NULL, NULL, NULL) != GDK_GRAB_SUCCESS)
         {
             // Could not grab the pointer
             return NULL;
         }
         
         MCRectangle t_rect(kMCEmptyRectangle);
-        cairo_t *t_gc = gdk_cairo_create(t_root);
-        cairo_set_operator(t_gc, CAIRO_OPERATOR_DIFFERENCE);
-        cairo_set_source_rgb(t_gc, 1.0, 1.0, 1.0);
-        cairo_set_line_width(t_gc, 1.0);
+        cairo_region_t *t_region = cairo_region_create();
         int16_t t_start_x = 0;
         int16_t t_start_y = 0;
         bool t_drawing = false;
         bool t_done = false;
-        
+
         // Minature event loop for handling mouse and key events while selecting
         while (!t_done)
         {
             gdk_display_sync(t_display);
-            
+
             // Place all events onto the pending event queue
             EnqueueGdkEvents();
-            
+
             bool t_queue = false;
             GdkEvent *t_event = NULL;
             if (pendingevents != NULL)
@@ -1049,19 +1094,19 @@ MCImageBitmap *MCScreenDC::snapshot(MCRectangle &r, uint4 window, MCStringRef di
                 MCEventnode *tptr = (MCEventnode *)pendingevents->remove(pendingevents);
                 delete tptr;
             }
-            
+
             // If there are no events, actively wait for one
             if (t_event == NULL)
             {
                 g_main_context_iteration(NULL, TRUE);
                 continue;
             }
-            
+
             // Various type casts of the event structure
             GdkEventKey *t_event_key = (GdkEventKey*)t_event;
             GdkEventMotion *t_event_motion = (GdkEventMotion*)t_event;
             GdkEventButton *t_event_button = (GdkEventButton*)t_event;
-            
+
             // What is the event?
             switch (t_event->type)
             {
@@ -1070,7 +1115,7 @@ MCImageBitmap *MCScreenDC::snapshot(MCRectangle &r, uint4 window, MCStringRef di
                     gdk_event_put(t_event);
                     MCscreen->expose();
                     break;
-                    
+
                 case GDK_KEY_PRESS:
                     MCeventtime = gdk_event_get_time(t_event);
                     if (t_event_key->keyval == GDK_KEY_Escape)
@@ -1078,47 +1123,75 @@ MCImageBitmap *MCScreenDC::snapshot(MCRectangle &r, uint4 window, MCStringRef di
                         if (t_drawing)
                         {
                             // Draw the selection rectangle and release the server
+                            GdkDrawingContext *t_draw_context = gdk_window_begin_draw_frame(t_root, t_region);
+                            cairo_t *t_gc = gdk_drawing_context_get_cairo_context(t_draw_context);
+                            cairo_set_operator(t_gc, CAIRO_OPERATOR_DIFFERENCE);
+                            cairo_set_source_rgb(t_gc, 1.0, 1.0, 1.0);
+                            cairo_set_line_width(t_gc, 1.0);
                             cairo_rectangle(t_gc, t_rect.x + 0.5, t_rect.y + 0.5, t_rect.width - 1, t_rect.height - 1); cairo_stroke(t_gc);
+                            gdk_window_end_draw_frame(t_root, t_draw_context);
                             gdk_x11_ungrab_server();
                         }
-                        
+
                         // End the selection
                         t_done = true;
                     }
                     break;
-                    
+
                 case GDK_MOTION_NOTIFY:
                     MCeventtime = gdk_event_get_time(t_event);
                     if (t_drawing)
                     {
                         // Update the selection rectangle
+                        GdkDrawingContext *t_draw_context = gdk_window_begin_draw_frame(t_root, t_region);
+                        cairo_t *t_gc = gdk_drawing_context_get_cairo_context(t_draw_context);
+                        cairo_set_operator(t_gc, CAIRO_OPERATOR_DIFFERENCE);
+                        cairo_set_source_rgb(t_gc, 1.0, 1.0, 1.0);
+                        cairo_set_line_width(t_gc, 1.0);
                         cairo_rectangle(t_gc, t_rect.x + 0.5, t_rect.y + 0.5, t_rect.width - 1, t_rect.height - 1); cairo_stroke(t_gc);
                         t_rect = MCU_compute_rect(t_start_x, t_start_y, t_event_motion->x, t_event_motion->y);
                         cairo_rectangle(t_gc, t_rect.x + 0.5, t_rect.y + 0.5, t_rect.width - 1, t_rect.height - 1); cairo_stroke(t_gc);
+                        gdk_window_end_draw_frame(t_root, t_draw_context);
                     }
                     break;
-                    
+
                 case GDK_BUTTON_PRESS:
                     gdk_x11_grab_server();
                     MCeventtime = gdk_event_get_time(t_event);
                     t_start_x = t_event_button->x;
                     t_start_y = t_event_button->y;
                     t_rect = MCU_compute_rect(t_start_x, t_start_y, t_start_x, t_start_y);
-                    cairo_rectangle(t_gc, t_rect.x + 0.5, t_rect.y + 0.5, t_rect.width - 1, t_rect.height - 1); cairo_stroke(t_gc);
+                    {
+                        GdkDrawingContext *t_draw_context = gdk_window_begin_draw_frame(t_root, t_region);
+                        cairo_t *t_gc = gdk_drawing_context_get_cairo_context(t_draw_context);
+                        cairo_set_operator(t_gc, CAIRO_OPERATOR_DIFFERENCE);
+                        cairo_set_source_rgb(t_gc, 1.0, 1.0, 1.0);
+                        cairo_set_line_width(t_gc, 1.0);
+                        cairo_rectangle(t_gc, t_rect.x + 0.5, t_rect.y + 0.5, t_rect.width - 1, t_rect.height - 1); cairo_stroke(t_gc);
+                        gdk_window_end_draw_frame(t_root, t_draw_context);
+                    }
                     t_drawing = true;
                     break;
-                    
+
                 case GDK_BUTTON_RELEASE:
                     MCeventtime = gdk_event_get_time(t_event);
                     setmods(t_event_button->state, 0, t_event_button->button, True);
-                    cairo_rectangle(t_gc, t_rect.x + 0.5, t_rect.y + 0.5, t_rect.width - 1, t_rect.height - 1); cairo_stroke(t_gc);
+                    {
+                        GdkDrawingContext *t_draw_context = gdk_window_begin_draw_frame(t_root, t_region);
+                        cairo_t *t_gc = gdk_drawing_context_get_cairo_context(t_draw_context);
+                        cairo_set_operator(t_gc, CAIRO_OPERATOR_DIFFERENCE);
+                        cairo_set_source_rgb(t_gc, 1.0, 1.0, 1.0);
+                        cairo_set_line_width(t_gc, 1.0);
+                        cairo_rectangle(t_gc, t_rect.x + 0.5, t_rect.y + 0.5, t_rect.width - 1, t_rect.height - 1); cairo_stroke(t_gc);
+                        gdk_window_end_draw_frame(t_root, t_draw_context);
+                    }
                     r = MCU_compute_rect(t_start_x, t_start_y, t_event_button->x, t_event_button->y);
                     if (r.width < 4 && r.height < 4)
                         r.width = r.height = 0;
                     gdk_x11_ungrab_server();
                     t_done = true;
                     break;
-                    
+
                 case GDK_GRAB_BROKEN:
                     t_done = true;
                     break;
@@ -1127,17 +1200,16 @@ MCImageBitmap *MCScreenDC::snapshot(MCRectangle &r, uint4 window, MCStringRef di
 					// ignore all other events
 					break;
             }
-            
+
             // The event needs to be released
             gdk_event_free(t_event);
         }
-        
+
         // Release the grabs and other resources that were acquired
-        t_device = get_pointer_device();
-        if (t_device != NULL)
-            gdk_device_ungrab(t_device, GDK_CURRENT_TIME);
-        gdk_cursor_unref(t_cursor);
-        cairo_destroy(t_gc);
+        if (t_seat != NULL)
+            gdk_seat_ungrab(t_seat);
+        g_object_unref(t_cursor);
+        cairo_region_destroy(t_region);
         gdk_display_flush(t_display);
     }
     if (r.x == -32768)
@@ -1213,9 +1285,18 @@ MCImageBitmap *MCScreenDC::snapshot(MCRectangle &r, uint4 window, MCStringRef di
         // Are we wanting the whole window or just a specified rectangle?
         if (r.width == 0 || r.height == 0)
         {
-            // Whole window
             MCU_set_rect(r, x, y, w, h);
-            r = MCU_clip_rect(r, 0, 0, gdk_screen_get_width(t_screen), gdk_screen_get_height(t_screen));
+            GdkDisplay *t_display = gdk_screen_get_display(t_screen);
+            GdkMonitor *t_monitor = gdk_display_get_primary_monitor(t_display);
+            if (t_monitor == NULL)
+                t_monitor = gdk_display_get_monitor(t_display, 0);
+            if (t_monitor != NULL)
+            {
+                GdkRectangle t_geom;
+                gdk_monitor_get_geometry(t_monitor, &t_geom);
+                r = MCU_clip_rect(r, 0, 0, t_geom.width, t_geom.height);
+            }
+            // If no monitor is available, leave the rect unclipped
         }
         else
         {
@@ -1402,11 +1483,11 @@ void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_patte
 		t_rgba.green = p_colour.green / 65535.0;
 		t_rgba.blue = p_colour.blue / 65535.0;
 		t_rgba.alpha = 1.0;
-		gdk_window_set_background_rgba(backdrop, &t_rgba);
+		// In GTK3, window backgrounds are drawn by the widget's draw signal.
+		// We queue a redraw and let the draw handler paint the solid color.
 	}
 
 	gdk_window_invalidate_rect(backdrop, NULL, FALSE);
-	gdk_window_process_updates(backdrop, FALSE);
 
 	MCstacks -> refresh();
 }

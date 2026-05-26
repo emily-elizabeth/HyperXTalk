@@ -712,16 +712,16 @@ void MCX11PutImage(GdkDisplay *p_dpy, GdkWindow* d, cairo_region_t* p_clip_regio
 	if (d == nil)
 		return;
 
-    // If we use gdk_draw_pixbuf, the pixbuf gets blended with the existing
-    // contents of the window - something that we definitely do not want. We
-    // need to use Cairo directly to do the drawing to the window surface.
-    cairo_t *t_cr = gdk_cairo_create(d);
+    // In GTK3, use gdk_window_begin_draw_frame/end_draw_frame instead of
+    // the deprecated gdk_cairo_create for drawing to a window.
+    GdkDrawingContext *t_draw_context = gdk_window_begin_draw_frame(d, p_clip_region);
+    cairo_t *t_cr = gdk_drawing_context_get_cairo_context(t_draw_context);
     cairo_set_operator(t_cr, CAIRO_OPERATOR_SOURCE);
     gdk_cairo_region(t_cr, p_clip_region);
     cairo_clip(t_cr);
     gdk_cairo_set_source_pixbuf(t_cr, source, dx-sx, dy-sy);
     cairo_paint(t_cr);
-    cairo_destroy(t_cr);
+    gdk_window_end_draw_frame(d, t_draw_context);
 }
 
 bool MCLinuxMCGRegionToRegion(MCGRegionRef p_region, cairo_region_t* &r_region);

@@ -44,15 +44,15 @@ static void MCLinuxDragAndDropInitialize(GdkDisplay* p_display)
 void MCLinuxDragAndDropFinalize()
 {
     if (g_dnd_cursor_drag_init)
-        gdk_cursor_unref(g_dnd_cursor_drag_init);
+        g_object_unref(g_dnd_cursor_drag_init);
     if (g_dnd_cursor_drop_copy)
-        gdk_cursor_unref(g_dnd_cursor_drop_copy);
+        g_object_unref(g_dnd_cursor_drop_copy);
     if (g_dnd_cursor_drop_move)
-        gdk_cursor_unref(g_dnd_cursor_drop_move);
+        g_object_unref(g_dnd_cursor_drop_move);
     if (g_dnd_cursor_drop_link)
-        gdk_cursor_unref(g_dnd_cursor_drop_link);
+        g_object_unref(g_dnd_cursor_drop_link);
     if (g_dnd_cursor_drop_fail)
-        gdk_cursor_unref(g_dnd_cursor_drop_fail);
+        g_object_unref(g_dnd_cursor_drop_fail);
     g_dnd_init = false;
 }
 
@@ -95,9 +95,9 @@ static void break_dnd_modal_loop(void* context)
 {
     dnd_modal_loop_context* t_context = (dnd_modal_loop_context*)context;
     gdk_drag_abort(t_context->drag_context, GDK_CURRENT_TIME);
-    GdkDevice *t_device = get_pointer_device();
-    if (t_device != NULL)
-        gdk_device_ungrab(t_device, GDK_CURRENT_TIME);
+    GdkSeat *t_seat = gdk_display_get_default_seat(t_context->display);
+    if (t_seat != NULL)
+        gdk_seat_ungrab(t_seat);
 }
 
 // SN-2014-07-11: [[ Bug 12769 ]] Update the signature - the non-implemented UIDC dodragdrop was called otherwise
@@ -158,12 +158,11 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     
     // Take ownership of the mouse so that nothing interferes with the drag
     GdkGrabStatus t_grab = GDK_GRAB_SUCCESS;
-    GdkDevice *t_device = get_pointer_device();
-    if (t_device != NULL)
-        t_grab = gdk_device_grab(t_device, w, GDK_OWNERSHIP_NONE, FALSE,
-                                 GdkEventMask(GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK),
-                                 NULL, MCeventtime);
-    
+    GdkSeat *t_seat = gdk_display_get_default_seat(dpy);
+    if (t_seat != NULL)
+        t_grab = gdk_seat_grab(t_seat, w, GDK_SEAT_CAPABILITY_POINTER, FALSE,
+                                 NULL, NULL, NULL, NULL);
+
     // We need to know what action was selected so we know whether to delete
     // the data afterwards (as done for move actions)
     MCDragAction t_action = DRAG_ACTION_NONE;
@@ -424,9 +423,9 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 // This is a D&D client event. Note the need to ungrab the
                 // pointer, however (just in case the stack needs it)
                 {
-                    GdkDevice *t_device = get_pointer_device();
-                    if (t_device != NULL)
-                        gdk_device_ungrab(t_device, t_event->dnd.time);
+                    GdkSeat *t_seat = gdk_display_get_default_seat(dpy);
+                    if (t_seat != NULL)
+                        gdk_seat_ungrab(t_seat);
                 }
                 DnDClientEvent(t_event);
                 break;
@@ -474,9 +473,9 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     // Other people can now use the pointer
     g_object_unref(t_context);
     {
-        GdkDevice *t_device = get_pointer_device();
-        if (t_device != NULL)
-            gdk_device_ungrab(t_device, GDK_CURRENT_TIME);
+        GdkSeat *t_seat = gdk_display_get_default_seat(dpy);
+        if (t_seat != NULL)
+            gdk_seat_ungrab(t_seat);
     }
     t_dragboard->SetClipboardWindow(NULL);
     

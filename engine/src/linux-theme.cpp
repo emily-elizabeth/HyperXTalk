@@ -35,7 +35,7 @@
 #define GTK_MAGIC_FONT_SCALE_FACTOR 96/72
 
 // Cached styles for various widget types
-static GtkStyle* s_styles[kMCPlatformControlTypeMessageBox+1];
+static GtkStyleContext* s_styles[kMCPlatformControlTypeMessageBox+1];
 
 // Cached widgets (for style updates)
 static GtkWidget* s_widgets[kMCPlatformControlTypeMessageBox+1];
@@ -186,70 +186,96 @@ static GtkWidget* getWidgetForControlType(MCPlatformControlType p_type, MCPlatfo
     return t_the_widget;
 }
 
+static GtkStateFlags MCStateTypeToFlags(GtkStateType p_state)
+{
+    switch (p_state)
+    {
+        case GTK_STATE_NORMAL: return GTK_STATE_FLAG_NORMAL;
+        case GTK_STATE_ACTIVE: return GTK_STATE_FLAG_ACTIVE;
+        case GTK_STATE_PRELIGHT: return GTK_STATE_FLAG_PRELIGHT;
+        case GTK_STATE_SELECTED: return GTK_STATE_FLAG_SELECTED;
+        case GTK_STATE_INSENSITIVE: return GTK_STATE_FLAG_INSENSITIVE;
+        default: return GTK_STATE_FLAG_NORMAL;
+    }
+}
+
+static void MCConvertRGBAtoColor(const GdkRGBA &p_rgba, GdkColor &r_color)
+{
+    r_color.red = (guint16)(p_rgba.red * 65535.0);
+    r_color.green = (guint16)(p_rgba.green * 65535.0);
+    r_color.blue = (guint16)(p_rgba.blue * 65535.0);
+}
+
 // Gets the style for the given control type
-static GtkStyle* getStyleForControlType(MCPlatformControlType p_type, MCPlatformControlPart p_part)
+static GtkStyleContext* getStyleForControlType(MCPlatformControlType p_type, MCPlatformControlPart p_part)
 {
     if (s_styles[p_type] == NULL)
     {
         GtkWidget* t_widget;
         t_widget = getWidgetForControlType(p_type, p_part);
-        
+
         if (t_widget != NULL)
         {
-            s_styles[p_type] = gtk_widget_get_style(t_widget);
+            s_styles[p_type] = gtk_widget_get_style_context(t_widget);
             g_object_unref(t_widget);
         }
     }
-    
+
     return s_styles[p_type];
 }
 
 
 bool MCPlatformGetControlThemePropInteger(MCPlatformControlType p_type, MCPlatformControlPart p_part, MCPlatformControlState p_state, MCPlatformThemeProperty p_prop, int& r_int)
 {
-    GtkStyle* t_style;
-    t_style = getStyleForControlType(p_type, p_part);
-    if (t_style == NULL)
+    GtkStyleContext* t_context;
+    t_context = getStyleForControlType(p_type, p_part);
+    if (t_context == NULL)
         return false;
-    
+
     bool t_found;
     t_found = false;
-    
+
     switch (p_prop)
     {
         case kMCPlatformThemePropertyTextSize:
         {
             t_found = true;
-            
+
             // We use 12-point Helvetica on Linux traditionally
             if (p_state & kMCPlatformControlStateCompatibility)
             {
                 r_int = 12;
                 break;
             }
-            
-            r_int = (pango_font_description_get_size(t_style->font_desc) *
-                     GTK_MAGIC_FONT_SCALE_FACTOR / PANGO_SCALE);
+
+            PangoFontDescription *t_font_desc = NULL;
+            gtk_style_context_get(t_context, GTK_STATE_FLAG_NORMAL, GTK_STYLE_PROPERTY_FONT, &t_font_desc, NULL);
+            if (t_font_desc != NULL)
+            {
+                r_int = (pango_font_description_get_size(t_font_desc) *
+                         GTK_MAGIC_FONT_SCALE_FACTOR / PANGO_SCALE);
+                pango_font_description_free(t_font_desc);
+            }
             break;
         }
-            
+
         default:
             break;
     }
-    
+
     return t_found;
 }
 
 bool MCPlatformGetControlThemePropColor(MCPlatformControlType p_type, MCPlatformControlPart p_part, MCPlatformControlState p_state, MCPlatformThemeProperty p_prop, MCColor& r_color)
 {
-    GtkStyle* t_style;
-    t_style = getStyleForControlType(p_type, p_part);
-    if (t_style == NULL)
+    GtkStyleContext* t_context;
+    t_context = getStyleForControlType(p_type, p_part);
+    if (t_context == NULL)
         return false;
-    
+
     bool t_found;
     t_found = false;
-    
+
     GtkStateType t_gtk_state;
     if (p_state & kMCPlatformControlStateDisabled)
         t_gtk_state = GTK_STATE_INSENSITIVE;
@@ -261,16 +287,22 @@ bool MCPlatformGetControlThemePropColor(MCPlatformControlType p_type, MCPlatform
         t_gtk_state = GTK_STATE_PRELIGHT;
     else
         t_gtk_state = GTK_STATE_NORMAL;
-    
-    GdkColor t_color;
-    
+
+    GtkStateFlags t_gtk_state_flags = MCStateTypeToFlags(t_gtk_state);
+
+    GdkRGBA t_rgba;
+    t_found = false;
+
+    gtk_style_context_save(t_context);
+    gtk_style_context_set_state(t_context, t_gtk_state_flags);
+
     switch (p_prop)
     {
         case kMCPlatformThemePropertyTextColor:
             t_found = true;
-            t_color = t_style->text[t_gtk_state];
+            gtk_style_context_get_color(t_context, t_gtk_state_flags, &t_rgba);
             break;
-            
+
         case kMCPlatformThemePropertyBackgroundColor:
         {
             t_found = true;
@@ -279,58 +311,78 @@ bool MCPlatformGetControlThemePropColor(MCPlatformControlType p_type, MCPlatform
                 // We want the base colour, not background, for fields
                 case kMCPlatformControlTypeInputField:
                 case kMCPlatformControlTypeList:
-                    t_color = t_style->base[t_gtk_state];
+                    gtk_style_context_get_background_color(t_context, t_gtk_state_flags, &t_rgba);
                     break;
-                    
+
                 // Suppress the disabled state to avoid some weird-looking menus
                 case kMCPlatformControlTypeMenu:
                 case kMCPlatformControlTypeOptionMenu:
                 case kMCPlatformControlTypePopupMenu:
                 case kMCPlatformControlTypeMenuItem:
                     if (t_gtk_state == GTK_STATE_INSENSITIVE)
+                    {
                         t_gtk_state = GTK_STATE_NORMAL;
+                        t_gtk_state_flags = GTK_STATE_FLAG_NORMAL;
+                        gtk_style_context_set_state(t_context, t_gtk_state_flags);
+                    }
                     /* FALLTHROUGH */
-                
+
                 default:
-                    t_color = t_style->bg[t_gtk_state];
+                    gtk_style_context_get_background_color(t_context, t_gtk_state_flags, &t_rgba);
                     break;
             }
             break;
         }
-            
+
         case kMCPlatformThemePropertyShadowColor:
-            t_found =  true;
-            t_color = t_style->dark[t_gtk_state];
+            t_found = true;
+            gtk_style_context_get_background_color(t_context, t_gtk_state_flags, &t_rgba);
+            t_rgba.red *= 0.7;
+            t_rgba.green *= 0.7;
+            t_rgba.blue *= 0.7;
             break;
-            
+
         case kMCPlatformThemePropertyBorderColor:
             t_found = true;
-            t_color = t_style->dark[t_gtk_state];
+            gtk_style_context_get_background_color(t_context, t_gtk_state_flags, &t_rgba);
+            t_rgba.red *= 0.7;
+            t_rgba.green *= 0.7;
+            t_rgba.blue *= 0.7;
             break;
-            
+
         case kMCPlatformThemePropertyFocusColor:
             break;
-            
+
         case kMCPlatformThemePropertyTopEdgeColor:
         case kMCPlatformThemePropertyLeftEdgeColor:
             t_found = true;
-            t_color = t_style->light[t_gtk_state];
+            gtk_style_context_get_background_color(t_context, t_gtk_state_flags, &t_rgba);
+            t_rgba.red = MIN(t_rgba.red + 0.3, 1.0);
+            t_rgba.green = MIN(t_rgba.green + 0.3, 1.0);
+            t_rgba.blue = MIN(t_rgba.blue + 0.3, 1.0);
             break;
-        
+
         case kMCPlatformThemePropertyBottomEdgeColor:
         case kMCPlatformThemePropertyRightEdgeColor:
             t_found = true;
-            t_color = t_style->dark[t_gtk_state];
+            gtk_style_context_get_background_color(t_context, t_gtk_state_flags, &t_rgba);
+            t_rgba.red *= 0.7;
+            t_rgba.green *= 0.7;
+            t_rgba.blue *= 0.7;
             break;
     }
-    
+
+    gtk_style_context_restore(t_context);
+
     if (t_found)
     {
+        GdkColor t_color;
+        MCConvertRGBAtoColor(t_rgba, t_color);
         r_color.red = t_color.red;
         r_color.green = t_color.green;
         r_color.blue = t_color.blue;
     }
-    
+
     return t_found;
 }
 
@@ -340,47 +392,60 @@ bool MCPlatformGetControlThemePropString(MCPlatformControlType p_type, MCPlatfor
 {
     if (p_prop != kMCPlatformThemePropertyTextFont)
         return false;
-    
-    GtkStyle* t_style;
-    t_style = getStyleForControlType(p_type, p_part);
-    if (t_style == NULL)
+
+    GtkStyleContext* t_context;
+    t_context = getStyleForControlType(p_type, p_part);
+    if (t_context == NULL)
         return false;
-    
-    const PangoFontDescription* t_pango = t_style->font_desc;
-    return MCStringCreateWithCString(pango_font_description_get_family(t_pango), r_string);
+
+    PangoFontDescription *t_font_desc = NULL;
+    gtk_style_context_get(t_context, GTK_STATE_FLAG_NORMAL, GTK_STYLE_PROPERTY_FONT, &t_font_desc, NULL);
+    if (t_font_desc == NULL)
+        return false;
+
+    bool t_result = MCStringCreateWithCString(pango_font_description_get_family(t_font_desc), r_string);
+    pango_font_description_free(t_font_desc);
+    return t_result;
 }
 
 bool MCPlatformGetControlThemePropFont(MCPlatformControlType p_type, MCPlatformControlPart p_part, MCPlatformControlState p_state, MCPlatformThemeProperty p_prop, MCFontRef& r_font)
 {
-    GtkStyle* t_style;
-    t_style = getStyleForControlType(p_type, p_part);
-    if (t_style == NULL)
+    GtkStyleContext* t_context;
+    t_context = getStyleForControlType(p_type, p_part);
+    if (t_context == NULL)
         return MCFontCreate(MCNAME(DEFAULT_TEXT_FONT), 0, 12, r_font);
-    
+
     bool t_found;
     t_found = false;
-    
+
     const PangoFontDescription* t_pango;
     t_pango = NULL;
-    
+
     switch (p_prop)
     {
         case kMCPlatformThemePropertyTextFont:
             t_found = true;
-            t_pango = t_style->font_desc;
+            {
+                PangoFontDescription *t_font_desc = NULL;
+                gtk_style_context_get(t_context, GTK_STATE_FLAG_NORMAL, GTK_STYLE_PROPERTY_FONT, &t_font_desc, NULL);
+                if (t_font_desc != NULL)
+                {
+                    t_pango = t_font_desc;
+                }
+            }
             break;
-            
+
         default:
             break;
     }
-    
+
     if (!t_found)
         return false;
-    
+
     MCFontRef t_font_ref;
     MCNameRef t_font_name;
     int t_font_size;
-    
+
     // We use 12-point Helvetica on Linux, traditionally
     const char *t_font_name_cstr = nullptr;
     if (p_state & kMCPlatformControlStateCompatibility)
@@ -395,12 +460,19 @@ bool MCPlatformGetControlThemePropFont(MCPlatformControlType p_type, MCPlatformC
         /* UNCHECKED */ MCPlatformGetControlThemePropInteger(p_type, p_part, p_state, kMCPlatformThemePropertyTextSize, t_font_size);
     }
     MCNameCreateWithNativeChars((const char_t*)t_font_name_cstr, strlen(t_font_name_cstr), t_font_name);
-    
+
     if (t_found)
         t_found = MCFontCreate(t_font_name, 0, t_font_size, t_font_ref);
     if (t_found)
         r_font = t_font_ref;
     MCValueRelease(t_font_name);
-    
+
+    // Clean up the temporary font description
+    if (t_pango != NULL)
+    {
+        PangoFontDescription *t_font_desc = (PangoFontDescription*)t_pango;
+        pango_font_description_free(t_font_desc);
+    }
+
     return t_found;
 }
