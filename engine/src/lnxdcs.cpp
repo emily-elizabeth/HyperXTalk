@@ -192,13 +192,14 @@ Boolean MCScreenDC::open()
     initialise_required_weak_link_gdk_pixbuf();
     initialise_required_weak_link_cairo();
 
-    gdk_init(0, NULL);
-
     // Defensive second layer: even if GDK_BACKEND env var was stripped by a
     // wrapper script, lock the process to the X11 backend. The engine relies
     // on X11-specific GDK APIs (grabs, cursors, selections) that are not
     // available or behave differently under Wayland.
+    // CRITICAL: must be called BEFORE gdk_init() / gtk_init().
     gdk_set_allowed_backends("x11");
+
+    gdk_init(0, NULL);
 
     // Check to see if we are in a UTF8 locale
 	// TS : Changed 2008-01-08 as a more relaible way of testing for UTF-8
