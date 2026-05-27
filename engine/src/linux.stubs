@@ -151,6 +151,7 @@ gdk libgdk-3.so.0
 	gdk_visual_get_system: () -> (pointer)
 	gdk_visual_get_best: () -> (pointer)
 	gdk_init: (integer, pointer) -> ()
+	gdk_set_allowed_backends: (pointer) -> ()
 	gdk_window_hide: (pointer) -> ()
 	gdk_window_destroy: (pointer) -> ()
 	gdk_window_register_dnd: (pointer) -> ()
@@ -169,6 +170,7 @@ gdk libgdk-3.so.0
 	gdk_window_get_origin: (pointer, pointer, pointer) -> ()
 	gdk_window_get_height: (pointer) -> (integer)
 	gdk_window_get_width: (pointer) -> (integer)
+	gdk_window_get_scale_factor: (pointer) -> (integer)
 	gdk_window_move_resize: (pointer, integer, integer, integer, integer) -> ()
 	gdk_window_move: (pointer, integer, integer) -> ()
 	gdk_window_resize: (pointer, integer, integer) -> ()
@@ -630,6 +632,7 @@ gobject libgobject-2.0.so.0
 
 	# NEW IN 2.9
 	g_timeout_add: (integer, pointer, pointer) -> (integer)
+	g_idle_add: (pointer, pointer) -> (integer)
 
 glib libglib-2.0.so.0 
 	g_list_foreach: (pointer, pointer, pointer) -> ()

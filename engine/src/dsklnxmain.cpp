@@ -30,7 +30,9 @@ void X_main_loop(void)
 
 int platform_main(int argc, char *argv[], char *envp[])
 {
-	// Force X11 backend — engine uses X11-specific APIs throughout
+	// Force X11 backend — engine uses X11-specific APIs throughout.
+	// Layer 1: env var (effective before gdk_init). Layer 2: runtime
+	// gdk_set_allowed_backends("x11") in lnxdcs.cpp after gdk_init.
 	setenv("GDK_BACKEND", "x11", 1);
 
 	// On Linux, the argv and envp could be in pretty much any format. The

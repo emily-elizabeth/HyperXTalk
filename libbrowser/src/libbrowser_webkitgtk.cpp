@@ -496,19 +496,92 @@ bool MCWebKitGTKBrowser::SetRect(const MCBrowserRect &p_rect)
 ////////////////////////////////////////////////////////////////////////////////
 // Navigation
 
+// WebKitGTK is single-threaded; all API calls must happen on the GTK main
+// thread. The x-talk engine normally runs on that thread, but we defensively
+// marshal navigation calls via the GLib main loop so secondary threads cannot
+// crash the browser by invoking these methods directly.
+
+enum MCWebKitGTKAction
+{
+    kMCWebKitGTKActionLoadURI,
+    kMCWebKitGTKActionLoadHTML,
+    kMCWebKitGTKActionGoBack,
+    kMCWebKitGTKActionGoForward,
+    kMCWebKitGTKActionStopLoading,
+    kMCWebKitGTKActionReload
+};
+
+struct MCWebKitGTKDispatch
+{
+    void *web_view;
+    MCWebKitGTKAction action;
+    char *str1;
+    char *str2;
+    bool done;
+};
+
+static gboolean mcwebkitgtk_dispatch_idle(gpointer p_data)
+{
+    MCWebKitGTKDispatch *t_dispatch = (MCWebKitGTKDispatch*)p_data;
+
+    switch (t_dispatch->action)
+    {
+        case kMCWebKitGTKActionLoadURI:
+            webkit_web_view_load_uri(t_dispatch->web_view, (void *)t_dispatch->str1);
+            break;
+        case kMCWebKitGTKActionLoadHTML:
+            webkit_web_view_load_html(t_dispatch->web_view, (void *)t_dispatch->str1, (void *)t_dispatch->str2);
+            break;
+        case kMCWebKitGTKActionGoBack:
+            webkit_web_view_go_back(t_dispatch->web_view);
+            break;
+        case kMCWebKitGTKActionGoForward:
+            webkit_web_view_go_forward(t_dispatch->web_view);
+            break;
+        case kMCWebKitGTKActionStopLoading:
+            webkit_web_view_stop_loading(t_dispatch->web_view);
+            break;
+        case kMCWebKitGTKActionReload:
+            webkit_web_view_reload(t_dispatch->web_view);
+            break;
+    }
+
+    t_dispatch->done = true;
+    return G_SOURCE_REMOVE;
+}
+
+static void mcwebkitgtk_dispatch(MCWebKitGTKDispatch *p_dispatch)
+{
+    p_dispatch->done = false;
+    g_idle_add(mcwebkitgtk_dispatch_idle, p_dispatch);
+    while (!p_dispatch->done)
+        MCBrowserRunloopWait();
+}
+
 bool MCWebKitGTKBrowser::GoToURL(const char *p_url)
 {
 	if (m_web_view == nil)
 		return false;
 
+	MCWebKitGTKDispatch t_dispatch;
+	t_dispatch.web_view = m_web_view;
+	t_dispatch.str2 = nil;
+
 	if (MCCStringIsEmpty(p_url))
 	{
-		webkit_web_view_load_html(m_web_view, (void *)"<html><body></body></html>", nil);
+		t_dispatch.action = kMCWebKitGTKActionLoadHTML;
+		t_dispatch.str1 = nil;
+	MCCStringClone("<html><body></body></html>", t_dispatch.str1);
 	}
 	else
 	{
-		webkit_web_view_load_uri(m_web_view, (void *)p_url);
+		t_dispatch.action = kMCWebKitGTKActionLoadURI;
+		t_dispatch.str1 = nil;
+		MCCStringClone(p_url, t_dispatch.str1);
 	}
+
+	mcwebkitgtk_dispatch(&t_dispatch);
+	MCCStringFree(t_dispatch.str1);
 
 	MCBrowserCStringAssignCopy(m_url, p_url);
 	MCBrowserCStringAssign(m_htmltext, nil);
@@ -521,7 +594,17 @@ bool MCWebKitGTKBrowser::LoadHTMLText(const char *p_htmltext, const char *p_base
 	if (m_web_view == nil)
 		return false;
 
-	webkit_web_view_load_html(m_web_view, (void *)p_htmltext, (void *)p_base_url);
+	MCWebKitGTKDispatch t_dispatch;
+	t_dispatch.web_view = m_web_view;
+	t_dispatch.action = kMCWebKitGTKActionLoadHTML;
+	t_dispatch.str1 = nil;
+	t_dispatch.str2 = nil;
+	MCCStringClone(p_htmltext, t_dispatch.str1);
+	MCCStringClone(p_base_url, t_dispatch.str2);
+
+	mcwebkitgtk_dispatch(&t_dispatch);
+	MCCStringFree(t_dispatch.str1);
+	MCCStringFree(t_dispatch.str2);
 
 	MCBrowserCStringAssignCopy(m_htmltext, p_htmltext);
 	MCBrowserCStringAssignCopy(m_url, p_base_url);
@@ -534,7 +617,13 @@ bool MCWebKitGTKBrowser::GoBack()
 	if (m_web_view == nil)
 		return false;
 
-	webkit_web_view_go_back(m_web_view);
+	MCWebKitGTKDispatch t_dispatch;
+	t_dispatch.web_view = m_web_view;
+	t_dispatch.action = kMCWebKitGTKActionGoBack;
+	t_dispatch.str1 = nil;
+	t_dispatch.str2 = nil;
+
+	mcwebkitgtk_dispatch(&t_dispatch);
 	return true;
 }
 
@@ -543,7 +632,13 @@ bool MCWebKitGTKBrowser::GoForward()
 	if (m_web_view == nil)
 		return false;
 
-	webkit_web_view_go_forward(m_web_view);
+	MCWebKitGTKDispatch t_dispatch;
+	t_dispatch.web_view = m_web_view;
+	t_dispatch.action = kMCWebKitGTKActionGoForward;
+	t_dispatch.str1 = nil;
+	t_dispatch.str2 = nil;
+
+	mcwebkitgtk_dispatch(&t_dispatch);
 	return true;
 }
 
@@ -552,7 +647,13 @@ bool MCWebKitGTKBrowser::StopLoading()
 	if (m_web_view == nil)
 		return false;
 
-	webkit_web_view_stop_loading(m_web_view);
+	MCWebKitGTKDispatch t_dispatch;
+	t_dispatch.web_view = m_web_view;
+	t_dispatch.action = kMCWebKitGTKActionStopLoading;
+	t_dispatch.str1 = nil;
+	t_dispatch.str2 = nil;
+
+	mcwebkitgtk_dispatch(&t_dispatch);
 	return true;
 }
 
@@ -561,7 +662,13 @@ bool MCWebKitGTKBrowser::Reload()
 	if (m_web_view == nil)
 		return false;
 
-	webkit_web_view_reload(m_web_view);
+	MCWebKitGTKDispatch t_dispatch;
+	t_dispatch.web_view = m_web_view;
+	t_dispatch.action = kMCWebKitGTKActionReload;
+	t_dispatch.str1 = nil;
+	t_dispatch.str2 = nil;
+
+	mcwebkitgtk_dispatch(&t_dispatch);
 	return true;
 }
 

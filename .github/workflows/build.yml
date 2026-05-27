@@ -133,6 +133,31 @@ jobs:
         env:
           BUILDTYPE: ${{ inputs.build_type || 'Release' }}
 
+      - name: Smoke tests (X11 via xvfb)
+        run: |
+          sudo apt-get install -y xvfb
+          for f in _test_stacks/*.livecodescript; do
+            echo "=== Running $f ==="
+            xvfb-run -a ./linux-x86_64-bin/server-community "$f" || exit 1
+          done
+
+      - name: Smoke tests (Wayland compositor — validates X11 backend lock)
+        run: |
+          sudo apt-get install -y weston
+          # Start a headless Wayland compositor. Without our
+          # gdk_set_allowed_backends("x11") lock, GTK3 would try native
+          # Wayland and crash on X11-specific API usage.
+          weston --backend=headless --socket=wayland-smoke &
+          sleep 3
+          # Run a subset of tests with WAYLAND_DISPLAY set. The engine
+          # should fall back to XWayland because the runtime lock refuses
+          # the Wayland backend.
+          for f in _test_stacks/basic-gtk3-test.livecodescript _test_stacks/minimal-gtk3-test.livecodescript; do
+            echo "=== Running $f under Wayland ==="
+            WAYLAND_DISPLAY=wayland-smoke xvfb-run -a ./linux-x86_64-bin/server-community "$f" || exit 1
+          done
+          kill %1 || true
+
       - name: Build AppImage
         run: |
           chmod +x packaging/linux/build-appimage.sh

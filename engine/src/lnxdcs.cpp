@@ -193,7 +193,13 @@ Boolean MCScreenDC::open()
     initialise_required_weak_link_cairo();
 
     gdk_init(0, NULL);
-    
+
+    // Defensive second layer: even if GDK_BACKEND env var was stripped by a
+    // wrapper script, lock the process to the X11 backend. The engine relies
+    // on X11-specific GDK APIs (grabs, cursors, selections) that are not
+    // available or behave differently under Wayland.
+    gdk_set_allowed_backends("x11");
+
     // Check to see if we are in a UTF8 locale
 	// TS : Changed 2008-01-08 as a more relaible way of testing for UTF-8
 	MCutf8 = (strcmp(nl_langinfo(CODESET), "UTF-8") == 0)	;
@@ -1483,8 +1489,9 @@ void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_patte
 		t_rgba.green = p_colour.green / 65535.0;
 		t_rgba.blue = p_colour.blue / 65535.0;
 		t_rgba.alpha = 1.0;
-		// In GTK3, window backgrounds are drawn by the widget's draw signal.
-		// We queue a redraw and let the draw handler paint the solid color.
+		// In GTK3, gdk_window_set_background_rgba is deprecated and the engine
+		// does not install a custom draw handler for the backdrop window.
+		// Queuing a redraw lets GTK3 / the window manager repaint the area.
 	}
 
 	gdk_window_invalidate_rect(backdrop, NULL, FALSE);

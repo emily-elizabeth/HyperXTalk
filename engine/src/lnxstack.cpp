@@ -129,7 +129,12 @@ void MCStack::realize()
         
         // At least one window has been created so startup is complete
         gdk_notify_startup_complete();
-        
+
+        // IM-2014-01-30: [[ HiDPI ]] Set backing scale from the window's GDK scale factor
+        int t_scale_factor = gdk_window_get_scale_factor(window);
+        if (t_scale_factor > 0)
+            view_setbackingscale((MCGFloat)t_scale_factor);
+
         // DEBUGGING
         //gdk_window_set_debug_updates(TRUE);
         //gdk_window_invalidate_rect(window, NULL, TRUE);
