@@ -218,6 +218,11 @@ def process_arg_options(opts, args):
             opts['FORMATS'].insert(0, value)
             offset += 2
             continue
+        # Handle compact form: -fmake  (gyp emits this in Makefile regen commands)
+        if key.startswith('-f') and len(key) > 2 and not key.startswith('--'):
+            opts['FORMATS'].insert(0, key[2:])
+            offset += 1
+            continue
 
         # Intercept -D & -G options that config.py tries to generate
         intercepted_options = {
