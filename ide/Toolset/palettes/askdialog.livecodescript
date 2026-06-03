@@ -39,7 +39,7 @@ private command doresize
       set the left of field "input" to tIconEdge
    end if
    set the top of field "input" to the bottom of field "prompt" + 4
-   set the top of button "icon" to the height of field "prompt" div 2 - 8
+   set the top of button "icon" to 18 //the height of field "prompt" div 2 - 8
    set the default of button "OK" to false
    
    local tFirstWidthOffset, tFirstBottomOffset, tSecondLeftOffset, tSecondBottomOffset
@@ -350,7 +350,7 @@ on preOpenStack
       end if
       set the loc of button "icon" to tIconX, tIconY
    end if
-   
+      
    --focus on field "input" of me
    set the dialogData to numToChar(0)
    doresize
