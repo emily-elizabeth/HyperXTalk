@@ -8,7 +8,7 @@ Summary:
 Sent when the <mouse pointer> moves out of an <object(glossary)> during
 a <drag and drop>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 Associations: card, field, button, graphic, scrollbar, player, image
 

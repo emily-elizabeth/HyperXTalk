@@ -10,11 +10,11 @@ was used to enter a <stack|stack's> text.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if the charSet of this stack is "MacOS" then put "Mac" into thePlatform

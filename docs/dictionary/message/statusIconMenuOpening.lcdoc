@@ -7,7 +7,7 @@ Syntax: statusIconMenuOpening
 Summary:
 Sent just before the system tray icon's context menu is displayed.
 
-Introduced: 2.6
+Introduced: 1.0.0
 
 OS: windows
 

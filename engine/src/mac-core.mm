@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <Cocoa/Cocoa.h>
 #include <Carbon/Carbon.h>
 
@@ -1237,6 +1221,13 @@ void MCPlatformGetWindowAtPoint(MCPoint p_loc, MCPlatformWindowRef& r_window)
 		[[t_window delegate] isKindOfClass: [MCWindowDelegate class]] &&
 		t_is_in_frame)
 		r_window = [(MCWindowDelegate *)[t_window delegate] platformWindow];
+	else if (t_window != nil && t_is_in_frame)
+	{
+		// The topmost window may be an NSPopover's private _NSPopoverWindow whose
+		// delegate is Apple's own popover machinery, not MCWindowDelegate. Look it
+		// up in the popover-window registry instead.
+		r_window = MCMacPlatformFindPopoverWindow(t_number);
+	}
 	else
 		r_window = nil;
 }
@@ -1849,6 +1840,39 @@ extern uint2 MCdragdelta;
 //   when doing an user-import snapshot.
 static bool s_mouse_cursor_locked = false;
 
+// Maps windowNumber → MCMacPlatformWindow* for NSPopover-hosted windows.
+// NSPopover creates a private _NSPopoverWindow whose delegate is Apple's own
+// machinery, not MCWindowDelegate, so MCPlatformGetWindowAtPoint cannot find
+// it through the normal delegate check. We register the popover window here
+// after showRelativeToRect: and look it up as a fallback.
+static NSMutableDictionary *s_popover_window_map = nil;
+
+void MCMacPlatformRegisterPopoverWindow(NSWindow *p_ns_window, MCMacPlatformWindow *p_platform_window)
+{
+    if (s_popover_window_map == nil)
+        s_popover_window_map = [[NSMutableDictionary alloc] init];
+    NSNumber *t_key = [NSNumber numberWithInteger: [p_ns_window windowNumber]];
+    s_popover_window_map[t_key] = [NSValue valueWithPointer: p_platform_window];
+}
+
+void MCMacPlatformUnregisterPopoverWindow(NSWindow *p_ns_window)
+{
+    if (s_popover_window_map == nil)
+        return;
+    NSNumber *t_key = [NSNumber numberWithInteger: [p_ns_window windowNumber]];
+    [s_popover_window_map removeObjectForKey: t_key];
+}
+
+MCMacPlatformWindow *MCMacPlatformFindPopoverWindow(NSInteger p_window_number)
+{
+    if (s_popover_window_map == nil)
+        return nil;
+    NSValue *t_val = s_popover_window_map[[NSNumber numberWithInteger: p_window_number]];
+    if (t_val == nil)
+        return nil;
+    return (MCMacPlatformWindow *)[t_val pointerValue];
+}
+
 void MCMacPlatformLockCursor(void)
 {
     s_mouse_cursor_locked = true;
@@ -2019,33 +2043,15 @@ void MCMacPlatformHandleMouseCursorChange(MCPlatformWindowRef p_window)
     MCMacPlatformWindow *t_window;
     t_window = (MCMacPlatformWindow *)p_window;
     
-    // If we are on Lion+ then check to see if the mouse location is outside
-    // of any of the system tracking rects (used for resizing etc.)
-    extern uint4 MCmajorosversion;
-    if (MCmajorosversion >= MCOSVersionMake(10,7,0))
-    {
-        // MW-2014-06-11: [[ Bug 12437 ]] Make sure we only check tracking rectangles if we have
-        //   a resizable frame.
-        bool t_is_resizable;
-        MCPlatformGetWindowProperty(p_window, kMCPlatformWindowPropertyHasSizeWidget, kMCPlatformPropertyTypeBool, &t_is_resizable);
-        
-        if (t_is_resizable)
-        {
-            NSArray *t_tracking_areas;
-            t_tracking_areas = [[t_window -> GetContainerView() superview] trackingAreas];
-            
-            NSPoint t_mouse_loc;
-            t_mouse_loc = [t_window -> GetView() mapMCPointToNSPoint: s_mouse_position];
-            for(uindex_t i = 0; i < [t_tracking_areas count]; i++)
-            {
-                if (NSPointInRect(t_mouse_loc, [(NSTrackingArea *)[t_tracking_areas objectAtIndex: i] rect]))
-                    return;
-            }
-        }
-    }
-    
     // MW-2014-06-25: [[ Bug 12634 ]] Make sure we only change the cursor if we are not
     //   within a native view.
+    // Note: a Lion-era block that checked the superview's tracking areas to avoid
+    // overriding the system resize cursors was removed here.  On modern macOS the
+    // superview's tracking areas cover the entire content area (not just resize
+    // handles), so that check unconditionally suppressed cursor changes on any
+    // resizable stack.  The hitTest below is the correct gate: when the mouse is
+    // over a resize handle it sits in the window chrome (outside our view
+    // hierarchy), hitTest does not return our view, and we leave the cursor alone.
     if ([t_window -> GetContainerView() hitTest: [t_window -> GetView() mapMCPointToNSPoint: s_mouse_position]] == t_window -> GetView())
     {
         // Show the cursor attached to the window.
@@ -2160,11 +2166,17 @@ void MCMacPlatformHandleMouseMove(MCPoint p_screen_loc)
 	}
 }
 
+bool MCMacPlatformGetNaturalScrolling(void)
+{
+	return [[NSUserDefaults standardUserDefaults]
+	        boolForKey:@"com.apple.swipescrolldirection"];
+}
+
 void MCMacPlatformHandleMouseScroll(CGFloat dx, CGFloat dy)
 {
 	if (s_mouse_window == nil)
 		return;
-	
+
 	if (dx != 0.0 || dy != 0.0)
 		MCPlatformCallbackSendMouseScroll(s_mouse_window, dx < 0.0 ? -1 : (dx > 0.0 ? 1 : 0), dy < 0.0 ? -1 : (dy > 0.0 ? 1 : 0));
 }

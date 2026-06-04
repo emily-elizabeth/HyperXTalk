@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -64,6 +48,12 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "stacksecurity.h"
 
 #include "exec-interface.h"
+#include "platform.h"
+
+
+#if defined(_WINDOWS_DESKTOP)
+#include "w32dc.h"
+#endif
 #include "graphics_util.h"
 #include "mcerror.h"
 
@@ -978,6 +968,22 @@ void MCInterfaceEvalCapsLockKey(MCExecContext& ctxt, MCNameRef& r_result)
 	MCValueRetain(r_result);
 }
 
+// Returns "true" if the system Natural Scrolling preference is enabled,
+// "false" otherwise.  On non-macOS platforms this always returns "false".
+// Scripts can use this to adapt scroll-wheel handlers to the user's preference:
+//   if the naturalScrolling then
+//     set the vScroll of me to the vScroll of me - pDeltaY * 10
+//   else
+//     set the vScroll of me to the vScroll of me + pDeltaY * 10
+//   end if
+// Note: the scrollWheel engine message already normalises pDeltaY to
+// content-scroll convention (negative = scroll up), so the above is only
+// needed if you want to override that normalised behaviour.
+void MCInterfaceEvalNaturalScrolling(MCExecContext& ctxt, MCStringRef& r_result)
+{
+	r_result = MCValueRetain(MCS_getnaturalscrolling() ? kMCTrueString : kMCFalseString);
+}
+
 void MCInterfaceEvalCommandKey(MCExecContext& ctxt, MCNameRef& r_result)
 {
 	r_result = MCInterfaceKeyConditionToName((MCscreen->querymods() & MS_CONTROL) != 0);
@@ -1289,6 +1295,49 @@ void MCInterfaceExecBeep(MCExecContext& ctxt, integer_t p_count)
 			}
 		}
 	}
+}
+
+void MCInterfaceExecBringApplicationToFront(MCExecContext& ctxt)
+{
+#if defined(_MAC_DESKTOP)
+    extern void MCMacActivateApplication(void);
+    MCMacActivateApplication();
+#elif defined(_WINDOWS_DESKTOP)
+    // Bring the default stack's window to the foreground, restoring it first
+    // if it is minimised.  SetForegroundWindow on the invisible helper window
+    // (the old code) has no visible effect — we need the real stack window.
+    if (MCdefaultstackptr)
+    {
+        // getrealwindow() returns MCSysWindowHandle; cast to HWND for Win32 API.
+        HWND t_hwnd = (HWND)MCdefaultstackptr->getrealwindow();
+        {
+            if (t_hwnd != NULL)
+            {
+                if (IsIconic(t_hwnd))
+                    ShowWindow(t_hwnd, SW_RESTORE);
+
+                // SetForegroundWindow fails silently when our process doesn't own
+                // the foreground lock.  Temporarily attaching our thread's input
+                // to the current foreground thread grants us that permission.
+                HWND  t_fg     = GetForegroundWindow();
+                DWORD t_fg_tid = t_fg ? GetWindowThreadProcessId(t_fg, nullptr) : 0;
+                DWORD t_my_tid = GetCurrentThreadId();
+                if (t_fg_tid && t_fg_tid != t_my_tid)
+                    AttachThreadInput(t_my_tid, t_fg_tid, TRUE);
+
+                SetForegroundWindow(t_hwnd);
+                BringWindowToTop(t_hwnd);
+
+                if (t_fg_tid && t_fg_tid != t_my_tid)
+                    AttachThreadInput(t_my_tid, t_fg_tid, FALSE);
+            }
+        }
+    }
+#elif defined(_LINUX_DESKTOP)
+    extern void MCLinuxActivateApplication(void);
+    MCLinuxActivateApplication();
+#endif
+    // Server and non-desktop builds: no GUI to bring forward.
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2801,7 +2850,7 @@ void MCInterfaceExecPopupButton(MCExecContext& ctxt, MCButton *p_target, MCPoint
 
 void MCInterfaceExecSubwindow(MCExecContext& ctxt, MCStack *p_target, MCStack *p_parent, MCRectangle p_rect, int p_at, int p_aligned, int p_mode)
 {
-	if (p_mode != WM_PULLDOWN && p_mode != WM_POPUP && p_mode != WM_OPTION)
+	if (p_mode != WM_PULLDOWN && p_mode != WM_POPUP && p_mode != WM_POPOVER && p_mode != WM_OPTION)
     	MCU_watchcursor(ctxt . GetObject()->getstack(), False);
         
 	// MW-2007-05-01: Reverting this as it causes problems :o(
@@ -3000,6 +3049,65 @@ void MCInterfaceExecPopupStackByName(MCExecContext& ctxt, MCNameRef p_name, MCPo
 	MCInterfaceExecPopupStack(ctxt, sptr, p_at, p_mode);
 }
 
+// ---------------------------------------------------------------------------
+// Popover
+// ---------------------------------------------------------------------------
+
+// p_anchor_rect: the anchor control's rect in screen coordinates (may be nil).
+// p_edge:        Window_position value (WP_PARENTxxx) indicating which edge
+//               of the anchor the popover should appear on.
+// Convert Window_position edge to MCPlatformWindowEdge for the native popover API.
+static MCPlatformWindowEdge s_popover_wp_to_platform_edge(int p_wp)
+{
+	switch (p_wp)
+	{
+		case WP_PARENTTOP:    return KMCPlatformWindowEdgeTop;
+		case WP_PARENTLEFT:   return kMCPlatformWindowEdgeLeft;
+		case WP_PARENTRIGHT:  return kMCPlatformWindowEdgeRight;
+		case WP_PARENTBOTTOM:
+		default:              return kMCPlatformWindowEdgeBottom;
+	}
+}
+
+void MCInterfaceExecPopoverStack(MCExecContext& ctxt, MCStack *p_target, MCRectangle *p_anchor_rect, int p_edge)
+{
+	// Store anchor rect and edge for the macOS NSPopover show path (desktop-dc.cpp openwindow).
+	if (p_anchor_rect != nil)
+		MCpopoveranchor = *p_anchor_rect;
+	else
+		MCU_set_rect(MCpopoveranchor, 0, 0, 0, 0);
+	MCpopoveredge = s_popover_wp_to_platform_edge(p_edge);
+
+	MCRectangle t_ref_rect;
+	if (p_anchor_rect != nil)
+	{
+		t_ref_rect = *p_anchor_rect;
+	}
+	else if (MCdefaultstackptr && MCdefaultstackptr->getopened())
+	{
+		t_ref_rect = MCdefaultstackptr->getrect();
+	}
+	else
+	{
+		MCU_set_rect(t_ref_rect, 0, 0, 1, 1);
+	}
+
+	MCInterfaceExecSubwindow(ctxt, p_target, nil, t_ref_rect, p_edge, OP_CENTER, WM_POPOVER);
+}
+
+void MCInterfaceExecPopoverStackByName(MCExecContext& ctxt, MCNameRef p_name, MCRectangle *p_anchor_rect, int p_edge)
+{
+	MCStack *sptr = ctxt.GetObject()->getstack()->findstackname(p_name);
+	if (sptr == nil)
+	{
+		if (MCresult->isclear())
+			ctxt.SetTheResultToStaticCString("can't find stack");
+		return;
+	}
+
+	MCInterfaceExecPopoverStack(ctxt, sptr, p_anchor_rect, p_edge);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 void MCInterfaceExecCreateStack(MCExecContext& ctxt, MCObject *p_object, MCStringRef p_new_name, bool p_force_invisible, bool p_with_group)
@@ -3152,14 +3260,38 @@ MCControl* MCInterfaceExecCreateControlGetObject(MCExecContext& ctxt, int p_type
 
 void MCInterfaceExecCreateControl(MCExecContext& ctxt, MCStringRef p_new_name, int p_type, MCObject *p_container, bool p_force_invisible)
 {
-    
+
     MCStack *t_current_stack = p_container == nullptr ? MCdefaultstackptr : p_container->getstack();
-    
+
     if (t_current_stack->islocked())
 	{
 		ctxt . LegacyThrow(EE_CREATE_LOCKED);
 		return;
 	}
+
+    // A stack supports at most one toolbar.  If one already exists, behave
+    // like macOS and Windows: treat createToolbar as a no-op and set 'it' to
+    // the existing toolbar's long ID so the caller can still reference it.
+    if (p_type == CT_TOOLBAR)
+    {
+        MCControl *t_cptr = t_current_stack->getcontrols();
+        if (t_cptr != nullptr)
+        {
+            MCControl *t_it = t_cptr;
+            do
+            {
+                if (t_it->gettype() == CT_TOOLBAR)
+                {
+                    MCAutoValueRef t_id;
+                    t_it->names(P_LONG_ID, &t_id);
+                    ctxt.SetItToValue(*t_id);
+                    return;
+                }
+                t_it = t_it->next();
+            }
+            while (t_it != t_cptr);
+        }
+    }
 
 	MCControl *t_control = MCInterfaceExecCreateControlGetObject(ctxt, p_type, p_container);
 	if (t_control == NULL)

@@ -8,7 +8,7 @@ Summary:
 Specifies the ratio of the height of an <EPS|EPS object's> <postScript>
 bounding box to the object's screen height.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

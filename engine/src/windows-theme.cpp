@@ -166,14 +166,24 @@ bool MCPlatformGetControlThemePropColor(MCPlatformControlType p_type, MCPlatform
                         break;
                         
                     default:
+                        // GetSysColor(COLOR_WINDOWTEXT) always returns a dark
+                        // colour even when dark mode is active.  Return the
+                        // system foreground colour (set to white by
+                        // updatesystemcolors() in dark mode) so that field text
+                        // is visible against the dark background.
+                        if (MCplatformIsDarkMode())
+                        {
+                            r_color = MCscreen->getsystemfore();
+                            return true;
+                        }
                         t_color = COLOR_WINDOWTEXT;
                         break;
                 }
             }
-            
+
             break;
         }
-            
+
         case kMCPlatformThemePropertyBackgroundColor:
         {
             t_found = true;

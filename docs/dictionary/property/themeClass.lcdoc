@@ -7,11 +7,11 @@ Syntax: set the themeClass of tObject to tThemeClass
 Summary:
 Specifies which set of theming parameters should be used for an object.
 
-Introduced: 8.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the themeClass of field "mylabel" to "label"

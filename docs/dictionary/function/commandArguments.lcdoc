@@ -13,7 +13,7 @@ If no index is given, returns a 1-based, numeric array containing all
 the arguments given to the command. If an index is given, returns the
 argument corresponding to the index (1 being the first argument).
 
-Introduced: 7.1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

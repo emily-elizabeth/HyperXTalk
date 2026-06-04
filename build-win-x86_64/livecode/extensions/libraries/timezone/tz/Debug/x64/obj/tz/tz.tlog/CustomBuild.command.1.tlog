@@ -1,3 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\BUILD-WIN-X86_64\LIVECODE\DEBUG\TZ.DLL
-call mkdir "C:\Users\user\Documents\GitHub\HyperXTalk\build-win-x86_64\livecode\Debug\packaged_extensions\com.livecode.library.timezone\code\x86_64-win32" 2>nul & set ERRORLEVEL=0 & copy /Y "C:\Users\user\Documents\GitHub\HyperXTalk\build-win-x86_64\livecode\Debug\tz.dll" "C:\Users\user\Documents\GitHub\HyperXTalk\build-win-x86_64\livecode\Debug\packaged_extensions\com.livecode.library.timezone\code\x86_64-win32\tz.dll"
-if %errorlevel% neq 0 exit /b %errorlevel%

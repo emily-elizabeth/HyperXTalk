@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #ifndef	COMMANDS_H
 #define	COMMANDS_H
 
@@ -955,6 +939,12 @@ public:
 };
 
 class MCBreakPoint : public MCStatement
+{
+public:
+	virtual void exec_ctxt(MCExecContext &);
+};
+
+class MCBringApplicationToFront : public MCStatement
 {
 public:
 	virtual void exec_ctxt(MCExecContext &);
@@ -2118,6 +2108,21 @@ public:
 	{
 		mode = WM_DRAWER;
 	}
+};
+
+// Popover window: popover stack <target> [anchored to <control>] [on edge <edge>]
+// The popover floats near an anchor control, on the specified edge.
+// Edge strings: "top", "bottom" (default), "left", "right".
+class MCPopover : public MCStatement
+{
+	MCChunk *target;   // the stack to show
+	MCChunk *anchor;   // the control to anchor to (optional)
+	MCExpression *edge; // edge string expression (optional)
+public:
+	MCPopover();
+	virtual ~MCPopover();
+	virtual Parse_stat parse(MCScriptPoint &);
+	virtual void exec_ctxt(MCExecContext &ctxt);
 };
 
 class MCUnlock : public MCStatement

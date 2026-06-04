@@ -8,7 +8,7 @@ Summary:
 Sent to the <object(glossary)> a <drag and drop> started from, when the
 data is dropped.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 Associations: field, button, graphic, scrollbar, player, image
 

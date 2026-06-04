@@ -11,11 +11,11 @@ Lists all the <custom property> sets that can apply to an
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if it is among the lines of the customPropertySets of me then doItOver

@@ -9,11 +9,11 @@ Closes the connection to a <database>.
 
 Associations: database library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 
@@ -51,7 +51,7 @@ opened by the <database>, as well as closing the <database> itself.
 
 References: revCloseCursor (command), revRollBackDatabase (command),
 function (control structure), revDatabaseConnectResult (function),
-revdb_rollback (function), revDatabaseID (function),
+revDatabaseID (function),
 HyperXTalk custom library (glossary),
 Standalone Application Settings (glossary), database (glossary),
 standalone application (glossary),

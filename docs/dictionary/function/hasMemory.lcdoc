@@ -10,11 +10,11 @@ Summary:
 <return|Returns> true if the specified amount of memory is available,
 false otherwise.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 hasMemory(2*1024*1024) -- returns true if 2M available

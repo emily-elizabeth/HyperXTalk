@@ -10,11 +10,11 @@ Specifies an <image> to be displayed in place of the specified
 
 Associations: field
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the imageSource of char 1 of line 2 of field "This" to 2533
@@ -70,11 +70,6 @@ To correct this problem, set the <field(object)|field's>
 > image ID or name), not the image data itself. If you use the URL
 > <keyword>, the <imageSource> <property> is set to the contents of the
 > <URL>, not the <URL> itself, and this is usually not what's wanted.
-
-Changes:
-The order in which the engine searches for imageSource IDs was changed in
-version 3.5. Previously, the current stack was searched first, followed
-by the list of open stacks.
 
 References: show (command), hide (command), format (function),
 stacks (function), property (glossary), keyword (glossary),

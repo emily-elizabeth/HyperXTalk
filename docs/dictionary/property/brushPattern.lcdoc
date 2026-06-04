@@ -10,11 +10,11 @@ Summary:
 Specifies the pattern used to paint with the Brush <tool> and to fill
 shapes in an <image>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the brushPattern to 204

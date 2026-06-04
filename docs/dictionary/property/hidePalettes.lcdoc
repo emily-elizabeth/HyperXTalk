@@ -8,7 +8,7 @@ Summary:
 Determines whether <palette|palette windows> are hidden while HyperXTalk
 is in the background.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

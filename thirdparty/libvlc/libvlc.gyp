@@ -7,6 +7,11 @@
 #   Windows — SDK alongside the VLC installation
 
 {
+    'includes':
+    [
+        '../../common.gypi',
+    ],
+
     'targets':
     [
         {

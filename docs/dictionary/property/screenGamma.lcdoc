@@ -7,7 +7,7 @@ Syntax: set the screenGamma to <gammaValue>
 Summary:
 Specifies the <gamma> <value> used for displaying <PNG> <image|images>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

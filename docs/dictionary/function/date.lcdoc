@@ -11,11 +11,11 @@ Syntax: date()
 Summary:
 <return|Returns> the current date.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 answer the date
@@ -65,12 +65,6 @@ store the date for later use.
 The format of the system date forms is set by the Date & Time control
 panel (on Mac OS systems), the Date control panel (on Windows systems),
 or the LANG environment variable (on Unix systems).
-
-Changes:
-The ability to use the date format preferred by the user was introduced
-in version 1.1. In previous versions, the date function, along with the
-time function, consistently used the standard U.S. format, even if the
-operating system's settings specified another language or date format.
 
 References: convert (command), function (control structure),
 dateFormat (function), milliseconds (function), format (function),

@@ -14,7 +14,7 @@ Summary:
 <export|Exports> the <selected> <image> as a <PBM>, <JPEG>, <GIF>, <BMP>
 or <PNG> <file>.
 
-Introduced: 4.5
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

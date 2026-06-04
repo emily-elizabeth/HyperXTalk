@@ -9,7 +9,7 @@ Syntax: licensed()
 Summary:
 <return|Returns> true if the <development environment> is running.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

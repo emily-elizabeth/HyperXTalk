@@ -7,7 +7,7 @@ Syntax: hide taskbar
 Summary:
 Hides the <task bar> on <Windows|Windows systems>.
 
-Introduced: 2.1
+Introduced: 1.0.0
 
 OS: windows
 

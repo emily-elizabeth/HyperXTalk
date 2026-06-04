@@ -8,11 +8,11 @@ Summary:
 Specifies the <value> of the "%%BoundingBox" <comment> in an
 <import|imported> <PostScript|PostScript file>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: linux, ios, android
+OS: linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the boundingBox of EPS 1 to 100,100,500,600

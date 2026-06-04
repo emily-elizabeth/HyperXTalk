@@ -10,12 +10,11 @@ Summary:
 Specifies the <character|character(s)> used to separate <lines> in
 <chunk expression|chunk expressions>.
 
-Introduced: 2.0
-Changed:7.0.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the lineDelimiter to numToChar(13)
@@ -27,7 +26,7 @@ Example:
 set the itemDelimiter to ";;"
 
 Value:
-From version 7.0, <lineDelimiter> can be a string of one or several
+<lineDelimiter> can be a string of one or several
 <character|characters>. By default, the <lineDelimiter> <property> is
 set to <return>.
 
@@ -35,7 +34,7 @@ Description:
 Use the <lineDelimiter> <property> to divide text into <chunk|chunks>
 based on a <delimit|delimiting> <character>.
 
-From version 7.0, <lineDelimiter> can be a string of one or several
+<lineDelimiter> can be a string of one or several
 <character|characters>. <chunk expression|Chunk expressions> use the
 <lineDelimiter> to determine where one <line> ends and the next begins.
 

@@ -7,11 +7,11 @@ Syntax: <dividend> / <divisor>
 Summary:
 Divides one number by another number or one array by another array.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 # Dividing a literal number by another
@@ -66,10 +66,6 @@ contents as zero.
 If a math operation on finite inputs produces a non-finite output, an
 execution error is thrown. See <math operation|math operations> for more
 information.
-
-Changes:
-The option to divide arrays was introduced in version 1.1. In previous
-versions, only single numbers could be used with the / operator.
 
 References: divide (command), operator (glossary), array (glossary),
 command (glossary), element (glossary), element (keyword),

@@ -32,6 +32,11 @@
 #define CAIRO_HAS_FC_FONT 1
 #endif
 
+#if defined(_WIN32) || defined(_WIN64)
+#define CAIRO_HAS_WIN32_SURFACE 1
+#define CAIRO_HAS_WIN32_FONT 1
+#endif
+
 #define CAIRO_HAS_RECORDING_SURFACE 1
 
 #define CAIRO_HAS_SCRIPT_SURFACE 1

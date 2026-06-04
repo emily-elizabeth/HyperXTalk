@@ -8,7 +8,7 @@ Summary:
 Specifies the key used to create special (extended <ASCII>) characters
 on <Unix|Unix systems>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 
@@ -41,8 +41,7 @@ disabled.
 The setting of this property has no effect on Mac OS and Windows
 systems. 
 
-References: numToChar (function), charToNum (function),
-property (glossary), Unix (glossary), bit (glossary), ASCII (glossary),
+References: property (glossary), Unix (glossary), bit (glossary), ASCII (glossary),
 modifier key (glossary), characters (keyword), integer (keyword),
 keyDown (message)
 

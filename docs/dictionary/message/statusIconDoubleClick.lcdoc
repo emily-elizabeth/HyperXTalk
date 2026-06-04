@@ -7,7 +7,7 @@ Syntax: statusIconDoubleClick <button>
 Summary:
 Sent when the user double-clicks the system tray icon.
 
-Introduced: 2.6
+Introduced: 1.0.0
 
 OS: windows
 

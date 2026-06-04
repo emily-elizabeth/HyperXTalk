@@ -9,11 +9,11 @@ Syntax: put <value> into URL <destinationURL>
 Summary:
 Places a <value> into a <container>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 
@@ -151,21 +151,6 @@ create the <resource fork>.
 > COM5, COM6, COM7, COM8, COM9, LPT1, LPT2, LPT3, LPT4, LPT5, LPT6,
 > LPT7, LPT8 and LPT9. Also do not use these names followed by an
 > extension, for example, NUL.tx7.
-
-> *Note:* The Android and iOS engines do not support 'libUrl' but do
-> allow you to use <put> in the background. When specifying URLs for
-> iOS, you must use the appropriate form that conforms to [RFC
-> 1738](https://tools.ietf.org/html/rfc1738). Ensure that you
-> <URLEncode> any username and password fields appropriately for FTP
-> URLs.
-
-> *Cross-platform note:* The HTML5 engine only supports HTTP and HTTPs
-> protocols.
-
-> *Cross-platform note:* URLs fetched by the HTML5 engine from a domain
-> other than that of the hosting the page may be blocked by web browsers,
-> unless the server hosting the URL sets the "Access-Control-Origin" header
-> appropriately.
 
 References: delete URL (command),
 put (command), local (command), open file (command)

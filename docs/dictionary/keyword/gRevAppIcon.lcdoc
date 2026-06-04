@@ -9,7 +9,7 @@ A special <global|global variable> that specifies the application icon
 to be used on <OS X|OS X systems> with the <ask>, <ask password>, and
 <answer> <command|commands>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac
 

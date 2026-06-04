@@ -10,9 +10,9 @@ sending to form processing CGIs and other processes on a web server.
 
 Associations: internet library
 
-Introduced: 2.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, html5
+OS: mac, windows, linux
 
 Platforms: desktop, server
 

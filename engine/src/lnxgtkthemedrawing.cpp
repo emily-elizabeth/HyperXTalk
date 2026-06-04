@@ -138,10 +138,11 @@ gint moz_gtk_enable_style_props(style_prop_t styleGetProp)
 
 
 
+
 static gint setup_widget_prototype(GtkWidget * widget)
 {
 	GtkStyle *newstyle ;
-	
+
 	if (!gProtoWindow)
 	{
 		gProtoWindow = gtk_window_new(GTK_WINDOW_POPUP);
@@ -1157,6 +1158,12 @@ static gint
 moz_gtk_frame_paint(GdkDrawable * drawable, GdkRectangle * rect,
                     GdkRectangle * cliprect)
 {
+	// ensure_label_widget() also creates gProtoWindow, so call it before
+	// we dereference gProtoWindow->style below.
+	// ensure_label_widget() also creates gProtoWindow when it is null.
+	ensure_label_widget();
+	if (gProtoWindow == nullptr || gProtoWindow->style == nullptr)
+		return MOZ_GTK_UNKNOWN_WIDGET;
 	GtkStyle *style = gProtoWindow->style;
 
 	TSOffsetStyleGCs(style, rect->x, rect->y);
@@ -1690,11 +1697,26 @@ void moz_gtk_get_widget_color(GtkStateType state,
                               uint2 &red,uint2 &green,uint2 &blue)
 {
 	ensure_label_widget();
+	if (gProtoWindow == nullptr || gProtoWindow->style == nullptr)
+		return;
 	GtkStyle *style = gProtoWindow->style;
 	GdkColor c = style->bg[state];
 	red = c.red;
 	blue = c.blue;
 	green = c.green;
+}
+
+void moz_gtk_get_widget_fg_color(GtkStateType state,
+                                 uint2 &red, uint2 &green, uint2 &blue)
+{
+	ensure_label_widget();
+	if (gProtoWindow == nullptr || gProtoWindow->style == nullptr)
+		return;
+	GtkStyle *style = gProtoWindow->style;
+	GdkColor c = style->fg[state];
+	red   = c.red;
+	green = c.green;
+	blue  = c.blue;
 }
 
 static gint
@@ -2051,5 +2073,55 @@ moz_gtk_widget_paint(GtkThemeWidgetType widget, GdkDrawable * drawable,
 
 gint moz_gtk_shutdown()
 {
-	return MOZ_GTK_SUCCESS;
+    // Do NOT call gtk_widget_destroy(gProtoWindow) here.
+    //
+    // moz_gtk_shutdown() is only called during process exit (from
+    // globals.cpp / MCNativeTheme::unload()).  Immediately after this
+    // function returns, MCScreenDC::close() calls gdk_display_close(),
+    // which sends XCloseDisplay(); the X server then frees every X11
+    // resource (windows, GCs, pixmaps) owned by the client.  The OS
+    // reclaims the heap memory.
+    //
+    // Calling gtk_widget_destroy() at this point is unsafe: if the
+    // engine has previously rendered any GTK widget into a raw GdkWindow
+    // (e.g. via gtk_paint_flat_box with a stack window as the drawable),
+    // GTK's internal style-attachment state can be left pointing at that
+    // now-destroyed window.  gtk_widget_destroy() then crashes inside
+    // gtk_widget_unrealize() while trying to detach/free GdkGC objects
+    // tied to the already-gone X window.
+    //
+    // Simply null the pointers.  The widgets are leaked, but that is
+    // harmless given that the process is about to exit.
+    if (gProtoWindow != nullptr)
+    {
+        gProtoWindow    = nullptr;
+        gProtoLayout    = nullptr;
+    }
+    gButtonWidget         = nullptr;
+    gCheckboxWidget       = nullptr;
+    gRadiobuttonWidget    = nullptr;
+    gHorizScrollbarWidget = nullptr;
+    gVertScrollbarWidget  = nullptr;
+    gEntryWidget          = nullptr;
+    gArrowWidget          = nullptr;
+    gDropdownButtonWidget = nullptr;
+    gHandleBoxWidget      = nullptr;
+    gFrameWidget          = nullptr;
+    gProgressWidget       = nullptr;
+    gTabWidget            = nullptr;
+    gLabelWidget          = nullptr;
+    gOptionbuttonWidget   = nullptr;
+    gSpinbuttonWidget     = nullptr;
+    gMenuitemWidget       = nullptr;
+    gHScaleWidget         = nullptr;
+    gVScaleWidget         = nullptr;
+
+    // Tooltip widget is a GtkTooltips object held with an explicit g_object_ref,
+    // not a child of gProtoLayout, so release it separately.
+    if (gTooltipWidget != nullptr)
+    {
+        g_object_unref(gTooltipWidget);
+        gTooltipWidget = nullptr;
+    }
+    return MOZ_GTK_SUCCESS;
 }

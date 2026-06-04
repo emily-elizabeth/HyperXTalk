@@ -8,7 +8,7 @@ Summary:
 Establishes a connection to a <peripheral device|device> so you can send
 data to it or get data from it.
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -90,9 +90,6 @@ On Windows systems, the <open driver> <command> is equivalent to the
 If the device is a serial port, you can set the serialControlString
 <property> to specify the speed, parity, and other settings. Set the
 <serialControlString> before using the <open driver> <command>.
-
-Changes:
-The <encoding> parameter was introduced in version 7.0
 
 References: write to driver (command), open file (command),
 function (control structure), property (glossary), Unix (glossary),

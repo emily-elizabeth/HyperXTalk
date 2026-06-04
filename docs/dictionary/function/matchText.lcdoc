@@ -8,11 +8,11 @@ Summary:
 <return|Returns> true if a <regular expression> is found in the
 specified <string>, false otherwise.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 matchText("Goodbye","bye")
@@ -90,10 +90,6 @@ matched substrings.
 > <regular expression> elements you can use with this
 > <function(control structure)>, see the PCRE pattern documentation at
 > http://www.pcre.org/original/doc/html/pcrepattern.html.
-
-Changes:
-The regular expression format changed in version 2.0 to use PCRE
-compatible syntax.
 
 References: find (command), filter (command),
 function (control structure), matchChunk (function), value (function),

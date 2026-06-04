@@ -7,11 +7,11 @@ Syntax: codeunit
 Summary:
 Designates the encoded unit in which a codepoint is stored.
 
-Introduced: 7.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 get codeunit 1 of tString

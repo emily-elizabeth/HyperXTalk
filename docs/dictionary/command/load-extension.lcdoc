@@ -7,11 +7,11 @@ Syntax: load extension {from file <filePath> | from data <moduleData>} [ with re
 Summary:
 Load a Builder extension.
 
-Introduced: 8.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 load extension from file "packaged_extensions/com.livecodewidget.navbar/module.lcm"

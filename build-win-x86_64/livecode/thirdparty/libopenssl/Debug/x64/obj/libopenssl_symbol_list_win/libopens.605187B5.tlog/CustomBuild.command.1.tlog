@@ -1,3 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\UTIL\LIST_STUB_SYMBOLS.PY
-call python "..\..\..\..\util\list_stub_symbols.py" "" "..\..\..\..\thirdparty\libopenssl\ssl.stubs" "C:\Users\user\Documents\GitHub\HyperXTalk\build-win-x86_64\livecode\thirdparty\libopenssl\..\..\Debug\obj\global_intermediate\src\revsecurity.def" "--exportdef=REVSECURITY"
-if %errorlevel% neq 0 exit /b %errorlevel%

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -141,12 +125,12 @@ bool MCImageDecode(IO_handle p_stream, MCBitmapFrame *&r_frames, uindex_t &r_fra
 bool MCImageDecode(const uint8_t *p_data, uindex_t p_size, MCBitmapFrame *&r_frames, uindex_t &r_frame_count)
 {
 	bool t_success = true;
-    MCAutoDataRef t_data;
+	MCAutoDataRef t_data;
 
 	IO_handle t_stream = nil;
 
-    if (t_success)
-        t_success = nil != (t_stream = MCS_fakeopen((const char *)p_data, p_size));
+	if (t_success)
+		t_success = nil != (t_stream = MCS_fakeopen((const char *)p_data, p_size));
 
 	if (t_success)
 		t_success = MCImageDecode(t_stream, r_frames, r_frame_count);

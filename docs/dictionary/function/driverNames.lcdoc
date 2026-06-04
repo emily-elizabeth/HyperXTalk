@@ -9,7 +9,7 @@ Syntax: driverNames()
 Summary:
 <return|Returns> a list of available serial <device driver|drivers>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac
 

@@ -8,7 +8,7 @@ Summary:
 Specifies whether the window with the <menu bar> comes to the front when
 the user opens a menu.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: windows, linux
 

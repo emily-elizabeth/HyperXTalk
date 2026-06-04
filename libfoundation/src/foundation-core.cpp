@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <foundation.h>
 #include <foundation-auto.h>
 #include <foundation-stdlib.h>
@@ -36,84 +20,84 @@ const char *__MCSysCharset;
 
 bool MCInitialize(void)
 {
-    if (!__MCUnicodeInitialize())
-        return false;
-    
-    if (!__MCValueInitialize())
+	if (!__MCUnicodeInitialize())
 		return false;
-    
+
+	if (!__MCValueInitialize())
+		return false;
+
 	if (!__MCStringInitialize())
 		return false;
-    
+
 	if (!__MCNameInitialize())
 		return false;
-    
-    if (!__MCErrorInitialize())
-        return false;
-    
-    if (!__MCTypeInfoInitialize())
-        return false;
-    
-    if (!__MCForeignValueInitialize())
-        return false;
-    
-    if (!__MCNumberInitialize())
-        return false;
-    
+
+	if (!__MCErrorInitialize())
+		return false;
+
+	if (!__MCTypeInfoInitialize())
+		return false;
+
+	if (!__MCForeignValueInitialize())
+		return false;
+
+	if (!__MCNumberInitialize())
+		return false;
+
 	if (!__MCArrayInitialize())
 		return false;
-    
+
 	if (!__MCListInitialize())
 		return false;
-    
+
 	if (!__MCSetInitialize())
 		return false;
-    
-    if (!__MCDataInitialize())
-        return false;
-    
-    if (!__MCRecordInitialize())
-        return false;
-    
-    if (!__MCLocaleInitialize())
-        return false;
 
-    if (!__MCProperListInitialize())
-        return false;
-    
-    if (!__MCStreamInitialize())
-        return false;
-    
-    if (!__MCJavaInitialize())
-        return false;
-    
-    if (!__MCObjcInitialize())
-        return false;
+	if (!__MCDataInitialize())
+		return false;
+
+	if (!__MCRecordInitialize())
+		return false;
+
+	if (!__MCLocaleInitialize())
+		return false;
+
+	if (!__MCProperListInitialize())
+		return false;
+
+	if (!__MCStreamInitialize())
+		return false;
+
+	if (!__MCJavaInitialize())
+		return false;
+
+	if (!__MCObjcInitialize())
+		return false;
 
 	return true;
 }
 
 void MCFinalize(void)
 {
-    __MCStreamFinalize();
-    __MCProperListFinalize();
+	__MCStreamFinalize();
+	__MCProperListFinalize();
 	__MCLocaleFinalize();
-    __MCRecordFinalize();
-    __MCDataFinalize();
-    __MCSetFinalize();
+	__MCRecordFinalize();
+	__MCDataFinalize();
+	__MCSetFinalize();
 	__MCListFinalize();
 	__MCArrayFinalize();
-    __MCNumberFinalize();
-    __MCForeignValueFinalize();
-    __MCTypeInfoFinalize();
-    __MCErrorFinalize();
+	__MCNumberFinalize();
+	__MCForeignValueFinalize();
+	__MCTypeInfoFinalize();
+	__MCErrorFinalize();
 	__MCNameFinalize();
 	__MCStringFinalize();
-    __MCUnicodeFinalize();
-    __MCJavaFinalize();
-    __MCObjcFinalize();
+	__MCUnicodeFinalize();
+	__MCJavaFinalize();
+	__MCObjcFinalize();
 
-    // Finalize values last
+	// Finalize values last
 	__MCValueFinalize();
 }
 

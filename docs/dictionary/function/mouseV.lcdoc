@@ -10,11 +10,11 @@ Summary:
 The <mouseV> <property> <return|returns> the vertical position of the
 <pointer>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the mouseV

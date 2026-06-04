@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -1693,6 +1677,140 @@ void MCSubwindow::exec_ctxt(MCExecContext &ctxt)
 			break;
 		}
     }
+}
+
+// ---------------------------------------------------------------------------
+// MCPopover
+// ---------------------------------------------------------------------------
+
+MCPopover::MCPopover()
+{
+	target = nullptr;
+	anchor = nullptr;
+	edge   = nullptr;
+}
+
+MCPopover::~MCPopover()
+{
+	delete target;
+	delete anchor;
+	delete edge;
+}
+
+Parse_stat MCPopover::parse(MCScriptPoint &sp)
+{
+	initpoint(sp);
+
+	// Parse the stack target: popover stack "Name" ...
+	target = new (nothrow) MCChunk(False);
+	if (target->parse(sp, False) != PS_NORMAL)
+	{
+		MCperror->add(PE_SUBWINDOW_BADEXP, sp);
+		return PS_ERROR;
+	}
+
+	// Optional: anchored to <control>
+	if (sp.skip_token(SP_SUGAR, TT_UNDEFINED, SG_ANCHORED) == PS_NORMAL)
+	{
+		sp.skip_token(SP_FACTOR, TT_TO, PT_TO);
+		anchor = new (nothrow) MCChunk(False);
+		if (anchor->parse(sp, False) != PS_NORMAL)
+		{
+			MCperror->add(PE_SUBWINDOW_BADEXP, sp);
+			return PS_ERROR;
+		}
+	}
+
+	// Optional: edge <edge-string>
+	// Note: we cannot use "on edge" here because "on" is tokenised as
+	// TT_OF/PT_ON and MCChunk::parse() consumes TT_OF tokens as chunk
+	// hierarchy separators (e.g. "button X on card Y"), which means it
+	// would greedily eat "on" while parsing the anchor chunk above.
+	if (sp.skip_token(SP_SUGAR, TT_UNDEFINED, SG_EDGE) == PS_NORMAL)
+	{
+		if (sp.parseexp(False, True, &edge) != PS_NORMAL)
+		{
+			MCperror->add(PE_SUBWINDOW_BADEXP, sp);
+			return PS_ERROR;
+		}
+	}
+
+	return PS_NORMAL;
+}
+
+void MCPopover::exec_ctxt(MCExecContext &ctxt)
+{
+	// ------------------------------------------------------------------
+	// Resolve the stack target
+	// ------------------------------------------------------------------
+	MCObject *t_stack_obj = nil;
+	MCNewAutoNameRef t_stack_name;
+	uint4 t_parid;
+
+	MCerrorlock++;
+	MCExecContext ctxt2(ctxt);
+	bool t_stack_by_obj = target->getobj(ctxt2, t_stack_obj, t_parid, True)
+	                      && t_stack_obj->gettype() == CT_STACK;
+	MCerrorlock--;
+
+	if (!t_stack_by_obj)
+	{
+		if (!ctxt.EvalExprAsNameRef(target, EE_SUBWINDOW_BADEXP, &t_stack_name))
+			return;
+	}
+
+	// ------------------------------------------------------------------
+	// Resolve anchor control → screen rect
+	// ------------------------------------------------------------------
+	MCRectangle t_anchor_rect;
+	MCRectangle *t_anchor_rect_ptr = nil;
+
+	MCObject *t_anchor_obj = nil;
+	if (anchor != nil)
+	{
+		uint4 t_arid;
+		MCerrorlock++;
+		MCExecContext ctxt3(ctxt);
+		if (anchor->getobj(ctxt3, t_anchor_obj, t_arid, True) && t_anchor_obj != nil)
+		{
+			t_anchor_rect = MCU_recttoroot(t_anchor_obj->getstack(), t_anchor_obj->getrect());
+			t_anchor_rect_ptr = &t_anchor_rect;
+		}
+		MCerrorlock--;
+	}
+
+	// ------------------------------------------------------------------
+	// Resolve edge string → Window_position
+	// ------------------------------------------------------------------
+	// Default: bottom (popover appears below the anchor)
+	int t_edge = WP_PARENTBOTTOM;
+	if (edge != nil)
+	{
+		MCAutoStringRef t_edge_str;
+		if (!ctxt.EvalExprAsStringRef(edge, EE_SUBWINDOW_BADEXP, &t_edge_str))
+			return;
+
+		if (MCStringIsEqualToCString(*t_edge_str, "top", kMCCompareCaseless))
+			t_edge = WP_PARENTTOP;
+		else if (MCStringIsEqualToCString(*t_edge_str, "bottom", kMCCompareCaseless))
+			t_edge = WP_PARENTBOTTOM;
+		else if (MCStringIsEqualToCString(*t_edge_str, "left", kMCCompareCaseless))
+			t_edge = WP_PARENTLEFT;
+		else if (MCStringIsEqualToCString(*t_edge_str, "right", kMCCompareCaseless))
+			t_edge = WP_PARENTRIGHT;
+	}
+
+	// ------------------------------------------------------------------
+	// Open the popover
+	// ------------------------------------------------------------------
+	// Record the anchor's stack so the Linux GDK_CONFIGURE handler can
+	// translate the popover when the parent window is moved.
+	MCpopoverparentstack = (t_anchor_obj != nil) ? t_anchor_obj->getstack() : nullptr;
+
+	if (t_stack_by_obj)
+		MCInterfaceExecPopoverStack(ctxt, (MCStack *)t_stack_obj, t_anchor_rect_ptr, t_edge);
+	else
+		MCInterfaceExecPopoverStackByName(ctxt, *t_stack_name, t_anchor_rect_ptr, t_edge);
 }
 
 MCUnlock::~MCUnlock()

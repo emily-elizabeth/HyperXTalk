@@ -6,13 +6,11 @@
 			[
 				'OS == "win"',
 				{
-					'variables':
-					{
-						'invoke_unix_path': '$(ProjectDir)../../../../../util/invoke-unix.bat',
-					},
-					
-					'flex': ['<(invoke_unix_path)', '/usr/bin/flex'],
-					'bison': ['<(invoke_unix_path)', '/usr/bin/bison'],
+					# Use win_flex.exe / win_bison.exe from the winflexbison3 Chocolatey
+					# package instead of routing through invoke-unix.bat + Cygwin.
+					# These are native Windows executables with the same CLI as GNU flex/bison.
+					'flex': ['win_flex.exe'],
+					'bison': ['win_bison.exe'],
 				},
 				{
 					'flex': 'flex',

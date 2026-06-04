@@ -1,0 +1,485 @@
+Library: com.hyperxtalk.library.hxtpm
+
+Type: library
+
+Title: HyperXTalk Package Manager Library
+
+Author: HyperXTalk
+
+Version: 1.2.0
+
+Description:
+Script library for installing, updating, and removing HyperXTalk packages
+from the hxtpm registry.
+
+Packages are hosted on GitHub or stored locally. Three package types are
+supported:
+
+  lcs â Script libraries. Installed to the user libraries folder as a named
+        subfolder containing the .livecodescript file. Loaded immediately via
+        start using stack. No IDE restart required.
+
+  lce â Pre-compiled LiveCode Extension packages (.lce zip). Installed to the
+        user extensions folder via the IDE extension manager. Loaded immediately
+        via load extension from file. No IDE restart required.
+
+  lcp â LiveCode IDE plugins. The plugin stack file is placed directly in the
+        user plugins folder. The IDE plugin registry is refreshed via
+        revIDEUpdatePlugins immediately after install or uninstall.
+        No IDE restart required.
+
+Multiple package sources are supported. A source can be a remote GitHub-hosted
+registry or a local folder on disk. The official HyperXTalk source is always
+present and cannot be removed; additional sources can be added by developers
+or users. Packages are resolved in source order; the first source that
+provides a package wins.
+
+The sources list is stored in a JSON file at:
+   <UserLibraries>/.hxtpm/sources.json
+
+Package metadata (hxtpm.json) is written alongside each installed package:
+   lcs  â <UserLibraries>/<name>/hxtpm.json
+   lce  â <UserExtensions>/<name>.<version>/hxtpm.json
+   lcp  â <UserPlugins>/.hxtpm/<name>/hxtpm.json
+
+Install and update commands are asynchronous: they return immediately and
+deliver their result via a message dispatched to the calling object.
+Uninstall and source-management commands are synchronous and return empty on
+success or an error message via the result.
+
+Authoring checksums:
+Use hxtpmComputeChecksum to get the correct sha256 value for a package file
+URL before writing it into package.json. This downloads the file through
+LiveCode's own network stack and hashes it identically to how the install
+pipeline verifies it, guaranteeing the values will match.
+
+Usage:
+   -- Browse all packages available across all sources
+   put hxtpmAvailable() into tAll
+   repeat for each key tName in tAll
+      put tName && tAll[tName]["latest"] & return after field "packageList"
+   end repeat
+
+   -- Install the latest version of a package (resolved from all sources)
+   hxtpmInstall "com.example.library.myutils"
+
+   on hxtpmInstallComplete pName, pError
+      if pError is not empty then answer error pError
+   end hxtpmInstallComplete
+
+   -- Install a specific version
+   hxtpmInstall "com.example.library.myutils", "1.2.0"
+
+   -- Manage sources
+   hxtpmSourceAdd "Acme Corp", "https://raw.githubusercontent.com/acme/hxtpm-packages/main"
+   hxtpmSourceAdd "Local Dev", "/Users/me/dev/my-packages"
+   hxtpmSourceRemove "Acme Corp"
+   put hxtpmSourceList() into tSources
+
+   -- Check what is installed
+   put hxtpmInstalled() into tInstalled
+   repeat for each key tName in tInstalled
+      put tName && tInstalled[tName]["version"] & return after field "packageList"
+   end repeat
+
+   -- Uninstall / update
+   hxtpmUninstall "com.example.library.myutils"
+   if the result is not empty then answer error the result
+
+   hxtpmUpdate "com.example.library.myutils"
+
+   on hxtpmUpdateComplete pName, pError
+      if pError is not empty then answer error pError
+   end hxtpmUpdateComplete
+
+   -- Compute the correct checksum for a URL before writing it into package.json
+   hxtpmComputeChecksum "https://raw.githubusercontent.com/example/repo/main/MyLib.lcs"
+
+   on hxtpmChecksumComplete pURL, pChecksum, pError
+      if pError is not empty then answer error pError
+      -- paste pChecksum directly into the "checksum" field of package.json
+   end hxtpmChecksumComplete
+
+Name: hxtpmInstall
+
+Type: command
+
+Syntax: hxtpmInstall <pName>,<pVersion>
+
+Summary: Install a package.
+
+Parameters: 
+
+pName: The package name, e.g. "com.example.library.myutils".
+
+pVersion: A specific version string. If omitted, the latest version is installed.
+
+Description:
+Searches all configured sources in order and installs the package from the
+first source that provides it. The install is asynchronous: hxtpmInstall
+returns immediately and the caller receives an hxtpmInstallComplete message
+when the install finishes (whether it succeeded or failed).
+
+The package type determines how it is installed:
+
+  lcs â Placed in the user libraries folder and loaded immediately via
+        start using stack.
+  lce â Installed via the IDE extension manager and loaded immediately.
+  lcp â Stack file placed in the user plugins folder; the IDE plugin registry
+        is refreshed immediately via revIDEUpdatePlugins.
+
+No IDE restart is required for any package type.
+
+Example:
+   -- Trigger install
+   hxtpmInstall "com.example.library.myutils"
+
+   -- Handle the result
+   on hxtpmInstallComplete pName, pError
+      if pError is not empty then
+         answer error pError
+      else
+         answer "Installed" && pName
+      end if
+   end hxtpmInstallComplete
+
+
+
+Name: hxtpmAvailable
+
+Type: function
+
+Syntax: hxtpmAvailable(<pSourceName>)
+
+Summary: Return an array of packages available from a given source.
+
+Parameters: 
+
+pSourceName:
+The name of the source to query. Pass empty to query
+all sources (first source wins on name collision).
+
+Returns:
+An array keyed by package name. Each entry contains: title, description,
+author, type, license, repository, latest (version string), versions (list),
+source (source name). Returns empty if the source index could not be fetched.
+
+Example:
+   -- Browse a specific source
+   put hxtpmAvailable("HyperXTalk Official") into tPkgs
+   repeat for each key tName in tPkgs
+      put tName && tPkgs[tName]["latest"] & return after field "packageList"
+   end repeat
+
+   -- Browse all sources (legacy / combined view)
+   put hxtpmAvailable() into tAll
+
+
+
+Name: hxtpmComputeChecksum
+
+Type: command
+
+Syntax: hxtpmComputeChecksum <pURL>
+
+Summary: Compute the hxtpm-compatible SHA-256 checksum for a package file URL.
+
+Parameters: 
+
+pURL: The direct download URL of the package file.
+
+Description:
+Downloads the file via libURLDownloadToFile and computes its SHA-256 checksum
+using exactly the same method as hxtpm's internal checksum verification â so
+the value produced here is guaranteed to match at install time.
+
+The result is delivered asynchronously via an hxtpmChecksumComplete message sent
+to the calling object:
+
+   on hxtpmChecksumComplete pURL, pChecksum, pError
+      -- pChecksum is in the form "sha256:<hex>" on success, empty on failure
+      -- pError is empty on success, or an error message on failure
+   end hxtpmChecksumComplete
+
+Use this command when authoring a new package.json to get the correct checksum
+value to put in the "checksum" field for a given version's source URL.
+
+Example:
+   hxtpmComputeChecksum "https://raw.githubusercontent.com/example/repo/main/MyLib.livecodescript"
+
+   on hxtpmChecksumComplete pURL, pChecksum, pError
+      if pError is not empty then
+         answer error pError
+      else
+         answer "Checksum for" && pURL & ":" & return & pChecksum
+      end if
+   end hxtpmChecksumComplete
+
+
+
+Name: hxtpmInfo
+
+Type: function
+
+Syntax: hxtpmInfo(<pName>)
+
+Summary: Return registry metadata for a package.
+
+Parameters: 
+
+pName: The package name.
+
+Returns:
+An array with keys: name, title, description, author, license, repository,
+type, source (source name), versions. Returns empty if not found in any source.
+
+Example:
+   put hxtpmInfo("com.example.library.myutils") into tInfo
+   put tInfo["title"] into field "packageTitle"
+   put tInfo["source"] into field "packageSource"
+
+
+
+Name: hxtpmVersions
+
+Type: function
+
+Syntax: hxtpmVersions(<pName>)
+
+Summary: Return the available versions for a package, newest first.
+
+Parameters: 
+
+pName: The package name.
+
+Returns:
+A line-delimited list of version strings sorted newest-first, or empty if
+the package is not found in any source.
+
+Example:    put hxtpmVersions("com.example.library.myutils") into tVersions
+
+
+
+
+Name: hxtpmInstalled
+
+Type: function
+
+Syntax: hxtpmInstalled()
+
+Summary: Return an array describing all installed packages.
+
+Returns:
+An array keyed by package name. Each value is an array with keys: name,
+version, type, source (source name), installed (date string).
+
+Example:
+   put hxtpmInstalled() into tPackages
+   repeat for each key tName in tPackages
+      put tName && tPackages[tName]["version"] & return after field "packageList"
+   end repeat
+
+
+
+Name: hxtpmSourceRemove
+
+Type: command
+
+Syntax: hxtpmSourceRemove <pName>
+
+Summary: Remove a previously added source.
+
+Parameters: 
+
+pName: The name of the source to remove (as it was given to hxtpmSourceAdd).
+
+Description:
+Removes the named source from the list. The official HyperXTalk source is
+pinned and cannot be removed. Removing a source does not uninstall packages
+that were installed from it. The result is empty on success or an error
+message on failure.
+
+Example:
+   hxtpmSourceRemove "Acme Corp"
+   if the result is not empty then answer error the result
+
+
+
+Name: hxtpmIsInstalled
+
+Type: function
+
+Syntax: hxtpmIsInstalled(<pName>)
+
+Summary: Return true if a package is currently installed.
+
+Parameters: 
+
+pName: The package name.
+
+Returns: True if the package is installed, false otherwise.
+
+Example:
+   if hxtpmIsInstalled("com.example.library.myutils") then
+      put "installed" into field "status"
+   end if
+
+
+
+Name: hxtpmInstalledVersion
+
+Type: function
+
+Syntax: hxtpmInstalledVersion(<pName>)
+
+Summary: Return the currently installed version of a package.
+
+Parameters: 
+
+pName: The package name.
+
+Returns: The installed version string, or empty if the package is not installed.
+
+Example:    put hxtpmInstalledVersion("com.example.library.myutils") into tVersion
+
+
+
+
+Name: hxtpmLatestVersion
+
+Type: function
+
+Syntax: hxtpmLatestVersion(<pName>)
+
+Summary: Return the latest available version of a package.
+
+Parameters: 
+
+pName: The package name.
+
+Returns: The latest version string, or empty if the package is not found.
+
+Example:    put hxtpmLatestVersion("com.example.library.myutils") into tLatest
+
+
+
+
+Name: hxtpmUpdate
+
+Type: command
+
+Syntax: hxtpmUpdate <pName>
+
+Summary: Update an installed package to the latest version from its source.
+
+Parameters: 
+
+pName: The package name to update.
+
+Description:
+Fetches the latest version from whichever source originally provided the
+package, uninstalls the current version, and installs the latest. If already
+at the latest version, hxtpmUpdateComplete is dispatched immediately with an
+empty error.
+
+The update is asynchronous: hxtpmUpdate returns immediately and the caller
+receives an hxtpmUpdateComplete message when the update finishes. The message
+signature is identical to hxtpmInstallComplete â pName and pError.
+
+Example:
+   -- Trigger update
+   hxtpmUpdate "com.example.library.myutils"
+
+   -- Handle the result
+   on hxtpmUpdateComplete pName, pError
+      if pError is not empty then
+         answer error pError
+      else
+         answer "Updated" && pName
+      end if
+   end hxtpmUpdateComplete
+
+
+
+Name: hxtpmUninstall
+
+Type: command
+
+Syntax: hxtpmUninstall <pName>
+
+Summary: Uninstall an installed package.
+
+Parameters: 
+
+pName: The package name to remove.
+
+Description:
+Removes the installed package and cleans up its files. Behaviour by type:
+
+  lcs â Stops using the stack and deletes the package subfolder from the user
+        libraries folder.
+  lce â Unloads and removes the extension via the IDE extension manager.
+  lcp â Deletes the plugin stack file from the user plugins folder and refreshes
+        the IDE plugin registry via revIDEUpdatePlugins.
+
+The result is empty on success or an error message on failure.
+
+Example:
+   hxtpmUninstall "com.example.library.myutils"
+   if the result is not empty then answer error the result
+
+
+
+Name: hxtpmSourceList
+
+Type: function
+
+Syntax: hxtpmSourceList()
+
+Summary: Return the current list of package sources.
+
+Returns:
+A numerically-keyed array. Each element contains: name, url or path,
+and optionally pinned (true for the official source).
+
+Example:
+   put hxtpmSourceList() into tSources
+   repeat for each key tIdx in tSources
+      put tSources[tIdx]["name"] & return after field "sourceList"
+   end repeat
+
+
+
+Name: hxtpmSourceAdd
+
+Type: command
+
+Syntax: hxtpmSourceAdd <pName>,<pURLOrPath>
+
+Summary: Add a new package source.
+
+Parameters: 
+
+pName: A short human-readable name for the source, e.g. "Acme Corp Packages".
+
+pURLOrPath:
+Either a base URL for a remote source (e.g.
+   "https://raw.githubusercontent.com/acme/hxtpm-packages/main") or an
+   absolute local folder path (e.g. "/Users/me/dev/my-packages").
+   The source must expose an index.json at its root.
+
+Description:
+Validates the source by fetching its index.json, then appends it to the
+sources list. Local paths are implicitly trusted. Remote sources added by
+the user are trusted by act of adding them. The result is empty on success
+or an error message on failure.
+
+Example:
+   hxtpmSourceAdd "Acme Corp", "https://raw.githubusercontent.com/acme/hxtpm-pkgs/main"
+   if the result is not empty then answer error the result
+
+   hxtpmSourceAdd "Local Dev", "/Users/me/dev/local-repo"
+   if the result is not empty then answer error the result
+
+
+

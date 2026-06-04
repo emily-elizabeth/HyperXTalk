@@ -10,11 +10,11 @@ end <functionName>
 Summary:
 Defines a custom function <handler>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 function myFunction

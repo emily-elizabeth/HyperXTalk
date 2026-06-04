@@ -10,11 +10,11 @@ edges before a bevel join is used.
 
 Associations: graphic
 
-Introduced: 3.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the miterLimit of graphic "polygon 1" of this card to 5

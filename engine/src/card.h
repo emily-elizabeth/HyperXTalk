@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #ifndef	CARD_H
 #define	CARD_H
 
@@ -176,6 +160,13 @@ public:
 	}
 	MCControl *getkfocused();
 	MCControl *getmfocused();
+	// Returns the top-level mouse-focused control without drilling into groups.
+	// Use this when you need the group itself rather than its deepest child.
+	MCControl *getrawmfocused();
+	// Returns the frontmost top-level group whose rect contains (x, y), or nil.
+	// Used to route scroll events to a group when the mouse is over empty space
+	// inside it (getmfocused() returns NULL in that case).
+	MCObject *findGroupUnderPoint(int2 x, int2 y);
 
 	MCControl *getmousecontrol(void);
 	

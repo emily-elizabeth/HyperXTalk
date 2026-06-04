@@ -263,10 +263,10 @@ Boolean MCWidgetEventManager::event_mdown(MCWidget* p_widget, uint2 p_which)
     // Prevent the IDE from breaking
     if (!widgetIsInRunMode(p_widget))
         return p_widget->MCControl::mdown(p_which);
-	
-	if (!check_mouse_focus(p_widget, "event_mdown"))
-		return False;
-	
+
+    if (!check_mouse_focus(p_widget, "event_mdown"))
+        return False;
+
     return mouseDown(m_mouse_focus, p_which);
 }
 

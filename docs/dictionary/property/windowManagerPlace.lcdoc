@@ -12,7 +12,7 @@ Specifies whether a <Unix> window manager can automatically place a
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

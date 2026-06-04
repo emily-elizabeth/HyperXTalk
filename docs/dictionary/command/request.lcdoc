@@ -8,7 +8,7 @@ Summary:
 The <request> data gets information from another application via 
 <Apple Event|Apple Events>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 

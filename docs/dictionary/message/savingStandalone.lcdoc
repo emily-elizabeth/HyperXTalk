@@ -9,7 +9,7 @@ Sent to the mainstack when a standalone application is being saved.
 
 Associations: stack
 
-Introduced: 2.2
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

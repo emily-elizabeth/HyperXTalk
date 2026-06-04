@@ -1,3 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\UTIL\ENCODE_VERSION.PL
-call call perl "..\..\util\encode_version.pl" "-782094cccce929177bc10049c2afebb08d10ff37" "..\..\engine" "\..\shared_intermediate"
-if %errorlevel% neq 0 exit /b %errorlevel%

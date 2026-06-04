@@ -10,11 +10,11 @@ Summary:
 Used with the <seek> and <move> <command> to start the action at the
 current position.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 seek relative -20 in file "Input Date"

@@ -7,7 +7,7 @@ Syntax: record resume
 Summary:
 Resumes the pasued sound recording.
 
-Introduced: 6.7
+Introduced: 1.0.0
 
 OS: mac, windows
 

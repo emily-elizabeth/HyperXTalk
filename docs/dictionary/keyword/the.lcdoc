@@ -8,11 +8,11 @@ Summary:
 Appears before the names of <properties> and the names of
 <function|functions> that are not followed by parentheses
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the script of me to field "Script Contents"

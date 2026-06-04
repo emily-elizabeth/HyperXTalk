@@ -8,7 +8,7 @@ Summary:
 Specifies whether HyperXTalk creates a data structure to hold the screen
 image of each window.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -7,11 +7,11 @@ Syntax: set the fullscreenmode of <stack> to {empty|"exactFit"|"letterbox"|"noBo
 Summary:
 Sets the full screen scaling mode of a stack.
 
-Introduced: 6.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the fullscreenmode of this stack to empty

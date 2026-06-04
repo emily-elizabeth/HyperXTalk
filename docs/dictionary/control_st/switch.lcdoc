@@ -25,11 +25,11 @@ Chooses among several possible <value(glossary)|values> for an
 <expression>, and <execute|executes> a set of <statement|statements>
 that depends on the <value(function)>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: mobile
+Platforms: 
 
 Parameters:
 switchExpression:

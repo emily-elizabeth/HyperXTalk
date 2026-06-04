@@ -1,6 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\UTIL\ENCODE_ERRORS.PY
-call python "..\..\..\util\encode_errors.py" "..\..\..\engine\src" "Debug\Win32\obj\kernel-standalone\src\encodederrors.cpp"
-if %errorlevel% neq 0 exit /b %errorlevel%
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\UTIL\HASH_STRINGS.PY
-call python "..\..\..\util\hash_strings.py" "..\..\..\engine\src\lextable.cpp" "Debug\Win32\obj\kernel-standalone\src\hashedstrings.cpp" "C:\Users\user\Documents\GitHub\HyperXTalk\build-win-x86_64\livecode\Debug\perfect-target"
-if %errorlevel% neq 0 exit /b %errorlevel%

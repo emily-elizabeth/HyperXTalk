@@ -9,11 +9,11 @@ Sent to a new <player> right after it's created.
 
 Associations: player
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on newPlayer -- assign a file

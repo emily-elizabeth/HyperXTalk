@@ -1,8 +1,0 @@
-<package version="0.0">
-  <name>com.livecode.library.extension-utils</name>
-  <title>Extension Package Handling Utilities</title>
-  <author />
-  <version>1.0.0</version>
-  <type>library</type>
-  <license>community</license>
-</package>

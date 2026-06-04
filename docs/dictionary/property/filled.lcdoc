@@ -12,11 +12,11 @@ Specifies whether <graphic|graphics> and shapes drawn with the
 
 Associations: graphic
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the filled to true -- affects paint tools

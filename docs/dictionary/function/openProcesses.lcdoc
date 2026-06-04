@@ -10,7 +10,7 @@ Summary:
 <return|Returns> the names of <process|processes> that have been opened
 with the <open process> <command>, but have not yet <exit|exited>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

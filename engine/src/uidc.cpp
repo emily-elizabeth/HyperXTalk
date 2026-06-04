@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "sysdefs.h"
@@ -1354,63 +1338,63 @@ bool MCUIDC::hasmessagestodispatch(void)
 //   of messages[] now being a sorted list.
 Boolean MCUIDC::handlepending(real8& curtime, real8& eventtime, Boolean dispatch)
 {
-    Boolean t_handled;
-    t_handled = False;
-    for(uindex_t i = 0; i < m_messages.GetCount(); i++)
-    {
-        MCPendingMessage t_msg = m_messages[i];
-        
-        // If the next message is later than curtime, we've not processed a message.
-        if (t_msg.m_time > curtime)
-            break;
-        
-        if (!dispatch && t_msg.m_id == 0 && MCNameIsEqualToCaseless(*t_msg.m_message, MCM_idle))
-        {
-            doshiftmessage(i, curtime + MCidleRate / 1000.0);
-            continue;
-        }
-        
-        if (dispatch || t_msg.m_id == 0)
-        {
-            // Remove this message from the queue
-            cancelmessageindex(i, false);
-            
-            // If the object is still live, dispatch the message to it
-            if (t_msg.m_object.IsValid())
-            {
-                MCSaveprops sp;
-                MCU_saveprops(sp);
-                MCU_resetprops(False);
-                t_msg.m_object->timer(*t_msg.m_message, t_msg.m_params);
-                MCU_restoreprops(sp);
-                t_msg.DeleteParameters();
-            }
-            
-            // A message has been removed from the queue, so don't increment the
-            // counter on this iteration.
-            i -= 1;
-            
-            curtime = MCS_time();
-            
-            t_handled = True;
-            break;
-        }
-    }
-    
-    if (moving != NULL)
-        handlemoves(curtime, eventtime);
-    
+	Boolean t_handled;
+	t_handled = False;
+	for(uindex_t i = 0; i < m_messages.GetCount(); i++)
+	{
+		MCPendingMessage t_msg = m_messages[i];
+		
+		// If the next message is later than curtime, we've not processed a message.
+		if (t_msg.m_time > curtime)
+			break;
+		
+		if (!dispatch && t_msg.m_id == 0 && MCNameIsEqualToCaseless(*t_msg.m_message, MCM_idle))
+		{
+			doshiftmessage(i, curtime + MCidleRate / 1000.0);
+			continue;
+		}
+		
+		if (dispatch || t_msg.m_id == 0)
+		{
+			// Remove this message from the queue
+			cancelmessageindex(i, false);
+			
+			// If the object is still live, dispatch the message to it
+			if (t_msg.m_object.IsValid())
+			{
+				MCSaveprops sp;
+				MCU_saveprops(sp);
+				MCU_resetprops(False);
+				t_msg.m_object->timer(*t_msg.m_message, t_msg.m_params);
+				MCU_restoreprops(sp);
+				t_msg.DeleteParameters();
+			}
+			
+			// A message has been removed from the queue, so don't increment the
+			// counter on this iteration.
+			i -= 1;
+			
+			curtime = MCS_time();
+			
+			t_handled = True;
+			break;
+		}
+	}
+
+	if (moving != NULL)
+		handlemoves(curtime, eventtime);
+
 	real8 stime = IO_cleansockets(curtime);
-    if (stime < eventtime)
-        eventtime = stime;
-    
-    // SN-2014-12-12: [[ Bug 13360 ]] We don't want to change the eventtime if the message is not forced to be dispatched nor internal
-    if (m_messages.GetCount() > 0
-            && (dispatch || m_messages[0].m_id == 0)
-            && m_messages[0].m_time < eventtime)
-        eventtime = m_messages[0].m_time;
-    
-    return t_handled;
+	if (stime < eventtime)
+		eventtime = stime;
+
+	// SN-2014-12-12: [[ Bug 13360 ]] We don't want to change the eventtime if the message is not forced to be dispatched nor internal
+	if (m_messages.GetCount() > 0
+			&& (dispatch || m_messages[0].m_id == 0)
+			&& m_messages[0].m_time < eventtime)
+		eventtime = m_messages[0].m_time;
+
+	return t_handled;
 }
 
 

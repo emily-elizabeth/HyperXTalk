@@ -7,11 +7,11 @@ Syntax: set the currentPage of <EPS> to <pageNumber>
 Summary:
 Specifies the page being displayed in a multi-page <EPS|EPS object>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: linux, ios, android
+OS: linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the currentPage of EPS 6 to (1 + the currentPage of EPS 6)

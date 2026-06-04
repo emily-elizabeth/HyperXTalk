@@ -13,11 +13,11 @@ from another <object(glossary)>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image, widget
 
-Introduced: 3.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local tNewGroup
@@ -92,13 +92,6 @@ Then the <message path> will be:
 
 **Note:** The synonym `parentScript` is deprecated and should not be
 used. 
-
-Changes:
-From version 6.7.5, a stack can be used as a behavior.
-From version 6.1, the behavior property of a control currently
-being used as a behavior will now be taken into account and result
-in the child behavior deferring to the parent behavior in the same
-way a control defers to its behavior.
 
 
 References: dispatch (command), empty (constant), object (glossary),

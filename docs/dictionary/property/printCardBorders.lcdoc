@@ -7,11 +7,11 @@ Syntax: set the printCardBorders to {true | false}
 Summary:
 Specifies whether the printed image of a <card> is outlined.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: printing
 

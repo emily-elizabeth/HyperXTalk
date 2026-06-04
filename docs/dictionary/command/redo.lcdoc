@@ -7,7 +7,7 @@ Syntax: redo
 Summary:
 The <redo> <command> is not implemented and is <reserved word|reserved>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 

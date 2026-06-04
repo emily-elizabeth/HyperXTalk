@@ -8,11 +8,11 @@ Summary:
 Sent to the object that altered the <msg> <global> <variable> using the
 <put> <command>.
 
-Introduced: 9.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 on msgChanged pHandler, pLine

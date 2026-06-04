@@ -9,11 +9,11 @@ Specifies the size the fragments of object images it caches should be.
 
 Associations: stack
 
-Introduced: 5.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 set the compositorTileSize of this stack to 128
@@ -42,18 +42,11 @@ and 256 inclusive (i.e. 16, 32, 64, 128 or 256).
 
 General suggested <tileSize> settings:
 
-- iOS Retina displays: 64
-- iOS Non-retina: 32
-- Android large screens: 64
-- Android small screens: 32
 - Desktop: 32
 
 
 >*Note:* Use a large tile size when creating big scrolling layers. The
 > maximum size of a scrolling layer is 256 * the <tileSize>.
-
->*Warning:* Using a very small <tileSize> when in openGL mode may
-> decrease performance.
 
 >*Note:* Set the compositor properties in a preOpenStack or preOpenCard
 > handler - they are not persistent (not saved into the stackfile).

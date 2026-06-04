@@ -10,7 +10,7 @@ Summary:
 Displays a <file dialog box|standard file dialog> for the user to choose
 a <folder>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -53,7 +53,7 @@ Description:
 Use the <answer folder> <command> when you want the user to choose a
 <folder> --for example, as a destination for <export|exported> <files>.
 
-If the as sheet form is used, the <dialog box> appears as a sheet on OS X
+If the as sheet form is used, the <dialog box> appears as a sheet on macOS 
 systems. On other systems, the as sheet form has no effect and the
 <dialog box> appears normally. Attempting to open a sheet from within
 another sheet displays the second stack as a <modal dialog box> instead.
@@ -64,9 +64,6 @@ place it would if as sheet was not being used.
 If the systemFileSelector <property> is set to false, the app engine's
 built-in <dialog box> is used instead of the operating system's
 <file dialog box|standard file dialog>.
-
-Changes:
-The answer folder...as sheet form was introduced in version 2.0.
 
 References: answer file (command), revDeleteFolder (command),
 result (function), files (function), property (glossary),

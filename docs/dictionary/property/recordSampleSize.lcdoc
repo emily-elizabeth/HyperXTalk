@@ -7,7 +7,7 @@ Syntax: set the recordSampleSize to <sizeInBits>
 Summary:
 Specifies how large each chunk of data should be when recording sound.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows
 

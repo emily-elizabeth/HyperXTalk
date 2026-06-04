@@ -9,11 +9,11 @@ Syntax: value(<expression> [, <object>])
 Summary:
 <return|Returns> the <value> of an <expression>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the value of 22 + 3 -- returns 25

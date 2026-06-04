@@ -8,7 +8,7 @@ Summary:
 Used with <dispatch> inside a worker handler to target the stack that
 dispatched into the current worker.
 
-Introduced: 10.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -8,11 +8,11 @@ Summary:
 Removes <element(glossary)|elements> from an <array> if they have no
 corresponding <element(keyword)> in another <array>.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local tLeft, tRight
@@ -112,9 +112,6 @@ If the into clause is used the operation of the commands is the same as
 the non-into form except that <targetArray> does not have to be a
 variable, and the result of the operation is placed into
 <destinationArray> rather than mutating <targetArray>.
-
-Changes:
-The `into` clause was added in version 9.
 
 References: split (command), union (command), element (glossary),
 array (glossary), command (glossary), key (glossary), element (keyword),

@@ -10,11 +10,11 @@ Summary:
 Reports the title used in the system printer queue for the next print
 job. 
 
-Introduced: 2.9
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: printing
 

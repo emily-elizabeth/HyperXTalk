@@ -8,11 +8,11 @@ Syntax: group
 
 Summary:
 A <control(keyword)> that contains other <control(glossary)|controls>.
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the showBorder of last group to true

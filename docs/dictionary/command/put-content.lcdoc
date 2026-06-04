@@ -8,7 +8,7 @@ Summary:
 Write the given (unicode) string to stdout, processing it for suitable
 output in an SGML content context.
 
-Introduced: 4.6.3
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

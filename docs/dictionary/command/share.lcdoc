@@ -10,7 +10,7 @@ Summary:
 Displays the native sharing sheet, allowing the user to share text,
 a file, or an image with other apps and services.
 
-Introduced: 10.0
+Introduced: 1.0.0
 
 OS: mac
 

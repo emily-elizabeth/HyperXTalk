@@ -10,11 +10,11 @@ Summary:
 Specifies the <folder> that is used by the <files> and <folders>
 <function|functions> and by <command|commands> that manipulate <files>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the defaultFolder to "/Applications/GetIt" --MacOS, Linux-style file path

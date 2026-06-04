@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 //
 // X ScreenDC display specific functions
 //
@@ -363,8 +347,18 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             hidebackdrop(true);
                             if (MCdefaultstackptr)
                                 MCdefaultstackptr->getcard()->message(MCM_suspend);
-                            
+
                             MCstacks->hidepalettes(true);
+
+                            // Dismiss any open popover — it must not float
+                            // above an unrelated application's window.
+                            if (MCpopoverstack != nullptr)
+                            {
+                                MCStack *t_closing = MCpopoverstack;
+                                MCpopoverstack = nullptr;
+                                MCpopoverparentstack = nullptr;
+                                MCdispatcher->wclose(t_closing->getwindowalways());
+                            }
                         }
                     }
                     
@@ -559,7 +553,20 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
             {
                 // We're not dragging
                 dragclick = false;
-                
+
+                // Click-outside dismiss for WM_POPOVER windows.
+                // If a popover is open and the click landed on a different
+                // GdkWindow, close the popover before handling the event
+                // normally so the click is still delivered to its target.
+                if (MCpopoverstack != nullptr &&
+                    t_event->type == GDK_BUTTON_PRESS &&
+                    t_event->button.window != MCpopoverstack->getwindowalways())
+                {
+                    MCStack *t_closing = MCpopoverstack;
+                    MCpopoverstack = nullptr; // clear before wclose to prevent re-entry
+                    MCdispatcher->wclose(t_closing->getwindowalways());
+                }
+
                 // Update the mouse button status
                 if (t_event->type == GDK_BUTTON_PRESS)
                     setmods(t_event->button.state, 0, t_event->button.button, False);
@@ -602,31 +609,37 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         // Is this a mouse scroll event?
                         if (MCmousestackptr && t_event->type == GDK_SCROLL)
                         {
-                            // Find the object that should receive the scroll
+                            // GDK_SCROLL_UP/DOWN name the physical gesture direction under
+                            // natural scrolling. LiveCode's XK_WheelUp/Down name the content
+                            // movement direction, which is the opposite convention — so
+                            // GDK_SCROLL_UP (finger moves up) scrolls content DOWN (XK_WheelDown).
+                            // The scrollWheel message receives deltas in the same sign convention
+                            // as the XK_Wheel keysyms: positive dy = content moves down.
+                            int t_dx = 0, t_dy = 0;
+                            switch (t_event->scroll.direction)
+                            {
+                                case GDK_SCROLL_UP:    t_dy =  1; break;
+                                case GDK_SCROLL_DOWN:  t_dy = -1; break;
+                                case GDK_SCROLL_LEFT:  t_dx =  1; break;
+                                case GDK_SCROLL_RIGHT: t_dx = -1; break;
+                                default: break;
+                            }
+
                             MCObject *mfocused = MCmousestackptr->getcard()->getmfocused();
                             if (mfocused == NULL)
+                                mfocused = MCmousestackptr->getcard()->findGroupUnderPoint(MCmousex, MCmousey);
+                            if (mfocused == NULL)
                                 mfocused = MCmousestackptr->getcard();
-                            
-                            if (mfocused != NULL)
+
+                            if (mfocused != NULL && (t_dx != 0 || t_dy != 0))
                             {
-                                switch (t_event->scroll.direction)
+                                Exec_stat t_stat = mfocused->message_with_args(MCM_scroll_wheel, t_dx, t_dy);
+                                if (t_stat == ES_PASS || t_stat == ES_NOT_HANDLED)
                                 {
-                                    // GDK events are named for the 'natural scrolling' version and interpreted according to system settings
-                                    case GDK_SCROLL_UP:
-                                        mfocused->kdown(kMCEmptyString, XK_WheelDown);
-                                        break;
-                                        
-                                    case GDK_SCROLL_DOWN:
-                                        mfocused->kdown(kMCEmptyString, XK_WheelUp);
-                                        break;
-                                        
-                                    case GDK_SCROLL_LEFT:
-                                        mfocused->kdown(kMCEmptyString, XK_WheelRight);
-                                        break;
-                                        
-                                    case GDK_SCROLL_RIGHT:
-                                        mfocused->kdown(kMCEmptyString, XK_WheelLeft);
-                                        break;
+                                    if (t_dy != 0)
+                                        mfocused->kdown(kMCEmptyString, t_dy > 0 ? XK_WheelDown : XK_WheelUp);
+                                    if (t_dx != 0)
+                                        mfocused->kdown(kMCEmptyString, t_dx > 0 ? XK_WheelRight : XK_WheelLeft);
                                 }
                             }
                         }
@@ -761,6 +774,16 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 MCStack *t_stack = MCdispatcher->findstackd(t_event->configure.window);
                 if (t_stack == nil)
                     break;
+
+                // If the anchor stack has moved, dismiss the popover.
+                // This matches macOS behaviour where popovers hide on parent move.
+                if (MCpopoverstack != nullptr && t_stack == MCpopoverparentstack)
+                {
+                    MCStack *t_closing = MCpopoverstack;
+                    MCpopoverstack = nullptr;
+                    MCpopoverparentstack = nullptr;
+                    MCdispatcher->wclose(t_closing->getwindowalways());
+                }
                 
                 GdkGeometry t_geom;
                 gint t_new_width, t_new_height;

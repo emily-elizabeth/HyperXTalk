@@ -9,11 +9,11 @@ Designates the <paint tool> used to draw curved <lines>. It also
 specifies, through the <style> <property>, that a <graphic> is a curved
 <line>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 choose curve tool

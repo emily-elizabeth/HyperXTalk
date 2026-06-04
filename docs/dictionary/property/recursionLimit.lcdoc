@@ -7,11 +7,11 @@ Syntax: set the recursionLimit to stackSizeInBytes
 Summary:
 Specifies how many levels deep a recursive function is allowed to go.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the recursionLimit to 20
@@ -45,7 +45,7 @@ reaches the limit and causes an execution error. To track down such
 problems more quickly, reduce the recursionLimit. The lower the limit,
 the more quickly a buggy routine will cause an execution error.
 
->*Note:* On Windows, as of version 4.5.1, the recursionLimit property is
+>*Note:* On Windows, the recursionLimit property is
 > bounded by the stackLimit. Attempts to set the recursionLimit greater
 > than the stackLimit will see it downwardly adjusted to the maximum
 > current size allowed.

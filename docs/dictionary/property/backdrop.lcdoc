@@ -8,7 +8,7 @@ Summary:
 Places a solid or patterned <background> behind the
 <application|application's> windows, hiding any other applications.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -79,10 +79,6 @@ Pattern images can be color or black-and-white.
 
 If the system has multiple screens connected, the <backdrop> <property>
 affects only the main screen.
-
-Changes:
-The backdrop pattern option was introduced in version 1.1. In previous
-versions, the backdrop could be a solid color, but not a pattern.
 
 References: launch (command), open process (command),
 clickStack (function), stacks (function), property (glossary),

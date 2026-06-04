@@ -9,7 +9,7 @@ the <current card> whenever the <application> receives an <Apple event>.
 
 Associations: card
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 

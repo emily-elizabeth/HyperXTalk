@@ -10,7 +10,7 @@ Sent to the current card of the defaultStack whenever the <screenRect>
 
 Associations: card
 
-Introduced: 2.7
+Introduced: 1.0.0
 
 OS: mac, windows
 

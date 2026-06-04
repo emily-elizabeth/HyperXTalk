@@ -707,7 +707,7 @@ command revInternal__ResetPreferences
    local tPropsArray
    -- default custom property set
    put "true" into tPropsArray["cREVToolsPaintToolsVisible"]
-   put "false" into tPropsArray["cDestroyStack"]
+   put "TRUE" into tPropsArray["cDestroyStack"]
    put "false" into tPropsArray["cRevPopups"]
    put "417,113" into tPropsArray["cREVMsgTabRectGlobalProperties"]
    put "155" into tPropsArray["cREVPlayerWidth"]
@@ -787,7 +787,7 @@ command revInternal__ResetPreferences
    put "1" into tPropsArray["cREVTipNumber"]
    put "417,113" into tPropsArray["cREVMsgTabRectstacksInUse"]
    put format("blue\nbrown\ndarkorange\nred") into tPropsArray["cBuiltInColors"]
-   put "don't remove" into tPropsArray["cASKDestroy"]
+   put "remove" into tPropsArray["cASKDestroy"]
    put "Gray50" into tPropsArray["cSelectionHandle"]
    put "128,103" into tPropsArray["cREVMaximizedScriptEditorTopLeft"]
    put "true" into tPropsArray["suppressIDE"]
@@ -1212,16 +1212,17 @@ command revInternal__InitialiseLibraries
    put return & "revProfilesLibrary" after tLoadList 
    put return & "revTableLibrary" after tLoadList 
    // HXT put return & "revhtml5urllibrary" after tLoadList
-
-
+   
+   
    if revEnvironmentEditionProperty("autocomplete_pro") then
       put cr & "autocomplete-pro" after tLoadList
    end if
    
+   put return & "ideAutoCompleteLibrary" after tLoadList
    if revEnvironmentEditionProperty("autocomplete") then
       put cr & "autocomplete" after tLoadList
    end if
-
+   
    
    local tBackList
    put "revidedeveloperextensionlibrary" into tBackList
@@ -1241,9 +1242,9 @@ command revInternal__InitialiseLibraries
    repeat for each line tLib in tLoadList	 
       revInternal__Log "Message", "Loading library" && tLib	
       revInternal__LoadLibrary tLib
-	  if the result is not empty then
-	     revInternal__Log "Error", the result 
-	  end if
+      if the result is not empty then
+         revInternal__Log "Error", the result 
+      end if
    end repeat
    
    try	
@@ -2155,6 +2156,10 @@ end revEnvironmentUserExternalsPath
 function revEnvironmentUserColorSchemesPath
    return sCustomizationPath & "/Schemes"
 end revEnvironmentUserColorSchemesPath
+
+function revEnvironmentUserLibraries
+   return sCustomizationPath & "/Libraries"
+end revEnvironmentUserLibraries
 
 function revEnvironmentUserExtensionsPath
   return sCustomizationPath & "/Extensions"

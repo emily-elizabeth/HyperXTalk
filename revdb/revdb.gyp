@@ -250,6 +250,10 @@
 						[
 							'../thirdparty/libiodbc/libiodbc.gyp:libiodbc',
 						],
+						'include_dirs':
+						[
+							'../thirdparty/libiodbc/include',
+						],
 					},
 					{
 						'libraries':
@@ -259,23 +263,22 @@
 					},
 				],
 			],
-			
+
 			'dependencies':
 			[
 				'../libexternal/libexternal.gyp:libExternal',
 			],
-			
+
 			'include_dirs':
 			[
 				'src',
-                '../thirdparty/libiodbc/include',
 			],
-			
+
 			'sources':
 			[
 				'<@(dbodbc_sources)',
 			],
-			
+
 			'xcode_settings':
 			{
 				'INFOPLIST_FILE': 'rsrc/dbodbc-Info.plist',

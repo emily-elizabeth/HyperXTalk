@@ -9,11 +9,11 @@ Used within a <try> <control structure> to contain
 <statement|statements> that are <execute|executed> whether or not there
 was an <error>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 finally

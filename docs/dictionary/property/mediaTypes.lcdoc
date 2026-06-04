@@ -9,7 +9,7 @@ Specifies one or more types of media used in a movie.
 
 Associations: player
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows
 
@@ -23,10 +23,6 @@ Value (set):
 - video:
 - audio:
 - text:
-- qtvr:
-- sprite:
-- flash:
-
 
 This property is read:only and cannot be set
 
@@ -41,11 +37,6 @@ If more than one track in the movie uses the same media type, the media
 type is specified only once in the <mediaTypes> property. For example,
 "audio" appears only once in the <mediaTypes>, even if the movie
 contains more than one audio track.
-
-Changes:
-This document was updated in version 8.1.0 to remove references to
-QuickTime, as this property is now also supported by the Windows
-DirectShow-based player.
 
 References: property (glossary), trackCount (property)
 

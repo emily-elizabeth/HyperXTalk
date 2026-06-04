@@ -8,7 +8,7 @@ Summary:
 Specifies whether HyperXTalk uses its own <color table> or the system
 <color table> on <Unix|Unix systems>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

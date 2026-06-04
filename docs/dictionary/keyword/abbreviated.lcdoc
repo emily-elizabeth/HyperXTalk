@@ -10,11 +10,11 @@ Summary:
 Specifies a <format> for the <date> and <time> <function|functions>, the
 <convert> <command>, and the <name>, <ID>, and <owner> <properties>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the abbreviated date
@@ -48,11 +48,6 @@ An abbreviated object <ID> looks like this: field ID 2238
 >*Note:* The <abbreviated> <keyword> is implemented internally as a
 > <property>, and appears in the <propertyNames>. However, it cannot be
 > used as a <property> in an <expression>, nor with the <set> <command>.
-
-Changes:
-The form the abbreviated owner was introduced in version 2.0. In
-previous versions, the form of the owner property could not be specified
-and reported only the abbreviated owner.
 
 References: set (command), convert (command), time (function),
 dateFormat (function), format (function), date (function),

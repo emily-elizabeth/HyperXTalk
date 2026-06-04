@@ -1,0 +1,72 @@
+Library: com.hyperxtalk.library.shakecontrol
+
+Type: library
+
+Title: Shake Control
+
+Author: HyperXTalk
+
+Version: 1.0.0
+
+Description:
+Animates a control with a horizontal shake that mimics the macOS password
+rejection animation â a short, damped oscillation that draws the user's
+attention to the control without moving it from its original position.
+
+Name: stopShakeControl
+
+Type: command
+
+Syntax: stopShakeControl <pTarget>
+
+Summary: Cancels a running shake animation and restores the control's position.
+
+Parameters: 
+
+pTarget: The long id of the control whose animation should be stopped.
+
+Description:
+Use <stopShakeControl> to interrupt a shake started by <shakeControl>. The
+control is immediately restored to its original horizontal position. If the
+control is not currently being shaken, this command has no effect.
+
+Example:
+on closeCard
+   stopShakeControl the long id of field "Password"
+end closeCard
+
+
+
+Name: shakeControl
+
+Type: command
+
+Syntax: shakeControl <pTarget>
+
+Summary: Shakes a control horizontally to indicate an error.
+
+Parameters: 
+
+pTarget: The long id of the control to animate.
+
+Description:
+Use <shakeControl> to provide a clear visual rejection cue, for example
+when a user submits an incorrect password. The control oscillates left
+and right with decreasing amplitude over approximately 400 milliseconds,
+then returns exactly to its original position.
+
+If the control is already being shaken when <shakeControl> is called, the
+running animation is cancelled and a new one begins immediately.
+
+When the animation completes, a <shakeControlDone> message is sent to the
+target control.
+
+Example:
+on mouseUp
+   if field "Password" is not sCorrectPassword then
+      shakeControl the long id of field "Password"
+   end if
+end mouseUp
+
+
+

@@ -13,9 +13,9 @@ that were started with the <load>, <libURLDownloadToFile>,
 
 Associations: internet library
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, html5
+OS: mac, windows, linux
 
 Platforms: desktop, server
 
@@ -89,10 +89,6 @@ returns "error". You can get the error message using the
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
-
-Changes:
-The <URLStatus> <function> became part of the <Internet library> in 
-version 1.1. In previous versions, it was not a library function.
 
 References: post (command), libURLftpUploadFile (command),
 libURLftpUpload (command), libURLDownloadToFile (command), load (command),

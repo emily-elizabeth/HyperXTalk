@@ -8,11 +8,11 @@ Summary:
 Used with the <date> and <time> <function|functions> to specify a date
 or time in the <format> used in the United States.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the English date into field "US Formatted Date"
@@ -43,12 +43,6 @@ An abbreviated English <time> or <short> English <time> looks like this:
 >*Note:* The <english> <keyword> is implemented internally as a
 > <property> and appears in the <propertyNames>. However, it cannot be
 > used as a <property> in an <expression>, nor with the <set> <command>.
-
-Changes:
-The ability to use the short, abbreviated, or long keywords in
-conjunction with the english keyword was introduced in version 1.1. In
-previous versions, the english keyword was equivalent to the long
-keyword. 
 
 References: convert (command), set (command), time (function),
 dateFormat (function), format (function), date (function),

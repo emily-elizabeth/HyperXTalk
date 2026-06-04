@@ -8,7 +8,7 @@ Summary:
 Specifies whether palettes have the same appearance when active and
 inactive. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

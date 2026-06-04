@@ -7,11 +7,11 @@ Syntax: busy
 Summary:
 Equivalent to the number 6.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the cursor to busy
@@ -47,10 +47,6 @@ However, the first is easier to read and understand in HyperXTalk.
 > Make sure the "Cursors" option on the Inclusions section on the
 > General screen of the <Standalone Application Settings> window is
 > checked.
-
->*Note:*  This does not bring up the busy symbol on mobile devices.
-> To bring up the busy indicator on Android or iOS use
-> the <mobileBusyIndicatorStart> command.
 
 References: constant (command), mobileBusyIndicatorStart (command),
 watch (constant), six (constant),

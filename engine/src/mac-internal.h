@@ -532,6 +532,7 @@ protected:
 	
 	virtual void DoShow(void);
 	virtual void DoShowAsSheet(MCPlatformWindowRef parent);
+	virtual void DoShowAsPopover(MCRectangle anchor_rect, MCPlatformWindowEdge edge);
 	virtual void DoHide(void);
 	virtual void DoFocus(void);
 	virtual void DoRaise(void);
@@ -585,13 +586,17 @@ private:
 	
 	// A window might map to one of several different classes, so we use a
 	// union for the different types to avoid casts everywhere.
-	union 
+	union
 	{
 		id m_handle;
 		NSWindow *m_window_handle;
 		NSPanel *m_panel_handle;
 	};
-	
+
+	// Native popover (macOS 10.7+). Non-nil when the stack is displayed as a popover.
+	// Forward-declared as id to keep this header free of full AppKit imports.
+	id m_popover_handle;
+
 	// The parent pointer for sheets and drawers.
 	MCPlatformWindowRef m_parent;
 	
@@ -615,6 +620,13 @@ void MCMacPlatformHandleMousePress(uint32_t p_button, bool p_is_down);
 void MCMacPlatformHandleMouseMove(MCPoint p_screen_location);
 void MCMacPlatformHandleMouseScroll(CGFloat dx, CGFloat dy);
 void MCMacPlatformHandleMouseSync(void);
+
+// Popover window registry — lets MCPlatformGetWindowAtPoint find the engine
+// platform window behind an NSPopover's private _NSPopoverWindow.
+void MCMacPlatformRegisterPopoverWindow(NSWindow *p_ns_window, MCMacPlatformWindow *p_platform_window);
+void MCMacPlatformUnregisterPopoverWindow(NSWindow *p_ns_window);
+MCMacPlatformWindow *MCMacPlatformFindPopoverWindow(NSInteger p_window_number);
+bool MCMacPlatformGetNaturalScrolling(void);
 void MCMacPlatformHandleDrawSync(NSWindow *window);
 void MCMacPlatformHandleMouseAfterWindowHidden(void);
 

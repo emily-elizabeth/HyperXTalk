@@ -9,7 +9,7 @@ Syntax: the mouse
 Summary:
 <return|Returns> the state of a <mouse button>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

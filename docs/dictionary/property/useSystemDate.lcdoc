@@ -9,11 +9,11 @@ Specifies whether the <date> and <time> <function|functions> should be
 formatted in accordance with the user's system preferences, or in the
 standard <format> used in the United States.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the useSystemDate to true

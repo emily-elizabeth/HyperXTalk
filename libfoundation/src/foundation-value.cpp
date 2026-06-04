@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <foundation.h>
 #include <foundation-auto.h>
 
@@ -267,10 +251,10 @@ bool MCValueIsEqualTo(MCValueRef p_value, MCValueRef p_other_value)
 	if (__MCValueGetTypeCode(self) != __MCValueGetTypeCode(other_self))
 		return false;
 
-    // If both values are interred, then they can't be equal.
-    if (MCValueIsUnique(p_value) && MCValueIsUnique(p_other_value))
-        return false;
-    
+	// If both values are interred, then they can't be equal.
+	if (MCValueIsUnique(p_value) && MCValueIsUnique(p_other_value))
+		return false;
+
 	switch(__MCValueGetTypeCode(self))
 	{
 	// There is only one null value, so if we get here, we are not equal.
@@ -296,8 +280,8 @@ bool MCValueIsEqualTo(MCValueRef p_value, MCValueRef p_other_value)
 		return __MCListIsEqualTo((__MCList *)self, (__MCList *)other_self);
 	case kMCValueTypeCodeSet:
 		return __MCSetIsEqualTo((__MCSet *)self, (__MCSet *)other_self);
-    case kMCValueTypeCodeData:
-        return __MCDataIsEqualTo((__MCData*)self, (__MCData*)other_self);
+	case kMCValueTypeCodeData:
+		return __MCDataIsEqualTo((__MCData*)self, (__MCData*)other_self);
 	// Defer to the custom comparison method, but only if the typeinfo are
 	// the same.
 	case kMCValueTypeCodeCustom:
@@ -308,8 +292,8 @@ bool MCValueIsEqualTo(MCValueRef p_value, MCValueRef p_other_value)
 			t_typeinfo = __MCCustomValueResolveTypeInfo(self);
 			t_equal_func = t_typeinfo -> custom . callbacks . equal;
 			return ((t_equal_func != NULL) ?
-			        t_equal_func (p_value, p_other_value) :
-			        __MCCustomDefaultEqual (p_value, p_other_value));
+					t_equal_func (p_value, p_other_value) :
+					__MCCustomDefaultEqual (p_value, p_other_value));
 		}
 		return false;
     case kMCValueTypeCodeProperList:
@@ -397,60 +381,60 @@ MC_DLLEXPORT_DEF
 bool MCValueIsMutable(MCValueRef p_value)
 {
 	__MCValue *self = (__MCValue *)p_value;
-    
+
 	MCAssert(self != nil);
-    __MCAssertIsValue(self);
-    
-    if (__MCValueGetTypeCode(self) != kMCValueTypeCodeCustom)
-        return false;
+	__MCAssertIsValue(self);
+
+	if (__MCValueGetTypeCode(self) != kMCValueTypeCodeCustom)
+		return false;
 
 	MCTypeInfoRef t_typeinfo;
 	bool (*t_is_mutable_func)(MCValueRef);
 	t_typeinfo = __MCCustomValueResolveTypeInfo(self);
 	t_is_mutable_func = t_typeinfo -> custom . callbacks . is_mutable;
 	return ((t_is_mutable_func != NULL) ?
-	        t_is_mutable_func (p_value) :
-	        __MCCustomDefaultIsMutable (p_value));
+			t_is_mutable_func (p_value) :
+			__MCCustomDefaultIsMutable (p_value));
 }
 
 MC_DLLEXPORT_DEF
 bool MCValueMutableCopy(MCValueRef p_value, MCValueRef& r_mutable_copy)
 {
 	__MCValue *self = (__MCValue *)p_value;
-    
+
 	MCAssert(self != nil);
-    __MCAssertIsValue(self);
-    
-    if (__MCValueGetTypeCode(self) != kMCValueTypeCodeCustom)
-        return false;
-    
+	__MCAssertIsValue(self);
+
+	if (__MCValueGetTypeCode(self) != kMCValueTypeCodeCustom)
+		return false;
+
 	MCTypeInfoRef t_typeinfo;
 	bool (*t_mutable_copy_func)(MCValueRef, bool, MCValueRef &);
 	t_typeinfo = __MCCustomValueResolveTypeInfo(self);
 	t_mutable_copy_func = t_typeinfo -> custom . callbacks . mutable_copy;
 	return ((t_mutable_copy_func != NULL) ?
-	        t_mutable_copy_func (p_value, false, r_mutable_copy) :
-	        __MCCustomDefaultMutableCopy (p_value, false, r_mutable_copy));
+			t_mutable_copy_func (p_value, false, r_mutable_copy) :
+			__MCCustomDefaultMutableCopy (p_value, false, r_mutable_copy));
 }
 
 MC_DLLEXPORT_DEF
 bool MCValueMutableCopyAndRelease(MCValueRef p_value, MCValueRef& r_mutable_copy)
 {
 	__MCValue *self = (__MCValue *)p_value;
-    
+
 	MCAssert(self != nil);
-    __MCAssertIsValue(self);
-    
-    if (__MCValueGetTypeCode(self) != kMCValueTypeCodeCustom)
-        return false;
-    
+	__MCAssertIsValue(self);
+
+	if (__MCValueGetTypeCode(self) != kMCValueTypeCodeCustom)
+		return false;
+
 	MCTypeInfoRef t_typeinfo;
 	bool (*t_mutable_copy_func)(MCValueRef, bool, MCValueRef &);
 	t_typeinfo = __MCCustomValueResolveTypeInfo(self);
 	t_mutable_copy_func = t_typeinfo -> custom . callbacks . mutable_copy;
 	return ((t_mutable_copy_func != NULL) ?
-	        t_mutable_copy_func (p_value, true, r_mutable_copy) :
-	        __MCCustomDefaultMutableCopy (p_value, true, r_mutable_copy));
+			t_mutable_copy_func (p_value, true, r_mutable_copy) :
+			__MCCustomDefaultMutableCopy (p_value, true, r_mutable_copy));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

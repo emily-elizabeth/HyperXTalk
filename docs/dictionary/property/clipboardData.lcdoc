@@ -13,7 +13,7 @@ Syntax: get the clipboardData[<key>]
 Summary:
 Specifies what data and of what type is on the <clipboard(glossary)>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -7,11 +7,11 @@ Syntax: cancelAllNotifications
 Summary:
 Removes every notification that was posted by the current application.
 
-Introduced: 10.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 -- Clear all notifications when the application quits

@@ -8,7 +8,7 @@ Summary:
 Sends a message from within a worker handler back to the stack that
 dispatched into the worker.
 
-Introduced: 10.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -8,7 +8,7 @@ Summary:
 Switches key actions between standard actions and those used in the
 <Emacs> text editor.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -45,11 +45,6 @@ Bindings Reference.)
 > <keyboard equivalent>, it cannot be used for text editing. (For this
 > reason, some of the Emacs key bindings do not function as expected in
 > the <development environment>.)
-
-Changes:
-In versions before 1.1, the emacsKeyBindings property affected
-Command-key combinations, not Control-key combinations, on Mac OS
-systems. 
 
 References: property (glossary), keyboard equivalent (glossary),
 development environment (glossary), key binding (glossary),

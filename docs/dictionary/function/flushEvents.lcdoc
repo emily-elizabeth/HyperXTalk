@@ -8,7 +8,7 @@ Summary:
 Clears pending <event|events> from the event queue so they will not
 <trigger> <handler|handlers>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -30,7 +30,7 @@ eventType (enum):
 -  "autoKey": ignore key repeats
 -  "disk": ignore disk-related events
 -  "activate": ignore windows being brought to the front
--  "highLevel": ignore Apple Events (on Mac OS and OS X systems)
+-  "highLevel": ignore Apple Events (on macOS systems)
 -  "system": ignore operating system events
 
 Returns:

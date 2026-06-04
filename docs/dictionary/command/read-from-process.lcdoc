@@ -8,7 +8,7 @@ Summary:
 Accepts the output of a <process> that was opened with the <open
 process> <command>, placing the data in the <it> <variable>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -88,10 +88,6 @@ process specifies it is finished.
 When until empty is used the data is read in at specified time intervals.
 If, when checked, the data is empty, the <openProcesses> <function> is used
 to check whether the process has finished.
-
-Changes:
-Support for using the read from process command on Mac OS X (10) and above
-systems was added in Runtime Revolution version 2.0.
 
 References: open process (command), close process (command),
 write to process (command), read from driver (command), EOF (constant),

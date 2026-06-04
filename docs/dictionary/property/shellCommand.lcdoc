@@ -8,7 +8,7 @@ Summary:
 Specifies the name and location of the <command> used for the <shell>
 <function>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

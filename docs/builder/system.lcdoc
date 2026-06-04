@@ -1,0 +1,215 @@
+Library: com.livecode.system
+
+Type: module
+
+Summary:
+This library provides low-level system functionality for modular
+LiveCode programs.
+
+Name: QuitWithStatus
+
+Type: statement
+
+Syntax: 	quit [ with status <Status> ]
+
+Summary: Quit the application
+
+Example:
+-- Quit, indicating that the application ran successfully (code 0)
+quit
+
+-- Quit, with a specific error code
+quit with status 42
+
+Description:
+Exit the program immediately and unconditionally, returning a status
+number to the operating system.  If no status is provided, the default
+value of 0 is used.
+
+Tags: System
+
+
+
+
+Name: OperatingSystem
+
+Type: expression
+
+Syntax: 	the operating system
+
+Summary: The operating system
+
+Example:
+if the operating system is "linux" then
+	- Platform specific-code
+end if
+
+Description:
+Returns a string describing the operating system that LiveCode is
+running on.  The possible values are:
+
+* "windows" - 32-bit and 64-bit Windows
+* "mac" - Desktop OS X
+* "ios" - iOS (iPhone and iPad)
+* "android" - Android Linux devices
+* "linux" - All other Linux platforms
+
+Tags: System
+
+
+
+
+Name: ResetSystemError
+
+Type: statement
+
+Syntax: 	reset system error
+
+Summary: Clear the system error code.
+
+Description:
+Reset the system error code to its platform-dependent default ("no
+error") value.
+
+Tags: System
+
+
+
+
+Name: Architecture
+
+Type: expression
+
+Syntax:     the architecture
+
+Summary: The architecture
+
+Example:
+    if the architecture is "x86_64" then
+        -- Do something x86_64 specific
+    end if
+
+Description:
+Returns a string describing the instruction set architecture
+that is being used by the machine LiveCode is running on.
+The possible values are:
+
+* "x86" - 32-bit x86 builds
+* "x86_64" - 64-bit x86 builds
+* "arm" - 32-bit arm builds
+* "arm64" - 64-bit arm builds
+* "js" - Emscripten
+
+Tags: System
+
+
+
+
+Name: CommandArguments
+
+Type: expression
+
+Syntax: 	the command arguments
+
+Summary: The command arguments
+
+Example:
+-- Program that only succeeds if it's run as the "true"
+-- command.
+variable tCommand as String
+put the command name into tCommand
+if tCommand ends with "true" then
+	quit with status 0
+else
+	quit with status 1
+end if
+
+Description:
+Evaluates to a list of command-line arguments passed to the program.
+Some arguments may not be passed in if they are "used up" by the
+LiveCode run-time environment (for example, the LiveCode IDE will
+detect and "use" the `-mmap` argument).
+
+> **Note:** No filename conversion is performed on command line
+> arguments, so some processing may be required before using a command
+> line argument with any of the file handling syntax provided by the
+> `com.livecode.file` module.
+
+
+
+Name: SystemErrorCode
+
+Type: expression
+
+Syntax: 	the system error code
+
+Summary: The system error code.
+
+Description:
+Evaluates to the current platform-dependent system error code.
+
+- On Windows, returns the result of `GetLastError()`.
+
+- On other platforms, returns the current value of `errno`.
+
+> **Note:** The system error code may be modified or cleared by any
+> syntax that interacts with the operating system (e.g. by performing
+> input or output).  You should check the system error code as soon as
+> possible after any platform operation that might fail.
+
+Related: SystemErrorDescription
+
+Tags: System
+
+
+
+
+Name: SystemErrorDescription
+
+Type: expression
+
+Syntax: 	the system error message
+
+Summary: The system error description.
+
+Description:
+Evaluates to a string describing the current platform-dependent system
+error code.
+
+> **Note:** The system error code may be modified or cleared by any
+> syntax that interacts with the operating system (e.g. by performing
+> input or output).  You should check the system error code as soon as
+> possible after any platform operation that might fail.
+
+Related: SystemErrorCode
+
+Tags: System
+
+
+
+
+Name: CommandName
+
+Type: expression
+
+Syntax: 	the command name
+
+Summary: The command name
+
+Example:
+-- Program that only succeeds if it's run as the "true"
+-- command.
+variable tCommand as String
+put the command name into tCommand
+if tCommand ends with "true" then
+	quit with status 0
+else
+	quit with status 1
+end if
+
+Description:
+Evaluates to the name that was used to execute the program, possibly
+including path information.
+
+
+

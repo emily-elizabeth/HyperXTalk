@@ -1,4 +1,76 @@
-script "com.livecode.scripteditor.behavior.editorcommon"
+﻿script "com.livecode.scripteditor.behavior.editorcommon"
+
+-- Autocomplete is always enabled in HyperXTalk.
+-- Defined here so it is always in the message path regardless of
+-- whether ideautocompletelibrary has been inserted into back yet.
+function ideAutocompleteIsEnabled
+   return true
+end ideAutocompleteIsEnabled
+
+--------------------------------------------------------------------------------
+-- Autocomplete entry-point stubs
+-- Dispatch to the library stack directly so there is no dependency on
+-- back-script insertion order.  Each stub is a safe no-op when the library
+-- stack is not yet loaded.
+--------------------------------------------------------------------------------
+
+command ideAutocompleteCancelFind pEditorId
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteCancelFind" to stack "ideautocompletelibrary" with pEditorId
+   end if
+end ideAutocompleteCancelFind
+
+command ideAutocompleteClearObjectCache pObject
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteClearObjectCache" to stack "ideautocompletelibrary" with pObject
+   end if
+end ideAutocompleteClearObjectCache
+
+command ideAutocompleteUpdate pEditorId, pObjectId, pClasses
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteUpdate" to stack "ideautocompletelibrary" with pEditorId, pObjectId, pClasses
+   end if
+end ideAutocompleteUpdate
+
+command ideAutocompleteIntrospectMessagePath pObjectId
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteIntrospectMessagePath" to stack "ideautocompletelibrary" with pObjectId
+   end if
+end ideAutocompleteIntrospectMessagePath
+
+-- Tab/arrow/help return a boolean; default to true (pass the key through)
+-- when the library is not loaded.
+command ideAutocompleteHandleTab pEditorId, pObjectId, @pPlaceholders, @pEditPlaceholder, @pEditChunks
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteHandleTab" to stack "ideautocompletelibrary" with pEditorId, pObjectId
+      if it is "handled" then return the result
+   end if
+   return true
+end ideAutocompleteHandleTab
+
+command ideAutocompleteHandleArrow pEditorId, pKeyName, pObjectId, @pPlaceholders, @pEditPlaceholder, @pEditChunks
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteHandleArrow" to stack "ideautocompletelibrary" with pEditorId, pKeyName, pObjectId
+      if it is "handled" then return the result
+   end if
+   return true
+end ideAutocompleteHandleArrow
+
+command ideAutocompleteHandleHelp pEditorId, pObjectId
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteHandleHelp" to stack "ideautocompletelibrary" with pEditorId, pObjectId
+      if it is "handled" then return the result
+   end if
+   return false
+end ideAutocompleteHandleHelp
+
+-- Called by ideautocompletelibrary to insert an autocomplete word.
+-- Wraps textReplace so it is always called from within the behavior's own
+-- context rather than dispatched from the back-script library.
+command ideAutocompleteInsertCompletion pOffset, pOldText, pNewText
+   textReplace pOffset, pOldText, pNewText
+end ideAutocompleteInsertCompletion
+
 local sObjectId
 
 # The following variables store information used for the undo / redo system.
@@ -75,7 +147,7 @@ command setObjectID pObjectID
       if tRuggedID is not sObjectID then
          put tRuggedID into sObjectID
          if exists(sObjectId) and \
-               revEnvironmentEditionProperty("autocomplete") then
+               ideAutocompleteIsEnabled() then
             ideAutocompleteIntrospectMessagePath sObjectId
          end if
       end if
@@ -127,7 +199,7 @@ command clearCache pObject, pDontCheckId
    end if
    delete variable sScriptCache[tObject]
 
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteClearObjectCache tObject
    end if
 end clearCache
@@ -1405,35 +1477,35 @@ on selectionUpdate
 end selectionUpdate
 
 on mouseMove
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteCancelFind the long id of me
    end if
    pass mouseMove
 end mouseMove
 
 on closeField
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteCancelFind the long id of me
    end if
    pass closeField
 end closeField
 
 on exitField
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteCancelFind the long id of me
    end if
    pass exitField
 end exitField
 
 on escapeKey
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteCancelFind the long id of me
    end if
    pass escapeKey
 end escapeKey
 
 on help
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteHandleHelp the long id of me, sObjectId
       if the result then
          pass help
@@ -1621,7 +1693,7 @@ on returnInField
       exit returnInField
    end if
    
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteCancelFind the long id of me
    end if
    
@@ -2565,7 +2637,7 @@ on tabKey
    local tDoTab = true
    
    if tProviderCompletion and \
-         revEnvironmentEditionProperty("autocomplete") then
+         ideAutocompleteIsEnabled() then
       ideAutocompleteHandleTab the long id of me, sObjectId, sPlaceholders, sEditPlaceholder, sEditChunks
       put the result into tDoTab
    end if
@@ -2834,7 +2906,7 @@ on rawKeyDown pKey
    end switch
    
    local tPass = true
-   if revEnvironmentEditionProperty("autocomplete") then
+   if ideAutocompleteIsEnabled() then
       ideAutocompleteHandleArrow the long id of me, tKeyName, sObjectId, sPlaceholders, sEditPlaceholder, sEditChunks
       put the result into tPass
    end if
@@ -3126,17 +3198,27 @@ command getCaretToken pUseClick
    
    # Don't return tokens in comments. For now we determine if the user is typing
    # in a comment by simple means, using proper tokenization is not yet possible.
-   # This means that multi-line comments will break this.
+   # Multi-line /* */ block comments are not handled.
    local tLine
    if pUseClick then
       put word 2 of the clickLine into tLine
    else
       put word 2 of the selectedLine of getScriptField() into tLine
    end if
-   if token 1 of line tLine of tScript is empty then
+
+   local tLineText
+   put line tLine of tScript into tLineText
+
+   # Blank line
+   if token 1 of tLineText is empty then
       return empty
    end if
-   
+
+   # Line that is entirely a -- comment (handles both -- and --- etc.)
+   if word 1 of tLineText begins with "--" then
+      return empty
+   end if
+
    local tSelectedText
    if pUseClick then
       put the clickText into tSelectedText
@@ -3148,7 +3230,7 @@ command getCaretToken pUseClick
          return tSelectedText
       end if
    end if
-   
+
    # This is expanded to include tokens that the caret was placed immediately before or after,
    # the reason for this is that it allows us to begin searching for tokens while the user is typing.
    local tFrom, tTo
@@ -3159,12 +3241,27 @@ command getCaretToken pUseClick
    end if
    put word 2 of it into tFrom
    put word 4 of it into tTo
-   
+
+   # Check for inline comment: if -- appears anywhere before the click position on
+   # the same line, the click falls inside a comment. Walk back to find the line start.
+   local tLineStart
+   put 1 into tLineStart
+   repeat with i = (tFrom - 1) down to 1
+      if char i of tScript is return then
+         put i + 1 into tLineStart
+         exit repeat
+      end if
+   end repeat
+   if "--" is in (char tLineStart to (tFrom - 1) of tScript) then
+      return empty
+   end if
+
    # We can't perfectly match tokens at the moment, so we just make a reasonable guess with a regular expression
    # to match any char that delimits a token.
    ## AL-2014-01-15: [[ Bug 11094 ]] Added # to the list of script editor token delimiters
-   local tExpression 
-   put "\s|[\%\^\&\*\(\)\-\+\=\]\]\;\,\\@\\\/\<\>\#]" into tExpression
+   ## Added [, ., " as delimiters; removed duplicate ] from character class
+   local tExpression
+   put "\s|[\%\^\&\*\(\)\-\+\=\[\]\.\" & QUOTE & "\;\,\\@\\\/\<\>\#]" into tExpression
    
    # Try looking backwards first
    local tText, tChar
@@ -3803,7 +3900,7 @@ end __LookForPair
 private command __UpdateAutoCompleteList pUUID
    local tProviderCompletion
    put __GetPreference("editor,providercompletion", true) into tProviderCompletion
-   if tProviderCompletion and revEnvironmentEditionProperty("autocomplete") then
+   if tProviderCompletion and ideAutocompleteIsEnabled() then
       ideAutocompleteUpdate the long id of me, sObjectID, sPlaceholders[pUUID]["classes"]
    end if
 end __UpdateAutoCompleteList

@@ -8,7 +8,7 @@ Summary:
 Sent when the user presses the <key combination> equivalent to the
 "Undo" <menu item>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

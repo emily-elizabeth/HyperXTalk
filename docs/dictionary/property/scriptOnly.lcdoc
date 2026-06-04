@@ -10,11 +10,11 @@ not retain any objects or custom properties
 
 Associations: stack
 
-Introduced: 8.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile, server
+Platforms: desktop, server
 
 Example:
 -- git blame on a script only stack

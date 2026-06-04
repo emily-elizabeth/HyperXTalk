@@ -10,7 +10,7 @@ be run due to an <execution error>.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -54,10 +54,6 @@ error. The <lockErrorDialogs> can be set to true either by setting the
 >*Note:* The <errorDialog> message is only sent while Script Debug mode
 > is turned off. To toggle Script Debug mode, click on the Development
 > menu of xTalk's menubar.
-
-Changes:
-The <pExecutionError> parameter was introduced in version 1.1. In previous
-versions, this information was stored in the executionError property.
 
 References: lock error dialogs (command), unlock error dialogs (command),
 interrupt (function), format (function), errorObject (function),

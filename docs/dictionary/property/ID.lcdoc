@@ -12,11 +12,11 @@ Reports the unique ID number assigned to an <object(glossary)>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image, group
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 send mouseUp to button ID 2214

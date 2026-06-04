@@ -9,11 +9,11 @@ Duplicates a node in an XML tree and copies it to the specified position
 
 Associations: xml library
 
-Introduced: 2.9
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 

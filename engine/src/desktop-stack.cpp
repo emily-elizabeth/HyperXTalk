@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "platform.h"
 
 #include "globdefs.h"
@@ -100,6 +84,8 @@ void MCStack::realize(void)
 			t_window_style = kMCPlatformWindowStyleDialog;
 		else if (mode == WM_PULLDOWN || mode == WM_OPTION || mode == WM_COMBO || mode == WM_POPUP)
 			t_window_style = kMCPlatformWindowStylePopUp;
+		else if (mode == WM_POPOVER)
+			t_window_style = kMCPlatformWindowStylePopOver;
 		else if (mode == WM_CASCADE)
 			t_window_style = kMCPlatformWindowStylePopUp;
 		else if (mode == WM_TOOLTIP)
@@ -171,9 +157,10 @@ void MCStack::realize(void)
 			t_window_style != kMCPlatformWindowStyleDialog)
 			t_has_sizebox = false;
 		
-		// If the window is a tooltip or popup, we want no decorations.
+		// If the window is a tooltip, popup, or popover, we want no decorations.
 		if (t_window_style == kMCPlatformWindowStyleToolTip ||
-			t_window_style == kMCPlatformWindowStylePopUp)
+			t_window_style == kMCPlatformWindowStylePopUp ||
+			t_window_style == kMCPlatformWindowStylePopOver)
 		{
 			t_has_titlebox = false;
 			t_has_closebox = false;

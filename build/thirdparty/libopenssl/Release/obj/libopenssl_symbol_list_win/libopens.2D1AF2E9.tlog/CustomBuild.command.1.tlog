@@ -1,3 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\UTIL\LIST_STUB_SYMBOLS.PL
-call call perl "..\..\..\util\list_stub_symbols.pl" "" "..\..\..\thirdparty\libopenssl\ssl.stubs" "C:\Users\user\Documents\GitHub\HyperXTalk\build\engine\Release\obj\global_intermediate\src\revsecurity.def" "--exportdef=REVSECURITY"
-if %errorlevel% neq 0 exit /b %errorlevel%

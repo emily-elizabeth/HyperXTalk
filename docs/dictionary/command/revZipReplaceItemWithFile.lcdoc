@@ -8,11 +8,11 @@ Summary:
 Replaces the contents of an item in a zip archive with the contents of a
 file. 
 
-Introduced: 2.7.3
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 

@@ -14,11 +14,11 @@ Specifies an <object|object's> background color.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image, group
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the backgroundColor of last button to "white"
@@ -135,18 +135,6 @@ is set to "Macintosh", "Appearance Manager", or "Windows 95", the
 
 * The <backgroundColor> of a <player>, <audio clip>, or <video clip> has
   no effect.
-
-
-The ability to use the system background color was introduced in version
-1.1. In previous versions, if the <backgroundColor> of all
-<object|objects> in the <object hierarchy> was empty, a light gray color
-was used.
-
-Changes:
-The ability of standard buttons to have a <backgroundColor> under
-Appearance Manager was introduced in version 2.0. In previous versions,
-if the <lookAndFeel> was set to "Appearance Manager", the setting of the
-<backgroundColor> had no effect on standard <button|buttons>.
 
 References: answer color (command), group (command), object (glossary),
 video clip (glossary), property (glossary),

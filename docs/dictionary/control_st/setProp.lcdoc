@@ -11,11 +11,11 @@ Summary:
 <handle|Handles> the <trigger> sent to an <object(glossary)> when you
 change one of its <custom property|custom properties>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Parameters:
 newValue (string):
@@ -112,13 +112,6 @@ The above <setProp> <handler> responds to changes in the
 > HyperXTalk to set the <custom property>. Otherwise, the <setProp>
 > <handler> <trap|traps> the <call> to set the <property>, and its
 > <value> is not changed.
-
-Changes:
-In version 2.0 and later, setting a custom property (other than the one
-that the current setProp handler applies to) inside a setProp handler
-sends a setProp trigger. In previous versions, setting a custom property
-within a setProp handler never sent a setProp trigger, regardless of
-which custom property you set.
 
 References: call (command), set (command), pass (control structure),
 exit (control structure), setProp (control structure),

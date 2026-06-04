@@ -8,11 +8,11 @@ Summary:
 Performs a "bitwise and" <operation> on the <binary> representation of
 two numbers.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 0 bitAnd 1 -- evaluates to 0

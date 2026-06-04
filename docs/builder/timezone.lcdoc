@@ -1,0 +1,109 @@
+Library: com.livecode.library.timezone
+
+Type: library
+
+Summary: This library provides access to the tz timezone database
+
+Tags: DateTime, Library
+
+version: 1.0.0
+
+author: LiveCode
+
+
+Name: FromUniversalTime
+
+Type: handler
+
+Syntax: FromUniversalTime(<pSeconds>,<pTimeZone>)
+
+Summary: Convert universal time to local time
+
+Example:
+local tDateTime
+put "2018,2,14,13,38,0,4" into tDateTime
+convert tDateTime to seconds
+put FromUniversalTime(tDateTime, "Antarctica/Vostok") into tDateTime
+convert tDateTime to dateitems
+-- tDateTime contains "2018,2,14,19,38,0,4"
+
+Parameters: 
+
+pSeconds: The universal time, i.e. seconds since the beginning of the epoch.
+
+pTimeZone: The time zone, in the form returned by the <TimeZones> function.
+
+Returns: The local time
+
+Description:
+Use the <FromUniversalTime> function to find the local time for the 
+specified timezone, given the universal time.
+
+References: TimeZones (handler)
+
+
+
+
+Name: ToUniversalTime
+
+Type: handler
+
+Syntax: ToUniversalTime(<pSeconds>,<pTimeZone>)
+
+Summary: Convert local time to universal time
+
+Example:
+local tDateTime
+put "2018,2,14,13,38,0,4" into tDateTime
+convert tDateTime to seconds
+put ToUniversalTime(tDateTime, "Africa/Windhoek") into tDateTime
+convert tDateTime to dateitems
+-- tDateTime contains "2018,2,14,11,38,0,4"
+
+Parameters: 
+
+pSeconds: The local time
+
+pTimeZone: The time zone, in the form returned by the <TimeZones> function.
+
+Returns: The universal time
+
+Description:
+Use the <ToUniversalTime> function to find the universal time, given the 
+local time for the specified time zone. 
+
+References: TimeZones (handler)
+
+
+
+
+Name: TimeZones
+
+Type: handler
+
+Syntax: TimeZones()
+
+Summary: List the time zones used by the Time zone library
+
+Example:
+-- List all time zones and their times
+local tList, tTime, tData
+put the seconds into tTime
+repeat for each line tLine in TimeZones()
+   put tLine & tab & FromUniversalTime(tTime, tLine) into tData
+   if tList is empty then
+      put tData into tList
+   else
+      put tData & return after tList
+   end if
+end repeat
+
+Returns: A list of time zones, one per line.
+
+Description: Use the <TimeZones> function to find a list of valid timezones used by <ToUniversalTime> and <FromUniversalTime>,
+
+References: ToUniversalTime (handler), FromUniversalTime (handler)
+
+
+
+

@@ -7,11 +7,11 @@ Syntax: set the gridSize to <pixelSize>
 Summary:
 Specifies the size of squares in the drag grid.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the gridSize to 10 -- objects are aligned to a 10-pixel mesh

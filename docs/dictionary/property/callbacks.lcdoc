@@ -9,7 +9,7 @@ Specifies <message|messages> to be sent during playback of a movie.
 
 Associations: player
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

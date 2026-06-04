@@ -2,30 +2,24 @@ Name: save
 
 Type: command
 
-Syntax: save <stack> [as <filePath>] [with {format <stackFormat> | newest format}]
+Syntax: save <stack> [as <filePath>]
 
 Summary:
 Saves a <stack file> on the user's system.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Security: disk
-
-Example:
-save stack "project1" with newest format
 
 Example:
 save this stack as "Backup"
 
 Example:
 save stack "project1" as "/Disk/Folder/File"
-
-Example:
-save stack "MyOldApp" with format 7.0
 
 Parameters:
 stack:
@@ -36,9 +30,6 @@ The <filePath> specifies the name and location of the file you want to
 save to. If you specify a name but not a location, the engine assumes the
 file is in the <defaultFolder>. If the file does not exist, HyperXTalk
 creates it.
-
-stackFormat:
-The <stack version|stack file format version> to use when saving.
 
 The result:
 If the stack cannot be saved (for example, if you try to save it to a
@@ -60,33 +51,11 @@ must use the `as` form.
 You cannot save to a standalone application's file; 
 <standalone application|standalones> are read-only.
 
-The <save> command can save the <stack> in several different versions of
-the HyperXTalk stack file format.
-
-* If you use the `with newest format` form of the <save> command, the
-  <stack> is saved using the newest <stack version>.
-* If you use the `with format` form of the <save> command, the
-  <stackFormat> should be the particular <stack version> you want the
-  stack to be saved as.
-* If you do not specify a format to use, the current value of the
-  <stackFileVersion> property is used.
-
-
-**Warning:** If you save in an older <stack version> that doesn't
-support all of the features used in the stack, then some of contents of
-the stack may be lost. In general, you are recommended to use the `with
-newest format` form of the <save> command.
-
->*Note:* You can use the <minStackFileVersion> <property> to determine
-if your stack will lose data when <save|saved> with a particular
-<stack version>.
-
 References: create stack (command), function (control structure),
 stacks (function), substack (glossary), stack file (glossary),
 command (glossary), standalone application (glossary),
-main stack (glossary), stack version (glossary), as (keyword),
+main stack (glossary), as (keyword),
 file (keyword), stack (object), substacks (property),
-defaultFolder (property), stackFileVersion (property), 
-minStackFileVersion (property)
+defaultFolder (property)
 
 Tags: file system

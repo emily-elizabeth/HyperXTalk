@@ -7,11 +7,11 @@ Syntax: set the screenMouseLoc to <horizontal>, <vertical>
 Summary:
 Specifies the position of the <mouse pointer> relative to the screen.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put localLoc(the screenMouseLoc) into localMouse
@@ -39,10 +39,6 @@ Use the <screenMouseLoc> <property> to find out where the
 > kiosk application or game). In normal desktop applications, the user
 > expects a consistent <user interface> without such surprises. You must
 > use this power only for good.
-
-Changes:
-Support for using the screenMouseLoc with OS X systems was added in
-version 2.0.
 
 References: function (control structure), mouseLoc (function),
 mouseV (function), property (glossary), integer (glossary),

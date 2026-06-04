@@ -7,11 +7,11 @@ Syntax: null
 Summary:
 Equivalent to the null <character> (ASCII zero).
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 read from file "modem:" until null

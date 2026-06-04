@@ -8,7 +8,7 @@ Summary:
 Used with the <write to file> <command> to designate the 
 <standard error> location.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, linux
 
@@ -32,12 +32,6 @@ triggered.
 
 When you use the <write to file> <command> with the <stderr> <keyword>,
 HyperXTalk writes data to the <standard error> location.
-
-Support for using <stderr> on Server was added in version 4.6.3.
-
-Changes:
-Support for using <stderr> on <OS X|OS X systems> was added in version
-2.0. 
 
 References: write to file (command), keyword (glossary),
 command (glossary), OS X (glossary), standard error (glossary),

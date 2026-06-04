@@ -9,11 +9,11 @@ Specifies the amount of blank space at the edges of a <field>.
 
 Associations: field
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the wideMargins of field "Info" to true

@@ -9,11 +9,11 @@ Reports the <group|groups> on a <card>.
 
 Associations: card
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the groupNames of card 1 into groupsToDelete
@@ -34,10 +34,6 @@ If a group on the <card> contains <group|groups>, only the top-level
 
 To find out which groups are in a stack, use the backgroundNames
 <property>. 
-
-Changes:
-In versions before 1.1, groupNames and backgroundNames were synonyms and
-could be used interchangeably.
 
 References: place (command), property (glossary), group (glossary),
 card (keyword), line (keyword), nameChanged (message),

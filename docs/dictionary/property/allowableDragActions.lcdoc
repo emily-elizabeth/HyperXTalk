@@ -10,7 +10,7 @@ Summary:
 Reports a list of actions that the source application will act upon for
 the current drag-drop operation.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

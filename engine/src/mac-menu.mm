@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <Cocoa/Cocoa.h>
 
 #include "globdefs.h"
@@ -1976,6 +1960,12 @@ bool MCPlatformPopUpMenu(MCPlatformMenuRef p_menu, MCPlatformWindowRef p_window,
     // released outside of the menu list.
     // We will set s_menu_item_selected in menuItemSelected if selection occurs.
     s_menu_item_selected = false;
+
+    // Inherit the appearance from the window/app so the menu renders correctly
+    // in dark mode. NSMenu does not automatically pick up the effective
+    // appearance from the view it is anchored to.
+    [t_menu setAppearance: t_view != nil ? [t_view effectiveAppearance] : [NSApp effectiveAppearance]];
+
 	[t_menu popUpMenuPositioningItem: p_item == UINDEX_MAX ? nil : [t_menu itemAtIndex: p_item] atLocation: t_location inView: t_view];
 	
 	MCMacPlatformSyncMouseAfterTracking();

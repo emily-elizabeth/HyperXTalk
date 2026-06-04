@@ -13,11 +13,11 @@ text in an <object(glossary)>, is <highlight|highlighted>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image, group
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the hiliteColor of field "Comments" to "red"
@@ -111,12 +111,6 @@ The global <hiliteColor> <property> specifies the background color of
 <select|selected> text in <field(object)|fields> whose <hiliteColor> is
 empty, but does not affect other <highlight|highlighted>
 <object|objects>. 
-
-Changes:
-The ability of an object to inherit its hiliteColor from the object's
-owner was introduced in version 1.1. In previous versions, if an
-object's hiliteColor was empty, the setting of the global hiliteColor
-property was used instead.
 
 References: global (command), group (command), object (glossary),
 selection (glossary), property (glossary), select (glossary), 

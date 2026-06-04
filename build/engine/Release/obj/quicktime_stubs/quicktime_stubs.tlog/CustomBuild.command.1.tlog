@@ -1,3 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\UTIL\WEAK_STUB_MAKER.PL
-call call perl "..\..\util\weak_stub_maker.pl" "..\..\engine\src\quicktime.stubs" "\..\shared_intermediate\src\quicktimestubs.mac.cpp"
-if %errorlevel% neq 0 exit /b %errorlevel%

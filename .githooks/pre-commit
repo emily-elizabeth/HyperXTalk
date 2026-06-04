@@ -1,0 +1,46 @@
+#!/bin/sh
+# Pre-commit hook: reject a staged jconfig.h that contains a bare
+# '#define INLINE __inline__' without the _MSC_VER guard.
+#
+# This catches accidental check-ins of an autoconf-regenerated jconfig.h
+# which overwrites the MSVC compatibility guard. See the comment at the
+# top of thirdparty/libjpeg/src/jconfig.h for full context.
+#
+# To install this hook for your local clone, run:
+#   git config core.hooksPath .githooks
+# or copy/symlink it to .git/hooks/pre-commit.
+
+JCONFIG="thirdparty/libjpeg/src/jconfig.h"
+
+# Only check if jconfig.h is actually staged for this commit.
+if ! git diff --cached --name-only | grep -qF "$JCONFIG"; then
+    exit 0
+fi
+
+# Grab the staged content and look for a bare __inline__ definition,
+# i.e. one that is NOT inside an #else / #elif branch of _MSC_VER.
+staged=$(git show ":$JCONFIG" 2>/dev/null)
+
+if echo "$staged" | grep -qE '^[[:space:]]*#define[[:space:]]+INLINE[[:space:]]+__inline__'; then
+    # Check that the _MSC_VER guard is also present.
+    if ! echo "$staged" | grep -qE '_MSC_VER'; then
+        echo ""
+        echo "ERROR: pre-commit hook blocked the commit."
+        echo ""
+        echo "  $JCONFIG contains a bare '#define INLINE __inline__'"
+        echo "  without the _MSC_VER guard. This is the autoconf-generated"
+        echo "  version, which breaks MSVC builds."
+        echo ""
+        echo "  Restore the guard before committing:"
+        echo ""
+        echo "    #ifdef _MSC_VER"
+        echo "    #define INLINE __inline"
+        echo "    #else"
+        echo "    #define INLINE __inline__"
+        echo "    #endif"
+        echo ""
+        exit 1
+    fi
+fi
+
+exit 0

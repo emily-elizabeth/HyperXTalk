@@ -8,11 +8,11 @@ Summary:
 Skips the rest of the current <repeat> <loop> and goes to the
 <statement> following the <end repeat>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if x &gt; 0 then exit repeat

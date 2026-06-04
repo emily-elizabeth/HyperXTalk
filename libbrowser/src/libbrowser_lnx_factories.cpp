@@ -18,15 +18,12 @@
 
 #include "libbrowser_internal.h"
 
-extern bool MCCefBrowserFactoryCreate(MCBrowserFactoryRef &r_factory);
-
+// CEF has been removed; WebViewGTK support is in progress.
+// For now the factory list is empty — no browser backend is available on Linux.
 
 // Overcome the tautological error if s_factory_list is a static pointer
 MCBrowserFactoryMap kMCBrowserFactoryMap[] =
 {
-#if defined __i386__ || defined __amd64__
-    { "CEF", nil, MCCefBrowserFactoryCreate },
-#endif
     { nil, nil, nil },
 };
 

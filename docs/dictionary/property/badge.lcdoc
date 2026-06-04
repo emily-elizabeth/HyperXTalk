@@ -9,7 +9,7 @@ Displays a numeric badge on the application icon.
 
 Associations: stack
 
-Introduced: 10.0
+Introduced: 1.0.0
 
 OS: mac, windows
 

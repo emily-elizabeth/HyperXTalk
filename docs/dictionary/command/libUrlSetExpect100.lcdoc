@@ -9,7 +9,7 @@ Allows for a '100 Continue' header response to be received from the server
 
 Associations: internet library
 
-Introduced: 2.5
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

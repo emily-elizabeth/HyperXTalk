@@ -8,7 +8,7 @@ Summary:
 Used with the <read from file> <command> to designate the 
 <standard input>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -31,12 +31,6 @@ information.
 
 When you use the <read from file> <command> with the <stdin> <keyword>,
 the engine reads data from the <standard input>.
-
-Support for using <stdin> on Server was added in version 4.6.3.
-
-Changes:
-Support for using <stdin> on <OS X|OS X systems> was added in version
-2.0. 
 
 References: read from process (command), read from file (command),
 keyword (glossary), command (glossary), standard input (glossary),

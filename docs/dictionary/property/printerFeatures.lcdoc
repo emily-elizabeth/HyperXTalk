@@ -7,7 +7,7 @@ Syntax: get the printerFeatures
 Summary:
 Reports a list of features that the current printer supports.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

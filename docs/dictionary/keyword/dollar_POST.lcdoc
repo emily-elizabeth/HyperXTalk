@@ -8,7 +8,7 @@ Summary:
 <$_POST> is an array variable, formed from reading stdin and translating
 the url-form-encoded or multi-part-encoded data.
 
-Introduced: 4.6.3
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -8,11 +8,11 @@ Summary:
 <concatenate|Concatenates> two <string|strings> and inserts a 
 <space> between them.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put "my" && "house" -- evaluates to "my house"

@@ -8,7 +8,7 @@ Summary:
 Displays a <file dialog box|standard file dialog> for the user to select
 a file.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -68,7 +68,7 @@ The dialog box displayed is the same one most programs use for the
 > displays the dialog box and retrieves the path to the file the user
 > specifies.
 
-If the as sheet form is used, the dialog box appears as a sheet on OS X
+If the as sheet form is used, the dialog box appears as a sheet on macOS
 systems. On other systems, the as sheet form has no effect and the
 dialog box appears normally. Attempting to open a sheet from within
 another sheet displays the second stack as a modal dialog box instead.

@@ -9,11 +9,11 @@ Syntax: colorNames()
 Summary:
 <return|Returns> a list of the color names you can use in <HyperXTalk>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the colorNames
@@ -46,7 +46,3 @@ backgroundColor (property), accentColor (property), topColor (property),
 linkColor (property), selectionHandleColor (property)
 
 Tags: ui
-
-Changes:
-In HyperXTalk 8.1 the Gray1-100 colors were corrected to match the shades
-of gray from the [X11 color names](https://en.wikipedia.org/wiki/X11_color_names).

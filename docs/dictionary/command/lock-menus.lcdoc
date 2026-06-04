@@ -9,7 +9,7 @@ Sets the <lockMenus> <property> to true, preventing the <menu bar> from
 being updated when the <control|controls> for the <menu bar> are
 changed. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

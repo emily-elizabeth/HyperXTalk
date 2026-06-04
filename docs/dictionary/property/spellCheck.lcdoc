@@ -10,9 +10,9 @@ red squiggly line.
 
 Associations: field
 
-Introduced: 10.0
+Introduced: 1.0.0
 
-OS: mac
+OS: mac, windows
 
 Platforms: desktop
 
@@ -45,8 +45,10 @@ field.
 
 Spell checking uses the system dictionary and respects the user's
 language settings. On macOS the system spell checker is
-`NSSpellChecker`; on other platforms the <spellCheck> property is
-accepted without error but has no visible effect.
+`NSSpellChecker`. On Windows 8 and later the system spell checker is
+the `ISpellChecker` COM API (Windows Spell Checking API). On other
+platforms the <spellCheck> property is accepted without error but has
+no visible effect.
 
 >*Note:* The <spellCheck> property performs checking only — it does not
 > provide suggestions or auto-correction. To control whether the system

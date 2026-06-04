@@ -7,7 +7,7 @@ Syntax: set the audioPan of <player> to <positive/negative percentage>
 Summary:
 Specifies the proportion of audio panned from one stereo channel to the other.
 
-Introduced: 9.0.1
+Introduced: 1.0.0
 
 OS: mac
 

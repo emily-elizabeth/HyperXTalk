@@ -8,11 +8,11 @@ Summary:
 Wrap allows the user to ensure the value of a variable stays within a
 specified range.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 repeat with x = 1 to 10

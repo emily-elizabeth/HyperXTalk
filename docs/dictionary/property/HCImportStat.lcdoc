@@ -8,11 +8,11 @@ Summary:
 Reports information about <stacks> that are being <import|imported> from
 <HyperCard>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, ios, android
+OS: mac
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the HCImportStat into field "Progress"

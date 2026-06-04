@@ -7,7 +7,7 @@ Syntax: set the recording to {true | false}
 Summary:
 Reports whether a sound is currently being recorded.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
 OS: mac, windows
 

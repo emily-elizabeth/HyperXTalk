@@ -8,7 +8,7 @@ Summary:
 Sets the <lockErrorDialogs> <property> to true, preventing the error
 window from being displayed when an <execution error> occurs.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

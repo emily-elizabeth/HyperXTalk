@@ -2346,10 +2346,6 @@ end revIDEGetPreferenceOfSet
 command __DevPreference pPreferenceName, @rValue
    if not revEnvironmentIsInstalled() then
       switch pPreferenceName
-         case "cScriptEditor,explicitVariables"
-         case "cScriptEditor,preserveVariables"
-            put true into rValue
-            break
          case "cScriptEditor,editor,commentchar"
             put "--" into rValue
             break
@@ -2357,7 +2353,7 @@ command __DevPreference pPreferenceName, @rValue
             put 3 into rValue
             break
       end switch
-      
+
    end if
 end __DevPreference
 
@@ -4123,6 +4119,21 @@ function revIDESpecialFolderPath pKey, pParam
          revIDEEnsurePath tPath
          return tPath
          break
+      case "user libraries"
+         put revEnvironmentUserLibraries() into tPath
+         revIDEEnsurePath tPath
+         return tPath
+         break
+      case "user plugins"
+         put revEnvironmentUserPluginsPath() into tPath
+         revIDEEnsurePath tPath
+         return tPath
+         break
+      case "user schemes"
+         put revEnvironmentUserColorSchemesPath() into tPath
+         revIDEEnsurePath tPath
+         return tPath
+         break
       case "temp extensions"
          put revEnvironmentUserExtensionsPath() & "/temp" into tPath
          revIDEEnsurePath tPath
@@ -4138,10 +4149,10 @@ function revIDESpecialFolderPath pKey, pParam
          revIDEEnsurePath tPath
          return tPath
          break
-       case "documentation"
-          put item 1 to -3 of the filename of stack "home" & "/Documentation" into tPath
-          return tPath
-          break
+      case "documentation"
+         put item 1 to -3 of the filename of stack "home" & "/Documentation" into tPath
+         return tPath
+         break
       case "documentation cache"
          put revEnvironmentUserDocsPath() & slash & "IDE" into tPath
          revIDEEnsurePath tPath
@@ -5452,7 +5463,11 @@ end revIDELastModifiedTimeOfFilesInFolder
 function revIDEExtensionFolders
    local tFoldersA
    put revIDESpecialFolderPath("user extensions") into tFoldersA["user"]
-
+   
+   // HXT
+   get revIDESpecialFolderPath("user plugins")
+   get revIDESpecialFolderPath("user schemes")
+   
    local tCount = 0
    repeat for each line tFolder in revEnvironmentExtensionsPaths()
       -- In an installed build revEnvironmentExtensionsPaths() returns
@@ -6528,8 +6543,12 @@ on revIDEStandaloneSettingsSet pStack, pProperty, pValue
    set the cRevStandaloneSettings[pProperty] of pStack to pValue
 end revIDEStandaloneSettingsSet
 
+function revIDEStandaloneSettingsGet pTargetStackLongID, pProperty
+   return the cRevStandaloneSettings[pProperty] of pTargetStackLongID
+end revIDEStandaloneSettingsGet
+   
 function revIDEStandaloneSections
-	// AL-2015-03-03: [[ Bug 14769 ]] Add 'Table' section to the property inspector
+   // AL-2015-03-03: [[ Bug 14769 ]] Add 'Table' section to the property inspector
    return "General,Stacks,Copy Files,Mac,Windows,Linux,iOS,Android,Bug Reports"
 end revIDEStandaloneSections
 

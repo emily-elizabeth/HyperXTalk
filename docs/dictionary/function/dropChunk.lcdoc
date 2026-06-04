@@ -10,7 +10,7 @@ Summary:
 <return|Returns> a <chunk expression> describing the location in the
 <field> where data was dropped.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows
 

@@ -10,7 +10,7 @@ Summary:
 <return|Returns> a list of the <DNS> servers listed in the system's
 <TCP|TCP/IP> network configuration.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -7,13 +7,13 @@ Syntax: resizeControl
 Summary:
 Sent to a <control(glossary)> right after the user resizes it.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Associations: field, button, graphic, scrollbar, player, image
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on resizeControl -- make sure a label stays at the bottom edge

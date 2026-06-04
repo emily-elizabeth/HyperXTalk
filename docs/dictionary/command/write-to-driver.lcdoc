@@ -8,7 +8,7 @@ Summary:
 Sends data to a <peripheral device|device> that has been opened with the
 <open driver> <command>.
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

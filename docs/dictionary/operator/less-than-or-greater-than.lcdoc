@@ -10,11 +10,11 @@ Summary:
 Compares two <value|values> and <return|returns> true if they are not
 equal, false if they are equal.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 3 + 2 &lt;&gt; 6

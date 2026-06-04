@@ -8,7 +8,7 @@ Summary:
 <execute|Executes> a list of <statement|statements> with additional
 <debug|debugging> information when in the <debugger>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

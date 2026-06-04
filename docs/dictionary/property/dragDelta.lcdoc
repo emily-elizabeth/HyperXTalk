@@ -8,7 +8,7 @@ Summary:
 Specifies the distance the pointer must be moved to initialise drag
 behaviour. 
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

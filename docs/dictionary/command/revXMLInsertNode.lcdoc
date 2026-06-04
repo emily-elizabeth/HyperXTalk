@@ -9,11 +9,11 @@ Inserts a node as a sibling of siblingNode in the specified tree.
 
 Associations: xml library
 
-Introduced: 2.7.4
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -230,15 +214,15 @@ bool MCVariable::isuql(void) const
 
 void MCVariable::clearuql(void)
 {    
-	if (!is_uql)
-		return;
-    
+    if (!is_uql)
+        return;
+
     // SN-2014-04-09 [[ Bug 12160 ]] Put after/before on an uninitialised, by-reference parameter inserts the variable's name in it
     // The content of a UQL value was not cleared when needed
     if (value . type == kMCExecValueTypeNameRef && MCNameIsEqualToCaseless(value . nameref_value, *name))
         clear();
-    
-	is_uql = false;
+
+    is_uql = false;
 }
 
 Boolean MCVariable::isclear(void) const
@@ -1329,11 +1313,11 @@ void MCVarref::clearuql()
 // MW-2008-08-18: [[ Bug 6945 ]] Cannot delete a nested array key.
 bool MCVarref::dofree(MCExecContext& ctxt)
 {
-	MCContainer t_container;
+    MCContainer t_container;
     if (!resolve(ctxt, t_container))
         return false;
-    
-	return t_container.remove(ctxt);
+
+    return t_container.remove(ctxt);
 }
 
 class MCContainerBuilder

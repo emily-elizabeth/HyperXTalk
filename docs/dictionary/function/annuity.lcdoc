@@ -8,11 +8,11 @@ Summary:
 Computes the <value> of an annuity given an interest rate and a number
 of payments.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 annuity(.08,10)

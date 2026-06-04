@@ -9,11 +9,11 @@ Syntax: create [invisible] <objectType> [<objectName>] [in {<group>|<card>}]
 Summary:
 Creates a new object on the current card.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 create button "Click Me"

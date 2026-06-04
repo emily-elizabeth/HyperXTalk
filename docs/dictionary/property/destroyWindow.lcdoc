@@ -10,7 +10,7 @@ Specifies whether the memory used by a <stack window> is purged when the
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -8,11 +8,11 @@ Summary:
 Reports how many pages are in the <PostScript> code of an <EPS|EPS
 object>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: linux, ios, android
+OS: linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 add the pageCount of EPS "Watermark" to totalPages

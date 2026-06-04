@@ -11,11 +11,11 @@ the group prevents this behavior.
 
 Associations: group
 
-Introduced: 6.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the lockUpdates of group 1 to true

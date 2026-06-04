@@ -1,7 +1,5 @@
 Name: revDatabaseColumnIsNull
 
-Synonyms: revdb_columnisnull
-
 Type: function
 
 Syntax: revDatabaseColumnIsNull(<recordSetID>, <columnNumber>)
@@ -12,11 +10,11 @@ value, false otherwise.
 
 Associations: database library
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 
@@ -64,9 +62,6 @@ returns true if the field's value is not set at all.
 > <Standalone Application Settings> window, make sure both the 
 > "Database" library checkbox and those of the database drivers you are 
 > using are checked.
-
-Changes:
-The revDatabaseColumnIsNull synonym was added in version 2.0.
 
 References: function (control structure),
 revDatabaseColumnNames (function), revDatabaseColumnLengths (function),

@@ -7,11 +7,11 @@ Syntax: catch <errorParameter>
 Summary:
 Used within a <try> <control structure> to <handle> <error|errors>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 catch myError

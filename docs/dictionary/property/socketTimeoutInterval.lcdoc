@@ -8,11 +8,11 @@ Summary:
 Specifies how long to wait for a <read from socket> or <write to socket>
 <command> to finish before <timeout|timing out>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the socketTimeoutInterval to 100 -- one-tenth of a second

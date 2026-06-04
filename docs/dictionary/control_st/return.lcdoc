@@ -8,13 +8,13 @@ Summary:
 Stops the current <handler> and <return|returns> a <value> to the
 <handler> that <call|called> the current <handler>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Changed: 8.1.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
     function simpleFunction

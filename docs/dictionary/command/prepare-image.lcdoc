@@ -9,9 +9,9 @@ Syntax: prepare image file <filename>
 Summary:
 Preloads an image into memory.
 
-Introduced: 6.0.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
 Platforms: desktop, server
 

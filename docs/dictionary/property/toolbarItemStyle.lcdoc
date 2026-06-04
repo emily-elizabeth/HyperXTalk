@@ -10,7 +10,7 @@ The visual style of a toolbar item: button, separator, or space.
 
 Associations: toolbar
 
-Introduced: 10.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

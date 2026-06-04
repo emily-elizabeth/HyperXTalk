@@ -9,7 +9,7 @@ Returns the folder where the Database library looks for database drivers
 
 Associations: database library
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

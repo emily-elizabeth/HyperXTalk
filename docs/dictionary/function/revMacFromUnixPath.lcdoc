@@ -8,7 +8,7 @@ Summary:
 Converts a Unix-style <file path|pathname> to a <Mac OS>-style <file
 path|pathname>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -83,11 +83,6 @@ not need to convert the pathname, since HyperXTalk does it for you.
 > <handler|handlers> in the <main stack>. Once the <application> has
 > finished starting up, the <library> is available and the
 > <revMacFromUnixPath> <function> can be used in any <handler>.
-
-Changes:
-The <convertOSX> <parameter> was introduced in version 2.1.1. In
-previous versions, the <revMacFromUnixPath> <function> did not attempt
-to convert between the <Mac OS> and <OS X> conventions described above.
 
 References: answer file (command), function (control structure),
 application (glossary), standalone application (glossary),

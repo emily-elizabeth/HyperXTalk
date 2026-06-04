@@ -7,7 +7,7 @@ Syntax: set the retainImage of <EPSObject> to {true | false}
 Summary:
 Specifies whether an <EPS|EPS object> contains a preview <bitmap>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

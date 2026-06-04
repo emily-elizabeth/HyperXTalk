@@ -8,11 +8,11 @@ Summary:
 Controls how text with minor differences is treated in comparison
 operations. 
 
-Introduced: 7.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the formSensitive to true

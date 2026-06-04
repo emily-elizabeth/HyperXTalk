@@ -8,11 +8,11 @@ Summary:
 Allows the construction of compound <boolean> expressions, which <evaluate> to true 
 if both <operand|operands> are true, false otherwise. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put (1 > 0) and (1 = 0)

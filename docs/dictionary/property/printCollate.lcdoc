@@ -10,7 +10,7 @@ Summary:
 Reports whether the next print job should automatically interleave
 multiple copies.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

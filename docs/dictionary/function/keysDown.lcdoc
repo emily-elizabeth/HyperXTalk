@@ -9,7 +9,7 @@ Syntax: keysDown()
 Summary:
 <return|Returns> a list of the keys currently being pressed.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

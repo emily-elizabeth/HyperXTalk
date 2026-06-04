@@ -567,3 +567,11 @@ command checkScriptEditor pScriptEditor, pObject, pLineNumber
       send "checkScriptEditor pScriptEditor, pObject, pLineNumber" to me in 100 milliseconds
    end if
 end checkScriptEditor
+
+on CommandKeyDown pKey
+   if (pKey = "w") then
+      close this stack
+   else
+      pass CommandKeyDown
+   end if
+end CommandKeyDown

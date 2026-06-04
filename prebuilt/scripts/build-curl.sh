@@ -73,7 +73,9 @@ function buildCurl {
 		setCCForTarget "${PLATFORM}" "${ARCH}" "${SUBPLATFORM}"
 		
 		if [ "${PLATFORM}" == "linux" ] ; then
-			export LDFLAGS="-Wl,-rpath,.,-rpath-link,${INSTALL_DIR}/${PLATFORM}/${ARCH}/lib"
+			export LDFLAGS="-Wl,-rpath,${INSTALL_DIR}/${PLATFORM}/${ARCH}/lib,-rpath-link,${INSTALL_DIR}/${PLATFORM}/${ARCH}/lib"
+			# curl 7.51.0's autoconf conftest uses old-style main() which GCC 14 rejects
+			export CFLAGS="-Wno-implicit-int"
 		fi
 		
 		./configure ${CURL_ARCH_CONFIG} && make clean && make ${MAKEFLAGS} && make install

@@ -8,11 +8,11 @@ Summary:
 Specifies the text contents of the <field> which was the target of the
 <message> currently being <handle|handled>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 answer target

@@ -8,7 +8,7 @@ Summary:
 Replaces or adds a CGI output header to the current list that is
 generated the first time any data is output to stdout.
 
-Introduced: 4.6.3
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

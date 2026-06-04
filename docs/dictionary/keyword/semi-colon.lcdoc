@@ -8,11 +8,11 @@ Summary:
 The <character> <;> is used to place more than one <statement> on a
 single <line>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 go next card; wait 1 second; go previous card

@@ -1,0 +1,149 @@
+Library: com.livecode.emscripten
+
+Type: module
+
+Summary: This module provides utility handlers for converting to and from Emscripten types.
+
+Description:
+
+Name: EvalJavaScriptWithArguments
+
+Type: handler
+
+Syntax: EvalJavaScriptWithArguments(<pScript>,<pArgs>)
+
+Summary: Evaluate JavaScript code within the browser with arguments
+
+Parameters:
+
+pScript: The script to evaluate
+
+pArgs: The list of arguments to pass to the script
+
+Returns: A value of any type
+
+Example:
+variable mButton as JSObject
+
+public handler SetButtonText(in pText as String)
+	EvalJavaScriptWithArguments("arguments[0].innerHTML = arguments[1]", [mButton, pText])
+end handler
+
+Description: Use <EvalJavaScriptWithArguments> to get the result of running a block of JavaScript code, where you need to pass values to the script.
+
+
+
+
+Name: HandlerAsJSFunction
+
+Type: handler
+
+Syntax: HandlerAsJSFunction(<pHandler>)
+
+Summary: Wrap a Extension Builder handler within a JavaScript function, suitable for passing as an event handler.
+
+Parameters: 
+
+pHandler: The handler to wrap
+
+Returns: A JavaScript function object, wrapping the handler
+
+Example:
+variable mButton as JSObject
+variable mOnClickHandler as JSObject
+
+private handler OnJSClick(pEvent as JSObject) returns nothing
+	SetLabel("Clicked!")
+end handler
+
+private handler SetJSEventHandler(in pElement as JSObject, in pEvent as String, in pHandler as JSObject)
+	EvalJavaScriptWithArguments("arguments[0].addEventListener(arguments[1], arguments[2]);", [pElement, pEvent, pHandler])
+end handler
+
+private handler SetupEventHandler()
+	put HandlerAsJSFunction(OnJSClick) into mOnClickHandler
+	SetJSEventHandler(mButton, "click", mOnClickHandler)
+end handler
+
+Description: Use <HandlerAsJSFunction> to convert a handler reference to a JavaScript function object reference.
+
+
+
+
+Name: PointerFromJSObject
+
+Type: handler
+
+Syntax: PointerFromJSObject(<pObj>)
+
+Summary: Convert a JavaScript object value to a pointer
+
+Parameters:
+
+pObj: The object to convert
+
+Example:
+public handler InitNativeButton()
+	variable tButton as JSObject
+	put EvalJavaScript("document.createElement('button')") into tButton
+
+	variable tPointer as Pointer
+	put PointerFromJSObject(tButton) into tPointer
+
+	set my native layer to tPointer
+end handler
+
+Description: Use <PointerFromJSObject> to convert a JavaScript object to a variable of type Pointer.
+
+
+
+
+Name: PointerToJSObject
+
+Type: handler
+
+Syntax: PointerToJSObject(<pPointer>)
+
+Summary: Convert a Pointer into a JavaScript object
+
+Parameters:
+
+pPointer: The Pointer to convert
+
+Returns: An value of type JSObject
+
+Example:
+variable mButtonPointer as Pointer
+
+public handler SetButtonText(in pText as String)
+	variable tJSButton as JSObject
+	put PointerToJSObject(mButtonPointer) into tJSButton
+
+	EvalJavaScriptWithArguments("arguments[0].innerHTML = arguments[1]", [tJSButton, pText])
+end handler
+
+Description: Use <PointerToJSObject> to convert a variable of type Pointer to a JavaScript object.
+
+
+
+
+Name: EvalJavaScript
+
+Type: handler
+
+Syntax: EvalJavaScript(<pScript>)
+
+Summary: Evaluate JavaScript code within the browser
+
+Parameters:
+
+pScript: The script to evaluate
+
+Returns: A value of any type
+
+Example:
+public handler GetInputText() returns String
+	return EvalJavaScript("document.getElementById('myText').value")
+end handler
+
+Description: Use <EvalJavaScript> to get the result of running a block of JavaScript code

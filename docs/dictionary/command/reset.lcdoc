@@ -8,11 +8,11 @@ Summary:
 <return|Returns> the specified <template> <object(glossary)> to its
 <default> settings.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 reset the templateGraphic

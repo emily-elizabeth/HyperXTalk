@@ -10,7 +10,7 @@ Summary:
 <return|Returns> the <process> IDs of <process|processes> that have been
 opened with the <open process> <command>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

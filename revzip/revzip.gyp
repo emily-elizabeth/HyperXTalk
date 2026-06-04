@@ -20,7 +20,7 @@
 			'mac_bundle': 1,
 			'product_prefix': '',
 			'product_name': 'revzip',
-			
+
 			'dependencies':
 			[
 				'../libexternal/libexternal.gyp:libExternal',
@@ -28,7 +28,16 @@
 				'../thirdparty/libzip/libzip.gyp:libzip',
 				'../thirdparty/libz/libz.gyp:libz',
 			],
-			
+
+			'defines':
+			[
+				# libzip is linked as a static library; without ZIP_STATIC,
+				# zip.h decorates every function with __declspec(dllimport)
+				# on Windows, generating __imp_zip_* references that the
+				# static libzip.lib cannot satisfy.
+				'ZIP_STATIC',
+			],
+
 			'include_dirs':
 			[
 				'../thirdparty/libzip/src',
@@ -77,7 +86,7 @@
 			'type': 'loadable_module',
 			'product_prefix': '',
 			'product_name': 'server-revzip',
-			
+
 			'dependencies':
 			[
                 '../libexternal/libexternal.gyp:libExternal',
@@ -85,7 +94,12 @@
 				'../thirdparty/libzip/libzip.gyp:libzip',
 				'../thirdparty/libz/libz.gyp:libz',
 			],
-			
+
+			'defines':
+			[
+				'ZIP_STATIC',
+			],
+
 			'sources':
 			[
 				'<@(revzip_sources)',

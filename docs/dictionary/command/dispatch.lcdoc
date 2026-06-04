@@ -7,11 +7,11 @@ Syntax: dispatch <message> [ to <target> ][ with <argumentList> ]
 Summary:
 Sends a message to an object via the normal message path.
 
-Introduced: 3.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 dispatch "updateWidget"

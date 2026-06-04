@@ -1,0 +1,499 @@
+Library: com.livecode.widget.segmented
+
+Type: widget
+
+Summary:
+A widget that shows a row of selectable horizontal segments.
+
+A segmented control is a horizontal control that is made up of
+multiple segments, where each segment functions as a discrete button.
+Each segment can either show a <itemLabels|label> or an
+<itemIcons|icon>.
+
+One or more of the segments can be <hilitedItems|highlighted> by
+clicking on them.  By default, only one segment at a time can be
+highlighted, but it is possible to
+<multipleHilites|allow multiple segments to be highlighted>.
+
+The segmented control is great for:
+
+- displaying a set of different options in a settings window (for
+  example, it is used to display text alignment in the LiveCode
+  property inspector)
+- switching between different cards in a stack
+- displaying a set of toggleable settings
+
+References:
+itemLabels (property), itemIcons (property),
+	hilitedItems (property), multipleHilites (property)
+
+author: LiveCode
+
+version: 1.2.0
+
+Name: hiliteChanged
+
+Type: message
+
+Syntax: hiliteChanged
+
+Summary: Sent when the hilite of the segmented control widget changes
+
+Description:
+Handle the <hiliteChanged> message in order to respond to a change in the hilited items
+of the segmented control.
+
+Name: foreColor
+
+Type: property
+
+Syntax: get the foreColor of <widget>
+
+Syntax: set the foreColor of <widget> to <color>
+
+Summary: The default label or icon color
+
+Description:
+The <foreColor> property controls the color used to draw segments'
+labels or icons when they are not highlighted.
+
+Related: hilitedTextColor (property)
+
+Name: backColor
+
+Type: property
+
+Syntax: get the backColor of <widget>
+
+Syntax: set the backColor of <widget> to <color>
+
+Summary: The default background color
+
+Description:
+The <backColor> property controls the background color of segments
+when they are not highlighted.
+
+Related: hiliteColor (property)
+
+Name: hiliteColor
+
+Type: property
+
+Syntax: get the hiliteColor of <widget>
+
+Syntax: set the hiliteColor of <widget> to <color>
+
+Summary: The background color of highlighted segments
+
+Description:
+The <hiliteColor> property controls the background color
+of the segments that are currently highlighted.
+
+Related:
+hilitedItems (property), hilitedItemNames (property),
+	backColor (property)
+
+Name: borderColor
+
+Type: property
+
+Syntax: get the borderColor of <widget>
+
+Syntax: set the borderColor of <widget> to <color>
+
+Summary: The border color
+
+Description:
+The <borderColor> property controls the color used to draw the
+segmented control's background and the color of the dividers between
+the segments.
+
+Related: showBorder (property)
+
+
+Name: itemLabels
+
+Type: property
+
+Syntax: get the itemLabels of <widget>
+
+Syntax: set the itemLabels of <widget> to <labelList>
+
+Summary: The labels displayed by each segment
+
+Value: A comma-delimited list of labels for the segments.
+
+Description:
+The labels of each segment in the control.  The <itemLabels> are
+displayed by the widget when the <itemStyle> is set to show labels.
+
+If any of the <itemLabels> are empty, those segments have no label.
+
+When you set the <itemLabels> to a string that has fewer labels than
+the <itemCount>, the remaining segments' labels are set to empty.
+
+When you set the <itemLabels> to a string that has more labels than
+the <itemCount>, the extra labels are ignored.
+
+Related:
+itemCount (property), itemStyle (property),
+	foreColor (property)
+
+
+
+Name: hilitedItems
+
+Type: property
+
+Syntax: get the hilitedItems of <widget>
+
+Syntax: set the hilitedItems of <widget> to <indexList>
+
+Summary: The currently highlighted segment indices
+
+Value: A comma-delimited list of segment indices.
+
+Description:
+The segment numbers of the highlighted segments of the control.  Each
+item in the <hilitedItems> is a positive integer.
+
+If the <multipleHilites> is `false` when setting the <hilitedItems>,
+then the first index in the <hilitedItems> determines which segment is
+highlighted, and the remainder of the <hilitedItems> are ignored.
+
+The <hiliteChanged> message is sent when setting the <hilitedItems>,
+unless it doesn't change which segments are highlighted.
+
+References:
+hilitedItemNames (property), multipleHilites (property),
+	hiliteChanged (message)
+
+
+
+Name: multipleHilites
+
+Type: property
+
+Syntax: get the multipleHilites of <widget>
+
+Syntax: set the multipleHilites of <widget> to { true | false }
+
+Summary: Whether multiple segments may be highlighted simultaneously
+
+Description:
+When the <multipleHilites> property is `true`, more than one segemnt
+can be highlighted at once.  If it is `false`, then highlighting a
+segment removes the highlight from all other segments.
+
+If the <multipleHilites> is set to `false` while there is more than
+one segment highlighted, then all segments are immediately
+dehighlighted and the <hiliteChanged> message is sent.
+
+References:
+hilitedItems (property), hilitedItemNames (property),
+	hiliteChanged (message)
+
+
+
+Name: showBorder
+
+Type: property
+
+Syntax: get the showBorder of <widget>
+
+Syntax: set the showBorder of <widget> to { true | false }
+
+Summary: Whether the widget has a border or not
+
+Description:
+If the <showBorder> property is `true`, the segmented control is drawn
+with an outline.
+
+Related: borderColor (property)
+
+
+
+
+Name: hilitedItemNames
+
+Type: property
+
+Syntax: get the hilitedItemNames of <widget>
+
+Syntax: set the hilitedItemNames of <widget> to <nameList>
+
+Summary: The currently highlighted segment names
+
+Value: A comma-delimited list of segment names.
+
+Description:
+The names of the highlighted segments of the control.  Each item in
+the <hilitedItemNames> is a segment <itemNames|name>.
+
+If the <multipleHilites> is `false` when setting the
+<hilitedItemNames>, then the first name in the <hilitedItemNames>
+determines which segment is highlighted, and the remainder of the
+<hilitedItemNames> are ignored.
+
+The <hiliteChanged> message is sent when setting the
+<hilitedItemNames>, unless it doesn't change which segments are
+highlighted.
+
+References:
+hilitedItems (property), itemNames (property), \
+	multipleHilites (property), hiliteChanged (message)
+
+
+
+Name: itemMinExtents
+
+Type: property
+
+Syntax: get the itemMinExtents of <widget>
+
+Syntax: set the itemMinExtents of <widget> to <numberList>
+
+Summary: The minimum width of each segment
+
+Value: A comma-delimited list of positive numbers.
+
+Description:
+The minimum width of each segment in the control.  Each of the
+<itemMinExtents> must be a positive number.
+
+When you set the <itemMinExtents> to a string that has fewer than
+<itemCount> numbers in it, the remaining segments are given a minimum
+a width of 0.
+
+When you set the <itemMinExtents> to a string that has more than
+<itemCount> numbers in it, the extra numbers are ignored.
+
+Related: itemCount (property)
+
+
+
+
+Name: itemIcons
+
+Type: property
+
+Syntax: get the itemIcons of <widget>
+
+Syntax: set the itemIcons of <widget> to <iconNames>
+
+Summary: The icons displayed by each segment
+
+Value: A comma-delimited list of icon names for the segments
+
+Description:
+The icons displayed for each segment in the control when not
+highlighted.  The <itemIcons> are displayed by the widget when the
+<itemStyle> is set to show icons.
+
+The <itemIcons> must each be one of the predefined graphics provided
+by the "IconSVG" library.  You can get a list of available predefined
+path names by running `put iconNames()` in the Message Box.  If any of
+the <itemIcons> are empty, those segments have no icon when not
+hilited.
+
+When you set the <itemIcons> to a string that has fewer icon names
+than the <itemCount>, the remaining segments' icons are set to empty
+(no icon).
+
+When you set the <itemIcons> to a string that has more icon names than
+the <itemCount>, the extra icons are ignored.
+
+Related:
+itemCount (property), itemStyle (property),
+	itemHilitedIcons (property), foreColor (property),
+	hilitedItems (property)
+
+
+
+Name: hilitedItemIcons
+
+Type: property
+
+Syntax: get the hilitedItemIcons of <widget>
+
+Syntax: set the hilitedItemIcons of <widget> to <iconNames>
+
+Summary: The icons displayed by each segment when highlighted
+
+Value: A comma-delimited list of icon names for the segments
+
+Description:
+The icons displayed for each segment in the control when highlighted.
+The <hilitedItemIcons> are displayed by the widget when the
+<itemStyle> is set to show icons.
+
+Each icon name must be one of the predefined graphics provided by the
+"IconSVG" library.  You can get a list of available predefined path
+names by running `put iconNames()` in the Message Box.  If any of the
+<hilitedItemIcons> are empty, those segments have no icon when
+hilited.
+
+When you set the <hilitedItemIcons> to a string that has fewer icon
+names than the <itemCount>, the remaining segments' icons are set to
+empty (no icon).
+
+When you set the <hilitedItemIcons> to a string that has more icon
+names than the <itemCount>, the extra icons are ignored.
+
+Related:
+itemCount (property), itemStyle (property),
+	itemIcons (property), foreColor (property), hilitedItems (property)
+
+
+
+Name: itemStyle
+
+Type: property
+
+Syntax: get the itemStyle of <widget>
+
+Syntax: set the itemStyle of <widget> to <segmentStyle>
+
+Summary: The segment display style
+
+Value:
+The way that segments are displayed
+- "icons": Show the icons
+- "text": Show the labels
+
+Description:
+Determines whether segments of the segmented control are displayed
+with their <itemIcons|icons> or their <itemLabels|labels>.
+
+Related:
+itemIcons (property), hilitedItemIcons (property),
+	itemLabels (property)
+
+
+
+Name: itemNames
+
+Type: property
+
+Syntax: get the itemNames of <widget>
+
+Syntax: set the itemNames of <widget> to <nameList>
+
+Summary: The names used to identify segments
+
+Value: A comma-delimited list of names for the segments.
+
+Description:
+The names of each segment in the control.  The <itemNames> can be a
+more convenient way to identify the segments than by their positions.
+
+You are recommended to use a non-empty, unique name for each segment.
+
+When you set the <itemNames> to a string that has fewer names than
+the <itemCount>, the remaining segments' names are set to empty.
+
+When you set the <itemNames> to a string that that has more names than
+the <itemCount>, the extra names are ignored.
+
+Related:
+itemCount (property>, itemLabels (property),
+	hilitedItemNames (Property)
+
+
+
+Name: toggleHilites
+
+Type: property
+
+Syntax: get the toggleHilites of <widget>
+
+Syntax: set the toggleHilites of <widget> to {true | false}
+
+Summary: Whether a segment can be unhighlighted by clicking
+
+Description:
+The <toggleHilites> property controls whether a click on
+a highlighted segment causes it to be unhighlighted or not.
+
+
+
+Name: horizontal
+
+Type: property
+
+Syntax: get the horizontal of <widget>
+
+Syntax: set the horizontal of <widget> to {true | false}
+
+Summary: Whether the segmented widget is horizontal or not
+
+Description:
+Use the <horizontal> property to control whether the segmented widget
+is laid out horizontally or vertically.
+
+
+
+Name: cornerRadius
+
+Type: property
+
+Syntax: get the cornerRadius of <widget>
+
+Syntax: set the cornerRadius of <widget> to <value>
+
+Summary: The corner radius of the widget
+
+Description: The cornerRadius is the radius (in pixels) of the corner curve of the <widget>. The default value is usually suitable for horizantal orientations, however with a vertical orientation, depending on the size of the labels, you may wish to adjust.
+
+
+
+
+Name: itemCount
+
+Type: property
+
+Syntax: get the itemCount of <widget>
+
+Syntax: set the itemCount of <widget> to <number>
+
+Summary: The number of segments shown
+
+Description:
+The <itemCount> property can be used to obtain or to set the number of
+segments shown by the segmented control.
+
+When you set the <itemCount> to a number larger than the current
+number of segments in the control, new segments are added to the end
+of the control with unique <itemNames|names> and <itemLabels|labels>.
+
+When you set the <itemCount> to a number smaller than the current
+number of segments in the control, segments are discarded from the end
+of the control.  If this results in discarding a segment that's
+currently highlighted, the <hiliteChanged> message may be sent.
+
+The segmented control must always have at least one segment.
+
+Related: itemNames (property), itemLabels (property), hiliteChanged (message)
+
+
+
+
+Name: hilitedTextColor
+
+Type: property
+
+Syntax: get the hilitedTextColor of <widget>
+
+Syntax: set the hilitedTextColor of <widget> to <pColor>
+
+Summary: The label or icon color for highlighted segments
+
+Description:
+The <hilitedTextColor> property controls the color used to draw
+segments' labels or icons when they are highlighted.
+
+Related: foreColor (property)
+
+
+
+

@@ -9,11 +9,11 @@ Specifies whether the draggable <scrollbar thumb|thumbs> in
 <scrollbar|scrollbars> are a fixed size, or a size proportional to the
 amount of content shown.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the proportionalThumbs to true

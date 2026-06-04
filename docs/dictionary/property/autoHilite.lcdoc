@@ -12,11 +12,11 @@ or whether <selected> text in a <field> is <highlight|highlighted>.
 
 Associations: button
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the autoHilite of last button to false

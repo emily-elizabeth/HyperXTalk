@@ -8,7 +8,7 @@ Summary:
 Creates a named worker — a sandboxed script object that can receive and
 send messages independently of the main UI stack.
 
-Introduced: 10.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

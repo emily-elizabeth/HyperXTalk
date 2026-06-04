@@ -9,11 +9,11 @@ Decrypt data using a cipher
 
 Associations: ssl & encryption
 
-Introduced: 2.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: network
 

@@ -10,7 +10,7 @@ Specifies whether, when a <stack> opens, it should be
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

@@ -8,7 +8,7 @@ Summary:
 Specifies whether the <menu bar> is updated when the <button|buttons>
 used for the <menu bar> are changed.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 

@@ -8,7 +8,7 @@ Summary:
 Specifies the <command line> used for printing a <PostScript|PostScript
 file>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

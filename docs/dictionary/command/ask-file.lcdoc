@@ -8,7 +8,7 @@ Summary:
 Displays a standard Save <dialog box|dialog> for the user to enter a
 <file> name and specify a location.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

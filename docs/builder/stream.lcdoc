@@ -1,0 +1,77 @@
+Library: com.livecode.stream
+
+Type: module
+
+Summary:
+This module specifies the syntax definitions and bindings for
+stream input and output operations in modular LiveCode.
+
+Name: WriteToStream
+
+Type: statement
+
+Syntax: 	write <Buffer> to <Destination>
+
+Summary: Write data to a stream.
+
+Buffer: An expression that evaluates to binary data.
+
+Stream: An expression that evaluates to a stream.
+
+Description:
+Write some data to a stream.  If not all of the data can be written,
+fails with an error.
+
+>*Warning:* If the stream is able to accept only part of the data,
+>some streams will write that part of the data and discard the rest.
+>This may cause loss of data.
+
+Tags: IO
+
+
+
+
+Name: DefaultErrorStream
+
+Type: expression
+
+Syntax: 	the error stream
+
+Summary: Default error stream.
+
+Returns: The default error stream.
+
+Description:
+The default error stream for diagnostic information.
+
+In command-line programs, this is usually used to display error
+messages.  In server programs, data output through this stream may be
+stored in the system log, depending on the server configuration.
+
+Tags: IO
+
+
+
+
+Name: DefaultOutputStream
+
+Type: expression
+
+Syntax: 	the output stream
+
+Summary: Default output stream.
+
+Returns: The default output stream.
+
+Description:
+The default output stream for output from the program.
+
+In command-line programs, this is usually used to output the results
+of running the program.  In CGI programs running on servers, this is
+usually used to output the data to be sent to the client.
+
+Tags: IO
+
+
+
+

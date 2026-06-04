@@ -9,7 +9,7 @@ Syntax: set the fullClipboardData to empty
 Summary:
 Provides access to the contents of the <clipboard(glossary)>.
 
-Introduced: 8.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

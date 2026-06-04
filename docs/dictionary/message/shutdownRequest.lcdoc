@@ -10,11 +10,11 @@ tries to quit the <application>.
 
 Associations: card
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on shutdownRequest
@@ -44,11 +44,6 @@ ignored.
 
 >*Note:* Applications will not receive this message when running in the
 > IDE. 
-
-Changes:
-Handling of the SIGTERM signal was introduced in version 2.0. In
-previous versions, the SIGTERM signal did not cause a message to be
-sent. 
 
 References: quit (command), pass (control structure),
 application (glossary), current card (glossary), current stack (glossary),

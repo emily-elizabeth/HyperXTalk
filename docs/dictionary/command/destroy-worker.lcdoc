@@ -10,7 +10,7 @@ Syntax: delete worker <workerName>
 Summary:
 Removes a named worker and releases its backing script stack.
 
-Introduced: 10.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

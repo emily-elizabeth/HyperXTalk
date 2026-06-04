@@ -7,7 +7,7 @@ Syntax: revCopyFolder <folderToCopy>, <destinationFolder>
 Summary:
 Copies a <folder> with all its contents.
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -58,10 +58,10 @@ the new location.
 > <application> has finished starting up, the <library> is available and
 > the <revCopyFolder> <command> can be used in any <handler>.
 
->*Note:* To copy a bundle on Mac OS X systems, use the <revCopyFile>
+>*Note:* To copy a bundle on macOS systems, use the <revCopyFile>
 > command
 
->*Note:* On Linux and OS X systems, folder paths can contain the tilde
+>*Note:* On Linux and macOS systems, folder paths can contain the tilde
 > (~) character, referring to the current user's home directory. Using
 > these chars is not supported by revCopyFolder, and it is necessary to
 > replace the tilde with its literal value (eg /home/userName)

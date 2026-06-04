@@ -12,11 +12,11 @@ Specifies the name of an <object(object)>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image, group
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the name of the target to it
@@ -125,7 +125,7 @@ reported, regardless of what form of the <name> <property> you request.
 
 >*Warning:*  Avoid giving two <control(object)|controls> in the same
 > <stack> the same name. Doing so may cause problems if you use the
-> Geometry <pane> in the <property inspector> or the Animation Builder.
+> Geometry <pane> in the <property inspector>.
 
 >*Warning:*  Avoid using "rev" as the first three <characters> of a
 > <stack's (object)> <name>. These <characters> are reserved for

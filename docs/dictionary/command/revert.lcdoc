@@ -8,11 +8,11 @@ Summary:
 Restores a stack to its state when last saved, deleting all
 changes made since the last save.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 revert

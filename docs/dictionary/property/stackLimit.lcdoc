@@ -8,9 +8,9 @@ Syntax: get the [effective] stackLimit
 
 Summary:
 Allows a script to set (in bytes) the maximum size of the (runtime)
-stack the engineuses for recursive computation.
+stack the engine uses for recursive computation.
 
-Introduced: 4.5.1
+Introduced: 1.0.0
 
 OS: windows
 

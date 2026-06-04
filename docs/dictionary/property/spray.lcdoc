@@ -7,7 +7,7 @@ Syntax: set the spray to {<brushID> | <imageID>}
 Summary:
 Specifies the shape used for painting with the Spray Can <tool>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

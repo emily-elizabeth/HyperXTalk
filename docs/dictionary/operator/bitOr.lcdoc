@@ -8,11 +8,11 @@ Summary:
 Performs a "bitwise or" <operation> on the <binary> representation of
 two numbers.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 1 bitOr 0 -- evaluates to 1

@@ -7,11 +7,11 @@ Syntax: textEncode(<stringToEncode>, <encoding>)
 Summary:
 Converts from text to binary data.
 
-Introduced: 7.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 textEncode("A","UTF16")

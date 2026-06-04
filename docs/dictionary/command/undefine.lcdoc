@@ -8,7 +8,7 @@ Summary:
 Has no effect and is included for compatibility with
 <import|imported> <Oracle Media Objects> and <SuperCard> projects.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 

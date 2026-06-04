@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -174,40 +158,40 @@ static int CompareNodePrecedence(Node *p_left, Node *p_right)
         t_right_operator == kNodeKindPostfixOperator)
         return 1;
     
-	// Handle the prefix rules:
-	//   T <- L for all T
-	//   L -> T if p(L) > p(T)
-	//   L <- T if p(L) <= p(T)
-	if (t_left_operator == kNodeKindPrefixOperator)
-		return p_left -> operator . precedence < p_right -> operator . precedence ? 1 : -1;
-	if (t_right_operator == kNodeKindPrefixOperator)
-		return -1;
+    // Handle the prefix rules:
+    //   T <- L for all T
+    //   L -> T if p(L) > p(T)
+    //   L <- T if p(L) <= p(T)
+    if (t_left_operator == kNodeKindPrefixOperator)
+        return p_left -> operator . precedence < p_right -> operator . precedence ? 1 : -1;
+    if (t_right_operator == kNodeKindPrefixOperator)
+        return -1;
     
-	// Handle the postfix rules:
-	//  R <- T for all T
-	//  T -> R if p(T) > p(R)
-	//  T <- R if p(T) <= p(R)
-	if (t_right_operator == kNodeKindPrefixOperator)
-		return p_left -> operator . precedence > p_right -> operator . precedence ? 1 : -1;
-	if (t_left_operator == kNodeKindPrefixOperator)
-		return -1;
+    // Handle the postfix rules:
+    //  R <- T for all T
+    //  T -> R if p(T) > p(R)
+    //  T <- R if p(T) <= p(R)
+    if (t_right_operator == kNodeKindPrefixOperator)
+        return p_left -> operator . precedence > p_right -> operator . precedence ? 1 : -1;
+    if (t_left_operator == kNodeKindPrefixOperator)
+        return -1;
     
-	// Handle the binary rules:
-	//   p(L) > p(R) => L -> R and R <- L
-	//   for left-assoc: p(L) == p(R) => L -> R and R -> L
-	//   for right-assoc: p(L) == p(R) => L <- R and R <- L
-	if (p_left -> operator . precedence < p_right -> operator . precedence)
-		return 1;
-	if (p_left -> operator . precedence > p_right -> operator . precedence)
-		return -1;
+    // Handle the binary rules:
+    //   p(L) > p(R) => L -> R and R <- L
+    //   for left-assoc: p(L) == p(R) => L -> R and R -> L
+    //   for right-assoc: p(L) == p(R) => L <- R and R <- L
+    if (p_left -> operator . precedence < p_right -> operator . precedence)
+        return 1;
+    if (p_left -> operator . precedence > p_right -> operator . precedence)
+        return -1;
     
-	if (t_left_operator == kNodeKindLeftBinaryOperator && t_right_operator == kNodeKindLeftBinaryOperator)
-		return 1;
+    if (t_left_operator == kNodeKindLeftBinaryOperator && t_right_operator == kNodeKindLeftBinaryOperator)
+        return 1;
     
-	if (t_left_operator == kNodeKindRightBinaryOperator && t_right_operator == kNodeKindRightBinaryOperator)
-		return -1;
+    if (t_left_operator == kNodeKindRightBinaryOperator && t_right_operator == kNodeKindRightBinaryOperator)
+        return -1;
     
-	return 0;
+    return 0;
 }
 
 static intptr_t GetNodeArity(Node *p_node)

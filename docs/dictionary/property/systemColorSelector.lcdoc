@@ -8,7 +8,7 @@ Summary:
 The <systemColorSelector> <property> is no longer implemented and is
 <reserved word|reserved>.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
 Platforms: desktop, server
 

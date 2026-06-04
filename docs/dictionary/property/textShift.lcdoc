@@ -9,11 +9,11 @@ Specifies how far text is shifted up or down from its baseline.
 
 Associations: field
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the textShift of last char of word 2 of field 1 to 3 -- subscript

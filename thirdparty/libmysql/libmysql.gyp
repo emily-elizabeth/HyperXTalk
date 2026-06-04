@@ -33,6 +33,31 @@
 							],
 						},
 					},
+				],
+				[
+					'OS == "win"',
+					{
+						'type': 'none',
+
+						'link_settings':
+						{
+							'libraries':
+							[
+								'$(SolutionDir)$(Configuration)/lib/libmysql.lib',
+							],
+						},
+
+						'direct_dependent_settings':
+						{
+							'include_dirs':
+							[
+								'include',
+							],
+						},
+					},
+				],
+				[
+					'OS == "mac"',
 					{
 						'type': 'none',
 

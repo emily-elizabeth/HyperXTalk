@@ -7,11 +7,11 @@ Syntax: requestNotificationPermission
 Summary:
 Asks the operating system to grant permission to display notifications.
 
-Introduced: 10.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 -- Request permission when the app first launches
@@ -34,7 +34,7 @@ end notificationPermissionDenied
 
 Description:
 On platforms that require explicit user consent before displaying
-notifications (macOS 10.14+, iOS 10+, Android 13+), call
+notifications (macOS 10.14+), call
 <requestNotificationPermission> to trigger the system permission dialog.
 
 The request is handled asynchronously. When the user responds to the

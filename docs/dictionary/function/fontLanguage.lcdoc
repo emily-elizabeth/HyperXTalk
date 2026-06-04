@@ -9,7 +9,7 @@ Syntax: fontLanguage(<fontName>)
 Summary:
 Returns the language associated with a <Unicode> font.
 
-Introduced: 2.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

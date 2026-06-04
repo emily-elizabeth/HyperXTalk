@@ -9,7 +9,7 @@ Syntax: screenType()
 Summary:
 <return|Returns> the color capability of the screen.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -7,7 +7,7 @@ Syntax: kill [{<signalNumber> | <signalName>}] process <processName>
 Summary:
 Signals or quits another <process> or application on the same system.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -41,7 +41,7 @@ Description:
 Use the <kill> command to send a signal to a <process> telling it
 to terminate processing with extreme prejudice.
 
-On Unix based systems Mac and Linux systems, the <kill> command sends the
+On Unix based systems macOS and Linux systems, the <kill> command sends the
 specified signal to a <process>. If no signal is specified, the <kill> command
 sends SIGTERM. Check the systems 'kill' command documentation for information
 about available signals.

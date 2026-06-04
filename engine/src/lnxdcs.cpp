@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 //
 // ScreenDC display specific functions
 //
@@ -562,21 +546,21 @@ Boolean MCScreenDC::close(Boolean force)
 	
 	destroybackdrop();
     gdk_window_destroy(NULLWindow);
-    
+
     gdk_display_flush(dpy);
     g_object_unref(gc);
 
 	//XDND
 	MCLinuxDragAndDropFinalize();
-	
+
     gdk_display_close(dpy);
-	
+
 	delete (char *)selectiontext.getstring();
 	opened = False;
-	
+
 	gtk_file_tidy_up () ;
 
-	
+
 	delete MCimagecache ;
 	
 	return True;
@@ -687,10 +671,39 @@ void MCScreenDC::openwindow(Window window, Boolean override)
 	MCStack *target = MCdispatcher->findstackd(window);
     gdk_window_show(window);
 	MCstacks -> enableformodal(window, False);
+
+    // WM_POPOVER on Linux: track the open popover stack so the
+    // GDK_BUTTON_PRESS and GDK_CONFIGURE handlers in lnxdclnx.cpp can
+    // implement click-outside dismiss and dismiss-on-parent-move.
+    if (target != nullptr && target->getmode() == WM_POPOVER)
+    {
+        MCpopoverstack = target;
+    }
 }
 
 void MCScreenDC::closewindow(Window window)
 {
+    // If the parent stack for the current popover is being closed, dismiss
+    // the popover first so it doesn't outlive its anchor.
+    // Only check the parent — dismissing on ANY other window close (the old
+    // behaviour) caused the popover to vanish whenever an unrelated window
+    // such as a tooltip or dialog was hidden.
+    if (MCpopoverstack != nullptr && MCpopoverparentstack != nullptr &&
+        MCpopoverparentstack->getwindowalways() == window)
+    {
+        MCStack *t_popover = MCpopoverstack;
+        MCpopoverstack = nullptr;
+        MCpopoverparentstack = nullptr;
+        MCdispatcher->wclose(t_popover->getwindowalways());
+    }
+
+    // If the popover itself is being closed, clear our tracking state.
+    if (MCpopoverstack != nullptr && MCpopoverstack->getwindowalways() == window)
+    {
+        MCpopoverstack = nullptr;
+        MCpopoverparentstack = nullptr;
+    }
+
 	MCStack *target = MCdispatcher->findstackd(window);
 	MCstacks -> enableformodal(window, True);
     gdk_window_hide(window);

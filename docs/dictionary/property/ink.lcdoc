@@ -7,11 +7,11 @@ Syntax: set the ink of <object> to <inkMode>
 Summary:
 Specifies the kind of transparency an <object(glossary)> is drawn with.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the ink of graphic "Floating" to blendClear
@@ -80,8 +80,6 @@ Image Processing Blends (SVG/PDF operators):
 * blendDifference
 * blendExclusion
 
-
-Bitwise - This ink has been deprecated from version 5.0
 
 * srcCopy
 

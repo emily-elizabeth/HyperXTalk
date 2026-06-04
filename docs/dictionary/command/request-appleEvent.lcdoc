@@ -9,7 +9,7 @@ Syntax: request appleEvent {class|ID|sender|returnID|data [with keyword <aeKey>]
 Summary:
 Gets data about an <Apple Event> that was sent to HyperXTalk.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 

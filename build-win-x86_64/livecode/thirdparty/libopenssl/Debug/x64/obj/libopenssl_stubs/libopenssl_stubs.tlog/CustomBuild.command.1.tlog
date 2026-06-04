@@ -1,3 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\UTIL\WEAK_STUB_MAKER.PY
-call python "..\..\..\..\util\weak_stub_maker.py" "..\..\..\..\thirdparty\libopenssl\ssl.stubs" "Debug\x64\obj\libopenssl_stubs\src\ssl.win.stubs.cpp"
-if %errorlevel% neq 0 exit /b %errorlevel%

@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 //
 // global parsing definitions for MetaCard
 //
@@ -363,6 +347,7 @@ enum Functions {
     F_DATE,
     F_DATE_FORMAT,
     F_DECOMPRESS,
+    F_DELETE_CREDENTIAL,
     F_DELETE_RESOURCE,
     F_DIRECTORIES,
     F_DISK_SPACE,
@@ -463,6 +448,7 @@ enum Functions {
     F_MOVIE,
     F_MOVING_CONTROLS,
     F_NATIVE_CHAR_TO_NUM,
+    F_NATURAL_SCROLLING,
     F_NUM_TO_CHAR,
     F_NUM_TO_NATIVE_CHAR,
     F_NUM_TO_UNICODE_CHAR,
@@ -502,6 +488,7 @@ enum Functions {
     F_RECORD_LOUDNESS,
     F_REPLACE_TEXT,
     F_RESULT,
+    F_RETRIEVE_CREDENTIAL,
     F_ROUND,
 	F_RUNTIME_ENVIRONMENTS, // RUNTIME ONLY
     F_SCREEN_COLORS,
@@ -539,6 +526,7 @@ enum Functions {
     F_STACKS,
     F_STACK_SPACE,
     F_STAT_ROUND,
+    F_STORE_CREDENTIAL,
     F_SUM,
     F_SYS_ERROR,
     F_SYSTEM_VERSION,
@@ -1964,6 +1952,8 @@ enum Sugar_constants {
 	SG_OPTIMIZED,
 	SG_OPTIONS,
 	SG_ANCHOR,
+	SG_ANCHORED,
+	SG_EDGE,
 	SG_LINK,
 	
 	// MM-2012-09-05: [[ Property Listener ]] Used by cancel listener for object
@@ -2040,6 +2030,7 @@ enum Statements {
 	// MW-2013-11-14: [[ AssertCmd ]] 'assert' command tag.
 	S_ASSERT,
     S_BEEP,
+    S_BRING_APPLICATION_TO_FRONT,
     S_BREAK,
     S_BREAKPOINT,
     S_CALL,
@@ -2116,6 +2107,7 @@ enum Statements {
     S_PLAY,
     S_POP,
     S_POPUP,
+    S_POPOVER,
     S_POST,
     S_PREPARE,
     S_PRINT,

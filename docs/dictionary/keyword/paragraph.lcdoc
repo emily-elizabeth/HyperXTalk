@@ -8,11 +8,11 @@ Summary:
 Designates a string as part of a chunk expression, delimited by either a
 return character or the Unicode paragraph separator (0x2029).
 
-Introduced: 7.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local tText

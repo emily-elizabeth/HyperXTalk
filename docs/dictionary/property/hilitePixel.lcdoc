@@ -14,11 +14,11 @@ color when an <object(glossary)>, or text in an <object(glossary)>, is
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the hilitePixel of card button 8 to (the number of cards + 3)

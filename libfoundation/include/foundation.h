@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #ifndef __MC_FOUNDATION__
 #define __MC_FOUNDATION__
 
@@ -59,7 +43,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 // __32_BIT__ will be defined if the target processor is 32-bit.
 #undef __32_BIT__
 // __64_BIT__ will be defined if the target processor is 64-bit.
-#undef __64_BIT__	
+#undef __64_BIT__
 
 // __LITTLE_ENDIAN__ will be defined if the target processor uses LE byte-order.
 #undef __LITTLE_ENDIAN__
@@ -129,7 +113,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 // Architecture
 #if defined(_M_IX86)
-#define __32_BIT__ 1 
+#define __32_BIT__ 1
 #define __LITTLE_ENDIAN__ 1
 #define __i386__ 1
 #define __LP32__ 1
@@ -146,7 +130,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #endif
 
 // Native char set
-#define __WINDOWS_1252__ 1 
+#define __WINDOWS_1252__ 1
 
 // Native line endings
 #define __CRLF__ 1
@@ -174,8 +158,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #define __LP32__ 1
 #define __SMALL__ 1
 #elif defined(__ppc__)
-#define __32_BIT__ 1 
-#define __BIG_ENDIAN__ 1 
+#define __32_BIT__ 1
+#define __BIG_ENDIAN__ 1
 #define __PPC__ 1
 #define __LP32__ 1
 #define __SMALL__ 1
@@ -197,7 +181,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #define __MACROMAN__ 1
 
 // Native line endings
-#define __CR__ 1
+#define __LF__ 1
 
 // Presence of CoreFoundation
 #define __HAS_CORE_FOUNDATION__ (1)
@@ -273,8 +257,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #define __LP32__ 1
 #define __SMALL__ 1
 #elif defined(__ppc__)
-#define __32_BIT__ 1 
-#define __BIG_ENDIAN__ 1 
+#define __32_BIT__ 1
+#define __BIG_ENDIAN__ 1
 #define __PPC__ 1
 #define __LP32__ 1
 #define __SMALL__ 1
@@ -289,7 +273,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #define __LITTLE_ENDIAN__ 1
 #define __ARM__ 1
 #define __LP32__ 1
-#define __SMALL__ 1 
+#define __SMALL__ 1
 #elif defined(__arm64__)
 #define __64_BIT__ 1
 #define __LITTLE_ENDIAN__ 1
@@ -302,7 +286,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #define __MACROMAN__ 1
 
 // Native line endings
-#define __CR__ 1
+#define __LF__ 1
 
 // Presence of CoreFoundation
 #define __HAS_CORE_FOUNDATION__ (1)
@@ -977,7 +961,7 @@ inline MCRange MCRangeIntersection(const MCRange &p_left, const MCRange &p_right
 	uindex_t t_start, t_end;
 	t_start = MCMax(p_left.offset, p_right.offset);
 	t_end = MCMin(p_left.offset + p_left.length, p_right.offset + p_right.length);
-	
+
 	return MCRangeMakeMinMax(t_start, t_end);
 }
 
@@ -1065,7 +1049,7 @@ enum { MC_CONCAT(__MCSA_,__LINE__) = sizeof(__MCStaticAssert<expr>) }
 ////////////////////////////////////////////////////////////////////////////////
 
 extern "C" {
-    
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  BYTE-WISE OPERATIONS
@@ -1151,7 +1135,7 @@ MC_DLLEXPORT void MCMemoryDeallocate(void *block);
 //////////
 
 }
-    
+
 template<typename T> bool MCMemoryAllocate(size_t p_size, T*& r_block)
 {
 	void *t_block;
@@ -1190,7 +1174,7 @@ template<typename T> void MCMemoryDeallocate(T* p_block) {
 }
 
 extern "C" {
-    
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  FIXED-SIZE RECORD ALLOCATION (INITIALIZED)
@@ -1237,7 +1221,7 @@ bool MCMemoryCreate(T*& r_object)
     // Allocate the memory then default-construct
     if (!MCMemoryNew(r_object))
         return false;
-    
+
     new (r_object) T();
     return true;
 }
@@ -1304,7 +1288,7 @@ bool MCMemoryNewArrayInit(uindex_t p_count, T*& r_array, uindex_t& r_count)
             new (&r_array[i]) T();
         return true;
     }
-    
+
     return false;
 }
 
@@ -1340,7 +1324,7 @@ bool MCMemoryResizeArrayInit(uindex_t p_new_count, T*& x_array, uindex_t& x_coun
             new (&x_array[i]) T();
         return true;
     }
-    
+
     return false;
 }
 
@@ -1356,7 +1340,7 @@ void MCMemoryDeleteArray(T* p_array, uindex_t N)
     // Run the destructor for each of the elements
     for (size_t i = 0; i < N; i++)
         p_array[i].~T();
-    
+
     // Destroy the array
     MCMemoryDeleteArray(p_array);
 }
@@ -1455,7 +1439,7 @@ struct MCValueCustomCallbacks
 	bool (*equal)(MCValueRef value, MCValueRef other_value);
 	hash_t (*hash)(MCValueRef value);
 	bool (*describe)(MCValueRef value, MCStringRef& r_desc);
-    
+
     bool (*is_mutable)(MCValueRef value);
     bool (*mutable_copy)(MCValueRef, bool release, MCValueRef& r_value);
 };
@@ -1550,12 +1534,12 @@ inline void *MCValueGetExtraBytesPtr(MCValueRef value) { return ((uint8_t *)valu
 // Emit a debug log message containing the description of the value
 MC_DLLEXPORT void MCValueLog(MCValueRef);
 #endif
-    
+
 #if defined(__HAS_CORE_FOUNDATION__)
 MC_DLLEXPORT bool MCValueCreateWithCFTypeRef(CFTypeRef p_cf_value, bool p_use_lists, MCValueRef& r_cf_value);
 MC_DLLEXPORT bool MCValueConvertToCFTypeRef(MCValueRef p_value, bool p_use_lists, CFTypeRef& r_cf_value);
 #endif
-    
+
 //////////
 
 }
@@ -1747,13 +1731,13 @@ MC_DLLEXPORT bool MCTypeInfoIsError(MCTypeInfoRef typeinfo);
 
 // Returns true if the typeinfo is of foreign type.
 MC_DLLEXPORT bool MCTypeInfoIsForeign(MCTypeInfoRef typeinfo);
-    
+
 // Returns true if the typeinfo is of custom type.
 MC_DLLEXPORT bool MCTypeInfoIsCustom(MCTypeInfoRef typeinfo);
 
 // Returns the default value for the given type if it has one, otherwise nil.
 MC_DLLEXPORT MCValueRef MCTypeInfoGetDefault(MCTypeInfoRef typeinfo);
-    
+
 // Typeinfo's form a chain with elements in the chain potentially providing critical
 // information about the specified type. This structure describes the represented
 // type, after a typeinfo chain has been suitably processed.
@@ -1827,7 +1811,7 @@ struct MCForeignTypeDescriptor
     bool (*doimport)(const MCForeignTypeDescriptor* desc, void *contents, bool release, MCValueRef& r_value);
     bool (*doexport)(const MCForeignTypeDescriptor* desc, MCValueRef value, bool release, void *contents);
 	bool (*describe)(const MCForeignTypeDescriptor* desc, void *contents, MCStringRef & r_desc);
-    
+
     /* The promotedtype typeinfo is the type to which this type must be promoted
      * when passed through variadic parameters. The 'promote' method does the
      * promotion. */
@@ -1862,7 +1846,7 @@ MC_DLLEXPORT bool MCNamedTypeInfoCreate(MCNameRef name, MCTypeInfoRef& r_named_t
 
 // Fetch the name of the named typeinfo.
 MC_DLLEXPORT MCNameRef MCNamedTypeInfoGetName(MCTypeInfoRef typeinfo);
-    
+
 // Returns true if the given named type is bound.
 MC_DLLEXPORT bool MCNamedTypeInfoIsBound(MCTypeInfoRef typeinfo);
 
@@ -1953,7 +1937,7 @@ MC_DLLEXPORT bool MCHandlerTypeInfoIsForeign(MCTypeInfoRef typeinfo);
 
 // Returns true if the handler is variadic.
 MC_DLLEXPORT bool MCHandlerTypeInfoIsVariadic(MCTypeInfoRef typeinfo);
-    
+
 // Get the return type of the handler. A return-type of kMCNullTypeInfo means no
 // value is returned.
 MC_DLLEXPORT MCTypeInfoRef MCHandlerTypeInfoGetReturnType(MCTypeInfoRef typeinfo);
@@ -1967,10 +1951,10 @@ MC_DLLEXPORT MCHandlerTypeFieldMode MCHandlerTypeInfoGetParameterMode(MCTypeInfo
 
 // Return the type of the index'th parameter.
 MC_DLLEXPORT MCTypeInfoRef MCHandlerTypeInfoGetParameterType(MCTypeInfoRef typeinfo, uindex_t index);
-    
+
 // Returns the 'native' layout ptr (an ffi_cif) for the handler type
 MC_DLLEXPORT bool MCHandlerTypeInfoGetLayoutType(MCTypeInfoRef typeinfo, int abi, void*& r_cif);
-    
+
 //////////
 
 MC_DLLEXPORT bool MCErrorTypeInfoCreate(MCNameRef domain, MCStringRef message, MCTypeInfoRef& r_typeinfo);
@@ -1985,18 +1969,18 @@ MC_DLLEXPORT bool MCNamedErrorTypeInfoCreate(MCNameRef p_name, MCNameRef p_domai
 
 // Create a named typeinfo bound to a custom typeinfo.
 MC_DLLEXPORT bool MCNamedCustomTypeInfoCreate(MCNameRef p_name, MCTypeInfoRef base, const MCValueCustomCallbacks *callbacks, MCTypeInfoRef& r_typeinfo);
-	
+
 // Create a named typeinfo bound to a foreign typeinfo.
 MC_DLLEXPORT bool MCNamedForeignTypeInfoCreate(MCNameRef p_name, const MCForeignTypeDescriptor *p_descriptor, MCTypeInfoRef& r_typeinfo);
 
 //////////
-    
+
 MC_DLLEXPORT bool MCJavaVMInitialize();
 MC_DLLEXPORT void MCJavaVMFinalize();
 
 MC_DLLEXPORT MCTypeInfoRef MCJavaGetObjectTypeInfo();
 MC_DLLEXPORT bool MCJavaCreateJavaObjectTypeInfo();
-    
+
 MC_DLLEXPORT bool MCJavaObjectCreate(void *value, MCJavaObjectRef& r_obj);
 MC_DLLEXPORT void *MCJavaObjectGetObject(const MCJavaObjectRef p_obj);
 
@@ -2036,12 +2020,12 @@ MC_DLLEXPORT extern MCBooleanRef kMCFalse;
 MC_DLLEXPORT extern MCBooleanRef kMCTrue;
 
 MC_DLLEXPORT bool MCBooleanCreateWithBool(bool value, MCBooleanRef& r_boolean);
-    
+
 #if defined(__HAS_CORE_FOUNDATION__)
 MC_DLLEXPORT bool MCBooleanCreateWithCFBooleanRef(CFBooleanRef p_cf_number, MCBooleanRef& r_number);
 MC_DLLEXPORT bool MCBooleanConvertToCFBooleanRef(MCBooleanRef p_number, CFBooleanRef& r_cf_number);
 #endif
-    
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  NUMBER DEFINITIONS
@@ -2069,12 +2053,12 @@ MC_DLLEXPORT bool MCNumberParseOffset(MCStringRef p_string, uindex_t offset, uin
 MC_DLLEXPORT bool MCNumberParse(MCStringRef string, MCNumberRef& r_number);
 MC_DLLEXPORT bool MCNumberParseInteger(MCStringRef string, MCNumberRef& r_number);
 MC_DLLEXPORT bool MCNumberParseUnicodeChars(const unichar_t *chars, uindex_t char_count, MCNumberRef& r_number);
-    
+
 #if defined(__HAS_CORE_FOUNDATION__)
 MC_DLLEXPORT bool MCNumberCreateWithCFNumberRef(CFNumberRef p_cf_number, MCNumberRef& r_number);
 MC_DLLEXPORT bool MCNumberConvertToCFNumberRef(MCNumberRef p_number, CFNumberRef& r_cf_number);
 #endif
-    
+
 MC_DLLEXPORT extern MCNumberRef kMCZero;
 MC_DLLEXPORT extern MCNumberRef kMCOne;
 MC_DLLEXPORT extern MCNumberRef kMCMinusOne;
@@ -2111,10 +2095,10 @@ enum
 	kMCStringEncodingUTF32LE,
 	// The UTF-32 string encoding in big endian byte-order.
 	kMCStringEncodingUTF32BE,
-    
+
     kMCStringEncodingUTF16,
     kMCStringEncodingUTF32,
-    
+
 	// Map 'native' encoding to the appropriate concrete encoding depending
 	// on platform.
 #ifdef __WINDOWS_1252__
@@ -2139,7 +2123,7 @@ enum
 	// Compare the strings codepoint for codepoint after normalization and
 	// folding.
 	kMCStringOptionCompareCaseless = 3,
-    
+
     // If this bit is set it means the strings are normalized.
     kMCStringOptionNormalizeBit = 1 << 0,
     // If this bit is set it means the strings are folded.
@@ -2181,7 +2165,7 @@ MC_DLLEXPORT MCStringRef MCSTR(const char *string);
 MC_DLLEXPORT const char *MCStringGetCString(MCStringRef p_string);
 MC_DLLEXPORT bool MCStringIsEqualToCString(MCStringRef string, const char *cstring, MCStringOptions options);
 MC_DLLEXPORT bool MCStringSubstringIsEqualToCString(MCStringRef string, MCRange p_range, const char *cstring, MCStringOptions options);
-    
+
 // Create an immutable string from the given bytes, interpreting them using
 // the specified encoding.
 MC_DLLEXPORT bool MCStringCreateWithBytes(const byte_t *bytes, uindex_t byte_count, MCStringEncoding encoding, bool is_external_rep, MCStringRef& r_string);
@@ -2215,7 +2199,7 @@ MC_DLLEXPORT bool MCStringCreateWithCFStringRef(CFStringRef cf_string, MCStringR
 
 // Create a string from a Pascal-style (counted) string. This always uses the MacRoman encoding.
 MC_DLLEXPORT bool MCStringCreateWithPascalString(const unsigned char* pascal_string, MCStringRef& r_string);
-    
+
 #if !defined(__WINDOWS__)
 // Create a string from a C string in the system encoding
 MC_DLLEXPORT bool MCStringCreateWithSysString(const char *sys_string, MCStringRef &r_string);
@@ -2302,7 +2286,7 @@ MC_DLLEXPORT bool MCStringIsMutable(const MCStringRef string);
 
 // Returns true if the string is the empty string.
 MC_DLLEXPORT bool MCStringIsEmpty(MCStringRef string);
-    
+
 // Returns true if the string is a (strict) integer string <-?(0|[1-9][0-9]*)>*/
 MC_DLLEXPORT bool MCStringIsInteger(MCStringRef string);
 
@@ -2564,7 +2548,7 @@ MC_DLLEXPORT bool MCStringFind(MCStringRef string, MCRange range, MCStringRef ne
 // and returning the number of occurrences found.
 MC_DLLEXPORT uindex_t MCStringCount(MCStringRef string, MCRange range, MCStringRef needle, MCStringOptions options);
 MC_DLLEXPORT uindex_t MCStringCountChar(MCStringRef string, MCRange range, codepoint_t needle, MCStringOptions options);
-    
+
 //////////
 
 // Find the first index of separator in string processing as according to
@@ -2582,7 +2566,7 @@ MC_DLLEXPORT bool MCStringDivideAtIndex(MCStringRef self, uindex_t p_offset, MCS
 MC_DLLEXPORT bool MCStringBreakIntoChunks(MCStringRef string, codepoint_t separator, MCStringOptions options, MCRange*& r_ranges, uindex_t& r_range_count);
 
 //////////
-    
+
 // Search 'range' of 'string' for 'needle' processing as appropriate to options
 // and taking into account 'delimiter' and 'skip'.
 // The function searches for 'needle' after 'skip' occurrences of 'delimiter'.
@@ -2610,7 +2594,7 @@ MC_DLLEXPORT bool MCStringForwardDelimitedRegion(MCStringRef string,
                                                  MCRange& r_range);
 
 //////////
-    
+
 // Transform the string to its folded form as specified by 'options'. The folded
 // form of a string is that which is used to perform comparisons.
 //
@@ -2728,7 +2712,7 @@ MC_DLLEXPORT bool MCStringIsValidSurrogatePair(MCStringRef, uindex_t);
 // Returns true if the codeunit at the given index in the string is the
 // beginning of a new grapheme cluster.
 MC_DLLEXPORT bool MCStringIsGraphemeClusterBoundary(MCStringRef, uindex_t);
-    
+
 //////////
 
 // Normalises a string into the requested form
@@ -2773,10 +2757,10 @@ enum
 // are performed if the appropriate flags are set in p_options. Detected line
 // endings of p_input are returned in r_original_style.
 MC_DLLEXPORT bool
-MCStringNormalizeLineEndings(MCStringRef p_input, 
-                             MCStringLineEndingStyle p_to_style, 
+MCStringNormalizeLineEndings(MCStringRef p_input,
+                             MCStringLineEndingStyle p_to_style,
                              MCStringLineEndingOptions p_options,
-                             MCStringRef& r_output, 
+                             MCStringRef& r_output,
                              MCStringLineEndingStyle* r_original_style);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2795,7 +2779,7 @@ MC_DLLEXPORT bool MCNameCreateWithChars(const unichar_t *chars, uindex_t count, 
 MC_DLLEXPORT bool MCNameCreateWithNativeChars(const char_t *chars, uindex_t count, MCNameRef& r_name);
 // Create a name using an index
 MC_DLLEXPORT bool MCNameCreateWithIndex(index_t p_index, MCNameRef& r_name);
-    
+
 // Create a name using the given string, releasing the original.
 MC_DLLEXPORT bool MCNameCreateAndRelease(MCStringRef string, MCNameRef& r_name);
 
@@ -2980,13 +2964,13 @@ MC_DLLEXPORT bool MCArrayIterate(MCArrayRef array, uintptr_t& iterator, MCNameRe
 
 // Returns true if the given array is the empty array.
 MC_DLLEXPORT bool MCArrayIsEmpty(MCArrayRef self);
-    
+
 #if defined(__HAS_CORE_FOUNDATION__)
 // If p_use_lists is true, then any arrays which look like sequences will be
 // converted to MCProperListRef / CFArrayRef (depending on direction).
-    
+
 MC_DLLEXPORT bool MCArrayCreateWithCFDictionaryRef(CFDictionaryRef p_cf_dictionary, bool p_use_lists, MCArrayRef& r_array);
-MC_DLLEXPORT bool MCArrayConvertToCFDictionaryRef(MCArrayRef p_value, bool p_use_lists, CFDictionaryRef& r_cf_value); 
+MC_DLLEXPORT bool MCArrayConvertToCFDictionaryRef(MCArrayRef p_value, bool p_use_lists, CFDictionaryRef& r_cf_value);
 MC_DLLEXPORT bool MCArrayCreateWithCFArrayRef(CFArrayRef p_cf_array, bool p_use_lists, MCArrayRef& r_array);
 // Attempt to convert the array to a CFArrayRef. If the array cannot be
 // converted, r_cf_value is set to nullptr and true is returned.
@@ -2996,7 +2980,7 @@ MC_DLLEXPORT bool MCArrayConvertToCFArrayRef(MCArrayRef p_value, bool p_use_list
 // Attempt to convert the array to a properlist. If the array cannot be
 // converted to a list, r_list is set to nullptr and true is returned.
 MC_DLLEXPORT bool MCArrayConvertToProperList(MCArrayRef p_array, MCProperListRef& r_list);
-    
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  LIST DEFINITIONS
@@ -3105,7 +3089,7 @@ MC_DLLEXPORT bool MCRecordEncodeAsArray(MCRecordRef record, MCArrayRef & r_array
 MC_DLLEXPORT bool MCRecordDecodeFromArray(MCArrayRef array, MCTypeInfoRef p_typeinfo, MCRecordRef & r_record);
 
 MC_DLLEXPORT bool MCRecordIterate(MCRecordRef record, uintptr_t& x_iterator, MCNameRef& r_field, MCValueRef& r_value);
-    
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  HANDLER DEFINITIONS
@@ -3116,7 +3100,7 @@ enum MCHandlerQueryType
     kMCHandlerQueryTypeNone,
     kMCHandlerQueryTypeObjcSelector,
 };
-    
+
 struct MCHandlerCallbacks
 {
     size_t size;
@@ -3130,7 +3114,7 @@ MC_DLLEXPORT bool MCHandlerCreate(MCTypeInfoRef typeinfo, const MCHandlerCallbac
 
 MC_DLLEXPORT void *MCHandlerGetContext(MCHandlerRef handler);
 MC_DLLEXPORT const MCHandlerCallbacks *MCHandlerGetCallbacks(MCHandlerRef handler);
-    
+
 /* Invoke the given handler with the specified arguments. If an error is thrown
  * then false is returned.
  * Note: The normal version must be called from the engine thread. Use
@@ -3144,7 +3128,7 @@ MC_DLLEXPORT bool MCHandlerExternalInvoke(MCHandlerRef handler, MCValueRef *argu
  *       ExternalInvoke if the current thread is unknown. */
 MC_DLLEXPORT /*copy*/ MCErrorRef MCHandlerTryToInvokeWithList(MCHandlerRef handler, MCProperListRef& x_arguments, MCValueRef& r_value);
 MC_DLLEXPORT /*copy*/ MCErrorRef MCHandlerTryToExternalInvokeWithList(MCHandlerRef handler, MCProperListRef& x_arguments, MCValueRef& r_value);
-   
+
 /* Create a C function ptr which calls the given handler ref. The function ptr is
  * stored in the handler ref and is freed when it is. On 32-bit Win32, the calling
  * convention used is __cdecl. */
@@ -3192,7 +3176,7 @@ MC_DLLEXPORT bool MCErrorCreateWithMessageV(MCErrorRef& r_error,
 											MCTypeInfoRef typeinfo,
 											MCStringRef message,
 											va_list args);
-	
+
 MC_DLLEXPORT bool MCErrorUnwind(MCErrorRef error, MCValueRef target, uindex_t row, uindex_t column);
 
 MC_DLLEXPORT MCNameRef MCErrorGetDomain(MCErrorRef error);
@@ -3210,7 +3194,7 @@ MC_DLLEXPORT uindex_t MCErrorGetColumnAtLevel(MCErrorRef error, uindex_t column)
 MC_DLLEXPORT bool MCErrorCreateAndThrow(MCTypeInfoRef typeinfo, ...);
 
 MC_DLLEXPORT bool MCErrorCreateAndThrowWithMessage(MCTypeInfoRef typeinfo, MCStringRef message_format, ...);
-    
+
 // Throw the given error code (local to the current thread).
 MC_DLLEXPORT bool MCErrorThrow(MCErrorRef error);
 
@@ -3231,17 +3215,17 @@ MC_DLLEXPORT MCErrorRef MCErrorPeek(void);
 
 // Throw an out of memory error.
 MC_DLLEXPORT bool MCErrorThrowOutOfMemory(void);
-    
+
 // Throw an unbound type error.
 MC_DLLEXPORT bool MCErrorThrowUnboundType(MCTypeInfoRef type);
-    
+
 // Throw an unimplemented error.
 MC_DLLEXPORT bool MCErrorThrowUnimplemented(MCStringRef thing);
 
 // Throw a generic runtime error (one that hasn't had a class made for it yet).
 // The message argument is optional (nil if no message).
 MC_DLLEXPORT bool MCErrorThrowGeneric(MCStringRef message);
-    
+
 // Throw a generic runtime error with formatted message.
 MC_DLLEXPORT bool MCErrorThrowGenericWithMessage(MCStringRef message, ...);
 
@@ -3472,7 +3456,7 @@ MC_DLLEXPORT bool MCProperListCreateWithForeignValues(MCTypeInfoRef type, const 
 // p_typeinfo must be a foreign typeinfo. If any value in the list is not of the
 // given type, or cannot be exported as that type, this returns false.
 MC_DLLEXPORT bool MCProperListConvertToForeignValues(MCProperListRef list, MCTypeInfoRef p_typeinfo, void*& r_values_ptr, uindex_t& r_values_count);
-    
+
 // Create an empty mutable list.
 MC_DLLEXPORT bool MCProperListCreateMutable(MCProperListRef& r_list);
 
@@ -3480,7 +3464,7 @@ MC_DLLEXPORT bool MCProperListCreateMutable(MCProperListRef& r_list);
 // values.  Takes ownership of both the underlying MCValueRef
 // references, and the p_values buffer.
 bool MCProperListCreateAndRelease(MCValueRef *p_values, uindex_t p_length, MCProperListRef& r_list);
-    
+
 // Make an immutable copy of the given list. If the 'copy and release' form is
 // used then the original list is released (has its reference count reduced by
 // one).
@@ -3567,14 +3551,14 @@ MC_DLLEXPORT bool MCProperListEndsWithList(MCProperListRef list, MCProperListRef
 
 MC_DLLEXPORT bool MCProperListIsListOfType(MCProperListRef list, MCValueTypeCode p_type);
 MC_DLLEXPORT bool MCProperListIsHomogeneous(MCProperListRef list, MCValueTypeCode& r_type);
-    
+
 #if defined(__HAS_CORE_FOUNDATION__)
 MC_DLLEXPORT bool MCProperListCreateWithCFArrayRef(CFArrayRef p_cf_dictionary, bool p_use_lists, MCProperListRef& r_list);
 MC_DLLEXPORT bool MCProperListConvertToCFArrayRef(MCProperListRef p_list, bool p_use_lists, CFArrayRef& r_list);
 #endif
-    
+
 MC_DLLEXPORT bool MCProperListConvertToArray(MCProperListRef p_list, MCArrayRef& r_array);
-    
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  OBJC DEFINITIONS
@@ -3640,11 +3624,11 @@ MC_DLLEXPORT bool MCObjcCreateDelegate(MCStringRef p_protocol_name, MCArrayRef p
  * mapping informal protocol methods specified as a list of foreign handler to MCHandlerRefs, with
  * a context parameter. */
 MC_DLLEXPORT bool MCObjcCreateInformalDelegateWithContext(MCProperListRef p_foreign_handlers, MCArrayRef p_handler_mapping, MCValueRef p_context, MCObjcObjectRef& r_object);
-    
+
 /* Create an ObjcObject containing an instance of  the com_livecode_MCObjcInformalDelegate class,
  * mapping informal protocol methods specified as a list of foreign handler to MCHandlerRefs. */
 MC_DLLEXPORT bool MCObjcCreateInformalDelegate(MCProperListRef p_foreign_handlers, MCArrayRef p_handler_mapping, MCObjcObjectRef& r_object);
-    
+
 ////////////////////////////////////////////////////////////////////////////////
 
 enum MCPickleFieldType
@@ -3772,5 +3756,5 @@ MC_DLLEXPORT bool MCTypeConvertStringToBool(MCStringRef p_string, bool& r_conver
 MC_DLLEXPORT bool MCTypeConvertDataToReal(MCDataRef p_data, real64_t& r_converted, bool p_convert_octals = false);
 
 }
-    
+
 #endif

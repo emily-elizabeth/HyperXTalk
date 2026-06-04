@@ -7,11 +7,11 @@ Syntax: do <statementList> [in caller]
 Summary:
 <execute|Executes> a list of <statement|statements>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 do "go next card"

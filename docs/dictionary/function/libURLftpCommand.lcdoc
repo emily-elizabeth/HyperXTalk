@@ -9,7 +9,7 @@ Sends an <FTP> command to an <FTP> <server>.
 
 Associations: internet library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

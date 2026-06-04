@@ -9,11 +9,11 @@ Removes <element(glossary)|elements> from an <array> which have a
 corresponding <element(keyword)> in another <array>, and leaves all
 others alone.
 
-Introduced: 9.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local tLeft, tRight

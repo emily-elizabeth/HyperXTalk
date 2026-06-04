@@ -877,8 +877,8 @@ command revSaveAsMacStandalone pStack, pRestoreFileName, pFolder, @xStandalonePa
       __RestoreStackFromTemporaryLocation pStack, pRestoreFileName, tOriginalFileName
    end repeat
    
-   if the platform is "MacOS" then
-      local tAppBundle
+   if the platform begins with "Mac" then
+      local tAppBundle, tCertificate, tEntitlementsFile
       set the itemDel to slash
       put item 1 to -4 of tStandalonepath into tAppBundle
       set the itemDel to comma
@@ -887,12 +887,30 @@ command revSaveAsMacStandalone pStack, pRestoreFileName, pFolder, @xStandalonePa
       -- to avoid "chmod: : No such file or directory" from clearExtendedAttributes.
       if tAppBundle is not empty then
          clearExtendedAttributes tAppBundle
-         performAdHocCodesign tAppBundle
+         put sStandaloneSettingsA["OSX,codeSignIdentity"] into tCertificate
+         put sStandaloneSettingsA["OSX,entitlementsFile"] into tEntitlementsFile
+         if tCertificate is not empty then
+            performDeveloperCodesign tAppBundle, tCertificate, tEntitlementsFile
+            if sStandaloneSettingsA["OSX,notarize"] is true then
+               local tAppleID, tTeamID, tPassword
+               put sStandaloneSettingsA["OSX,appleID"] into tAppleID
+               put sStandaloneSettingsA["OSX,teamID"] into tTeamID
+               put retrieveKeychainPassword("HyperXTalk-Notarization", tAppleID) into tPassword
+               if tPassword is not empty then
+                  performNotarization tAppBundle, tAppleID, tTeamID, tPassword
+               else
+                  revStandaloneAddWarning "Notarization skipped: no password found in keychain for" && tAppleID
+               end if
+            end if
+         else
+            revStandaloneAddWarning "No signing certificate set, using ad-hoc signature"
+            performAdHocCodesign tAppBundle
+         end if
       end if
    end if
-   
+
    revStandalonePostBuild pStack, pFolder
-   
+
    return empty
 end revSaveAsMacStandalone
 
@@ -931,6 +949,165 @@ private command performAdHocCodesign pAppBundle
       throw "Adding ad-hoc signature failed with error:" && it
    end if
 end performAdHocCodesign
+
+private command performDeveloperCodesign pAppBundle, pCertificate, pEntitlementsFile
+   local tSignBase, tShell, tMergedFile
+
+   -- Build a merged entitlements file: engine baseline cs.* entries + developer additions.
+   -- This ensures the app retains the runtime exception entitlements the engine needs
+   -- (JIT, unsigned memory, dyld env vars, etc.) even when the developer only selected
+   -- a few user-facing entitlements in the settings UI.
+   put buildMergedEntitlements(pEntitlementsFile) into tMergedFile
+
+   -- Base codesign args for nested components (no entitlements on these)
+   put "codesign --force --options runtime -s" && quote & pCertificate & quote into tSignBase
+
+   -- Step 1: Sign all dylibs and shared objects (leaf-level, no sub-components)
+   put "find" && quote & pAppBundle & quote into tShell
+   put tShell && "-type f \( -name '*.dylib' -o -name '*.so' \)" into tShell
+   put tShell && "-exec" && tSignBase && "{} \; 2>/dev/null" into tShell
+   get shell(tShell)
+
+   -- Step 2: Sign nested .framework / .bundle / .appex bundles, deepest path first.
+   -- awk -F/ uses slash as field separator; NF = field count = depth indicator.
+   -- sort -rn puts deepest (highest NF) first so inner bundles are signed before
+   -- the outer bundle that contains them.
+   put "find" && quote & pAppBundle & quote into tShell
+   put tShell && "-type d \( -name '*.framework' -o -name '*.bundle' -o -name '*.appex' \)" into tShell
+   put tShell && "| awk -F/ '{ print NF, $0 }' | sort -rn | cut -d' ' -f2-" into tShell
+   put tShell && "| while IFS= read -r item; do" && tSignBase && quote & "$item" & quote & "; done 2>/dev/null" into tShell
+   get shell(tShell)
+
+   -- Step 3: Sign the outer .app last with the merged entitlements
+   put tSignBase && "--entitlements" && quote & tMergedFile & quote into tShell
+   put tShell && quote & pAppBundle & quote && "2>&1" into tShell
+   local tCodesignOutput, tCodesignResult
+   put shell(tShell) into tCodesignOutput
+   put the result into tCodesignResult
+   -- Delete temp file before throwing so we don't leave it behind on failure
+   delete file tMergedFile
+   if tCodesignResult is not zero then
+      throw "Developer code signing failed:" && return & tCodesignOutput
+   end if
+end performDeveloperCodesign
+
+-- Writes a temp entitlements plist that merges the engine's required cs.* baseline
+-- with whatever the developer selected in the standalone settings UI.
+-- Returns the path to the temp file (caller must delete it after use).
+-- Builds a temp entitlements plist containing the engine's required cs.* baseline
+-- entitlements using PlistBuddy (guarantees valid plist XML — no hand-rolled XML).
+-- Returns the path to the temp file (caller must delete it after use).
+private function buildMergedEntitlements pDeveloperFile
+   local tTempPath, tPB, tShell, tOutput
+
+   put "/private/tmp/hxt_merged_entitlements.plist" into tTempPath
+   put "/usr/libexec/PlistBuddy" into tPB
+
+   -- Remove any stale file from a previous run so PlistBuddy starts fresh
+   delete file tTempPath
+
+   -- Add each required cs.* entitlement. PlistBuddy creates the file on the
+   -- first Add command, so no separate init step is needed.
+   local tKeys
+   put "com.apple.security.cs.allow-jit" & return & \
+       "com.apple.security.cs.allow-unsigned-executable-memory" & return & \
+       "com.apple.security.cs.allow-dyld-environment-variables" & return & \
+       "com.apple.security.cs.disable-library-validation" & return & \
+       "com.apple.security.cs.disable-executable-page-protection" into tKeys
+
+   repeat for each line tKey in tKeys
+      put tPB && "-c" && quote & "Add :" & tKey & " bool true" & quote into tShell
+      put tShell && quote & tTempPath & quote && "2>&1" into tShell
+      put shell(tShell) into tOutput
+      if the result is not zero then
+         throw "PlistBuddy failed adding" && tKey & ":" && tOutput
+      end if
+   end repeat
+
+   return tTempPath
+end buildMergedEntitlements
+
+private function retrieveKeychainPassword pService, pAccount
+   local tShell, tPassword
+   put "security find-generic-password -a" && quote & pAccount & quote into tShell
+   put tShell && "-s" && quote & pService & quote && "-w" into tShell
+   put shell(tShell) into tPassword
+   -- Trim trailing newline from shell output
+   repeat while the last char of tPassword is in (return & LF)
+      delete the last char of tPassword
+   end repeat
+   return tPassword
+end retrieveKeychainPassword
+
+private command performNotarization pAppBundle, pAppleID, pTeamID, pPassword
+   local tShell, tZipPath
+
+   -- Zip the bundle for submission (notarytool requires a zip, dmg, or pkg)
+   set the itemDelimiter to "/"
+   put item 1 to -2 of pAppBundle & "/" & item -1 of pAppBundle & ".zip" into tZipPath
+   set the itemDelimiter to ","
+   put "ditto -c -k --keepParent" && quote & pAppBundle & quote && quote & tZipPath & quote into tShell
+   get shell(tShell)
+   if the result is not zero then
+      throw "Creating zip for notarization failed:" && it
+   end if
+
+   -- Submit and wait for Apple's response
+   put "xcrun notarytool submit" && quote & tZipPath & quote into tShell
+   put tShell && "--apple-id" && quote & pAppleID & quote into tShell
+   put tShell && "--team-id" && quote & pTeamID & quote into tShell
+   put tShell && "--password" && quote & pPassword & quote into tShell
+   put tShell && "--wait 2>&1" into tShell
+   local tNotaryOutput
+   put shell(tShell) into tNotaryOutput
+   delete file tZipPath
+   -- notarytool exits 0 even on some rejections, so check the output text too.
+   -- Note: parentheses around the contains expression are required — without them,
+   -- "not X contains Y" parses as "(not X) contains Y" which always evaluates false.
+   if the result is not zero or not (tNotaryOutput contains "status: Accepted") then
+      -- Fetch Apple's detailed rejection log using the submission ID from the output
+      local tSubmissionID, tLog, tLogShell
+      put tNotaryOutput into tLog
+      -- Extract the submission ID (format: id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+      repeat for each line tLine in tNotaryOutput
+         if tLine contains "id:" then
+            set the itemDelimiter to ":"
+            -- word 1 strips leading/trailing whitespace without needing trim()
+            put word 1 of (item 2 to -1 of tLine) into tSubmissionID
+            set the itemDelimiter to ","
+            if tSubmissionID is not empty then exit repeat
+         end if
+      end repeat
+      if tSubmissionID is not empty then
+         put "xcrun notarytool log" && quote & tSubmissionID & quote into tLogShell
+         put tLogShell && "--apple-id" && quote & pAppleID & quote into tLogShell
+         put tLogShell && "--team-id" && quote & pTeamID & quote into tLogShell
+         put tLogShell && "--password" && quote & pPassword & quote && "2>&1" into tLogShell
+         put return & shell(tLogShell) after tLog
+      end if
+      throw "Notarization rejected by Apple:" && return & tLog
+   end if
+
+   -- Staple the ticket so the app works offline.
+   -- Apple's CDN can take a few seconds to propagate the ticket after notarytool
+   -- returns, so retry up to 5 times with a 10-second wait between attempts.
+   local tStapleResult, tStapleOutput, tAttempt
+   put 0 into tAttempt
+   repeat
+      add 1 to tAttempt
+      -- 2>&1 captures stderr alongside stdout so we see the full reason on failure
+      put "xcrun stapler staple" && quote & pAppBundle & quote && "2>&1" into tShell
+      put shell(tShell) into tStapleOutput
+      put the result into tStapleResult
+      if tStapleResult = 0 then exit repeat
+      if tAttempt >= 5 then
+         throw "Stapling notarization ticket failed:" && return & tStapleOutput & \
+               return & "Notarization output was:" & return & tNotaryOutput
+      end if
+      -- Ticket not yet available — wait 10 seconds and try again
+      wait 10000 milliseconds
+   end repeat
+end performNotarization
 
 private command clearExtendedAttributes pAppBundle
    local tShell
@@ -1965,8 +2142,33 @@ private command revSetMacOS pWhatFile, pPlatformCode, pEnginePath
          end if
          put escapeForXml(tDocExtList) into line lineoffset("<key>CFBundleTypeExtensions</key>",tTempPlist) + 2 of tTempPlist
       end if
+      
       set the itemDel to "/"
       put uniDecode(uniEncode(tTempPlist), "UTF8") into URL ("file:" & item 1 to -3 of pWhatFile&"/Info.plist")
+      
+      -- Inject placeholder NSUsageDescription keys for all privacy-sensitive APIs into
+      -- the Info.plist. macOS silently denies access (or App Store review rejects the
+      -- app) if these keys are absent. PlistBuddy's Add command is a no-op if the key
+      -- already exists, so values from a custom plist are preserved. Developers can
+      -- replace the placeholder strings with their own wording afterwards.
+      local tPrivacyInfoPlist, tPB
+      put item 1 to -3 of pWhatFile & "/Info.plist" into tPrivacyInfoPlist
+      put "/usr/libexec/PlistBuddy" into tPB
+      local tPrivacyMapping, tPrivacyMapLine, tPrivacyNSKey, tPrivacyPlaceholder
+      put "NSCameraUsageDescription|This app requires access to the camera." & return & \
+          "NSMicrophoneUsageDescription|This app requires access to the microphone." & return & \
+          "NSLocationUsageDescription|This app requires access to your location." & return & \
+          "NSContactsUsageDescription|This app requires access to your contacts." & return & \
+          "NSCalendarsUsageDescription|This app requires access to your calendars." & return & \
+          "NSPhotoLibraryUsageDescription|This app requires access to your photo library." & return & \
+          "NSAppleEventsUsageDescription|This app requires the ability to send Apple events." into tPrivacyMapping
+      set the itemDelimiter to "|"
+      repeat for each line tPrivacyMapLine in tPrivacyMapping
+         put item 1 of tPrivacyMapLine into tPrivacyNSKey
+         put item 2 of tPrivacyMapLine into tPrivacyPlaceholder
+         get shell(tPB && "-c" && quote & "Add :" & tPrivacyNSKey & " string '" & tPrivacyPlaceholder & "'" & quote && quote & tPrivacyInfoPlist & quote & " 2>/dev/null")
+      end repeat
+      set the itemDelimiter to "/"
       if sStandaloneSettingsA["OSX,signature"] is not empty then
          put "APPL" & sStandaloneSettingsA["OSX,signature"] into URL ("file:" & item 1 to -3 of pWhatFile&"/PkgInfo")
       end if

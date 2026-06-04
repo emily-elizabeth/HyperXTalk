@@ -14,11 +14,11 @@ Specifies the color of an <object|object's> border.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image, group
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the borderColor of field "Alert" to "red"
@@ -115,11 +115,6 @@ depending on the <object type>:
 
 If an object's <borderPattern> is set, the pattern is shown instead of
 the color specified by <borderColor>.
-
-Changes:
-The <borderColor> 's effect on grid lines in <field|fields> was
-introduced in version 2.0. In previous versions, the color of the grid
-lines was determined by the <field|field's> <hiliteColor> <property>.
 
 References: group (command), object (glossary), property (glossary),
 EPS (glossary), audio clip (glossary), owner (glossary),

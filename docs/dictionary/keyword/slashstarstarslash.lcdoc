@@ -9,11 +9,11 @@ Syntax: /**/
 Summary:
 <delimit|Delimits> a <block comment>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local whichPrompt

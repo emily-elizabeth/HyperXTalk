@@ -10,11 +10,11 @@ Used with the <sort> <command>, <number> <function>, and <is among> and
 portions (or portions <delimit|delimited> by the <character> in the
 <itemDelimiter> <property>) of a <string>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if it is not among the items of field "Possible Answers" then beep

@@ -7,11 +7,11 @@ Syntax: baseConvert(<number>, <originalBase>, <destinationBase>)
 Summary:
 Converts a number from one base to another.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 baseConvert(16,10,2) -- yields 10000, which is 16 in base 2

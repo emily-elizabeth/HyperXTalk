@@ -10,11 +10,11 @@ Designates a return-<delimit|delimited> <string> as part of a
 line shapes and specifies, through the <style> <property>, that a 
 <graphic> is a line.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 get line 3 of the stacks

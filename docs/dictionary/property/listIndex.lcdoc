@@ -9,11 +9,11 @@ Sets the index for a paragraph when an (ordered) listStyle is set .
 
 Associations: field
 
-Introduced: 6.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the listIndex of line 1 of field 1 to 4

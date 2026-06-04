@@ -17,11 +17,11 @@ Syntax: relayer <control> to {front | back} of <owner>
 Summary:
 Aids the manipulation of layers.
 
-Introduced: 6.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 relayer button "b1" after button "b2" -- bring button b1 to front

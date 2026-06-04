@@ -7,7 +7,7 @@ Syntax: set the scaleFactor of <stack> to <scale>
 Summary:
 Determines the custom scale factor for a stack.
 
-Introduced: 6.6
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

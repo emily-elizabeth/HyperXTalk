@@ -8,11 +8,11 @@ Summary:
 Takes data from a <file> that has been opened with the <open file>
 <command>, and places the data in the <it> <variable>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 

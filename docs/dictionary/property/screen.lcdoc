@@ -10,7 +10,7 @@ to the line of the rect of the screen returned by the screenrects.
 
 Associations: stack
 
-Introduced: ?.?
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

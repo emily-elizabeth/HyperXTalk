@@ -41,7 +41,7 @@ echo "PLATFORM=" ${PLATFORM}
 # a fresh clone without the prebuilt binaries.
 PREBUILT_LIB_DIR="${OUTPUT_DIR}/lib/${PLATFORM}"
 if [ "${PLATFORM}" == "mac" ] || [ "${PLATFORM}" == "ios" ]; then
-    if [ -f "${PREBUILT_LIB_DIR}/libz.a" ] && [ -f "${PREBUILT_LIB_DIR}/libiodbc.a" ] && [ -f "${PREBUILT_LIB_DIR}/libpng.a" ]; then
+    if [ -f "${PREBUILT_LIB_DIR}/libcustomcrypto.a" ] && [ -f "${PREBUILT_LIB_DIR}/libiodbc.a" ] && [ -f "${PREBUILT_LIB_DIR}/libpng.a" ]; then
         echo "Prebuilt libraries already present in ${PREBUILT_LIB_DIR} — skipping fetch."
         exit 0
     fi
@@ -50,22 +50,22 @@ fi
 # Set which libs to build for the target platform
 case "${PLATFORM}" in
 	android)
-		PREBUILT_LIBS="openssl icu libz libzip libgif libjpeg libpng libfreetype libiodbc"
+		PREBUILT_LIBS="openssl icu libz libzip libgif libjpeg libpng libcairo libfreetype libiodbc"
 		;;
 	mac)
-		PREBUILT_LIBS="openssl icu libz libzip libgif libjpeg libpng libfreetype libiodbc"
+		PREBUILT_LIBS="openssl icu libz libzip libgif libjpeg libpng libcairo libfreetype libiodbc"
 		;;
 	ios)
-		PREBUILT_LIBS="openssl icu libz libzip libgif libjpeg libpng libfreetype libiodbc"
+		PREBUILT_LIBS="openssl icu libz libzip libgif libjpeg libpng libcairo libfreetype libiodbc"
 		;;
 	win32)
-		PREBUILT_LIBS="openssl curl icu cef libz libzip libgif libjpeg libpng libfreetype libiodbc"
+		PREBUILT_LIBS="openssl curl icu cef libz libzip libgif libjpeg libpng libcairo libfreetype libiodbc"
 		;;
 	linux)
-		PREBUILT_LIBS="openssl curl icu cef libz libgif libjpeg libpng libfreetype libiodbc"
+		PREBUILT_LIBS="openssl curl icu cef libz libgif libjpeg libpng libcairo libfreetype libiodbc"
 		;;
 	emscripten)
-		PREBUILT_LIBS="icu libz libzip libgif libjpeg libpng libfreetype libiodbc"
+		PREBUILT_LIBS="icu libz libzip libgif libjpeg libpng libcairo libfreetype libiodbc"
 		;;
 esac
 

@@ -8,7 +8,7 @@ Summary:
 Specifies whether changes to the <color table> cause the screen to be
 <redraw|redrawn> with the new <color table>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

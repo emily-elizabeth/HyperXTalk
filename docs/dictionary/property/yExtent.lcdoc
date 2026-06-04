@@ -7,7 +7,7 @@ Syntax: set the yExtent of <EPSObject> to <number>
 Summary:
 Specifies the height of an <EPS|EPS object's> <PostScript> bounding box.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

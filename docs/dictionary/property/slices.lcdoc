@@ -8,7 +8,7 @@ Summary:
 Specifies how many angles a <line> can snap to when drawing a <line> or
 irregular <polygon> with the Shift key held down.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

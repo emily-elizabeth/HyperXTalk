@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <foundation.h>
 #include <foundation-auto.h>
 #include <foundation-system.h>
@@ -580,13 +564,13 @@ bool MCScriptEnsureModuleIsUsable(MCScriptModuleRef self)
     if (self -> is_usable)
         return true;
 
-	/* If the module is already marked as being checked for usability,
-	 * then there must be a cyclic module dependency. */
-	if (self -> is_in_usable_check)
-		return MCErrorThrowGeneric(MCSTR("cyclic module dependency"));
-    
-	self -> is_in_usable_check = true;
-    
+    /* If the module is already marked as being checked for usability,
+     * then there must be a cyclic module dependency. */
+    if (self -> is_in_usable_check)
+        return MCErrorThrowGeneric(MCSTR("cyclic module dependency"));
+
+    self -> is_in_usable_check = true;
+
     // First ensure we can resolve all its external dependencies.
     for(uindex_t i = 0; i < self -> dependency_count; i++)
     {

@@ -8,7 +8,7 @@ Syntax: recordFormats()
 
 Summary: Returns a list of available record formats
 
-Introduced: 9.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 

@@ -9,7 +9,7 @@ Syntax: set the dragData[<dataType>] to <dataToDrag>
 Summary:
 Specifies what data is being dragged during a drag and drop.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -83,9 +83,6 @@ sets the dragData["text"].
 > HyperXTalk reserved words. Quoting array indexes (other than integers)
 > is a good practice anyway, but in the case of this property, it's
 > necessary to avoid script errors.
-
->*Note:*  From 7.0, the string in <dragData> ["text"] can also contain
-> the Unicode characters
 
 References: arrayDecode (function), arrayEncode (function),
 textDecode (function), textEncode (function),

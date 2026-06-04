@@ -7,7 +7,7 @@ Syntax: set the xExtent of <EPSObject> to <number>
 Summary:
 Specifies the width of an <EPS|EPS object's> <PostScript> bounding box.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

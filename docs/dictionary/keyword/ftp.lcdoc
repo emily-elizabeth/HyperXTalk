@@ -10,11 +10,11 @@ designate a <file> or <folder|directory> on an FTP <server>.
 
 Associations: internet library
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: network
 
@@ -161,18 +161,6 @@ For technical information about URLs and the <ftp> <URL> scheme, see
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
-
->*Cross-platform note:* On iOS and Android, you can use the <ftp> 
-> <keyword> without the need for the <Internet library>. When
-> specifying 
-> <URL(glossary)|URLs> for iOS and Android, you must use the
-> appropriate 
-> form that conforms to [RFC
-> 1630](https://tools.ietf.org/html/rfc1630). 
-
-Changes:
-The ability to specify a port number was added in version 2.0. In
-previous versions, port 21 was always used for FTP transactions.
 
 References: libURLSetFTPListCommand (command), libURLSetFTPMode (command),
 get (command), post (command), put (command), load (command),

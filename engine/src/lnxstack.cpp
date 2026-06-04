@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 //
 // platform-specific MCStack class functions
 //
@@ -257,6 +241,13 @@ void MCStack::sethints()
         case WM_CASCADE:
             t_type_hint = GDK_WINDOW_TYPE_HINT_POPUP_MENU;
             break;
+
+        case WM_POPOVER:
+            // A popover is a floating panel, not a transient menu.  Use UTILITY
+            // so that compositors apply a proper drop-shadow and focus handling
+            // is not suppressed the way it is for POPUP_MENU windows.
+            t_type_hint = GDK_WINDOW_TYPE_HINT_UTILITY;
+            break;
             
         case WM_COMBO:
             t_type_hint = GDK_WINDOW_TYPE_HINT_COMBO;
@@ -275,8 +266,11 @@ void MCStack::sethints()
     }
     
     gdk_window_set_type_hint(window, t_type_hint);
-    
-    if ((mode >= WM_PULLDOWN && mode <= WM_LICENSE))
+
+    // Popovers must NOT be override-redirect: they need the compositor to
+    // apply drop-shadows and the WM to manage z-order so they don't float
+    // above unrelated applications.
+    if ((mode >= WM_PULLDOWN && mode <= WM_LICENSE) && mode != WM_POPOVER)
     {
         gdk_window_set_override_redirect(window, TRUE);
     }
@@ -284,7 +278,15 @@ void MCStack::sethints()
     {
         gdk_window_set_override_redirect(window, FALSE);
     }
-    
+
+    // For popovers: make the window transient for its anchor stack so the WM
+    // keeps it above the parent application but not above other applications.
+    if (mode == WM_POPOVER && MCpopoverparentstack != nullptr)
+    {
+        gdk_window_set_transient_for(window,
+                                     MCpopoverparentstack->getwindowalways());
+    }
+
     // TODO: initial input focus and initial window state
 	//whints.input = MCpointerfocus;
 	//whints.initial_state = flags & F_START_UP_ICONIC ? IconicState:NormalState;
@@ -440,8 +442,21 @@ void MCStack::sethints()
     // TODO: test if this comment is still true
 	// Gnome gets confused with these set
 	//if (flags & F_DECORATIONS)
-    gdk_window_set_decorations(window, GdkWMDecoration(t_decorations));
-    gdk_window_set_functions(window, GdkWMFunction(t_functions));
+    //
+    // For WM_POPOVER use GDK_DECOR_BORDER (border-only, no title).
+    // _MOTIF_WM_HINTS.decorations=0 tells compositors "no frame, no shadow",
+    // killing the drop shadow.  A non-zero value keeps shadows active.
+    // With _NET_WM_WINDOW_TYPE_UTILITY, modern WMs (Mutter, KWin, Openbox)
+    // render no visible border anyway, so this is effectively borderless.
+    if (mode == WM_POPOVER)
+    {
+        gdk_window_set_decorations(window, GDK_DECOR_BORDER);
+    }
+    else
+    {
+        gdk_window_set_decorations(window, GdkWMDecoration(t_decorations));
+        gdk_window_set_functions(window, GdkWMFunction(t_functions));
+    }
 	
 	//TS 2007-11-08 : Adding in additional hint _NET_WM_STATE == _NET_WM_STATE_ABOVE if we have set WD_UTILITY (i.e. systemwindow == true)
 	if (decorations & WD_UTILITY)
@@ -532,14 +547,20 @@ MCRectangle MCStack::view_device_setgeom(const MCRectangle &p_rect,
     
     MCRectangle t_old_rect;
     t_old_rect = MCU_make_rect(t_root_x, t_root_y, t_width, t_height);
-    
-    if (!(flags & F_WM_PLACE) || state & CS_BEEN_MOVED)
+
+    // Menus, popups, popovers, and tooltips are all self-positioned — either
+    // because they're override-redirect (WM never sees them) or because the
+    // engine computes the exact anchor-relative position.  Bypass F_WM_PLACE
+    // for all of these so gdk_window_move() is always called.
+    bool t_self_positioned = (mode >= WM_PULLDOWN && mode <= WM_LICENSE);
+
+    if (t_self_positioned || !(flags & F_WM_PLACE) || state & CS_BEEN_MOVED)
     {
         GdkGeometry t_geom;
         t_geom.win_gravity = GDK_GRAVITY_STATIC;
-        
+
         gint t_hints = GDK_HINT_MIN_SIZE|GDK_HINT_MAX_SIZE|GDK_HINT_WIN_GRAVITY;
-        
+
         if (flags & F_RESIZABLE)
         {
             t_geom.min_width = p_minwidth;
@@ -552,19 +573,19 @@ MCRectangle MCStack::view_device_setgeom(const MCRectangle &p_rect,
             t_geom.min_width = t_geom.max_width = p_rect.width;
             t_geom.min_height = t_geom.max_height = p_rect.height;
         }
-        
+
         // By setting these "user" flags, we tell the window manager that we
         // know best and it should not attempt to remove or resize the window
         // according to its preferences.
-        if (!(flags & F_WM_PLACE) || (state & CS_BEEN_MOVED))
+        if (t_self_positioned || !(flags & F_WM_PLACE) || (state & CS_BEEN_MOVED))
             t_hints |= GDK_HINT_USER_POS;
         t_hints |= GDK_HINT_USER_SIZE;
-        
+
         gdk_window_set_geometry_hints(window, &t_geom, GdkWindowHints(t_hints));
-        //gdk_window_move_resize(window, p_rect.x, p_rect.y, p_rect.width, p_rect.height);
     }
-    
-    if ((!(flags & F_WM_PLACE) || state & CS_BEEN_MOVED) && (t_root_x != p_rect.x || t_root_y != p_rect.y))
+
+    if ((t_self_positioned || !(flags & F_WM_PLACE) || state & CS_BEEN_MOVED) &&
+        (t_root_x != p_rect.x || t_root_y != p_rect.y))
     {
         if (t_width != p_rect.width || t_height != p_rect.height)
             gdk_window_move_resize(window, p_rect.x, p_rect.y, p_rect.width, p_rect.height);

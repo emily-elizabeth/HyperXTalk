@@ -8,7 +8,7 @@ Summary:
 Specifies what action will be performed upon an object when it is
 dragged. 
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

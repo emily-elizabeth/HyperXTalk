@@ -8,11 +8,11 @@ Summary:
 Specifies a <format> for the <date> and <time> <function|functions>, the
 <convert> <command>, and the <name>, <ID>, and <owner> <properties>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the short name of this card into field "Card Label"
@@ -43,11 +43,6 @@ A short object <ID> looks like this: 2238
 > and <function>, and appears in the <propertyNames> and the
 > <functionNames>. However, it cannot be used as a <property> in an
 > <expression>, nor with the <set> <command>.
-
-Changes:
-The form the short owner was introduced in version 2.0. In previous
-versions, the form of the owner property could not be specified and
-reported only the abbreviated owner.
 
 References: convert (command), set (command),
 function (control structure), time (function), functionNames (function),

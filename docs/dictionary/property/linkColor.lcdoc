@@ -9,11 +9,11 @@ Syntax: set the linkColor of <stack> to {empty | <colorName> | <RGBColor>}
 Summary:
 Specifies the color of <grouped text>.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the linkColor to "#99CC00"

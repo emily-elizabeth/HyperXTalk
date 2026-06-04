@@ -10,11 +10,11 @@ and <radio button|radio buttons> is shown.
 
 Associations: button
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the showHilite of button 7 to true

@@ -8,11 +8,11 @@ Summary:
 Specifies the number of <ticks> between <idle>, <mouseStillDown>, and
 <mouseWithin> <message|messages>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the idleTicks to 60 -- 1 second interval

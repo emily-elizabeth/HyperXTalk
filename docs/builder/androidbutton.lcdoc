@@ -1,0 +1,65 @@
+Library: com.livecode.widget.native.android.button
+
+Type: widget
+
+Summary: This widget is a native button on Android.
+
+version: 1.0.0
+
+author: LiveCode
+
+os: android
+
+platforms: mobile
+
+Name: enabled
+
+Type: property
+
+Syntax: set the enabled of <widget> to {true | false}
+get the enabled of <widget>
+
+Summary: Whether the button is active and responds to user action
+
+Description:
+Use the <enabled> property to enable or disable the native button. When
+disabled, the button has a greyed out appearance and does not accept 
+clicks or touches.
+
+Name: labelColor
+
+Type: property
+
+Syntax: set the labelColor of <widget> to <pLabel>
+get the labelColor of <widget>
+
+Summary: The color of the text of the button label
+
+Value: A comma delimited string representing a color in RGB / RGBA format
+
+Example: 	set the labelColor of widget "Android Button" to "255,0,0,128"
+
+Description:
+Use the <labeColor> property to change the color of the label text of 
+the button.
+
+
+
+Name: label
+
+Type: property
+
+Syntax: set the label of <widget> to <pLabel>
+get the label of <widget>
+
+Summary: The label displayed by the button.
+
+Value: The string to use as the button label
+
+Example:     set the label of widget "Android Button" to "Click me!"
+
+Description: The <label> property is the label displayed by the button.
+
+
+
+

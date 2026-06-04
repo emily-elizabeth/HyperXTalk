@@ -7,7 +7,7 @@ Syntax: set the retainPostScript of <EPSObject> to {true | false}
 Summary:
 Specifies whether an <EPS|EPS object> contains the <PostScript> code.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

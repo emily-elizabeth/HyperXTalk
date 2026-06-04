@@ -13,11 +13,11 @@ Summary:
 <insertion point> in a <field>, or removes the <insertion point>, 
 or <select|Selects> one or more <object|objects>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 select text of field "output"

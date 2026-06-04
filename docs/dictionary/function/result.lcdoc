@@ -11,11 +11,11 @@ Is a global property returning the last value returned by return from a
 handler, from an engine function, or from an engine command which sets
 the result.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the result

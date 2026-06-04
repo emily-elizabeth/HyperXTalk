@@ -8,7 +8,7 @@ Summary:
 <$_GET> is an array variable, translated from the QUERY_STRING. It
 assumes the query string is encoded as url-form-encoded data.
 
-Introduced: 4.6.3
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

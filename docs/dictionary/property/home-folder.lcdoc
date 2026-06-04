@@ -9,11 +9,11 @@ Returns the path to the current user's home directory(on desktop) or the
 folder containing the application bundle and its associated data and
 folders(on iOS)
 
-Introduced: 5.0.2
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 get the home folder
@@ -29,9 +29,6 @@ folders(on iOS).
 On Mac OS X, Windows and Linux systems the home folder property returns
 the path to the current user's home directory, e.g. "/Users/Fred" or
 "C:/Documents and Settings/Fred". 
-
-On iOS the home folder property returns the path to the (unique) folder
-containing the application bundle and its associated data and folders.
 
 This property is read only and is equivalent to the
 specialFolderPath("home") function.

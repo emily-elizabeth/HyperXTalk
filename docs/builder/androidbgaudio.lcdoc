@@ -1,0 +1,117 @@
+Library: com.livecode.library.androidbgaudio
+
+Type: library
+
+Summary: This library provides an API for playing background audio on Android
+
+Description:
+Use this library to start and control a background audio service that
+will continue playing when the current application is suspended.
+
+version: 0.0.0
+
+author: LiveCode
+
+os: android
+
+
+Name: androidResumeAudioPlayingInBackground
+
+Type: handler
+
+Syntax: androidResumeAudioPlayingInBackground()
+
+Summary: Resume the currently paused background audio
+
+Description:
+Use the <androidResumeAudioPlayingInBackground> handler to resume the
+audio playback in the background paused by the last call to 
+<androidPauseAudioPlayingInBackground>.
+
+References: androidPauseAudioPlayingInBackground (handler)
+
+
+
+
+Name: androidIsAudioPlayingInBackground
+
+Type: handler
+
+Syntax: androidIsAudioPlayingInBackground()
+
+Summary: Whether there is currently any audio playing in the background
+
+Example:
+    if androidIsAudioPlayingInBackground() then
+       androidPauseAudioPlayingInBackground
+    end if
+
+Description:
+Use the <androidIsAudioPlayingInBackground> to find out if there is any
+audio playback currently occurring in the background.
+
+
+
+Name: androidStopAudioPlayingInBackground
+
+Type: handler
+
+Syntax: androidStopAudioPlayingInBackground()
+
+Summary: Stop playing audio in the background.
+
+Description:
+Use the <androidStopAudioPlayingInBackground> handler to stop playing
+the audio playback in the background started by the last call to 
+<androidStartAudioPlayingInBackground>.
+
+References: androidStartAudioPlayingInBackground (handler)
+
+
+
+
+Name: androidStartAudioPlayingInBackground
+
+Type: handler
+
+Syntax: androidStartAudioPlayingInBackground(<pAudio>)
+
+Summary: Start playing audio in the background.
+
+Parameters: 
+
+pAudio: The full path to the audio file to start playing
+
+Description:
+Use the <androidStartAudioPlayingInBackground> handler to start playing
+the audio contained in the file <pAudio> in the background. The audio
+continues playing until it finishes while the app is suspended, or until
+it is paused or stopped using the <androidStopAudioPlayingInBackground> 
+or <androidPauseAudioPlayingInBackground> handlers are used.
+
+References:
+androidStopAudioPlayingInBackground (handler),
+androidPauseAudioPlayingInBackground (handler)
+
+
+
+Name: androidPauseAudioPlayingInBackground
+
+Type: handler
+
+Syntax: androidPauseAudioPlayingInBackground()
+
+Summary: Pause the currently playing background audio
+
+Description:
+Use the <androidPauseAudioPlayingInBackground> handler to pause the
+audio playback in the background started by the last call to 
+<androidStartAudioPlayingInBackground>. It can be resumed by calling
+<androidResumeAudioPlayingInBackground>.
+
+References:
+androidStartAudioPlayingInBackground (handler),
+androidResumeAudioPlayingInBackground (handler)
+
+
+

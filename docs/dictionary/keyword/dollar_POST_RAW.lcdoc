@@ -8,7 +8,7 @@ Summary:
 <$_POST_RAW> is a binary string variable, formed by reading the content
 of stdin.
 
-Introduced: 4.6.3
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -7,7 +7,7 @@ Syntax: reset printing
 Summary:
 Resets the current printer and settings to the system defaults.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

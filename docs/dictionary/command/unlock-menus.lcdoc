@@ -8,7 +8,7 @@ Summary:
 Sets the <lockMenus> <property> to false, so the <menu bar> is updated
 when the menus are changed.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

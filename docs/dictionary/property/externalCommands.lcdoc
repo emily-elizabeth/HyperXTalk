@@ -9,7 +9,7 @@ Lists the available <external|external commands> for a <stack>.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: windows, linux
 
@@ -34,10 +34,6 @@ or to list all the available <external|external commands>.
 
 You use an external command in a handler the same way you use one of
 xTalk's built-in commands.
-
-Changes:
-Support for using the externalCommands property on OS X systems was
-added in version 2.0.
 
 References: external (glossary), property (glossary), handler (glossary),
 line (keyword), stack (object), externalPackages (property)

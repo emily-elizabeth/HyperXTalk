@@ -9,11 +9,11 @@ Syntax: unhilite <button>
 Summary:
 Sets a <button|button's> <hilite> <property> to false.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 unhilite button 1

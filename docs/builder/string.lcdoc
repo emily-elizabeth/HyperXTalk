@@ -1,0 +1,273 @@
+Library: com.livecode.string
+
+Type: module
+
+Summary: This library consists of the operations on strings included in the standard library of Extension Builder.
+
+
+Name: ConcatenateStrings
+
+Type: operator
+
+Syntax:     <Left> & <Right>
+
+Summary: Concatenates <Left> and <Right>.
+
+Left: An expression which evaluates to a string.
+
+Right: An expression which evaluates to a string.
+
+Returns: The result of concatenating <Left> and <Right>.
+
+Example:
+variable tVar as String
+put "car" & "pet" into tVar -- tVar contains "carpet"
+
+Description: The result consists of the chars of <Left> followed by those of <Right>.
+
+Tags: Strings
+
+
+
+
+Name: PutStringAfter
+
+Type: statement
+
+Syntax:     put <Source> after <Target>
+
+Summary: Appends <Source> to <Target>.
+
+Source: An expression which evaluates to a string.
+
+Target: An expression which evaluates to a string container.
+
+Example:
+variable tVar as String
+put "" into tVar
+put "rent" after tVar -- tVar contains "rent"
+put "placeme" after char 2 of tVar -- tVar contains "replacement"
+
+Description: Use to insert a string without replacement. Can be used either with a chunk expression to insert at a specified location, or without to append to the target string.
+
+Tags: Strings
+
+
+
+
+Name: ReplaceString
+
+Type: statement
+
+Syntax:     replace <Pattern> with <Replacement> in <Target>
+
+Summary: Replaces occurrences of <Pattern> within <Target> in <Replacement>
+
+Source: An expression which evaluates to a string.
+
+Target: An expression which evaluates to a string container.
+
+Replacement: An expression which evaluates to a string.
+
+Example:
+variable tString as String
+put "purple" into tString
+replace "p" with "t" in tString -- tString is "turtle"
+
+Description: Replaces each occurrence of the string <Pattern> in <Target> with <Replacement>.
+
+Tags: Strings
+
+
+
+
+Name: ConcatenateStringsWithSpace
+
+Type: operator
+
+Syntax:     <Left> && <Right>
+
+Summary: Concatenates <Left> and <Right> with a space between.
+
+Left: An expression which evaluates to a string.
+
+Right: An expression which evaluates to a string.
+
+Returns: The result of concatenating <Left> and <Right> with a space between.
+
+Example:
+variable tVar as String
+put "This" && "is" && "a" && "sentence." into tVar -- tVar contains "This is a sentence."
+
+Description: The result consists of the chars of <Left> followed by a space, and then the chars of <Right>.
+
+Tags: Strings
+
+
+
+
+Name: LowercaseString
+
+Type: operator
+
+Syntax:     the lower of <Source>
+
+Summary: Lowercases <Source>.
+
+Source: An expression which evaluates to a string.
+
+Returns: <Source> with each of its chars lowercased.
+
+Description: Uppercase letters, including special characters with diacritical marks, are converted to the lowercase equivalents. All other characters, including lowercase letters, numbers, punctuation, and special characters with no upper or lower case, are left unchanged.
+
+Tags: Strings
+
+
+
+
+Name: StringIsLessThanString
+
+Type: operator
+
+Syntax:     <Left> &lt; <Right>
+
+Summary: Determines whether <Left> is less than <Right> under a char by char comparison
+
+Left: An expression which evaluates to a string.
+
+Right: An expression which evaluates to a string.
+
+Returns: Returns true if <Left> is less than <Right>
+
+Description: <Left> is greater than <Right> if and only if <Left> and <Right> are not equal, and the unicode codepoint of the first char in <Left> that is not equal to the corresponding char in <Right> is of greater value.
+
+Tags: Strings
+
+
+
+
+Name: StringIsNotString
+
+Type: operator
+
+Syntax:     <Left> is not <Right>
+
+Summary: Determines whether <Left> and <Right> are equal or not.
+
+Left: An expression which evaluates to a string.
+
+Right: An expression which evaluates to a string.
+
+Returns: Returns true if <Left> is not identical to <Right>.
+
+Description: The ```is not``` operator is case sensitive.
+
+Tags: Strings
+
+
+
+
+Name: EmptyString
+
+Type: expression
+
+Syntax: 	the empty string
+
+Summary: Designates the string of length zero.
+
+Example:
+variable tVar as String
+variable tCount as Number
+put the empty string into tVar
+put the number of chars in tVar into tCount -- tCount is 0
+
+Description: Use ```the empty string``` to initialise a string variable. The empty string is synonymous with the string literal ""
+
+Tags: Strings
+
+
+
+
+Name: UppercaseString
+
+Type: operator
+
+Syntax:     the upper of <Source>
+
+Summary: Uppercases <Source>.
+
+Source: An expression which evaluates to a string.
+
+Returns: <Source> with each of its chars uppercased.
+
+Description: Lowercase letters, including special characters with diacritical marks, are converted to the uppercase equivalents. All other characters, including uppercase letters, numbers, punctuation, and special characters with no upper or lower case, are left unchanged.
+
+Tags: Strings
+
+
+
+
+Name: StringIsGreaterThanString
+
+Type: operator
+
+Syntax:     <Left> &gt; <Right>
+
+Summary: Determines whether <Left> is greater than <Right> under a char by char comparison
+
+Left: An expression which evaluates to a string.
+
+Right: An expression which evaluates to a string.
+
+Returns: Returns true if <Left> is greater than <Right>.
+
+Description: <Left> is greater than <Right> if and only if <Left> and <Right> are not equal, and the unicode codepoint of the first char in <Left> that is not equal to the corresponding char in <Right> is of greater value.
+
+Tags: Strings
+
+
+
+
+Name: StringIsString
+
+Type: operator
+
+Syntax:     <Left> is <Right>
+
+Summary: Determines whether <Left> and <Right> are equal or not.
+
+Left: An expression which evaluates to a string.
+
+Right: An expression which evaluates to a string.
+
+Returns: Returns true if <Left> is identical to <Right>.
+
+Description: The ```is``` operator is case sensitive.
+
+Tags: Strings
+
+
+
+
+Name: PutStringBefore
+
+Type: statement
+
+Syntax:     put <Source> before <Target>
+
+Summary: Prepends <Source> to <Target>.
+
+Source: An expression which evaluates to a string.
+
+Target: An expression which evaluates to a string container.
+
+Example:
+variable tVar as String
+put "" into tVar
+put "abc" before tVar -- tVar contains "abc"
+put "lpha" before char 2 of tVar
+put "eti" before char -1 of tVar -- tVar contains "alphabetic"
+
+Description: Use to insert a string without replacement. Can be used either with a chunk expression to insert at a specified location, or without to prepend to the target string.
+
+Tags: Strings

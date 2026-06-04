@@ -8,11 +8,11 @@ Summary:
 Locates a position in a <file>, to be used by the <read from file> and
 <write to file> <command|commands>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 seek to 100 in file "test.txt"

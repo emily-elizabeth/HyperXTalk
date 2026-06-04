@@ -7,18 +7,18 @@ Syntax: set the navigationArrows to {true | false}
 Summary:
 Specifies whether the arrow keys move from <card> to <card>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the navigationArrows to true
 
 Value (bool):
 The <navigationArrows> can be set to true or false.
-By default, the <navigationArrows> <property> is set to true.
+By default, the <navigationArrows> <property> is set to false.
 
 Description:
 Use the <navigationArrows> <property> to control what the arrow keys do.

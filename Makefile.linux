@@ -19,7 +19,8 @@ ifneq ($(TRAVIS),undefined)
 	@echo "travis_fold:start:compile"
 	@echo "COMPILE"
 endif
-	@mkdir -p build-linux-$*/livecode/out/Debug/Externals build-linux-$*/livecode/out/Debug/packaged_extensions build-linux-$*/livecode/out/Debug/modules
+	@mkdir -p build-linux-$*/livecode/out/Debug/Externals build-linux-$*/livecode/out/Debug/packaged_extensions build-linux-$*/livecode/out/Debug/modules \
+	           build-linux-$*/livecode/out/Release/Externals build-linux-$*/livecode/out/Release/packaged_extensions build-linux-$*/livecode/out/Release/modules
 	$(MAKE) -C build-linux-$*/livecode default
 ifneq ($(TRAVIS),undefined)
 	@echo "travis_fold:end:compile"

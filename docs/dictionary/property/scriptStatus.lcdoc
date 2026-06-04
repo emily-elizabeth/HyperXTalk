@@ -9,11 +9,11 @@ Determine the status of the last script compilation of an object.
 
 Associations: object
 
-Introduced: 8.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, mobile, server
+Platforms: desktop, server
 
 Example:
 if the scriptStatus of stack "MyStack" is "error" then

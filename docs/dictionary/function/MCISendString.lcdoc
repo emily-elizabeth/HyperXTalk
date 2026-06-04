@@ -8,7 +8,7 @@ Summary:
 Sends a command to the Media Control Interface system, and
 <return|returns> the result of the command.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: windows
 

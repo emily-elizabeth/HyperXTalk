@@ -1,4 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\PREBUILT\FETCH-LIBRARIES.SH
-if exist "..\..\..\prebuilt\lib\win32\icudt.lib" (echo note: win32 prebuilts already present, skipping fetch) else (echo ERROR: Prebuilt win32 libraries missing. See prebuilt/fetch-libraries.sh for download instructions. & exit /b 1)
-if not exist "..\..\..\prebuilt\bin\win32\x86" mkdir "..\..\..\prebuilt\bin\win32\x86"
-if not exist "..\..\..\prebuilt\lib\win32\x86" mkdir "..\..\..\prebuilt\lib\win32\x86"

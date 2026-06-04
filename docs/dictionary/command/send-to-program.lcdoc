@@ -7,7 +7,7 @@ Syntax: send <message> to {program | application} <programAddress> [with <classI
 Summary:
 Sends an <Apple event> to a program.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 

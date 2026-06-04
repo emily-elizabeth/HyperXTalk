@@ -9,11 +9,11 @@ Syntax: files([<targetFolder>[, <outputKind>]])
 Summary:
 List the files in a folder.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk
 
@@ -109,12 +109,6 @@ The access permissions consist of three octal digits, in the same form
 used for the <umask> property.
 
 > *Note:* On Windows, the permissions are always reported as "777".
-
-Changes:
-The <long> form was introduced in version 1.1.
-The optional <targetFolder> argument for the function call form was
-introduced in version 8.1.
-The `detailed-utf8` form was introduced in version 9.6.
 
 References: sort (command), return (constant), folders (function),
 specialFolderPath (function), alias (glossary), current folder (glossary),

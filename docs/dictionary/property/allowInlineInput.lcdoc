@@ -8,7 +8,7 @@ Summary:
 Specifies whether the user can type non-Roman text directly into a
 <field>. 
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows
 

@@ -7,7 +7,7 @@ Syntax: show taskbar
 Summary:
 Displays the <task bar> on <Windows|Windows systems>.
 
-Introduced: 2.1
+Introduced: 1.0.0
 
 OS: windows
 
@@ -30,7 +30,7 @@ in conjunction with <backdrop> operations. See the
 
 
 The task bar can be hidden only on Windows systems. This command has no
-effect on Mac OS, OS X, or Unix systems.
+effect on macOS, or Unix systems.
 
 References: show (command), hide taskbar (command),
 show menubar (command), task bar (glossary), Windows (glossary),

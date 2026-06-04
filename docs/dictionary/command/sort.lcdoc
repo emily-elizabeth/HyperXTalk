@@ -7,11 +7,11 @@ Syntax: sort [marked] cards [of <stack>] [<direction>] [<sortType>] by <sortKey>
 Summary:
 Sorts the cards of a stack into a new order.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 sort cards by field "name"

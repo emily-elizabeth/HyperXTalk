@@ -8,11 +8,11 @@ Summary:
 Sent to the current card of the default stack after the user grants
 notification permission.
 
-Introduced: 10.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 -- Show a welcome notification once permission is confirmed

@@ -7,11 +7,11 @@ Syntax: set the accentColor to {<colorName> | <RGBColor>}
 Summary:
 Specifies the <highlight> color used for the active <menu item>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, ios, android
+OS: mac, windows
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the accentColor to "blue"

@@ -7,7 +7,7 @@ Syntax: put [ unicode ] <text>
 Summary:
 Write the (unicode) text string to stdout.
 
-Introduced: 4.6.3
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

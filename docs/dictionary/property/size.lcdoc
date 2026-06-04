@@ -9,11 +9,11 @@ Reports the amount of disk space taken by an <object(glossary)>.
 
 Associations: image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if the size of image myImage &gt; 20000 then beep

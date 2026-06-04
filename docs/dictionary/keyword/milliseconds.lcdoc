@@ -9,11 +9,11 @@ Syntax: milliseconds
 Summary:
 Designates the number of milliseconds in a time period.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 send "choose browse tool" to me in 20 milliseconds -- 1/50th of a second

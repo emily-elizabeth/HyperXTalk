@@ -7,11 +7,11 @@ Syntax: set the logMessage to <handlerName>
 Summary:
 The name of the handler that is called by the <log> command.
 
-Introduced: 9.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on preOpenStack

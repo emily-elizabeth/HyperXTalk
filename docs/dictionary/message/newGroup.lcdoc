@@ -9,11 +9,11 @@ Sent to a new <group> right after it's created.
 
 Associations: group
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on newGroup -- automatically set a property of all new groups

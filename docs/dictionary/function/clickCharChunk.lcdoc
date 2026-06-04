@@ -10,11 +10,11 @@ Summary:
 <return|Returns> the position of the <character> the user last clicked
 in a <field>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 the clickCharChunk

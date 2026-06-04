@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -307,6 +291,7 @@ const LT command_table[] =
         {"beep", TT_STATEMENT, S_BEEP},
         {"break", TT_STATEMENT, S_BREAK},
         {"breakpoint", TT_STATEMENT, S_BREAKPOINT},
+        {"bringApplicationToFront", TT_STATEMENT, S_BRING_APPLICATION_TO_FRONT},
         {"call", TT_STATEMENT, S_CALL},
         {"caller", TT_CHUNK, CT_CALLER},
         {"cancel", TT_STATEMENT, S_CANCEL},
@@ -393,6 +378,7 @@ const LT command_table[] =
         {"place", TT_STATEMENT, S_PLACE},
         {"play", TT_STATEMENT, S_PLAY},
         {"pop", TT_STATEMENT, S_POP},
+        {"popover", TT_STATEMENT, S_POPOVER},
         {"popup", TT_STATEMENT, S_POPUP},
         {"post", TT_STATEMENT, S_POST},
         {"prepare", TT_STATEMENT, S_PREPARE},
@@ -846,6 +832,7 @@ const LT factor_table[] =
         {"defaultstack", TT_PROPERTY, P_DEFAULT_STACK},
 		// MW-2011-11-24: [[ UpdateScreen ]] Property controlling whether screen updates are coalesced.
 		{"deferscreenupdates", TT_PROPERTY, P_DEFER_SCREEN_UPDATES},
+        {"deletecredential", TT_FUNCTION, F_DELETE_CREDENTIAL},
         {"deleteregistry", TT_FUNCTION, F_DELETE_REGISTRY},
         {"deleteresource", TT_FUNCTION, F_DELETE_RESOURCE},
 		// MW-2011-11-24: [[ Nice Folders ]] The adjective for 'the desktop folder'.
@@ -1321,6 +1308,7 @@ const LT factor_table[] =
         {"multispace", TT_PROPERTY, P_MULTI_SPACE},
         {"name", TT_PROPERTY, P_NAME},
         {"nativechartonum", TT_FUNCTION, F_NATIVE_CHAR_TO_NUM},
+        {"naturalscrolling", TT_FUNCTION, F_NATURAL_SCROLLING},
         {"navigationarrows", TT_PROPERTY, P_NAVIGATION_ARROWS},
 		{"networkinterfaces", TT_PROPERTY, P_NETWORK_INTERFACES},
         {"newest", TT_PREP, PT_NEWEST},
@@ -1520,6 +1508,7 @@ const LT factor_table[] =
         {"result", TT_FUNCTION, F_RESULT},
         {"retainimage", TT_PROPERTY, P_RETAIN_IMAGE},
         {"retainpostscript", TT_PROPERTY, P_RETAIN_POSTSCRIPT},
+        {"retrievecredential", TT_FUNCTION, F_RETRIEVE_CREDENTIAL},
         {"returnkeytype", TT_PROPERTY, P_RETURN_KEY_TYPE},
         {"revavailablehandlers", TT_PROPERTY, P_REV_AVAILABLE_HANDLERS},
 		{"revavailablevariables", TT_PROPERTY, P_REV_AVAILABLE_VARIABLES},
@@ -1715,6 +1704,7 @@ const LT factor_table[] =
 		{"statusicontooltip", TT_PROPERTY, P_STATUS_ICON_TOOLTIP},
 		// JS-2013-06-19: [[ StatsFunctions ]] Token for 'sampleStandardDeviation' (aka stdDev / standardDeviation)
         {"stddev", TT_FUNCTION, F_SMP_STD_DEV},
+        {"storecredential", TT_FUNCTION, F_STORE_CREDENTIAL},
 		{"strokegradient", TT_PROPERTY, P_GRADIENT_STROKE},
         {"style", TT_PROPERTY, P_STYLE},
 		// MW-2011-12-08: [[ StyledText ]] Keyword for 'styledText' reserved word.
@@ -2176,12 +2166,14 @@ const static LT start_table[] =
 const static LT sugar_table[] =
     {
 		{"anchor", TT_UNDEFINED, SG_ANCHOR},
+		{"anchored", TT_UNDEFINED, SG_ANCHORED},
 		{"bookmark", TT_UNDEFINED, SG_BOOKMARK},
 		{"browser", TT_UNDEFINED, SG_BROWSER},
         {"callback", TT_CHUNK, CT_UNDEFINED},
 		{"caller", TT_UNDEFINED, SG_CALLER},
 		{"closed", TT_UNDEFINED, SG_CLOSED},
         {"data", TT_UNDEFINED, SG_DATA},
+		{"edge", TT_UNDEFINED, SG_EDGE},
 		{"effects", TT_UNDEFINED, SG_EFFECTS},
 		{"elevated", TT_UNDEFINED, SG_ELEVATED},
         {"empty", TT_CHUNK, CT_UNDEFINED},

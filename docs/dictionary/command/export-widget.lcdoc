@@ -8,11 +8,11 @@ Summary:
 Exports the state of the given widget in a form which can be imported
 using <import widget|import widget from array>.
 
-Introduced: 8.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 local tMyArray
@@ -34,9 +34,6 @@ fully qualified name of the widget's extension module. The $state key is
 an array representing the widget as it is at that point in time. This is
 typically the values of all the widget's persistent properties, although
 its exact structure is defined by the widget.
-
->*Note:* The <export widget> command is subject to change throughout the
-> 8.0 development cycle.
 
 References: import widget (command), create widget (command)
 

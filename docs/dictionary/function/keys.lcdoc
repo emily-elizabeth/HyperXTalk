@@ -9,7 +9,7 @@ Syntax: keys(<arrayName>)
 Summary:
 Returns a list of the <element> names in an <array>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

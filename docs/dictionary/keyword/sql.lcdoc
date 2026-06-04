@@ -8,11 +8,11 @@ Summary:
 Specifies a <format> for the <convert> <command> that is compatible with
 SQL database datetime columns.
 
-Introduced: 10.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 convert the date && the time to sql date

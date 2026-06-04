@@ -9,11 +9,11 @@ Specifies whether lines have rounded ends or squared-off ends.
 
 Associations: graphic
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: windows, linux, ios, android
+OS: windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the roundEnds to true

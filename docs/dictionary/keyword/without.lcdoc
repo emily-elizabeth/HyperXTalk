@@ -10,11 +10,11 @@ the <handler> to continue <execute|executing> at once. Also used with
 the <move> <command> to prevent <message|messages> from being sent as a
 result of the move.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 move graphic 3 to 100,100 without waiting

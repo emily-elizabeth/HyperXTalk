@@ -6,9 +6,9 @@ Syntax: do <script> as <alternateLanguage>
 
 Summary: Evaluate a script written in another programming language
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, html5
+OS: mac, windows
 
 Example:
 do field "Statements" as "AppleScript"
@@ -35,7 +35,7 @@ You can get a list of available languages by calling the
 The behavior of the <do as alternateLanguage> command is
 <platform>-dependent:
 
-- On MacOS and OS X systems, the <alternateLanguage> is a script
+- On macOS systems, the <alternateLanguage> is a script
   language (such as AppleScript) supported by the Open Scripting
   Architecture.  The value returned by executing the <script>
   is placed into the <result>.
@@ -55,12 +55,6 @@ The behavior of the <do as alternateLanguage> command is
   environment.  Put return values in a global `result` variable
   instead of using `WScript.Echo`.
 
-- In HTML5 applications, "JavaScript" is the only supported
-  <alternateLanguage>.  The <result> is set to the value returned
-  by executing the <script>, as long as the value is a scalar
-  (a string, number, boolean or undefined).  Returning JavaScript
-  arrays or objects is not supported.
-
 On other platforms, the <alternateLanguage> is not supported, and
 the <do as alternateLanguage> command will set the <result> to
 "alternate language not found".
@@ -70,14 +64,6 @@ the <do as alternateLanguage> command will set the <result> to
 > paths must be converted to Windows native format before use on
 > Windows machines. In most cases this can be done by replacing slash
 > with backslash in the path.
-
-Changes:
-- Support for the Open Scripting Architecture on Mac OS systems was
-  added in version 1.1.
-- Support for the Windows Scripting Host on Windows systems was added
-  in version 2.9.
-- Support for running JavaScript on HTML5 systems was added in version
-  9.0.0
 
 References: alternateLanguages (function), result (function),
 platform (function), command (glossary), file path (glossary),

@@ -1958,21 +1958,21 @@ jobject MCJavaPrivateDoNativeListenerCallback(jlong p_handler, jstring p_method_
     MCAutoProperListRef t_list;
     if (!__MCJavaProperListFromJObjectArray(p_args, &t_list))
         return nullptr;
-    
+
     MCProperListRef t_mutable_list;
     if (!MCProperListMutableCopy(*t_list, t_mutable_list))
         return nullptr;
-	
-	/* The handler is run on the script thread and could call code which executes
-	 * MCJavaDoAttachCurrentThread() so we must ensure s_env is reset correctly for the
-	 * current thread */
-	JNIEnv *t_old_env;
-	t_old_env = s_env;
-	MCErrorRef t_error =
+
+    /* The handler is run on the script thread and could call code which executes
+        * MCJavaDoAttachCurrentThread() so we must ensure s_env is reset correctly for the
+        * current thread */
+    JNIEnv *t_old_env;
+    t_old_env = s_env;
+    MCErrorRef t_error =
         MCHandlerTryToExternalInvokeWithList(static_cast<MCHandlerRef>(t_handler),
-                                             t_mutable_list, &t_result);
-	s_env = t_old_env;
-	
+                                                t_mutable_list, &t_result);
+    s_env = t_old_env;
+
     jobject t_return = nullptr;
     if (*t_result != nil)
     {

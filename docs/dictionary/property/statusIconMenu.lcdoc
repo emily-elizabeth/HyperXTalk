@@ -7,7 +7,7 @@ Syntax: set the statusIconMenu to <menuString>
 Summary:
 Defines the context menu shown when the user right-clicks the system tray icon.
 
-Introduced: 2.6
+Introduced: 1.0.0
 
 OS: windows
 

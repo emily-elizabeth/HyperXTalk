@@ -7,11 +7,11 @@ Syntax: set the HTTPProxy to <host> : <portNumber>
 Summary:
 Specifies a <proxy server> to be used for <HTTP> requests.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the HTTPProxy to "127.0.0.0:80"
@@ -36,9 +36,6 @@ If the <HTTPProxy> <property> is empty, requests are sent directly to
 the <host> <server> and no <proxy server|proxy> is used. This is the
 <default> setting. (On Windows systems, if a <proxy server> is set in
 the <registry>, that setting is used as the <default>.)
-
-> *Cross-platform note:* This setting will be ignored by the HTML5 engine,
-> with platform configured proxy being used instead.
 
 References: accept (command), post (command), property (glossary),
 host (glossary), proxy server (glossary), IP address (glossary),

@@ -11,11 +11,11 @@ Specifies some of an <object|object's> <properties> and their current
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put the properties of button 1 into myArray
@@ -96,12 +96,6 @@ recreation of the object.
 >*Note:* When setting properties which contain both non-empty color and
 > pattern properties of the same type, the color property will take
 > precedence. 
-
-Changes:
-As of version 6.1 the <properties> property has been revised. On
-fetching it returns the minimal set of properties of an object to allow
-it to be recreated exactly, it also returns unicode variants of
-properties if, and only if, they are needed.
 
 References: combine (command), setProp (control structure), 
 keys (function), propertyNames (function), value (glossary), 

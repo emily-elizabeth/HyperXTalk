@@ -198,21 +198,19 @@
 							'src/trace/Transact.c',
 						],
 						
-						'direct_dependent_settings':
-						{
-							'include_dirs':
-							[
-								'include',
-							],
-						},
-						
 						'conditions':
 						[
 							[
-								# Not used on Windows
+								# Not used on Windows -- Windows uses SDK ODBC headers
 								'OS == "win"',
 								{
 									'type': 'none',
+								},
+								{
+									'direct_dependent_settings':
+									{
+										'include_dirs': [ 'include' ],
+									},
 								},
 							],
 						],

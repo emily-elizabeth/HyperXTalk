@@ -10,11 +10,11 @@ Summary:
 <evaluate|Evaluates> to false if the specified <object(glossary)>,
 <file>, or <folder>, or <process> exists, true otherwise.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, process
 

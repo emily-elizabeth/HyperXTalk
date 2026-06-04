@@ -24,8 +24,15 @@ case $(uname -m) in
 esac
 
 if [ -z "${XCODEBUILD}" ] ; then
-	export XCODEBUILD="/Applications/Xcode-Dev/Xcode.app/Contents/Developer/usr/bin/xcodebuild"
-	XCODE_DEVELOPER="/Applications/Xcode-Dev/Xcode.app/Contents/Developer"
+	# Resolve Xcode developer directory from xcode-select, falling back to the
+	# standard location.  This avoids hardcoding a path that may not exist on
+	# every developer's machine.
+	if _XCODE_DEV="$(xcode-select -p 2>/dev/null)" && [ -n "${_XCODE_DEV}" ] ; then
+		XCODE_DEVELOPER="${_XCODE_DEV}"
+	else
+		XCODE_DEVELOPER="/Applications/Xcode.app/Contents/Developer"
+	fi
+	export XCODEBUILD="${XCODE_DEVELOPER}/usr/bin/xcodebuild"
 else
 	# XCODEBUILD points to $XCODE_APP/Contents/Developer/usr/bin/xcodebuild
 	XCODE_DEVELOPER="${XCODEBUILD%/*/*/*}"

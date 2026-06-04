@@ -7,11 +7,11 @@ Syntax: cancelNotification <tag>
 Summary:
 Removes a previously shown notification identified by its tag.
 
-Introduced: 10.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 -- Cancel a specific notification

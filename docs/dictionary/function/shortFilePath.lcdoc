@@ -10,7 +10,7 @@ Summary:
 <return|Returns> the 8.3-format equivalent of a <Windows> long 
 <file path>. 
 
-Introduced: 1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

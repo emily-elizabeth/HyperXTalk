@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <Cocoa/Cocoa.h>
 
 #include <Carbon/Carbon.h>
@@ -350,6 +334,11 @@ void MCMacPlatformWindowWindowMoved(NSWindow *self, MCPlatformWindowRef p_window
     CFRelease(t_window_id_array);
 }
 
+// Declare NSPopoverDelegate conformance here, where Cocoa is fully available,
+// rather than in mac-internal.h which is included by non-AppKit translation units.
+@interface com_hyperxtalk_hyperxtalk_MCWindowDelegate () <NSPopoverDelegate>
+@end
+
 @implementation com_hyperxtalk_hyperxtalk_MCWindowDelegate
 
 - (id)initWithPlatformWindow: (MCMacPlatformWindow *)window
@@ -512,6 +501,30 @@ void MCMacPlatformWindowWindowMoved(NSWindow *self, MCPlatformWindowRef p_window
 
 - (void)didEndSheet: (NSWindow *)sheet returnCode: (NSInteger)returnCode contextInfo: (void *)info
 {
+}
+
+//////////
+
+// NSPopoverDelegate — called when the popover closes (including transient dismiss
+// from a click outside the popover). Forward a WindowClose event to the engine
+// so the stack gets cleaned up properly.
+- (void)popoverDidClose:(NSNotification *)notification
+{
+	// The popover window is gone — remove the stale entry from the mouse-
+	// tracking registry before anything else touches it.  At this point
+	// m_window -> m_container_view may still reference the (now orphaned)
+	// view, so reach for the popover's content view via the notification to
+	// be safe, but the window number is what we actually key on.
+	NSPopover *t_popover = (NSPopover *)[notification object];
+	NSWindow *t_popover_ns_window = [t_popover contentViewController].view.window;
+	if (t_popover_ns_window != nil)
+		MCMacPlatformUnregisterPopoverWindow(t_popover_ns_window);
+
+	// Do not touch m_is_visible directly (it is protected). The engine's
+	// close-callback chain will eventually call Hide(), which sets the flag
+	// internally. Re-entrancy in DoHide is already guarded by the
+	// [m_popover_handle isShown] check returning NO at that point.
+	MCPlatformCallbackSendWindowClose(m_window);
 }
 
 //////////
@@ -1558,7 +1571,18 @@ static void map_key_event(NSEvent *event, MCPlatformKeyCode& r_key_code, codepoi
 	if (t_window == nil)
 		return;
 	
-	t_window -> ProcessMouseScroll([event deltaX], [event deltaY]);
+	CGFloat t_dx, t_dy;
+	if ([event hasPreciseScrollingDeltas])
+	{
+		t_dx = [event scrollingDeltaX];
+		t_dy = [event scrollingDeltaY];
+	}
+	else
+	{
+		t_dx = [event deltaX];
+		t_dy = [event deltaY];
+	}
+	t_window -> ProcessMouseScroll(t_dx, t_dy);
 }
 
 //////////
@@ -1932,13 +1956,21 @@ MCMacPlatformWindow::MCMacPlatformWindow(void)
 	m_waiting_for_draw = false;
 	
 	m_parent = nil;
+	m_popover_handle = nil;
 }
 
 MCMacPlatformWindow::~MCMacPlatformWindow(void)
 {
+	if (m_popover_handle != nil)
+	{
+		[m_popover_handle close];
+		[m_popover_handle release];
+		m_popover_handle = nil;
+	}
+
 	[m_handle setDelegate: nil];
 	[m_handle setContentView: nil];
-    
+
 	[m_handle close];
 	[m_handle release];
     [m_view removeFromSuperview];
@@ -2142,6 +2174,10 @@ void MCMacPlatformWindow::DoRealize(void)
 		case kMCPlatformWindowStylePopUp:
 			t_window_level = kCGPopUpMenuWindowLevel;
 			break;
+		case kMCPlatformWindowStylePopOver:
+			// The NSPanel is created but never shown — NSPopover hosts the content.
+			t_window_level = kCGPopUpMenuWindowLevel;
+			break;
 		case kMCPlatformWindowStyleToolTip:
 			t_window_level = kCGStatusWindowLevel;
 			break;
@@ -2168,6 +2204,9 @@ void MCMacPlatformWindow::DoRealize(void)
     {
 		m_panel_handle = [[com_hyperxtalk_hyperxtalk_MCPanel alloc] initWithContentRect: t_cocoa_content styleMask: t_window_style backing: NSBackingStoreBuffered defer: NO];
         [m_panel_handle setWorksWhenModal: YES];
+        // Inherit the app appearance so the combo box dropdown renders correctly
+        // in dark mode — NSPanel does not automatically adopt effectiveAppearance.
+        [m_panel_handle setAppearance: [NSApp effectiveAppearance]];
     }
 	else
 		m_window_handle = [[com_hyperxtalk_hyperxtalk_MCWindow alloc] initWithContentRect: t_cocoa_content styleMask: t_window_style backing: NSBackingStoreBuffered defer: NO];
@@ -2210,7 +2249,7 @@ void MCMacPlatformWindow::DoRealize(void)
 	[m_window_handle setDocumentEdited: m_has_modified_mark];
 	[m_window_handle setReleasedWhenClosed: NO];
 	
-	[m_window_handle setCanBecomeKeyWindow: m_style != kMCPlatformWindowStylePopUp && m_style != kMCPlatformWindowStyleToolTip];
+	[m_window_handle setCanBecomeKeyWindow: m_style != kMCPlatformWindowStylePopUp && m_style != kMCPlatformWindowStylePopOver && m_style != kMCPlatformWindowStyleToolTip];
     
     // MW-2014-04-08: [[ Bug 12080 ]] Make sure we turn off automatic 'hiding on deactivate'.
     //   The engine handles this itself.
@@ -2349,6 +2388,11 @@ void MCMacPlatformWindow::DoShow(void)
     {
         [m_window_handle popupAndMonitor];
     }
+	else if (m_style == kMCPlatformWindowStylePopOver)
+	{
+		// Popover windows are shown via DoShowAsPopover — this path should not
+		// be reached in normal operation. Keep the backing panel hidden.
+	}
 	else
 	{
 		[m_view setNeedsDisplay: YES];
@@ -2384,6 +2428,89 @@ void MCMacPlatformWindow::DoShowAsSheet(MCPlatformWindowRef p_parent)
 	[NSApp beginSheet: m_window_handle modalForWindow: t_parent -> m_window_handle modalDelegate: m_delegate didEndSelector: @selector(didEndSheet:returnCode:contextInfo:) contextInfo: nil];
 }
 
+void MCMacPlatformWindow::DoShowAsPopover(MCRectangle p_anchor, MCPlatformWindowEdge p_edge)
+{
+	// The underlying NSPanel was realized but kept hidden; take its container
+	// view and embed it in an NSPopover so we get the native arrow and dismiss.
+
+	// Map engine edge → NSRectEdge.
+	NSRectEdge t_ns_edge;
+	switch (p_edge)
+	{
+		case KMCPlatformWindowEdgeTop:   t_ns_edge = NSRectEdgeMaxY; break;
+		case kMCPlatformWindowEdgeLeft:  t_ns_edge = NSRectEdgeMinX; break;
+		case kMCPlatformWindowEdgeRight: t_ns_edge = NSRectEdgeMaxX; break;
+		default:                         t_ns_edge = NSRectEdgeMinY; break; // bottom
+	}
+
+	// Convert anchor rect from engine screen coords to Cocoa screen coords.
+	NSRect t_anchor_ns;
+	MCMacPlatformMapScreenMCRectangleToNSRect(p_anchor, t_anchor_ns);
+
+	// Find the best parent window to attach to, then convert the anchor
+	// rect into that window's content-view coordinate space.
+	NSWindow *t_parent_window = [NSApp keyWindow];
+	if (t_parent_window == nil)
+		t_parent_window = [NSApp mainWindow];
+
+	NSView *t_anchor_view = [t_parent_window contentView];
+	NSRect t_anchor_in_view = NSZeroRect;
+	if (t_anchor_view != nil)
+	{
+		NSRect t_in_window = [t_parent_window convertRectFromScreen: t_anchor_ns];
+		t_anchor_in_view = [t_anchor_view convertRect: t_in_window fromView: nil];
+	}
+
+	// Create the NSPopover on first use.
+	if (m_popover_handle == nil)
+	{
+		m_popover_handle = [[NSPopover alloc] init];
+		[m_popover_handle setBehavior: NSPopoverBehaviorTransient];
+		[m_popover_handle setDelegate: m_delegate];
+
+		// Wrap the panel's container view in a minimal view controller.
+		// This transfers m_container_view's ownership to the popover's window;
+		// the underlying NSPanel is left with no content view (and never shown).
+		NSViewController *t_vc = [[NSViewController alloc] init];
+		[t_vc setView: m_container_view];
+		[m_popover_handle setContentViewController: t_vc];
+		[t_vc release];
+	}
+
+	// Size the popover content to match the stack rect.
+	NSRect t_content_ns;
+	MCMacPlatformMapScreenMCRectangleToNSRect(m_content, t_content_ns);
+	[m_popover_handle setContentSize: t_content_ns.size];
+
+	// Show it — NSPopover positions itself and draws the arrow automatically.
+	[m_popover_handle showRelativeToRect: t_anchor_in_view
+	                              ofView: t_anchor_view
+	                       preferredEdge: t_ns_edge];
+
+	// After show, the content view has been reparented into the NSPopover's
+	// private _NSPopoverWindow. Register that window in the engine's popover
+	// map so that MCPlatformGetWindowAtPoint can resolve mouse events to us
+	// even though the private window's delegate is not an MCWindowDelegate.
+	NSWindow *t_popover_ns_window = [m_container_view window];
+	if (t_popover_ns_window != nil)
+	{
+		MCMacPlatformRegisterPopoverWindow(t_popover_ns_window, this);
+
+		// MapPointFromScreenToWindow uses m_content.{x,y} to subtract the
+		// window's screen origin from raw screen coordinates. m_content was
+		// set when we realized the backing NSPanel, which may be at a
+		// completely different position than where NSPopover chose to place
+		// its content window. Update the origin now so hit-testing is
+		// accurate. Width/height stay as the stack's logical content size.
+		NSRect t_pop_content = [t_popover_ns_window
+		                        contentRectForFrameRect: [t_popover_ns_window frame]];
+		MCRectangle t_pop_mc;
+		MCMacPlatformMapScreenNSRectToMCRectangle(t_pop_content, t_pop_mc);
+		m_content . x = t_pop_mc . x;
+		m_content . y = t_pop_mc . y;
+	}
+}
+
 void MCMacPlatformWindow::DoHide(void)
 {
 	s_hiding = true;
@@ -2406,6 +2533,17 @@ void MCMacPlatformWindow::DoHide(void)
     {
         [m_window_handle popupWindowClosed: nil];
         [m_window_handle orderOut: nil];
+    }
+    else if (m_style == kMCPlatformWindowStylePopOver)
+    {
+        // Unregister the popover window before closing so that no stale entry
+        // remains in the map after the _NSPopoverWindow is torn down.
+        NSWindow *t_popover_ns_window = [m_container_view window];
+        if (t_popover_ns_window != nil)
+            MCMacPlatformUnregisterPopoverWindow(t_popover_ns_window);
+
+        if (m_popover_handle != nil && [m_popover_handle isShown])
+            [m_popover_handle close];
     }
 	else
 	{

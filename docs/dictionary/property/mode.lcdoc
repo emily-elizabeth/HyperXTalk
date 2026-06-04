@@ -9,11 +9,11 @@ Reports the type of window a <stack> is displayed in.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if the mode of this stack &gt; 2 then topLevel this stack

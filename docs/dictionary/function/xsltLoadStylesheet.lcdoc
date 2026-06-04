@@ -9,11 +9,11 @@ The xsltLoadStylesheet function loads an xslt stylesheet into memory
 from xml data so that it can be applied to xml data using the
 xsltApplyStylesheet function. It returns an xslt stylesheet id.
 
-Introduced: 6.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put xsltLoadStylesheet(field "fldXSLT") into tStylesheetID

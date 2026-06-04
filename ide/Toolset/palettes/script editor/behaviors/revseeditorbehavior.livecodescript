@@ -1418,7 +1418,15 @@ end findFinalize
 #   Marks the specified chunk of text as found. This must be done using other means than selecting
 #   the chunk because of interactive search which finds text as the user types.
 command findMarkResult pStart, pEnd, pInteractive
-   set the backgroundColor of char pStart to pEnd of field "Script" of me to sePrefGet("editor,findcolor")
+   -- HXT: Use the dark-mode find colour when in dark mode so that light-coloured
+   -- syntax tokens remain readable against the highlight background.
+   local tFindColor
+   if the systemAppearance is "dark" then
+      put sePrefGet("editor,darkFindColor") into tFindColor
+   else
+      put sePrefGet("editor,findcolor") into tFindColor
+   end if
+   set the backgroundColor of char pStart to pEnd of field "Script" of me to tFindColor
    
    # If using interactive search, we can't select the find text, because doing so will take the 
    # selection away from the search field while the user is probably still typing in it, otherwise this is ok.

@@ -10,11 +10,11 @@ Summary:
 Specifies that the values of script-local variables should be preserved
 across recompilations of the script.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the preserveVariables to true

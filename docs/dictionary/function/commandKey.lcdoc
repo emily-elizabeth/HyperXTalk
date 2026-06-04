@@ -11,7 +11,7 @@ Syntax: commandKey()
 Summary:
 <return|Returns> the state of the <Command key>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

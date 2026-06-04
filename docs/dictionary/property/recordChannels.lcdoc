@@ -7,7 +7,7 @@ Syntax: set the recordChannels to {1 | 2}
 Summary:
 Specifies whether to record sound in stereo or mono.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows
 

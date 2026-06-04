@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  Private Source File:
@@ -358,15 +342,6 @@ bool MCDeployParameters::InitWithArray(MCExecContext &ctxt, MCArrayRef p_array)
 	MCAutoStringRef t_banner_class;
 	if (!ctxt . CopyOptElementAsString(p_array, MCNAME("banner_class"), false, &t_banner_class))
 		return false;
-	if (MCStringIsEqualToCString(*t_banner_class,
-								 "commercial",
-								 kMCStringOptionCompareCaseless))
-		banner_class = kMCLicenseClassEvaluation;
-	else if (MCStringIsEqualToCString(*t_banner_class,
-									  "professional",
-									  kMCStringOptionCompareCaseless))
-		banner_class = kMCLicenseClassProfessionalEvaluation;
-	
     
     if (!ctxt.CopyOptElementAsString(p_array, MCNAME("uuid"), false, t_temp_string))
         return false;
@@ -786,21 +761,8 @@ void MCIdeDeploy::exec_ctxt(MCExecContext& ctxt)
 	// If the banner_class field is set and we are not a trial license, we
 	// override the license class with that specified.
 	MCLicenseClass t_license_class = kMCLicenseClassNone;
-	if (MClicenseparameters . license_class == kMCLicenseClassCommercial)
-	{
-		// If we have a commercial license, then we only allow a commercial
-		// evaluation.
-		if (t_params . banner_class == kMCLicenseClassEvaluation)
-			t_license_class = kMCLicenseClassEvaluation;
-	}
-	else if (MClicenseparameters . license_class == kMCLicenseClassProfessional)
-	{
-		// If we are a professional license, then we allow any kind of
-		// trial.
-		t_license_class = t_params . banner_class;
-	}
 	
-	if (t_license_class == kMCLicenseClassNone)
+	if (kMCLicenseClassNone == t_license_class)
 		t_license_class = MClicenseparameters . license_class;
 	
 	t_params . banner_class = t_license_class;
@@ -810,27 +772,7 @@ void MCIdeDeploy::exec_ctxt(MCExecContext& ctxt)
 	// compatible with the license class.
 	bool t_is_trial;
     t_is_trial = false;
-	if (t_license_class == kMCLicenseClassEvaluation ||
-		t_license_class == kMCLicenseClassProfessionalEvaluation)
-		t_is_trial = true;
-	
-	// Now, if we are not licensed for a target, then its an error. If we are in trial
-	// mode, however, all platforms are licensed (apart from embedded) they just will
-	// timeout.
-	bool t_is_licensed;
-	// HXT: Community build — all desktop platform deployments are always licensed.
-	t_is_licensed = (m_platform == PLATFORM_WINDOWS ||
-	                 m_platform == PLATFORM_MACOSX  ||
-	                 m_platform == PLATFORM_LINUX);
 
-	if (!t_is_licensed)
-	{
-		ctxt . SetTheResultToCString("not licensed to deploy to target platform");
-		t_soft_error = true;
-		t_has_error = true;
-	}
-	
-	
 	uint32_t t_platform = PLATFORM_NONE;
 	switch(m_platform)
 	{
@@ -846,15 +788,7 @@ void MCIdeDeploy::exec_ctxt(MCExecContext& ctxt)
 	}
 	
 	if (!t_has_error)
-	{
-		// If this is a trial then set the timeout.
-		if (t_is_trial)
-		{
-				t_params . timeout = 5 * 60;
-			
-			t_params . banner_timeout = 10;
-		}
-		
+	{		
 		// Pass the deploy parameters through any stack security related steps.
 		if (!MCStackSecurityPreDeploy(t_platform, t_params))
 		{
@@ -865,12 +799,18 @@ void MCIdeDeploy::exec_ctxt(MCExecContext& ctxt)
 	
 	if (!t_has_error)
 	{
-		if (m_platform == PLATFORM_WINDOWS)
-			MCDeployToWindows(t_params);
-		else if (m_platform == PLATFORM_LINUX)
-			MCDeployToLinux(t_params);
-		else if (m_platform == PLATFORM_MACOSX)
-			MCDeployToMacOSX(t_params);
+		switch(m_platform)
+		{
+			case PLATFORM_WINDOWS:
+				MCDeployToWindows(t_params);
+				break;
+			case PLATFORM_LINUX:
+				MCDeployToLinux(t_params);
+				break;
+			case PLATFORM_MACOSX:
+				MCDeployToMacOSX(t_params);
+				break;
+		}
 
 		MCDeployError t_error;
 		t_error = MCDeployCatch();
@@ -1316,4 +1256,4 @@ void MCIdeExtract::exec_ctxt(MCExecContext& ctxt)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-                                                                                                                                                                                                                                                                  
+

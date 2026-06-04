@@ -10,11 +10,11 @@ Summary:
 <return|Returns> the <process> ID of HyperXTalk (or a 
 <standalone application>). 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: linux, ios, android
+OS: linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: process
 

@@ -7,11 +7,11 @@ Syntax: set the blendLevel of <control> to <levelNumber>
 Summary:
 Specifies the degree of transparency of an object
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the blendLevel of image 3 to 100
@@ -37,16 +37,9 @@ zero and 100 indicate levels of partial translucency.
 > blendlevel of the stack will be interpolated between its new and old
 > values during the action of the lifetime of the effect.
 
->*Note:* In previous versions of HyperXTalk setting the blendLevel of an
-> image would automatically set the ink to blend. This no longer happens
-> and the blendLevel applies regardless of the setting of the ink. For
-> backwards compatibility, when a pre-2.7 stackfile is imported, all
-> images with the blendLevel set and ink set to blend will be converted
-> to have the ink 'blendSrcOver' and the same blendLevel setting.
-
 >*Important:*  Setting the <blendLevel> of a stack is only supported on
 > systems which support alpha-blended windows. This is currently MacOS
-> X, Windows 2000 or later and Linux (with a composite window manager
+> X, Windows 10 or later and Linux (with a composite window manager
 > (such as Beryl))
 
 References: object (glossary), property (glossary), integer (keyword),

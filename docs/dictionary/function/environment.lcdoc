@@ -9,11 +9,11 @@ Syntax: environment()
 Summary:
 Returns the type of running environment the stack is in.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the environment
@@ -30,8 +30,6 @@ The <environment> function returns one of:
 -   "helper application": HyperXTalk is running as a standalone with the secureMode property set to true.
 -   "command line": The stack is running as a standalone application with the "-ui" command line option.
 -   "server": The stack is running in HyperXTalk server.
--   "browser": The stack is running as a HyperXTalk applet.
--   "mobile": The stack is running on a mobile device.
 
 Description:
 Use the <environment> function to change a stack's behavior depending on

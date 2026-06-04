@@ -10,11 +10,11 @@ FTP, HTTP or HTTPS
 
 Associations: internet library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android, html5
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: network
 
@@ -68,17 +68,6 @@ you want to delay until the file has been <download|downloaded>. Two
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
-
->*Cross-platform note:* On iOS and Android, <libURLDownloadToFile> is 
-> implemented in the engine. Therefore the <Internet library> is not 
-> needed to ensure the <command> works in a mobile 
-> <standalone application>. If included, the <Internet library> 
-> implementation will be used instead of the engine implementation.
-
->*Cross-platform note:* On iOS and Android <libURLDownloadToFile> is 
-> blocking until the download is complete. Completion of the download 
-> is notified by the <urlProgress> message, where you can test if the 
-> downloaded status is set.
 
 References: libURLSetStatusCallback (command),
 libURLFollowHttpRedirects (command), unload (command), put (command),

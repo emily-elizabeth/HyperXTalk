@@ -9,7 +9,7 @@ Syntax: get the printerName
 Summary:
 Reports the name of the currently selected printer.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

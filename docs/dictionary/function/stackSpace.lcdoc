@@ -10,7 +10,7 @@ Summary:
 Does not <return> a meaningful <value> and is included in <HyperXTalk> for
 compatibility with imported <HyperCard> stacks.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 

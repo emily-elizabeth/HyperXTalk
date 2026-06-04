@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -141,6 +125,12 @@ Boolean MCScreenDC::open()
 		FreeLibrary(tdll);
 	}
 	if (RegisterClassA(&wc) == 0)
+		return FALSE;
+	// Wide version of the menu/popup class — used by CreateWindowExW for
+	// popovers, pulldowns, and tooltips so they get the CS_DROPSHADOW style.
+	wwc.style = wc.style; // inherits CS_DROPSHADOW if UxTheme was loaded
+	wwc.lpszClassName = MC_MENU_WIN_CLASS_NAME_W;
+	if (RegisterClassW(&wwc) == 0)
 		return FALSE;
 	// Define the VIDEO CLIP window. Has its own DC
 	wc.style         = /*CS_OWNDC | */CS_VREDRAW | CS_HREDRAW;
@@ -511,6 +501,12 @@ void MCScreenDC::openwindow(Window w, Boolean override)
 			ShowWindow((HWND)w->handle.window, SW_RESTORE);
 		else
 			ShowWindow((HWND)w->handle.window, SW_SHOW);
+
+	// Give popover windows foreground focus immediately on open so that
+	// WM_ACTIVATE/WA_INACTIVE fires when the user clicks elsewhere — without
+	// requiring an initial click on the popover first.
+	if (t_stack != NULL && t_stack->getmode() == WM_POPOVER)
+		SetForegroundWindow((HWND)w->handle.window);
 
 	if (t_stack != NULL)
 	{

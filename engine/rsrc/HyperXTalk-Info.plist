@@ -63,6 +63,8 @@
 	<string>Revo</string>
 	<key>CFBundleVersion</key>
 	<string>$(BUILD_LONG_VERSION)</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>HyperXTalk needs to send Apple events to control other applications via AppleScript.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>This app reads your contacts</string>
 	<key>CSResourcesFileMapped</key>

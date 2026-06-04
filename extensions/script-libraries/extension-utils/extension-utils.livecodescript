@@ -110,7 +110,7 @@ function extensionLCCompileVersion pLCCompile
    
    extensionCompile pLCCompile, tTempFile, "", "", "", tFolder, \
          "module.lcm"
-   
+   delete file tTempFile
    return __CompiledModuleVersion(tFolder & slash & "module.lcm")
 end extensionLCCompileVersion
 
@@ -1612,7 +1612,7 @@ private function __RegexPatternForSource pType
          return "^.*\.lcb$"
          break
       case "lcs"
-         return "^.*\.livecode(script)?$"
+         return "^.*\.(hyperxtalk|livecode)(script)?$"
          break
    end switch
 end __RegexPatternForSource

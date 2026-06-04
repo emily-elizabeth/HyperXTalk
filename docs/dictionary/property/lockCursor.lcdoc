@@ -8,7 +8,7 @@ Summary:
 Specifies whether the <cursor> shape changes depending on the current
 <tool> and what the <mouse pointer> is over.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

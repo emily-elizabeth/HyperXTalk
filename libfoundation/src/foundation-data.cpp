@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
- 
- This file is part of LiveCode.
- 
- LiveCode is free software; you can redistribute it and/or modify it under
- the terms of the GNU General Public License v3 as published by the Free
- Software Foundation.
- 
- LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
- WARRANTY; without even the implied warranty of MERCHANTABILITY or
- FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
- for more details.
- 
- You should have received a copy of the GNU General Public License
- along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include <foundation.h>
 #include <foundation-auto.h>
 
@@ -222,12 +206,12 @@ bool MCDataConvertStringToData(MCStringRef string, MCDataRef& r_data)
 MC_DLLEXPORT_DEF
 bool MCDataIsEmpty(MCDataRef p_data)
 {
-	__MCAssertIsData(p_data);
+    __MCAssertIsData(p_data);
 
     if (__MCDataIsIndirect(p_data))
         p_data = p_data -> contents;
-    
-	return p_data -> byte_count == 0;
+
+    return p_data -> byte_count == 0;
 }
 
 MC_DLLEXPORT_DEF
@@ -601,33 +585,33 @@ bool MCDataInsertBytes(MCDataRef self, uindex_t p_at, const byte_t *p_bytes, uin
 MC_DLLEXPORT_DEF
 bool MCDataRemove(MCDataRef self, MCRange p_range)
 {
-	MCAssert(MCDataIsMutable(self));
-    
+    MCAssert(MCDataIsMutable(self));
+
     // Ensure the data ref is not indirect.
     if (__MCDataIsIndirect(self))
         if (!__MCDataResolveIndirect(self))
             return false;
-    
-	__MCDataClampRange(self, p_range);
-    
-	// Copy down the bytes above
-	__MCDataShrinkAt(self, p_range.offset, p_range.length);
-    
-	// We succeeded.
-	return true;
+
+    __MCDataClampRange(self, p_range);
+
+    // Copy down the bytes above
+    __MCDataShrinkAt(self, p_range.offset, p_range.length);
+
+    // We succeeded.
+    return true;
 }
 
 MC_DLLEXPORT_DEF
 bool MCDataReplace(MCDataRef r_data, MCRange p_range, MCDataRef p_new_data)
 {
-	MCAssert(MCDataIsMutable(r_data));
-	__MCAssertIsData(p_new_data);
-    
+    MCAssert(MCDataIsMutable(r_data));
+    __MCAssertIsData(p_new_data);
+
     if (__MCDataIsIndirect(p_new_data))
         p_new_data = p_new_data -> contents;
-    
-	if (r_data == p_new_data)
-	{
+
+    if (r_data == p_new_data)
+    {
         MCAutoDataRef t_new_data;
         
         if (!MCDataCopy(p_new_data, &t_new_data))
@@ -635,7 +619,7 @@ bool MCDataReplace(MCDataRef r_data, MCRange p_range, MCDataRef p_new_data)
         
         return MCDataReplace(r_data, p_range, *t_new_data);
     }
-    
+
     return MCDataReplaceBytes(r_data, p_range, p_new_data -> bytes, p_new_data -> byte_count);
 }
 
@@ -680,17 +664,17 @@ MC_DLLEXPORT_DEF
 bool MCDataPad(MCDataRef self, byte_t p_byte, uindex_t p_count)
 {
     MCAssert(MCDataIsMutable(self));
-    
+
     // Ensure the data ref is not indirect.
     if (__MCDataIsIndirect(self))
         if (!__MCDataResolveIndirect(self))
             return false;
-    
-	if (!__MCDataExpandAt(self, self -> byte_count, p_count))
-		return false;
-	
-	memset(self -> bytes + self -> byte_count - p_count, p_byte, p_count);
-	return true;
+
+    if (!__MCDataExpandAt(self, self -> byte_count, p_count))
+        return false;
+
+    memset(self -> bytes + self -> byte_count - p_count, p_byte, p_count);
+    return true;
 }
 
 MC_DLLEXPORT_DEF

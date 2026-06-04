@@ -10,7 +10,7 @@ Shows or hides a toolbar without affecting its items or configuration.
 
 Associations: toolbar
 
-Introduced: 10.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

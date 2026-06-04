@@ -10,11 +10,11 @@ Specifies whether a <group> automatically changes size to fit when its
 
 Associations: group
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the boundingRect of group "Icons" to 100,100,500,500

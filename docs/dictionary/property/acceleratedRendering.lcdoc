@@ -9,11 +9,11 @@ Specifies whether to use accelerated rendering for this stack
 
 Associations: stack
 
-Introduced: 5.0.2
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Example:
 set the acceleratedRendering of this stack to true

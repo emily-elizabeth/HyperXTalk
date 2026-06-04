@@ -10,11 +10,11 @@ Summary:
 <return|Returns> all the <parameter|parameters> <pass|passed> to the
 current <handler>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the params
@@ -87,13 +87,6 @@ myHandler with the following statement:
 the value returned by the <params> <function> is 
 
     myHandler "2","A","Hello world"
-
-
-Changes:
-The format of the params when used in a function handler was changed in
-version 2.0. In previous versions, the format for functions was the same
-as the format for message handlers: the parameters were not enclosed in
-parentheses, but instead separated from the handler name by a space.
 
 References: call (command), function (control structure),
 paramCount (function), pass (glossary), handler (glossary),

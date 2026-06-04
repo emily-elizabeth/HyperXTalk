@@ -7,7 +7,7 @@ Syntax: rotate [<image>] by <numberOfDegrees>
 Summary:
 Rotates an <image> through the specified angle.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

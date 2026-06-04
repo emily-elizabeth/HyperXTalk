@@ -9,11 +9,11 @@ Syntax: numToNativeChar(<ASCIIValue>)
 Summary:
 Returns the native character corresponding to an ASCII value.
 
-Introduced: 7.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put numToNativeChar(65) -- returns A
@@ -36,8 +36,7 @@ native character equivalents.
 The <numToNativeChar> function is the inverse of the <nativeCharToNum>
 function. 
 
-These functions convert between text and native characters and are
-replacements for the deprecated <numToChar> and <charToNum> functions.
+These functions convert between text and native characters.
 
 As the &ldquo;native&rdquo; character sets for each platform have a
 limited and different repertoire, these functions should not be used

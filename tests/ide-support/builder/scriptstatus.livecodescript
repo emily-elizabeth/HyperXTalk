@@ -41,7 +41,7 @@ end ListBuilderStacks
 private command ListBuilderStacksRecursive pFolder, @xList
     local tStacks
 	put files(pFolder) into tStacks
-	filter tStacks with regex pattern "^.*\.(rev|livecode(script)?)$"
+	filter tStacks with regex pattern "^.*\.(rev|(hyperxtalk|livecode)(script)?)$"
 	repeat for each line tLine in tStacks
 	   addToList pFolder & slash & tLine, xList
 	end repeat

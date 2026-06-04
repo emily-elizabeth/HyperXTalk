@@ -9,7 +9,7 @@ Displays a small overlay icon in the corner of a stack's Windows taskbar button.
 
 Associations: stack
 
-Introduced: 10.0
+Introduced: 1.0.0
 
 OS: windows
 

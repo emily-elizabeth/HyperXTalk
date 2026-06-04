@@ -9,7 +9,7 @@ Syntax: sysError()
 Summary:
 <return|Returns> the operating system's error status.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

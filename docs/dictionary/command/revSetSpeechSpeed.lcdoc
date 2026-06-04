@@ -9,7 +9,7 @@ Sets the speed at which the <revSpeak> <command> speaks.
 
 Associations: speech library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 OS: mac, windows
 

@@ -1,0 +1,87 @@
+Library: com.hyperxtalk.library.macscrollenhancement2
+
+Type: library
+
+Title: Mac Scroll Enhancement
+
+Author: HyperXTalk
+
+Version: 1.0.0
+
+Description:
+  Generic smooth-scroll library for HyperXTalk.
+
+  Intercepts precise trackpad scroll events application-wide via a C
+  NSEvent monitor and applies accumulated pixel deltas to whichever
+  scrollable LiveCode control is currently under the mouse ‚Äî fields,
+  groups with scrollbars, etc.
+
+  Call seScrollEnhancementEnable from any openStack handler that should
+  benefit from smooth scrolling. Call seScrollEnhancementDisable from the
+  matching closeStack. Reference-counted ‚Äî the poll keeps running until
+  every caller has disabled it.
+
+Name: seGetScrollTarget
+
+Type: function
+
+Syntax: seGetScrollTarget()
+
+Summary:
+seGetScrollTarget
+Returns the long id of the best scrollable control under the mouse,
+or empty if there is none. Walks up the owner chain from mouseControl
+to find the first eligible control:
+- A field (always potentially scrollable) ‚Äî except fields inside a
+group named "Gutter" (line-number display in the script editor).
+- A group that has vScrollbar or hScrollbar set to true.
+
+
+
+Name: seScrollEnhancementEnable
+
+Type: command
+
+Syntax: seScrollEnhancementEnable 
+
+Summary:
+seScrollEnhancementEnable pWindowId
+Start smooth scrolling. Call from openStack (or equivalent).
+pWindowId is accepted for backward compatibility; no longer used internally.
+Safe to call from multiple windows ‚Äî reference-counted.
+
+
+
+Name: seScrollEnhancementDisable
+
+Type: command
+
+Syntax: seScrollEnhancementDisable 
+
+Summary:
+seScrollEnhancementDisable
+Stop smooth scrolling. Call from closeStack (or equivalent).
+Reference-counted ‚Äî poll stops only when every caller has disabled.
+
+
+
+Name: seSyncGutter
+
+Type: command
+
+Syntax: seSyncGutter <pScrolledControl>,<pNewV>
+
+Summary:
+seSyncGutter pScrolledControl, pNewV
+If the scrolled control is the Script field of a script editor, syncs
+the line-number gutter to the same vertical scroll position.
+
+Parameters:
+:
+
+
+:
+
+
+
+

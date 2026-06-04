@@ -8,7 +8,7 @@ Summary:
 Determines which network interface should be used for socketed and HTTP
 connections. 
 
-Introduced: 4.6.3
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -11,7 +11,7 @@ Syntax: controlKey()
 Summary:
 <return|Returns> the state of the Control key.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

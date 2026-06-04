@@ -8,11 +8,11 @@ Summary:
 Sets the <lockMessages> <property> to false, allowing <message|messages>
 to be sent when navigating between <card|cards>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 unlock messages

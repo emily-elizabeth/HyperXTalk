@@ -9,11 +9,11 @@ Specifies the <creator signature|creator> and <type signature|file type>
 for any non- <stack> <files> a <handler> creates on a <Mac OS> or 
 <OS X|OS X system>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, ios
+OS: mac
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the fileType to "ttxtTEXT" -- text file owned by SimpleText app

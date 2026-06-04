@@ -11,11 +11,11 @@ Designates the <paint tool> used to draw <regular polygon|regular
 polygons>. It also specifies, through the <style> <property>, that a
 <graphic> is a <regular polygon>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the style of graphic "All Angles" to regular

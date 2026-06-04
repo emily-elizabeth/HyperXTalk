@@ -7,11 +7,11 @@ Syntax: normalizeText(<text>, <normalForm>)
 Summary:
 Converts a text string into a specific 'normal form'.
 
-Introduced: 7.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local tExample

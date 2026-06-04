@@ -9,11 +9,11 @@ Sent to the <current card> when the <stack> closes.
 
 Associations: card
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on closeStack -- automatically save changes

@@ -9,7 +9,7 @@ Syntax: set the fullDragData to empty
 Summary:
 Provides access to the contents of the <drag-and-drop> <clipboard>.
 
-Introduced: 8.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

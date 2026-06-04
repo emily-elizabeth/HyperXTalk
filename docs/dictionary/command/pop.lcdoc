@@ -8,11 +8,11 @@ Summary:
 Retrieves a <card> from the list created with the <push> <command>, and
 either goes to that <card> or places its <ID> in a <container>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 pop card -- go to the popped card

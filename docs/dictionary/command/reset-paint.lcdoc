@@ -8,7 +8,7 @@ Summary:
 Restores the <default> settings of the <global|global properties> that
 apply to painting.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -8,7 +8,7 @@ Summary:
 Hides the main window of applications run with the <open process>
 <command> or <shell> <function> on <Windows|Windows systems>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: windows
 
@@ -40,7 +40,7 @@ well as command line programs.
 > Otherwise, the program will not be displayed and the user will not be
 > able to see it.
 
-The setting of this property has no effect on Mac OS or Unix systems.
+The setting of this property has no effect on macOS or Unix systems.
 
 References: open process (command), launch (command),
 write to process (command), read from process (command),

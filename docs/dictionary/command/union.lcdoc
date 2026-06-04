@@ -7,11 +7,11 @@ Syntax: union <targetArray> with <templateArray> [recursively] [into <destinatio
 Summary:
 Combines two arrays.
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local tLeft, tRight
@@ -112,9 +112,6 @@ If the into clause is used the operation of the commands is the same as
 the non-into form except that <targetArray> does not have to be a
 variable, and the result of the operation is placed into
 <destinationArray> rather than mutating <targetArray>.
-
-Changes:
-The `into` clause was added in version 9.
 
 References: add (command), intersect (command), keys (function),
 element (glossary), key (glossary), command (glossary), array (glossary),

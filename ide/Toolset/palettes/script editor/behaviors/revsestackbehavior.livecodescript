@@ -1263,53 +1263,211 @@ end seFriendlyShortcut
 #   for pText. Empty if none could be found.
 #   Note that for now, only handler definitions are returned.
 function seMatchingDefinitions pText, pObject, pHandler
+   # Handler name lookups must be case-insensitive: LiveCode handler names are
+   # case-insensitive, so a call-site spelling like "myhandler" must match a
+   # definition stored as "myHandler". Also ensures `is` comparisons for object
+   # long IDs are caseless. Save/restore so we don't affect the caller.
+   local tSavedCaseSensitive
+   put the caseSensitive into tSavedCaseSensitive
+   set the caseSensitive to false
+
+   local tMatches
+   local tTopErr
+   try
+
+   # --- Pass 1: pObject's own script (includes private handlers) ---
+   # `the revScriptDescription of pObject` defaults to p_include_all = true,
+   # so private handlers are included. This is the common case: the user
+   # right-clicked on a definition or a call-site in the object being edited.
+   local tOwnDesc
+   local tOwnDescError
+   try
+      put the revScriptDescription of pObject into tOwnDesc
+   catch tOwnDescError
+      put empty into tOwnDesc
+   end try
+   if tOwnDesc is an array and tOwnDesc["handlers"][pText] is an array then
+      local tType
+      if tOwnDesc["handlers"][pText]["is_private"] then
+         put "private" && tOwnDesc["handlers"][pText]["type"] into tType
+      else
+         put tOwnDesc["handlers"][pText]["type"] into tType
+      end if
+      put "handler", \
+            tType, \
+            pText, \
+            tOwnDesc["handlers"][pText]["start_line"], \
+            the long id of pObject & return after tMatches
+   else
+      -- revScriptDescription failed (engine bug: getglobalnames_as_properlist etc.
+      -- return false for some compiled handler, making the whole description nil).
+      -- Fall back to scanning the raw script text for a handler declaration line.
+      -- Locals declared before the loop to avoid re-declaration errors.
+      local tLineNum, tLine, tW1, tW2, tW3
+      put 0 into tLineNum
+      repeat for each line tLine in (the script of pObject)
+         add 1 to tLineNum
+         put word 1 of tLine into tW1
+         put word 2 of tLine into tW2
+         put word 3 of tLine into tW3
+         if tW1 is among the items of "on,function,command,getprop,setprop,before,after" then
+            if tW2 is pText then
+               put "handler", tW1, pText, tLineNum, the long id of pObject & return after tMatches
+               exit repeat
+            end if
+         else if tW1 is "private" then
+            if tW2 is among the items of "on,function,command" then
+               if tW3 is pText then
+                  put "handler", "private" && tW2, pText, tLineNum, \
+                        the long id of pObject & return after tMatches
+                  exit repeat
+               end if
+            end if
+         end if
+      end repeat
+   end if
+
+   # --- Pass 2: rest of the effective message path ---
+   # Only public handlers are reachable from pObject's script, so skip private
+   # handlers from other objects in the path. When pObject is itself a behavior
+   # (tUses[1] exists) use its first user as the anchor for the effective path;
+   # otherwise anchor on pObject itself.
    local tObject
-   
    local tUses
-   put the revBehaviorUses of pObject into tUses
+   local tBehaviorUsesErr
+   try
+      put the revBehaviorUses of pObject into tUses
+   catch tBehaviorUsesErr
+      put empty into tUses
+   end try
    if exists(tUses[1]) then
       put tUses[1] into tObject
    else
       put pObject into tObject
    end if
-   
+
+   local tPObjectLongId
+   put the long id of pObject into tPObjectLongId
+
+   -- The effective revScriptDescription approach fails when the anchor object
+   -- (processed with p_include_all=true) has the engine bug. Multiple objects
+   -- in this stack appear to be affected, so instead walk the owner chain
+   -- manually, checking each object with revScriptDescription and falling back
+   -- to script-text scanning when that also fails.
+
+   -- First try the effective description of tObject (works when tObject != pObject,
+   -- e.g. when pObject is a behavior script used by another object).
    local tDescription
-   put the effective revScriptDescription of tObject into tDescription
-   
-   local tObjectDescription
-   if pObject is not tObject then
-      put the revScriptDescription of pObject into tObjectDescription
-   end if
-   
-   local tMatches
-   repeat with tIndex = 1 to the number of elements of tDescription
-      if pObject is not tObject then
-         if tDescription[tIndex]["object"] is the long id of tObject and \
-               tDescription[tIndex]["description"]["handlers"][pText]["is_private"] then
-            next repeat
+   try
+      put the effective revScriptDescription of tObject into tDescription
+   catch tEffDescErr
+      put empty into tDescription
+   end try
+
+   if tDescription is an array then
+      -- Effective description succeeded; search it for the handler.
+      local tEntryObject, tHandlers, tType2
+      repeat with tIndex = 1 to the number of elements of tDescription
+         put tDescription[tIndex]["object"] into tEntryObject
+
+         if tEntryObject is tPObjectLongId then
+            next repeat   -- already covered in pass 1
          end if
-         
-         if tDescription[tIndex]["object"] is the long id of pObject then
-            put tObjectDescription into tDescription[tIndex]["description"]
+
+         put tDescription[tIndex]["description"]["handlers"] into tHandlers
+
+         if tHandlers[pText] is an array then
+            if tHandlers[pText]["is_private"] then
+               next repeat
+            end if
+
+            put tHandlers[pText]["type"] into tType2
+            put "handler", \
+                  tType2, \
+                  pText, \
+                  tHandlers[pText]["start_line"], \
+                  tEntryObject & return after tMatches
          end if
-      end if
-      
-      if tDescription[tIndex]["description"]["handlers"][pText] is an array then
-         local tType
-         if tDescription[tIndex]["description"]["handlers"][pText]["is_private"] then
-            put "private" && tDescription[tIndex]["description"]["handlers"][pText]["type"] into tType
+      end repeat
+   else
+      -- Effective description failed. Walk the ancestor chain by parsing
+      -- pObject's long id, which yields fully-qualified references at every
+      -- level (e.g. "group id N of card id M of stack id K", then
+      -- "card id M of stack id K", then "stack id K"). This avoids the
+      -- short-form owner references that `the owner of X` returns and that
+      -- the engine cannot resolve as standalone object identifiers.
+      local tCurrentObject, tCurrentDesc, tDescErr2
+      local tType3, tAncLine, tAncLineText, tAW1, tAW2
+      local tCurrentScript, tScriptErr
+      local tAncestorChain, tRemaining, tOfPos
+
+      -- Build the chain: strip the first "type id N of " prefix repeatedly.
+      put empty into tAncestorChain
+      put the long id of pObject into tRemaining
+      put offset(" of ", tRemaining) into tOfPos
+      repeat while tOfPos > 0
+         put char (tOfPos + 4) to -1 of tRemaining into tRemaining
+         put tRemaining & return after tAncestorChain
+         put offset(" of ", tRemaining) into tOfPos
+      end repeat
+      delete the last char of tAncestorChain
+
+      repeat for each line tCurrentObject in tAncestorChain
+         put empty into tCurrentDesc
+         try
+            put the revScriptDescription of tCurrentObject into tCurrentDesc
+         catch tDescErr2
+            put empty into tCurrentDesc
+         end try
+
+         if tCurrentDesc is an array then
+            if tCurrentDesc["handlers"][pText] is an array then
+               if not tCurrentDesc["handlers"][pText]["is_private"] then
+                  put tCurrentDesc["handlers"][pText]["type"] into tType3
+                  put "handler", \
+                        tType3, \
+                        pText, \
+                        tCurrentDesc["handlers"][pText]["start_line"], \
+                        tCurrentObject & return after tMatches
+                  exit repeat
+               end if
+            end if
          else
-            put tDescription[tIndex]["description"]["handlers"][pText]["type"] into tType
+            -- revScriptDescription also failed for this ancestor; scan its script text.
+            put empty into tCurrentScript
+            try
+               put the script of tCurrentObject into tCurrentScript
+            catch tScriptErr
+               put empty into tCurrentScript
+            end try
+            put 0 into tAncLine
+            repeat for each line tAncLineText in tCurrentScript
+               add 1 to tAncLine
+               put word 1 of tAncLineText into tAW1
+               put word 2 of tAncLineText into tAW2
+               if tAW1 is among the items of \
+                     "on,function,command,getprop,setprop,before,after" then
+                  if tAW2 is pText then
+                     put "handler", tAW1, pText, tAncLine, \
+                           tCurrentObject & return after tMatches
+                     exit repeat
+                  end if
+               end if
+            end repeat
          end if
-         
-         put "handler", \
-               tType, \
-               pText, \
-               tDescription[tIndex]["description"]["handlers"][pText]["start_line"], \
-               tDescription[tIndex]["object"] & return after tMatches
-      end if
-   end repeat
-   
+
+         if tMatches is not empty then
+            exit repeat
+         end if
+      end repeat
+   end if
+
+   catch tTopErr
+      put empty into tMatches
+   end try
+
+   set the caseSensitive to tSavedCaseSensitive
+
    delete the last char of tMatches
    return tMatches
 end seMatchingDefinitions
@@ -2517,13 +2675,14 @@ end resumeStack
 #   Sent when the script editor stack is opened. Initialises the stack...
 on preOpenStack pDontCheckTarget
    set the backgroundColor of this stack to (the systemWindowColor)
-   if systemAppearance is "dark" then
-      set the backColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to "black"
-      set the foreColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to "white"
-   else
-      set the backColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to "white"
-      set the foreColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to "black"
-   end if
+   set the foregroundColor of this stack to (the systemTextColor)
+   --   if systemAppearance is "dark" then
+   --      set the backColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to "black"
+   --      set the foreColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to "white"
+   --   else
+   --      set the backColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to "white"
+   --      set the foreColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to "black"
+   --   end if
    revSEInitialize pDontCheckTarget
 end preOpenStack
 
@@ -2583,22 +2742,23 @@ command revSEInitialize pDontCheckTarget
    put sePrefGet(tMode & ",lastSelectedPane") into tLastSelectedPane
    call "setCurrentTab tLastSelectedPane" to group "Pane Tabs" of me
    
-   # On OS X, toplevel windows have a white background, which is both inconsistent with the rest of the IDE
-   # and looks bad.
-   if (the platform is "MacOS") then
-      set the backgroundColor of me to (the systemWindowColor)
-   end if
+   --   # On OS X, toplevel windows have a white background, which is both inconsistent with the rest of the IDE
+   --   # and looks bad.
+   --   if (the platform is "MacOS") then
+   --      set the backgroundColor of me to (the systemWindowColor)
+   --   end if
    
    actionResizeStack true
    
    set the showInvisibles of me to false
    
    // HXT dark mode
-   if (the systemAppearance is "dark") then
-      set the backColor of me to "#323232"
-   else
-      set the backColor of me to "#ececec"
-   end if
+   set the backgroundColor of this stack to (the systemWindowColor)
+   --   if (the systemAppearance is "dark") then
+   --      set the backColor of me to "#323232"
+   --   else
+   --      set the backColor of me to "#ececec"
+   --   end if
 end revSEInitialize
 
 on idePreferenceChanged pPreference, pValue
@@ -3081,8 +3241,11 @@ end revSEAddDefaultHandler
 // HXT
 on SystemAppearanceChanged pMode, pWindowColor, pTextColor
    set the backgroundColor of this stack to pWindowColor
-   set the backColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to pWindowColor
-   set the foreColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to pTextColor
+   set the foregroundcolor of this stack to pTextColor
+   seUpdateLeftBar
+   seUpdateToolbar
+   --   set the backColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to pWindowColor
+   --   set the foreColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to pTextColor
    --   if pMode is "dark" then
    --      set the backColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to "black"
    --      set the foreColor of field "Handlers" of group "Left Handler List" of group "Left Bar" of card "Main" of this stack to "white"

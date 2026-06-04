@@ -12,11 +12,11 @@ the <sort key>; used with the <combine> and <split> <command|commands>
 to specify the <delimiter|delimiters> for transforming a <variable>
 between an <array> and a <string>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 divide myVariable by 2

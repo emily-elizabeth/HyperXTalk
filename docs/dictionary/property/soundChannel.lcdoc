@@ -8,7 +8,7 @@ Summary:
 Included for compatibility with <HyperCard>, now used in HyperXTalk for MIDI
 message channel.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 Platforms: desktop, server
 

@@ -9,11 +9,11 @@ Executes a <SQL> statement on a <database>.
 
 Associations: database library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 
@@ -118,7 +118,7 @@ in 2.9
 References: function (control structure),
 revDatabaseTableNames (function), revOpenDatabase (function),
 result (function), revQueryDatabase (function),
-revDataFromQuery (function), revdb_execute (function),
+revDataFromQuery (function),
 HyperXTalk custom library (glossary), prepend (glossary),
 binary file (glossary), variable (glossary), database (glossary),
 SQL (glossary), Standalone Application Settings (glossary),

@@ -7,11 +7,11 @@ Syntax: revZipAddUncompressedItemWithFile <archivePath>, <itemName>, <filePath>
 Summary:
 Adds a file to an open zip archive without compressing the data.
 
-Introduced: 2.8.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 

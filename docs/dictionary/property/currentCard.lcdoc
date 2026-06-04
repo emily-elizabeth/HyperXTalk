@@ -1,7 +1,7 @@
 Name: currentCard
 Type: property
 
-Introduced: 2.7.2
+Introduced: 1.0.0
 
 Syntax: 
 get the currentCard of <stack>
@@ -12,8 +12,8 @@ The short name of the <current card> of a stack
 
 Associations: stack
 
-OS: mac, windows, linux, ios, android
-Platforms: desktop, server, mobile
+OS: mac, windows, linux
+Platforms: desktop, server
 
 Example:
 -- The following results in the same value as

@@ -10,9 +10,9 @@ the previous <HTTP> request.
 
 Associations: internet library
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, html5
+OS: mac, windows, linux
 
 Platforms: desktop, server
 

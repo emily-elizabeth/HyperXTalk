@@ -10,11 +10,11 @@ corresponding <element(keyword)> in a template <array>, and adds
 <element(glossary)|elements> from the template <array> that have no
 which have no corresponding <element(keyword)> in the target <array>.
 
-Introduced: 9.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 local tLeft, tRight

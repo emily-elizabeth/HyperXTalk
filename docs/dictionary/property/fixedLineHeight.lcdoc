@@ -10,11 +10,11 @@ vary in height to fit the text on that line.
 
 Associations: field
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the fixedLineHeight of the selectedField to false

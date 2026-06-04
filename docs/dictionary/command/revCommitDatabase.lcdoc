@@ -9,11 +9,11 @@ Saves recent changes to a database.
 
 Associations: database library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: disk, network
 
@@ -49,7 +49,6 @@ returns an error message that begins with the <string> "revdberr".
 > using are checked.
 
 References: revRollBackDatabase (command), revQueryResult (function),
-revdb_rollback (function), revdb_commit (function),
 Standalone Application Settings (glossary), database (glossary),
 standalone application (glossary), command (glossary),
 HyperXTalk custom library (glossary), string (keyword),

@@ -8,7 +8,7 @@ Summary:
 Specifies the maximum duration in seconds for which session data is
 retained between uses.
 
-Introduced: 5.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

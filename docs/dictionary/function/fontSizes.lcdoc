@@ -10,11 +10,11 @@ Summary:
 <return|Returns> a list of the font sizes available for a specified
 <font>. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the fontSizes of "Arial"

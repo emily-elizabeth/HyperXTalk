@@ -10,11 +10,11 @@ Specifies the <binary file|binary data> that makes up the
 
 Associations: image
 
-Introduced: 1.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the alphaData of image "Hellacious" to savedAlphaChannel

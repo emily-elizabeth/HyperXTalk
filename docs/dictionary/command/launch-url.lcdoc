@@ -7,11 +7,11 @@ Syntax: launch url <urlToLaunch>
 Summary:
 Launches a url in the appropriate manner for the current system.
 
-Introduced: 2.9
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, mobile
+Platforms: desktop
 
 Security: process
 
@@ -49,13 +49,6 @@ The following <url scheme|URL schemes> are supported:
 >*Note:* The <urlToLaunch> must be a standards-compliant URL.  In
 > particular, `file:` URLs must be of the form `file://<absolute path>`,
 > and the path should be <URLEncode|URL-encoded>.
-
->*Important:* Mobile: Successfully launching a url  will cause another
-> application to open and the requesting application to be quit. The
-> application will receive a shutdown message before this happens.
-
->*Android:* files in specialFolderPath("engine") and specialFolderPath("resources")
-> cannot be accessed via <launch url>.  
 
 References: revGoURL (command), launch (command),
 launch document (command), URLEncode (function), URL (glossary),

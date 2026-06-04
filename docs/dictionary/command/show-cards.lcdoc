@@ -7,11 +7,11 @@ Syntax: show {<number> | all} cards
 Summary:
 Flips through <card|cards> in the <current stack>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 show 15 cards

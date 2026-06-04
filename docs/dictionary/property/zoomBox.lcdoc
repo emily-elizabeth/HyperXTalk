@@ -11,7 +11,7 @@ Shows a window's <zoom box>.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -48,9 +48,6 @@ whether the <decorations> includes "maximize" (or is "default" ).
 
 Setting the <zoomBox> <property> causes the <stack window> to flash
 briefly. 
-
-Changes:
-The synonym "maximizeBox" was added in version 2.1.
 
 References: property (glossary), stack window (glossary), OS X (glossary),
 zoom box (glossary), Windows (glossary), maximize button (glossary),

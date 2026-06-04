@@ -8,7 +8,7 @@ Summary:
 Specifies the ratio of the width of an <EPS|EPS object's> <PostScript>
 bounding box to the <object|object's> screen width.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

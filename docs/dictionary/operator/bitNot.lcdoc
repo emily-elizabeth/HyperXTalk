@@ -8,11 +8,11 @@ Summary:
 Performs a "bitwise not" <operation> on the <binary> representation of a
 number as an unsigned, 32-bit integer
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 bitNot 1 -- evaluates to 4294967294

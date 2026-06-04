@@ -590,9 +590,34 @@ on systemAppearanceChanged pMode, pWindowColor, pTextColor
    -- explicitly, which overrides the stack background if not also updated.
    local tBgColor
    put revIDEColor("palette_background") into tBgColor
-   set the backgroundColor of this stack to tBgColor
-   set the backgroundColor of this card to tBgColor
-   set the foregroundColor of this stack to revIDEColor("text_1")
+   set the backgroundColor of this stack to pWindowColor  //tBgColor
+   set the backgroundColor of this card to pWindowColor  //tBgColor
+   set the foregroundColor of this stack to pTextColor  //revIDEColor("text_1")
+   
+   -- HXT: LCB widgets (e.g. paletteactions) hold their own explicit
+   -- foregroundColor and do not inherit the stack-level foreground.
+   -- Walk every control on every card and push the correct icon colour
+   -- into each widget so that "my foreground paint" reflects the new
+   -- appearance.  This mirrors what revtools.livecodescript does for
+   -- its own SVG-path widgets, but generalised for all palette windows.
+   local tIconColor
+   if pMode is "dark" then
+      put "200,200,200" into tIconColor
+   else
+      put "100,100,100" into tIconColor
+   end if
+   local tCardNum
+   repeat with tCardNum = 1 to the number of cards of this stack
+      local tCtlNum
+      repeat with tCtlNum = 1 to the number of controls of card tCardNum of this stack
+         local tCtl
+         put the long id of control tCtlNum of card tCardNum of this stack into tCtl
+         if word 1 of tCtl is "widget" then
+            set the foregroundColor of tCtl to tIconColor
+         end if
+      end repeat
+   end repeat
+   
    pass systemAppearanceChanged
 end systemAppearanceChanged
 

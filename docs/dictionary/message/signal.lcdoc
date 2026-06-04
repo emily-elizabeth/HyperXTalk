@@ -10,7 +10,7 @@ the <application>.
 
 Associations: card
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, linux
 
@@ -39,9 +39,6 @@ kill signal.
 Only signal 1 (SIGUSR1) and signal 2 (SIGUSR2) are supported. Other
 signals sent to the application do not cause the <signal> <message> to
 be sent.
-
-Changes:
-Support for the signal message on OS X systems was added in version 2.0.
 
 References: kill (command), exit (control structure),
 application (glossary), current card (glossary), message (glossary),

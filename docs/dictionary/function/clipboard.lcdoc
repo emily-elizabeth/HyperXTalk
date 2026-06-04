@@ -9,7 +9,7 @@ Syntax: clipboard()
 Summary:
 <return|Returns> the type of information on the <clipboard>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -40,10 +40,6 @@ a type of data that is not text, image data, or objects, the <clipboard>
 
 >*Tip:*  To get or change the data on the <clipboard>, use the
 > <clipboardData> <property>.
-
-Changes:
-The ability to sense image data on the clipboard was added in version
-2.0. 
 
 References: copy (command), cut (command), paste (command),
 lock clipboard (command), unlock clipboard (command),

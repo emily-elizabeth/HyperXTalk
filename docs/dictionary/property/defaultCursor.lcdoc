@@ -7,11 +7,11 @@ Syntax: set the defaultCursor to <imageID>
 Summary:
 Specifies the <default> shape of the <cursor>.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the defaultCursor to arrow
@@ -46,11 +46,6 @@ changes shape automatically as the mouse moves. (For example, the
 over an editable <field>, and so on.) The <defaultCursor> is the shape
 used automatically when the <mouse pointer> is in a stack window, but
 not in an editable <field>.
-
-Changes:
-The order in which HyperXTalk searches for cursors was changed in version
-3.5. Previously, the current stack was searched first, followed by the
-list of open stacks.
 
 References: property (glossary), Browse tool (glossary),
 mouse pointer (glossary), cursor (glossary), default (keyword),

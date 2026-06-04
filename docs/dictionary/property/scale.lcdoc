@@ -8,11 +8,11 @@ Summary:
 Specifies the size at which an <EPS|EPS object> or <video clip> is
 displayed. 
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: linux, ios, android
+OS: linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the scale of videoClip "Splash" to 0.5 -- half size

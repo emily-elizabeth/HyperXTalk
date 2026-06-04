@@ -263,6 +263,9 @@ extern "C"
 
 	void moz_gtk_get_widget_color(GtkStateType widgettype,
 	                              uint2 &red,uint2 &blue,uint2 &green);
+	// Read the foreground (text) colour for the given GTK state.
+	void moz_gtk_get_widget_fg_color(GtkStateType state,
+	                                 uint2 &red, uint2 &green, uint2 &blue);
 
 #ifdef __cplusplus
 }

@@ -303,7 +303,7 @@ on TestLaunch
    else if the platform is "MacOS" then
       put shell("ps -ax") into taskList
       
-      launch (specialfolderpath("apps") & slash & "textEdit.app")
+      launch ("/System/Applications/TextEdit.app")
       
       put shell("ps -ax") into taskList
       
@@ -347,7 +347,7 @@ on TestLaunchWith
       delete file "Test.txt"
    else if the platform is "MacOS" then
       
-      launch "Test.txt" with (specialfolderpath("apps") & slash & "textEdit.app")
+      launch "Test.txt" with ("/System/Applications/TextEdit.app")
       
       put shell("ps -ax") into taskList
       

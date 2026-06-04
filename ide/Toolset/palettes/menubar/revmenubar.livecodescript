@@ -1690,7 +1690,7 @@ private function revMenubarTextMenu pContext
       put sTextMenuText into tText   
       if pContext["textMenuSelection"] is "objects" then   
          --selected object   
-         put "(!nSubscript" & return & "(!nSuperscript" into line 11 to 12 of tText   
+         put "(!i:textformat.subscript !nSubscript" & return & "(!i:textformat.superscript !nSuperscript" into line 11 to 12 of tText   
          try
             put the textFont of the selectedObject into tFont   
             put the textSize of the selectedObject into tSize   
@@ -1719,10 +1719,10 @@ private function revMenubarTextMenu pContext
          put the textColor of the selectedChunk into tColor   
          --text shift   
          if tShift is empty then put 0 into tShift   
-         if tShift > 0 then put "!cSubscript" into line 11 of tText   
-         else put "!nSubscript" into line 11 of tText   
-         if tShift < 0 then put "!cSuperscript" into line 12 of tText   
-         else put "!nSuperscript" into line 12 of tText   
+         if tShift > 0 then put "!i:textformat.subscript !cSubscript" into line 11 of tText   
+         else put "!i:textformat.subscript !nSubscript" into line 11 of tText   
+         if tShift < 0 then put "!i:textformat.superscript !cSuperscript" into line 12 of tText   
+         else put "!i:textformat.superscript !nSuperscript" into line 12 of tText   
       end if   
       --font   
       if tFont is empty then put "Use Owner's Font" into tFont   
@@ -1730,7 +1730,8 @@ private function revMenubarTextMenu pContext
       put lineOffset(tFont,tText) into tLineNo   
       if tLineNo is not 0 then   
          --if it is 0, auto unhiliting will occur as text is set to default   
-         put "c" into char 2 of line tLineNo of tText   
+         --         put "c" into char 2 of line tLineNo of tText   
+         replace "!n" with "!c" in line tLineNo of tText
       end if   
       --size   
       local tStartNum
@@ -1740,13 +1741,14 @@ private function revMenubarTextMenu pContext
       put lineOffset(tSize,tText,tStartNum)+tStartNum into tLineNo   
       if tLineNo is not 0 and tSize is not "Multiple" then   
          if tSize is not among the items of "Use Owner's Size,8,9,10,12,14,18,24,36,48" then put lineOffset("Other..."&cr,tText) into tLineNo   
-         put "c" into char 2 of line tLineNo of tText   
+         --         put "c" into char 2 of line tLineNo of tText   
+         replace "!n" with "!c" in line tLineNo of tText
       end if   
       --style   
       replace "threedbox" with "3D Box" in tStyle   
       repeat for each item tItem in tStyle   
          put lineOffset(tItem, tText) into tLineNo   
-         if tLineNo is not 0 then put "c" into char 2 of line tLineNo of tText   
+         if tLineNo is not 0 then replace "!n" with "!c" in line tLineNo of tText //put "c" into char 2 of line tLineNo of tText   
       end repeat   
       --color   
       if tColor is "0,0,0" then put "Black" into tColor   
@@ -1760,7 +1762,8 @@ private function revMenubarTextMenu pContext
       if tColor is the penColor then put "pen color" into tColor   
       put lineOffset(tColor,tText,tStartNum)+tStartNum into tLineNo   
       if tLineNo is not 0 and tLineNo is not tStartNum then   
-         put "c" into char 2 of line tLineNo of tText   
+         --         put "c" into char 2 of line tLineNo of tText   
+         replace "!n" with "!c" in line tLineNo of tText
       end if   
       --align   
       if tAlign is not empty then
@@ -1768,7 +1771,8 @@ private function revMenubarTextMenu pContext
          put lineOffset("&Align",tText) into tAlignSkip
          --items including right,left,center could be included in Font menu
          put lineOffset(tAlign,tText,tAlignSkip) + tAlignSkip into tAlignSkip
-         put "c" into char 2 of line tAlignSkip of tText
+         --         put "c" into char 2 of line tAlignSkip of tText
+         replace "!n" with "!c" in line tAlignSkip of tText
       end if  
    end if
    

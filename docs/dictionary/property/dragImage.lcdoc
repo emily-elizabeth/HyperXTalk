@@ -10,7 +10,7 @@ Summary:
 Reports the id of an image that should be used to represent the drag
 operation. 
 
-Introduced: 2.9
+Introduced: 1.0.0
 
 OS: mac, windows
 

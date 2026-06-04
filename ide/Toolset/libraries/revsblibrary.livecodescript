@@ -1184,7 +1184,32 @@ function revSBStackNameFromScriptLibraryName pLib
                return tLibrary["id"]
             end if
          end repeat
-         
+
+         -- Check whether this is an hxtpm-installed package (reverse-DNS name).
+         -- By convention the package folder name matches the script's declared
+         -- name (e.g. folder "com.hyperxtalk.library.test" contains a stack that
+         -- declares `script "com.hyperxtalk.library.test"`).  Returning the name
+         -- directly lets __LoadStackOnStartup use `the effective filename of stack
+         -- pLib` to locate the file for bundling, while the generated startup
+         -- script uses the name — not a machine-local absolute path — so the
+         -- library loads correctly inside the built standalone via stackFiles.
+         -- Fallback: if the stack is not currently in IDE memory, return the
+         -- file path so `there is a stack <path>` can still resolve it.
+         local tLibsFolder
+         put revEnvironmentUserLibraries() into tLibsFolder
+         if tLibsFolder is not empty and there is a folder (tLibsFolder & slash & pLib) then
+            if there is a stack pLib then
+               return pLib
+            end if
+            local tPackagePath, tFile
+            put tLibsFolder & slash & pLib into tPackagePath
+            repeat for each line tFile in files(tPackagePath)
+               if tFile ends with ".livecodescript" then
+                  return tPackagePath & slash & tFile
+               end if
+            end repeat
+         end if
+
          return "rev" & pLib & "Library"
    end switch
 end revSBStackNameFromScriptLibraryName
@@ -1208,11 +1233,11 @@ private function __ScriptLibraries
    local tFiles
    put revCombineFilePaths(tUserScripts,tEnvironmentScripts) into tFiles
    repeat for each line tLine in tFiles
-      if there is a stack tLine then 
+      if there is a stack tLine then
          put return & the short name of stack tLine after tLibs
       end if
    end repeat
-   
+
    return tLibs
 end __ScriptLibraries
 
@@ -1741,6 +1766,42 @@ private function revSBAvailableExtensions pType
    return tInclusions
 end revSBAvailableExtensions
 
+-- Return an array of inclusion entries for hxtpm-installed script libraries.
+-- Called fresh each time revSBAvailableInclusions runs so newly-installed
+-- packages appear without an IDE restart.
+private function __HxtpmScriptLibraries
+   local tLibsFolder, tInclusions
+   put revEnvironmentUserLibraries() into tLibsFolder
+   if tLibsFolder is empty then return empty
+
+   repeat for each line tPackageFolder in folders(tLibsFolder)
+      if tPackageFolder begins with "." then next repeat
+
+      local tPackagePath
+      put tLibsFolder & slash & tPackageFolder into tPackagePath
+
+      -- Look for the .livecodescript inside the package subfolder
+      repeat for each line tFile in files(tPackagePath)
+         if tFile ends with ".livecodescript" then
+            local tLibPath, tEntry
+            put tPackagePath & slash & tFile into tLibPath
+
+            -- Use the package folder name (reverse-DNS) as both the title
+            -- and a lookup key; store the file path in id for the builder
+            put tPackageFolder into tEntry["title"]
+            put tLibPath into tEntry["id"]
+            put "script library" into tEntry["type"]
+            put revSBAllDesktopPlatforms() into tEntry["platforms"]
+            addToList tEntry, tInclusions
+
+            exit repeat -- one library per package folder
+         end if
+      end repeat
+   end repeat
+
+   return tInclusions
+end __HxtpmScriptLibraries
+
 private command __InitialiseScriptLibraries
    local tLibraries
    put __ScriptLibraries() into tLibraries
@@ -1863,6 +1924,12 @@ function revSBAvailableInclusions
    end repeat
    
    repeat for each element tInclusion in __AvailableScriptLibraries()
+      addToList tInclusion, tInclusions
+   end repeat
+
+   -- hxtpm user libraries: scanned fresh each call so newly-installed packages
+   -- appear without restarting the IDE
+   repeat for each element tInclusion in __HxtpmScriptLibraries()
       addToList tInclusion, tInclusions
    end repeat
    
@@ -1993,7 +2060,7 @@ end inclusionKeyAndIdentifier
 
 command revSBUpdateInclusions pInclusions, pExclusions, pStackName
    local tSettingsKey, tIdentifier, tNewSettings
-   
+
    -- first remove all exclusions
    repeat for each element tElement in pExclusions
       inclusionKeyAndIdentifier tElement, tSettingsKey, tIdentifier
@@ -2858,8 +2925,93 @@ on initialiseSearchForInclusions
       put "databaseDrivers" into sPatternsA[tDBName]["Key"]
    end repeat
    
+   -- HXT: Register auto-detection patterns for hxtpm user libraries.
+   -- Each library's public handlers become Script patterns so that revCheckObject
+   -- will include the library whenever one of those names appears in project code.
+   __InitialiseUserLibraryPatterns
+
    put true into sSearchInitialised
 end initialiseSearchForInclusions
+
+-- Scan every installed hxtpm user library and register its public handler names
+-- as Script patterns in sPatternsA.  Called once per IDE session from
+-- initialiseSearchForInclusions.
+private command __InitialiseUserLibraryPatterns
+   local tLibsFolder
+   put revEnvironmentUserLibraries() into tLibsFolder
+   if tLibsFolder is empty then exit __InitialiseUserLibraryPatterns
+
+   repeat for each line tPackageFolder in folders(tLibsFolder)
+      if tPackageFolder begins with "." then next repeat
+
+      local tPackagePath
+      put tLibsFolder & slash & tPackageFolder into tPackagePath
+
+      -- Find the .livecodescript file inside the package folder
+      local tStackName
+      repeat for each line tFile in files(tPackagePath)
+         if tFile ends with ".livecodescript" then
+            -- The library is loaded at IDE startup under its declared script name,
+            -- which by hxtpm convention matches the package folder name.
+            if there is a stack tPackageFolder then
+               put tPackageFolder into tStackName
+            else if there is a stack (tPackagePath & slash & tFile) then
+               put the short name of stack (tPackagePath & slash & tFile) into tStackName
+            end if
+            exit repeat -- one library per package folder
+         end if
+      end repeat
+
+      if tStackName is empty then next repeat
+
+      -- Parse the library's script for public handler declarations.
+      -- We collect handler names and use them as substring search targets:
+      -- if any name appears in a project object's script, the library is included.
+      local tLibScript
+      try
+         put the script of stack tStackName into tLibScript
+      catch tErr
+         next repeat -- locked or unreadable; skip
+      end try
+
+      local tPatterns, tLine, tHandlerName
+      repeat for each line tLine in tLibScript
+         -- Skip blank lines and private handlers
+         if tLine is empty then next repeat
+         if word 1 of tLine is "private" then next repeat
+
+         -- Match: on/function/command/getprop/setprop <name>
+         if word 1 of tLine is among the items of "on,function,command,getprop,setprop" then
+            put word 2 of tLine into tHandlerName
+            -- Strip any trailing parenthesis (e.g. "myHandler(")
+            if the last char of tHandlerName is "(" then
+               delete the last char of tHandlerName
+            end if
+            -- Skip internal lifecycle handlers and empty names
+            if tHandlerName is empty then next repeat
+            if tHandlerName is among the items of \
+                  "extensionInitialize,extensionFinalize,revLoadLibrary,revUnloadLibrary" then
+               next repeat
+            end if
+            if tPatterns is empty then
+               put tHandlerName into tPatterns
+            else
+               put comma & tHandlerName after tPatterns
+            end if
+         end if
+      end repeat
+
+      if tPatterns is not empty then
+         put tPatterns into sPatternsA[tPackageFolder]["Script"]
+         put "scriptLibraries" into sPatternsA[tPackageFolder]["Key"]
+      end if
+
+      -- Reset locals for next iteration
+      put empty into tStackName
+      put empty into tLibScript
+      put empty into tPatterns
+   end repeat
+end __InitialiseUserLibraryPatterns
 
 command revSBSearchForInclusions pStack, @xSettings
    -- Ensure all properties and patterns are initialised
@@ -2879,9 +3031,9 @@ private command revSmartChecking pStackFilesList, @xSettings
    lock messages
    
    if tNewSettings["inclusions"] is "search" then
-      
+
       revStandaloneProgress "Auto detecting library inclusions..."
-      
+
       put empty into tNewSettings["scriptLibraries"]
       put true into tNewSettings["cursors"]
       put false into tNewSettings["answerDialog"]
@@ -2889,16 +3041,16 @@ private command revSmartChecking pStackFilesList, @xSettings
       put false into tNewSettings["brushes"]   --LG-2007-12-13: Bug 4370
       put false into tNewSettings["Magnify"]  -- PM-2015-06-24: [[ Bug 15535 ]] Make possible to include magnify palette in standalones
       put false into tNewSettings["pdfPrinter"]
-      
+
       # OK-2007-11-13 : Support for LiveCode print dialogs
       put false into tNewSettings["revolutionPrintDialogs"]
-      
+
       put empty into tNewSettings["databaseDrivers"]
       put empty into tNewSettings["externals"]
-      
+
       put revAbsoluteFolderListing(revEnvironmentResourcesPath("Script Libraries")) into tEnvironmentIcons
       put revAbsoluteFolderListing(revEnvironmentUserResourcesPath("Script Libraries")) into tUserIcons
-      
+
    end if
    
    local tExtensionIDs

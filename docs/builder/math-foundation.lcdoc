@@ -1,0 +1,119 @@
+Library: com.livecode.mathfoundation
+
+Type: module
+
+Summary: This library consists of the foundational mathematical operations included in the standard library of Extension Builder.
+
+
+Name: CeilOperator
+
+Type: operator
+
+Syntax:     the ceiling of <Target>
+
+Summary: Returns the ceiling of <Target>.
+
+Target: An expression that evaluates to a number.
+
+Returns: The ceiling of <Target>
+
+Example:
+variable tNum as Number
+variable tCeiling as Number
+put -5.5 into tNum
+put the ceiling of tNum into tCeiling -- tCeiling contains -5
+
+Description: The ceiling of <Target> is the least integer greater than or equal to <Target>.
+
+Tags: Math
+
+
+
+
+Name: FloorOperator
+
+Type: operator
+
+Syntax:     the floor of <Target>
+
+Summary: Returns the floor of <Target>.
+
+Target: An expression that evaluates to a number.
+
+Returns: The floor of <Target>
+
+Example:
+variable tNum as Number
+variable tFloor as Number
+put -5.5 into tNum
+put the floor of tNum into tFloor -- tFloor contains -6
+
+Description: The floor of <Target> is the greatest integer less than or equal to <Target>.
+
+Tags: Math
+
+
+
+
+Name: RoundedToNearest
+
+Type: operator
+
+Syntax:     the rounded of <Target>
+
+Summary: Rounds <Target> to the nearest integer.
+
+Target: An expression that evaluates to a number.
+
+Returns: The rounded value of <Target>
+
+Example:
+variable tNum as Number
+variable tRounded as Number
+put -5.5 into tNum
+put the rounded of tNum into tRounded -- tRounded contains -6
+
+Description: Return the greatest integer less than or equal to <Target>, or the least integer greater than or equal to <Target> depending on which is closest. If <Target> is exactly halfway between two integers, returns the one with greatest absolute value, i.e. away from 0.
+
+Tags: Math
+
+
+
+
+Name: PiConstant
+
+Type: expression
+
+Syntax:     pi
+
+Summary: The constant pi
+
+Example:
+variable tVar as Number
+put the cos of pi into tVar -- tVar contains -1
+
+Description: The ratio of a circle's circumference to its diameter.
+
+Tags: Math
+
+
+
+
+Name: RoundToNearest
+
+Type: statement
+
+Syntax:     round <Target>
+
+Summary: Rounds <Target> to the nearest integer.
+
+Target: An expression that evaluates to a numeric container.
+
+Example:
+variable tNum as Number
+put -5.5 into tNum
+round tNum -- tNum contains -6
+
+Description: Replaces <Target> with the greatest integer less than or equal to <Target>, or the least integer greater than or equal to <Target> depending on which is closest. If <Target> is exactly halfway between two integers, rounds to the one with greatest absolute value, i.e. away from 0.
+
+Tags: Math

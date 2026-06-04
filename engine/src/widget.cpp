@@ -190,7 +190,7 @@ Boolean MCWidget::kdown(MCStringRef p_key_string, KeySym p_key)
         if (MCwidgeteventmanager->event_kdown(this, p_key_string, p_key))
             return True;
 
-	return MCControl::kdown(p_key_string, p_key);
+    return MCControl::kdown(p_key_string, p_key);
 }
 
 Boolean MCWidget::kup(MCStringRef p_key_string, KeySym p_key)
@@ -366,10 +366,10 @@ static void lookup_name_for_prop(Properties p_which, MCNameRef& r_name)
             r_name = MCNAME(factor_table[i] . token);
             return;
         }
-	
-	extern bool lookup_property_override_name(uint16_t p_property, MCNameRef &r_name);
-	if (lookup_property_override_name(p_which, r_name))
-		return;
+
+    extern bool lookup_property_override_name(uint16_t p_property, MCNameRef &r_name);
+    if (lookup_property_override_name(p_which, r_name))
+        return;
 
     assert(false);
 }

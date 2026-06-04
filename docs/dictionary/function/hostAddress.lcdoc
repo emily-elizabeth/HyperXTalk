@@ -10,11 +10,11 @@ Summary:
 <return|Returns> the <IP address> of the local system a <socket> is
 connected to.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 the hostAddress of "www.example.com:80"

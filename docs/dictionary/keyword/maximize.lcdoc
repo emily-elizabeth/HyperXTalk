@@ -8,7 +8,7 @@ Summary:
 Used with the <decorations> <property> to indicate whether the
 <maximize> or <zoom box> appears in a window's <title bar>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

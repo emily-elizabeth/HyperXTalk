@@ -1,7 +1,13 @@
 #!/bin/bash
-# Build the seven vendored thirdparty libraries that have working xcodeprojs
-# (libskia libsqlite libxml libzip libcairo libxslt libiodbc) and copy their
+# Build the vendored thirdparty libraries that have working xcodeprojs
+# (libskia libsqlite libxml libzip libxslt libiodbc) and copy their
 # .a outputs from _build/mac/Debug/ into prebuilt/lib/mac/.
+#
+# libcairo is intentionally excluded here — it is built by
+# build-libcairo-mac-arm64.sh (meson) earlier in the prebuilt-mac pass
+# and is already present in prebuilt/lib/mac/libcairo.a.  The xcodeproj
+# for libcairo uses an older build system that no longer works, so we
+# skip it to avoid a spurious BUILD FAILED in the log.
 #
 # Extracted from BUILD1.md steps 2 + 4 so `make prebuilt-mac` can call a
 # single script instead of embedding the loop in the Makefile.
@@ -19,28 +25,34 @@ PREBUILT_LIB="${REPO_ROOT}/prebuilt/lib/mac"
 
 mkdir -p "${PREBUILT_LIB}"
 
-LIBS="libskia libsqlite libxml libzip libcairo libxslt libiodbc"
+# libcairo is excluded — already built via meson in build-libcairo-mac-arm64.sh
+LIBS="libskia libsqlite libxml libzip libxslt libiodbc"
 
 FAILED_LIBS=""
 for LIB in ${LIBS}; do
     echo "=== Building ${LIB} ==="
+    # Test xcodebuild's real exit status. A previous version piped
+    # xcodebuild into `grep` and tested the *grep* exit code — but grep
+    # succeeds whenever it matches a line, including "** BUILD FAILED **",
+    # so a failed build was silently treated as a success and the stale
+    # prebuilt .a was kept. Capture the build to a log, test xcodebuild
+    # itself, and also scan the log for "BUILD FAILED" in case xcodebuild
+    # ever exits 0 spuriously.
+    BUILD_LOG="$(mktemp /tmp/hxt-thirdparty-build.XXXXXX)"
     if xcodebuild \
         -project "${REPO_ROOT}/build-mac/livecode/thirdparty/${LIB}/${LIB}.xcodeproj" \
         -configuration Debug \
         -arch arm64 \
         SOLUTION_DIR="${REPO_ROOT}" \
-        2>&1 | grep -E "BUILD (SUCCEEDED|FAILED)|error:"; then
-        :
+        > "${BUILD_LOG}" 2>&1 \
+        && ! grep -q "BUILD FAILED" "${BUILD_LOG}"; then
+        grep -E "BUILD (SUCCEEDED|FAILED)" "${BUILD_LOG}" || echo "  ${LIB}: build completed"
     else
-        echo "ERROR: ${LIB} build failed — re-running with full output:"
-        xcodebuild \
-            -project "${REPO_ROOT}/build-mac/livecode/thirdparty/${LIB}/${LIB}.xcodeproj" \
-            -configuration Debug \
-            -arch arm64 \
-            SOLUTION_DIR="${REPO_ROOT}" \
-            2>&1 | tail -40
+        echo "ERROR: ${LIB} build failed — last 40 lines of the build log:"
+        tail -40 "${BUILD_LOG}"
         FAILED_LIBS="${FAILED_LIBS} ${LIB}"
     fi
+    rm -f "${BUILD_LOG}"
 done
 
 if [ -n "${FAILED_LIBS}" ]; then

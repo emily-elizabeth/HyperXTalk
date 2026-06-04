@@ -10,11 +10,11 @@ Summary:
 <return|Returns> the equivalent of a Windows Latin 1 <string>, in the
 <Mac OS> <character set>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 ISOToMac("Ab4+")

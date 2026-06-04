@@ -1,3 +1,0 @@
-^C:\USERS\USER\DOCUMENTS\GITHUB\HYPERXTALK\UTIL\COMPRESS_DATA.PY
-call python "..\..\..\util\compress_data.py" "Debug\x64\obj\encode_environment_stack\\..\shared_intermediate\src\environment_descriptified.livecode" "Debug\x64\obj\encode_environment_stack\\..\shared_intermediate\src\startupstack.cpp" "MCstartupstack"
-if %errorlevel% neq 0 exit /b %errorlevel%

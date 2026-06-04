@@ -1,0 +1,564 @@
+Library: com.livecode.char
+
+Type: module
+
+Summary: This library consists of the operations on chars included in the standard library of Extension Builder.
+
+
+Name: CharOffset
+
+Type: operator
+
+Syntax:     the ( first | last ) offset of <Needle> in <Target>
+
+Summary: Finds the first or last occurrence of <Needle> within <Target>
+
+Needle: An expression which evaluates to a string.
+
+Target: An expression which evaluates to a string.
+
+Returns: Returns the offset of <Needle> in <Target>.
+
+Example:
+variable tVar as Number
+put the first offset of "art" in "cartoon" into tVar -- tVar contains 2
+
+Example:
+variable tVar as Number
+variable tFilePath as String
+put "/Users/user/Documents/file.txt" into tFilePath
+put the last offset of "/" in tFilePath into tVar
+
+variable tFileName as String
+put char 1 to tVar of tFilePath into tFileName -- tVar contains "file.txt"
+
+Description: The first (respectively last) offset of <Needle> in <Target> is number of chars between the first char of <Target> and the first (respectively last) occurrence of <Needle>. If neither first or last is specified, then the first offset is found. If <Needle> does not occur in <Target>, then the output is 0.
+
+Tags: Strings
+
+
+
+
+Name: DeleteRangeCharOf
+
+Type: statement
+
+Syntax: 	delete char <Start> to <Finish> of <Target>
+
+Summary: Deletes the chars between indices <Start> and <Finish> in <Target>.
+
+Start: An expression which evaluates to a valid integer index of <Target>.
+
+Finish: An expression which evaluates to a valid integer index of <Target>.
+
+Target: A string container.
+
+Example:
+variable tVar as String
+put "surround" into tVar
+delete char 2 to 4 of tVar -- tVar contains "sound"
+
+Description:
+Replaces the chars between the given indices with the empty string.
+
+>*Note:* It is an error if either <Start> or <Finish> are out of range.
+
+Tags: Strings
+
+
+
+
+Name: NewLineCharacter
+
+Type: expression
+
+Syntax:     newline
+
+Summary: The new line character
+
+Example:
+variable tList as List
+push "line 1" onto tList
+push "line 2" onto tList
+push "line 3" onto tList
+
+variable tLines as String
+combine tList with newline into tLines -- tLines has 3 lines
+
+Description: Use the <newline> constant to add new lines to a string variable.
+
+Tags: Strings
+
+
+
+
+Name: DeleteSingletonCharOf
+
+Type: statement
+
+Syntax: 	delete char <Index> of <Target>
+
+Summary: Deletes the char at index <Index> in <Target>.
+
+Index: An expression which evaluates to a valid integer index of <Target>.
+
+Target: A string container.
+
+Example:
+variable tVar as String
+put "thorough" into tVar
+delete char 3 of tVar -- tVar contains "through"
+
+Description:
+Replaces the char at the given index with the empty string.
+
+>*Note:* It is an error if <Index> is out of range.
+
+Tags: Strings
+
+
+
+
+Name: SingletonCharOf
+
+Type: operator
+
+Syntax: 	char <Index> of <Target>
+
+Summary: Designates the char at index <Index> in <Target>.
+
+Index: An expression which evaluates to a valid integer index of <Target>.
+
+Target: An expression which evaluates to a string.
+
+Example: put the empty string into char 5 of tString // Locates char 5 and removes it from tString
+
+Example: get char 5 of tString // Evaluates char 5
+
+Description:
+Either locates the char at the given index for use as the target container of another operation, or evaluates the char at the given index as the source of another operation.
+
+>*Note:* It is an error if <Index> is out of range.
+
+Tags: Strings
+
+
+
+
+Name: CharWithCode
+
+Type: operator
+
+Syntax:     the char with code <Index>
+
+Summary: Create a 1-char string from a number
+
+Value: A Unicode codepoint index
+
+Description:
+Returns a string containing one Unicode character created using the
+given value.
+
+Tags: Strings
+
+
+
+
+Name: ReverseCharsOf
+
+Type: statement
+
+Syntax: 	reverse <Target>
+
+Summary: Reverse a string
+
+Target: A string
+
+Example:
+variable tString
+put "abcdef" into tString
+reverse tString
+expect that tString is "fedcba"
+
+Description: Reverses the order of characters in the <Target>.
+
+Tags: Strings
+
+
+
+
+Name: FirstCharOf
+
+Type: operator
+
+Syntax: 	the first char of <Target>
+
+Summary: Designates the first char in <Target>.
+
+Target: An expression which evaluates to a string.
+
+Example:
+variable tVar as String
+put "char" into tVar
+
+variable tFirst as String
+put the first char of tVar into tFirst -- tFirst contains "c"
+
+Description:
+Either locates the first char for use as the target container of another operation, or evaluates the first char as the source of another operation.
+
+>*Note:* It is an error if <Target> is empty.
+
+Tags: Strings
+
+
+
+
+Name: LastCharOf
+
+Type: operator
+
+Syntax: 	the last char of <Target>
+
+Summary: Designates the last char in <Target>.
+
+Target: An expression which evaluates to a string.
+
+Example:
+variable tVar as String
+put "char" into tVar
+
+variable tLast as String
+put the last char of tVar into tLast -- tLast contains "r"
+
+Description:
+Either locates the last char for use as the target container of another operation, or evaluates the last char as the source of another operation.
+
+>*Note:* It is an error if <Target> is empty.
+
+Tags: Strings
+
+
+
+
+Name: DeleteFirstCharOf
+
+Type: statement
+
+Syntax: 	delete the first char of <Target>
+
+Summary: Deletes the first char in <Target>.
+
+Target: A string container.
+
+Example:
+variable tVar as String
+put "seven" into tVar
+delete the first char of tVar -- tVar contains "even"
+
+Description:
+Replaces the first char in <Target> with the empty string.
+
+>*Note:* It is an error if <Target> is the empty string.
+
+Tags: Strings
+
+
+
+
+Name: ContainsChars
+
+Type: operator
+
+Syntax:     <Source> contains <Needle>
+
+Summary: Determines whether <Source> contains <Needle>.
+
+Needle: An expression which evaluates to a string.
+
+Source: An expression which evaluates to a string.
+
+Returns: Returns true if <Source> contains <Needle>.
+
+Description:
+<Source> contains <Needle> if and only if the chars of <Needle> occur as a subsequence of the chars of <Source>.
+
+>*Note:* Since "" is a substring of every string, every string contains the empty string.
+
+Tags: Strings
+
+
+
+
+Name: RepeatForEachChar
+
+Type: iterator
+
+Syntax:     char <Iterand>
+
+Summary: Repeat over the chars of a string
+
+Iterand: A string container.
+
+Example:
+variable tChar as String
+variable tSpaceCount as Number
+repeat for each char tChar in \
+		"the quick brown fox jumps over the lazy dog"
+	if tChar is " " then
+		add 1 to tSpaceCount
+	end if
+end repeat
+expect that tSpaceCount is 8
+
+Description: Use repeat for each to perform an operation on each char of a string. On each iteration, the <Iterand> will contain the next char of the string being iterated over.
+
+Tags: Strings, Control structures
+
+
+
+
+Name: DeleteLastCharOf
+
+Type: statement
+
+Syntax: 	delete the last char of <Target>
+
+Summary: Deletes the last char in <Target>.
+
+Target: A string container.
+
+Example:
+variable tVar as String
+put "deadliness" into tVar
+delete the last char of tVar -- tVar contains "deadlines"
+
+Description:
+Replaces the last char in <Target> with the empty string.
+
+>*Note:* It is an error if <Target> is the empty string.
+
+Tags: Strings
+
+
+
+
+Name: CharOffsetAfter
+
+Type: operator
+
+Syntax:     the ( first | last ) offset of <Needle> after <After> in <Target>
+
+Summary: Finds the first or last occurrence of <Needle> after a specified index in <Target>
+
+Needle: An expression which evaluates to a string.
+
+Target: An expression which evaluates to a string.
+
+After: An expression which evaluates to a valid integer index of Target.
+
+Returns: Returns the offset of <Needle> after <After> in <Target>.
+
+Example:
+variable tVar as Number
+put the offset of "nse" after 4 in "nonsense" into tVar -- tVar contains 2
+
+Description: The first (respectively last) offset of <Needle> in <Target> is number of chars between the first char of the substring of <Target> beginning at char <After> + 1, and the first (respectively last) occurrence of <Needle> in the substring. If neither first or last is specified, then the first offset is found. If <Needle> does not occur in the given substring of <Target>, then the output is 0.
+
+Tags: Strings
+
+
+
+
+Name: CharOffsetBefore
+
+Type: operator
+
+Syntax:     the ( first | last ) offset of <Needle> before <Before> in <Target>
+
+Summary: Finds the first or last occurrence of <Needle> before a specified index in <Target>.
+
+Needle: An expression which evaluates to a string.
+
+Target: An expression which evaluates to a string.
+
+Before: An expression which evaluates to a valid integer index of Target.
+
+Returns: Returns the offset of <Needle> before <Before> in <Target>.
+
+Example:
+variable tVar as Number
+variable tLastDot as Number
+variable tAddress as String
+variable tTLD as String
+put "http://www.openxtalk.org/index.html" into tAddress
+put the last offset of "." in tAddress into tLastDot
+put the offset of "." before tLastDot in tAddress into tVar
+put char tVar + 1 to tVar + 3 of tAddress into tTLD -- tTLD contains "org"
+
+Description: The first (respectively last) offset of <Needle> in <Target> is number of chars between the first char of <Target>, and the first (respectively last) occurrence of <Needle> in the substring of <Target> ending at char <Before> - 1. If neither first or last is specified, then the last offset is found. If <Needle> does not occur in the given substring of <Target>, then the output is 0.
+
+Tags: Strings
+
+
+
+
+Name: StringEndsWithString
+
+Type: operator
+
+Syntax:     <Source> ends with <Suffix>
+
+Summary: Determines whether <Source> ends with <Suffix>
+
+Suffix: An expression which evaluates to a string.
+
+Source: An expression which evaluates to a string.
+
+Returns: Returns true if <Source> ends with <Suffix>.
+
+Example:
+variable tVar as String
+variable tResult as String
+put "abcde" into tVar
+if tVar ends with "cde" then
+	put "success" into tResult
+end if
+
+Description:
+<Source> ends with <Suffix> if and only if the chars of <Suffix> occur as a final subsequence of the chars of <Source>.
+
+>*Note:* Since "" is a final substring of every string, every string ends with the empty string.
+
+Tags: Strings
+
+
+
+
+Name: CodeOfChar
+
+Type: operator
+
+Syntax:     the code of <Target>
+
+Summary: Get the numeric value of a single char
+
+Target: A string containing one character
+
+Description: Returns the Unicode codepoint index of a single character.
+
+Tags: Strings
+
+
+
+
+Name: CharIsInString
+
+Type: operator
+
+Syntax:     <Needle> is in <Source>
+
+Summary: Determines whether <Needle> is in <Target>.
+
+Needle: An expression which evaluates to a char.
+
+Target: An expression which evaluates to a string.
+
+Returns: True if <Needle> is among the chars of <Target>, and false otherwise.
+
+Description: >*Note:* It is an error if <Needle> evaluates to a string consisting of more than one char.
+
+Tags: Strings
+
+
+
+
+Name: RangeCharOf
+
+Type: operator
+
+Syntax: 	char <Start> to <Finish> of <Target>
+
+Summary: Designates the chars between indices <Start> and <Finish> in <Target>.
+
+Start: An expression which evaluates to a valid integer index of <Target>.
+
+Finish: An expression which evaluates to a valid integer index of <Target>.
+
+Target: An expression which evaluates to a string.
+
+Example: put tChars into char 5 to 10 of tString // Locates chars 5 to 10 of tString and replace them with tChars
+
+Example: get char 5 to 10 of tString // Evaluates chars 5 to 10
+
+Description:
+Either locates the chars between the given indices for use as the target container of another operation, or evaluates the chars at the given indices as the source of another operation.
+
+>*Note:* It is an error if either <Start> or <Finish> are out of range.
+
+Tags: Strings
+
+
+
+
+Name: CountCharsOf
+
+Type: operator
+
+Syntax: 	the number of chars in <Target>
+
+Summary: Counts the number of chars in <Target>.
+
+Target: An expression which evaluates to a string.
+
+Returns: The number of chars in <Target>.
+
+Example:
+variable tVar as Number
+variable tSource as String
+put "hello" into tString
+put the number of chars in tString into tVar
+
+variable tString as String
+put the empty string into tString
+repeat tVar times
+	put "a" after tString
+end repeat
+
+// tString contains "aaaaa"
+
+Description: >*Note:* The number of chars returns the number of codeunits of the target string. It does not perform any grapheme boundary analysis.
+
+Tags: Strings
+
+
+
+
+Name: StringBeginsWithString
+
+Type: operator
+
+Syntax:     <Source> begins with <Prefix>
+
+Summary: Determines whether <Source> begins with <Prefix>
+
+Prefix: An expression which evaluates to a string.
+
+Source: An expression which evaluates to a string.
+
+Returns: Returns true if <Source> begins with <Prefix>.
+
+Example:
+variable tVar as String
+variable tResult as String
+put "abcde" into tVar
+if tVar begins with "abc" then
+	put "success" into tResult
+end if
+
+Description:
+<Source> begins with <Prefix> if and only if the chars of <Prefix> occur as an initial subsequence of the chars of <Source>.
+
+>*Note:* Since "" is an initial substring of every string, every string begins with the empty string.
+
+Tags: Strings

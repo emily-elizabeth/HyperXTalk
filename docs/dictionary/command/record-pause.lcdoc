@@ -7,7 +7,7 @@ Syntax: record pause
 Summary:
 Pauses the current sound recording.
 
-Introduced: 6.7
+Introduced: 1.0.0
 
 OS: mac, windows
 

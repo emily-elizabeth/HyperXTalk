@@ -9,11 +9,11 @@ Specifies placeholder text displayed inside a field when it is empty.
 
 Associations: field
 
-Introduced: 10.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the hintText of field "Search" to "Type to search..."

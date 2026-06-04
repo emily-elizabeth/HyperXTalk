@@ -8,11 +8,11 @@ Summary:
 Evaluates to true if either <operand> is true, false if both
 <operand|operands> are false.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 ("a" &gt; "b") or ("b" &gt; "a") -- evaluates to true

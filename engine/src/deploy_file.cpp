@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -256,22 +240,34 @@ const char *MCDeployErrorToString(MCDeployError p_error)
         case kMCDeployErrorNoModule:
             return "could not open module file";
 		case kMCDeployErrorBadFile:
+            return "bad file";
 		case kMCDeployErrorBadRead:
+            return "bad read";
 		case kMCDeployErrorBadWrite:
+            return "bad write";
 		case kMCDeployErrorBadCompress:
-			return "i/o error";
+			return "bad compress";
 			
 		case kMCDeployErrorWindowsNoDOSHeader:
+			return "no DOS header";
 		case kMCDeployErrorWindowsBadDOSSignature:
+			return "bad DOS signature";
 		case kMCDeployErrorWindowsBadDOSHeader:
+			return "bad DOS header";
 		case kMCDeployErrorWindowsNoNTHeader:
+			return "no NT header";
 		case kMCDeployErrorWindowsBadNTSignature:
+			return "bad NT signature";
 		case kMCDeployErrorWindowsBadSectionHeaderOffset:
+			return "bad section header offset";
 		case kMCDeployErrorWindowsNoSectionHeaders:
+			return "no section headers";
 		case kMCDeployErrorWindowsMissingSections:
+			return "missing sections";
 		case kMCDeployErrorWindowsNoResourceSection:
+			return "no resource section";
 		case kMCDeployErrorWindowsNoProjectSection:
-			return "invalid windows standalone engine file";
+			return "no project section";
 
 		case kMCDeployErrorWindowsNoPayloadSection:
 			return "invalid windows installer engine file";
@@ -284,32 +280,54 @@ const char *MCDeployErrorToString(MCDeployError p_error)
 			return "could not load manifest";
 			
 		case kMCDeployErrorLinuxNoHeader:
-		case kMCDeployErrorLinuxBadHeaderMagic:
-		case kMCDeployErrorLinuxBadHeaderType:
-		case kMCDeployErrorLinuxBadImage:
-		case kMCDeployErrorLinuxBadSectionSize:
-		case kMCDeployErrorLinuxBadSectionTable:
-		case kMCDeployErrorLinuxBadSegmentSize:
-		case kMCDeployErrorLinuxBadProgramTable:
-		case kMCDeployErrorLinuxBadStringIndex:
-		case kMCDeployErrorLinuxBadString:
-		case kMCDeployErrorLinuxNoProjectSection:
-		case kMCDeployErrorLinuxNoPayloadSection:
-		case kMCDeployErrorLinuxBadSectionOrder:
-		case kMCDeployErrorLinuxNoProjectSegment:
-		case kMCDeployErrorLinuxPayloadNotInProjectSegment:
-			return "invalid linux standalone engine file";
-			
 		case kMCDeployErrorMacOSXNoHeader:
+			return "no header";
+		case kMCDeployErrorLinuxBadHeaderMagic:
+			return "bad header magic";
+		case kMCDeployErrorLinuxBadHeaderType:
+			return "bad header type";
+		case kMCDeployErrorLinuxBadImage:
+			return "bad image";
+		case kMCDeployErrorLinuxBadSectionSize:
+			return "bad section size";
+		case kMCDeployErrorLinuxBadSectionTable:
+			return "bad section table";
+		case kMCDeployErrorLinuxBadSegmentSize:
+			return "bad segment size";
+		case kMCDeployErrorLinuxBadProgramTable:
+			return "bad program table";
+		case kMCDeployErrorLinuxBadStringIndex:
+			return "bad string index";
+		case kMCDeployErrorLinuxBadString:
+			return "bad string";
+		case kMCDeployErrorLinuxNoProjectSection:
+			return "no project section";
+		case kMCDeployErrorLinuxNoPayloadSection:
+			return "bad payload section";
+		case kMCDeployErrorLinuxBadSectionOrder:
+			return "bad section order";
+		case kMCDeployErrorLinuxNoProjectSegment:
+			return "no project segment";
+		case kMCDeployErrorLinuxPayloadNotInProjectSegment:
+			return "payload not in project segment";
+			
+//		case kMCDeployErrorMacOSXNoHeader:
 		case kMCDeployErrorMacOSXBadHeader:
+			return "bad header";
 		case kMCDeployErrorMacOSXBadCommand:
+			return "bad command";
 		case kMCDeployErrorMacOSXNoLinkEditSegment:
+			return "no link edit segment";
 		case kMCDeployErrorMacOSXNoProjectSegment:
+			return "no project segment";
 		case kMCDeployErrorMacOSXBadSegmentOrder:
+			return "bad segment order";
 		case kMCDeployErrorMacOSXUnknownLoadCommand:
+			return "unknown load command";
 		case kMCDeployErrorMacOSXBadCpuType:
+			return "bad cpu type";
 		case kMCDeployErrorMacOSXBadTarget:
-			return "invalid mac/ios standalone engine file";
+			return "bad target";
 
 		case kMCDeployErrorEmscriptenBadStack:
 			return "could not prepare startup stack";
@@ -340,9 +358,11 @@ const char *MCDeployErrorToString(MCDeployError p_error)
 			return "bad password specified";
 
 		case kMCDeployErrorBadSignature:
+			return "bad signature";
 		case kMCDeployErrorBadString:
+			return "bad string";
 		case kMCDeployErrorBadHash:
-			return "signature build error";
+			return "signature: bad hash";
 
 		case kMCDeployErrorTimestampFailed:
 			return "unable to contact timestamping authority";

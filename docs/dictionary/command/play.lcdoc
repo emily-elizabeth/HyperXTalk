@@ -9,11 +9,11 @@ Syntax: play {stop | pause | resume | step {forward | back}} [<clipType>] [<clip
 Summary:
 Plays a movie or sound.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 play "/usr/local/clips/music.aiff"
@@ -101,11 +101,6 @@ by using the put <command> :
 > by the <play> command is limited. See the entries for <audioClip>
 > and <videoClip> for details. To play a wider variety of formats,
 > use a <player> object.
-
-Changes:
-The use of <QuickTime> was deprecated in version 8.1. As
-the `play videoClip ..` form of the <play> command was relying on
-<QuickTime>, it is no longer supported.
 
 References: audioClip (object), beep (command), callbacks (property),
 command (glossary), current card (glossary), currentTime (property),

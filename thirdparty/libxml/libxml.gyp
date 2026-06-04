@@ -177,6 +177,27 @@
 								'LIBXML_STATIC=1',
 							],
 						},
+
+						# libxml2 2.12+ calls BCryptGenRandom (Windows crypto API).
+						# Any binary that links libxml.lib must also link bcrypt.lib.
+						'conditions':
+						[
+							[
+								'OS == "win"',
+								{
+									'all_dependent_settings':
+									{
+										'link_settings':
+										{
+											'libraries':
+											[
+												'-lbcrypt.lib',
+											],
+										},
+									},
+								},
+							],
+						],
 					},
 					{
 						'type': 'none',

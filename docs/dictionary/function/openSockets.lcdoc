@@ -9,11 +9,11 @@ Syntax: openSockets()
 Summary:
 <return|Returns> a list of the currently open <socket|sockets>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: network
 
@@ -42,7 +42,7 @@ by a vertical bar (|).
 >*Note:* Several of the commands and functions in the Internet library
 > use sockets, so the openSockets func may return sockets opened by the
 > Internet library in addition to any sockets you have opened with the
-> open socket com.
+> open socket command.
 
 References: accept (command), function (control structure),
 socket (glossary), host (glossary), append (glossary), return (glossary),

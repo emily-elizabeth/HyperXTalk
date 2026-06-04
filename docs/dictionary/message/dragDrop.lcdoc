@@ -8,7 +8,7 @@ Summary:
 Sent to the <object(glossary)> where data was dropped when a 
 <drag and drop> finishes.
 
-Introduced: 2.0
+Introduced: 1.0.0
 
 Associations: card, field, button, graphic, scrollbar, player, image
 

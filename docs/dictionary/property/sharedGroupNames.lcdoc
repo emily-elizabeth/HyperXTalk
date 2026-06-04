@@ -9,11 +9,11 @@ Reports the names of all the shared groups of the card or stack
 
 Associations: stack, card
 
-Introduced: 4.6.4
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 get the sharedGroupNames of stack myStack

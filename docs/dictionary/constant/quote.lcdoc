@@ -7,11 +7,11 @@ Syntax: quote
 Summary:
 Equivalent to the double quote character " (ASCII 34).
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 if last char of it is quote then delete last char of it

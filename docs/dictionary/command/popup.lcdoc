@@ -8,7 +8,7 @@ Summary:
 Displays a <popup menu> whose <menu item|menu items> are either lines in
 a <button(keyword)> or <button(object)|buttons> in a <stack>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

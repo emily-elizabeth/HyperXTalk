@@ -11,7 +11,7 @@ Syntax: movie()
 Summary:
 <return|Returns> the name of the currently playing <video clip>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

@@ -11,7 +11,7 @@ Set the <hideBackdrop> global property to true if you want a HyperXTalk
 application's backdrop to be hidden when another application is
 activated. 
 
-Introduced: 2.7.2
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

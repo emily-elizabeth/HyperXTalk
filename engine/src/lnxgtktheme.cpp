@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 // Warning: X headers define True and False!
 
 #include "lnxprefix.h"
@@ -230,23 +214,142 @@ static GtkWidgetState getpartandstate(const MCWidgetInfo &winfo, GtkThemeWidgetT
 	return state;
 }
 
-static gboolean reload_theme(void)
+// Declared in linux-theme.cpp — flushes the cached GtkStyle/GtkWidget
+// pointers so MCPlatformGetControlThemePropColor() re-reads fresh styles.
+extern void MCLinuxThemeFlushCache(void);
+
+// Forward declarations — defined later in this file.
+extern "C" bool MCplatformIsDarkMode(void);
+extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen);
+extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen);
+
+// g_object_get is variadic so the stub table only exposes the raw pointer
+// (g_object_get_ptr).  Use the same casting pattern as lnxcursor.cpp.
+typedef void (*g_object_getPTR)(void *object, const gchar *first_property_name, ...);
+extern g_object_getPTR g_object_get_ptr;
+
+// g_object_class_find_property: check whether a named property exists on a
+// GObject class before trying to get/connect-notify it.  Avoids the GLib
+// warning spam "has no property named '...'" on GTK builds that don't expose
+// gtk-application-prefer-dark-theme.
+// Use the _ptr pattern (matching g_object_get_ptr above): the stubs generator
+// produces a void*(void*,void*) wrapper, whose C++ mangled name differs from
+// a void*(void*,const gchar*) extern declaration, causing a link error.
+typedef void *(*g_object_class_find_propertyPTR)(void *oclass, void *property_name);
+extern g_object_class_find_propertyPTR g_object_class_find_property_ptr;
+
+// Returns true if GtkSettings exposes the "gtk-application-prefer-dark-theme"
+// property on the running GTK version.  Checked once and cached.
+static bool s_prefer_dark_prop_checked = false;
+static bool s_prefer_dark_prop_exists  = false;
+
+static bool prefer_dark_prop_exists(GtkSettings *t_settings)
 {
-	Boolean reload = True;
+    if (!s_prefer_dark_prop_checked)
+    {
+        s_prefer_dark_prop_checked = true;
+        if (g_object_class_find_property_ptr != nullptr)
+        {
+            // G_OBJECT_GET_CLASS: first word of any GObject instance is a pointer
+            // to its GObjectClass — this layout is guaranteed by the GObject ABI.
+            void *cls = *(void **)t_settings;
+            s_prefer_dark_prop_exists =
+                (g_object_class_find_property_ptr(cls,
+                     (void *)"gtk-application-prefer-dark-theme") != nullptr);
+        }
+    }
+    return s_prefer_dark_prop_exists;
+}
+
+static gboolean do_reload_theme(gpointer /*user_data*/)
+{
 	if (MCcurtheme && MCcurtheme->getthemeid() == LF_NATIVEGTK)
 	{
-		// We have changed themes, so remove the image cache and replace with new one
-		if ( MCimagecache != NULL)
-			delete MCimagecache ;
-		MCimagecache = new (nothrow) MCXImageCache ;
+		// Remove the image cache and replace with a fresh one.
+		if (MCimagecache != NULL)
+			delete MCimagecache;
+		MCimagecache = new (nothrow) MCXImageCache;
 
-		MCcurtheme->unload();
+		// Flush the linux-theme.cpp style cache so that
+		// MCPlatformGetControlThemePropColor() re-reads styles from the new
+		// theme rather than returning stale cached colours.
+		// NOTE: We do NOT call unload()/moz_gtk_shutdown() here.
+		// GTK's notify::gtk-theme-name and notify::gtk-application-prefer-dark-theme
+		// handlers propagate new styles to all realized widgets via the "style-set"
+		// mechanism BEFORE our callback fires.  This means gProtoWindow and its
+		// children already carry the new theme's styles by the time we reach this
+		// point.  Calling gtk_widget_destroy(gProtoWindow) from inside a GtkSettings
+		// notify handler is unsafe: with the prefer-dark signal connected, the
+		// destroy fires while GTK is mid-way through its own style-update pass,
+		// leaving the widget in a transient state that causes a SIGSEGV.
+		// We only need to destroy/recreate the linux-theme.cpp widget container
+		// (done by MCLinuxThemeFlushCache below); the moz-gtk proto-widgets are
+		// updated in place by GTK and reused by load() correctly.
+		MCLinuxThemeFlushCache();
+
+		// load() refreshes background_pixel, system_fore_pixel, and MChilitecolor
+		// from the current GTK theme.  The moz-gtk proto-widgets (gProtoWindow etc.)
+		// are still alive and already have the new theme's styles applied by GTK.
 		MCcurtheme->load();
 
-		// MW-2011-08-17: [[ Redraw ]] The theme has changed so redraw everything.
+		// desktop.cpp is excluded from the Linux build, so
+		// MCPlatformHandleSystemAppearanceChanged() is never called.
+		// Replicate its essential work here:
+		//   • dirty every open stack so the next repaint uses the new colours
+		//   • dispatch systemAppearanceChanged(pMode, pBackColor, pTextColor)
+		//     to every open stack's current card so scripts can react.
+		bool    t_is_dark = MCplatformIsDarkMode();
+		char    t_bg_buf[8]   = {};
+		char    t_fg_buf[8]   = {};
+		MCplatformGetWindowBackgroundColor(t_bg_buf,   sizeof(t_bg_buf));
+		MCplatformGetLabelColor           (t_fg_buf,   sizeof(t_fg_buf));
+
+		MCStacknode *t_node  = MCstacks->topnode();
+		MCStacknode *t_first = t_node;
+		while (t_node != nullptr)
+		{
+			MCStack *t_stack = t_node->getstack();
+			if (t_stack != nullptr && t_stack->getcurcard() != nullptr)
+			{
+				t_stack->dirtyall();
+
+				// Queue systemAppearanceChanged with the same three parameters
+				// that desktop.cpp passes on macOS/Windows.
+				MCStringRef t_bg_str  = nullptr;
+				MCStringRef t_fg_str  = nullptr;
+				/* UNCHECKED */ MCStringCreateWithCString(t_bg_buf, t_bg_str);
+				/* UNCHECKED */ MCStringCreateWithCString(t_fg_buf, t_fg_str);
+				MCscreen->delaymessage(t_stack->getcurcard(),
+				                       MCM_system_appearance_changed,
+				                       t_is_dark ? MCSTR("dark") : MCSTR("light"),
+				                       t_bg_str,
+				                       t_fg_str);
+				MCValueRelease(t_bg_str);
+				MCValueRelease(t_fg_str);
+			}
+			t_node = t_node->next();
+			if (t_node == t_first)
+				break;
+		}
+
 		MCRedrawDirtyScreen();
 	}
-	return (TRUE);
+	return FALSE; // G_SOURCE_REMOVE — run once, do not reschedule
+}
+
+static gboolean reload_theme(void)
+{
+	// Defer all work to do_reload_theme() so we return to GTK quickly.
+	// We do NOT call unload()/moz_gtk_shutdown() here (or anywhere in the
+	// reload path).  See the comment in do_reload_theme() for the full
+	// explanation; the short version: calling gtk_widget_destroy(gProtoWindow)
+	// from inside a GtkSettings notify handler is unsafe when the
+	// prefer-dark-theme signal is also connected, because the destroy fires
+	// while GTK's own style-update machinery is still running.
+	// GTK's style-set mechanism keeps gProtoWindow and its children up-to-date
+	// automatically, so we never need to rebuild them on a theme change.
+	g_timeout_add(0, do_reload_theme, nullptr);
+	return TRUE;
 }
 
 
@@ -295,8 +398,19 @@ Boolean MCNativeTheme::load()
 		initialised = True;
 		GtkSettings *settings = gtk_settings_get_default();
 		if (settings)
-			g_signal_connect_data( settings, "notify::gtk-theme-name", G_CALLBACK(reload_theme),
-			                         NULL, NULL, (GConnectFlags)0);
+		{
+			g_signal_connect_data(settings, "notify::gtk-theme-name",
+			                      G_CALLBACK(reload_theme),
+			                      NULL, NULL, (GConnectFlags)0);
+			// Dark mode switches toggle gtk-application-prefer-dark-theme
+			// without changing the theme name (e.g. Adwaita stays Adwaita).
+			// Only connect when the property actually exists on this GTK
+			// build — GLib warns and no-ops the connect otherwise.
+			if (prefer_dark_prop_exists(settings))
+			    g_signal_connect_data(settings, "notify::gtk-application-prefer-dark-theme",
+			                          G_CALLBACK(reload_theme),
+			                          NULL, NULL, (GConnectFlags)0);
+		}
 	}
 	gtkpix = NULL;
 	mNeedNewGC = true;
@@ -307,7 +421,15 @@ Boolean MCNativeTheme::load()
 		moz_gtk_get_widget_color(GTK_STATE_NORMAL,
 		                         tbackcolor.red,tbackcolor.green,tbackcolor.blue) ;
 		MCscreen->background_pixel = tbackcolor;//tcolor = zcolor;
-		
+
+		// Foreground (label/text) colour — used by controls that inherit the
+		// system default.  On a dark theme this should be near-white; without
+		// this update controls render dark text on a dark background.
+		MCColor tforecolor;
+		moz_gtk_get_widget_fg_color(GTK_STATE_NORMAL,
+		                            tforecolor.red, tforecolor.green, tforecolor.blue);
+		MCscreen->system_fore_pixel = tforecolor;
+
 		// MW-2012-01-27: [[ Bug 9511 ]] Set the hilite color based on the current GTK theme.
 		MCColor thilitecolor;
 		moz_gtk_get_widget_color(GTK_STATE_SELECTED, thilitecolor.red, thilitecolor.green, thilitecolor.blue);
@@ -315,6 +437,90 @@ Boolean MCNativeTheme::load()
 	}
 
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Linux implementations of the platform appearance query functions.
+// These override the stub definitions in desktop.cpp (which are gated to
+// non-Linux platforms after our desktop.cpp change).
+
+// Format a GDK colour (16-bit components) as an "#rrggbb" hex string.
+static void format_gdk_color(uint2 red, uint2 green, uint2 blue,
+                             char *p_buf, size_t p_buflen)
+{
+    if (p_buflen < 8)
+        return;
+    // GDK components are 0..65535; hex string uses 0..255.
+    snprintf(p_buf, p_buflen, "#%02x%02x%02x",
+             (unsigned)(red   >> 8),
+             (unsigned)(green >> 8),
+             (unsigned)(blue  >> 8));
+}
+
+extern "C" bool MCplatformIsDarkMode(void)
+{
+    // Fast path: explicit "prefer dark theme" GtkSettings flag.
+    // Only attempted when the property actually exists on this GTK build —
+    // g_object_get prints a warning (and returns nothing useful) when the
+    // property name is unknown, so we must guard the call.
+    GtkSettings *t_settings = gtk_settings_get_default();
+    if (t_settings != nullptr && g_object_get_ptr != nullptr
+        && prefer_dark_prop_exists(t_settings))
+    {
+        gboolean t_prefer_dark = FALSE;
+        g_object_get_ptr(t_settings, "gtk-application-prefer-dark-theme",
+                         &t_prefer_dark, (gchar *)nullptr);
+        if (t_prefer_dark)
+            return true;
+    }
+
+    // Fallback: measure the window background luminance.  Themes like
+    // "Adwaita-dark" or "Yaru-dark" don't set gtk-application-prefer-dark-theme
+    // but render a dark background.  GDK colour components are 0–65535;
+    // weighted luminance below 50 % (ITU-R BT.709) means dark.
+    uint2 r = 0xffff, g = 0xffff, b = 0xffff;
+    moz_gtk_get_widget_color(GTK_STATE_NORMAL, r, g, b);
+    double lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return lum < (0.5 * 65535.0);
+}
+
+extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen)
+{
+    uint2 r = 0xffff, g = 0xffff, b = 0xffff;
+    moz_gtk_get_widget_color(GTK_STATE_NORMAL, r, g, b);
+    format_gdk_color(r, g, b, p_buf, p_buflen);
+}
+
+extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen)
+{
+    uint2 r = 0, g = 0, b = 0;
+    moz_gtk_get_widget_fg_color(GTK_STATE_NORMAL, r, g, b);
+    format_gdk_color(r, g, b, p_buf, p_buflen);
+}
+
+// Implement getsystemappearance() for Linux so that "the systemAppearance"
+// property returns "dark" or "light" correctly.  desktop-dc.cpp is excluded
+// from the Linux build, so without this override the base-class stub in
+// uidc.cpp always returns kMCSystemAppearanceLight.
+#include "lnxdc.h"
+void MCScreenDC::getsystemappearance(MCSystemAppearance &r_appearance)
+{
+    r_appearance = MCplatformIsDarkMode() ? kMCSystemAppearanceDark
+                                          : kMCSystemAppearanceLight;
+}
+
+void MCScreenDC::getsystemwindowcolor(MCStringRef &r_color)
+{
+    char t_buf[8] = "#ffffff";
+    MCplatformGetWindowBackgroundColor(t_buf, sizeof(t_buf));
+    /* UNCHECKED */ MCStringCreateWithCString(t_buf, r_color);
+}
+
+void MCScreenDC::getsystemtextcolor(MCStringRef &r_color)
+{
+    char t_buf[8] = "#000000";
+    MCplatformGetLabelColor(t_buf, sizeof(t_buf));
+    /* UNCHECKED */ MCStringCreateWithCString(t_buf, r_color);
 }
 
 

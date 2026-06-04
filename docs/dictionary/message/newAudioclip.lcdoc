@@ -9,11 +9,11 @@ Sent to a new audio clip right after it's created.
 
 Associations: audioclip
 
-Introduced: 8.1
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 on newAudioclip -- play a new audio clip as soon as it is created

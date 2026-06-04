@@ -10,11 +10,11 @@ Summary:
 Places the <insertion point> in a <field>, makes a <control> active, or
 removes focus from all controls.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 focus on field 1

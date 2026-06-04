@@ -9,7 +9,7 @@ Specifies the name of a <menu bar> to use when a <stack> is frontmost.
 
 Associations: stack
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 

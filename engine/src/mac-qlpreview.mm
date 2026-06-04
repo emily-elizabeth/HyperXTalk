@@ -102,9 +102,11 @@ void MCStackWriteQLPreview(MCStack *p_stack, MCStringRef p_path)
                                t_full);
             t_scaled = CGBitmapContextCreateImage(t_ctx);
         }
+        // t_scaled is now a distinct image; release the original.
+        CGImageRelease(t_full);
+        t_full = NULL;
     }
-
-    CGImageRelease(t_full);
+    // If no scaling was done, t_scaled == t_full — don't double-release.
 
     if (t_scaled == NULL)
     {
@@ -134,6 +136,7 @@ void MCStackWriteQLPreview(MCStack *p_stack, MCStringRef p_path)
         CFRelease(t_dest);
     }
 
+    // Release the image we actually encoded (may be t_full or a scaled copy).
     CGImageRelease(t_scaled);
     if (t_ctx) CGContextRelease(t_ctx);
 

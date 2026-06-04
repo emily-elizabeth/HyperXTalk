@@ -1,19 +1,3 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
-
-This file is part of LiveCode.
-
-LiveCode is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License v3 as published by the Free
-Software Foundation.
-
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
-
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -53,6 +37,8 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCAssertCmd;
 	case S_BEEP:
 		return new MCBeep;
+	case S_BRING_APPLICATION_TO_FRONT:
+		return new MCBringApplicationToFront;
 	case S_BREAK:
 		return new MCBreak;
 	case S_BREAKPOINT:
@@ -202,6 +188,8 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCPop;
 	case S_POPUP:
 		return new MCPopup;
+	case S_POPOVER:
+		return new MCPopover;
 	case S_POST:
 		return new MCPost;
 	case S_PREPARE:
@@ -457,6 +445,8 @@ MCExpression *MCN_new_function(int2 which)
 		t_new_function = new MCDateFormat; break;
 	case F_DECOMPRESS:
 		t_new_function = new MCDecompress; break;
+	case F_DELETE_CREDENTIAL:
+		t_new_function = new MCDeleteCredential; break;
 	case F_DELETE_REGISTRY:
 		t_new_function = new MCDeleteRegistry; break;
 	case F_DELETE_RESOURCE:
@@ -669,6 +659,8 @@ MCExpression *MCN_new_function(int2 which)
 		t_new_function = new MCMovingControls; break;
     case F_NATIVE_CHAR_TO_NUM:
         t_new_function = new MCNativeCharToNum; break;
+    case F_NATURAL_SCROLLING:
+        t_new_function = new MCNaturalScrolling; break;
 	case F_NUM_TO_CHAR:
 		t_new_function = new MCNumToChar; break;
     case F_NUM_TO_NATIVE_CHAR:
@@ -743,6 +735,8 @@ MCExpression *MCN_new_function(int2 which)
 		t_new_function = new MCReplaceText; break;
 	case F_RESULT:
 		t_new_function = new MCTheResult; break;
+	case F_RETRIEVE_CREDENTIAL:
+		t_new_function = new MCRetrieveCredential; break;
 	case F_ROUND:
 		t_new_function = new MCRound; break;
 	case F_SCREEN_COLORS:
@@ -810,6 +804,8 @@ MCExpression *MCN_new_function(int2 which)
 		t_new_function = new MCSqrt; break;
 	case F_STACKS:
 		t_new_function = new MCStacks; break;
+	case F_STORE_CREDENTIAL:
+		t_new_function = new MCStoreCredential; break;
 	case F_STACK_SPACE:
 		t_new_function = new MCStackSpace; break;
 	case F_STAT_ROUND:

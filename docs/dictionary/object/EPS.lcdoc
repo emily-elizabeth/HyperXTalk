@@ -7,7 +7,7 @@ Syntax: EPS
 Summary:
 A <control> that displays <EPS|Encapsulated PostScript> (<EPS>).
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: linux
 

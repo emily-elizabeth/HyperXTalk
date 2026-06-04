@@ -10,11 +10,11 @@ designate a <file> on the World Wide Web.
 
 Associations: internet library
 
-Introduced: 2.5
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Security: network
 
@@ -139,14 +139,6 @@ scheme, see [RFC 1630](https://tools.ietf.org/html/rfc1630).
 > <standalone application|standalone>. In the Inclusions pane of the 
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
-
->*Cross-platform note:* On iOS and Android, you can use the <https> 
-> <keyword> without the need for the <Internet library>. When
-> specifying 
-> <URL(glossary)|URLs> for iOS and Android, you must use the
-> appropriate 
-> form that conforms to [RFC
-> 1630](https://tools.ietf.org/html/rfc1630). 
 
 References: post (command), put (command), load (command),
 group (command), delete URL (command), get (command),

@@ -10,11 +10,11 @@ Summary:
 <return|Returns> the <decode|decoded> form of a <URL> that was
 <encode|encoded> for posting to an <HTTP> <server>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 URLDecode("A+B%2F1+2") -- returns "A B/1 2"

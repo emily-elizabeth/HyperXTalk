@@ -7,7 +7,7 @@ Syntax: show menubar
 Summary:
 Displays the <menu bar> on <Mac OS|Mac OS systems>.
 
-Introduced: 1.0
+Introduced: 1.0.0
 
 OS: mac
 

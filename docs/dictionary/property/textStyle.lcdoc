@@ -14,11 +14,11 @@ Specifies the style or styles applied to text in an <object(glossary)>.
 Associations: stack, card, field, button, graphic, scrollbar, player,
 image
 
-Introduced: 1.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 set the textStyle of line 2 of field "Choices" to "italic,underline"
@@ -72,16 +72,6 @@ Here, style can be one of bold, condensed, expanded, italic, oblique,
 box, threedbox, underline, strikeout, link. For example:
 
     set the <textStyle> ["bold"] of field 1 to true
-
-Changes:
-The "link" style was introduced in version 1.1. In previous versions,
-the term "group" was used. The term "group" is still available as a
-partial synonym: setting the <textStyle> of a <chunk> to "group" sets it
-to "link".
-
-As of version 5.0.2 a new array variant of the <textStyle> property has
-been added allowing for access to individual textStyles independently
-from the others by specifying the required style as an array key.
 
 References: fontStyles (function), object (glossary), property (glossary),
 keyword (glossary), grouped text (glossary), chunk (glossary),

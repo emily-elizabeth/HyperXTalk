@@ -10,9 +10,9 @@ Sets up a <callback|callback message> to be sent periodically during
 
 Associations: internet library
 
-Introduced: 2.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, html5
+OS: mac, windows, linux
 
 Platforms: desktop, server
 

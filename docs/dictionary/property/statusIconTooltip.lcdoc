@@ -7,7 +7,7 @@ Syntax: set the statusIconTooltip to <tooltipText>
 Summary:
 Sets the tooltip shown when the user hovers over the system tray icon.
 
-Introduced: 2.6
+Introduced: 1.0.0
 
 OS: windows
 

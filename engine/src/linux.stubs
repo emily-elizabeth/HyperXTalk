@@ -72,6 +72,9 @@ pangoft2 libpangoft2-1.0.so.0
 
 pangocairo libpangocairo-1.0.so.0
 	pango_cairo_font_map_get_default: () -> (pointer)
+	pango_cairo_create_layout: (pointer) -> (pointer)
+	pango_cairo_update_layout: (pointer, pointer) -> ()
+	pango_cairo_show_layout: (pointer, pointer) -> ()
 
 pango libpango-1.0.so.0
 	pango_context_new: () -> (pointer)
@@ -91,6 +94,7 @@ pango libpango-1.0.so.0
 	pango_layout_set_font_description: (pointer, pointer) -> ()
 	pango_layout_get_extents: (pointer, pointer, pointer) -> ()
 	pango_layout_get_pixel_extents: (pointer, pointer, pointer) -> ()
+	pango_layout_get_pixel_size: (pointer, pointer, pointer) -> ()
 	pango_layout_get_iter: (pointer) -> (pointer)
 	pango_layout_iter_free: (pointer) -> ()
 	pango_layout_iter_get_run: (pointer) -> (pointer)
@@ -301,6 +305,7 @@ gdk libgdk-x11-2.0.so.0
 	gdk_keyval_to_unicode: (integer) -> (integer)
 	gdk_rgb_find_color: (pointer, pointer) -> ()
 	gdk_drawable_get_colormap: (pointer) -> (pointer)
+	gdk_drawable_get_visual: (pointer) -> (pointer)
 	gdk_window_set_background: (pointer, pointer, integer) -> ()
 	gdk_notify_startup_complete: () -> ()
 	gdk_window_ensure_native: (pointer) -> (integer)
@@ -335,6 +340,8 @@ gdk libgdk-x11-2.0.so.0
 	gdk_cairo_set_source_window: (pointer, pointer, double, double) -> ()
 	gdk_window_input_shape_combine_region: (pointer, pointer, integer, integer) -> ()
 	gdk_window_get_frame_extents: (pointer, pointer) -> ()
+	gdk_window_add_filter: (pointer, pointer, pointer) -> ()
+	gdk_window_remove_filter: (pointer, pointer, pointer) -> ()
 
 gdk_pixbuf libgdk_pixbuf-2.0.so.0
 	gdk_pixbuf_get_pixels: (pointer) -> (pointer)
@@ -353,11 +360,29 @@ gdk_pixbuf libgdk_pixbuf-2.0.so.0
 cairo libcairo.so.2
 	cairo_set_operator: (pointer, integer) -> ()
 	cairo_destroy: (pointer) -> ()
-	cairo_set_source_rgba: (pointer, integer, integer, integer) -> ()
+	cairo_set_source_rgba: (pointer, double, double, double, double) -> ()
 	cairo_clip: (pointer) -> ()
 	cairo_paint: (pointer) -> ()
-	cairo_rectangle: (pointer, integer, integer, integer, integer) -> ()
+	cairo_rectangle: (pointer, double, double, double, double) -> ()
 	cairo_fill: (pointer) -> ()
+	cairo_pattern_create_linear: (double, double, double, double) -> (pointer)
+	cairo_pattern_add_color_stop_rgb: (pointer, double, double, double, double) -> ()
+	cairo_set_source: (pointer, pointer) -> ()
+	cairo_pattern_destroy: (pointer) -> ()
+	cairo_save: (pointer) -> ()
+	cairo_restore: (pointer) -> ()
+	cairo_translate: (pointer, double, double) -> ()
+	cairo_scale: (pointer, double, double) -> ()
+	cairo_paint_with_alpha: (pointer, double) -> ()
+	cairo_set_source_rgb: (pointer, double, double, double) -> ()
+	cairo_set_line_width: (pointer, double) -> ()
+	cairo_move_to: (pointer, double, double) -> ()
+	cairo_line_to: (pointer, double, double) -> ()
+	cairo_stroke: (pointer) -> ()
+	cairo_select_font_face: (pointer, pointer, integer, integer) -> ()
+	cairo_set_font_size: (pointer, double) -> ()
+	cairo_text_extents: (pointer, pointer, pointer) -> ()
+	cairo_show_text: (pointer, pointer) -> ()
 
 gtk libgtk-x11-2.0.so.0
 	#@ gtk_major_version
@@ -656,6 +681,7 @@ gobject libgobject-2.0.so.0
 	g_object_set_data: (pointer, pointer, pointer) -> ()
 	g_object_set_data_full: (pointer, pointer, pointer, pointer) -> ()
 	g_object_get_data: (pointer, pointer) -> (pointer)
+	g_object_class_find_property: (pointer, pointer) -> (pointer)
 
 	g_param_spec_boolean: (pointer, pointer, pointer, integer, integer) -> (pointer)
 

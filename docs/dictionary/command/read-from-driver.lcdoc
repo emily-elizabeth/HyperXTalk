@@ -9,7 +9,7 @@ Takes incoming data from a <peripheral device|device> that has been
 opened with the <open driver> <command>, and places the data in the <it>
 <variable>. 
 
-Introduced: 1.1.1
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
@@ -73,10 +73,6 @@ device> such as a modem.
 The until <string> form reads data until the specified string is
 encountered. The until empty, until end, and until EOF forms read data
 until there is no more data to be read.
-
-Changes:
-Support for using serial drivers with OS X systems was added in version
-2.0. 
 
 References: open driver (command), write to driver (command),
 read from process (command), function (control structure),

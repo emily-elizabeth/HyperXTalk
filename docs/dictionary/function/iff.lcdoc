@@ -7,11 +7,11 @@ Syntax: iff(<condition>, <trueResult>, <falseResult>)
 Summary:
 <return|Returns> one of two values depending on whether a condition is true or false.
 
-Introduced: 10.0
+Introduced: 1.0.0
 
-OS: mac, windows, linux, ios, android
+OS: mac, windows, linux
 
-Platforms: desktop, server, mobile
+Platforms: desktop, server
 
 Example:
 put iff(x > 0, "positive", "non-positive") into tSign

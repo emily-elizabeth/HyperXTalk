@@ -7,7 +7,7 @@ Syntax: randomBytes(<byteCount>)
 Summary:
 Returns <byteCount> random bytes.
 
-Introduced: 4.6
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
