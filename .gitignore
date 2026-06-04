@@ -1,0 +1,149 @@
+# Specific files #
+##################
+engine/private/
+engine/src/hashedstrings.cpp
+engine/src/encodederrors.cpp
+engine/src/startupstack.cpp
+engine/src/linuxstubs.cpp
+engine/src/quicktimestubs.mac.cpp
+engine/include/revbuild.h
+lcidlc/src/EncodedSupport.c
+lcidlc/src/EncodedJavaSupport.c
+*/derived_src/*
+IMarketBillingService.java
+crypt.cpp
+crypt.h
+deploysecurity_encrypted.cpp
+encryptedobjectstream.cpp
+encryptedobjectstream.h
+encryptedstack.cpp
+encryptedstack.h
+stacksecurity_encrypted.cpp
+util/perfect/perfect.linux-*
+**/extensions/*/*/*.xml
+**/extensions/*/*/*.lci
+**/extensions/*/*/*.lcm
+**/extensions/*/*/*.lce
+**/extensions/*/*/api.lcdoc
+*/src/.lci/*
+
+# Compiled source and intermediates #
+###################
+*.i
+*.ii
+*.com
+*.class
+*.dll
+# Allow the Windows Runtime DLLs needed for building standalones on Mac
+!ide/Runtime/Windows/x86-64/Support/*.dll
+!ide/Runtime/Windows/x86-64/Externals/*.dll
+!ide/Runtime/Windows/x86-64/Externals/Database Drivers/*.dll
+*.exe
+*.o
+*.so
+*.a
+*.pyc
+*.d
+*.stamp
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+*.bz2
+*.tgz
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+*.db
+
+# Projects and project setting files #
+#########################
+*.pbxuser
+*.perspectivev3
+*.xcworkspace
+*.xcworkspacedata
+xcuserdata/
+*.vcproj.*.user
+*.ncb
+*.suo
+*.mode1v3
+*.xcworkspacedata
+*.creator.user
+*.Makefile
+*.mk
+*.xcodeproj/*
+*.pbxproj
+*.vcproject
+*.vcxproject
+make-*_*/
+vsprojects/
+xcprojects/
+GPATH
+GRTAGS
+GTAGS
+
+# Build folders #
+#################
+_build/
+_cache/
+build/
+/_tests/
+*-bin/
+mac-bin
+build-*/
+*.gn
+
+# SDKs          #
+#################
+sdks/
+
+# Ignore prebuilts #
+###################
+prebuilt/lib
+prebuilt/bin
+prebuilt/share
+prebuilt/build
+prebuilt/fetched
+
+# Windows build artefacts
+*.idb
+*.pdb
+# ide/Runtime/Windows/x86-64/Standalone is now tracked (needed for building Windows standalones on Mac)
+
+# Local secrets — never commit
+.env.local
+*.p12
+*.cer
+*.mobileprovision
+codesign.cfg
+build-win-x86_64/livecode/Debug/lib/libcef_library_wrapper.lib
+build-win-x86_64/livecode/Debug/lib/libcef_library_wrapper.lib
+build-win-x86_64/livecode/thirdparty/libcef/Debug/lib/libcef_library_wrapper.lib
+build-win-x86_64/livecode/Debug/Externals/CEF/libcef.dll
+build/engine/Debug/Externals/CEF 
+build/engine/Release/Externals/CEF 
+/thirdparty/libcef
+/Installer/output
+ide/Documentation/html_viewer/resources/data/api/api.sqlite
+/ide/Documentation/html_viewer/resources/data/api
