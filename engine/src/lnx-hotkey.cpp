@@ -51,6 +51,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "mcstring.h"
 #include "hotkey.h"
 #include "globals.h"
+#include "variable.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Self-pipe for main-thread dispatch
