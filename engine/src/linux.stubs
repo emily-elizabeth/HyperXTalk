@@ -39,6 +39,8 @@ X11 libX11.so.6
 	XUngrabKey: (pointer, integer, integer, integer) -> ()
 	XSetErrorHandler: (pointer) -> (pointer)
 	XDefaultRootWindow: (pointer) -> (integer)
+	XSelectInput: (pointer, integer, integer) -> ()
+	XSync: (pointer, integer) -> (integer)
 
 Xinerama libXinerama.so.1
 	XineramaIsActive: (pointer) -> (integer)

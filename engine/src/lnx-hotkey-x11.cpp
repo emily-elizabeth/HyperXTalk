@@ -76,8 +76,10 @@ static void *_hotkey_thread(void *unused)
             continue;
 
         XKeyEvent *ke = &t_event.xkey;
-        // Strip NumLock / CapsLock / ScrollLock before matching.
-        unsigned t_clean = ke->state & ~(Mod2Mask | LockMask | Mod5Mask);
+        // Keep only the modifier bits we care about; ignore NumLock, CapsLock,
+        // ScrollLock, XKB group bits, and pointer-button state bits.
+        unsigned t_clean = ke->state &
+            (ShiftMask | ControlMask | Mod1Mask | Mod3Mask | Mod4Mask);
 
         pthread_mutex_lock(&s_mutex);
         size_t i;
@@ -117,6 +119,9 @@ int lnx_hotkey_x11_init(int write_fd)
 
     s_root           = DefaultRootWindow(s_bg_display);
     s_pipe_write_fd  = write_fd;
+
+    // Ensure KeyPress events are delivered to the root window's event queue.
+    XSelectInput(s_bg_display, s_root, KeyPressMask);
 
     if (pthread_create(&s_thread, NULL, _hotkey_thread, NULL) != 0)
     {
@@ -260,10 +265,13 @@ int lnx_hotkey_x11_parse(const char *p_key,
 ////////////////////////////////////////////////////////////////////////////////
 // Grab / ungrab helpers
 
-// Silent X error handler used during grab/ungrab to swallow BadAccess.
-static int _silent_xerror(Display *dpy, XErrorEvent *err)
+// Error handler that records whether a BadAccess was received.
+static int s_grab_had_error = 0;
+static int _grab_xerror(Display *dpy, XErrorEvent *err)
 {
-    (void)dpy; (void)err;
+    (void)dpy;
+    if (err->error_code == BadAccess)
+        s_grab_had_error = 1;
     return 0;
 }
 
@@ -272,12 +280,23 @@ int lnx_hotkey_x11_grab(unsigned modifiers, unsigned keycode)
     if (!s_bg_display)
         return 0;
 
-    XErrorHandler t_old = XSetErrorHandler(_silent_xerror);
+    s_grab_had_error = 0;
+    XErrorHandler t_old = XSetErrorHandler(_grab_xerror);
     unsigned i;
     for (i = 0; i < sizeof(kIgnoredMods) / sizeof(kIgnoredMods[0]); i++)
         XGrabKey(s_bg_display, (int)keycode, modifiers | kIgnoredMods[i],
                  s_root, True, GrabModeAsync, GrabModeAsync);
+    XSync(s_bg_display, False);   // flush + wait so errors arrive before we restore handler
     XSetErrorHandler(t_old);
+
+    if (s_grab_had_error)
+    {
+        fprintf(stderr,
+                "lnx-hotkey: XGrabKey BadAccess — key already grabbed by "
+                "another application (keycode=%u mods=%u)\n",
+                keycode, modifiers);
+        return 0;
+    }
     return 1;
 }
 

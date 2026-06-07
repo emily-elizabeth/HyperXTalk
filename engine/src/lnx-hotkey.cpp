@@ -138,7 +138,15 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
     }
     MCMemoryDeallocate(t_cstr);
 
-    lnx_hotkey_x11_grab(t_mods, t_kcode);
+    if (!lnx_hotkey_x11_grab(t_mods, t_kcode))
+    {
+        lnx_hotkey_x11_flush();
+        MCStringRef t_err;
+        /* UNCHECKED */ MCStringCreateWithCString("hotkey already in use by another application", t_err);
+        MCresult->setvalueref(t_err);
+        MCValueRelease(t_err);
+        return false;
+    }
 
     if (!lnx_hotkey_x11_store(p_id, t_kcode, t_mods))
     {
