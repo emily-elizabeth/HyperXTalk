@@ -28,30 +28,18 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 //   the Linux engine.  The GLib callback runs on the main thread, so
 //   MCHotkeyDispatchFired() is always called from the correct thread.
 //
-// XGrabKey registers with Num Lock (Mod2) and Caps Lock (LockMask) masked
-// out so the hotkey fires regardless of those lock states.
+// All X11 interaction is delegated to lnx-hotkey-x11.cpp so that the
+// X11 integer typedefs (Window, Atom, Drawable, Pixmap) never appear in
+// the same TU as the GDK pointer aliases defined by sysdefs.h via prefix.h.
 //
 // Requires: -lX11  (already linked in the Linux desktop build)
 //           GLib / GDK (already linked)
 //
 
 #include "prefix.h"
-
-// sysdefs.h (via prefix.h) aliases Window/Atom/Drawable/Pixmap to GDK types;
-// undef them so <X11/Xlib.h> can declare the real X11 typedefs this file needs.
-#undef Window
-#undef Atom
-#undef Drawable
-#undef Pixmap
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
 #include <glib.h>
-#include <pthread.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdint.h>
 
 #include "mcstring.h"
@@ -59,12 +47,14 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "globals.h"
 #include "variable.h"
 
+#include "lnx-hotkey-x11.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // Self-pipe for main-thread dispatch
 
-static int  s_pipe_read  = -1;
-static int  s_pipe_write = -1;
-static guint s_io_watch  = 0;   // GLib watch source ID
+static int   s_pipe_read  = -1;
+static int   s_pipe_write = -1;
+static guint s_io_watch   = 0;   // GLib watch source ID
 
 // GLib I/O callback — called on the main thread when data is ready on the pipe.
 static gboolean _pipe_readable(GIOChannel * /*channel*/,
@@ -101,200 +91,6 @@ static bool _ensure_pipe()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Per-hotkey Linux state
-
-struct MCLnxHotkeyEntry
-{
-    int32_t  engine_id;
-    KeyCode  key_code;
-    unsigned modifiers;  // clean modifier mask (no Num/Caps variants)
-};
-
-static MCLnxHotkeyEntry *s_lnx_entries     = nullptr;
-static uindex_t          s_lnx_entry_count = 0;
-
-// Background thread state.
-static Display   *s_bg_display    = nullptr;
-static Window     s_root          = None;
-static pthread_t  s_thread;
-static bool       s_thread_running = false;
-
-// Mutex protecting s_lnx_entries from the background thread.
-static pthread_mutex_t s_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-// Modifier combinations to ignore (Num Lock, Caps Lock, both).
-static const unsigned kIgnoredMods[] = { 0, Mod2Mask, LockMask, Mod2Mask | LockMask };
-
-////////////////////////////////////////////////////////////////////////////////
-// Background thread: blocks on XNextEvent, pipes matching IDs to the main thread.
-
-static void *_hotkey_thread(void * /*unused*/)
-{
-    XEvent t_event;
-    for (;;)
-    {
-        XNextEvent(s_bg_display, &t_event);
-
-        if (t_event.type != KeyPress)
-            continue;
-
-        XKeyEvent *ke = &t_event.xkey;
-        // Strip ignored modifier bits before comparing.
-        unsigned t_clean = ke->state & ~(Mod2Mask | LockMask | Mod5Mask);
-
-        pthread_mutex_lock(&s_mutex);
-        for (uindex_t i = 0; i < s_lnx_entry_count; i++)
-        {
-            if (s_lnx_entries[i].key_code  == ke->keycode &&
-                s_lnx_entries[i].modifiers == t_clean)
-            {
-                int32_t t_id = s_lnx_entries[i].engine_id;
-                pthread_mutex_unlock(&s_mutex);
-                (void)write(s_pipe_write, &t_id, sizeof(t_id));
-                goto next_event;
-            }
-        }
-        pthread_mutex_unlock(&s_mutex);
-
-    next_event:;
-    }
-    return nullptr;
-}
-
-static bool _ensure_thread()
-{
-    if (s_thread_running)
-        return true;
-
-    s_bg_display = XOpenDisplay(nullptr);
-    if (!s_bg_display)
-        return false;
-
-    s_root = DefaultRootWindow(s_bg_display);
-
-    if (pthread_create(&s_thread, nullptr, _hotkey_thread, nullptr) != 0)
-    {
-        XCloseDisplay(s_bg_display);
-        s_bg_display = nullptr;
-        return false;
-    }
-    pthread_detach(s_thread);
-    s_thread_running = true;
-    return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Key string parser  ("Ctrl+Shift+H" → X11 modifier mask + KeyCode)
-
-static bool _token_to_keysym(const char *p_token, KeySym& r_sym)
-{
-    if (p_token[1] == '\0')
-    {
-        char c = (char)tolower((unsigned char)p_token[0]);
-        if (c >= 'a' && c <= 'z') { r_sym = (KeySym)c;          return true; }
-        if (c >= '0' && c <= '9') { r_sym = (KeySym)c;          return true; }
-    }
-
-    if ((p_token[0] == 'f' || p_token[0] == 'F') && p_token[1] != '\0')
-    {
-        int fnum = atoi(p_token + 1);
-        if (fnum >= 1 && fnum <= 12) { r_sym = XK_F1 + fnum - 1; return true; }
-    }
-
-    if (strcasecmp(p_token, "space")     == 0) { r_sym = XK_space;     return true; }
-    if (strcasecmp(p_token, "tab")       == 0) { r_sym = XK_Tab;       return true; }
-    if (strcasecmp(p_token, "return")    == 0) { r_sym = XK_Return;    return true; }
-    if (strcasecmp(p_token, "enter")     == 0) { r_sym = XK_Return;    return true; }
-    if (strcasecmp(p_token, "escape")    == 0) { r_sym = XK_Escape;    return true; }
-    if (strcasecmp(p_token, "esc")       == 0) { r_sym = XK_Escape;    return true; }
-    if (strcasecmp(p_token, "delete")    == 0) { r_sym = XK_Delete;    return true; }
-    if (strcasecmp(p_token, "backspace") == 0) { r_sym = XK_BackSpace; return true; }
-    if (strcasecmp(p_token, "home")      == 0) { r_sym = XK_Home;      return true; }
-    if (strcasecmp(p_token, "end")       == 0) { r_sym = XK_End;       return true; }
-    if (strcasecmp(p_token, "pageup")    == 0) { r_sym = XK_Page_Up;   return true; }
-    if (strcasecmp(p_token, "pagedown")  == 0) { r_sym = XK_Page_Down; return true; }
-    if (strcasecmp(p_token, "left")      == 0) { r_sym = XK_Left;      return true; }
-    if (strcasecmp(p_token, "right")     == 0) { r_sym = XK_Right;     return true; }
-    if (strcasecmp(p_token, "up")        == 0) { r_sym = XK_Up;        return true; }
-    if (strcasecmp(p_token, "down")      == 0) { r_sym = XK_Down;      return true; }
-    if (strcasecmp(p_token, "insert")    == 0) { r_sym = XK_Insert;    return true; }
-
-    return false;
-}
-
-static bool _parse_key_string(MCStringRef p_str,
-                               unsigned&   r_modifiers,
-                               KeyCode&    r_keycode,
-                               char*       r_error,
-                               size_t      p_error_len)
-{
-    char *t_cstr = nullptr;
-    if (!MCStringConvertToCString(p_str, t_cstr))
-    {
-        strncpy(r_error, "out of memory", p_error_len);
-        return false;
-    }
-
-    r_modifiers = 0;
-
-    char *t_tokens[16];
-    int   t_count = 0;
-    char *t_p     = t_cstr;
-
-    while (*t_p && t_count < 15)
-    {
-        char *t_start = t_p;
-        while (*t_p && *t_p != '+') t_p++;
-        *t_p = '\0';
-        t_tokens[t_count++] = t_start;
-        if (*(t_p + 1)) t_p++;
-        else            break;
-    }
-
-    for (int i = 0; i < t_count - 1; i++)
-    {
-        const char *m = t_tokens[i];
-        if      (strcasecmp(m, "ctrl")    == 0 || strcasecmp(m, "control") == 0)
-            r_modifiers |= ControlMask;
-        else if (strcasecmp(m, "alt")     == 0 || strcasecmp(m, "option")  == 0)
-            r_modifiers |= Mod1Mask;
-        else if (strcasecmp(m, "shift")   == 0)
-            r_modifiers |= ShiftMask;
-        else if (strcasecmp(m, "win")     == 0 || strcasecmp(m, "cmd")     == 0 ||
-                 strcasecmp(m, "command") == 0)
-            r_modifiers |= Mod4Mask;  // Super / Windows key
-        else
-        {
-            snprintf(r_error, p_error_len, "unknown modifier: %s", m);
-            MCMemoryDeallocate(t_cstr);
-            return false;
-        }
-    }
-
-    KeySym t_sym = NoSymbol;
-    if (t_count == 0 || !_token_to_keysym(t_tokens[t_count - 1], t_sym))
-    {
-        snprintf(r_error, p_error_len, "unknown key: %s",
-                 t_count > 0 ? t_tokens[t_count - 1] : "(none)");
-        MCMemoryDeallocate(t_cstr);
-        return false;
-    }
-
-    r_keycode = XKeysymToKeycode(s_bg_display, t_sym);
-    if (r_keycode == 0)
-    {
-        snprintf(r_error, p_error_len,
-                 "key not available on this keyboard layout: %s",
-                 t_tokens[t_count - 1]);
-        MCMemoryDeallocate(t_cstr);
-        return false;
-    }
-
-    MCMemoryDeallocate(t_cstr);
-    return true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // Platform entry points
 
 bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
@@ -308,7 +104,7 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
         return false;
     }
 
-    if (!_ensure_thread())
+    if (!lnx_hotkey_x11_init(s_pipe_write))
     {
         MCStringRef t_err;
         /* UNCHECKED */ MCStringCreateWithCString("failed to open X display for hotkey thread", t_err);
@@ -317,92 +113,64 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
         return false;
     }
 
+    char *t_cstr = nullptr;
+    if (!MCStringConvertToCString(p_key, t_cstr))
+    {
+        MCStringRef t_err;
+        /* UNCHECKED */ MCStringCreateWithCString("out of memory converting key string", t_err);
+        MCresult->setvalueref(t_err);
+        MCValueRelease(t_err);
+        return false;
+    }
+
     unsigned t_mods  = 0;
-    KeyCode  t_kcode = 0;
+    unsigned t_kcode = 0;
     char     t_error[128] = {};
 
-    if (!_parse_key_string(p_key, t_mods, t_kcode, t_error, sizeof(t_error)))
+    if (!lnx_hotkey_x11_parse(t_cstr, &t_mods, &t_kcode, t_error, sizeof(t_error)))
     {
+        MCMemoryDeallocate(t_cstr);
         MCStringRef t_err;
         /* UNCHECKED */ MCStringCreateWithCString(t_error, t_err);
         MCresult->setvalueref(t_err);
         MCValueRelease(t_err);
         return false;
     }
+    MCMemoryDeallocate(t_cstr);
 
-    // Grab with every combination of Num Lock / Caps Lock.
-    // Suppress X errors (e.g. BadAccess if another app holds the key).
-    XErrorHandler t_old = XSetErrorHandler([](Display *, XErrorEvent *) -> int { return 0; });
+    lnx_hotkey_x11_grab(t_mods, t_kcode);
 
-    for (unsigned ignore : kIgnoredMods)
-        XGrabKey(s_bg_display, t_kcode, t_mods | ignore,
-                 s_root, True, GrabModeAsync, GrabModeAsync);
-
-    XFlush(s_bg_display);
-    XSetErrorHandler(t_old);
-
-    // Store the entry (mutex-protected).
-    pthread_mutex_lock(&s_mutex);
-    bool t_ok = MCMemoryResizeArray(s_lnx_entry_count + 1,
-                                    s_lnx_entries, s_lnx_entry_count);
-    if (t_ok)
-        s_lnx_entries[s_lnx_entry_count - 1] = { p_id, t_kcode, t_mods };
-    pthread_mutex_unlock(&s_mutex);
-
-    if (!t_ok)
+    if (!lnx_hotkey_x11_store(p_id, t_kcode, t_mods))
     {
-        for (unsigned ignore : kIgnoredMods)
-            XUngrabKey(s_bg_display, t_kcode, t_mods | ignore, s_root);
-        XFlush(s_bg_display);
+        lnx_hotkey_x11_ungrab(t_mods, t_kcode);
+        lnx_hotkey_x11_flush();
         return false;
     }
 
+    lnx_hotkey_x11_flush();
     return true;
 }
 
 void MCPlatformUnregisterHotkey(int32_t p_id)
 {
-    if (!s_bg_display)
+    if (!lnx_hotkey_x11_display_open())
         return;
 
-    pthread_mutex_lock(&s_mutex);
-    for (uindex_t i = 0; i < s_lnx_entry_count; i++)
+    unsigned t_kcode = 0;
+    unsigned t_mods  = 0;
+
+    if (lnx_hotkey_x11_remove(p_id, &t_kcode, &t_mods))
     {
-        if (s_lnx_entries[i].engine_id == p_id)
-        {
-            KeyCode  t_kcode = s_lnx_entries[i].key_code;
-            unsigned t_mods  = s_lnx_entries[i].modifiers;
-
-            for (uindex_t j = i + 1; j < s_lnx_entry_count; j++)
-                s_lnx_entries[j - 1] = s_lnx_entries[j];
-            s_lnx_entry_count--;
-            pthread_mutex_unlock(&s_mutex);
-
-            for (unsigned ignore : kIgnoredMods)
-                XUngrabKey(s_bg_display, t_kcode, t_mods | ignore, s_root);
-            XFlush(s_bg_display);
-            return;
-        }
+        lnx_hotkey_x11_ungrab(t_mods, t_kcode);
+        lnx_hotkey_x11_flush();
     }
-    pthread_mutex_unlock(&s_mutex);
 }
 
 void MCPlatformUnregisterAllHotkeys()
 {
-    if (!s_bg_display)
+    if (!lnx_hotkey_x11_display_open())
         return;
 
-    pthread_mutex_lock(&s_mutex);
-    for (uindex_t i = 0; i < s_lnx_entry_count; i++)
-    {
-        for (unsigned ignore : kIgnoredMods)
-            XUngrabKey(s_bg_display, s_lnx_entries[i].key_code,
-                       s_lnx_entries[i].modifiers | ignore, s_root);
-    }
-    MCMemoryDeleteArray(s_lnx_entries);
-    s_lnx_entries     = nullptr;
-    s_lnx_entry_count = 0;
-    pthread_mutex_unlock(&s_mutex);
-
-    XFlush(s_bg_display);
+    lnx_hotkey_x11_remove_all_and_ungrab();
+    lnx_hotkey_x11_flush();
 }

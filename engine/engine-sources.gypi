@@ -339,6 +339,7 @@
 			'src/toolbar.cpp',
 			'src/exec-interface-toolbar.cpp',
 				'src/lnx-hotkey.cpp',
+				'src/lnx-hotkey-x11.cpp',
 			'src/widget.cpp',
 			'src/widget-events.cpp',
             'src/widget-ref.cpp',
@@ -652,6 +653,7 @@
 			'src/hotkey.h',
 			'src/hotkey.cpp',
 			'src/lnx-hotkey.cpp',
+			'src/lnx-hotkey-x11.cpp',
 			'src/mac-hotkey.mm',
 			'src/w32-hotkey.cpp',
 
@@ -1061,6 +1063,7 @@
 				'src/mac-hotkey.mm',
 				'src/w32-hotkey.cpp',
 				'src/lnx-hotkey.cpp',
+				'src/lnx-hotkey-x11.cpp',
 		],
 		
 		# Sources used to implement LCB modules in the engine
