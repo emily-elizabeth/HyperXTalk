@@ -37,8 +37,6 @@ void MCMacActivateApplication(void)
 }
 
 // Global hotkeys are desktop-only; no-ops in the server engine.
-#include "hotkey.h"
-
 bool MCPlatformRegisterHotkey(MCStringRef /*p_key*/, int32_t /*p_id*/)
 {
     return false;
