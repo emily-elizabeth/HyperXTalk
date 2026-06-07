@@ -30,6 +30,14 @@ X11 libX11.so.6
 	XMatchVisualInfo: (pointer, integer, integer, integer, pointer) -> (integer)
 	XDefaultScreen: (pointer) -> (integer)
 	XFlush: (pointer) -> ()
+	XOpenDisplay: (pointer) -> (pointer)
+	XCloseDisplay: (pointer) -> ()
+	XNextEvent: (pointer, pointer) -> ()
+	XKeysymToKeycode: (pointer, integer) -> (integer)
+	XGrabKey: (pointer, integer, integer, integer, integer, integer, integer) -> ()
+	XUngrabKey: (pointer, integer, integer, integer) -> ()
+	XSetErrorHandler: (pointer) -> (pointer)
+	XDefaultRootWindow: (pointer) -> (integer)
 
 Xinerama libXinerama.so.1
 	XineramaIsActive: (pointer) -> (integer)
@@ -708,6 +716,9 @@ glib libglib-2.0.so.0
 	g_main_context_find_source_by_id: (pointer, integer) -> (pointer)
 	g_source_destroy: (pointer) -> ()
 	g_error_free: (pointer) -> ()
+	g_io_channel_unix_new: (integer) -> (pointer)
+	g_io_add_watch: (pointer, integer, pointer, pointer) -> (integer)
+	g_io_channel_unref: (pointer) -> ()
 
 gio libgio-2.0.so.0
 	g_content_type_guess: (pointer, pointer, integer, pointer) -> (pointer)
