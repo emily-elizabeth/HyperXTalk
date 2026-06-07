@@ -17,10 +17,11 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 //
 // Windows global hotkey backend using RegisterHotKey / WM_HOTKEY.
 //
-// RegisterHotKey() attaches the hotkey to the invisible window maintained by
-// MCScreenDC.  WM_HOTKEY messages are delivered to that window's WndProc
-// (w32dcw32.cpp), which calls MCHotkeyDispatchFired() on the main thread —
-// so no additional thread synchronisation is needed.
+// RegisterHotKey() is called with hwnd = NULL so that WM_HOTKEY is posted to
+// the calling thread's message queue (msg.hwnd = NULL) rather than to a
+// specific window.  The engine's handle() loop in w32dcw32.cpp catches
+// WM_HOTKEY explicitly before the DispatchMessageW branch — DispatchMessageW
+// does NOT dispatch NULL-hwnd (thread-queue) messages to any WndProc.
 //
 // No extra privileges are required; the API works in normal user processes.
 // MOD_NOREPEAT (0x4000) is set to avoid repeated firing while the key is held.
@@ -31,18 +32,14 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#include "mcstring.h"
-#include "hotkey.h"
-#include "globals.h"
+#include "globdefs.h"
+#include "filedefs.h"
+#include "objdefs.h"
+#include "parsedef.h"
 
-// MCScreenDC::getinvisiblewindow() is the HWND we register against.
-// Forward-declare to avoid pulling in the whole w32dc.h header chain here.
-class MCScreenDC;
-extern MCScreen *MCscreen;
-static inline HWND _invisible_window()
-{
-    return ((MCScreenDC *)MCscreen)->getinvisiblewindow();
-}
+#include "globals.h"
+#include "variable.h"
+#include "hotkey.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Per-hotkey Windows state
@@ -179,9 +176,13 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
         return false;
     }
 
-    // Use the engine ID as the RegisterHotKey atom ID directly.
-    // Valid range is 0x0000–0xBFFF for application-defined IDs.
-    if (!RegisterHotKey(_invisible_window(), (int)p_id, t_mods, t_vk))
+    // Register as a thread-queue hotkey (hwnd = NULL).
+    // WM_HOTKEY is then posted to the thread message queue (msg.hwnd = NULL)
+    // rather than to a specific window.  The engine's handle() loop catches it
+    // explicitly before the DispatchMessageW path, which does NOT dispatch
+    // NULL-hwnd messages to any WndProc.
+    // Valid atom ID range: 0x0000–0xBFFF.
+    if (!RegisterHotKey(NULL, (int)p_id, t_mods, t_vk))
     {
         char t_msg[128];
         _snprintf(t_msg, sizeof(t_msg),
@@ -197,7 +198,7 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
     // Grow the Windows-side entry table.
     if (!MCMemoryResizeArray(s_w32_entry_count + 1, s_w32_entries, s_w32_entry_count))
     {
-        UnregisterHotKey(_invisible_window(), (int)p_id);
+        UnregisterHotKey(NULL, (int)p_id);
         return false;
     }
     s_w32_entries[s_w32_entry_count - 1] = { p_id, (int)p_id };
@@ -210,7 +211,7 @@ void MCPlatformUnregisterHotkey(int32_t p_id)
     {
         if (s_w32_entries[i].engine_id == p_id)
         {
-            UnregisterHotKey(_invisible_window(), s_w32_entries[i].atom_id);
+            UnregisterHotKey(NULL, s_w32_entries[i].atom_id);
             for (uindex_t j = i + 1; j < s_w32_entry_count; j++)
                 s_w32_entries[j - 1] = s_w32_entries[j];
             s_w32_entry_count--;
@@ -221,10 +222,8 @@ void MCPlatformUnregisterHotkey(int32_t p_id)
 
 void MCPlatformUnregisterAllHotkeys()
 {
-    HWND t_hwnd = _invisible_window();
     for (uindex_t i = 0; i < s_w32_entry_count; i++)
-        UnregisterHotKey(t_hwnd, s_w32_entries[i].atom_id);
+        UnregisterHotKey(NULL, s_w32_entries[i].atom_id);
     MCMemoryDeleteArray(s_w32_entries);
     s_w32_entries     = nullptr;
-    s_w32_entry_count = 0;
-}
+    s_w32_entry_coun

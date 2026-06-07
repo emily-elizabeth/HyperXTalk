@@ -414,7 +414,16 @@ Boolean MCScreenDC::handle(real8 sleep, Boolean dispatch, Boolean anyevent,
 			}
 		}
 
-		if (t_os_dispatch)
+		// WM_HOTKEY is registered with hwnd = NULL and is posted as a thread
+		// message (msg.hwnd = NULL).  DispatchMessageW silently drops thread
+		// messages — it does NOT call any WndProc for NULL-hwnd messages — so
+		// we must handle WM_HOTKEY explicitly here before the dispatch branch.
+		if (msg.message == WM_HOTKEY)
+		{
+			MCHotkeyDispatchFired((int32_t)msg.wParam);
+			curinfo->handled = True;
+		}
+		else if (t_os_dispatch)
 			DispatchMessageW(&msg);
 		else
 			MCWindowProc(msg.hwnd, msg.message, msg.wParam, msg.lParam);
@@ -1781,18 +1790,4 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 		// parent window synchronously (via SendMessage) with:
 		//   LOWORD(wParam) = button command ID
 		//   HIWORD(wParam) = 0 (BN_CLICKED / control notification)
-		//   lParam         = toolbar HWND (non-zero for control notifications)
-		if (lParam != 0 && HIWORD(wParam) == 0)
-		{
-			extern void MCWin32ToolbarHandleParentCommand(HWND, HWND, WPARAM);
-			MCWin32ToolbarHandleParentCommand(hwnd, (HWND)lParam, wParam);
-		}
-	}
-	break;
-
-	default:
-		return IsWindowUnicode(hwnd) ? DefWindowProcW(hwnd, msg, wParam, lParam) : DefWindowProcA(hwnd, msg, wParam, lParam);
-	}
-
-	return 0;
-}
+		//   lParam        
