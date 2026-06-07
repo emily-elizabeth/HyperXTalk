@@ -107,6 +107,10 @@ int lnx_hotkey_x11_init(int write_fd)
     if (s_thread_running)
         return 1;  // idempotent
 
+    // Enable Xlib thread safety before opening a display that will be
+    // shared between the main thread (XGrabKey) and the event thread (XNextEvent).
+    XInitThreads();
+
     s_bg_display = XOpenDisplay(NULL);
     if (!s_bg_display)
         return 0;

@@ -30,6 +30,7 @@ X11 libX11.so.6
 	XMatchVisualInfo: (pointer, integer, integer, integer, pointer) -> (integer)
 	XDefaultScreen: (pointer) -> (integer)
 	XFlush: (pointer) -> ()
+	XInitThreads: () -> (integer)
 	XOpenDisplay: (pointer) -> (pointer)
 	XCloseDisplay: (pointer) -> ()
 	XNextEvent: (pointer, pointer) -> ()
