@@ -37,6 +37,12 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include "prefix.h"
 
+// sysdefs.h (via prefix.h) aliases Window/Atom/Drawable/Pixmap to GDK types;
+// undef them so <X11/Xlib.h> can declare the real X11 typedefs this file needs.
+#undef Window
+#undef Atom
+#undef Drawable
+#undef Pixmap
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <glib.h>
