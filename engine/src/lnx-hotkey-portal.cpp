@@ -521,28 +521,8 @@ static void *_portal_thread(void *unused)
 
     while (s_thread_running)
     {
-        // Non-blocking pump of the main connection: drains its incoming queue
-        // and flushes any outgoing messages (e.g. BindShortcuts) that the main
-        // thread sent without flushing, so it never blocks.
-        if (s_conn)
-        {
-            dbus_connection_read_write(s_conn, 0);
-            DBusMessage *smsg;
-            while ((smsg = dbus_connection_pop_message(s_conn)) != NULL)
-            {
-                const char *path  = dbus_message_get_path(smsg);
-                const char *iface = dbus_message_is_signal(smsg, REQUEST_IFACE, "Response")
-                                    ? REQUEST_IFACE : NULL;
-                fprintf(stderr, "lnx-hotkey-portal: s_conn msg: type=%d path=%s%s\n",
-                        dbus_message_is_signal(smsg, REQUEST_IFACE, "Response") ? 4 : 0,
-                        path ? path : "(null)",
-                        iface ? " [Request.Response]" : "");
-                fflush(stderr);
-                dbus_message_unref(smsg);
-            }
-        }
-
         // Block up to 200 ms waiting for Activated signals on our own connection.
+        // s_conn is owned exclusively by the main thread; we do not touch it here.
         dbus_connection_read_write(s_thread_conn, 200);
 
         DBusMessage *msg;
@@ -779,7 +759,8 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
     }
     else
     {
-        // Method reply is just the request object path (o).
+        // Method reply is the request object path (o). Subscribe and wait for
+        // the Request.Response signal to see what GNOME actually bound.
         DBusMessageIter bri;
         const char *bind_req_path = NULL;
         if (dbus_message_iter_init(bind_reply, &bri) &&
@@ -788,6 +769,36 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
         fprintf(stderr, "lnx-hotkey-portal: BindShortcuts request path: %s\n",
                 bind_req_path ? bind_req_path : "(unknown)");
         fflush(stderr);
+
+        if (bind_req_path)
+        {
+            // Wait up to 15 s — GNOME may show a dialog the user must confirm.
+            DBusMessage    *bind_resp = NULL;
+            DBusMessageIter bind_results;
+            fprintf(stderr, "lnx-hotkey-portal: waiting for BindShortcuts Response (15s)...\n");
+            fflush(stderr);
+            if (!_wait_for_response(bind_req_path, 15000, &bind_resp, &bind_results))
+            {
+                fprintf(stderr, "lnx-hotkey-portal: BindShortcuts Response timed out or failed\n");
+            }
+            else
+            {
+                fprintf(stderr, "lnx-hotkey-portal: BindShortcuts Response received\n");
+                // Log the "shortcuts" entry from results dict.
+                while (dbus_message_iter_get_arg_type(&bind_results) == DBUS_TYPE_DICT_ENTRY)
+                {
+                    DBusMessageIter entry, vari;
+                    dbus_message_iter_recurse(&bind_results, &entry);
+                    const char *k = NULL;
+                    dbus_message_iter_get_basic(&entry, &k);
+                    fprintf(stderr, "lnx-hotkey-portal:   results key=\"%s\"\n", k ? k : "(null)");
+                    fflush(stderr);
+                    dbus_message_iter_next(&bind_results);
+                }
+                dbus_message_unref(bind_resp);
+            }
+        }
+
         dbus_message_unref(bind_reply);
     }
 
