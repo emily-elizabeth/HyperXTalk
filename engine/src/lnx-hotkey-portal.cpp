@@ -525,7 +525,22 @@ static void *_portal_thread(void *unused)
         // and flushes any outgoing messages (e.g. BindShortcuts) that the main
         // thread sent without flushing, so it never blocks.
         if (s_conn)
+        {
             dbus_connection_read_write(s_conn, 0);
+            DBusMessage *smsg;
+            while ((smsg = dbus_connection_pop_message(s_conn)) != NULL)
+            {
+                const char *path  = dbus_message_get_path(smsg);
+                const char *iface = dbus_message_is_signal(smsg, REQUEST_IFACE, "Response")
+                                    ? REQUEST_IFACE : NULL;
+                fprintf(stderr, "lnx-hotkey-portal: s_conn msg: type=%d path=%s%s\n",
+                        dbus_message_is_signal(smsg, REQUEST_IFACE, "Response") ? 4 : 0,
+                        path ? path : "(null)",
+                        iface ? " [Request.Response]" : "");
+                fflush(stderr);
+                dbus_message_unref(smsg);
+            }
+        }
 
         // Block up to 200 ms waiting for Activated signals on our own connection.
         dbus_connection_read_write(s_thread_conn, 200);
