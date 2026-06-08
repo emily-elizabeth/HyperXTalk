@@ -379,6 +379,7 @@ static int _wait_for_response(const char *r_path,
                 }
                 dbus_uint32_t resp_code = 0;
                 dbus_message_iter_get_basic(&it, &resp_code);
+                fprintf(stderr, "lnx-hotkey-portal: Response signal received, code=%u\n", resp_code);
                 if (resp_code != 0)
                 {
                     dbus_message_unref(msg);
@@ -403,6 +404,10 @@ static int _wait_for_response(const char *r_path,
 // Extract the value of key "session_handle" (object path) from an a{sv} iter.
 static int _extract_session_handle(DBusMessageIter *dict_iter, char *out, size_t out_len)
 {
+    int element_type = dbus_message_iter_get_arg_type(dict_iter);
+    fprintf(stderr, "lnx-hotkey-portal: results dict first element type=%d (DICT_ENTRY=%d INVALID=%d)\n",
+            element_type, (int)DBUS_TYPE_DICT_ENTRY, (int)DBUS_TYPE_INVALID);
+
     while (dbus_message_iter_get_arg_type(dict_iter) == DBUS_TYPE_DICT_ENTRY)
     {
         DBusMessageIter entry, value;
@@ -414,10 +419,14 @@ static int _extract_session_handle(DBusMessageIter *dict_iter, char *out, size_t
 
         // value is a variant
         dbus_message_iter_recurse(&entry, &value);
+        int vtype = dbus_message_iter_get_arg_type(&value);
+
+        fprintf(stderr, "lnx-hotkey-portal:   dict key=\"%s\" value_type=%d\n",
+                k ? k : "(null)", vtype);
 
         if (k && strcmp(k, "session_handle") == 0)
         {
-            if (dbus_message_iter_get_arg_type(&value) == DBUS_TYPE_OBJECT_PATH)
+            if (vtype == DBUS_TYPE_OBJECT_PATH || vtype == DBUS_TYPE_STRING)
             {
                 const char *v = NULL;
                 dbus_message_iter_get_basic(&value, &v);
@@ -428,6 +437,7 @@ static int _extract_session_handle(DBusMessageIter *dict_iter, char *out, size_t
                     return 1;
                 }
             }
+            fprintf(stderr, "lnx-hotkey-portal:   session_handle found but wrong type %d\n", vtype);
         }
         dbus_message_iter_next(dict_iter);
     }
