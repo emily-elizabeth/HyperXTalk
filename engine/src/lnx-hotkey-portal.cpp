@@ -521,6 +521,13 @@ static void *_portal_thread(void *unused)
 
     while (s_thread_running)
     {
+        // Non-blocking pump of the main connection: drains its incoming queue
+        // and flushes any outgoing messages (e.g. BindShortcuts) that the main
+        // thread sent without flushing, so it never blocks.
+        if (s_conn)
+            dbus_connection_read_write(s_conn, 0);
+
+        // Block up to 200 ms waiting for Activated signals on our own connection.
         dbus_connection_read_write(s_thread_conn, 200);
 
         DBusMessage *msg;
@@ -740,9 +747,9 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
     _dict_append_str(&bind_opts, "handle_token", handle_token);
     dbus_message_iter_close_container(&args, &bind_opts);
 
-    // Send without waiting for reply.
+    // Send without waiting for reply. The background thread pumps s_conn
+    // non-blockingly each iteration so the message will be flushed promptly.
     dbus_connection_send(s_conn, msg, NULL);
-    dbus_connection_flush(s_conn);
     dbus_message_unref(msg);
 
     fprintf(stderr, "lnx-hotkey-portal: BindShortcuts sent for \"%s\"\n", shortcut_id);
