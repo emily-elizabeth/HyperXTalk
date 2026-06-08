@@ -721,11 +721,11 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
     snprintf(handle_token, sizeof(handle_token), "hxt%d_b%d",
              (int)getpid(), (int)engine_id);
 
-    // ---- BindShortcuts (fire-and-forget) ------------------------------------
+    // ---- BindShortcuts (blocking: lets us see whether the portal accepts it) --
     // Signature: o session_handle, a(sa{sv}) shortcuts, s parent_window, a{sv} options
-    DBusMessage *msg = dbus_message_new_method_call(
+    DBusMessage *bind_msg = dbus_message_new_method_call(
         PORTAL_DEST, PORTAL_PATH, PORTAL_IFACE, "BindShortcuts");
-    if (!msg)
+    if (!bind_msg)
     {
         strncpy(p_error, "out of memory", p_error_len);
         p_error[p_error_len - 1] = '\0';
@@ -733,7 +733,7 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
     }
 
     DBusMessageIter args;
-    dbus_message_iter_init_append(msg, &args);
+    dbus_message_iter_init_append(bind_msg, &args);
 
     // session_handle (o)
     _append_str(&args, DBUS_TYPE_OBJECT_PATH, s_session_handle);
@@ -762,12 +762,36 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
     _dict_append_str(&bind_opts, "handle_token", handle_token);
     dbus_message_iter_close_container(&args, &bind_opts);
 
-    // Send without waiting for reply. The background thread pumps s_conn
-    // non-blockingly each iteration so the message will be flushed promptly.
-    dbus_connection_send(s_conn, msg, NULL);
-    dbus_message_unref(msg);
+    // Send synchronously so we can log whether the portal accepted the call.
+    DBusError berr;
+    dbus_error_init(&berr);
+    DBusMessage *bind_reply = dbus_connection_send_with_reply_and_block(
+        s_conn, bind_msg, 5000, &berr);
+    dbus_message_unref(bind_msg);
 
-    fprintf(stderr, "lnx-hotkey-portal: BindShortcuts sent for \"%s\"\n", shortcut_id);
+    if (!bind_reply || dbus_error_is_set(&berr))
+    {
+        fprintf(stderr, "lnx-hotkey-portal: BindShortcuts call failed: %s\n",
+                dbus_error_is_set(&berr) ? berr.message : "(no reply)");
+        fflush(stderr);
+        dbus_error_free(&berr);
+        // Don't treat as fatal — portal may deliver via async Response
+    }
+    else
+    {
+        // Method reply is just the request object path (o).
+        DBusMessageIter bri;
+        const char *bind_req_path = NULL;
+        if (dbus_message_iter_init(bind_reply, &bri) &&
+            dbus_message_iter_get_arg_type(&bri) == DBUS_TYPE_OBJECT_PATH)
+            dbus_message_iter_get_basic(&bri, &bind_req_path);
+        fprintf(stderr, "lnx-hotkey-portal: BindShortcuts request path: %s\n",
+                bind_req_path ? bind_req_path : "(unknown)");
+        fflush(stderr);
+        dbus_message_unref(bind_reply);
+    }
+
+    fprintf(stderr, "lnx-hotkey-portal: BindShortcuts done for \"%s\"\n", shortcut_id);
     fflush(stderr);
 
     // ---- Store entry ---------------------------------------------------------
