@@ -15,25 +15,22 @@ You should have received a copy of the GNU General Public License
 along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 //
-// Linux global hotkey backend using XGrabKey.
+// Linux global hotkey backend.
 //
-// Architecture:
-//   A dedicated background thread opens its own X display connection and
-//   calls XGrabKey on the root window for each registered hotkey.  It loops
-//   on XNextEvent, and when a matching KeyPress arrives it writes the engine
-//   ID into a self-pipe.
+// Two backends are supported, selected at runtime:
 //
-//   The main thread watches the read end of the pipe via g_io_add_watch(),
-//   which integrates cleanly with the GLib/GDK event loop already used by
-//   the Linux engine.  The GLib callback runs on the main thread, so
-//   MCHotkeyDispatchFired() is always called from the correct thread.
+//   Portal (Wayland) — lnx-hotkey-portal.cpp
+//     Uses the XDG GlobalShortcuts D-Bus portal.  Selected when
+//     $WAYLAND_DISPLAY is set and the portal session can be created.
+//     Works on GNOME 43+, KDE Plasma 5.27+.
 //
-// All X11 interaction is delegated to lnx-hotkey-x11.cpp so that the
-// X11 integer typedefs (Window, Atom, Drawable, Pixmap) never appear in
-// the same TU as the GDK pointer aliases defined by sysdefs.h via prefix.h.
+//   X11 — lnx-hotkey-x11.cpp
+//     Uses XGrabKey on the root window via a dedicated thread.
+//     Selected when running under a plain X11 session.
 //
-// Requires: -lX11  (already linked in the Linux desktop build)
-//           GLib / GDK (already linked)
+// Both backends write a 4-byte engine ID into a self-pipe when a hotkey
+// fires.  The main thread watches the pipe via g_io_add_watch() so that
+// MCHotkeyDispatchFired() is always called from the correct thread.
 //
 
 #include "prefix.h"
@@ -41,6 +38,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdint.h>
+#include <stdlib.h>   // getenv
 
 #include "mcstring.h"
 #include "hotkey.h"
@@ -48,15 +46,24 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "variable.h"
 
 #include "lnx-hotkey-x11.h"
+#include "lnx-hotkey-portal.h"
+
+////////////////////////////////////////////////////////////////////////////////
+// Backend selection
+
+static bool _use_portal()
+{
+    // Use the portal backend when running under Wayland.
+    return getenv("WAYLAND_DISPLAY") != nullptr;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Self-pipe for main-thread dispatch
 
 static int   s_pipe_read  = -1;
 static int   s_pipe_write = -1;
-static guint s_io_watch   = 0;   // GLib watch source ID
+static guint s_io_watch   = 0;
 
-// GLib I/O callback — called on the main thread when data is ready on the pipe.
 static gboolean _pipe_readable(GIOChannel * /*channel*/,
                                 GIOCondition /*cond*/,
                                 gpointer     /*data*/)
@@ -64,7 +71,7 @@ static gboolean _pipe_readable(GIOChannel * /*channel*/,
     int32_t t_id;
     while (read(s_pipe_read, &t_id, sizeof(t_id)) == (ssize_t)sizeof(t_id))
         MCHotkeyDispatchFired(t_id);
-    return TRUE;  // keep the watch active
+    return TRUE;
 }
 
 static bool _ensure_pipe()
@@ -76,18 +83,27 @@ static bool _ensure_pipe()
     if (pipe(fds) != 0)
         return false;
 
-    // Make the read end non-blocking so the callback doesn't stall.
     fcntl(fds[0], F_SETFL, O_NONBLOCK);
 
     s_pipe_read  = fds[0];
     s_pipe_write = fds[1];
 
-    // Register the read fd with GLib so it's checked in the main run loop.
     GIOChannel *t_chan = g_io_channel_unix_new(s_pipe_read);
     s_io_watch = g_io_add_watch(t_chan, G_IO_IN, _pipe_readable, nullptr);
     g_io_channel_unref(t_chan);
 
     return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Helper: set MCresult to a C string error
+
+static void _set_error(const char *msg)
+{
+    MCStringRef t_err;
+    /* UNCHECKED */ MCStringCreateWithCString(msg, t_err);
+    MCresult->setvalueref(t_err);
+    MCValueRelease(t_err);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,29 +113,49 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
 {
     if (!_ensure_pipe())
     {
-        MCStringRef t_err;
-        /* UNCHECKED */ MCStringCreateWithCString("failed to create hotkey pipe", t_err);
-        MCresult->setvalueref(t_err);
-        MCValueRelease(t_err);
-        return false;
-    }
-
-    if (!lnx_hotkey_x11_init(s_pipe_write))
-    {
-        MCStringRef t_err;
-        /* UNCHECKED */ MCStringCreateWithCString("failed to open X display for hotkey thread", t_err);
-        MCresult->setvalueref(t_err);
-        MCValueRelease(t_err);
+        _set_error("failed to create hotkey pipe");
         return false;
     }
 
     char *t_cstr = nullptr;
     if (!MCStringConvertToCString(p_key, t_cstr))
     {
-        MCStringRef t_err;
-        /* UNCHECKED */ MCStringCreateWithCString("out of memory converting key string", t_err);
-        MCresult->setvalueref(t_err);
-        MCValueRelease(t_err);
+        _set_error("out of memory converting key string");
+        return false;
+    }
+
+    // ---- Portal path (Wayland) -----------------------------------------------
+    if (_use_portal())
+    {
+        if (!lnx_hotkey_portal_init(s_pipe_write))
+        {
+            // Portal unavailable — fall through to X11 if $DISPLAY is also set.
+            if (getenv("DISPLAY") == nullptr)
+            {
+                MCMemoryDeallocate(t_cstr);
+                _set_error("global hotkeys require the XDG GlobalShortcuts portal "
+                           "(GNOME 43+ or KDE Plasma 5.27+)");
+                return false;
+            }
+            // Fall through to X11 below.
+        }
+        else
+        {
+            char t_error[256] = {};
+            bool ok = lnx_hotkey_portal_register(p_id, t_cstr,
+                                                  t_error, sizeof(t_error)) != 0;
+            MCMemoryDeallocate(t_cstr);
+            if (!ok)
+                _set_error(t_error[0] ? t_error : "portal hotkey registration failed");
+            return ok;
+        }
+    }
+
+    // ---- X11 path ------------------------------------------------------------
+    if (!lnx_hotkey_x11_init(s_pipe_write))
+    {
+        MCMemoryDeallocate(t_cstr);
+        _set_error("failed to open X display for hotkey thread");
         return false;
     }
 
@@ -130,10 +166,7 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
     if (!lnx_hotkey_x11_parse(t_cstr, &t_mods, &t_kcode, t_error, sizeof(t_error)))
     {
         MCMemoryDeallocate(t_cstr);
-        MCStringRef t_err;
-        /* UNCHECKED */ MCStringCreateWithCString(t_error, t_err);
-        MCresult->setvalueref(t_err);
-        MCValueRelease(t_err);
+        _set_error(t_error);
         return false;
     }
     MCMemoryDeallocate(t_cstr);
@@ -141,10 +174,7 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
     if (!lnx_hotkey_x11_grab(t_mods, t_kcode))
     {
         lnx_hotkey_x11_flush();
-        MCStringRef t_err;
-        /* UNCHECKED */ MCStringCreateWithCString("hotkey already in use by another application", t_err);
-        MCresult->setvalueref(t_err);
-        MCValueRelease(t_err);
+        _set_error("hotkey already in use by another application");
         return false;
     }
 
@@ -161,6 +191,12 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
 
 void MCPlatformUnregisterHotkey(int32_t p_id)
 {
+    if (_use_portal())
+    {
+        lnx_hotkey_portal_unregister(p_id);
+        return;
+    }
+
     if (!lnx_hotkey_x11_display_open())
         return;
 
@@ -176,6 +212,12 @@ void MCPlatformUnregisterHotkey(int32_t p_id)
 
 void MCPlatformUnregisterAllHotkeys()
 {
+    if (_use_portal())
+    {
+        lnx_hotkey_portal_unregister_all();
+        return;
+    }
+
     if (!lnx_hotkey_x11_display_open())
         return;
 

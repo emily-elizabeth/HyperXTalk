@@ -67,14 +67,10 @@ static const unsigned kIgnoredMods[] = { 0, Mod2Mask, LockMask, Mod2Mask | LockM
 static void *_hotkey_thread(void *unused)
 {
     (void)unused;
-    fprintf(stderr, "lnx-hotkey: event thread started (display=%p)\n",
-            (void *)s_bg_display);
     XEvent t_event;
     for (;;)
     {
         XNextEvent(s_bg_display, &t_event);
-
-        fprintf(stderr, "lnx-hotkey: event type=%d\n", t_event.type);
 
         if (t_event.type != KeyPress)
             continue;
@@ -85,16 +81,10 @@ static void *_hotkey_thread(void *unused)
         unsigned t_clean = ke->state &
             (ShiftMask | ControlMask | Mod1Mask | Mod3Mask | Mod4Mask);
 
-        fprintf(stderr, "lnx-hotkey: KeyPress keycode=%u state=0x%x clean=0x%x\n",
-                ke->keycode, ke->state, t_clean);
-
         pthread_mutex_lock(&s_mutex);
-        fprintf(stderr, "lnx-hotkey: checking %zu entries\n", s_entry_count);
         size_t i;
         for (i = 0; i < s_entry_count; i++)
         {
-            fprintf(stderr, "lnx-hotkey:   entry[%zu] keycode=%u mods=0x%x\n",
-                    i, s_entries[i].key_code, s_entries[i].modifiers);
             if (s_entries[i].key_code  == (unsigned)ke->keycode &&
                 s_entries[i].modifiers == t_clean)
             {
@@ -129,9 +119,6 @@ int lnx_hotkey_x11_init(int write_fd)
 
     s_root           = DefaultRootWindow(s_bg_display);
     s_pipe_write_fd  = write_fd;
-
-    fprintf(stderr, "lnx-hotkey: display=%p root=0x%lx\n",
-            (void *)s_bg_display, (unsigned long)s_root);
 
     // Ensure KeyPress events are delivered to the root window's event queue.
     XSelectInput(s_bg_display, s_root, KeyPressMask);
