@@ -124,6 +124,8 @@
 							# These symbols (MCPlatformSetBadge, MCPlatformShareContent, etc.)
 							# are only in engine_desktop_source_files, so we add the file here.
 							'src/lnx-core-compat.cpp',
+							# Hotkey stubs for the server (no display, no real hotkeys).
+							'src/lnx-hotkey-server.cpp',
 							# lnx-fileicon.cpp also lives in engine_desktop_source_files.
 							'src/lnx-fileicon.cpp',
 							'<(SHARED_INTERMEDIATE_DIR)/src/linux.stubs.cpp',

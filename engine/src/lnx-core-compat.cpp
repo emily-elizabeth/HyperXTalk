@@ -11,24 +11,9 @@ Software Foundation.  */
 #include "globdefs.h"
 #include "platform.h"
 #include "platform-internal.h"
-#include "hotkey.h"
 
 #include "player.h"
 #include "globals.h"
-
-// Hotkeys: not supported on the Linux server.
-bool MCPlatformRegisterHotkey(MCStringRef /*p_key*/, int32_t /*p_id*/)
-{
-    return false;
-}
-
-void MCPlatformUnregisterHotkey(int32_t /*p_id*/)
-{
-}
-
-void MCPlatformUnregisterAllHotkeys()
-{
-}
 
 void MCPlatformBreakWait(void)
 {
