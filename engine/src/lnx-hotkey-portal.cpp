@@ -189,9 +189,16 @@ static void _key_to_trigger(const char *p_key, char *out, size_t out_len)
     {
         char *start = p;
         while (*p && *p != '+') p++;
-        if (*p == '+') { *p++ = '\0'; }
-        tokens[count++] = start;
-        if (*(p - 1) != '+') break;  // consumed last char
+        if (*p == '+')
+        {
+            *p++ = '\0';
+            tokens[count++] = start;
+        }
+        else
+        {
+            tokens[count++] = start;
+            break;
+        }
     }
 
     out[0]  = '\0';
@@ -467,6 +474,8 @@ static void _dispatch_activated(DBusMessage *msg)
 static void *_portal_thread(void *unused)
 {
     (void)unused;
+    fprintf(stderr, "lnx-hotkey-portal: event thread started, watching %s\n",
+            s_session_handle);
     while (s_thread_running)
     {
         dbus_connection_read_write(s_conn, 200);
@@ -474,8 +483,16 @@ static void *_portal_thread(void *unused)
         DBusMessage *msg;
         while ((msg = dbus_connection_pop_message(s_conn)) != NULL)
         {
+            // Log any signal on the portal interface so we can see what arrives.
+            const char *iface  = dbus_message_is_signal(msg, PORTAL_IFACE, NULL)
+                                     ? PORTAL_IFACE : "(other)";
+            (void)iface;
+
             if (dbus_message_is_signal(msg, PORTAL_IFACE, "Activated"))
+            {
+                fprintf(stderr, "lnx-hotkey-portal: Activated signal received\n");
                 _dispatch_activated(msg);
+            }
             dbus_message_unref(msg);
         }
     }
@@ -579,6 +596,8 @@ int lnx_hotkey_portal_init(int write_fd)
     }
     dbus_message_unref(resp_msg);
 
+    fprintf(stderr, "lnx-hotkey-portal: session created: %s\n", s_session_handle);
+
     // ---- Subscribe to Activated on the session object ------------------------
     char match[512];
     snprintf(match, sizeof(match),
@@ -622,6 +641,9 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
 
     char trigger[128];
     _key_to_trigger(p_key, trigger, sizeof(trigger));
+
+    fprintf(stderr, "lnx-hotkey-portal: registering id=%d key=\"%s\" trigger=\"%s\"\n",
+            (int)engine_id, p_key, trigger);
 
     // Generate a unique handle token.
     char handle_token[48];
@@ -673,6 +695,8 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
     dbus_connection_send(s_conn, msg, NULL);
     dbus_connection_flush(s_conn);
     dbus_message_unref(msg);
+
+    fprintf(stderr, "lnx-hotkey-portal: BindShortcuts sent for \"%s\"\n", shortcut_id);
 
     // ---- Store entry ---------------------------------------------------------
     pthread_mutex_lock(&s_mutex);
