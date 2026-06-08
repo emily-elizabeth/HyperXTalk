@@ -164,7 +164,8 @@ static pthread_mutex_t s_mutex    = PTHREAD_MUTEX_INITIALIZER;
 ////////////////////////////////////////////////////////////////////////////////
 // D-Bus / thread state
 
-static DBusConnection *s_conn           = NULL;
+static DBusConnection *s_conn           = NULL;  // main-thread connection
+static DBusConnection *s_thread_conn    = NULL;  // background-thread connection (separate)
 static char            s_session_handle[256] = {};
 static int             s_pipe_write_fd  = -1;
 static pthread_t       s_thread;
@@ -486,12 +487,44 @@ static void *_portal_thread(void *unused)
     (void)unused;
     fprintf(stderr, "lnx-hotkey-portal: event thread started, watching %s\n",
             s_session_handle);
+
+    // Open a dedicated connection so we never contend with the main thread.
+    DBusError err;
+    dbus_error_init(&err);
+    s_thread_conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
+    if (!s_thread_conn || dbus_error_is_set(&err))
+    {
+        fprintf(stderr, "lnx-hotkey-portal: event thread: failed to connect to session bus: %s\n",
+                dbus_error_is_set(&err) ? err.message : "(null)");
+        dbus_error_free(&err);
+        return NULL;
+    }
+
+    // Subscribe to Activated on the session object.
+    char match[512];
+    snprintf(match, sizeof(match),
+             "type='signal',"
+             "interface='" PORTAL_IFACE "',"
+             "member='Activated',"
+             "path='%s'",
+             s_session_handle);
+    dbus_error_init(&err);
+    dbus_bus_add_match(s_thread_conn, match, &err);
+    if (dbus_error_is_set(&err))
+    {
+        fprintf(stderr, "lnx-hotkey-portal: event thread: add_match failed: %s\n", err.message);
+        dbus_error_free(&err);
+    }
+    dbus_connection_flush(s_thread_conn);
+
+    fprintf(stderr, "lnx-hotkey-portal: event thread: listening for Activated signals\n");
+
     while (s_thread_running)
     {
-        dbus_connection_read_write(s_conn, 200);
+        dbus_connection_read_write(s_thread_conn, 200);
 
         DBusMessage *msg;
-        while ((msg = dbus_connection_pop_message(s_conn)) != NULL)
+        while ((msg = dbus_connection_pop_message(s_thread_conn)) != NULL)
         {
             if (dbus_message_is_signal(msg, PORTAL_IFACE, "Activated"))
             {
@@ -623,20 +656,9 @@ int lnx_hotkey_portal_init(int write_fd)
     dbus_message_unref(resp_msg);
 
     fprintf(stderr, "lnx-hotkey-portal: session created: %s\n", s_session_handle);
+    fflush(stderr);
 
-    // ---- Subscribe to Activated on the session object ------------------------
-    char match[512];
-    snprintf(match, sizeof(match),
-             "type='signal',"
-             "interface='" PORTAL_IFACE "',"
-             "member='Activated',"
-             "path='%s'",
-             s_session_handle);
-    dbus_error_init(&err);
-    dbus_bus_add_match(s_conn, match, &err);
-    dbus_error_free(&err);   // ignore; if it fails we just won't get signals
-
-    // ---- Start event thread --------------------------------------------------
+    // ---- Start event thread (opens its own D-Bus connection) -----------------
     s_thread_running = 1;
     if (pthread_create(&s_thread, NULL, _portal_thread, NULL) != 0)
     {
@@ -670,6 +692,7 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
 
     fprintf(stderr, "lnx-hotkey-portal: registering id=%d key=\"%s\" trigger=\"%s\"\n",
             (int)engine_id, p_key, trigger);
+    fflush(stderr);
 
     // Generate a unique handle token.
     char handle_token[48];
@@ -723,6 +746,7 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
     dbus_message_unref(msg);
 
     fprintf(stderr, "lnx-hotkey-portal: BindShortcuts sent for \"%s\"\n", shortcut_id);
+    fflush(stderr);
 
     // ---- Store entry ---------------------------------------------------------
     pthread_mutex_lock(&s_mutex);
