@@ -523,11 +523,17 @@ int lnx_hotkey_portal_available(void)
 
 int lnx_hotkey_portal_init(int write_fd)
 {
+    fprintf(stderr, "lnx-hotkey-portal: init called\n");
+
     if (s_initialised)
         return 1;
 
     if (!initialise_weak_link_dbus())
+    {
+        fprintf(stderr, "lnx-hotkey-portal: libdbus-1 not available\n");
         return 0;
+    }
+    fprintf(stderr, "lnx-hotkey-portal: libdbus-1 loaded\n");
 
     DBusError err;
     dbus_error_init(&err);
