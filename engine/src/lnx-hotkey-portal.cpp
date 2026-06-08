@@ -493,11 +493,6 @@ static void *_portal_thread(void *unused)
         DBusMessage *msg;
         while ((msg = dbus_connection_pop_message(s_conn)) != NULL)
         {
-            // Log any signal on the portal interface so we can see what arrives.
-            const char *iface  = dbus_message_is_signal(msg, PORTAL_IFACE, NULL)
-                                     ? PORTAL_IFACE : "(other)";
-            (void)iface;
-
             if (dbus_message_is_signal(msg, PORTAL_IFACE, "Activated"))
             {
                 fprintf(stderr, "lnx-hotkey-portal: Activated signal received\n");
