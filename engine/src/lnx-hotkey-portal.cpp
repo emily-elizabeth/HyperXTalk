@@ -540,13 +540,15 @@ int lnx_hotkey_portal_init(int write_fd)
     s_conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
     if (!s_conn || dbus_error_is_set(&err))
     {
+        fprintf(stderr, "lnx-hotkey-portal: dbus_bus_get failed: %s\n",
+                dbus_error_is_set(&err) ? err.message : "(null connection)");
         dbus_error_free(&err);
         return 0;
     }
+    fprintf(stderr, "lnx-hotkey-portal: connected to session bus\n");
     s_pipe_write_fd = write_fd;
 
     // ---- CreateSession -------------------------------------------------------
-    // Generate tokens unique to this process.
     char handle_token[32], session_token[32];
     snprintf(handle_token,  sizeof(handle_token),  "hxt%d_cs", (int)getpid());
     snprintf(session_token, sizeof(session_token), "hxt%d_s",  (int)getpid());
@@ -554,7 +556,10 @@ int lnx_hotkey_portal_init(int write_fd)
     DBusMessage *call = dbus_message_new_method_call(
         PORTAL_DEST, PORTAL_PATH, PORTAL_IFACE, "CreateSession");
     if (!call)
+    {
+        fprintf(stderr, "lnx-hotkey-portal: dbus_message_new_method_call failed (OOM)\n");
         return 0;
+    }
 
     DBusMessageIter args, opts;
     dbus_message_iter_init_append(call, &args);
@@ -570,33 +575,43 @@ int lnx_hotkey_portal_init(int write_fd)
 
     if (!reply || dbus_error_is_set(&err))
     {
+        fprintf(stderr, "lnx-hotkey-portal: CreateSession call failed: %s\n",
+                dbus_error_is_set(&err) ? err.message : "(no reply)");
         dbus_error_free(&err);
         return 0;
     }
+    fprintf(stderr, "lnx-hotkey-portal: CreateSession call returned a reply\n");
 
     // The reply contains the request object path (o).
     DBusMessageIter ri;
     if (!dbus_message_iter_init(reply, &ri) ||
         dbus_message_iter_get_arg_type(&ri) != DBUS_TYPE_OBJECT_PATH)
     {
+        fprintf(stderr, "lnx-hotkey-portal: CreateSession reply has unexpected type (expected object path)\n");
         dbus_message_unref(reply);
         return 0;
     }
     const char *req_path = NULL;
     dbus_message_iter_get_basic(&ri, &req_path);
+    fprintf(stderr, "lnx-hotkey-portal: request path: %s\n", req_path ? req_path : "(null)");
     char req_path_buf[256];
     strncpy(req_path_buf, req_path ? req_path : "", sizeof(req_path_buf) - 1);
     dbus_message_unref(reply);
 
     // ---- Wait for Request.Response -------------------------------------------
+    fprintf(stderr, "lnx-hotkey-portal: waiting for CreateSession Response...\n");
     DBusMessage    *resp_msg = NULL;
     DBusMessageIter results_iter;
     if (!_wait_for_response(req_path_buf, 10000, &resp_msg, &results_iter))
+    {
+        fprintf(stderr, "lnx-hotkey-portal: timed out waiting for CreateSession Response\n");
         return 0;
+    }
 
     if (!_extract_session_handle(&results_iter, s_session_handle,
                                   sizeof(s_session_handle)))
     {
+        fprintf(stderr, "lnx-hotkey-portal: could not extract session_handle from Response\n");
         dbus_message_unref(resp_msg);
         return 0;
     }
