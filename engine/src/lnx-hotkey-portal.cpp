@@ -557,8 +557,13 @@ static void _dispatch_activated(DBusMessage *msg)
     if (!dbus_message_iter_init(msg, &it))
         return;
 
-    // Skip session_handle (o)
-    if (dbus_message_iter_get_arg_type(&it) != DBUS_TYPE_OBJECT_PATH)
+    // Verify session_handle belongs to our session (o or s type).
+    int sh_type = dbus_message_iter_get_arg_type(&it);
+    if (sh_type != DBUS_TYPE_OBJECT_PATH && sh_type != DBUS_TYPE_STRING)
+        return;
+    const char *sig_session = NULL;
+    dbus_message_iter_get_basic(&it, &sig_session);
+    if (!sig_session || strcmp(sig_session, s_session_handle) != 0)
         return;
     dbus_message_iter_next(&it);
 
@@ -602,14 +607,19 @@ static void *_portal_thread(void *unused)
         return NULL;
     }
 
-    // Subscribe to Activated on the session object.
+    // Subscribe to Activated signals from the portal.
+    //
+    // The GlobalShortcuts Activated signal is emitted by the portal on its
+    // own object path (/org/freedesktop/portal/desktop), not on the session
+    // object path.  The session handle appears in the signal body (first arg).
+    // We match only on interface+member here and verify the session handle
+    // inside _dispatch_activated.
     char match[512];
     snprintf(match, sizeof(match),
              "type='signal',"
+             "sender='" PORTAL_DEST "',"
              "interface='" PORTAL_IFACE "',"
-             "member='Activated',"
-             "path='%s'",
-             s_session_handle);
+             "member='Activated'");
     dbus_error_init(&err);
     dbus_bus_add_match(s_thread_conn, match, &err);
     if (dbus_error_is_set(&err))
