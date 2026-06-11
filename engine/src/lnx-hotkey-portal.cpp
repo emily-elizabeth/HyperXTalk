@@ -612,12 +612,12 @@ static void *_portal_thread(void *unused)
     // The GlobalShortcuts Activated signal is emitted by the portal on its
     // own object path (/org/freedesktop/portal/desktop), not on the session
     // object path.  The session handle appears in the signal body (first arg).
-    // We match only on interface+member here and verify the session handle
-    // inside _dispatch_activated.
+    // We omit sender= because some GNOME versions route the signal through the
+    // backend's own bus name rather than org.freedesktop.portal.Desktop.
+    // Session-handle verification happens inside _dispatch_activated.
     char match[512];
     snprintf(match, sizeof(match),
              "type='signal',"
-             "sender='" PORTAL_DEST "',"
              "interface='" PORTAL_IFACE "',"
              "member='Activated'");
     dbus_error_init(&err);
@@ -640,9 +640,19 @@ static void *_portal_thread(void *unused)
         DBusMessage *msg;
         while ((msg = dbus_connection_pop_message(s_thread_conn)) != NULL)
         {
+            const char *iface  = dbus_message_get_interface(msg) ? dbus_message_get_interface(msg) : "";
+            const char *member = dbus_message_get_member(msg)    ? dbus_message_get_member(msg)    : "";
+            int mtype = dbus_message_get_type(msg);
+            if (mtype == 4 /* DBUS_MESSAGE_TYPE_SIGNAL */)
+            {
+                fprintf(stderr, "lnx-hotkey-portal: thread got signal %s.%s\n",
+                        iface, member);
+                fflush(stderr);
+            }
             if (dbus_message_is_signal(msg, PORTAL_IFACE, "Activated"))
             {
                 fprintf(stderr, "lnx-hotkey-portal: Activated signal received\n");
+                fflush(stderr);
                 _dispatch_activated(msg);
             }
             dbus_message_unref(msg);
