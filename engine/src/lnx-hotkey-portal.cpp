@@ -169,6 +169,9 @@ extern "C"
                                            const char *iface,
                                            const char *signal_name);
     const char     *dbus_message_get_path(DBusMessage *msg);
+    const char     *dbus_message_get_interface(DBusMessage *msg);
+    const char     *dbus_message_get_member(DBusMessage *msg);
+    int             dbus_message_get_type(DBusMessage *msg);
 
     void            dbus_message_iter_init_append(DBusMessage *msg,
                                                   DBusMessageIter *iter);
@@ -390,33 +393,6 @@ static dbus_bool_t _dict_append_str(DBusMessageIter *dict,
     return dbus_message_iter_close_container(dict, &entry);
 }
 
-// Append one {sv} entry where the value is an array-of-strings variant (as).
-// Used for 'preferred_trigger', which the portal spec types as 'as'.
-static dbus_bool_t _dict_append_str_array(DBusMessageIter *dict,
-                                           const char *key,
-                                           const char *single_value)
-{
-    DBusMessageIter entry, variant, arr;
-    if (!dbus_message_iter_open_container(dict, DBUS_TYPE_DICT_ENTRY,
-                                          NULL, &entry))
-        return 0;
-    if (!_append_str(&entry, DBUS_TYPE_STRING, key))
-        return 0;
-    // variant sig is "as"
-    if (!dbus_message_iter_open_container(&entry, DBUS_TYPE_VARIANT,
-                                          "as", &variant))
-        return 0;
-    if (!dbus_message_iter_open_container(&variant, DBUS_TYPE_ARRAY,
-                                          "s", &arr))
-        return 0;
-    if (!_append_str(&arr, DBUS_TYPE_STRING, single_value))
-        return 0;
-    if (!dbus_message_iter_close_container(&variant, &arr))
-        return 0;
-    if (!dbus_message_iter_close_container(&entry, &variant))
-        return 0;
-    return dbus_message_iter_close_container(dict, &entry);
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wait for a org.freedesktop.portal.Request.Response signal on r_path.
@@ -582,7 +558,7 @@ static void _dispatch_activated(DBusMessage *msg)
         {
             int32_t t_id = s_entries[i].engine_id;
             pthread_mutex_unlock(&s_mutex);
-            (void)write(s_pipe_write_fd, &t_id, sizeof(t_id));
+            { ssize_t _wr = write(s_pipe_write_fd, &t_id, sizeof(t_id)); (void)_wr; }
             return;
         }
     }
