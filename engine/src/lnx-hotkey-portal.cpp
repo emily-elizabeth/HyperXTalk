@@ -760,9 +760,10 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
                                      &shortcut_struct);
     _append_str(&shortcut_struct, DBUS_TYPE_STRING, shortcut_id);
     _open_dict(&shortcut_struct, &shortcut_opts);
-    _dict_append_str(&shortcut_opts, "description",         p_key);
-    if (trigger[0])
-        _dict_append_str_array(&shortcut_opts, "preferred_trigger", trigger);
+    _dict_append_str(&shortcut_opts, "description", p_key);
+    // preferred_trigger omitted intentionally: GNOME expects 's' but the portal
+    // spec says 'as'; omitting it avoids the type dispute and lets GNOME assign
+    // a trigger via its own keyboard-settings dialog.
     dbus_message_iter_close_container(&shortcut_struct, &shortcut_opts);
     dbus_message_iter_close_container(&shortcuts_arr, &shortcut_struct);
     dbus_message_iter_close_container(&args, &shortcuts_arr);
@@ -817,18 +818,8 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
             }
             else
             {
-                fprintf(stderr, "lnx-hotkey-portal: BindShortcuts Response received\n");
-                // Log the "shortcuts" entry from results dict.
-                while (dbus_message_iter_get_arg_type(&bind_results) == DBUS_TYPE_DICT_ENTRY)
-                {
-                    DBusMessageIter entry, vari;
-                    dbus_message_iter_recurse(&bind_results, &entry);
-                    const char *k = NULL;
-                    dbus_message_iter_get_basic(&entry, &k);
-                    fprintf(stderr, "lnx-hotkey-portal:   results key=\"%s\"\n", k ? k : "(null)");
-                    fflush(stderr);
-                    dbus_message_iter_next(&bind_results);
-                }
+                fprintf(stderr, "lnx-hotkey-portal: BindShortcuts accepted by portal\n");
+                fflush(stderr);
                 dbus_message_unref(bind_resp);
             }
         }
