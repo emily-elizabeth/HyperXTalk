@@ -35,6 +35,74 @@ Software Foundation.  */
 #include <ctype.h>
 
 ////////////////////////////////////////////////////////////////////////////////
+// Desktop-file registration
+//
+// xdg-desktop-portal identifies callers by matching the process executable
+// against installed .desktop files.  Without a match, GNOME's GlobalShortcuts
+// backend rejects BindShortcuts with code=2.  We write a minimal entry to
+// ~/.local/share/applications/ and refresh the database so the portal can
+// identify HyperXTalk on the very first call.
+
+static void _ensure_desktop_file(void)
+{
+    // Resolve the absolute path of our own executable.
+    char exe_path[512];
+    ssize_t r = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+    if (r <= 0)
+    {
+        fprintf(stderr, "lnx-hotkey-portal: readlink /proc/self/exe failed\n");
+        return;
+    }
+    exe_path[r] = '\0';
+
+    const char *home = getenv("HOME");
+    if (!home)
+        return;
+
+    // Ensure the target directory exists.
+    char dir[512];
+    snprintf(dir, sizeof(dir), "%s/.local/share/applications", home);
+    {
+        char cmd[600];
+        snprintf(cmd, sizeof(cmd), "mkdir -p '%s' 2>/dev/null", dir);
+        (void)system(cmd);
+    }
+
+    // Write the desktop file.
+    char path[768];
+    snprintf(path, sizeof(path), "%s/hyperxtalk.desktop", dir);
+
+    FILE *f = fopen(path, "w");
+    if (!f)
+    {
+        fprintf(stderr, "lnx-hotkey-portal: could not write %s\n", path);
+        return;
+    }
+    fprintf(f,
+        "[Desktop Entry]\n"
+        "Type=Application\n"
+        "Version=1.0\n"
+        "Name=HyperXTalk\n"
+        "Exec=%s %%U\n"
+        "Categories=Development;IDE;\n"
+        "StartupWMClass=HyperXTalk\n"
+        "NoDisplay=true\n",
+        exe_path);
+    fclose(f);
+
+    // Rebuild the GLib desktop database so xdg-desktop-portal sees the entry.
+    {
+        char cmd[800];
+        snprintf(cmd, sizeof(cmd),
+                 "update-desktop-database '%s' 2>/dev/null", dir);
+        (void)system(cmd);
+    }
+
+    fprintf(stderr, "lnx-hotkey-portal: registered desktop file: %s\n", path);
+    fflush(stderr);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // libdbus-1 ABI declarations
 // These are stable since dbus 1.0 and match the binary ABI exactly.
 
@@ -601,6 +669,10 @@ int lnx_hotkey_portal_init(int write_fd)
 
     if (s_initialised)
         return 1;
+
+    // Register our .desktop file so the portal can identify this process.
+    // Must happen before we open the D-Bus connection.
+    _ensure_desktop_file();
 
     if (!initialise_weak_link_dbus())
     {
