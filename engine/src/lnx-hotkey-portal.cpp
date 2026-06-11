@@ -849,54 +849,32 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
     _dict_append_str(&bind_opts, "handle_token", handle_token);
     dbus_message_iter_close_container(&args, &bind_opts);
 
-    // Send synchronously so we can log whether the portal accepted the call.
-    DBusError berr;
-    dbus_error_init(&berr);
-    DBusMessage *bind_reply = dbus_connection_send_with_reply_and_block(
-        s_conn, bind_msg, 5000, &berr);
+    // Send BindShortcuts fire-and-forget.
+    //
+    // GNOME's portal backend does not return the method reply immediately —
+    // it blocks until the user interacts with a shortcut-assignment dialog.
+    // Waiting for the reply here would stall the HyperXTalk main thread for
+    // an indeterminate time.  Instead we send without waiting; the portal
+    // will process the call asynchronously and fire Activated signals on the
+    // session once the shortcut is active.
+    //
+    // On first run GNOME may show a keyboard-shortcut assignment dialog.
+    // If no hotkeys fire, look for that dialog (it can appear behind other
+    // windows) and confirm the shortcut there.
+    dbus_bool_t sent = dbus_connection_send(s_conn, bind_msg, NULL);
     dbus_message_unref(bind_msg);
+    dbus_connection_flush(s_conn);
 
-    if (!bind_reply || dbus_error_is_set(&berr))
+    if (!sent)
     {
-        fprintf(stderr, "lnx-hotkey-portal: BindShortcuts call failed: %s\n",
-                dbus_error_is_set(&berr) ? berr.message : "(no reply)");
+        fprintf(stderr, "lnx-hotkey-portal: BindShortcuts send failed (OOM)\n");
         fflush(stderr);
-        dbus_error_free(&berr);
-        // Don't treat as fatal — portal may deliver via async Response
     }
     else
     {
-        // Method reply is the request object path (o). Subscribe and wait for
-        // the Request.Response signal to see what GNOME actually bound.
-        DBusMessageIter bri;
-        const char *bind_req_path = NULL;
-        if (dbus_message_iter_init(bind_reply, &bri) &&
-            dbus_message_iter_get_arg_type(&bri) == DBUS_TYPE_OBJECT_PATH)
-            dbus_message_iter_get_basic(&bri, &bind_req_path);
-        fprintf(stderr, "lnx-hotkey-portal: BindShortcuts request path: %s\n",
-                bind_req_path ? bind_req_path : "(unknown)");
+        fprintf(stderr, "lnx-hotkey-portal: BindShortcuts sent for \"%s\" "
+                        "(watching for Activated signals)\n", shortcut_id);
         fflush(stderr);
-
-        if (bind_req_path)
-        {
-            // Wait up to 15 s — GNOME may show a dialog the user must confirm.
-            DBusMessage    *bind_resp = NULL;
-            DBusMessageIter bind_results;
-            fprintf(stderr, "lnx-hotkey-portal: waiting for BindShortcuts Response (15s)...\n");
-            fflush(stderr);
-            if (!_wait_for_response(bind_req_path, 15000, &bind_resp, &bind_results))
-            {
-                fprintf(stderr, "lnx-hotkey-portal: BindShortcuts Response timed out or failed\n");
-            }
-            else
-            {
-                fprintf(stderr, "lnx-hotkey-portal: BindShortcuts accepted by portal\n");
-                fflush(stderr);
-                dbus_message_unref(bind_resp);
-            }
-        }
-
-        dbus_message_unref(bind_reply);
     }
 
     fprintf(stderr, "lnx-hotkey-portal: BindShortcuts done for \"%s\"\n", shortcut_id);
