@@ -9,7 +9,7 @@ Registers a system-wide keyboard shortcut that fires a message to the
 current card of the default stack whenever the combination is pressed,
 even when HyperXTalk does not have keyboard focus.
 
-Introduced: 10.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
