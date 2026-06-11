@@ -322,6 +322,34 @@ static dbus_bool_t _dict_append_str(DBusMessageIter *dict,
     return dbus_message_iter_close_container(dict, &entry);
 }
 
+// Append one {sv} entry where the value is an array-of-strings variant (as).
+// Used for 'preferred_trigger', which the portal spec types as 'as'.
+static dbus_bool_t _dict_append_str_array(DBusMessageIter *dict,
+                                           const char *key,
+                                           const char *single_value)
+{
+    DBusMessageIter entry, variant, arr;
+    if (!dbus_message_iter_open_container(dict, DBUS_TYPE_DICT_ENTRY,
+                                          NULL, &entry))
+        return 0;
+    if (!_append_str(&entry, DBUS_TYPE_STRING, key))
+        return 0;
+    // variant sig is "as"
+    if (!dbus_message_iter_open_container(&entry, DBUS_TYPE_VARIANT,
+                                          "as", &variant))
+        return 0;
+    if (!dbus_message_iter_open_container(&variant, DBUS_TYPE_ARRAY,
+                                          "s", &arr))
+        return 0;
+    if (!_append_str(&arr, DBUS_TYPE_STRING, single_value))
+        return 0;
+    if (!dbus_message_iter_close_container(&variant, &arr))
+        return 0;
+    if (!dbus_message_iter_close_container(&entry, &variant))
+        return 0;
+    return dbus_message_iter_close_container(dict, &entry);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Wait for a org.freedesktop.portal.Request.Response signal on r_path.
 // Blocks (polling the connection) up to timeout_ms.
@@ -372,7 +400,7 @@ static int _wait_for_response(const char *r_path,
                     dbus_message_unref(msg);
                     return 0;
                 }
-                // Skip the response code (uint32).
+                // Read the response code (uint32).
                 if (dbus_message_iter_get_arg_type(&it) != DBUS_TYPE_UINT32)
                 {
                     dbus_message_unref(msg);
@@ -380,7 +408,11 @@ static int _wait_for_response(const char *r_path,
                 }
                 dbus_uint32_t resp_code = 0;
                 dbus_message_iter_get_basic(&it, &resp_code);
-                fprintf(stderr, "lnx-hotkey-portal: Response signal received, code=%u\n", resp_code);
+                fprintf(stderr, "lnx-hotkey-portal: Response signal received, code=%u%s\n",
+                        resp_code,
+                        resp_code == 0 ? " (success)" :
+                        resp_code == 1 ? " (user cancelled)" : " (portal error)");
+                fflush(stderr);
                 if (resp_code != 0)
                 {
                     dbus_message_unref(msg);
@@ -399,6 +431,8 @@ static int _wait_for_response(const char *r_path,
             dbus_message_unref(msg);
         }
     }
+    fprintf(stderr, "lnx-hotkey-portal: Response timed out after %d ms\n", timeout_ms);
+    fflush(stderr);
     return 0;  // timed out
 }
 
@@ -728,7 +762,7 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
     _open_dict(&shortcut_struct, &shortcut_opts);
     _dict_append_str(&shortcut_opts, "description",         p_key);
     if (trigger[0])
-        _dict_append_str(&shortcut_opts, "preferred_trigger", trigger);
+        _dict_append_str_array(&shortcut_opts, "preferred_trigger", trigger);
     dbus_message_iter_close_container(&shortcut_struct, &shortcut_opts);
     dbus_message_iter_close_container(&shortcuts_arr, &shortcut_struct);
     dbus_message_iter_close_container(&args, &shortcuts_arr);
