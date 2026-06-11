@@ -852,10 +852,11 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
                                      &shortcut_struct);
     _append_str(&shortcut_struct, DBUS_TYPE_STRING, shortcut_id);
     _open_dict(&shortcut_struct, &shortcut_opts);
-    _dict_append_str(&shortcut_opts, "description", p_key);
-    // preferred_trigger omitted intentionally: GNOME expects 's' but the portal
-    // spec says 'as'; omitting it avoids the type dispute and lets GNOME assign
-    // a trigger via its own keyboard-settings dialog.
+    _dict_append_str(&shortcut_opts, "description",         p_key);
+    // preferred_trigger: GNOME's impl expects 's' (single string) here even
+    // though the portal spec says 'as'.  We use the GTK accelerator format.
+    if (trigger[0])
+        _dict_append_str(&shortcut_opts, "preferred_trigger", trigger);
     dbus_message_iter_close_container(&shortcut_struct, &shortcut_opts);
     dbus_message_iter_close_container(&shortcuts_arr, &shortcut_struct);
     dbus_message_iter_close_container(&args, &shortcuts_arr);
