@@ -229,7 +229,7 @@ extern "C"
 typedef struct
 {
     int32_t engine_id;
-    char    shortcut_id[32];   // "hxt-<engine_id>"
+    char    shortcut_id[64];   // "hxt-<sanitised-key>", e.g. "hxt-ctrl-shift-p"
 } PortalEntry;
 
 static PortalEntry *s_entries     = NULL;
@@ -731,14 +731,34 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
         return 0;
     }
 
-    // Build shortcut ID and trigger string.
-    char shortcut_id[32];
-    snprintf(shortcut_id, sizeof(shortcut_id), "hxt-%d", (int)engine_id);
+    // Build shortcut ID from key string so it is stable across re-registrations.
+    // "Ctrl+Shift+P" → "hxt-ctrl-shift-p".  Using a stable ID means GNOME
+    // recognises the shortcut on subsequent BindShortcuts calls and does not
+    // show the assignment dialog again.
+    char shortcut_id[64];
+    {
+        char tmp[64] = "hxt-";
+        size_t out = 4;
+        for (size_t i = 0; p_key[i] && out < sizeof(tmp) - 1; i++)
+        {
+            char c = (char)tolower((unsigned char)p_key[i]);
+            if (isalnum((unsigned char)c))
+                tmp[out++] = c;
+            else if (out > 4 && tmp[out - 1] != '-')
+                tmp[out++] = '-';
+        }
+        while (out > 4 && tmp[out - 1] == '-')
+            out--;
+        tmp[out] = '\0';
+        strncpy(shortcut_id, tmp, sizeof(shortcut_id) - 1);
+        shortcut_id[sizeof(shortcut_id) - 1] = '\0';
+    }
 
     char trigger[128];
     _key_to_trigger(p_key, trigger, sizeof(trigger));
 
-    // Generate a unique handle token.
+    // Generate a handle token — must match [A-Za-z0-9_] only (used to build
+    // a D-Bus object path).  Use engine_id which is always a plain integer.
     char handle_token[48];
     snprintf(handle_token, sizeof(handle_token), "hxt%d_b%d",
              (int)getpid(), (int)engine_id);
@@ -798,10 +818,11 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
     // On first run GNOME may show a keyboard-shortcut assignment dialog.
     // If no hotkeys fire, look for that dialog (it can appear behind other
     // windows) and confirm the shortcut there.
+    // Fire-and-forget: send without waiting for a reply.  Do not call
+    // dbus_connection_flush here — the background thread's read_write loop
+    // will flush naturally, avoiding contention on the shared connection.
     dbus_bool_t sent = dbus_connection_send(s_conn, bind_msg, NULL);
     dbus_message_unref(bind_msg);
-    dbus_connection_flush(s_conn);
-
     (void)sent;
 
     // ---- Store entry ---------------------------------------------------------
