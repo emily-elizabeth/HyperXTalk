@@ -301,6 +301,7 @@ gdk libgdk-x11-2.0.so.0
 	gdk_x11_atom_to_xatom_for_display: (pointer, integer) -> (integer)
 	gdk_x11_screen_lookup_visual: (pointer, integer) -> (pointer)
 	gdk_x11_window_lookup_for_display: (pointer, integer) -> (pointer)
+	gdk_x11_get_server_time: (pointer) -> (integer)
 	gdk_x11_ungrab_server: () -> ()
 	gdk_x11_window_foreign_new_for_display: (pointer, integer) -> (pointer)
 	gdk_x11_grab_server: () -> ()
