@@ -49,9 +49,10 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 struct MCHotkeyEntry
 {
-    int32_t    id;       // unique engine-assigned integer
-    MCStringRef key;     // normalised key string, e.g. "Ctrl+Shift+H"
-    MCNameRef  handler;  // message to fire, e.g. "myHandler"
+    int32_t    id;          // unique engine-assigned integer
+    MCStringRef key;        // normalised key string, e.g. "Ctrl+Shift+H"
+    MCNameRef  handler;     // message to fire, e.g. "myHandler"
+    MCStack   *owner_stack; // stack that called registerHotkey (weak ref)
 };
 
 static MCHotkeyEntry *s_entries     = nullptr;
@@ -94,9 +95,10 @@ static void _remove_entry(uindex_t p_index)
 ////////////////////////////////////////////////////////////////////////////////
 // Engine-side dispatch helper
 
-static void _dispatch_to_default_card(MCNameRef p_msg)
+static void _dispatch_to_stack(MCStack *p_stack, MCNameRef p_msg)
 {
-    MCStack *t_stack = MCdefaultstackptr;
+    // Fall back to MCdefaultstackptr if no owner was captured.
+    MCStack *t_stack = p_stack != nil ? p_stack : MCdefaultstackptr;
     if (t_stack == nil)
         return;
     MCCard *t_card = t_stack->getcurcard();
@@ -109,7 +111,7 @@ void MCHotkeyDispatchFired(int32_t p_id)
     intptr_t t_idx = _find_by_id(p_id);
     if (t_idx < 0)
         return;
-    _dispatch_to_default_card(s_entries[t_idx].handler);
+    _dispatch_to_stack(s_entries[t_idx].owner_stack, s_entries[t_idx].handler);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -188,8 +190,9 @@ void MCRegisterHotkey::exec_ctxt(MCExecContext& ctxt)
 
     // Store the entry.  Retain both string values.
     MCHotkeyEntry& t_entry = s_entries[s_entry_count - 1];
-    t_entry.id      = t_id;
-    t_entry.key     = MCValueRetain(*t_key);
+    t_entry.id          = t_id;
+    t_entry.key         = MCValueRetain(*t_key);
+    t_entry.owner_stack = MCdefaultstackptr; // capture calling stack at registration time
 
     MCNameRef t_handler_name;
     /* UNCHECKED */ MCNameCreate(*t_handler_str, t_handler_name);

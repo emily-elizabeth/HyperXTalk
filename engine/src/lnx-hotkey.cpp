@@ -125,13 +125,8 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
     }
 
     // ---- Portal path (Wayland) -----------------------------------------------
-    fprintf(stderr, "lnx-hotkey: WAYLAND_DISPLAY=%s DISPLAY=%s\n",
-            getenv("WAYLAND_DISPLAY") ? getenv("WAYLAND_DISPLAY") : "(unset)",
-            getenv("DISPLAY")         ? getenv("DISPLAY")         : "(unset)");
-
     if (_use_portal())
     {
-        fprintf(stderr, "lnx-hotkey: using portal backend\n");
         if (!lnx_hotkey_portal_init(s_pipe_write))
         {
             // Portal unavailable — fall through to X11 if $DISPLAY is also set.
@@ -157,7 +152,6 @@ bool MCPlatformRegisterHotkey(MCStringRef p_key, int32_t p_id)
     }
 
     // ---- X11 path ------------------------------------------------------------
-    fprintf(stderr, "lnx-hotkey: using X11 backend\n");
     if (!lnx_hotkey_x11_init(s_pipe_write))
     {
         MCMemoryDeallocate(t_cstr);

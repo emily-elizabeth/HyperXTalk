@@ -98,8 +98,13 @@ static void _ensure_desktop_file(void)
         (void)system(cmd);
     }
 
-    fprintf(stderr, "lnx-hotkey-portal: registered desktop file: %s\n", path);
-    fflush(stderr);
+    // xdg-desktop-portal identifies host apps via sd_pid_get_user_unit()
+    // (systemd cgroup unit name), not via GIO_LAUNCHED_DESKTOP_FILE.
+    // These env vars are set for completeness but have no effect on xdp 1.18+.
+    setenv("GIO_LAUNCHED_DESKTOP_FILE", path, 1);
+    char pid_str[32];
+    snprintf(pid_str, sizeof(pid_str), "%d", (int)getpid());
+    setenv("GIO_LAUNCHED_DESKTOP_FILE_PID", pid_str, 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -452,11 +457,6 @@ static int _wait_for_response(const char *r_path,
                 }
                 dbus_uint32_t resp_code = 0;
                 dbus_message_iter_get_basic(&it, &resp_code);
-                fprintf(stderr, "lnx-hotkey-portal: Response signal received, code=%u%s\n",
-                        resp_code,
-                        resp_code == 0 ? " (success)" :
-                        resp_code == 1 ? " (user cancelled)" : " (portal error)");
-                fflush(stderr);
                 if (resp_code != 0)
                 {
                     dbus_message_unref(msg);
@@ -475,18 +475,12 @@ static int _wait_for_response(const char *r_path,
             dbus_message_unref(msg);
         }
     }
-    fprintf(stderr, "lnx-hotkey-portal: Response timed out after %d ms\n", timeout_ms);
-    fflush(stderr);
     return 0;  // timed out
 }
 
 // Extract the value of key "session_handle" (object path) from an a{sv} iter.
 static int _extract_session_handle(DBusMessageIter *dict_iter, char *out, size_t out_len)
 {
-    int element_type = dbus_message_iter_get_arg_type(dict_iter);
-    fprintf(stderr, "lnx-hotkey-portal: results dict first element type=%d (DICT_ENTRY=%d INVALID=%d)\n",
-            element_type, (int)DBUS_TYPE_DICT_ENTRY, (int)DBUS_TYPE_INVALID);
-
     while (dbus_message_iter_get_arg_type(dict_iter) == DBUS_TYPE_DICT_ENTRY)
     {
         DBusMessageIter entry, value;
@@ -496,27 +490,21 @@ static int _extract_session_handle(DBusMessageIter *dict_iter, char *out, size_t
         dbus_message_iter_get_basic(&entry, &k);
         dbus_message_iter_next(&entry);
 
-        // value is a variant
+        // value is a variant — recurse into it to get the actual value type
         dbus_message_iter_recurse(&entry, &value);
         int vtype = dbus_message_iter_get_arg_type(&value);
 
-        fprintf(stderr, "lnx-hotkey-portal:   dict key=\"%s\" value_type=%d\n",
-                k ? k : "(null)", vtype);
-
-        if (k && strcmp(k, "session_handle") == 0)
+        if (k && strcmp(k, "session_handle") == 0 &&
+            (vtype == DBUS_TYPE_OBJECT_PATH || vtype == DBUS_TYPE_STRING))
         {
-            if (vtype == DBUS_TYPE_OBJECT_PATH || vtype == DBUS_TYPE_STRING)
+            const char *v = NULL;
+            dbus_message_iter_get_basic(&value, &v);
+            if (v)
             {
-                const char *v = NULL;
-                dbus_message_iter_get_basic(&value, &v);
-                if (v)
-                {
-                    strncpy(out, v, out_len - 1);
-                    out[out_len - 1] = '\0';
-                    return 1;
-                }
+                strncpy(out, v, out_len - 1);
+                out[out_len - 1] = '\0';
+                return 1;
             }
-            fprintf(stderr, "lnx-hotkey-portal:   session_handle found but wrong type %d\n", vtype);
         }
         dbus_message_iter_next(dict_iter);
     }
@@ -568,8 +556,6 @@ static void _dispatch_activated(DBusMessage *msg)
 static void *_portal_thread(void *unused)
 {
     (void)unused;
-    fprintf(stderr, "lnx-hotkey-portal: event thread started, watching %s\n",
-            s_session_handle);
 
     // Open a dedicated connection so we never contend with the main thread.
     DBusError err;
@@ -577,8 +563,6 @@ static void *_portal_thread(void *unused)
     s_thread_conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
     if (!s_thread_conn || dbus_error_is_set(&err))
     {
-        fprintf(stderr, "lnx-hotkey-portal: event thread: failed to connect to session bus: %s\n",
-                dbus_error_is_set(&err) ? err.message : "(null)");
         dbus_error_free(&err);
         return NULL;
     }
@@ -599,13 +583,8 @@ static void *_portal_thread(void *unused)
     dbus_error_init(&err);
     dbus_bus_add_match(s_thread_conn, match, &err);
     if (dbus_error_is_set(&err))
-    {
-        fprintf(stderr, "lnx-hotkey-portal: event thread: add_match failed: %s\n", err.message);
         dbus_error_free(&err);
-    }
     dbus_connection_flush(s_thread_conn);
-
-    fprintf(stderr, "lnx-hotkey-portal: event thread: listening for Activated signals\n");
 
     while (s_thread_running)
     {
@@ -616,28 +595,8 @@ static void *_portal_thread(void *unused)
         DBusMessage *msg;
         while ((msg = dbus_connection_pop_message(s_thread_conn)) != NULL)
         {
-            if (dbus_message_is_signal(msg, REQUEST_IFACE, "Response"))
-            {
-                // BindShortcuts Response arrived on the thread connection.
-                // Parse and log the response code.
-                DBusMessageIter it;
-                dbus_uint32_t code = 99;
-                if (dbus_message_iter_init(msg, &it) &&
-                    dbus_message_iter_get_arg_type(&it) == DBUS_TYPE_UINT32)
-                    dbus_message_iter_get_basic(&it, &code);
-                fprintf(stderr,
-                        "lnx-hotkey-portal: BindShortcuts Response code=%u%s\n",
-                        code,
-                        code == 0 ? " (success — shortcut is active)" :
-                        code == 1 ? " (user cancelled)" : " (portal error)");
-                fflush(stderr);
-            }
-            else if (dbus_message_is_signal(msg, PORTAL_IFACE, "Activated"))
-            {
-                fprintf(stderr, "lnx-hotkey-portal: Activated signal received\n");
-                fflush(stderr);
+            if (dbus_message_is_signal(msg, PORTAL_IFACE, "Activated"))
                 _dispatch_activated(msg);
-            }
             dbus_message_unref(msg);
         }
     }
@@ -668,8 +627,6 @@ int lnx_hotkey_portal_available(void)
 
 int lnx_hotkey_portal_init(int write_fd)
 {
-    fprintf(stderr, "lnx-hotkey-portal: init called\n");
-
     if (s_initialised)
         return 1;
 
@@ -678,23 +635,16 @@ int lnx_hotkey_portal_init(int write_fd)
     _ensure_desktop_file();
 
     if (!initialise_weak_link_dbus())
-    {
-        fprintf(stderr, "lnx-hotkey-portal: libdbus-1 not available\n");
         return 0;
-    }
-    fprintf(stderr, "lnx-hotkey-portal: libdbus-1 loaded\n");
 
     DBusError err;
     dbus_error_init(&err);
     s_conn = dbus_bus_get(DBUS_BUS_SESSION, &err);
     if (!s_conn || dbus_error_is_set(&err))
     {
-        fprintf(stderr, "lnx-hotkey-portal: dbus_bus_get failed: %s\n",
-                dbus_error_is_set(&err) ? err.message : "(null connection)");
         dbus_error_free(&err);
         return 0;
     }
-    fprintf(stderr, "lnx-hotkey-portal: connected to session bus\n");
     s_pipe_write_fd = write_fd;
 
     // ---- CreateSession -------------------------------------------------------
@@ -724,50 +674,37 @@ int lnx_hotkey_portal_init(int write_fd)
 
     if (!reply || dbus_error_is_set(&err))
     {
-        fprintf(stderr, "lnx-hotkey-portal: CreateSession call failed: %s\n",
-                dbus_error_is_set(&err) ? err.message : "(no reply)");
         dbus_error_free(&err);
         return 0;
     }
-    fprintf(stderr, "lnx-hotkey-portal: CreateSession call returned a reply\n");
 
     // The reply contains the request object path (o).
     DBusMessageIter ri;
     if (!dbus_message_iter_init(reply, &ri) ||
         dbus_message_iter_get_arg_type(&ri) != DBUS_TYPE_OBJECT_PATH)
     {
-        fprintf(stderr, "lnx-hotkey-portal: CreateSession reply has unexpected type (expected object path)\n");
         dbus_message_unref(reply);
         return 0;
     }
     const char *req_path = NULL;
     dbus_message_iter_get_basic(&ri, &req_path);
-    fprintf(stderr, "lnx-hotkey-portal: request path: %s\n", req_path ? req_path : "(null)");
     char req_path_buf[256];
     strncpy(req_path_buf, req_path ? req_path : "", sizeof(req_path_buf) - 1);
     dbus_message_unref(reply);
 
     // ---- Wait for Request.Response -------------------------------------------
-    fprintf(stderr, "lnx-hotkey-portal: waiting for CreateSession Response...\n");
     DBusMessage    *resp_msg = NULL;
     DBusMessageIter results_iter;
     if (!_wait_for_response(req_path_buf, 10000, &resp_msg, &results_iter))
-    {
-        fprintf(stderr, "lnx-hotkey-portal: timed out waiting for CreateSession Response\n");
         return 0;
-    }
 
     if (!_extract_session_handle(&results_iter, s_session_handle,
                                   sizeof(s_session_handle)))
     {
-        fprintf(stderr, "lnx-hotkey-portal: could not extract session_handle from Response\n");
         dbus_message_unref(resp_msg);
         return 0;
     }
     dbus_message_unref(resp_msg);
-
-    fprintf(stderr, "lnx-hotkey-portal: session created: %s\n", s_session_handle);
-    fflush(stderr);
 
     // ---- Start event thread (opens its own D-Bus connection) -----------------
     s_thread_running = 1;
@@ -800,10 +737,6 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
 
     char trigger[128];
     _key_to_trigger(p_key, trigger, sizeof(trigger));
-
-    fprintf(stderr, "lnx-hotkey-portal: registering id=%d key=\"%s\" trigger=\"%s\"\n",
-            (int)engine_id, p_key, trigger);
-    fflush(stderr);
 
     // Generate a unique handle token.
     char handle_token[48];
@@ -869,20 +802,7 @@ int lnx_hotkey_portal_register(int32_t     engine_id,
     dbus_message_unref(bind_msg);
     dbus_connection_flush(s_conn);
 
-    if (!sent)
-    {
-        fprintf(stderr, "lnx-hotkey-portal: BindShortcuts send failed (OOM)\n");
-        fflush(stderr);
-    }
-    else
-    {
-        fprintf(stderr, "lnx-hotkey-portal: BindShortcuts sent for \"%s\" "
-                        "(watching for Activated signals)\n", shortcut_id);
-        fflush(stderr);
-    }
-
-    fprintf(stderr, "lnx-hotkey-portal: BindShortcuts done for \"%s\"\n", shortcut_id);
-    fflush(stderr);
+    (void)sent;
 
     // ---- Store entry ---------------------------------------------------------
     pthread_mutex_lock(&s_mutex);
