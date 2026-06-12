@@ -76,11 +76,11 @@ supported:
         subfolder containing the .livecodescript file. Loaded immediately via
         start using stack. No IDE restart required.
 
-  lce - Pre-compiled LiveCode Extension packages (.lce zip). Installed to the
+  lce - Pre-compiled HyperXTalk Extension packages (.lce zip). Installed to the
         user extensions folder via the IDE extension manager. Loaded immediately
         via load extension from file. No IDE restart required.
 
-  lcp - LiveCode IDE plugins. The plugin stack file is placed directly in the
+  lcp - HyperXTalk IDE plugins. The plugin stack file is placed directly in the
         user plugins folder. The IDE plugin registry is refreshed via
         revIDEUpdatePlugins immediately after install or uninstall.
         No IDE restart required.
@@ -108,7 +108,7 @@ Authoring checksums:
 
 Use hxtpmComputeChecksum to get the correct sha256 value for a package file
 URL before writing it into package.json. This downloads the file through
-LiveCode's own network stack and hashes it identically to how the install
+HyperXTalk's own network stack and hashes it identically to how the install
 pipeline verifies it, guaranteeing the values will match.
 
 Usage example:
@@ -163,7 +163,7 @@ Usage example:
 */
 
 -- ---------------------------------------------------------------------------
--- Public API — source management
+-- Public API - source management
 -- ---------------------------------------------------------------------------
 
 /**
@@ -223,6 +223,7 @@ command hxtpmSourceAdd pName, pURLOrPath
 
    -- Validate: the source must serve a readable index.json
    local tTestRaw
+   unload URL (tBase & "/index.json")
    put URL (tBase & "/index.json") into tTestRaw
    if the result is not empty or tTestRaw is empty then
       return "Could not fetch index.json from source." && \
@@ -310,7 +311,7 @@ function hxtpmSourceList
 end hxtpmSourceList
 
 -- ---------------------------------------------------------------------------
--- Public API — packages (commands)
+-- Public API - packages (commands)
 -- ---------------------------------------------------------------------------
 
 /**
@@ -329,10 +330,10 @@ when the install finishes (whether it succeeded or failed).
 
 The package type determines how it is installed:
 
-  lcs — Placed in the user libraries folder and loaded immediately via
+  lcs - Placed in the user libraries folder and loaded immediately via
         start using stack.
-  lce — Installed via the IDE extension manager and loaded immediately.
-  lcp — Stack file placed in the user plugins folder; the IDE plugin registry
+  lce - Installed via the IDE extension manager and loaded immediately.
+  lcp - Stack file placed in the user plugins folder; the IDE plugin registry
         is refreshed immediately via revIDEUpdatePlugins.
 
 No IDE restart is required for any package type.
@@ -402,10 +403,10 @@ pName: The package name to remove.
 Description:
 Removes the installed package and cleans up its files. Behaviour by type:
 
-  lcs — Stops using the stack and deletes the package subfolder from the user
+  lcs - Stops using the stack and deletes the package subfolder from the user
         libraries folder.
-  lce — Unloads and removes the extension via the IDE extension manager.
-  lcp — Deletes the plugin stack file from the user plugins folder and refreshes
+  lce - Unloads and removes the extension via the IDE extension manager.
+  lcp - Deletes the plugin stack file from the user plugins folder and refreshes
         the IDE plugin registry via revIDEUpdatePlugins.
 
 The result is empty on success or an error message on failure.
@@ -451,7 +452,7 @@ empty error.
 
 The update is asynchronous: hxtpmUpdate returns immediately and the caller
 receives an hxtpmUpdateComplete message when the update finishes. The message
-signature is identical to hxtpmInstallComplete — pName and pError.
+signature is identical to hxtpmInstallComplete - pName and pError.
 
 Example:
    -- Trigger update
@@ -529,7 +530,7 @@ pURL: The direct download URL of the package file.
 
 Description:
 Downloads the file via libURLDownloadToFile and computes its SHA-256 checksum
-using exactly the same method as hxtpm's internal checksum verification — so
+using exactly the same method as hxtpm's internal checksum verification - so
 the value produced here is guaranteed to match at install time.
 
 The result is delivered asynchronously via an hxtpmChecksumComplete message sent
@@ -603,7 +604,7 @@ on _hxtpmChecksumDownloadComplete pURL, pStatus
 end _hxtpmChecksumDownloadComplete
 
 -- ---------------------------------------------------------------------------
--- Public API — packages (functions)
+-- Public API - packages (functions)
 -- ---------------------------------------------------------------------------
 
 /**
@@ -665,6 +666,7 @@ function hxtpmAvailable pSourceName
       put _sourceBase(tSources[tIdx]) into tBase
       if tBase is empty then next repeat
 
+      unload URL (tBase & "/index.json")
       put URL (tBase & "/index.json") into tRaw
       if the result is not empty or tRaw is empty then next repeat
 
@@ -1002,7 +1004,7 @@ private command _installMultiBegin pName, pVersion, pVersionData, pSourceName, p
    end if
    -- Kick off the first file; the callback chains through the rest.
    _installMultiNextFile pName, pVersion, tFiles, 1, pSourceName, pSourceBase, \
-         pCallerTarget, pCompletionMessage, the empty array
+         pCallerTarget, pCompletionMessage, empty
 end _installMultiBegin
 
 -- Start the download for file number pIndex in pFiles. pInstalledFiles is the
@@ -1132,14 +1134,11 @@ on _hxtpmMultiDownloadComplete pURL, pStatus
       end if
       revIDEExtensionInstall tTempPath
       delete file tTempPath
-      local tExtFolder
-      put revEnvironmentUserExtensionsPath() & slash & tName & "." & tVersion into tExtFolder
-      if there is not a folder tExtFolder then
-         dispatch tMsg to tCallerTarget with tName, \
-               "Extension install failed for" && tName & ". Check the Extension Manager for details."
-         exit _hxtpmMultiDownloadComplete
-      end if
-      put tExtFolder into tInstEntry["path"]
+      -- Store the widget's internal name (from the manifest) so uninstall can pass
+      -- the correct name to revIDEExtensionUninstall, which may differ from the
+      -- hxtpm package name (e.g. "com.hyperxtalk.sprite" vs "com.hyperxtalk.spriteengine").
+      put tManifest["name"] into tInstEntry["extensionName"]
+      put revEnvironmentUserExtensionsPath() into tInstEntry["path"]
 
    else if tFileType is "lcp" then
       -- Rename into the plugins folder.
@@ -1187,17 +1186,28 @@ private function _uninstallMulti pName, pMeta
          if the result is not empty then
             return "Could not remove lcs file:" && the result
          end if
-         -- Remove the package subfolder if it is now empty.
+         -- Remove the package subfolder. Use _deleteFolder rather than checking
+         -- for emptiness first - macOS may leave a .DS_Store behind which would
+         -- cause an empty-check to fail.
          local tParent
          set the itemDelimiter to slash
          put item 1 to -2 of tFile["path"] into tParent
          set the itemDelimiter to comma
-         if files(tParent) is empty and folders(tParent) is empty then
-            delete folder tParent
+         if there is a folder tParent then
+            local tDelErr
+            put _deleteFolder(tParent) into tDelErr
+            if tDelErr is not empty then return tDelErr
          end if
 
       else if tFile["type"] is "lce" then
-         revIDEExtensionUninstall pName
+         -- Use the widget's internal name stored at install time, not the package name.
+         local tExtName
+         if tFile["extensionName"] is not empty then
+            put tFile["extensionName"] into tExtName
+         else
+            put pName into tExtName
+         end if
+         revIDEExtensionUninstall tExtName
 
       else if tFile["type"] is "lcp" then
          local tPluginFile
@@ -1381,7 +1391,7 @@ on _hxtpmLCEDownloadComplete pURL, pStatus
    -- Delegate to the IDE extension manager.
    -- revIDEExtensionInstall extracts the .lce zip, copies the .lci interface
    -- file to the interfaces folder, then calls 'load extension from file' on
-   -- the compiled module — no IDE restart required.
+   -- the compiled module - no IDE restart required.
    revIDEExtensionInstall tTempPath
    delete file tTempPath
 
@@ -1552,7 +1562,7 @@ private function _uninstallLCS pName
          try
             stop using stack (tFolder & slash & tFile)
          catch tError
-            -- Not fatal — the file will still be removed
+            -- Not fatal - the file will still be removed
          end try
          exit repeat
       end if
@@ -1698,7 +1708,7 @@ private function _verifyChecksum pFilePath, pExpected
       put tByte after tHex
    end repeat
 
-   -- Normalise to lowercase for comparison — baseConvert returns uppercase,
+   -- Normalise to lowercase for comparison - baseConvert returns uppercase,
    -- but stored checksums are conventionally lowercase (e.g. from shasum -a 256).
    put toLower(tHex) into tHex
    if ("sha256:" & tHex) is not toLower(pExpected) then

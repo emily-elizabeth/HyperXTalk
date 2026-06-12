@@ -15,15 +15,15 @@ from the hxtpm registry.
 Packages are hosted on GitHub or stored locally. Three package types are
 supported:
 
-  lcs â Script libraries. Installed to the user libraries folder as a named
+  lcs - Script libraries. Installed to the user libraries folder as a named
         subfolder containing the .livecodescript file. Loaded immediately via
         start using stack. No IDE restart required.
 
-  lce â Pre-compiled LiveCode Extension packages (.lce zip). Installed to the
+  lce - Pre-compiled LiveCode Extension packages (.lce zip). Installed to the
         user extensions folder via the IDE extension manager. Loaded immediately
         via load extension from file. No IDE restart required.
 
-  lcp â LiveCode IDE plugins. The plugin stack file is placed directly in the
+  lcp - LiveCode IDE plugins. The plugin stack file is placed directly in the
         user plugins folder. The IDE plugin registry is refreshed via
         revIDEUpdatePlugins immediately after install or uninstall.
         No IDE restart required.
@@ -38,9 +38,9 @@ The sources list is stored in a JSON file at:
    <UserLibraries>/.hxtpm/sources.json
 
 Package metadata (hxtpm.json) is written alongside each installed package:
-   lcs  â <UserLibraries>/<name>/hxtpm.json
-   lce  â <UserExtensions>/<name>.<version>/hxtpm.json
-   lcp  â <UserPlugins>/.hxtpm/<name>/hxtpm.json
+   lcs  - <UserLibraries>/<name>/hxtpm.json
+   lce  - <UserExtensions>/<name>.<version>/hxtpm.json
+   lcp  - <UserPlugins>/.hxtpm/<name>/hxtpm.json
 
 Install and update commands are asynchronous: they return immediately and
 deliver their result via a message dispatched to the calling object.
@@ -48,12 +48,14 @@ Uninstall and source-management commands are synchronous and return empty on
 success or an error message via the result.
 
 Authoring checksums:
+
 Use hxtpmComputeChecksum to get the correct sha256 value for a package file
 URL before writing it into package.json. This downloads the file through
 LiveCode's own network stack and hashes it identically to how the install
 pipeline verifies it, guaranteeing the values will match.
 
-Usage:
+Usage example:
+```
    -- Browse all packages available across all sources
    put hxtpmAvailable() into tAll
    repeat for each key tName in tAll
@@ -99,6 +101,7 @@ Usage:
       if pError is not empty then answer error pError
       -- paste pChecksum directly into the "checksum" field of package.json
    end hxtpmChecksumComplete
+```
 
 Name: hxtpmInstall
 
@@ -122,10 +125,10 @@ when the install finishes (whether it succeeded or failed).
 
 The package type determines how it is installed:
 
-  lcs â Placed in the user libraries folder and loaded immediately via
+  lcs ‚Äî Placed in the user libraries folder and loaded immediately via
         start using stack.
-  lce â Installed via the IDE extension manager and loaded immediately.
-  lcp â Stack file placed in the user plugins folder; the IDE plugin registry
+  lce ‚Äî Installed via the IDE extension manager and loaded immediately.
+  lcp ‚Äî Stack file placed in the user plugins folder; the IDE plugin registry
         is refreshed immediately via revIDEUpdatePlugins.
 
 No IDE restart is required for any package type.
@@ -190,7 +193,7 @@ pURL: The direct download URL of the package file.
 
 Description:
 Downloads the file via libURLDownloadToFile and computes its SHA-256 checksum
-using exactly the same method as hxtpm's internal checksum verification â so
+using exactly the same method as hxtpm's internal checksum verification ‚Äî so
 the value produced here is guaranteed to match at install time.
 
 The result is delivered asynchronously via an hxtpmChecksumComplete message sent
@@ -384,7 +387,7 @@ empty error.
 
 The update is asynchronous: hxtpmUpdate returns immediately and the caller
 receives an hxtpmUpdateComplete message when the update finishes. The message
-signature is identical to hxtpmInstallComplete â pName and pError.
+signature is identical to hxtpmInstallComplete ‚Äî pName and pError.
 
 Example:
    -- Trigger update
@@ -416,10 +419,10 @@ pName: The package name to remove.
 Description:
 Removes the installed package and cleans up its files. Behaviour by type:
 
-  lcs â Stops using the stack and deletes the package subfolder from the user
+  lcs ‚Äî Stops using the stack and deletes the package subfolder from the user
         libraries folder.
-  lce â Unloads and removes the extension via the IDE extension manager.
-  lcp â Deletes the plugin stack file from the user plugins folder and refreshes
+  lce ‚Äî Unloads and removes the extension via the IDE extension manager.
+  lcp ‚Äî Deletes the plugin stack file from the user plugins folder and refreshes
         the IDE plugin registry via revIDEUpdatePlugins.
 
 The result is empty on success or an error message on failure.
