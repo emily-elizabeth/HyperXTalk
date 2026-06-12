@@ -587,9 +587,10 @@ on _hxtpmChecksumDownloadComplete pURL, pStatus
    end if
 
    -- Compute hash the same way _verifyChecksum does so the value is guaranteed
-   -- to match when used in a package.json checksum field
+   -- to match when used in a package.json checksum field.
+   -- Use binfile: (not file:) to avoid line-ending translation on Windows.
    local tData, tDigest, tHex, tByte
-   put URL ("file:" & tTempPath) into tData
+   put URL ("binfile:" & tTempPath) into tData
    delete file tTempPath
    put messageDigest(tData, "SHA-256") into tDigest
 
@@ -1698,8 +1699,9 @@ private function _verifyChecksum pFilePath, pExpected
       return empty -- no checksum to verify
    end if
 
+   -- Use binfile: (not file:) to avoid line-ending translation on Windows.
    local tData, tDigest, tHex, tByte
-   put URL ("file:" & pFilePath) into tData
+   put URL ("binfile:" & pFilePath) into tData
    put messageDigest(tData, "SHA-256") into tDigest
 
    repeat with i = 1 to the length of tDigest
