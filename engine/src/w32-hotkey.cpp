@@ -226,4 +226,5 @@ void MCPlatformUnregisterAllHotkeys()
         UnregisterHotKey(NULL, s_w32_entries[i].atom_id);
     MCMemoryDeleteArray(s_w32_entries);
     s_w32_entries     = nullptr;
-    s_w32_entry_coun
+    s_w32_entry_count = 0;
+}

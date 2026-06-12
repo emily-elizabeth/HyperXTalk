@@ -1785,9 +1785,18 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 	break;
 	case WM_COMMAND:
 	{
-		// Route toolbar button clicks to the MCToolbarWin32Backend.
-		// When a toolbar button is clicked, comctl32 sends WM_COMMAND to the
-		// parent window synchronously (via SendMessage) with:
+		// Route toolbar button clicks to MCToolbarWin32Backend.
+		// comctl32 sends WM_COMMAND to the parent window with:
 		//   LOWORD(wParam) = button command ID
-		//   HIWORD(wParam) = 0 (BN_CLICKED / control notification)
-		//   lParam        
+		//   HIWORD(wParam) = 0 (BN_CLICKED)
+		//   lParam         = toolbar HWND
+		extern void MCWin32ToolbarHandleParentCommand(HWND, HWND, WPARAM);
+		MCWin32ToolbarHandleParentCommand(hwnd, (HWND)lParam, wParam);
+	}
+	break;
+
+	} // end switch (msg)
+
+	return IsWindowUnicode(hwnd) ? DefWindowProcW(hwnd, msg, wParam, lParam)
+	                             : DefWindowProcA(hwnd, msg, wParam, lParam);
+}
