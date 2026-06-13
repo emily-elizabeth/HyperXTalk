@@ -36,6 +36,26 @@ supported.
 ### Windows
 Uses `RegisterHotKey`.  All modifier combinations are supported.
 
+### Linux — known limitations
+
+Global hotkeys on Linux are inherently less reliable than on macOS or Windows.
+Some applications intercept keyboard input before it reaches the global hook,
+meaning a registered hotkey may not fire when those applications have focus.
+This is most commonly seen with:
+
+- **Electron-based apps** (VS Code, Slack, Discord, etc.) — these create their
+  own input grab and can block hotkeys registered via either the portal or
+  `XGrabKey`.
+- **Games and fullscreen apps** — applications that request an exclusive input
+  grab will prevent all global hotkeys from firing while they are in focus.
+- **Other hotkey managers** (e.g. KDE's custom shortcuts, `sxhkd`, `xbindkeys`)
+  — if another tool has already claimed the same combination, registration will
+  succeed but the hotkey will not reliably fire.
+
+If a hotkey is not being recognised in a particular application, try a less
+common modifier combination (e.g. add `Super`) or register the hotkey from
+within that application instead.
+
 ### Linux — Wayland (GNOME 43+, KDE Plasma 5.27+)
 
 Uses the **XDG GlobalShortcuts D-Bus portal**

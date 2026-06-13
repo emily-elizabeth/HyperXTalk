@@ -70,8 +70,16 @@ Platform notes:
 - Windows: Uses RegisterHotKey on the engine's message window. No elevated
   privileges required. The shortcut fires once per press (not repeatedly
   while held).
-- Linux: Uses XGrabKey on the root X window. Requires an X11 display.
-  The hotkey fires via a GLib I/O watch on the main thread.
+- Linux: Uses XGrabKey on the root X window (X11) or the XDG GlobalShortcuts
+  D-Bus portal (Wayland). Global hotkeys on Linux are inherently less reliable
+  than on other platforms. Some applications intercept keyboard input before it
+  reaches the global hook, meaning a registered hotkey may not fire when those
+  applications have focus. This is most commonly seen with Electron-based apps
+  (VS Code, Slack, Discord), games and fullscreen apps that request an exclusive
+  input grab, and other hotkey managers that have already claimed the same
+  combination. If a hotkey is not being recognised in a particular application,
+  try a less common modifier combination or register the hotkey from within that
+  application instead.
 
 References: unregisterHotkey (command), unregisterAllHotkeys (command)
 
