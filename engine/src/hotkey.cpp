@@ -1,18 +1,19 @@
-/* Copyright (C) 2003-2015 LiveCode Ltd.
+/*
+Copyright (C) 2026 HyperXTalk
 
-This file is part of LiveCode.
+This file is part of HyperXTalk.
 
-LiveCode is free software; you can redistribute it and/or modify it under
+HyperXTalk is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License v3 as published by the Free
 Software Foundation.
 
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
+HyperXTalk is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+You should have received a copy of the GNU General Public License along with
+HyperXTalk. If not, see <http://www.gnu.org/licenses/>.
+*/
 
 //
 // Cross-platform hotkey: statement implementations, registry, and engine callbacks.
