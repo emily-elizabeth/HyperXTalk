@@ -123,11 +123,67 @@ cp "$REPO_ROOT/Installer/application.png" \
 # AppImage also needs an icon at the root
 cp "$REPO_ROOT/Installer/application.png" "$APPDIR/hyperxtalk.png"
 
+# --- Bundle libvlc and its plugins ---
+# libvlc is not present on all target systems so we copy it from the build
+# machine together with its plugin tree.
+bundle_vlc() {
+    local LIB_DEST="$APPDIR/usr/lib"
+    mkdir -p "$LIB_DEST"
+
+    # Copy libvlc.so.5 and libvlccore.so.* and their symlinks.
+    for pattern in libvlc.so* libvlccore.so*; do
+        for f in /usr/lib/x86_64-linux-gnu/$pattern \
+                 /usr/lib/$pattern \
+                 /usr/local/lib/$pattern; do
+            [ -e "$f" ] || continue
+            cp -P "$f" "$LIB_DEST/" 2>/dev/null || true
+        done
+    done
+
+    # Copy the VLC plugin tree so the bundled libvlccore can find its codecs.
+    VLC_PLUGIN_SRC=""
+    for candidate in /usr/lib/x86_64-linux-gnu/vlc \
+                     /usr/lib/vlc \
+                     /usr/local/lib/vlc; do
+        if [ -d "$candidate/plugins" ]; then
+            VLC_PLUGIN_SRC="$candidate"
+            break
+        fi
+    done
+
+    if [ -n "$VLC_PLUGIN_SRC" ]; then
+        mkdir -p "$APPDIR/usr/lib/vlc"
+        cp -a "$VLC_PLUGIN_SRC/plugins" "$APPDIR/usr/lib/vlc/"
+    else
+        echo "WARNING: VLC plugin directory not found — video playback may not work." >&2
+    fi
+}
+bundle_vlc
+
+# --- Bundle other system libraries via ldd ---
+# Walk ldd output for the main binary and copy any library not already present
+# in the AppDir and not part of the core OS ABI (glibc, libGL, etc.).
+bundle_libs() {
+    local SKIP_PATTERN="linux-vdso|ld-linux|libpthread|libdl|librt|libc\\.so|libm\\.so|libGL|libEGL|libX|libxcb|libgcc_s|libstdc++"
+    local LIB_DEST="$APPDIR/usr/lib"
+    mkdir -p "$LIB_DEST"
+
+    ldd "$APPBIN/HyperXTalk" 2>/dev/null | awk '{print $3}' | grep "^/" | while read -r lib; do
+        name="$(basename "$lib")"
+        echo "$lib" | grep -qE "$SKIP_PATTERN" && continue
+        [ -f "$LIB_DEST/$name" ] && continue
+        cp -P "$lib" "$LIB_DEST/" 2>/dev/null || true
+    done
+}
+bundle_libs
+
 # --- AppRun ---
 cat > "$APPDIR/AppRun" <<'APPRUN'
 #!/bin/bash
 HERE="$(dirname "$(readlink -f "$0")")"
-export LD_LIBRARY_PATH="$HERE/usr/bin${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+# Point libvlccore at the bundled plugin tree.
+export VLC_PLUGIN_PATH="$HERE/usr/lib/vlc/plugins"
 exec "$HERE/usr/bin/HyperXTalk" "$@"
 APPRUN
 chmod +x "$APPDIR/AppRun"
