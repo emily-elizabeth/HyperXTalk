@@ -1,4 +1,4 @@
-﻿script "revshortcutslibrary"
+script "revshortcutslibrary"
 
 on extensionInitialize
    // SN-2015-05-13: [[ Bug 15365 ]] Make sure that we don't catch
@@ -111,6 +111,24 @@ on commandKeyDown pWhich
          and char 1 to -2 of revTargetStack(the focusedObject) is "revPropertyPalette" \
          and pWhich is "F" then
       pass commandKeyDown
+      
+      -- folding/unfolding Scripts
+      switch pWhich
+         case "u"
+         case "k" 
+            local tFolding
+            dispatch function "sePrefGet" to the focusedObject with "Editor,folding"
+            put the result into tFolding -- is empty if not issued from ScriptEditor
+            if tFolding  then
+               if pWhich is "K" then send "foldAll" to the focusedObject
+               if pWhich is "U" then send "unfoldAll" to the focusedObject
+               pass commandKeyDown
+            else
+               pass commandKeyDown
+            end if
+            break
+      end switch
+      -- end folding
    end if
    
    if the optionKey is down and pWhich is "S" and the shiftKey is not down then
