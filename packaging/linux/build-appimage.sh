@@ -123,59 +123,100 @@ cp "$REPO_ROOT/Installer/application.png" \
 # AppImage also needs an icon at the root
 cp "$REPO_ROOT/Installer/application.png" "$APPDIR/hyperxtalk.png"
 
-# --- Bundle libvlc and its plugins ---
-# libvlc is not present on all target systems so we copy it from the build
-# machine together with its plugin tree.
-bundle_vlc() {
-    local LIB_DEST="$APPDIR/usr/lib"
-    mkdir -p "$LIB_DEST"
+# --- Bundle libvlc, its support libs, plugins, and all transitive deps ---
+#
+# VLC has three layers:
+#   1. libvlc.so / libvlccore.so — the main shared libraries
+#   2. $VLC_DIR/*.so             — support modules (xcb events, pulse, vdpau…)
+#   3. $VLC_DIR/plugins/**/*.so  — codec/demux/output plugins loaded at runtime
+#
+# All of (1) and (2) need to be in LD_LIBRARY_PATH.
+# (3) needs VLC_PLUGIN_PATH set so libvlccore can find them.
+# Dependencies of all three layers are bundled by the recursive ldd pass below.
 
-    # Copy libvlc.so.5 and libvlccore.so.* and their symlinks.
-    for pattern in libvlc.so* libvlccore.so*; do
-        for f in /usr/lib/x86_64-linux-gnu/$pattern \
-                 /usr/lib/$pattern \
-                 /usr/local/lib/$pattern; do
-            [ -e "$f" ] || continue
-            cp -P "$f" "$LIB_DEST/" 2>/dev/null || true
+# Libraries that must come from the host (core OS ABI).
+SKIP_PATTERN="linux-vdso|ld-linux|libpthread|libdl|librt|libc\\.so|libm\\.so\
+|libGL\\.so|libEGL\\.so|libGLdispatch|libGLX\
+|libX11|libXext|libXfixes|libXrender|libXi|libxcb|libXau|libXdmcp\
+|libgcc_s|libstdc++"
+
+LIB_DEST="$APPDIR/usr/lib"
+mkdir -p "$LIB_DEST"
+
+# Find VLC's directory (contains plugins/ and support *.so files).
+VLC_DIR=""
+for candidate in /usr/lib/x86_64-linux-gnu/vlc \
+                 /usr/lib/vlc \
+                 /usr/local/lib/vlc; do
+    [ -d "$candidate/plugins" ] && VLC_DIR="$candidate" && break
+done
+
+# Copy libvlc.so.* / libvlccore.so.* and symlinks.
+for pattern in libvlc.so* libvlccore.so*; do
+    for f in /usr/lib/x86_64-linux-gnu/$pattern \
+             /usr/lib/$pattern \
+             /usr/local/lib/$pattern; do
+        [ -e "$f" ] || continue
+        cp -P "$f" "$LIB_DEST/" 2>/dev/null || true
+    done
+done
+
+if [ -n "$VLC_DIR" ]; then
+    # Copy VLC support libs (libvlc_pulse.so, libvlc_xcb_events.so, etc.)
+    # They live in $VLC_DIR alongside the plugins/ subdirectory and are
+    # loaded by libvlccore; they must be on LD_LIBRARY_PATH.
+    for f in "$VLC_DIR"/*.so "$VLC_DIR"/*.so.*; do
+        [ -f "$f" ] || continue
+        cp -P "$f" "$LIB_DEST/" 2>/dev/null || true
+    done
+
+    # Copy the full plugin tree.
+    mkdir -p "$APPDIR/usr/lib/vlc"
+    cp -a "$VLC_DIR/plugins" "$APPDIR/usr/lib/vlc/"
+    echo "Bundled VLC plugins from $VLC_DIR/plugins"
+else
+    echo "WARNING: VLC plugin directory not found — video playback may not work." >&2
+fi
+
+# Recursively bundle all shared-library dependencies.
+# We keep a worklist and process it until no new libraries are added.
+bundle_libs_recursive() {
+    local worklist=("$@")
+    local changed=1
+
+    while [ "$changed" -eq 1 ]; do
+        changed=0
+        local next_worklist=()
+        for target in "${worklist[@]}"; do
+            [ -f "$target" ] || continue
+            while IFS= read -r lib; do
+                name="$(basename "$lib")"
+                echo "$lib" | grep -qE "$SKIP_PATTERN" && continue
+                dest="$LIB_DEST/$name"
+                if [ ! -e "$dest" ]; then
+                    cp -P "$lib" "$LIB_DEST/" 2>/dev/null || true
+                    # Resolve symlink to the real file for ldd.
+                    real="$(readlink -f "$lib" 2>/dev/null || echo "$lib")"
+                    next_worklist+=("$real")
+                    changed=1
+                fi
+            done < <(ldd "$target" 2>/dev/null | awk '{print $3}' | grep "^/")
         done
-    done
-
-    # Copy the VLC plugin tree so the bundled libvlccore can find its codecs.
-    VLC_PLUGIN_SRC=""
-    for candidate in /usr/lib/x86_64-linux-gnu/vlc \
-                     /usr/lib/vlc \
-                     /usr/local/lib/vlc; do
-        if [ -d "$candidate/plugins" ]; then
-            VLC_PLUGIN_SRC="$candidate"
-            break
-        fi
-    done
-
-    if [ -n "$VLC_PLUGIN_SRC" ]; then
-        mkdir -p "$APPDIR/usr/lib/vlc"
-        cp -a "$VLC_PLUGIN_SRC/plugins" "$APPDIR/usr/lib/vlc/"
-    else
-        echo "WARNING: VLC plugin directory not found — video playback may not work." >&2
-    fi
-}
-bundle_vlc
-
-# --- Bundle other system libraries via ldd ---
-# Walk ldd output for the main binary and copy any library not already present
-# in the AppDir and not part of the core OS ABI (glibc, libGL, etc.).
-bundle_libs() {
-    local SKIP_PATTERN="linux-vdso|ld-linux|libpthread|libdl|librt|libc\\.so|libm\\.so|libGL|libEGL|libX|libxcb|libgcc_s|libstdc++"
-    local LIB_DEST="$APPDIR/usr/lib"
-    mkdir -p "$LIB_DEST"
-
-    ldd "$APPBIN/HyperXTalk" 2>/dev/null | awk '{print $3}' | grep "^/" | while read -r lib; do
-        name="$(basename "$lib")"
-        echo "$lib" | grep -qE "$SKIP_PATTERN" && continue
-        [ -f "$LIB_DEST/$name" ] && continue
-        cp -P "$lib" "$LIB_DEST/" 2>/dev/null || true
+        worklist=("${next_worklist[@]}")
     done
 }
-bundle_libs
+
+# Seed with the main binary + everything already in LIB_DEST + all plugin .so files.
+seed=("$APPBIN/HyperXTalk")
+for f in "$LIB_DEST"/*.so "$LIB_DEST"/*.so.*; do
+    [ -f "$f" ] && seed+=("$(readlink -f "$f")")
+done
+if [ -n "$VLC_DIR" ]; then
+    while IFS= read -r plug; do
+        seed+=("$plug")
+    done < <(find "$VLC_DIR/plugins" -name "*.so" 2>/dev/null)
+fi
+bundle_libs_recursive "${seed[@]}"
 
 # --- AppRun ---
 cat > "$APPDIR/AppRun" <<'APPRUN'
