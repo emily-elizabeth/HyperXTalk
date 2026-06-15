@@ -792,25 +792,28 @@ void MCD_time(MCExecContext &ctxt, Properties p_format, MCStringRef &r_time)
 	switch(t_length)
 	{
 		case P_LONG:	// long time is always 24-hour format
-		case P_INTERNET:
 			break;
 		default:
-			t_length = P_SHORT;
+			t_length = P_ABBREVIATE;
 	}
 
 	const MCDateTimeLocale *t_locale;
-	if (t_use_system && P_INTERNET != t_length)
+	if (t_use_system)
 		t_locale = MCS_getdatetimelocale();
 	else
 		t_locale = g_basic_locale;
 
 	MCStringRef t_date_format;
-	if (P_INTERNET == t_length)
-		t_date_format = MCSTR(s_internet_date_format);
-	else if (MCtwelvetime)
-		t_date_format = t_locale -> time_formats[t_length - P_SHORT];
+	if (MCtwelvetime)
+	{
+		t_date_format = t_locale -> time_formats[t_length - P_ABBREVIATE];
+		// twelve-hour system time not always available in every locale
+		unichar_t t_char = MCStringGetCharAtIndex(t_date_format, 0);
+		if ('!' != t_char)	// test for a valid date format
+			t_date_format = t_locale -> time24_formats[t_length - P_ABBREVIATE];
+	}
 	else
-		t_date_format = t_locale -> time24_formats[t_length - P_SHORT];
+		t_date_format = t_locale -> time24_formats[t_length - P_ABBREVIATE];
 
 	datetime_format(t_locale, t_date_format, t_datetime, r_time);
 }
