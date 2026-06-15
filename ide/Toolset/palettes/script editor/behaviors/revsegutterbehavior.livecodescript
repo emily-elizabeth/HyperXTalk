@@ -1,4 +1,4 @@
-﻿script "revSEGutterBehavior"
+script "revSEGutterBehavior"
 # Number of lines stored initially in the numbers field. This is stored just to save
 # time when updating by not needing to count the lines in the field.
 constant kInitialLineStore = 3000
@@ -13,13 +13,35 @@ local sCurrentLineStore
 #   Called by the parent when the rect of this group might have changed. Resizes / positions all the
 #   controls in the group to reflect the current rect of the group.
 command resize
-   if sePrefGet("gutter,linenumbers") then
-      set the rect of field "Numbers" of me to the rect of me
+   local tFoldingWidth, tMyRect, tFoldingRect, tFolding
+   
+   if sePrefGet("editor,folding") then
+      put sePrefGet("editor,foldingwidth") into tFoldingWidth
+      put true into tFolding
    else
-      set the right of field "Numbers" of me to the left of me + 500
+      put 0 into tFoldingWidth
+      put false into tFolding
    end if
-   set the rect of field "Overlay" of me to the rect of me
-   set the rect of group "Mutables" of me to the rect of me
+   
+   put the rect of me into tMyRect
+   put the rect of me into tFoldingRect
+   put item 3 of tFoldingRect - tFoldingWidth into item 1 of tFoldingRect
+   
+   subtract tFoldingWidth from item 3 of tMyRect
+   
+   if sePrefGet("gutter,linenumbers") then
+      set the rect of field "Numbers" of me to tMyRect
+   else
+      set the right of field "Numbers" of me to item 3 of tMyRect + 500
+   end if
+   if tFolding then
+      set rect of field "Folding" of me to tFoldingRect
+   else
+      set the right of field "Folding" of me to item 3 of tMyRect + 500
+   end if
+   set the rect of field "Overlay" of me to tMyRect
+   set the rect of group "Mutables" of me to tMyRect
+   updateGutterRequest empty, empty, empty, empty, false, true, true
 end resize
 
 local sLastScroll
@@ -31,6 +53,7 @@ local sErrors
 # Description
 #   Called by the parent when something has changed that might have affected the gutter.
 #   Causes the gutter to update itself.
+local sLastScriptLines = 0, sLastId
 command update pOffset, pSelectedLine, pOldNumber, pNewNumber, pTextChanged, pUpdateCompilationErrors, pForceBreakpointRedraw
    local tContext, tUpdateRequired
    
@@ -61,6 +84,18 @@ command update pOffset, pSelectedLine, pOldNumber, pNewNumber, pTextChanged, pUp
    if pUpdateCompilationErrors then
       updateCompilationErrors, tContext
    end if
+      
+   local tScriptLines, tID
+   if (sePrefGet("Editor,folding")) then
+      put the number of lines of field "script" of the owner of me into tScriptLines
+      put the short id of field "Script" of the owner of me into tID
+      if tScriptLines <> sLastScriptLines or tID <> sLastID then
+         send "checkFolding" to field "Script" of the owner of me
+         put tScriptLines into sLastScriptLines
+         put tID into sLastId
+      end if
+   end if
+   
    unlock screen
 end update
 
@@ -163,7 +198,12 @@ end updateGetContext
 # Description
 #   Updates the scroll of the gutter in reponse to changes in the editor group.
 command updateScroll
-   set the vScroll of field "Numbers" of me to the vScroll of field "Script" of the owner of me
+   lock screen
+   local tVScroll
+   put the vScroll of field "Script" of the owner of me into tVScroll
+   set the vScroll of field "Numbers" of me to tVScroll
+   set the vScroll of field "Folding" of me to tVScroll
+   unlock screen
 end updateScroll
 
 # Description
@@ -192,8 +232,25 @@ command initialize
    initializeLineNumbers
    initializeMutables
    initializeCurrentLine
+   initializeFoldingField
    unlock screen
 end initialize
+
+private command initializeFoldingField
+   lock messages
+   if there is a field "Folding" of me then
+      delete field "Folding" of me
+   end if
+   
+   clone field "Numbers Template" of me as "Folding"
+   set the width of field "Folding" of me to sePrefGet("editor,foldingwidth")
+   set the backgroundColor of field "Folding" of me to "227,227,227"
+   set the margins of field "Folding" of me to 2,9,2,8
+   set the textAlign of field "Folding" of me to "center"
+   put "" into field "Folding" of me
+   put empty into line kInitialLineStore of field "Folding" of me
+   unlock messages
+end initializeFoldingField
 
 private command initializeCurrentLine
    #set the loc of image "Current Line" of me to -500, -500
@@ -322,7 +379,26 @@ end updateCurrentLine
 #   pNewNumber : the new number of lines in the script field
 # Description
 #   If there are not enough line numbers to add to the field
+local sLastMode
 command updateLineNumbers pTextEdited, pOldNumber, pNewNumber, pContext
+
+   -- make sure everything is unfolded in debugger
+   local tFolding
+   if (sePrefGet("Editor,folding")) then put true into tFolding
+   if tFolding then
+      if pContext["mode"] = "debug" then
+         if sLastMode <> "debug" then
+            if the hidden of line 1 to - 1 of field "Script" of the owner of me <> "false" then
+               send "unfoldAll" to field "Script" of the owner of me
+            end if
+            put "debug" into sLastMode
+         end if
+      else
+         if sLastMode = "debug" then
+            put "" into sLastMode
+         end if
+      end if
+   end if
    
    # only update if there's work to be done
    if pContext["numberOfAdditions"] <= 0 then exit updateLineNumbers
@@ -330,19 +406,81 @@ command updateLineNumbers pTextEdited, pOldNumber, pNewNumber, pContext
    # Add the lines in a non-locking manner, and after we've finished adding lines, the scroll
    # of the line numbers field should be updated.
    repeat pContext["numberOfAdditions"] times
-      send "addLines kLineAdd" to me in 0 milliseconds
+     if tFolding then
+         addlines kLineAdd
+      else
+         send "addLines kLineAdd" to me in 0 milliseconds
+      end if
    end repeat
+   
+   if tFolding then
+      local tScriptA, tFoldA, tNumbersA, tKeys
+      
+      lock screen
+      
+      put the styledText of field "Script" of the owner of me into tScriptA
+      put the styledText of field "Numbers" of me into tNumbersA
+      put the styledText of field "Folding" of me into tFoldA
+      
+      local tHasNoMetadata
+      put true into tHasNoMetadata
+      repeat for each key aKey in tScriptA
+         if item 1 of tScriptA[aKey]["metadata"] <> "" then
+            put false into tHasNoMetadata
+            exit repeat
+         end if
+      end repeat
+      
+      repeat for each key aKey in tScriptA
+         put tScriptA[aKey]["style"]["hidden"] into tNumbersA[aKey]["style"]["hidden"]
+         put tScriptA[aKey]["style"]["hidden"] into tFoldA[aKey]["style"]["hidden"]
+      end repeat
+      
+      findFoldables tScriptA, tFoldA
+      
+      set the styledText of field "Numbers" of me to tNumbersA
+      set the styledText of field "Folding" of me to tFoldA
+      
+      if tHasNoMetadata then
+         local tSelectedLine, tVerticalPixAbove
+         put word 2 of the selectedLine into tSelectedLine
+         if tSelectedLine <> "" then
+            put the formattedTop of line tSelectedLine of field "Script" of the owner of me into tVerticalPixAbove
+         end if
+         
+         local tChunk, tFrom, tTo
+         put the selectedChunk into tChunk
+         put word 2 of tChunk into tFrom
+         put word 4 of tChunk into tTo
+         
+         set the styledText of field "Script" of the owner of me to tScriptA
+         select char tFrom to tTo of field "Script" of the owner of me
+         if tSelectedLine <> "" then
+            local tVerticalPixNow
+            
+            put the formattedTop of line tSelectedLine of field "Script" of the owner of me into tVerticalPixNow
+            
+            ## force the location of selection triangle to be constant when folding and unfolding
+            set the vScroll of field "Script" of the owner of me to the vScroll of field "Script" of the owner of me - (tVerticalPixAbove - tVerticalPixNow)
+         end if
+      end if
+      unlock screen
+   end if
+   -- end folding
    send "updateScroll" to me in 0 milliseconds
 end updateLineNumbers
 
 command addLines pNumberToAdd
-   local tNewLines
+   local tNewLines, tNewFoldLines
    repeat with x = (sCurrentLineStore + 1) to (sCurrentLineStore + pNumberToAdd)
       put x & return after tNewLines
+      put return after tNewFoldLines
    end repeat
    delete the last char of tNewLines
+   delete the last char of tNewFoldLines
    
    put return & tNewLines after field "Numbers" of me
+   put return & tNewFoldLines after field "Folding" of me
    put the last line of tNewLines into sCurrentLineStore
 end addLines
 
@@ -370,6 +508,11 @@ command updateCompilationErrors pContext
    
    local tHorizontal
    put item 1 of the loc of me into tHorizontal
+   
+   if sePrefGet("editor,folding")  then
+      subtract (sePrefGet("editor,foldingwidth")/2) from tHorizontal
+   end if
+   
    
    local tErrorNumber
    put 1 into tErrorNumber
@@ -493,10 +636,23 @@ private command updateBreakpoints pOffset, pOldNumber, pNewNumber, pTextChanged,
    local tHorizontal, tVertical
    put item 1 of the loc of me into tHorizontal
    
+   if sePrefGet("editor,folding")  then
+      subtract (sePrefGet("editor,foldingwidth")/2) from tHorizontal
+   end if
+   
    local tLineNumber
    put 1 into tLineNumber
    repeat for each line tBreakpoint in tBreakpoints
       put lineNumberToVerticalLoc(item -1 of tBreakpoint) into tVertical
+      
+      -- folding
+      if sePrefGet("editor,folding") then
+         if the hidden of line (item -1 of tBreakpoint) of field "Script" of the owner of me then
+            -- don't make a breakpoint if line is hidden
+            next repeat
+         end if
+      end if
+      -- end folding
       
       # This means that tBreakpoint is on a line outside the boundaries of the gutter with the
       # current scroll, so we don't need to display it.
@@ -670,13 +826,29 @@ on mouseUp pButtonNumber
       exit mouseUp
    end if
    
-   local tTarget, tClickLoc
+   local tTarget, tClickLoc, tClickLine
    put the long id of the target into tTarget
    put the clickloc into tClickLoc
+   put the clickLine into tClickLine
+   if the short name of tTarget is "Folding" then
+      foldingMouseUp tTarget, tClickLine
+      pass mouseUp
+   end if
    # 2017-08-01 bhall2001
    # bugfix 20214 handle changes to gutter directly
    gutterMouseUp tTarget, tClickLoc
 end mouseUp
+
+on foldingMouseUp pTarget, pClickLine
+   local tAllowedLineStarts, tFirstWord
+   put "on,private,function,command,setProp,getProp,after,before,if,repeat,switch,case,try,else" into tAllowedLineStarts
+   put word 1 of line  (word 2 of pClickLine) of field "Script" of the owner of me into tFirstWord
+   if tFirstWord is among the items of tAllowedLineStarts or  \
+         tFirstWord begins with "#<" and char 3 of tFirstWord <> "/" or \
+         tFirstWord begins with "/" & "*" then
+      dispatch "folding" to field "Script" of the owner of me-- with word 2 of pClickLine
+   end if
+end foldingMouseUp
 
 on gutterMouseUp pTarget, pClickLoc
    local tObject
@@ -733,6 +905,7 @@ on gutterMouseUp pTarget, pClickLoc
    # OK-2010-02-26: Avoid delays when updating breakpoints by only updating the breakpoints pane
    --   sePanesUpdate
    seRefreshCurrentPaneIfItsBreakpoints
+   updateGutterRequest empty, empty, empty, empty, false, true, true -- folding
    unlock screen
 end gutterMouseUp
 
@@ -794,7 +967,6 @@ private function controlRandomName
    end repeat
    return tName
 end controlRandomName
-
 
 
 
