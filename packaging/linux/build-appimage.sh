@@ -206,16 +206,17 @@ bundle_libs_recursive() {
     done
 }
 
-# Seed with the main binary + everything already in LIB_DEST + all plugin .so files.
+# Seed with the main binary and the top-level VLC libs only.
+# Plugin .so files are NOT included — their deps are already captured by
+# libvlccore.so, and ldd-ing hundreds of plugin files makes the build very slow.
 seed=("$APPBIN/HyperXTalk")
 for f in "$LIB_DEST"/*.so "$LIB_DEST"/*.so.*; do
-    [ -f "$f" ] && seed+=("$(readlink -f "$f")")
+    [ -f "$f" ] || continue
+    real="$(readlink -f "$f" 2>/dev/null || echo "$f")"
+    [ -f "$real" ] && seed+=("$real")
 done
-if [ -n "$VLC_DIR" ]; then
-    while IFS= read -r plug; do
-        seed+=("$plug")
-    done < <(find "$VLC_DIR/plugins" -name "*.so" 2>/dev/null)
-fi
+# Deduplicate seed.
+mapfile -t seed < <(printf '%s\n' "${seed[@]}" | sort -u)
 bundle_libs_recursive "${seed[@]}"
 
 # --- AppRun ---
