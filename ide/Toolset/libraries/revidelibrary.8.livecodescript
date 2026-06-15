@@ -12091,6 +12091,17 @@ on revIDEEnsureDictionaryUrl pWhich
    put revIDEIsFilesetStale(revIDEGetDictionaryHTMLTemplate(pWhich), \
          revIDEGetDictionaryUrl(pWhich), false, tError) into tNeedUpdate
 
+   -- Also regenerate if the cached HTML still contains an absolute mount path.
+   -- AppImage squashfs mounts at a random /tmp/.mount_XXXXXX suffix that changes
+   -- on every launch, so any cached HTML referencing the old mount is stale.
+   if tNeedUpdate is not true then
+      local tCachedHtml
+      put revIDEUTF8FileContents(revIDEGetDictionaryUrl(pWhich)) into tCachedHtml
+      if tCachedHtml contains "/tmp/.mount_" then
+         put true into tNeedUpdate
+      end if
+   end if
+
    if tNeedUpdate is true then
       revIDEGenerateDictionaryHTML pWhich
    end if
@@ -12122,10 +12133,31 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
 
    local tDocsBase
    put revIDESpecialFolderPath("documentation") & slash & "html_viewer" into tDocsBase
-   
+
+   -- Copy html_viewer/css, js, fonts into the user docs cache so the generated
+   -- HTML can reference them with relative paths.  Absolute paths into the
+   -- bundled Documentation folder break when the AppImage mount suffix changes
+   -- between launches (the squashfs mounts at a random /tmp/.mount_XXXXXX path).
+   -- We mirror the same approach used for built_api.js (relative "IDE/..." path).
+   local tUserDocsBase
+   put revEnvironmentUserDocsPath() & slash & "html_viewer" into tUserDocsBase
+   revIDEEnsurePath tUserDocsBase
+   local tViewerSubdir
+   repeat for each item tViewerSubdir in "css,js,fonts"
+      local tSrc, tDst
+      put tDocsBase & slash & tViewerSubdir into tSrc
+      put tUserDocsBase & slash & tViewerSubdir into tDst
+      if there is a folder tSrc then
+         if there is no folder tDst then
+            shell "cp -a " & quote & tSrc & quote & " " & quote & tDst & quote
+         end if
+      end if
+   end repeat
+
    local tDocsCSSFolder, tDocsJSFolder, tDataPath
-   put tDocsBase & slash & "css" into tDocsCSSFolder
-   put tDocsBase & slash & "js" into tDocsJSFolder
+   -- Use relative paths so the cached HTML works across AppImage relaunches.
+   put "html_viewer/css" into tDocsCSSFolder
+   put "html_viewer/js" into tDocsJSFolder
    -- Use a relative path (IDE/built_<pWhich>.js) so WKWebView resolves it relative
    -- to api.html's own directory inside the docs cache. This avoids any cross-directory
    -- file-access trust issues and eliminates space-encoding problems entirely.
@@ -12136,6 +12168,8 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
    put revIDESpecialFolderPath("repo guides") into tRepoGuidesFolder
 
    -- URL-encode spaces in absolute paths used in HTML src/href attributes.
+   -- tDocsCSSFolder and tDocsJSFolder are now relative so no encoding needed,
+   -- but the replace is harmless and keeps the pattern consistent.
    replace " " with "%20" in tDocsCSSFolder
    replace " " with "%20" in tDocsJSFolder
    replace " " with "%20" in tIDEGuidesFolder
