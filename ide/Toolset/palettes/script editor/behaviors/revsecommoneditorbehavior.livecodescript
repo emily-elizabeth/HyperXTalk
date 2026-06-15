@@ -1,4 +1,4 @@
-﻿script "com.livecode.scripteditor.behavior.editorcommon"
+script "com.livecode.scripteditor.behavior.editorcommon"
 
 -- Autocomplete is always enabled in HyperXTalk.
 -- Defined here so it is always in the message path regardless of
@@ -1325,6 +1325,9 @@ command updateGutterRequest pOffset, pSelectedLine, pOldLines, pNewLines, pTextC
    if exists(field "Numbers" of group "Gutter") then
       set the vScroll of field "Numbers" of group "Gutter" to the vScroll of field "Script" of me
    end if
+   if exists(field "folding" of group "Gutter") then
+      set the vScroll of field "Folding" of group "Gutter" to the vScroll of field "Script" of me
+   end if
    
    if pNow or (pOldLines is not 1 or pNewLines is not 1) then
       updateGutterDo
@@ -1614,7 +1617,14 @@ function lineNumberToVerticalLoc pLineNumber
    put getScriptField() into tField
    
    local tHeight
-   put (pLineNumber - 1) * the effective textHeight of getScriptField() into tHeight
+   
+   -- Folding
+   if sePrefGet("Editor,folding") then
+      put the formattedTop of line pLineNumber of tField + the vScroll of tField - the top of tField - 4 into tHeight
+   else
+      put (pLineNumber - 1) * the effective textHeight of getScriptField() into tHeight
+   end if
+   -- end Folding
    
    # If the breakpoint is on a line earlier than the first one in the visible area then don't render it
    if tHeight < the vScroll of getScriptField() then
@@ -1669,6 +1679,30 @@ function verticalLocToLineNumber pVerticalLoc
    
    # Divide to calculate which line number it falls nearest. Always round up.
    local tLineNumber
+   
+  -- folding
+   if sePrefGet("Editor,folding") then
+      --  take folded lines into account
+      local tHidden, tStyledArray, tSum, tLines, tTextHeight
+      put the hidden of line 1 to - 1 of getScriptField() into tHidden
+      
+      if not (tHidden = false) then
+         put the styledText of getScriptField() into tStyledArray
+         put the effective textHeight of getScriptField() into tTextHeight
+         put 0 into tSum
+         subtract the top of getScriptField() from pVerticalLoc
+         add the vScroll of getScriptField() to pVerticalLoc
+         put the keys of tStyledArray into tLines
+         sort tLines ascending numeric
+         repeat for each line aLine in tLines
+            if not (tStyledArray[aLine]["Style"]["Hidden"]) then add tTextHeight to tSum
+            if tSum > pVerticalLoc then
+               return aLine
+            end if
+         end repeat
+      end if
+   end if
+
    put (tHeight div the effective textHeight of getScriptField()) + 1 into tLineNumber
    return tLineNumber
 end verticalLocToLineNumber
@@ -2801,6 +2835,23 @@ on rawKeyDown pKey
       pass rawKeyDown
    end if
    
+   -- folding
+   local tFoldingIsOn
+   put sePrefGet("Editor,folding") into tFoldingIsOn
+   
+   if tFoldingIsOn then
+      -- pass scrollbar and tabKey
+      if pKey is among the items of "65308,65309,65310,65311,65289" then pass rawKeyDown
+      
+      -- block editing a folded structure
+      if the selectedLine is not empty then
+         if the hidden of the selectedLine then
+            beep
+            exit rawKeyDown
+         end if
+      end if
+   end if
+   
    # For the beginning of line/paragraph action (there is no distinction in the S/E)
    # make sure we update the caret position after the field has had its go.
    
@@ -2877,6 +2928,31 @@ on rawKeyDown pKey
    end if
    
    if pKey is not among the items of kKeyLeftArrow,kKeyRightArrow,kKeyUpArrow,kKeyDownArrow then
+
+      -- folding
+      if tFoldingIsOn then
+         local tSelectedLine
+         put the selectedLine into tSelectedLine
+         put word 2 of tSelectedLine into tSelectedLine
+         
+         if (line tSelectedLine of field "Folding" of me <> "") and (the hidden of line (tSelectedLine + 1) of field "Folding" of me = true) then
+            if the commandKey is down then pass rawKeyDown -- for shortCuts for folding = cmd U, cmd K
+            local tStartLine, tLineCount
+            put the number of lines of field "Script" of me into tLineCount
+            put word 2 of the selectedLine into tStartLine
+            repeat with tCurrLine = tStartLine + 1 to tLineCount
+               if not (the hidden of line tCurrLine of field "Script" of me)  then
+                  exit repeat
+               end if
+            end repeat
+            
+            if tCurrLine <> tLineCount then subtract 1 from tCurrLine
+            dispatch "FoldUnfold" to field "Script" of me with tStartLine, tCurrLine
+            exit rawKeyDown
+         end if
+      end if
+      -- end folding
+
       pass rawKeyDown
    end if
    
@@ -3427,6 +3503,15 @@ command scriptFormat pScope, pDontGroup
    put word 2 of it into tStart
    put word 4 of it into tEnd
    
+   if sePrefGet("editor,folding") then
+      local tFolding, tSelLine
+      put true into tFolding
+      put word 2 of the selectedLine into tSelLine
+      
+      local tVerticalPixAbove
+      put the formattedTop of line tSelLine of field "Script" of me into tVerticalPixAbove
+   end if
+   
    if pScope is "script" then
       local tStartChar
       put 1 into tStartChar
@@ -3531,20 +3616,70 @@ command scriptFormat pScope, pDontGroup
                - the number of chars of line 1 to (tLine + (tSelectionLineCount - 1)) of tScript) into tLastSelectionOffset
       end if
       
-      if tStart is not empty then
-         if tStart > tEnd then
-            select char (tStart + tFirstSelectionOffset ) to (tEnd + tFirstSelectionOffset ) of field "Script" of me
-         else
-            put tStart + tFirstSelectionOffset into tStart
-            if tStart < tFirstLineChar + (the number of chars of tNewFirstIndent) then 
-               put tFirstLineChar + (the number of chars of tNewFirstIndent) into tStart
+      # necessary because when cursor is not inside handler something happens to metadata
+      # this sets/restores metadata
+      if tFolding then
+         local tStartLine, tEndLine, tTextLines
+         local tScriptA, tFoldA, tReplaceA, tCount
+         
+         put the number of lines of char 1 to tCode["startChar"] of tNewScript into tStartLine
+         put the number of lines of tCode["newText"] into tTextLines
+         put tStartLine + tTextLines - 1 into tEndLine
+         
+         ## only if insertion is outside of handler
+         if word 1 of line tEndline of tNewScript <> "end" then
+            repeat with i = tStartLine to tEndLine -1
+               set the hidden of line i of field "Script" of me to false
+            end repeat
+            put the styledText of field "Script" of me into tScriptA
+            put the styledText of field "Folding" group "Gutter" of me into tFoldA
+            dispatch "findFoldables" to field "Script" of me with tScriptA, tFoldA
+            
+            put 1 into tCount
+            repeat with aLine = tStartLine to tEndLine - 1
+               if item 1 of tScriptA[aLine]["metadata"] = "foldable" then
+                  if tScriptA[aLine + 1]["Style"]["Hidden"] then
+                     put "folded" into item 2 of tScriptA[aLine]["metadata"]
+                  else 
+                     put "open" into item 2 of tScriptA[aLine]["metadata"]
+                  end if
+               else
+                  put "" into tScriptA[aLine]["metadata"]
+               end if
+               put tScriptA[aline] into tReplaceA[tCount]
+               put false into tReplaceA[tCount]["Style"]["Hidden"] ##### New
+               add 1 to tCount
+            end repeat
+            
+            if tReplaceA is an array then
+               set the styledText of line tStartline to tStartLine + tTextLines - 2 of field "Script" to tReplaceA
             end if
-            select char (tStart) to (tEnd + tLastSelectionOffset) of field "Script" of me
+            
+         end if -- 
+      end if -- if tFolding
+      
+   end if --pScope is "script"
+   
+   if tStart is not empty then
+      if tStart > tEnd then
+         select char (tStart + tFirstSelectionOffset ) to (tEnd + tFirstSelectionOffset ) of field "Script" of me
+      else
+         put tStart + tFirstSelectionOffset into tStart
+         if tStart < tFirstLineChar + (the number of chars of tNewFirstIndent) then 
+            put tFirstLineChar + (the number of chars of tNewFirstIndent) into tStart
          end if
+         select char (tStart) to (tEnd + tLastSelectionOffset) of field "Script" of me
       end if
    end if
    
-   set the vScroll of field "Script" of me to tScroll
+   if tFolding then
+      local tVerticalPixNow
+      put the formattedTop of line tSelLine of field "Script" of me into tVerticalPixNow
+      set the vScroll of field "Script" of me to the vScroll of field "Script" of me - (tVerticalPixAbove - tVerticalPixNow)
+      dispatch "checkFolding" to field "Script" of me
+   else
+      set the vScroll of field "Script" of me to tScroll
+   end if
    unlock screen
 end scriptFormat
 
