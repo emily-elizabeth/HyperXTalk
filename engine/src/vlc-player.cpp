@@ -317,9 +317,9 @@ extern "C" bool  MCVLCViewHasWindow(void *p_view);
 #endif
 
 // ---------------------------------------------------------------------------
-// VLC internal log relay (macOS only — helps diagnose vout failures)
+// VLC internal log relay (macOS + Linux — helps diagnose vout failures)
 // ---------------------------------------------------------------------------
-#if defined(TARGET_PLATFORM_MACOS_X)
+#if defined(TARGET_PLATFORM_MACOS_X) || defined(TARGET_PLATFORM_LINUX)
 static void vlc_internal_log_cb(void * /*data*/, int level,
                                  const libvlc_log_t * /*ctx*/,
                                  const char *fmt, va_list args)
@@ -1306,12 +1306,12 @@ bool MCVLCPlayer::EnsureVLCInstance()
     }
 
     const char *t_args[] = {
-        "--quiet",
         "--no-osd",
         "--no-stats",
-        "--vout=xcb_x11",
     };
-    s_vlc_instance = libvlc_new(4, t_args);
+    s_vlc_instance = libvlc_new(2, t_args);
+    if (s_vlc_instance != nullptr)
+        libvlc_log_set(s_vlc_instance, vlc_internal_log_cb, nullptr);
 #endif
 
     if (s_vlc_instance == nullptr)
