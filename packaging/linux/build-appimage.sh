@@ -170,10 +170,14 @@ if [ -n "$VLC_DIR" ]; then
         cp -P "$f" "$LIB_DEST/" 2>/dev/null || true
     done
 
-    # Copy the full plugin tree.
-    mkdir -p "$APPDIR/usr/lib/vlc"
-    cp -a "$VLC_DIR/plugins" "$APPDIR/usr/lib/vlc/"
-    echo "Bundled VLC plugins from $VLC_DIR/plugins"
+    # Copy the full plugin tree to the path the engine probes at startup:
+    #   <exe_dir>/vlc-plugins/plugins
+    # (see vlc-player.cpp Linux init block).  The engine sets VLC_PLUGIN_PATH
+    # to this path when it exists, so libvlccore finds codecs without relying
+    # on the environment or system paths.
+    mkdir -p "$APPBIN/vlc-plugins"
+    cp -a "$VLC_DIR/plugins" "$APPBIN/vlc-plugins/"
+    echo "Bundled VLC plugins from $VLC_DIR/plugins -> usr/bin/vlc-plugins/plugins"
 else
     echo "WARNING: VLC plugin directory not found — video playback may not work." >&2
 fi
@@ -224,8 +228,8 @@ cat > "$APPDIR/AppRun" <<'APPRUN'
 #!/bin/bash
 HERE="$(dirname "$(readlink -f "$0")")"
 export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-# Point libvlccore at the bundled plugin tree.
-export VLC_PLUGIN_PATH="$HERE/usr/lib/vlc/plugins"
+# Fallback in case the engine's own probe doesn't run first.
+export VLC_PLUGIN_PATH="$HERE/usr/bin/vlc-plugins/plugins"
 exec "$HERE/usr/bin/HyperXTalk" "$@"
 APPRUN
 chmod +x "$APPDIR/AppRun"
