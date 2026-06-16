@@ -98,6 +98,7 @@ on openStack
    
    __UpdateMessageColors
    __UpdateMessageFont
+	put empty into field "results"
    unlock messages
    unlock screen
 end openStack
@@ -556,6 +557,7 @@ end __UpdateMessageColors
 // picks up the new palette.
 on SystemAppearanceChanged pMode, pWindowColor, pTextColor
    local tBgColor
+   
    put revIDEColor("palette_background") into tBgColor
    set the backgroundColor of me to tBgColor
    set the backgroundColor of this card to tBgColor
