@@ -112,6 +112,26 @@ if [ -d "$OUT_DIR/Externals" ]; then
     cp -a "$OUT_DIR/Externals/"* "$APPBIN/Externals/" 2>/dev/null || true
 fi
 
+# --- revbrowser + CEF (required for the Dictionary documentation widget) ---
+# revbrowser.so is the LiveCode browser external; CEF is its runtime dependency.
+# Without both, the "Dictionary" browser widget fails to load, openStack in the
+# Dictionary palette aborts before revIDEGenerateDictionaryHTML is called, and
+# no documentation HTML/CSS/JS files are ever generated.
+PREBUILT_BIN="$REPO_ROOT/linux-x86_64-bin"
+if [ -f "$PREBUILT_BIN/revbrowser.so" ]; then
+    cp "$PREBUILT_BIN/revbrowser.so" "$APPBIN/"
+    echo "Bundled revbrowser.so from linux-x86_64-bin"
+else
+    echo "WARNING: linux-x86_64-bin/revbrowser.so not found — Dictionary widget will not load." >&2
+fi
+if [ -d "$PREBUILT_BIN/Externals/CEF" ]; then
+    mkdir -p "$APPBIN/Externals/CEF"
+    cp -a "$PREBUILT_BIN/Externals/CEF/"* "$APPBIN/Externals/CEF/"
+    echo "Bundled CEF from linux-x86_64-bin/Externals/CEF"
+else
+    echo "WARNING: linux-x86_64-bin/Externals/CEF not found — Dictionary widget will not load." >&2
+fi
+
 # --- Packaged extensions (widgets and libraries) ---
 # When packaged/installed, the IDE looks in "Extensions" rather than "packaged_extensions"
 if [ -d "$OUT_DIR/packaged_extensions" ]; then
