@@ -1344,6 +1344,17 @@ on revIDEInitialiseIDELibrary
    ## Regenerate dictionary data
    revInternal__LoadLibrary "revDatabaseLibrary"
    revIDERegenerateBuiltDictionaryData
+
+   -- Pre-generate the dictionary HTML files so they exist regardless of whether
+   -- the browser widget loads. On Linux the widget may not be available (CEF
+   -- absent or failing), and revIDEGenerateDictionaryHTML is otherwise only
+   -- called when the Dictionary palette is first opened. Generating here ensures
+   -- the files are ready for revIDEBrowserWidgetUnavailable fallback paths and
+   -- for the system browser launch.
+   if the platform is "Linux" then
+      revIDEGenerateDictionaryHTML "api"
+      revIDEGenerateDictionaryHTML "guide"
+   end if
    
    ## Initialise property library
    revIDEPropertyLibraryInitialise
@@ -4728,7 +4739,6 @@ command revIDEOpenPalette pPaletteName
             end if
             
             revIDEGenerateDictionaryHTML tWhich
-            answer "file:" & revIDEGetDictionaryUrl(tWhich)
             launch url ("file:" & revIDEGetDictionaryUrl(tWhich))
          else
             toplevel stack tStackName

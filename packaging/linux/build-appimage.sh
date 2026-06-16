@@ -113,30 +113,57 @@ if [ -d "$OUT_DIR/Externals" ]; then
 fi
 
 # --- revbrowser + CEF (required for the Dictionary documentation widget) ---
-# revbrowser.so is the LiveCode browser external; CEF is its runtime dependency.
-# Without both, the "Dictionary" browser widget fails to load, openStack in the
-# Dictionary palette aborts before revIDEGenerateDictionaryHTML is called, and
-# no documentation HTML/CSS/JS files are ever generated.
+# The browser widget (com.livecode.widget.browser) uses libbrowser which wraps
+# CEF.  Three things must be in place for it to work:
+#
+#   1. revbrowser.so        — the classic LiveCode browser external
+#   2. libbrowser-cefprocess — the CEF renderer subprocess binary; must sit
+#                              alongside the main HyperXTalk executable because
+#                              __MCCefPlatformGetExecutableFolder() (reads
+#                              /proc/self/exe) is used for browser_subprocess_path
+#   3. Externals/CEF/       — libcef.so, .pak files, locales, libEGL/libGLESv2
+#
+# $LIVECODE_USE_CEF is an OS environment variable read by revidelibrary; if it is
+# not set the IDE assumes the browser widget is available on Linux and tries to use
+# CEF.  The AppRun wrapper exports it based on whether libbrowser-cefprocess is
+# present so that revIDEBrowserWidgetUnavailable() returns the correct value.
 PREBUILT_BIN="$REPO_ROOT/linux-x86_64-bin"
 if [ -f "$PREBUILT_BIN/revbrowser.so" ]; then
     cp "$PREBUILT_BIN/revbrowser.so" "$APPBIN/"
     echo "Bundled revbrowser.so from linux-x86_64-bin"
 else
-    echo "WARNING: linux-x86_64-bin/revbrowser.so not found — Dictionary widget will not load." >&2
+    echo "WARNING: linux-x86_64-bin/revbrowser.so not found — classic browser external missing." >&2
+fi
+if [ -f "$PREBUILT_BIN/libbrowser-cefprocess" ]; then
+    cp "$PREBUILT_BIN/libbrowser-cefprocess" "$APPBIN/"
+    echo "Bundled libbrowser-cefprocess from linux-x86_64-bin"
+else
+    echo "WARNING: linux-x86_64-bin/libbrowser-cefprocess not found — CEF will not work." >&2
 fi
 if [ -d "$PREBUILT_BIN/Externals/CEF" ]; then
     mkdir -p "$APPBIN/Externals/CEF"
     cp -a "$PREBUILT_BIN/Externals/CEF/"* "$APPBIN/Externals/CEF/"
     echo "Bundled CEF from linux-x86_64-bin/Externals/CEF"
 else
-    echo "WARNING: linux-x86_64-bin/Externals/CEF not found — Dictionary widget will not load." >&2
+    echo "WARNING: linux-x86_64-bin/Externals/CEF not found — CEF will not work." >&2
 fi
 
 # --- Packaged extensions (widgets and libraries) ---
 # When packaged/installed, the IDE looks in "Extensions" rather than "packaged_extensions"
+mkdir -p "$APPBIN/Extensions"
 if [ -d "$OUT_DIR/packaged_extensions" ]; then
-    mkdir -p "$APPBIN/Extensions"
     cp -a "$OUT_DIR/packaged_extensions/"* "$APPBIN/Extensions/" 2>/dev/null || true
+fi
+# The browser widget module must come from the prebuilt binaries since the build
+# output packaged_extensions/ may not contain it.  It is the LCB module that
+# implements com.livecode.widget.browser and is required for the Dictionary
+# palette's embedded browser widget.
+if [ -d "$PREBUILT_BIN/packaged_extensions/com.livecode.widget.browser" ]; then
+    cp -a "$PREBUILT_BIN/packaged_extensions/com.livecode.widget.browser" \
+          "$APPBIN/Extensions/"
+    echo "Bundled com.livecode.widget.browser from linux-x86_64-bin"
+else
+    echo "WARNING: linux-x86_64-bin/packaged_extensions/com.livecode.widget.browser not found — Dictionary widget may not load." >&2
 fi
 
 # --- LCI modules ---
@@ -320,13 +347,39 @@ if [ "${#ffmpeg_seed[@]}" -gt 0 ]; then
     bundle_libs_recursive "${ffmpeg_seed[@]}"
 fi
 
+# --- Bundle libcef.so transitive deps ---
+# libcef.so is loaded at runtime by libbrowser (CEF-based browser widget) via
+# dlopen.  Its deps are not captured by the main binary's ldd pass above, so we
+# run a dedicated pass now that libcef.so has been copied to Externals/CEF/.
+libcef_real=""
+if [ -f "$APPBIN/Externals/CEF/libcef.so" ]; then
+    libcef_real="$(readlink -f "$APPBIN/Externals/CEF/libcef.so" 2>/dev/null || echo "$APPBIN/Externals/CEF/libcef.so")"
+fi
+if [ -n "$libcef_real" ] && [ -f "$libcef_real" ]; then
+    echo "Bundling libcef.so transitive deps..."
+    bundle_libs_recursive "$libcef_real"
+fi
+
 # --- AppRun ---
 cat > "$APPDIR/AppRun" <<'APPRUN'
 #!/bin/bash
 HERE="$(dirname "$(readlink -f "$0")")"
-export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-# Fallback in case the engine's own probe doesn't run first.
+# usr/lib:      bundled shared-library deps (VLC, codec libs, etc.)
+# usr/bin:      main binary siblings (revsecurity.so, revpdfprinter.so, etc.)
+# Externals/CEF: libEGL.so and libGLESv2.so required by libcef at runtime
+export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin:$HERE/usr/bin/Externals/CEF${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+# Fallback in case the engine's own VLC probe doesn't run first.
 export VLC_PLUGIN_PATH="$HERE/usr/bin/vlc-plugins/plugins"
+# $LIVECODE_USE_CEF is read by revIDEBrowserWidgetUnavailable() in revidelibrary.
+# If the CEF subprocess binary is present, set it to 1 so the IDE attempts to use
+# the built-in browser widget; otherwise set to 0 to force the system-browser
+# fallback, which requires only that api.html has been pre-generated at startup.
+if [ -x "$HERE/usr/bin/libbrowser-cefprocess" ] && \
+   [ -f "$HERE/usr/bin/Externals/CEF/libcef.so" ]; then
+    export LIVECODE_USE_CEF=1
+else
+    export LIVECODE_USE_CEF=0
+fi
 exec "$HERE/usr/bin/HyperXTalk" "$@"
 APPRUN
 chmod +x "$APPDIR/AppRun"
