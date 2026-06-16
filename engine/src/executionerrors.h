@@ -2851,6 +2851,21 @@ enum Exec_errors
 
     // {EE-0932} storeCredential: bad secret expression
     EE_STORECREDENTIAL_BADSECRET,
+
+    // {EE-0933} registerVoiceCommand: error evaluating phrase expression
+    EE_REGISTERVOICECOMMAND_BADPHRASE,
+
+    // {EE-0934} unregisterVoiceCommand: error evaluating phrase expression
+    EE_UNREGISTERVOICECOMMAND_BADPHRASE,
+
+    // {EE-0935} startListening: error evaluating language expression
+    EE_STARTLISTENING_BADLANGUAGE,
+
+    // {EE-0936} setWakeWord: error evaluating word expression
+    EE_SETWAKEWORD_BADWORD,
+
+    // {EE-0937} setWakeWord: error evaluating timeout expression
+    EE_SETWAKEWORD_BADTIMEOUT,
 };
 
 extern const char *MCexecutionerrors;

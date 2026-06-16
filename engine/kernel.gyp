@@ -214,12 +214,16 @@
 						'OS == "mac" and target_sdk != "macosx10.6"',
                         {
 							# Adding AVFoundation in the list of libraries does not allow
-							# us to weak link it. Only adding the linking flag does the job
+							# us to weak link it. Only adding the linking flag does the job.
+							# Speech.framework is weak-linked so standalones still launch on
+							# macOS < 10.15 where SFSpeechRecognizer is unavailable;
+							# startListening returns an error on those systems.
 							'xcode_settings':
 							{
 								'OTHER_LDFLAGS':
 								[
                                     '-weak_framework AVFoundation',
+									'-weak_framework Speech',
 								]
 							},
                         },

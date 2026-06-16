@@ -1,0 +1,45 @@
+Name: unregisterVoiceCommand
+
+Type: command
+
+Syntax: unregisterVoiceCommand <phrase>
+
+Summary:
+Removes a previously registered voice command phrase. The phrase will no
+longer be recognised by the speech recognition engine.
+
+Introduced: 1.1.0
+
+OS: mac
+
+Platforms: desktop
+
+Example:
+-- Remove a single phrase
+unregisterVoiceCommand "open stack"
+
+Example:
+-- Dynamically remove commands that are no longer applicable
+repeat for each element tCmd in tDisabledCommands
+    unregisterVoiceCommand tCmd
+end repeat
+
+Parameters:
+phrase (string): The exact phrase (case-insensitive) to unregister. If
+the phrase is not currently registered, the command is a no-op.
+
+Description:
+Use <unregisterVoiceCommand> to remove a phrase that was previously
+added with <registerVoiceCommand>. After this call the speech recognition
+engine will no longer match that phrase, and no <voiceCommand> message
+will be fired for it.
+
+If the phrase is not found in the registry the command succeeds silently
+with no error.
+
+To remove all registered phrases at once, use <unregisterAllVoiceCommands>.
+
+References: registerVoiceCommand (command), unregisterAllVoiceCommands (command),
+startListening (command), voiceCommand (message)
+
+Tags: speech, voice

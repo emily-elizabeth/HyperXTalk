@@ -212,6 +212,8 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCRedo;
 	case S_REGISTER_HOTKEY:
 		return new MCRegisterHotkey;
+	case S_REGISTER_VOICE_COMMAND:
+		return new MCRegisterVoiceCommand;
 	case S_RELAYER:
 		return new MCRelayer;
 	case S_REMOVE:
@@ -269,8 +271,14 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCSplit;
 	case S_START:
 		return new MCStart;
+	case S_START_LISTENING:
+		return new MCStartListening;
 	case S_STOP:
 		return new MCStop;
+	case S_STOP_LISTENING:
+		return new MCStopListening;
+	case S_SET_WAKE_WORD:
+		return new MCSetWakeWord;
 	case S_SUBTRACT:
 		return new MCSubtract;
 	case S_SWITCH:
@@ -303,8 +311,12 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCUnmark;
 	case S_UNREGISTER_ALL_HOTKEYS:
 		return new MCUnregisterAllHotkeys;
+	case S_UNREGISTER_ALL_VOICE_COMMANDS:
+		return new MCUnregisterAllVoiceCommands;
 	case S_UNREGISTER_HOTKEY:
 		return new MCUnregisterHotkey;
+	case S_UNREGISTER_VOICE_COMMAND:
+		return new MCUnregisterVoiceCommand;
 	case S_VALIDATE_FIELD:
 		return new MCValidateField;
 	case S_VISUAL:

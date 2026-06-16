@@ -64,5 +64,9 @@
 	<string>com_hyperxtalk_hyperxtalk_MCApplication</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app uses speech recognition to respond to voice commands.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access to listen for voice commands.</string>
 </dict>
 </plist>

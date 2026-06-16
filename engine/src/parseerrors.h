@@ -1846,6 +1846,21 @@ enum Parse_errors
 
     // {PE-0594} storeCredential: bad parameter expression
     PE_STORECREDENTIAL_BADPARAM,
+
+    // {PE-0595} registerVoiceCommand: bad phrase expression
+    PE_REGISTERVOICECOMMAND_BADPHRASE,
+
+    // {PE-0596} unregisterVoiceCommand: bad phrase expression
+    PE_UNREGISTERVOICECOMMAND_BADPHRASE,
+
+    // {PE-0597} startListening: bad language expression
+    PE_STARTLISTENING_BADLANGUAGE,
+
+    // {PE-0598} setWakeWord: bad word expression
+    PE_SETWAKEWORD_BADWORD,
+
+    // {PE-0599} setWakeWord: bad timeout expression
+    PE_SETWAKEWORD_BADTIMEOUT,
 };
 
 extern const char *MCparsingerrors;

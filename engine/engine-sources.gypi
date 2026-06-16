@@ -659,6 +659,13 @@
 			'src/mac-hotkey.mm',
 			'src/w32-hotkey.cpp',
 
+			# Voice commands / speech recognition
+			'src/speech.h',
+			'src/speech.cpp',
+			'src/lnx-speech.cpp',
+			'src/mac-speech.mm',
+			'src/w32-speech.cpp',
+
 			# Credential storage
 			'src/exec-credentials.h',
 			'src/exec-credentials.cpp',
@@ -1067,6 +1074,11 @@
 				'src/lnx-hotkey.cpp',
 				'src/lnx-hotkey-x11.cpp',
 				'src/lnx-hotkey-portal.cpp',
+				# Platform speech backends also require the desktop event loop.
+				# speech.cpp (cross-platform registry) stays shared.
+				'src/mac-speech.mm',
+				'src/w32-speech.cpp',
+				'src/lnx-speech.cpp',
 		],
 
 		# Sources used to implement LCB modules in the engine
