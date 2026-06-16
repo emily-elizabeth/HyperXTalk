@@ -368,6 +368,7 @@ bool MCPlatformStartListening(MCStringRef p_language)
     _ensure_queue();
 
     __block bool t_success = false;
+    __block const char *t_fail_reason = nil; // set inside block on failure
 
     dispatch_sync(s_speech_queue, ^{
         if (s_is_listening)
@@ -398,8 +399,9 @@ bool MCPlatformStartListening(MCStringRef p_language)
 
         if (s_recognizer == nil || !s_recognizer.available)
         {
+            t_fail_reason = "startListening: speech recogniser unavailable for this locale";
             s_recognizer = nil;
-            return; // failure — result string set below
+            return;
         }
 
         // ── 3. Request authorisation (may block briefly on first run) ─────────
@@ -415,6 +417,38 @@ bool MCPlatformStartListening(MCStringRef p_language)
 
         if (t_auth != SFSpeechRecognizerAuthorizationStatusAuthorized)
         {
+            t_fail_reason = "startListening: speech recognition permission denied";
+            s_recognizer = nil;
+            return;
+        }
+
+        // ── 3b. Request microphone access ─────────────────────────────────────
+        // Speech recognition and microphone are separate permission gates on
+        // macOS.  AVAudioEngine silently fails (or throws) if microphone access
+        // is NotDetermined or Denied when it tries to open the input node.
+        // Explicitly request it here, before touching the engine, so the dialog
+        // is presented synchronously and we know the outcome before proceeding.
+        // (The AVCaptureDevice completion handler is on an arbitrary queue, not
+        // s_speech_queue, so there is no deadlock risk.)
+        AVAuthorizationStatus t_mic_status =
+            [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
+
+        if (t_mic_status == AVAuthorizationStatusNotDetermined)
+        {
+            dispatch_semaphore_t t_mic_sem = dispatch_semaphore_create(0);
+            [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio
+                                    completionHandler:^(BOOL /*granted*/) {
+                dispatch_semaphore_signal(t_mic_sem);
+            }];
+            dispatch_semaphore_wait(t_mic_sem,
+                dispatch_time(DISPATCH_TIME_NOW, 10 * NSEC_PER_SEC));
+            t_mic_status =
+                [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeAudio];
+        }
+
+        if (t_mic_status != AVAuthorizationStatusAuthorized)
+        {
+            t_fail_reason = "startListening: microphone permission denied";
             s_recognizer = nil;
             return;
         }
@@ -440,6 +474,7 @@ bool MCPlatformStartListening(MCStringRef p_language)
 
         if (!t_engine_started)
         {
+            t_fail_reason = "startListening: audio engine failed to start — try calling startListening again";
             s_engine = nil;
             s_recognizer = nil;
             return;
@@ -453,10 +488,11 @@ bool MCPlatformStartListening(MCStringRef p_language)
 
     if (!t_success)
     {
-        // Set a human-readable error in the result.
+        const char *t_msg = t_fail_reason != nil
+            ? t_fail_reason
+            : "startListening: speech recognition unavailable or not authorised";
         MCStringRef t_err;
-        /* UNCHECKED */ MCStringCreateWithCString(
-            "startListening: speech recognition unavailable or not authorised", t_err);
+        /* UNCHECKED */ MCStringCreateWithCString(t_msg, t_err);
         MCresult->setvalueref(t_err);
         MCValueRelease(t_err);
     }
