@@ -1,0 +1,67 @@
+Name: voiceCommand
+
+Type: message
+
+Syntax: voiceCommand <phrase>
+
+Summary:
+Sent to the current card of the default stack when the speech recognition
+engine recognises a registered voice command phrase.
+
+Introduced: 1.1.0
+
+OS: mac
+
+Platforms: desktop
+
+Example:
+-- Handle recognised commands in a card script
+on voiceCommand pPhrase
+    switch pPhrase
+        case "next slide"
+            go next card
+            break
+        case "previous slide"
+            go prev card
+            break
+        case "save stack"
+            save this stack
+            break
+    end switch
+end voiceCommand
+
+Example:
+-- Forward the command to a handler named after the phrase
+on voiceCommand pPhrase
+    -- Strip spaces and capitalise for a handler name, e.g. "open stack" → "doOpenStack"
+    put word 1 to -1 of pPhrase into tWords
+    put "do" before tWords
+    send tWords to this card
+end voiceCommand
+
+Parameters:
+phrase (string): The registered phrase that was recognised. The value
+matches one of the strings previously passed to <registerVoiceCommand>,
+preserving the original capitalisation used at registration time.
+
+Description:
+The engine dispatches <voiceCommand> whenever a spoken utterance matches
+a phrase registered with <registerVoiceCommand> and the engine is active
+(see <startListening>).
+
+When a wake word is set (see <setWakeWord>), <voiceCommand> is only
+dispatched during the command window that opens after the wake word is
+detected — it is not fired for the wake word itself.
+
+The message is sent to the current card of the stack that registered
+the matched phrase (captured at the time <registerVoiceCommand> was
+called). It then bubbles up the normal HyperXTalk message path.
+
+The first matched phrase wins; if multiple registered phrases could
+match a single utterance, only the first match (in registration order)
+fires.
+
+References: registerVoiceCommand (command), startListening (command),
+setWakeWord (command), wakeWordDetected (message), isListening (function)
+
+Tags: speech, voice

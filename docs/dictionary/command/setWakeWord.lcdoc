@@ -1,0 +1,84 @@
+Name: setWakeWord
+
+Type: command
+
+Syntax: setWakeWord <word> [, <timeoutMS>]
+
+Summary:
+Sets a wake word (or phrase) that must be spoken before the engine will
+match registered voice commands. Pass empty to clear the wake word and
+return to always-on command matching.
+
+Introduced: 1.1.0
+
+OS: mac
+
+Platforms: desktop
+
+Example:
+-- Require "hey hyper" before any command is accepted
+setWakeWord "hey hyper"
+
+Example:
+-- Wake word with a 10-second command window
+setWakeWord "hey hyper", 10000
+
+Example:
+-- Clear the wake word so commands fire without a trigger phrase
+setWakeWord ""
+
+Example:
+-- Full setup with wake word
+setWakeWord "computer", 8000
+registerVoiceCommand "open stack"
+registerVoiceCommand "save stack"
+startListening
+
+on wakeWordDetected
+    -- Optional: give the user audio/visual feedback that we're listening
+    beep
+end wakeWordDetected
+
+on voiceCommand pPhrase
+    if pPhrase is "open stack" then doMenu "Open Stack..."
+    if pPhrase is "save stack" then save this stack
+end voiceCommand
+
+on listenTimeoutExpired
+    -- The command window closed with no match
+    play "timeout.aiff"
+end listenTimeoutExpired
+
+Parameters:
+word (string): The wake word or wake phrase. Case-insensitive. Pass
+empty to clear the wake word and return to always-on command matching.
+
+timeoutMS (integer): Optional. The number of milliseconds the engine
+waits for a registered command after the wake word is detected. Defaults
+to 5000 (5 seconds). Values less than or equal to zero are ignored and
+the default is used.
+
+Description:
+When a wake word is set the engine operates in two modes:
+
+1. Wake-word mode (waiting) — only the wake word phrase is matched.
+   All other spoken audio is ignored.
+
+2. Command window (active) — entered after the wake word is detected
+   and a <wakeWordDetected> message is dispatched. During this window,
+   registered voice command phrases are matched normally. If a command
+   is recognised, a <voiceCommand> message fires and the engine returns
+   to wake-word mode. If no command is recognised within <timeoutMS>
+   milliseconds, a <listenTimeoutExpired> message fires and the engine
+   returns to wake-word mode.
+
+When no wake word is set (the default, or after passing empty), every
+recognised command fires <voiceCommand> directly without a trigger phrase.
+
+Changing the wake word while the engine is already listening takes effect
+immediately. Any active command window is cancelled.
+
+References: startListening (command), registerVoiceCommand (command),
+wakeWordDetected (message), listenTimeoutExpired (message), voiceCommand (message)
+
+Tags: speech, voice
