@@ -63,10 +63,10 @@ static bool _ensure_message_names()
     const char *k_lte = "listenTimeoutExpired";
     const char *k_uri = "unrecognizedVoiceCommand";
 
-    return MCNameCreateWithNativeChars((const char_t *)k_vc,  strlen(k_vc),  &s_msg_voice_command) &&
-           MCNameCreateWithNativeChars((const char_t *)k_wwd, strlen(k_wwd), &s_msg_wake_word_detected) &&
-           MCNameCreateWithNativeChars((const char_t *)k_lte, strlen(k_lte), &s_msg_listen_timeout_expired) &&
-           MCNameCreateWithNativeChars((const char_t *)k_uri, strlen(k_uri), &s_msg_unrecognized_input);
+    return MCNameCreateWithNativeChars((const char_t *)k_vc,  strlen(k_vc),  s_msg_voice_command) &&
+           MCNameCreateWithNativeChars((const char_t *)k_wwd, strlen(k_wwd), s_msg_wake_word_detected) &&
+           MCNameCreateWithNativeChars((const char_t *)k_lte, strlen(k_lte), s_msg_listen_timeout_expired) &&
+           MCNameCreateWithNativeChars((const char_t *)k_uri, strlen(k_uri), s_msg_unrecognized_input);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -211,9 +211,10 @@ void MCSpeechDispatchWakeWordDetected()
 {
     if (!_ensure_message_names())
         return;
-    if (MCdefaultstackptr == nil)
+    MCStack *t_stack = MCdefaultstackptr;
+    if (t_stack == nil)
         return;
-    MCCard *t_card = MCdefaultstackptr->getcurcard();
+    MCCard *t_card = t_stack->getcurcard();
     if (t_card != nil)
         t_card->message(s_msg_wake_word_detected);
 }
@@ -223,9 +224,10 @@ void MCSpeechDispatchListenTimeoutExpired()
 {
     if (!_ensure_message_names())
         return;
-    if (MCdefaultstackptr == nil)
+    MCStack *t_stack = MCdefaultstackptr;
+    if (t_stack == nil)
         return;
-    MCCard *t_card = MCdefaultstackptr->getcurcard();
+    MCCard *t_card = t_stack->getcurcard();
     if (t_card != nil)
         t_card->message(s_msg_listen_timeout_expired);
 }
@@ -235,9 +237,10 @@ void MCSpeechDispatchUnrecognizedInput(MCStringRef p_text)
 {
     if (!_ensure_message_names())
         return;
-    if (MCdefaultstackptr == nil)
+    MCStack *t_stack = MCdefaultstackptr;
+    if (t_stack == nil)
         return;
-    MCCard *t_card = MCdefaultstackptr->getcurcard();
+    MCCard *t_card = t_stack->getcurcard();
     if (t_card == nil)
         return;
 
