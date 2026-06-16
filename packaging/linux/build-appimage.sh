@@ -371,15 +371,11 @@ export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin:$HERE/usr/bin/Externals/CEF$
 # Fallback in case the engine's own VLC probe doesn't run first.
 export VLC_PLUGIN_PATH="$HERE/usr/bin/vlc-plugins/plugins"
 # $LIVECODE_USE_CEF is read by revIDEBrowserWidgetUnavailable() in revidelibrary.
-# If the CEF subprocess binary is present, set it to 1 so the IDE attempts to use
-# the built-in browser widget; otherwise set to 0 to force the system-browser
-# fallback, which requires only that api.html has been pre-generated at startup.
-if [ -x "$HERE/usr/bin/libbrowser-cefprocess" ] && \
-   [ -f "$HERE/usr/bin/Externals/CEF/libcef.so" ]; then
-    export LIVECODE_USE_CEF=1
-else
-    export LIVECODE_USE_CEF=0
-fi
+# Setting it to 0 forces the system-browser fallback for documentation: the IDE
+# calls revIDEGenerateDictionaryHTML then "launch url" rather than opening the
+# built-in CEF browser widget.  The built-in widget is not the intended UX for
+# the AppImage; documentation should open in the user's default web browser.
+export LIVECODE_USE_CEF=0
 exec "$HERE/usr/bin/HyperXTalk" "$@"
 APPRUN
 chmod +x "$APPDIR/AppRun"
