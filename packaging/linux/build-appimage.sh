@@ -52,30 +52,6 @@ for subdir in Toolset Resources Documentation Plugins Externals; do
     fi
 done
 
-# --- edition.txt — marks this as an installed (non-dev) build ---
-# revEnvironmentIsInstalled() in home.livecodescript checks for the presence of
-# Toolset/edition.txt to distinguish installed builds from git-repo dev builds.
-# Without it the IDE falls into dev mode: docs use repo-relative paths that
-# don't exist in the AppImage, revdocsparser is never loaded, and documentation
-# and the standalone settings dialog both fail silently.
-# The installer emits the edition name (e.g. "community") here; we use the
-# same value so installed-mode code paths activate correctly.
-echo "community" > "$APPBIN/Toolset/edition.txt"
-
-# --- ide-support files → Toolset/libraries ---
-# The installer places these files into Toolset/libraries/ for installed builds.
-# Without them, revidelibrary fails to initialize (revdocsparser not found →
-# EE_DISPATCH_BADTARGET), documentation can't display, and the standalone
-# settings dialog never opens (revsblibrary/revsaveasstandalone missing).
-IDE_SUPPORT_DIR="$REPO_ROOT/ide-support"
-if [ -d "$IDE_SUPPORT_DIR" ]; then
-    mkdir -p "$APPBIN/Toolset/libraries"
-    for f in "$IDE_SUPPORT_DIR"/*.livecodescript; do
-        [ -f "$f" ] || continue
-        cp "$f" "$APPBIN/Toolset/libraries/"
-    done
-fi
-
 # --- Externals (.so plugins from the build) ---
 # Create the expected directory structure for externals and database drivers.
 mkdir -p "$APPBIN/Externals/Database Drivers"
@@ -112,58 +88,11 @@ if [ -d "$OUT_DIR/Externals" ]; then
     cp -a "$OUT_DIR/Externals/"* "$APPBIN/Externals/" 2>/dev/null || true
 fi
 
-# --- revbrowser + CEF (required for the Dictionary documentation widget) ---
-# The browser widget (com.livecode.widget.browser) uses libbrowser which wraps
-# CEF.  Three things must be in place for it to work:
-#
-#   1. revbrowser.so        — the classic LiveCode browser external
-#   2. libbrowser-cefprocess — the CEF renderer subprocess binary; must sit
-#                              alongside the main HyperXTalk executable because
-#                              __MCCefPlatformGetExecutableFolder() (reads
-#                              /proc/self/exe) is used for browser_subprocess_path
-#   3. Externals/CEF/       — libcef.so, .pak files, locales, libEGL/libGLESv2
-#
-# $LIVECODE_USE_CEF is an OS environment variable read by revidelibrary; if it is
-# not set the IDE assumes the browser widget is available on Linux and tries to use
-# CEF.  The AppRun wrapper exports it based on whether libbrowser-cefprocess is
-# present so that revIDEBrowserWidgetUnavailable() returns the correct value.
-PREBUILT_BIN="$REPO_ROOT/linux-x86_64-bin"
-if [ -f "$PREBUILT_BIN/revbrowser.so" ]; then
-    cp "$PREBUILT_BIN/revbrowser.so" "$APPBIN/"
-    echo "Bundled revbrowser.so from linux-x86_64-bin"
-else
-    echo "WARNING: linux-x86_64-bin/revbrowser.so not found — classic browser external missing." >&2
-fi
-if [ -f "$PREBUILT_BIN/libbrowser-cefprocess" ]; then
-    cp "$PREBUILT_BIN/libbrowser-cefprocess" "$APPBIN/"
-    echo "Bundled libbrowser-cefprocess from linux-x86_64-bin"
-else
-    echo "WARNING: linux-x86_64-bin/libbrowser-cefprocess not found — CEF will not work." >&2
-fi
-if [ -d "$PREBUILT_BIN/Externals/CEF" ]; then
-    mkdir -p "$APPBIN/Externals/CEF"
-    cp -a "$PREBUILT_BIN/Externals/CEF/"* "$APPBIN/Externals/CEF/"
-    echo "Bundled CEF from linux-x86_64-bin/Externals/CEF"
-else
-    echo "WARNING: linux-x86_64-bin/Externals/CEF not found — CEF will not work." >&2
-fi
-
 # --- Packaged extensions (widgets and libraries) ---
 # When packaged/installed, the IDE looks in "Extensions" rather than "packaged_extensions"
-mkdir -p "$APPBIN/Extensions"
 if [ -d "$OUT_DIR/packaged_extensions" ]; then
+    mkdir -p "$APPBIN/Extensions"
     cp -a "$OUT_DIR/packaged_extensions/"* "$APPBIN/Extensions/" 2>/dev/null || true
-fi
-# The browser widget module must come from the prebuilt binaries since the build
-# output packaged_extensions/ may not contain it.  It is the LCB module that
-# implements com.livecode.widget.browser and is required for the Dictionary
-# palette's embedded browser widget.
-if [ -d "$PREBUILT_BIN/packaged_extensions/com.livecode.widget.browser" ]; then
-    cp -a "$PREBUILT_BIN/packaged_extensions/com.livecode.widget.browser" \
-          "$APPBIN/Extensions/"
-    echo "Bundled com.livecode.widget.browser from linux-x86_64-bin"
-else
-    echo "WARNING: linux-x86_64-bin/packaged_extensions/com.livecode.widget.browser not found — Dictionary widget may not load." >&2
 fi
 
 # --- LCI modules ---
@@ -248,10 +177,6 @@ if [ -n "$VLC_DIR" ]; then
     # on the environment or system paths.
     mkdir -p "$APPBIN/vlc-plugins"
     cp -a "$VLC_DIR/plugins" "$APPBIN/vlc-plugins/"
-    # Remove the plugin cache — it contains absolute paths from the build
-    # machine that won't match the AppImage mount point.  VLC rescans
-    # using VLC_PLUGIN_PATH at first launch instead.
-    rm -f "$APPBIN/vlc-plugins/plugins/plugins.dat"
     echo "Bundled VLC plugins from $VLC_DIR/plugins -> usr/bin/vlc-plugins/plugins"
 else
     echo "WARNING: VLC plugin directory not found — video playback may not work." >&2
@@ -276,13 +201,6 @@ bundle_libs_recursive() {
                     cp -P "$lib" "$LIB_DEST/" 2>/dev/null || true
                     # Resolve symlink to the real file for ldd.
                     real="$(readlink -f "$lib" 2>/dev/null || echo "$lib")"
-                    # Also copy the actual versioned file if the lib is a symlink.
-                    # cp -P copies the symlink but not its target, leaving a broken
-                    # symlink in LIB_DEST when the real file lives elsewhere.
-                    real_name="$(basename "$real")"
-                    if [ "$real_name" != "$name" ] && [ ! -e "$LIB_DEST/$real_name" ] && [ -f "$real" ]; then
-                        cp "$real" "$LIB_DEST/" 2>/dev/null || true
-                    fi
                     next_worklist+=("$real")
                     changed=1
                 fi
@@ -292,13 +210,9 @@ bundle_libs_recursive() {
     done
 }
 
-# Seed bundle_libs_recursive with the main binary and top-level VLC libs.
-# We do NOT seed with plugin .so files — ldd-ing them can stall (some plugins
-# try to open a display connection when loaded by the dynamic linker).
-#
-# VLC codec/demux plugins dlopen FFmpeg libs at runtime via libavcodec etc.
-# Those are not captured by libvlccore's own ldd, so we copy them explicitly
-# below rather than discovering them recursively.
+# Seed with the main binary and the top-level VLC libs only.
+# Plugin .so files are NOT included — their deps are already captured by
+# libvlccore.so, and ldd-ing hundreds of plugin files makes the build very slow.
 seed=("$APPBIN/HyperXTalk")
 for f in "$LIB_DEST"/*.so "$LIB_DEST"/*.so.*; do
     [ -f "$f" ] || continue
@@ -309,73 +223,13 @@ done
 mapfile -t seed < <(printf '%s\n' "${seed[@]}" | sort -u)
 bundle_libs_recursive "${seed[@]}"
 
-# --- Explicitly bundle FFmpeg libs (deps of VLC codec/demux plugins) ---
-# These are dlopen'd at runtime by the codec plugins and are not captured by
-# ldd on libvlccore.so.  Copy every versioned soname we find; the recursive
-# bundler already handles their own transitive deps via the seed above.
-echo "Bundling FFmpeg libs..."
-for pattern in \
-    libavcodec.so* libavformat.so* libavutil.so* \
-    libswscale.so* libswresample.so* libpostproc.so* \
-    libavfilter.so*; do
-    for search_dir in /usr/lib/x86_64-linux-gnu /usr/lib /usr/local/lib; do
-        for f in "$search_dir"/$pattern; do
-            [ -e "$f" ] || continue
-            name="$(basename "$f")"
-            echo "$f" | grep -qE "$SKIP_PATTERN" && continue
-            [ -e "$LIB_DEST/$name" ] && continue
-            cp -P "$f" "$LIB_DEST/" 2>/dev/null || true
-            # Also copy the real file if f is a symlink (same broken-symlink fix).
-            real="$(readlink -f "$f" 2>/dev/null || echo "$f")"
-            real_name="$(basename "$real")"
-            if [ "$real_name" != "$name" ] && [ ! -e "$LIB_DEST/$real_name" ] && [ -f "$real" ]; then
-                cp "$real" "$LIB_DEST/" 2>/dev/null || true
-            fi
-            echo "  bundled $name"
-        done
-    done
-done
-# Run one more recursive pass to pick up FFmpeg's own deps (e.g. libx264, libx265).
-ffmpeg_seed=()
-for f in "$LIB_DEST"/libav*.so.* "$LIB_DEST"/libsw*.so.* "$LIB_DEST"/libpost*.so.*; do
-    [ -f "$f" ] || continue
-    real="$(readlink -f "$f" 2>/dev/null || echo "$f")"
-    [ -f "$real" ] && ffmpeg_seed+=("$real")
-done
-if [ "${#ffmpeg_seed[@]}" -gt 0 ]; then
-    mapfile -t ffmpeg_seed < <(printf '%s\n' "${ffmpeg_seed[@]}" | sort -u)
-    bundle_libs_recursive "${ffmpeg_seed[@]}"
-fi
-
-# --- Bundle libcef.so transitive deps ---
-# libcef.so is loaded at runtime by libbrowser (CEF-based browser widget) via
-# dlopen.  Its deps are not captured by the main binary's ldd pass above, so we
-# run a dedicated pass now that libcef.so has been copied to Externals/CEF/.
-libcef_real=""
-if [ -f "$APPBIN/Externals/CEF/libcef.so" ]; then
-    libcef_real="$(readlink -f "$APPBIN/Externals/CEF/libcef.so" 2>/dev/null || echo "$APPBIN/Externals/CEF/libcef.so")"
-fi
-if [ -n "$libcef_real" ] && [ -f "$libcef_real" ]; then
-    echo "Bundling libcef.so transitive deps..."
-    bundle_libs_recursive "$libcef_real"
-fi
-
 # --- AppRun ---
 cat > "$APPDIR/AppRun" <<'APPRUN'
 #!/bin/bash
 HERE="$(dirname "$(readlink -f "$0")")"
-# usr/lib:      bundled shared-library deps (VLC, codec libs, etc.)
-# usr/bin:      main binary siblings (revsecurity.so, revpdfprinter.so, etc.)
-# Externals/CEF: libEGL.so and libGLESv2.so required by libcef at runtime
-export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin:$HERE/usr/bin/Externals/CEF${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-# Fallback in case the engine's own VLC probe doesn't run first.
+export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+# Fallback in case the engine's own probe doesn't run first.
 export VLC_PLUGIN_PATH="$HERE/usr/bin/vlc-plugins/plugins"
-# $LIVECODE_USE_CEF is read by revIDEBrowserWidgetUnavailable() in revidelibrary.
-# Setting it to 0 forces the system-browser fallback for documentation: the IDE
-# calls revIDEGenerateDictionaryHTML then "launch url" rather than opening the
-# built-in CEF browser widget.  The built-in widget is not the intended UX for
-# the AppImage; documentation should open in the user's default web browser.
-export LIVECODE_USE_CEF=0
 exec "$HERE/usr/bin/HyperXTalk" "$@"
 APPRUN
 chmod +x "$APPDIR/AppRun"
@@ -398,10 +252,8 @@ else
 fi
 
 # --- Build AppImage ---
-# Use gzip compression (--comp gzip) — significantly faster than the default
-# xz at a modest size cost.  Switch back to xz for release builds if size matters.
 OUTPUT="$BUILD_DIR/HyperXTalk-${VERSION}-${ARCH}.AppImage"
-ARCH="$ARCH" "$APPIMAGETOOL" --comp zstd "$APPDIR" "$OUTPUT"
+ARCH="$ARCH" "$APPIMAGETOOL" "$APPDIR" "$OUTPUT"
 
 echo ""
 echo "AppImage created: $OUTPUT"

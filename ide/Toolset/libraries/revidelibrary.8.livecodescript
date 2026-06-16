@@ -1344,17 +1344,6 @@ on revIDEInitialiseIDELibrary
    ## Regenerate dictionary data
    revInternal__LoadLibrary "revDatabaseLibrary"
    revIDERegenerateBuiltDictionaryData
-
-   -- Pre-generate the dictionary HTML files so they exist regardless of whether
-   -- the browser widget loads. On Linux the widget may not be available (CEF
-   -- absent or failing), and revIDEGenerateDictionaryHTML is otherwise only
-   -- called when the Dictionary palette is first opened. Generating here ensures
-   -- the files are ready for revIDEBrowserWidgetUnavailable fallback paths and
-   -- for the system browser launch.
-   if the platform is "Linux" then
-      revIDEGenerateDictionaryHTML "api"
-      revIDEGenerateDictionaryHTML "guide"
-   end if
    
    ## Initialise property library
    revIDEPropertyLibraryInitialise
@@ -4739,19 +4728,7 @@ command revIDEOpenPalette pPaletteName
             end if
             
             revIDEGenerateDictionaryHTML tWhich
-            -- file:// + absolute path gives the correct file:///path URL.
-            -- LiveCode's "launch url" on Linux calls xdg-open; we also call
-            -- xdg-open directly as a fallback in case launch url is a no-op
-            -- on minimal desktop environments (e.g. live USB / Ventoy).
-            local tDocUrl
-            put "file://" & revIDEGetDictionaryUrl(tWhich) into tDocUrl
-            launch url tDocUrl
-            -- Belt-and-suspenders: if the above doesn't open a browser,
-            -- the shell call below will.  The trailing & detaches it so the
-            -- IDE doesn't block waiting for the browser to exit.
-            if the platform is "Linux" then
-               shell "xdg-open " & quote & tDocUrl & quote & " &"
-            end if
+            launch url ("file:" & revIDEGetDictionaryUrl(tWhich))
          else
             toplevel stack tStackName
          end if
@@ -5032,12 +5009,7 @@ end revIDEGoToLCSDictionaryEntry
 on revIDEGoToDictionaryEntry pLibrary, pTag, pType
    if revIDEBrowserWidgetUnavailable() then
       revIDEGenerateDictionaryHTML "api", pLibrary, pTag, pType
-      local tGoToUrl
-      put "file://" & revIDEGetDictionaryUrl("api") into tGoToUrl
-      launch url tGoToUrl
-      if the platform is "Linux" then
-         shell "xdg-open " & quote & tGoToUrl & quote & " &"
-      end if
+      launch url ("file:" & revIDEGetDictionaryUrl("api"))
    else
       send "goToEntry pLibrary, pTag, pType" to stack revIDEPaletteToStackName("dictionary") 
    end if
@@ -12118,17 +12090,6 @@ on revIDEEnsureDictionaryUrl pWhich
    put revIDEIsFilesetStale(revIDEGetDictionaryHTMLTemplate(pWhich), \
          revIDEGetDictionaryUrl(pWhich), false, tError) into tNeedUpdate
 
-   -- Also regenerate if the cached HTML still contains an absolute mount path.
-   -- AppImage squashfs mounts at a random /tmp/.mount_XXXXXX suffix that changes
-   -- on every launch, so any cached HTML referencing the old mount is stale.
-   if tNeedUpdate is not true then
-      local tCachedHtml
-      put revIDEUTF8FileContents(revIDEGetDictionaryUrl(pWhich)) into tCachedHtml
-      if tCachedHtml contains "/tmp/.mount_" then
-         put true into tNeedUpdate
-      end if
-   end if
-
    if tNeedUpdate is true then
       revIDEGenerateDictionaryHTML pWhich
    end if
@@ -12146,6 +12107,10 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
    local tGeneratedHTMLFile
    put revIDEGetDictionaryUrl(pWhich) into tGeneratedHTMLFile
 
+   -- Ensure the docs-cache directory (e.g. 9_7_0_dp_1_/) exists before
+   -- writing api.html into it, and also ensure IDE/ exists for built_api.js.
+   -- revIDESetUTF8FileContents silently fails when the parent folder is absent,
+   -- which leaves GoToURL unable to find the file and throws "error launching url".
    revIDEEnsurePath revEnvironmentUserDocsPath()
    revIDEEnsurePath revEnvironmentUserDocsPath() & slash & "IDE"
 
@@ -12156,22 +12121,13 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
 
    local tDocsBase
    put revIDESpecialFolderPath("documentation") & slash & "html_viewer" into tDocsBase
-
-   -- Copy html_viewer into the user docs cache.
-   -- Symlinking is fragile for the system browser (file:// security policies may
-   -- block following symlinks) and the AppImage mount path changes on every
-   -- launch (/tmp/.mount_XXXXXX), making cached symlinks immediately stale.
-   -- We only copy when the destination is absent to avoid the ~15 MB overhead
-   -- on every launch.
-   local tHtmlViewerDest
-   put revEnvironmentUserDocsPath() & slash & "html_viewer" into tHtmlViewerDest
-   if there is not a folder tHtmlViewerDest then
-      shell "cp -a " & quote & tDocsBase & quote & " " & quote & tHtmlViewerDest & quote
-   end if
-
+   
    local tDocsCSSFolder, tDocsJSFolder, tDataPath
-   put "html_viewer/css" into tDocsCSSFolder
-   put "html_viewer/js" into tDocsJSFolder
+   put tDocsBase & slash & "css" into tDocsCSSFolder
+   put tDocsBase & slash & "js" into tDocsJSFolder
+   -- Use a relative path (IDE/built_<pWhich>.js) so WKWebView resolves it relative
+   -- to api.html's own directory inside the docs cache. This avoids any cross-directory
+   -- file-access trust issues and eliminates space-encoding problems entirely.
    put "IDE/built_" & pWhich & ".js" into tDataPath
 
    local tIDEGuidesFolder, tRepoGuidesFolder
@@ -12179,8 +12135,6 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
    put revIDESpecialFolderPath("repo guides") into tRepoGuidesFolder
 
    -- URL-encode spaces in absolute paths used in HTML src/href attributes.
-   -- tDocsCSSFolder and tDocsJSFolder are now relative so no encoding needed,
-   -- but the replace is harmless and keeps the pattern consistent.
    replace " " with "%20" in tDocsCSSFolder
    replace " " with "%20" in tDocsJSFolder
    replace " " with "%20" in tIDEGuidesFolder
@@ -12191,23 +12145,7 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
    put revIDEGetDictionaryHTMLTemplate(pWhich) into tTemplateFile
    put revIDEUTF8FileContents(tTemplateFile) into tTemplate
 
-   -- Replace template placeholders explicitly rather than using merge().
-   -- merge() evaluates [[expressions]] in the LiveCode message hierarchy which
-   -- can throw or silently abort on unknown properties (e.g. [[the editionType]])
-   -- depending on the calling context, leaving api.html unwritten.
-   replace "[[tDocsCSSFolder]]" with tDocsCSSFolder in tTemplate
-   replace "[[tDocsJSFolder]]" with tDocsJSFolder in tTemplate
-   replace "[[tDataPath]]" with tDataPath in tTemplate
-   replace "[[tIDEGuidesFolder]]" with tIDEGuidesFolder in tTemplate
-   replace "[[tRepoGuidesFolder]]" with tRepoGuidesFolder in tTemplate
-   replace "[[tLibraryName]]" with tLibraryName in tTemplate
-   replace "[[tEntryName]]" with tEntryName in tTemplate
-   replace "[[tEntryType]]" with tEntryType in tTemplate
-   -- [[tItemDelimiter]] and [[the editionType]] are not variables we own;
-   -- collapse them to empty so they don't leave raw placeholders in the HTML.
-   replace "[[ the editionType]]" with "" in tTemplate
-   replace "[[tItemDelimiter]]" with "" in tTemplate
-
+   put merge(tTemplate) into tTemplate
    revIDESetUTF8FileContents tGeneratedHTMLFile, tTemplate
 end revIDEGenerateDictionaryHTML
 
