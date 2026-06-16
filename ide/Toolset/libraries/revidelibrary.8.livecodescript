@@ -4739,7 +4739,19 @@ command revIDEOpenPalette pPaletteName
             end if
             
             revIDEGenerateDictionaryHTML tWhich
-            launch url ("file:" & revIDEGetDictionaryUrl(tWhich))
+            -- file:// + absolute path gives the correct file:///path URL.
+            -- LiveCode's "launch url" on Linux calls xdg-open; we also call
+            -- xdg-open directly as a fallback in case launch url is a no-op
+            -- on minimal desktop environments (e.g. live USB / Ventoy).
+            local tDocUrl
+            put "file://" & revIDEGetDictionaryUrl(tWhich) into tDocUrl
+            launch url tDocUrl
+            -- Belt-and-suspenders: if the above doesn't open a browser,
+            -- the shell call below will.  The trailing & detaches it so the
+            -- IDE doesn't block waiting for the browser to exit.
+            if the platform is "Linux" then
+               shell "xdg-open " & quote & tDocUrl & quote & " &"
+            end if
          else
             toplevel stack tStackName
          end if
@@ -5020,7 +5032,12 @@ end revIDEGoToLCSDictionaryEntry
 on revIDEGoToDictionaryEntry pLibrary, pTag, pType
    if revIDEBrowserWidgetUnavailable() then
       revIDEGenerateDictionaryHTML "api", pLibrary, pTag, pType
-      launch url ("file:" & revIDEGetDictionaryUrl("api"))
+      local tGoToUrl
+      put "file://" & revIDEGetDictionaryUrl("api") into tGoToUrl
+      launch url tGoToUrl
+      if the platform is "Linux" then
+         shell "xdg-open " & quote & tGoToUrl & quote & " &"
+      end if
    else
       send "goToEntry pLibrary, pTag, pType" to stack revIDEPaletteToStackName("dictionary") 
    end if
@@ -12174,7 +12191,23 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
    put revIDEGetDictionaryHTMLTemplate(pWhich) into tTemplateFile
    put revIDEUTF8FileContents(tTemplateFile) into tTemplate
 
-   put merge(tTemplate) into tTemplate
+   -- Replace template placeholders explicitly rather than using merge().
+   -- merge() evaluates [[expressions]] in the LiveCode message hierarchy which
+   -- can throw or silently abort on unknown properties (e.g. [[the editionType]])
+   -- depending on the calling context, leaving api.html unwritten.
+   replace "[[tDocsCSSFolder]]" with tDocsCSSFolder in tTemplate
+   replace "[[tDocsJSFolder]]" with tDocsJSFolder in tTemplate
+   replace "[[tDataPath]]" with tDataPath in tTemplate
+   replace "[[tIDEGuidesFolder]]" with tIDEGuidesFolder in tTemplate
+   replace "[[tRepoGuidesFolder]]" with tRepoGuidesFolder in tTemplate
+   replace "[[tLibraryName]]" with tLibraryName in tTemplate
+   replace "[[tEntryName]]" with tEntryName in tTemplate
+   replace "[[tEntryType]]" with tEntryType in tTemplate
+   -- [[tItemDelimiter]] and [[the editionType]] are not variables we own;
+   -- collapse them to empty so they don't leave raw placeholders in the HTML.
+   replace "[[ the editionType]]" with "" in tTemplate
+   replace "[[tItemDelimiter]]" with "" in tTemplate
+
    revIDESetUTF8FileContents tGeneratedHTMLFile, tTemplate
 end revIDEGenerateDictionaryHTML
 
