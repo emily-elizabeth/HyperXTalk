@@ -12130,7 +12130,11 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
    local tHtmlViewerDest
    put revEnvironmentUserDocsPath() & slash & "html_viewer" into tHtmlViewerDest
    if there is not a folder tHtmlViewerDest then
-      shell "cp -a " & quote & tDocsBase & quote & " " & quote & tHtmlViewerDest & quote
+      -- Use the function form of shell() so any non-zero exit is captured in
+      -- the return value rather than thrown as a LiveCode runtime error.
+      -- The command form "shell cmd" can abort the caller on failure.
+      local tCpResult
+      put shell("cp -a " & quote & tDocsBase & quote & " " & quote & tHtmlViewerDest & quote) into tCpResult
    end if
 
    local tDocsCSSFolder, tDocsJSFolder, tDataPath
