@@ -420,10 +420,25 @@ bool MCPlatformStartListening(MCStringRef p_language)
         }
 
         // ── 4. Set up the audio engine ────────────────────────────────────────
+        // AVAudioEngine may throw an NSException (not just return NO) when the
+        // audio subsystem is not yet ready — most commonly right after the user
+        // grants microphone permission for the first time. Wrap in @try/@catch
+        // so we can fail cleanly instead of crashing.
         s_engine = [[AVAudioEngine alloc] init];
 
         NSError *t_err = nil;
-        if (![s_engine startAndReturnError:&t_err])
+        BOOL t_engine_started = NO;
+        @try
+        {
+            t_engine_started = [s_engine startAndReturnError:&t_err];
+        }
+        @catch (NSException *t_ex)
+        {
+            // Audio subsystem not ready — will be retried on next startListening call.
+            t_engine_started = NO;
+        }
+
+        if (!t_engine_started)
         {
             s_engine = nil;
             s_recognizer = nil;
