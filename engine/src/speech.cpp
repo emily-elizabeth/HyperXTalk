@@ -51,6 +51,7 @@ HyperXTalk. If not, see <http://www.gnu.org/licenses/>.
 static MCNameRef s_msg_voice_command          = nil; // "voiceCommand"
 static MCNameRef s_msg_wake_word_detected     = nil; // "wakeWordDetected"
 static MCNameRef s_msg_listen_timeout_expired = nil; // "listenTimeoutExpired"
+static MCNameRef s_msg_unrecognized_input     = nil; // "unrecognizedVoiceCommand"
 
 static bool _ensure_message_names()
 {
@@ -60,10 +61,12 @@ static bool _ensure_message_names()
     const char *k_vc  = "voiceCommand";
     const char *k_wwd = "wakeWordDetected";
     const char *k_lte = "listenTimeoutExpired";
+    const char *k_uri = "unrecognizedVoiceCommand";
 
     return MCNameCreateWithNativeChars((const char_t *)k_vc,  strlen(k_vc),  &s_msg_voice_command) &&
            MCNameCreateWithNativeChars((const char_t *)k_wwd, strlen(k_wwd), &s_msg_wake_word_detected) &&
-           MCNameCreateWithNativeChars((const char_t *)k_lte, strlen(k_lte), &s_msg_listen_timeout_expired);
+           MCNameCreateWithNativeChars((const char_t *)k_lte, strlen(k_lte), &s_msg_listen_timeout_expired) &&
+           MCNameCreateWithNativeChars((const char_t *)k_uri, strlen(k_uri), &s_msg_unrecognized_input);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -225,6 +228,22 @@ void MCSpeechDispatchListenTimeoutExpired()
     MCCard *t_card = MCdefaultstackptr->getcurcard();
     if (t_card != nil)
         t_card->message(s_msg_listen_timeout_expired);
+}
+
+// Dispatch:  unrecognizedVoiceCommand pText
+void MCSpeechDispatchUnrecognizedInput(MCStringRef p_text)
+{
+    if (!_ensure_message_names())
+        return;
+    if (MCdefaultstackptr == nil)
+        return;
+    MCCard *t_card = MCdefaultstackptr->getcurcard();
+    if (t_card == nil)
+        return;
+
+    MCParameter t_param;
+    t_param.setvalueref_argument(p_text);
+    t_card->message(s_msg_unrecognized_input, &t_param);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

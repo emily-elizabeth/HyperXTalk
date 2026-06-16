@@ -99,4 +99,10 @@ void MCSpeechDispatchWakeWordDetected();
 // Called when the command window expires without a match.
 void MCSpeechDispatchListenTimeoutExpired();
 
+// Called when speech was recognised but did not match any registered phrase.
+// p_text is the raw transcript, suitable for forwarding to an LLM.
+// Not fired while waiting for a wake word — only in always-on mode or during
+// an active command window.
+void MCSpeechDispatchUnrecognizedInput(MCStringRef p_text);
+
 #endif // SPEECH_H

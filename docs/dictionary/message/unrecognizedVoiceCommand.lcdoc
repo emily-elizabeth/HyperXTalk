@@ -1,0 +1,70 @@
+Name: unrecognizedVoiceCommand
+
+Type: message
+
+Syntax: unrecognizedVoiceCommand <text>
+
+Summary:
+Sent to the current card of the default stack when the speech recognition
+engine hears something but the transcribed text does not match any
+registered voice command phrase. The raw transcript is passed as the
+parameter, making it suitable for forwarding to an LLM or other
+natural language processor.
+
+Introduced: 1.1.0
+
+OS: mac
+
+Platforms: desktop
+
+Example:
+-- Forward unrecognised speech to Claude for natural language handling
+on unrecognizedVoiceCommand pText
+    -- Send to your own LLM handler
+    sendToAssistant pText
+end unrecognizedVoiceCommand
+
+Example:
+-- Log what was heard for debugging
+on unrecognizedVoiceCommand pText
+    put "Heard but not matched: " & pText & return after field "Log"
+end unrecognizedVoiceCommand
+
+Example:
+-- Blend commands and free-form input
+on unrecognizedVoiceCommand pText
+    -- Treat anything unmatched as a dictation input to the focused field
+    if the focused object is a field then
+        put pText after the text of the focused object
+    end if
+end unrecognizedVoiceCommand
+
+Parameters:
+text (string): The raw transcription of what was heard, as produced by
+the speech recognition engine. This is the actual spoken words, not a
+registered phrase — it may be a complete sentence, a question, or
+anything else the user said.
+
+Description:
+<unrecognizedVoiceCommand> is dispatched whenever the engine transcribes
+speech that does not match any phrase registered with
+<registerVoiceCommand>. This lets you handle free-form spoken input
+alongside structured voice commands — for example, forwarding the
+transcript to ChatGPT or Claude for natural language processing, or
+using it as dictation input.
+
+Firing conditions:
+- Always-on mode (no wake word set): fires for any unmatched utterance.
+- Wake word mode, command window open: fires when the user speaks during
+  the command window but nothing matches. The command window is also
+  closed, as if the utterance consumed the window.
+- Wake word mode, waiting for wake word: does NOT fire. Background speech
+  that misses the wake word is silently ignored to avoid noise.
+
+The message is sent to the current card of the default stack and bubbles
+up the normal HyperXTalk message path.
+
+References: registerVoiceCommand (command), voiceCommand (message),
+startListening (command), setWakeWord (command)
+
+Tags: speech, voice
