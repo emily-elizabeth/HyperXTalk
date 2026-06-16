@@ -981,6 +981,7 @@
 			'src/srvstack.cpp',
 			'src/native-layer-srv.cpp',
 			'src/player-srv-stubs.cpp',
+			'src/srv-speech.cpp',
 		],
 		
 		# Java sources for Android
@@ -1074,8 +1075,9 @@
 				'src/lnx-hotkey.cpp',
 				'src/lnx-hotkey-x11.cpp',
 				'src/lnx-hotkey-portal.cpp',
-				# Platform speech backends also require the desktop event loop.
-				# speech.cpp (cross-platform registry) stays shared.
+				# Platform speech backends require audio input / desktop event loop.
+				# speech.cpp (cross-platform registry + statement implementations)
+				# stays shared; srv-speech.cpp provides the no-op platform stubs.
 				'src/mac-speech.mm',
 				'src/w32-speech.cpp',
 				'src/lnx-speech.cpp',

@@ -59,6 +59,7 @@ HyperXTalk. If not, see <http://www.gnu.org/licenses/>.
 
 #include "prefix.h"
 #include "mcstring.h"
+#include "param.h"
 #include "globals.h"
 #include "speech.h"
 
