@@ -12134,25 +12134,15 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
    local tDocsBase
    put revIDESpecialFolderPath("documentation") & slash & "html_viewer" into tDocsBase
 
-   -- Copy html_viewer/css, js, fonts into the user docs cache so the generated
-   -- HTML can reference them with relative paths.  Absolute paths into the
+   -- Symlink html_viewer into the user docs cache so the generated HTML can
+   -- reference CSS/JS with stable relative paths.  Absolute paths into the
    -- bundled Documentation folder break when the AppImage mount suffix changes
-   -- between launches (the squashfs mounts at a random /tmp/.mount_XXXXXX path).
-   -- We mirror the same approach used for built_api.js (relative "IDE/..." path).
+   -- between launches (squashfs mounts at a random /tmp/.mount_XXXXXX path).
+   -- ln -sfn updates the symlink on every call so it always tracks the current
+   -- session's mount point without needing to copy any files.
    local tUserDocsBase
    put revEnvironmentUserDocsPath() & slash & "html_viewer" into tUserDocsBase
-   revIDEEnsurePath tUserDocsBase
-   local tViewerSubdir
-   repeat for each item tViewerSubdir in "css,js,fonts"
-      local tSrc, tDst
-      put tDocsBase & slash & tViewerSubdir into tSrc
-      put tUserDocsBase & slash & tViewerSubdir into tDst
-      if there is a folder tSrc then
-         if there is no folder tDst then
-            shell "cp -a " & quote & tSrc & quote & " " & quote & tDst & quote
-         end if
-      end if
-   end repeat
+   shell "ln -sfn " & quote & tDocsBase & quote & " " & quote & tUserDocsBase & quote
 
    local tDocsCSSFolder, tDocsJSFolder, tDataPath
    -- Use relative paths so the cached HTML works across AppImage relaunches.
