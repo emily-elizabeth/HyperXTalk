@@ -303,9 +303,14 @@ static void _result_handler(SFSpeechRecognitionResult *p_result, NSError *p_erro
 }
 
 // (Re)start a recognition task.  Must be called from s_speech_queue.
+//
+// The audio tap is installed ONCE at engine-startup time (see
+// MCPlatformStartListening) and reads s_request at call time via the global.
+// This function only swaps out the request + task objects; the engine and its
+// tap keep running without interruption.
 static void _start_recognition_task()
 {
-    // Clean up any previous task/request without stopping the engine.
+    // Cancel any in-flight task/request.
     if (s_task != nil)
     {
         [s_task cancel];
@@ -328,15 +333,10 @@ static void _start_recognition_task()
     if (@available(macOS 13.0, *))
         s_request.requiresOnDeviceRecognition = YES;
 
-    // Re-install the audio tap so the new request gets audio.
-    // (The engine keeps running — only the tap target changes.)
-    AVAudioInputNode *t_input = s_engine.inputNode;
-    [t_input removeTapOnBus:0];
-
-    AVAudioFormat *t_format = [t_input outputFormatForBus:0];
-    [t_input installTapOnBus:0 bufferSize:4096 format:t_format block:^(AVAudioPCMBuffer *p_buf, AVAudioTime *) {
-        [s_request appendAudioPCMBuffer:p_buf];
-    }];
+    // NOTE: do NOT reinstall the tap here. The tap was installed once before
+    // the engine was started and appends to whatever s_request points to at
+    // the time each buffer arrives. Reinstalling on every task restart
+    // destabilises the engine and can cause it to throw on the next start.
 
     s_task = [s_recognizer recognitionTaskWithRequest:s_request
                                        resultHandler:^(SFSpeechRecognitionResult *r, NSError *e) {
@@ -454,11 +454,27 @@ bool MCPlatformStartListening(MCStringRef p_language)
         }
 
         // ── 4. Set up the audio engine ────────────────────────────────────────
-        // AVAudioEngine may throw an NSException (not just return NO) when the
-        // audio subsystem is not yet ready — most commonly right after the user
-        // grants microphone permission for the first time. Wrap in @try/@catch
-        // so we can fail cleanly instead of crashing.
+        // IMPORTANT: AVAudioEngine requires at least one node connected (a tap
+        // on the input node) BEFORE startAndReturnError: is called.  Installing
+        // the tap after starting the engine causes AVFAudio to throw an
+        // NSException at Initialize time every time.
+        //
+        // The tap block reads the global s_request at call time, so swapping
+        // s_request in _start_recognition_task() automatically redirects audio
+        // to the new request without reinstalling the tap.
         s_engine = [[AVAudioEngine alloc] init];
+
+        AVAudioInputNode *t_input_node = s_engine.inputNode;
+        AVAudioFormat   *t_tap_format  = [t_input_node outputFormatForBus:0];
+        [t_input_node installTapOnBus:0
+                           bufferSize:4096
+                               format:t_tap_format
+                                block:^(AVAudioPCMBuffer *p_buf, AVAudioTime *) {
+            if (s_request != nil)
+                [s_request appendAudioPCMBuffer:p_buf];
+        }];
+
+        [s_engine prepare];
 
         NSError *t_err = nil;
         BOOL t_engine_started = NO;
@@ -468,13 +484,13 @@ bool MCPlatformStartListening(MCStringRef p_language)
         }
         @catch (NSException *t_ex)
         {
-            // Audio subsystem not ready — will be retried on next startListening call.
             t_engine_started = NO;
         }
 
         if (!t_engine_started)
         {
-            t_fail_reason = "startListening: audio engine failed to start — try calling startListening again";
+            [t_input_node removeTapOnBus:0];
+            t_fail_reason = "startListening: audio engine failed to start";
             s_engine = nil;
             s_recognizer = nil;
             return;
