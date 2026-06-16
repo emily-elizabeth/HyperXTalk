@@ -241,6 +241,36 @@ static void _handle_transcript(NSString *p_transcript)
             return; // first match wins
         }
     }
+
+    // Nothing matched — dispatch unrecognizedVoiceCommand with the raw transcript
+    // so the caller can forward it to an LLM or handle it otherwise.
+    // If we were in a wake-word command window, close it first.
+    if (s_window_open)
+        _cancel_timer();
+
+    const char *t_utf8 = [p_transcript UTF8String];
+    if (t_utf8 != nil)
+    {
+        MCStringRef t_mc_text = nil;
+        if (MCStringCreateWithCString(t_utf8, t_mc_text))
+        {
+            struct MCDispatchURICtx { MCStringRef text; };
+            MCDispatchURICtx *t_ctx = new (std::nothrow) MCDispatchURICtx{ t_mc_text };
+            if (t_ctx != nil)
+            {
+                MCMacPlatformScheduleCallback([](void *p_ctx) {
+                    MCDispatchURICtx *t_c = (MCDispatchURICtx *)p_ctx;
+                    MCSpeechDispatchUnrecognizedInput(t_c->text);
+                    MCValueRelease(t_c->text);
+                    delete t_c;
+                }, t_ctx);
+            }
+            else
+            {
+                MCValueRelease(t_mc_text);
+            }
+        }
+    }
 }
 
 // Result handler called by SFSpeechRecognizer (on an internal queue).
