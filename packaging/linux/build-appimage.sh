@@ -52,6 +52,25 @@ for subdir in Toolset Resources Documentation Plugins Externals; do
     fi
 done
 
+# --- edition.txt — marks this as an installed (non-dev) build ---
+# revEnvironmentIsInstalled() checks for Toolset/edition.txt; without it the
+# IDE runs in dev mode and can't find revdocsparser, leaving built_api.js empty.
+echo "community" > "$APPBIN/Toolset/edition.txt"
+
+# --- ide-support files → Toolset/libraries ---
+# Installed-mode code paths expect revdocsparser.livecodescript and
+# revsblibrary.livecodescript here.  revdocsparser is required to generate
+# built_api.js / built_guide.js; revsblibrary is needed for the standalone
+# settings dialog.
+IDE_SUPPORT_DIR="$REPO_ROOT/ide-support"
+if [ -d "$IDE_SUPPORT_DIR" ]; then
+    mkdir -p "$APPBIN/Toolset/libraries"
+    for f in "$IDE_SUPPORT_DIR"/*.livecodescript; do
+        [ -f "$f" ] || continue
+        cp "$f" "$APPBIN/Toolset/libraries/"
+    done
+fi
+
 # --- Externals (.so plugins from the build) ---
 # Create the expected directory structure for externals and database drivers.
 mkdir -p "$APPBIN/Externals/Database Drivers"
