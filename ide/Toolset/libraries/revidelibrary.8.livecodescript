@@ -12126,15 +12126,23 @@ function revIDEGetDictionaryHTMLTemplate pWhich
 end revIDEGetDictionaryHTMLTemplate
 
 on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pInitialEntryType
-   local tGeneratedHTMLFile
-   put revIDEGetDictionaryUrl(pWhich) into tGeneratedHTMLFile
+   local tUserDocsPath
+   put revEnvironmentUserDocsPath() into tUserDocsPath
 
-   -- Ensure the docs-cache directory (e.g. 9_7_0_dp_1_/) exists before
-   -- writing api.html into it, and also ensure IDE/ exists for built_api.js.
-   -- revIDESetUTF8FileContents silently fails when the parent folder is absent,
-   -- which leaves GoToURL unable to find the file and throws "error launching url".
-   revIDEEnsurePath revEnvironmentUserDocsPath()
-   revIDEEnsurePath revEnvironmentUserDocsPath() & slash & "IDE"
+   -- Bail early if the user docs path is empty or points inside the read-only
+   -- AppImage squashfs mount (which happens when set the folder to "~" fails).
+   if tUserDocsPath is empty or tUserDocsPath contains "/tmp/.mount_" then
+      exit revIDEGenerateDictionaryHTML
+   end if
+
+   local tGeneratedHTMLFile
+   put tUserDocsPath & slash & pWhich & ".html" into tGeneratedHTMLFile
+
+   -- Use shell mkdir -p rather than revIDEEnsurePath / create folder.
+   -- create folder fails silently without creating intermediate directories,
+   -- leaving revIDESetUTF8FileContents with no parent folder to write into.
+   shell "mkdir -p " & quote & tUserDocsPath & quote
+   shell "mkdir -p " & quote & tUserDocsPath & slash & "IDE" & quote
 
    local tLibraryName, tEntryName, tEntryType
    put pInitialLibrary into tLibraryName
@@ -12144,23 +12152,21 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
    local tDocsBase
    put revIDESpecialFolderPath("documentation") & slash & "html_viewer" into tDocsBase
 
-   -- Symlink html_viewer into the user docs cache so the generated HTML can
-   -- reference CSS/JS with stable relative paths.  Absolute paths into the
-   -- bundled Documentation folder break when the AppImage mount suffix changes
-   -- between launches (squashfs mounts at a random /tmp/.mount_XXXXXX path).
-   -- ln -sfn updates the symlink on every call so it always tracks the current
-   -- session's mount point without needing to copy any files.
-   local tUserDocsBase
-   put revEnvironmentUserDocsPath() & slash & "html_viewer" into tUserDocsBase
-   shell "ln -sfn " & quote & tDocsBase & quote & " " & quote & tUserDocsBase & quote
+   -- Copy html_viewer into the user docs cache.
+   -- Symlinking is fragile for the system browser (file:// security policies may
+   -- block following symlinks) and the AppImage mount path changes on every
+   -- launch (/tmp/.mount_XXXXXX), making cached symlinks immediately stale.
+   -- We only copy when the destination is absent to avoid the ~15 MB overhead
+   -- on every launch.
+   local tHtmlViewerDest
+   put tUserDocsPath & slash & "html_viewer" into tHtmlViewerDest
+   if there is not a folder tHtmlViewerDest then
+      shell "cp -a " & quote & tDocsBase & quote & " " & quote & tHtmlViewerDest & quote
+   end if
 
    local tDocsCSSFolder, tDocsJSFolder, tDataPath
-   -- Use relative paths so the cached HTML works across AppImage relaunches.
    put "html_viewer/css" into tDocsCSSFolder
    put "html_viewer/js" into tDocsJSFolder
-   -- Use a relative path (IDE/built_<pWhich>.js) so WKWebView resolves it relative
-   -- to api.html's own directory inside the docs cache. This avoids any cross-directory
-   -- file-access trust issues and eliminates space-encoding problems entirely.
    put "IDE/built_" & pWhich & ".js" into tDataPath
 
    local tIDEGuidesFolder, tRepoGuidesFolder
