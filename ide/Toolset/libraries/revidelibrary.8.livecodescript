@@ -12126,23 +12126,11 @@ function revIDEGetDictionaryHTMLTemplate pWhich
 end revIDEGetDictionaryHTMLTemplate
 
 on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pInitialEntryType
-   local tUserDocsPath
-   put revEnvironmentUserDocsPath() into tUserDocsPath
-
-   -- Bail early if the user docs path is empty or points inside the read-only
-   -- AppImage squashfs mount (which happens when set the folder to "~" fails).
-   if tUserDocsPath is empty or tUserDocsPath contains "/tmp/.mount_" then
-      exit revIDEGenerateDictionaryHTML
-   end if
-
    local tGeneratedHTMLFile
-   put tUserDocsPath & slash & pWhich & ".html" into tGeneratedHTMLFile
+   put revIDEGetDictionaryUrl(pWhich) into tGeneratedHTMLFile
 
-   -- Use shell mkdir -p rather than revIDEEnsurePath / create folder.
-   -- create folder fails silently without creating intermediate directories,
-   -- leaving revIDESetUTF8FileContents with no parent folder to write into.
-   shell "mkdir -p " & quote & tUserDocsPath & quote
-   shell "mkdir -p " & quote & tUserDocsPath & slash & "IDE" & quote
+   revIDEEnsurePath revEnvironmentUserDocsPath()
+   revIDEEnsurePath revEnvironmentUserDocsPath() & slash & "IDE"
 
    local tLibraryName, tEntryName, tEntryType
    put pInitialLibrary into tLibraryName
@@ -12159,7 +12147,7 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
    -- We only copy when the destination is absent to avoid the ~15 MB overhead
    -- on every launch.
    local tHtmlViewerDest
-   put tUserDocsPath & slash & "html_viewer" into tHtmlViewerDest
+   put revEnvironmentUserDocsPath() & slash & "html_viewer" into tHtmlViewerDest
    if there is not a folder tHtmlViewerDest then
       shell "cp -a " & quote & tDocsBase & quote & " " & quote & tHtmlViewerDest & quote
    end if
