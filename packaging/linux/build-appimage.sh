@@ -122,12 +122,10 @@ mkdir -p "$RUNTIME_LNX/Support" "$RUNTIME_LNX/Externals/Database Drivers"
 # is compiled in a different mode and lacks this section entirely.
 cp "$OUT_DIR/standalone-community" "$RUNTIME_LNX/Standalone"
 strip --strip-debug "$RUNTIME_LNX/Standalone" 2>/dev/null || true
-
-# Bake $ORIGIN/lib into the Standalone binary's RPATH now, at AppImage build
-# time, so every standalone deployed from this AppImage can find its bundled
-# libs (libvlc.so.5, FFmpeg, etc.) in a lib/ subdirectory alongside the binary.
-# This avoids needing patchelf on the end-user's machine and avoids wrapper scripts.
-patchelf --add-rpath '$ORIGIN/lib' "$RUNTIME_LNX/Standalone"
+# NOTE: No patchelf call here.  The $ORIGIN/lib RPATH is baked into the binary
+# at link time via -Wl,-rpath,$ORIGIN/lib in engine/engine.gyp.  Using patchelf
+# --add-rpath after the fact adds a new PT_LOAD segment after the .project section,
+# which the deploy engine (deploy_linux.cpp) rejects with "bad section order".
 
 # Support libraries (revsecurity, revpdfprinter, libExternal)
 for lib in revsecurity.so revpdfprinter.so libExternal.so; do
