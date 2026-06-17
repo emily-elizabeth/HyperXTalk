@@ -116,8 +116,11 @@ fi
 RUNTIME_LNX="$APPBIN/Runtime/Linux/x86-64"
 mkdir -p "$RUNTIME_LNX/Support" "$RUNTIME_LNX/Externals/Database Drivers"
 
-# Engine binary — the IDE binary doubles as the standalone engine on Linux.
-cp "$OUT_DIR/HyperXTalk" "$RUNTIME_LNX/Standalone"
+# Engine binary — must be the standalone-mode binary (compiled with
+# mode_standalone.cpp), which contains the .project ELF section the deploy
+# engine requires to embed the user's project.  The IDE binary (HyperXTalk)
+# is compiled in a different mode and lacks this section entirely.
+cp "$OUT_DIR/standalone-community" "$RUNTIME_LNX/Standalone"
 strip --strip-debug "$RUNTIME_LNX/Standalone" 2>/dev/null || true
 
 # Support libraries (revsecurity, revpdfprinter, libExternal)
