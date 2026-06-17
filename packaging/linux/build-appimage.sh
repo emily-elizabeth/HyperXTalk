@@ -176,7 +176,7 @@ Comment=IDE for creating cross-platform applications
 Icon=hyperxtalk
 Exec=HyperXTalk %U
 Categories=Development;IDE;
-StartupWMClass=hyperxtalk
+StartupWMClass=HyperXTalk
 DESKTOP
 
 # Symlink desktop file to AppDir root (required by AppImage)
@@ -416,6 +416,35 @@ echo "patchelf bundled -> usr/bin/patchelf  ($(patchelf --version 2>&1 | head -1
 cat > "$APPDIR/AppRun" <<'APPRUN'
 #!/bin/bash
 HERE="$(dirname "$(readlink -f "$0")")"
+
+# --- Desktop integration ---
+# Install the icon and a .desktop file pointing at this AppImage into the
+# user's local share directories so GNOME/KDE can match the running window
+# to the correct icon (taskbar, alt-tab switcher, app launcher).
+# This is a one-time install; subsequent runs skip it if the files are current.
+_APPIMAGE_PATH="$(readlink -f "$0")"
+_ICON_SRC="$HERE/usr/share/icons/hicolor/256x256/apps/hyperxtalk.png"
+_ICON_DEST="$HOME/.local/share/icons/hicolor/256x256/apps/hyperxtalk.png"
+_DESKTOP_DEST="$HOME/.local/share/applications/hyperxtalk-appimage.desktop"
+
+if [ ! -f "$_ICON_DEST" ] || [ "$_ICON_SRC" -nt "$_ICON_DEST" ]; then
+    mkdir -p "$HOME/.local/share/icons/hicolor/256x256/apps"
+    cp "$_ICON_SRC" "$_ICON_DEST"
+    gtk-update-icon-cache --force --ignore-theme-index \
+        "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
+fi
+
+if [ ! -f "$_DESKTOP_DEST" ] || [ "$_APPIMAGE_PATH" != "$(grep '^Exec=' "$_DESKTOP_DEST" 2>/dev/null | sed 's/^Exec=//;s/ %U//')" ]; then
+    mkdir -p "$HOME/.local/share/applications"
+    sed "s|Exec=HyperXTalk %U|Exec=$_APPIMAGE_PATH %U|g" \
+        "$HERE/usr/share/applications/HyperXTalk.desktop" > "$_DESKTOP_DEST"
+    update-desktop-database "$HOME/.local/share/applications" 2>/dev/null || true
+fi
+
+# Tell Ubuntu's BAMF window-matcher which .desktop file owns this process so
+# the taskbar icon appears immediately without a logout/login cycle.
+export BAMF_DESKTOP_FILE_HINT="$_DESKTOP_DEST"
+
 export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 # Fallback in case the engine's own probe doesn't run first.
 export VLC_PLUGIN_PATH="$HERE/usr/bin/vlc-plugins/plugins"
