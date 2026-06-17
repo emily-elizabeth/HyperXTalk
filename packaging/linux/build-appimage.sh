@@ -336,10 +336,23 @@ if [ "${#ffmpeg_seed[@]}" -gt 0 ]; then
     bundle_libs_recursive "${ffmpeg_seed[@]}"
 fi
 
+# --- Patch RPATH on every bundled lib so transitive deps resolve ---
+# Each bundled .so in LIB_DEST may have its original DT_RUNPATH pointing at the
+# build-system's /usr/lib/... paths.  DT_RUNPATH is NOT inherited, so libvlc.so.5
+# cannot find libvlccore.so.9 via the standalone binary's $ORIGIN/lib RPATH.
+# Fix: set DT_RUNPATH to $ORIGIN on every real (non-symlink) .so file so each
+# lib finds its siblings in the same directory.
+echo "Patching RPATH on bundled libs..."
+find "$LIB_DEST" -maxdepth 1 -type f -name "*.so*" | while read -r lib; do
+    patchelf --set-rpath '$ORIGIN' "$lib" 2>/dev/null || true
+done
+echo "RPATH patched on bundled libs."
+
 # --- Runtime/Linux/x86-64/vlc — pre-staged VLC tree for the standalone builder ---
 # revSBCopyVLCToStandalone looks for Runtime/Linux/x86-64/vlc/{lib,plugins} when
 # building a Linux standalone from an AppImage, so it doesn't rely on the host
-# having VLC installed.  We populate it from the libs already bundled above.
+# having VLC installed.  We populate it from the libs already bundled above
+# (which now have $ORIGIN RPATH so they find each other in the standalone's lib/).
 VLC_RUNTIME_VLC="$APPBIN/Runtime/Linux/x86-64/vlc"
 mkdir -p "$VLC_RUNTIME_VLC/lib" "$VLC_RUNTIME_VLC/plugins"
 
