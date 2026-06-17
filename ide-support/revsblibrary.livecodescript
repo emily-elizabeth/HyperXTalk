@@ -3575,6 +3575,8 @@ command revSBCopyVLCToStandalone pPlatform, pStandaloneDir, pEnginePath, pCopyPl
          -- AppImage path: copy the entire pre-staged lib tree.
          get shell("cp -a " & QUOTE & tLinuxVLC & "/lib/." & QUOTE & " " & QUOTE & tLibDest & "/" & QUOTE)
          -- Copy plugin tree.
+         -- create folder only creates the final component; create the parent first.
+         create folder (pStandaloneDir & "/vlc-plugins")
          create folder (pStandaloneDir & "/vlc-plugins/plugins")
          get shell("cp -a " & QUOTE & tLinuxVLC & "/plugins/." & QUOTE & " " & QUOTE & pStandaloneDir & "/vlc-plugins/plugins/" & QUOTE)
          delete file (pStandaloneDir & "/vlc-plugins/plugins/plugins.dat")
@@ -3601,6 +3603,7 @@ command revSBCopyVLCToStandalone pPlatform, pStandaloneDir, pEnginePath, pCopyPl
             end if
          end repeat
          if tSysPlugins is not empty then
+            create folder (pStandaloneDir & "/vlc-plugins")
             create folder (pStandaloneDir & "/vlc-plugins/plugins")
             get shell("cp -rn " & QUOTE & tSysPlugins & "/." & QUOTE & " " & QUOTE & pStandaloneDir & "/vlc-plugins/plugins/" & QUOTE)
             delete file (pStandaloneDir & "/vlc-plugins/plugins/plugins.dat")
