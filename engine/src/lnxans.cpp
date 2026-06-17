@@ -22,6 +22,8 @@
 #include "lnxans.h"
 
 #include <locale.h>
+#include <unistd.h>   // readlink
+#include <limits.h>   // PATH_MAX
 
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
@@ -88,6 +90,51 @@ void gtk_init(void)
 		// If we're not careful, GTK will steal GDK events from us
         gtk_init(NULL, NULL);
         gdk_event_handler_set(&gdk_event_fn, MCscreen, &gdk_event_fn_lost);
+
+        // Set the default window icon so it appears in the taskbar/switcher.
+        // Probe candidate paths in priority order:
+        //   1. $APPDIR/usr/share/icons/hicolor/256x256/apps/hyperxtalk.png
+        //      (AppImage runtime sets $APPDIR to the squashfs mount point)
+        //   2. <exe_dir>/../share/icons/hicolor/256x256/apps/hyperxtalk.png
+        //      (installed layout: /usr/bin/HyperXTalk -> /usr/share/icons/...)
+        //   3. <exe_dir>/hyperxtalk.png  (dev / portable layout)
+        {
+            static const char k_icon_rel[] =
+                "/usr/share/icons/hicolor/256x256/apps/hyperxtalk.png";
+            char t_icon[PATH_MAX] = {};
+
+            // Try $APPDIR first (set by AppImage runtime).
+            const char *t_appdir = getenv("APPDIR");
+            if (t_appdir)
+                snprintf(t_icon, sizeof(t_icon), "%s%s", t_appdir, k_icon_rel);
+
+            // Fall back to a path relative to our own executable.
+            if (t_icon[0] == '\0' || access(t_icon, F_OK) != 0)
+            {
+                char t_exe[PATH_MAX] = {};
+                ssize_t t_len = readlink("/proc/self/exe", t_exe,
+                                         sizeof(t_exe) - 1);
+                if (t_len > 0)
+                {
+                    t_exe[t_len] = '\0';
+                    char *t_sep = strrchr(t_exe, '/');
+                    if (t_sep) *t_sep = '\0'; // strip filename -> exe dir
+
+                    // Try installed layout: <exe_dir>/../share/icons/...
+                    snprintf(t_icon, sizeof(t_icon),
+                             "%s/..%s", t_exe, k_icon_rel);
+                    if (access(t_icon, F_OK) != 0)
+                    {
+                        // Try portable/dev layout: <exe_dir>/hyperxtalk.png
+                        snprintf(t_icon, sizeof(t_icon),
+                                 "%s/hyperxtalk.png", t_exe);
+                    }
+                }
+            }
+
+            if (t_icon[0] != '\0' && access(t_icon, F_OK) == 0)
+                gtk_window_set_default_icon_from_file(t_icon, NULL);
+        }
 		gdk_error_trap_push(); 		// Disable all x-error trapping ...
 		
 		

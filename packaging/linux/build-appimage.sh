@@ -422,7 +422,9 @@ HERE="$(dirname "$(readlink -f "$0")")"
 # user's local share directories so GNOME/KDE can match the running window
 # to the correct icon (taskbar, alt-tab switcher, app launcher).
 # This is a one-time install; subsequent runs skip it if the files are current.
-_APPIMAGE_PATH="$(readlink -f "$0")"
+# $APPIMAGE is set by the AppImage runtime to the path of the .AppImage file.
+# Fall back to $0 (the AppRun script itself) only if not set.
+_APPIMAGE_PATH="${APPIMAGE:-$0}"
 _ICON_SRC="$HERE/usr/share/icons/hicolor/256x256/apps/hyperxtalk.png"
 _ICON_DEST="$HOME/.local/share/icons/hicolor/256x256/apps/hyperxtalk.png"
 _DESKTOP_DEST="$HOME/.local/share/applications/hyperxtalk-appimage.desktop"
