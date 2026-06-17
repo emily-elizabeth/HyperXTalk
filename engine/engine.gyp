@@ -351,13 +351,20 @@
 					# dynamic linker without patchelf or a wrapper script.
 					# Escaping: gyp writes \$$ORIGIN to the Makefile; make converts $$ -> $, leaving
 					# \$ORIGIN for the shell; the shell treats \$ as a literal $, so the linker
-					# receives -rpath,$ORIGIN/lib and stores $ORIGIN/lib verbatim in RUNPATH.
+					# receives -rpath,$ORIGIN/lib and stores $ORIGIN/lib verbatim in the ELF.
+					#
+					# --disable-new-dtags stores the path as DT_RPATH (not DT_RUNPATH).
+					# DT_RPATH is inherited by all transitively loaded shared libraries, so
+					# libvlc.so.5 can find libvlccore.so.9 in lib/ even though libvlc has its
+					# own RPATH pointing at the original system location.  DT_RUNPATH (the
+					# default on modern linkers) is NOT inherited, which causes libvlccore to
+					# not be found at runtime.
 					'OS == "linux"',
 					{
 						'ldflags':
 						[
 							'-Wl,-T,$(abs_srcdir)/engine/linux.link',
-							'-Wl,-rpath,\$$ORIGIN/lib',
+							'-Wl,--disable-new-dtags,-rpath,\$$ORIGIN/lib',
 						],
 					},
 				],
