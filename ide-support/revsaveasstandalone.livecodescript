@@ -1420,6 +1420,35 @@ command revSaveAsLinuxStandalone pStack, pRestoreFileName, pFolder, @xStandalone
       
       revStandaloneDeployWithParams tTarget, tStackSourceFile, tDeployInfo
 
+      -- Patch RPATH on the deployed binary so it finds bundled VLC libs in lib/.
+      -- This is safe: deploy_linux.cpp has finished embedding the project into
+      -- tStandalonePath; we are patching the OUTPUT binary, not the Standalone
+      -- engine template.  "Bad section order" does not apply here.
+      -- Prefer patchelf bundled in the AppImage (usr/bin/patchelf); fall back to
+      -- any system patchelf.  Once standalone-community is rebuilt with the
+      -- link-time -Wl,-rpath,$ORIGIN/lib flag (engine.gyp), --set-rpath is a no-op.
+      local tPatchelf
+      if revEnvironmentIsInstalled() then
+         -- revEnvironmentRuntimePath() = <tools>/Runtime; strip "/Runtime" to get <tools>
+         local tToolsPath
+         set the itemDelimiter to slash
+         put item 1 to -2 of revEnvironmentRuntimePath() into tToolsPath
+         set the itemDelimiter to comma
+         put tToolsPath & slash & "patchelf" into tPatchelf
+         if there is no file tPatchelf then
+            put "patchelf" into tPatchelf
+         end if
+      else
+         put "patchelf" into tPatchelf
+      end if
+      -- Single-quote $ORIGIN so the shell does not expand it as a variable
+      local tSQ
+      put numToChar(39) into tSQ
+      get shell(quote & tPatchelf & quote & " --set-rpath " & tSQ & "$ORIGIN/lib" & tSQ & " " & quote & tStandalonePath & quote & " 2>&1")
+      if the result is not 0 then
+         revStandaloneAddWarning "patchelf: could not set RPATH on standalone binary — bundled VLC libs may not be found at runtime." & return & it
+      end if
+
       -- Always bundle VLC: the standalone binary links libvlc.so.5 at load time
       -- (NEEDED entry in the ELF) and will fail to start without it, even when no
       -- player control is used.  This matches the Windows behaviour.

@@ -353,6 +353,32 @@ if [ -d "$APPBIN/vlc-plugins/plugins" ]; then
 fi
 echo "Staged VLC runtime for standalone builder -> Runtime/Linux/x86-64/vlc/"
 
+# --- Bundle patchelf for the standalone builder ---
+# The standalone builder calls patchelf on the deployed binary to bake
+# $ORIGIN/lib into its RPATH so bundled VLC libs are found at runtime.
+# We bundle a static patchelf so this works without patchelf on the host.
+# Note: patchelf is called on the OUTPUT binary (post-deploy), NOT on the
+# Standalone engine template — so "bad section order" does not apply here.
+PATCHELF_VERSION="0.18.0"
+PATCHELF_DEST="$APPBIN/patchelf"
+if command -v patchelf >/dev/null 2>&1; then
+    echo "Using system patchelf: $(command -v patchelf)"
+    cp "$(command -v patchelf)" "$PATCHELF_DEST"
+else
+    echo "Downloading static patchelf v${PATCHELF_VERSION}..."
+    PATCHELF_TGZ="$BUILD_DIR/patchelf-${PATCHELF_VERSION}-x86_64.tar.gz"
+    if [ ! -f "$PATCHELF_TGZ" ]; then
+        curl -fsSL -o "$PATCHELF_TGZ" \
+            "https://github.com/NixOS/patchelf/releases/download/${PATCHELF_VERSION}/patchelf-${PATCHELF_VERSION}-x86_64.tar.gz"
+    fi
+    PATCHELF_TMP="$(mktemp -d)"
+    tar -xzf "$PATCHELF_TGZ" -C "$PATCHELF_TMP"
+    find "$PATCHELF_TMP" -name "patchelf" -type f -exec cp {} "$PATCHELF_DEST" \;
+    rm -rf "$PATCHELF_TMP"
+fi
+chmod +x "$PATCHELF_DEST"
+echo "patchelf bundled -> usr/bin/patchelf"
+
 # --- AppRun ---
 cat > "$APPDIR/AppRun" <<'APPRUN'
 #!/bin/bash
