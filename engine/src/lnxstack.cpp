@@ -3,6 +3,10 @@
 //
 #include "lnxprefix.h"
 
+#include <unistd.h>   // readlink, access
+#include <limits.h>   // PATH_MAX
+#include <stdio.h>    // snprintf
+
 #include "globdefs.h"
 #include "filedefs.h"
 #include "objdefs.h"
@@ -112,7 +116,63 @@ void MCStack::realize()
         gdkwa.event_mask = GDK_ALL_EVENTS_MASK & ~GDK_POINTER_MOTION_HINT_MASK;
         
         window = gdk_window_new(screen->getroot(), &gdkwa, gdk_valid_wa);
-        
+
+#ifdef MODE_DEVELOPMENT
+        // Set _NET_WM_ICON on the first top-level window so the taskbar,
+        // alt-tab switcher, and dock show the app icon.
+        // gdk_window_set_icon_list() works on GdkWindows directly (unlike
+        // gtk_window_set_default_icon_from_file which requires GtkWindow).
+        // Only do this once — subsequent windows inherit the icon.
+        {
+            static bool s_icon_set = false;
+            if (!s_icon_set)
+            {
+                static const char k_icon_rel[] =
+                    "/usr/share/icons/hicolor/256x256/apps/hyperxtalk.png";
+                char t_icon[PATH_MAX] = {};
+
+                // 1. $APPDIR set by AppImage runtime.
+                const char *t_appdir = getenv("APPDIR");
+                if (t_appdir)
+                    snprintf(t_icon, sizeof(t_icon), "%s%s",
+                             t_appdir, k_icon_rel);
+
+                // 2. Relative to our executable.
+                if (t_icon[0] == '\0' || access(t_icon, F_OK) != 0)
+                {
+                    char t_exe[PATH_MAX] = {};
+                    ssize_t t_len = readlink("/proc/self/exe", t_exe,
+                                             sizeof(t_exe) - 1);
+                    if (t_len > 0)
+                    {
+                        t_exe[t_len] = '\0';
+                        char *t_sep = strrchr(t_exe, '/');
+                        if (t_sep) *t_sep = '\0';
+
+                        snprintf(t_icon, sizeof(t_icon),
+                                 "%s/..%s", t_exe, k_icon_rel);
+                        if (access(t_icon, F_OK) != 0)
+                            snprintf(t_icon, sizeof(t_icon),
+                                     "%s/hyperxtalk.png", t_exe);
+                    }
+                }
+
+                if (t_icon[0] != '\0' && access(t_icon, F_OK) == 0)
+                {
+                    GdkPixbuf *t_pb = gdk_pixbuf_new_from_file(t_icon, NULL);
+                    if (t_pb != NULL)
+                    {
+                        GList *t_list = g_list_append(NULL, t_pb);
+                        gdk_window_set_icon_list(window, t_list);
+                        g_list_free(t_list);
+                        g_object_unref(t_pb);
+                        s_icon_set = true;
+                    }
+                }
+            }
+        }
+#endif // MODE_DEVELOPMENT
+
         // FG-2014-07-30: [[ Bugfix 12905 ]]
         // This is necessary otherwise the window manager might ignore the
         // position that we have specified for the new window
