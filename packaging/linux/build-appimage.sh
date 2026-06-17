@@ -183,10 +183,17 @@ DESKTOP
 cp "$APPDIR/usr/share/applications/HyperXTalk.desktop" "$APPDIR/HyperXTalk.desktop"
 
 # --- Icon ---
-cp "$REPO_ROOT/Installer/application.png" \
-   "$APPDIR/usr/share/icons/hicolor/48x48/apps/hyperxtalk.png"
-# AppImage also needs an icon at the root
-cp "$REPO_ROOT/Installer/application.png" "$APPDIR/hyperxtalk.png"
+# Install the hi-res source icon at all standard hicolor sizes so desktop
+# environments (GNOME, KDE, XFCE) pick the best resolution for each context.
+ICON_SRC="$REPO_ROOT/Installer/application-1024.png"
+for size in 16 32 48 64 128 256 512; do
+    mkdir -p "$APPDIR/usr/share/icons/hicolor/${size}x${size}/apps"
+    convert "$ICON_SRC" -resize "${size}x${size}" \
+        "$APPDIR/usr/share/icons/hicolor/${size}x${size}/apps/hyperxtalk.png"
+done
+# AppImage root icon (used by file managers and appimagetool for embedding).
+# 512px is the conventional sweet spot — large enough for HiDPI, not bloated.
+convert "$ICON_SRC" -resize 512x512 "$APPDIR/hyperxtalk.png"
 
 # --- Bundle libvlc, its support libs, plugins, and all transitive deps ---
 #
