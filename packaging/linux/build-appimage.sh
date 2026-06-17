@@ -239,6 +239,11 @@ if [ -n "$VLC_DIR" ]; then
     mkdir -p "$APPBIN/vlc-plugins"
     cp -a "$VLC_DIR/plugins" "$APPBIN/vlc-plugins/"
     echo "Bundled VLC plugins from $VLC_DIR/plugins -> usr/bin/vlc-plugins/plugins"
+
+    # Remove plugins.dat — it contains absolute paths from the build system that
+    # won't match the AppImage mount point (/tmp/.mount_XXXXXX/...).  Without
+    # deleting it VLC uses the stale cache and fails to find codecs at runtime.
+    rm -f "$APPBIN/vlc-plugins/plugins/plugins.dat"
 else
     echo "WARNING: VLC plugin directory not found — video playback may not work." >&2
 fi
@@ -262,6 +267,12 @@ bundle_libs_recursive() {
                     cp -P "$lib" "$LIB_DEST/" 2>/dev/null || true
                     # Resolve symlink to the real file for ldd.
                     real="$(readlink -f "$lib" 2>/dev/null || echo "$lib")"
+                    # cp -P copies the symlink but not its target; copy the
+                    # real versioned file too so the symlink isn't broken.
+                    real_name="$(basename "$real")"
+                    if [ "$real_name" != "$name" ] && [ ! -e "$LIB_DEST/$real_name" ] && [ -f "$real" ]; then
+                        cp "$real" "$LIB_DEST/" 2>/dev/null || true
+                    fi
                     next_worklist+=("$real")
                     changed=1
                 fi
@@ -283,6 +294,43 @@ done
 # Deduplicate seed.
 mapfile -t seed < <(printf '%s\n' "${seed[@]}" | sort -u)
 bundle_libs_recursive "${seed[@]}"
+
+# --- Explicitly bundle FFmpeg libs ---
+# VLC codec/demux plugins dlopen libavcodec, libavformat, libavutil etc. at
+# runtime.  These are not captured by ldd on libvlccore.so alone, so we copy
+# them explicitly and then run another recursive pass for their own deps.
+echo "Bundling FFmpeg libs..."
+for pattern in \
+    libavcodec.so* libavformat.so* libavutil.so* \
+    libswscale.so* libswresample.so* libpostproc.so* \
+    libavfilter.so*; do
+    for search_dir in /usr/lib/x86_64-linux-gnu /usr/lib /usr/local/lib; do
+        for f in "$search_dir"/$pattern; do
+            [ -e "$f" ] || continue
+            name="$(basename "$f")"
+            echo "$f" | grep -qE "$SKIP_PATTERN" && continue
+            [ -e "$LIB_DEST/$name" ] && continue
+            cp -P "$f" "$LIB_DEST/" 2>/dev/null || true
+            real="$(readlink -f "$f" 2>/dev/null || echo "$f")"
+            real_name="$(basename "$real")"
+            if [ "$real_name" != "$name" ] && [ ! -e "$LIB_DEST/$real_name" ] && [ -f "$real" ]; then
+                cp "$real" "$LIB_DEST/" 2>/dev/null || true
+            fi
+            echo "  bundled $name"
+        done
+    done
+done
+# Recursive pass for FFmpeg's own deps (libx264, libx265, etc.)
+ffmpeg_seed=()
+for f in "$LIB_DEST"/libav*.so.* "$LIB_DEST"/libsw*.so.* "$LIB_DEST"/libpost*.so.*; do
+    [ -f "$f" ] || continue
+    real="$(readlink -f "$f" 2>/dev/null || echo "$f")"
+    [ -f "$real" ] && ffmpeg_seed+=("$real")
+done
+if [ "${#ffmpeg_seed[@]}" -gt 0 ]; then
+    mapfile -t ffmpeg_seed < <(printf '%s\n' "${ffmpeg_seed[@]}" | sort -u)
+    bundle_libs_recursive "${ffmpeg_seed[@]}"
+fi
 
 # --- AppRun ---
 cat > "$APPDIR/AppRun" <<'APPRUN'
