@@ -215,7 +215,7 @@ Boolean MCScreenDC::open()
     /* UNCHECKED */ MCStringCreateMutable(0, &t_class_name);
     // Use a stable, version-independent class name so StartupWMClass in the
     // .desktop file never needs updating between releases.
-    /* UNCHECKED */ MCStringAppendCString(*t_class_name, MCapplicationstring);
+    /* UNCHECKED */ MCStringAppendFormat(*t_class_name, "%s", MCapplicationstring);
     /* UNCHECKED */ t_class_name_utf8.Lock(*t_class_name);
     
     // Used to load the icon and other desktop properties
