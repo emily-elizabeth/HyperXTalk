@@ -107,6 +107,43 @@ if [ -d "$OUT_DIR/Externals" ]; then
     cp -a "$OUT_DIR/Externals/"* "$APPBIN/Externals/" 2>/dev/null || true
 fi
 
+# --- Runtime/Linux/x86-64 — standalone builder engine and support files ---
+# revEngineCheck("Linux x64") and revSBEnginePath("Linux x64") both look for
+# Toolset/Runtime/Linux/x86-64/Standalone.  Without it the "Linux x64" checkbox
+# is hidden in the Standalone Settings dialog and the builder refuses to run.
+RUNTIME_LNX="$APPBIN/Toolset/Runtime/Linux/x86-64"
+mkdir -p "$RUNTIME_LNX/Support" "$RUNTIME_LNX/Externals/Database Drivers"
+
+# Engine binary — the IDE binary doubles as the standalone engine on Linux.
+cp "$OUT_DIR/HyperXTalk" "$RUNTIME_LNX/Standalone"
+strip --strip-debug "$RUNTIME_LNX/Standalone" 2>/dev/null || true
+
+# Support libraries (revsecurity, revpdfprinter, libExternal)
+for lib in revsecurity.so revpdfprinter.so libExternal.so; do
+    [ -f "$OUT_DIR/$lib" ] && cp "$OUT_DIR/$lib" "$RUNTIME_LNX/Support/"
+done
+
+# Externals — same split logic as the APPBIN/Externals section above
+for so in "$OUT_DIR"/*.so; do
+    [ -f "$so" ] || continue
+    name="$(basename "$so")"
+    case "$name" in
+        server-*) continue ;;
+        libExternal.so|revsecurity.so|revpdfprinter.so) continue ;;
+        dbmysql.so|dbodbc.so|dbpostgresql.so|dbsqlite.so)
+            cp "$so" "$RUNTIME_LNX/Externals/Database Drivers/"
+            ;;
+        *)
+            cp "$so" "$RUNTIME_LNX/Externals/"
+            ;;
+    esac
+done
+
+# Sub-externals from the build output (CEF, etc.)
+if [ -d "$OUT_DIR/Externals" ]; then
+    cp -a "$OUT_DIR/Externals/"* "$RUNTIME_LNX/Externals/" 2>/dev/null || true
+fi
+
 # --- Packaged extensions (widgets and libraries) ---
 # When packaged/installed, the IDE looks in "Extensions" rather than "packaged_extensions"
 if [ -d "$OUT_DIR/packaged_extensions" ]; then

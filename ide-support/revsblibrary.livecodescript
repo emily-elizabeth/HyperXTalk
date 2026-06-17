@@ -846,7 +846,9 @@ constant kCursors                    = "false"
 -- revEngineCheck("Windows") looks for Runtime/Windows/x86-32/Standalone which
 -- does not exist in the HyperXTalk release, leaving the Windows settings group
 -- permanently disabled.  Switching to the x86-64 entry matches what we install.
-constant kInitialTargets = "Windows x86-64,MacOSX arm64,MacOSX x86-64,Linux"
+-- Similarly, "Linux" checks for x86-32/Standalone which doesn't exist; use
+-- "Linux x64" which matches the x86-64 engine we bundle in the AppImage.
+constant kInitialTargets = "Windows x86-64,MacOSX arm64,MacOSX x86-64,Linux x64"
 
 on revSBDefaultStandaloneSettings pStack, @xSettingsA
    local tPlatform,tName
