@@ -3607,26 +3607,10 @@ command revSBCopyVLCToStandalone pPlatform, pStandaloneDir, pEnginePath, pCopyPl
          end if
       end if
 
-      -- Wrap the standalone binary in a shell launcher so LD_LIBRARY_PATH is set.
-      -- Rename the real binary to <name>.bin, write a <name> launcher alongside it.
-      if pEnginePath is not empty and there is a file pEnginePath then
-         local tBinPath, tLauncherName, tScript
-         set the itemDelimiter to slash
-         put item -1 of pEnginePath into tLauncherName
-         set the itemDelimiter to comma
-         put pEnginePath & ".bin" into tBinPath
-
-         get shell("mv " & QUOTE & pEnginePath & QUOTE & " " & QUOTE & tBinPath & QUOTE)
-
-         put "#!/bin/bash" & return into tScript
-         put "HERE=" & QUOTE & "$(dirname " & QUOTE & "$(readlink -f " & QUOTE & "$0" & QUOTE & ")" & QUOTE & ")" & QUOTE & return after tScript
-         put "export LD_LIBRARY_PATH=" & QUOTE & "$HERE/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" & QUOTE & return after tScript
-         put "export VLC_PLUGIN_PATH=" & QUOTE & "$HERE/vlc-plugins/plugins" & QUOTE & return after tScript
-         put "exec " & QUOTE & "$HERE/" & tLauncherName & ".bin" & QUOTE & " " & QUOTE & "$@" & QUOTE & return after tScript
-
-         put tScript into url ("file:" & pEnginePath)
-         get shell("chmod +x " & QUOTE & pEnginePath & QUOTE)
-      end if
+      -- No wrapper script or patchelf needed at this stage: the Standalone engine
+      -- binary in the AppImage's Runtime tree already has $ORIGIN/lib baked into
+      -- its RPATH by patchelf during build-appimage.sh.  The deploy step preserves
+      -- the RPATH, so the deployed binary finds lib/ automatically at runtime.
 
       revStandaloneProgress "VLC runtime bundled."
    end if

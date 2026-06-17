@@ -123,6 +123,12 @@ mkdir -p "$RUNTIME_LNX/Support" "$RUNTIME_LNX/Externals/Database Drivers"
 cp "$OUT_DIR/standalone-community" "$RUNTIME_LNX/Standalone"
 strip --strip-debug "$RUNTIME_LNX/Standalone" 2>/dev/null || true
 
+# Bake $ORIGIN/lib into the Standalone binary's RPATH now, at AppImage build
+# time, so every standalone deployed from this AppImage can find its bundled
+# libs (libvlc.so.5, FFmpeg, etc.) in a lib/ subdirectory alongside the binary.
+# This avoids needing patchelf on the end-user's machine and avoids wrapper scripts.
+patchelf --add-rpath '$ORIGIN/lib' "$RUNTIME_LNX/Standalone"
+
 # Support libraries (revsecurity, revpdfprinter, libExternal)
 for lib in revsecurity.so revpdfprinter.so libExternal.so; do
     [ -f "$OUT_DIR/$lib" ] && cp "$OUT_DIR/$lib" "$RUNTIME_LNX/Support/"
