@@ -108,10 +108,12 @@ if [ -d "$OUT_DIR/Externals" ]; then
 fi
 
 # --- Runtime/Linux/x86-64 — standalone builder engine and support files ---
-# revEngineCheck("Linux x64") and revSBEnginePath("Linux x64") both look for
-# Toolset/Runtime/Linux/x86-64/Standalone.  Without it the "Linux x64" checkbox
-# is hidden in the Standalone Settings dialog and the builder refuses to run.
-RUNTIME_LNX="$APPBIN/Toolset/Runtime/Linux/x86-64"
+# revEnvironmentRuntimePath() = sToolsPath & "/Runtime", where sToolsPath is
+# item 1 to -3 of the home-stack path — i.e. usr/bin (parent of Toolset/).
+# So the Runtime tree must live at usr/bin/Runtime/, NOT usr/bin/Toolset/Runtime/.
+# revEngineCheck("Linux x64") checks for Runtime/Linux/x86-64/Standalone;
+# without it the "Linux x64" checkbox is hidden and the builder refuses to run.
+RUNTIME_LNX="$APPBIN/Runtime/Linux/x86-64"
 mkdir -p "$RUNTIME_LNX/Support" "$RUNTIME_LNX/Externals/Database Drivers"
 
 # Engine binary — the IDE binary doubles as the standalone engine on Linux.
