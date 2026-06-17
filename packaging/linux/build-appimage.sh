@@ -248,6 +248,26 @@ if [ -n "$VLC_DIR" ]; then
     # won't match the AppImage mount point (/tmp/.mount_XXXXXX/...).  Without
     # deleting it VLC uses the stale cache and fails to find codecs at runtime.
     rm -f "$APPBIN/vlc-plugins/plugins/plugins.dat"
+
+    # Patch RPATH on every VLC plugin .so so it can find bundled FFmpeg/VLC libs
+    # in <standalone_dir>/lib/ at runtime.  The system RPATH baked into these
+    # files points to build-system paths (/usr/lib/x86_64-linux-gnu) that won't
+    # exist on end-user machines.
+    #
+    # VLC plugins are typically one directory deep inside plugins/ (e.g.
+    # plugins/codec/libavcodec_plugin.so).  From that location:
+    #   $ORIGIN/../../../lib  →  <standalone_dir>/lib/     (depth-1 subdir)
+    #   $ORIGIN/../../lib     →  <standalone_dir>/lib/     (flat, depth-0)
+    # Both entries are set so either layout is covered.
+    #
+    # In the AppImage itself, LD_LIBRARY_PATH covers usr/lib/, so the patched
+    # $ORIGIN-relative paths simply don't match (the directory doesn't exist at
+    # that relative position) and the linker falls through to LD_LIBRARY_PATH.
+    echo "Patching RPATH on VLC plugin .so files..."
+    find "$APPBIN/vlc-plugins/plugins" -type f -name "*.so" | while read -r plugin; do
+        patchelf --set-rpath '$ORIGIN/../../../lib:$ORIGIN/../../lib' "$plugin" 2>/dev/null || true
+    done
+    echo "VLC plugin RPATH patched."
 else
     echo "WARNING: VLC plugin directory not found — video playback may not work." >&2
 fi
