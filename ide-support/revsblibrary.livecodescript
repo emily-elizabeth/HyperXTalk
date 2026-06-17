@@ -3554,14 +3554,66 @@ command revSBCopyVLCToStandalone pPlatform, pStandaloneDir, pEnginePath, pCopyPl
       end if
       revStandaloneProgress "VLC runtime bundled."
    else if pPlatform begins with "Linux" then
-      -- Use 'get shell(...)' so a non-zero exit (e.g. no matching .so) is a warning, not a fatal throw.
-      put pStandaloneDir & "/vlc-plugins/plugins" into tDest
-      create folder tDest
-      put pStandaloneDir & "/" into tDest
-      get shell("cp -f /usr/lib/x86_64-linux-gnu/libvlc.so* " & QUOTE & tDest & QUOTE)
-      get shell("cp -f /usr/lib/x86_64-linux-gnu/libvlccore.so* " & QUOTE & tDest & QUOTE)
-      put pStandaloneDir & "/vlc-plugins/plugins/" into tDest
-      get shell("cp -rn /usr/lib/vlc/plugins/. " & QUOTE & tDest & QUOTE)
+      -- Prefer the VLC tree pre-staged in the Runtime folder by build-appimage.sh.
+      -- That tree contains libvlc, libvlccore, all VLC support libs, FFmpeg libs
+      -- and their transitive deps, plus the plugin tree — everything a standalone
+      -- needs without requiring VLC to be installed on the end-user's machine.
+      -- Fall back to system paths when not running from an AppImage.
+      local tLinuxVLC
+      put revEnvironmentRuntimePath() & "/Linux/x86-64/vlc" into tLinuxVLC
+
+      if there is not a folder tLinuxVLC then
+         -- Running from a dev build: use system VLC paths.
+         -- Try the multiarch path first, then the generic one.
+         if there is a file "/usr/lib/x86_64-linux-gnu/libvlc.so.5" then
+            put "/usr/lib/x86_64-linux-gnu" into tLinuxVLC
+            -- Synthesise a minimal fake tree so the code below works uniformly.
+            -- We'll copy directly from these paths instead.
+         else if there is a file "/usr/lib/libvlc.so.5" then
+            put "/usr/lib" into tLinuxVLC
+         else
+            revStandaloneProgress "VLC not found — skipping VLC bundle."
+            exit revSBCopyVLCToStandalone
+         end if
+
+         -- Copy libs from system paths (no pre-staged lib/ subdirectory).
+         put pStandaloneDir & "/" into tDest
+         get shell("cp -fL /usr/lib/x86_64-linux-gnu/libvlc.so.5 " & QUOTE & tDest & QUOTE)
+         get shell("cp -fL /usr/lib/x86_64-linux-gnu/libvlccore.so.9 " & QUOTE & tDest & QUOTE)
+         local tSysPlugins
+         repeat for each item tDir in "/usr/lib/x86_64-linux-gnu/vlc,/usr/lib/vlc"
+            if there is a folder (tDir & "/plugins") then
+               put tDir & "/plugins" into tSysPlugins
+               exit repeat
+            end if
+         end repeat
+         if tSysPlugins is not empty then
+            create folder (pStandaloneDir & "/vlc-plugins")
+            create folder (pStandaloneDir & "/vlc-plugins/plugins")
+            get shell("cp -rn " & QUOTE & tSysPlugins & "/." & QUOTE & " " & QUOTE & pStandaloneDir & "/vlc-plugins/plugins/" & QUOTE)
+            delete file (pStandaloneDir & "/vlc-plugins/plugins/plugins.dat")
+         end if
+      else
+         -- AppImage path: copy all pre-staged libs alongside the binary.
+         put pStandaloneDir & "/" into tDest
+         get shell("cp -a " & QUOTE & tLinuxVLC & "/lib/." & QUOTE & " " & QUOTE & tDest & QUOTE)
+         -- Copy plugin tree.
+         create folder (pStandaloneDir & "/vlc-plugins")
+         create folder (pStandaloneDir & "/vlc-plugins/plugins")
+         get shell("cp -a " & QUOTE & tLinuxVLC & "/plugins/." & QUOTE & " " & QUOTE & pStandaloneDir & "/vlc-plugins/plugins/" & QUOTE)
+         delete file (pStandaloneDir & "/vlc-plugins/plugins/plugins.dat")
+      end if
+
+      -- Add $ORIGIN to the standalone binary's RPATH so the dynamic linker finds
+      -- libvlc.so.5 and other bundled libs placed alongside it.  patchelf is
+      -- available on all major Linux distros; fall back gracefully if absent.
+      if pEnginePath is not empty then
+         get shell("patchelf --add-rpath '$ORIGIN' " & QUOTE & pEnginePath & QUOTE & " 2>&1")
+         if the result is not 0 then
+            revStandaloneAddWarning "patchelf not available — standalone may need VLC installed on target machine."
+         end if
+      end if
+
       revStandaloneProgress "VLC runtime bundled."
    end if
 end revSBCopyVLCToStandalone

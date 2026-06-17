@@ -332,6 +332,23 @@ if [ "${#ffmpeg_seed[@]}" -gt 0 ]; then
     bundle_libs_recursive "${ffmpeg_seed[@]}"
 fi
 
+# --- Runtime/Linux/x86-64/vlc — pre-staged VLC tree for the standalone builder ---
+# revSBCopyVLCToStandalone looks for Runtime/Linux/x86-64/vlc/{lib,plugins} when
+# building a Linux standalone from an AppImage, so it doesn't rely on the host
+# having VLC installed.  We populate it from the libs already bundled above.
+VLC_RUNTIME_VLC="$APPBIN/Runtime/Linux/x86-64/vlc"
+mkdir -p "$VLC_RUNTIME_VLC/lib" "$VLC_RUNTIME_VLC/plugins"
+
+# Copy every lib from LIB_DEST — these are all the VLC, FFmpeg, and transitive
+# deps that the standalone needs alongside its binary.
+cp -a "$LIB_DEST/." "$VLC_RUNTIME_VLC/lib/" 2>/dev/null || true
+
+# Copy the VLC plugin tree (plugins.dat is already absent — deleted above).
+if [ -d "$APPBIN/vlc-plugins/plugins" ]; then
+    cp -a "$APPBIN/vlc-plugins/plugins/." "$VLC_RUNTIME_VLC/plugins/"
+fi
+echo "Staged VLC runtime for standalone builder -> Runtime/Linux/x86-64/vlc/"
+
 # --- AppRun ---
 cat > "$APPDIR/AppRun" <<'APPRUN'
 #!/bin/bash

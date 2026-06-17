@@ -1420,11 +1420,11 @@ command revSaveAsLinuxStandalone pStack, pRestoreFileName, pFolder, @xStandalone
       
       revStandaloneDeployWithParams tTarget, tStackSourceFile, tDeployInfo
 
-      -- Bundle VLC runtime alongside the binary if the project uses player controls.
+      -- Always bundle VLC: the standalone binary links libvlc.so.5 at load time
+      -- (NEEDED entry in the ELF) and will fail to start without it, even when no
+      -- player control is used.  This matches the Windows behaviour.
       -- tDirectory ends with a path separator; strip it before passing to the helper.
-      if tNeedsVLC then
-         revSBCopyVLCToStandalone "Linux", char 1 to -2 of tDirectory, tStandalonePath, tNeedsVLC
-      end if
+      revSBCopyVLCToStandalone "Linux", char 1 to -2 of tDirectory, tStandalonePath, tNeedsVLC
 
       --Restore stack to its post-savingStandalone message state
       __RestoreStackFromTemporaryLocation pStack, pRestoreFileName, tOriginalFileName
