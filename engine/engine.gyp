@@ -348,14 +348,16 @@
 					# Use a linker script to add the project and payload sections to the Linux executable.
 					# Also bake $ORIGIN/lib into the RPATH so bundled libs (libvlc.so.5, FFmpeg, etc.)
 					# placed in a lib/ subdirectory alongside the deployed standalone are found by the
-					# dynamic linker without patchelf or a wrapper script.  $$ORIGIN in the gyp/make
-					# context expands to the literal $ORIGIN that the dynamic linker expects.
+					# dynamic linker without patchelf or a wrapper script.
+					# Escaping: gyp writes \$$ORIGIN to the Makefile; make converts $$ -> $, leaving
+					# \$ORIGIN for the shell; the shell treats \$ as a literal $, so the linker
+					# receives -rpath,$ORIGIN/lib and stores $ORIGIN/lib verbatim in RUNPATH.
 					'OS == "linux"',
 					{
 						'ldflags':
 						[
 							'-Wl,-T,$(abs_srcdir)/engine/linux.link',
-							'-Wl,-rpath,$$ORIGIN/lib',
+							'-Wl,-rpath,\$$ORIGIN/lib',
 						],
 					},
 				],
