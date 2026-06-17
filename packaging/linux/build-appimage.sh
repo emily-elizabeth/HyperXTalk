@@ -176,7 +176,7 @@ Comment=IDE for creating cross-platform applications
 Icon=hyperxtalk
 Exec=HyperXTalk %U
 Categories=Development;IDE;
-StartupWMClass=HyperXTalk
+StartupWMClass=hyperxtalk
 DESKTOP
 
 # Symlink desktop file to AppDir root (required by AppImage)

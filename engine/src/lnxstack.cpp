@@ -373,7 +373,9 @@ void MCStack::sethints()
 		{
 			bool t_success = true;
 			if (t_env == kMCModeEnvironmentTypeEditor)
-				t_success = MCStringAppendFormat(*t_app_name, "%s%@_%s", MCapplicationstring, *t_edition_name, MC_BUILD_ENGINE_SHORT_VERSION);
+				// Use a stable, version-independent class name so StartupWMClass
+				// in the .desktop file never needs updating between releases.
+				t_success = MCStringAppendCString(*t_app_name, MCapplicationstring);
 			else
 				t_success = MCStringAppendFormat(*t_app_name, "%s%@_%@_%s", MCapplicationstring, *t_edition_name, MCModeGetEnvironment(), MC_BUILD_ENGINE_SHORT_VERSION);
 				
