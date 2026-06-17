@@ -91,7 +91,12 @@ void gtk_init(void)
         gtk_init(NULL, NULL);
         gdk_event_handler_set(&gdk_event_fn, MCscreen, &gdk_event_fn_lost);
 
+#ifdef MODE_DEVELOPMENT
         // Set the default window icon so it appears in the taskbar/switcher.
+        // gtk_window_set_default_icon_from_file requires the full GTK library
+        // which is only linked in the IDE (MODE_DEVELOPMENT) binary; standalone
+        // and installer targets link a reduced set and don't need a dock icon.
+        //
         // Probe candidate paths in priority order:
         //   1. $APPDIR/usr/share/icons/hicolor/256x256/apps/hyperxtalk.png
         //      (AppImage runtime sets $APPDIR to the squashfs mount point)
@@ -135,6 +140,7 @@ void gtk_init(void)
             if (t_icon[0] != '\0' && access(t_icon, F_OK) == 0)
                 gtk_window_set_default_icon_from_file(t_icon, NULL);
         }
+#endif // MODE_DEVELOPMENT
 		gdk_error_trap_push(); 		// Disable all x-error trapping ...
 		
 		
