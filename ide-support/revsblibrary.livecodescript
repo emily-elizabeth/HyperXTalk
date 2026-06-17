@@ -3607,10 +3607,9 @@ command revSBCopyVLCToStandalone pPlatform, pStandaloneDir, pEnginePath, pCopyPl
          end if
       end if
 
-      -- No wrapper script or patchelf needed at this stage: the Standalone engine
-      -- binary in the AppImage's Runtime tree already has $ORIGIN/lib baked into
-      -- its RPATH by patchelf during build-appimage.sh.  The deploy step preserves
-      -- the RPATH, so the deployed binary finds lib/ automatically at runtime.
+      -- RPATH ($ORIGIN/lib) is set on the deployed output binary by
+      -- revSaveAsLinuxStandalone after the deploy step, using the patchelf
+      -- binary bundled in the AppImage at usr/bin/patchelf.
 
       revStandaloneProgress "VLC runtime bundled."
    end if

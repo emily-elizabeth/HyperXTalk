@@ -354,30 +354,23 @@ fi
 echo "Staged VLC runtime for standalone builder -> Runtime/Linux/x86-64/vlc/"
 
 # --- Bundle patchelf for the standalone builder ---
-# The standalone builder calls patchelf on the deployed binary to bake
-# $ORIGIN/lib into its RPATH so bundled VLC libs are found at runtime.
-# We bundle a static patchelf so this works without patchelf on the host.
-# Note: patchelf is called on the OUTPUT binary (post-deploy), NOT on the
-# Standalone engine template — so "bad section order" does not apply here.
-PATCHELF_VERSION="0.18.0"
-PATCHELF_DEST="$APPBIN/patchelf"
-if command -v patchelf >/dev/null 2>&1; then
-    echo "Using system patchelf: $(command -v patchelf)"
-    cp "$(command -v patchelf)" "$PATCHELF_DEST"
-else
-    echo "Downloading static patchelf v${PATCHELF_VERSION}..."
-    PATCHELF_TGZ="$BUILD_DIR/patchelf-${PATCHELF_VERSION}-x86_64.tar.gz"
-    if [ ! -f "$PATCHELF_TGZ" ]; then
-        curl -fsSL -o "$PATCHELF_TGZ" \
-            "https://github.com/NixOS/patchelf/releases/download/${PATCHELF_VERSION}/patchelf-${PATCHELF_VERSION}-x86_64.tar.gz"
-    fi
-    PATCHELF_TMP="$(mktemp -d)"
-    tar -xzf "$PATCHELF_TGZ" -C "$PATCHELF_TMP"
-    find "$PATCHELF_TMP" -name "patchelf" -type f -exec cp {} "$PATCHELF_DEST" \;
-    rm -rf "$PATCHELF_TMP"
+# The standalone builder calls patchelf on the deployed output binary to bake
+# $ORIGIN/lib into its RPATH so bundled VLC libs in lib/ are found at runtime.
+# patchelf is called on the OUTPUT binary (post-deploy), NOT on the Standalone
+# engine template — so "bad section order" does not apply here.
+# patchelf must be installed on this build machine; it is bundled into the AppImage
+# so the end-user/test machine does not need it separately.
+#   sudo apt install patchelf      (Ubuntu/Debian)
+#   sudo dnf install patchelf      (Fedora/RHEL)
+if ! command -v patchelf >/dev/null 2>&1; then
+    echo "ERROR: patchelf is required to build the AppImage." >&2
+    echo "       Install it with:  sudo apt install patchelf" >&2
+    exit 1
 fi
+PATCHELF_DEST="$APPBIN/patchelf"
+cp "$(command -v patchelf)" "$PATCHELF_DEST"
 chmod +x "$PATCHELF_DEST"
-echo "patchelf bundled -> usr/bin/patchelf"
+echo "patchelf bundled -> usr/bin/patchelf  ($(patchelf --version 2>&1 | head -1))"
 
 # --- AppRun ---
 cat > "$APPDIR/AppRun" <<'APPRUN'
