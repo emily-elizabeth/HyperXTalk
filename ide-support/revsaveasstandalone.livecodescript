@@ -1424,9 +1424,12 @@ command revSaveAsLinuxStandalone pStack, pRestoreFileName, pFolder, @xStandalone
       -- This is safe: deploy_linux.cpp has finished embedding the project into
       -- tStandalonePath; we are patching the OUTPUT binary, not the Standalone
       -- engine template.  "Bad section order" does not apply here.
-      -- Prefer patchelf bundled in the AppImage (usr/bin/patchelf); fall back to
-      -- any system patchelf.  Once standalone-community is rebuilt with the
-      -- link-time -Wl,-rpath,$ORIGIN/lib flag (engine.gyp), --set-rpath is a no-op.
+      --
+      -- NOTE: standalone-community is built with -Wl,-rpath,$ORIGIN/lib baked in
+      -- at link time (engine.gyp), so the deployed binary already has the correct
+      -- RPATH.  The patchelf call below is belt-and-suspenders for older binaries
+      -- and is intentionally best-effort: if patchelf is not available, the
+      -- standalone will still work correctly because the link-time RPATH is present.
       local tPatchelf
       if revEnvironmentIsInstalled() then
          -- revEnvironmentRuntimePath() = <tools>/Runtime; strip "/Runtime" to get <tools>
@@ -1445,8 +1448,11 @@ command revSaveAsLinuxStandalone pStack, pRestoreFileName, pFolder, @xStandalone
       local tSQ
       put numToChar(39) into tSQ
       get shell(quote & tPatchelf & quote & " --set-rpath " & tSQ & "$ORIGIN/lib" & tSQ & " " & quote & tStandalonePath & quote & " 2>&1")
-      if the result is not 0 then
-         revStandaloneAddWarning "patchelf: could not set RPATH on standalone binary — bundled VLC libs may not be found at runtime." & return & it
+      -- Non-zero exit is non-fatal: the link-time RPATH is already correct.
+      -- Only warn if patchelf was explicitly found but still failed (suggests a
+      -- real ELF issue), not if it simply wasn't installed.
+      if the result is not 0 and tPatchelf is not "patchelf" then
+         revStandaloneAddWarning "patchelf: could not set RPATH on standalone binary. The standalone may still work if built with a recent engine." & return & it
       end if
 
       -- Always bundle VLC: the standalone binary links libvlc.so.5 at load time
