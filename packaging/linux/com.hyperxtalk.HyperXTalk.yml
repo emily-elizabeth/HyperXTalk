@@ -1,0 +1,131 @@
+app-id: com.hyperxtalk.HyperXTalk
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: HyperXTalk
+
+# HyperXTalk needs broad filesystem access so users can open and save stacks
+# anywhere on their system — the same expectation as a desktop IDE.
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --socket=cups
+  - --filesystem=home
+  - --device=dri
+  - --talk-name=org.freedesktop.DBus
+  - --system-talk-name=org.freedesktop.Avahi
+
+modules:
+
+  # ── libvlc ────────────────────────────────────────────────────────────────
+  # libvlc is not included in the freedesktop runtime so we bundle it.
+  # We pull the VLC sources and build only the core + the modules HyperXTalk
+  # actually uses (audio output, video output, demux, codec).  Adjust the
+  # --enable-* flags below if HyperXTalk uses additional VLC plugins.
+  - name: vlc
+    buildsystem: autotools
+    config-opts:
+      - --disable-lua
+      - --disable-qt
+      - --disable-skins2
+      - --disable-xcb
+      - --disable-xvideo
+      - --disable-gl
+      - --disable-glx
+      - --disable-wayland
+      - --disable-dbus
+      - --disable-a52
+      - --disable-avcodec
+      - --disable-avformat
+      - --disable-swscale
+      - --disable-postproc
+      - --disable-gst-decode
+      - --enable-alsa
+      - --enable-pulse
+      - --enable-ogg
+      - --enable-vorbis
+      - --enable-opus
+      - --enable-flac
+      - --enable-mpg123
+      - --enable-mad
+      - --with-pic
+    sources:
+      - type: archive
+        url: https://download.videolan.org/vlc/3.0.21/vlc-3.0.21.tar.xz
+        sha256: 24dbbe1d7dfaeea0994d5def0bbde200177347136dbfe573f5b6a4cee25afbb0
+    post-install:
+      - rm -rf /app/share/vlc /app/share/applications/vlc.desktop
+
+  # ── HyperXTalk (pre-built) ────────────────────────────────────────────────
+  # The Flatpak build runs on a Linux machine that has already produced a
+  # Release build via the normal GYP/make toolchain.  We install the compiled
+  # artefacts directly rather than rebuilding inside the Flatpak sandbox.
+  #
+  # To produce the build directory expected below, run on your Linux machine:
+  #   make -f Makefile config=Release_x86_64
+  # or the equivalent gyp/ninja invocation for your setup, then run:
+  #   packaging/linux/export-flatpak-sources.sh
+  - name: hyperxtalk
+    buildsystem: simple
+    build-commands:
+      # ── Main binary ───────────────────────────────────────────────────────
+      - install -Dm755 bin/HyperXTalk /app/bin/HyperXTalk
+
+      # ── IDE content ───────────────────────────────────────────────────────
+      - |
+        for subdir in Toolset Resources Documentation Plugins Externals; do
+          if [ -d "ide/$subdir" ]; then
+            cp -a "ide/$subdir" /app/bin/
+          fi
+        done
+
+      # ── Shared library externals (.so plugins) ────────────────────────────
+      - mkdir -p "/app/bin/Externals/Database Drivers"
+      - |
+        for lib in libExternal.so revsecurity.so revpdfprinter.so; do
+          [ -f "lib/$lib" ] && install -Dm755 "lib/$lib" "/app/bin/$lib" || true
+        done
+      - |
+        for so in lib/*.so; do
+          [ -f "$so" ] || continue
+          name="$(basename "$so")"
+          case "$name" in
+            server-*) ;;
+            libExternal.so|revsecurity.so|revpdfprinter.so) ;;
+            dbmysql.so|dbodbc.so|dbpostgresql.so|dbsqlite.so)
+              install -Dm755 "$so" "/app/bin/Externals/Database Drivers/$name" ;;
+            *)
+              install -Dm755 "$so" "/app/bin/Externals/$name" ;;
+          esac
+        done
+
+      # ── Packaged extensions ───────────────────────────────────────────────
+      - |
+        if [ -d packaged_extensions ]; then
+          mkdir -p /app/bin/Extensions
+          cp -a packaged_extensions/* /app/bin/Extensions/ 2>/dev/null || true
+        fi
+
+      # ── LCI modules ───────────────────────────────────────────────────────
+      - |
+        if [ -d modules ]; then
+          mkdir -p /app/bin/modules
+          cp -a modules/* /app/bin/modules/ 2>/dev/null || true
+        fi
+
+      # ── Desktop integration ───────────────────────────────────────────────
+      - install -Dm644 com.hyperxtalk.HyperXTalk.desktop
+            /app/share/applications/com.hyperxtalk.HyperXTalk.desktop
+      - install -Dm644 com.hyperxtalk.HyperXTalk.png
+            /app/share/icons/hicolor/48x48/apps/com.hyperxtalk.HyperXTalk.png
+      - install -Dm644 com.hyperxtalk.HyperXTalk.metainfo.xml
+            /app/share/metainfo/com.hyperxtalk.HyperXTalk.metainfo.xml
+
+    sources:
+      # Pre-built artefacts exported from the Linux Release build.
+      # Run packaging/linux/export-flatpak-sources.sh to produce this layout.
+      - type: dir
+        path: flatpak-sources

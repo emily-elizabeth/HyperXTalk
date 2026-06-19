@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.hyperxtalk.HyperXTalk</id>
+  <name>HyperXTalk</name>
+  <summary>IDE for creating cross-platform applications</summary>
+  <metadata_license>MIT</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <description>
+    <p>
+      HyperXTalk is an English-readable scripting environment for building
+      cross-platform applications. Inspired by the classic HyperCard paradigm,
+      it lets developers and non-programmers alike create interactive stacks
+      with a natural-language script syntax.
+    </p>
+    <p>Features include:</p>
+    <ul>
+      <li>English-readable HyperTalk-style scripting language</li>
+      <li>Cross-platform stack authoring (macOS, Linux, Windows)</li>
+      <li>Built-in voice command and speech recognition support</li>
+      <li>Package manager (hxtpm) for community extensions</li>
+      <li>Sprite and tile-based graphics engine</li>
+    </ul>
+  </description>
+
+  <url type="homepage">https://hyperxtalk.com</url>
+
+  <provides>
+    <binary>HyperXTalk</binary>
+  </provides>
+
+  <releases>
+    <release version="0.9.15" date="2026-06-19"/>
+  </releases>
+
+  <content_rating type="oars-1.1"/>
+</component>

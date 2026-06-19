@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=HyperXTalk
+Comment=IDE for creating cross-platform applications
+Icon=com.hyperxtalk.HyperXTalk
+Exec=HyperXTalk %U
+Categories=Development;IDE;
+StartupWMClass=hyperxtalk
+MimeType=application/x-hyperxtalk;
