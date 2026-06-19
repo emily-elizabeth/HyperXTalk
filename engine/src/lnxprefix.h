@@ -1,5 +1,6 @@
 #include "globdefs.h"
 
+#include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 

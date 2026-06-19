@@ -69,6 +69,7 @@
 						'include_dirs':
 						[
 							'../thirdparty/headers/linux/include/cairo',
+							'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I//g")',
 							'<!@(pkg-config --cflags-only-I dbus-1 2>/dev/null | sed "s/-I//g")',
 							'<!@(pkg-config --cflags-only-I gio-2.0 2>/dev/null | sed "s/-I//g")',
 						],
@@ -79,6 +80,14 @@
                             'PANGO_ENABLE_BACKEND',
                             'PANGO_ENABLE_ENGINE',
 						],
+
+						'link_settings':
+						{
+							'ldflags':
+							[
+								'<!@(pkg-config --libs gtk+-3.0 gtk+-unix-print-3.0 2>/dev/null)',
+							],
+						},
 
 						'dependencies':
 						[
