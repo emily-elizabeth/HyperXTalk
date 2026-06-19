@@ -41,8 +41,6 @@ all-linux-%:
 	$(MAKE) config-linux-$*
 	$(MAKE) compile-linux-$*
 
-BUILDTYPE ?= Release
-
 package-linux-%:
 	bash packaging/linux/build-appimage.sh build-linux-$*/hyperxtalk $(BUILDTYPE)
 
