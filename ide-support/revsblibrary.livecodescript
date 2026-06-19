@@ -3572,16 +3572,20 @@ command revSBCopyVLCToStandalone pPlatform, pStandaloneDir, pEnginePath, pCopyPl
       create folder tLibDest
 
       if there is a folder (tLinuxVLC & "/lib") then
-         -- AppImage path: copy the entire pre-staged lib tree.
+         -- AppImage path: always copy the entire pre-staged lib tree — the binary
+         -- has libvlc.so.5 as a DT_NEEDED entry and will not start without it, and
+         -- libvlc in turn needs libvlccore + all bundled FFmpeg/codec libs at load
+         -- time.  Copy the plugin tree only when the project uses a player control.
          get shell("cp -a " & QUOTE & tLinuxVLC & "/lib/." & QUOTE & " " & QUOTE & tLibDest & "/" & QUOTE)
-         -- Copy plugin tree.
-         -- create folder only creates the final component; create the parent first.
-         create folder (pStandaloneDir & "/vlc-plugins")
-         create folder (pStandaloneDir & "/vlc-plugins/plugins")
-         get shell("cp -a " & QUOTE & tLinuxVLC & "/plugins/." & QUOTE & " " & QUOTE & pStandaloneDir & "/vlc-plugins/plugins/" & QUOTE)
-         delete file (pStandaloneDir & "/vlc-plugins/plugins/plugins.dat")
+         if pCopyPlugins then
+            -- create folder only creates the final component; create the parent first.
+            create folder (pStandaloneDir & "/vlc-plugins")
+            create folder (pStandaloneDir & "/vlc-plugins/plugins")
+            get shell("cp -a " & QUOTE & tLinuxVLC & "/plugins/." & QUOTE & " " & QUOTE & pStandaloneDir & "/vlc-plugins/plugins/" & QUOTE)
+            delete file (pStandaloneDir & "/vlc-plugins/plugins/plugins.dat")
+         end if
       else
-         -- Dev build: copy from system VLC paths.
+         -- Dev build: copy the two core libs (minimum needed to load libvlc at startup).
          local tSysLib
          repeat for each item tDir in "/usr/lib/x86_64-linux-gnu,/usr/lib,/usr/local/lib"
             if there is a file (tDir & "/libvlc.so.5") then
@@ -3595,18 +3599,21 @@ command revSBCopyVLCToStandalone pPlatform, pStandaloneDir, pEnginePath, pCopyPl
          end if
          get shell("cp -fL " & QUOTE & tSysLib & "/libvlc.so.5" & QUOTE & " " & QUOTE & tLibDest & "/" & QUOTE)
          get shell("cp -fL " & QUOTE & tSysLib & "/libvlccore.so.9" & QUOTE & " " & QUOTE & tLibDest & "/" & QUOTE)
-         local tSysPlugins
-         repeat for each item tDir in "/usr/lib/x86_64-linux-gnu/vlc,/usr/lib/vlc,/usr/local/lib/vlc"
-            if there is a folder (tDir & "/plugins") then
-               put tDir & "/plugins" into tSysPlugins
-               exit repeat
+         -- Copy plugins only when the project uses a player control.
+         if pCopyPlugins then
+            local tSysPlugins
+            repeat for each item tDir in "/usr/lib/x86_64-linux-gnu/vlc,/usr/lib/vlc,/usr/local/lib/vlc"
+               if there is a folder (tDir & "/plugins") then
+                  put tDir & "/plugins" into tSysPlugins
+                  exit repeat
+               end if
+            end repeat
+            if tSysPlugins is not empty then
+               create folder (pStandaloneDir & "/vlc-plugins")
+               create folder (pStandaloneDir & "/vlc-plugins/plugins")
+               get shell("cp -rn " & QUOTE & tSysPlugins & "/." & QUOTE & " " & QUOTE & pStandaloneDir & "/vlc-plugins/plugins/" & QUOTE)
+               delete file (pStandaloneDir & "/vlc-plugins/plugins/plugins.dat")
             end if
-         end repeat
-         if tSysPlugins is not empty then
-            create folder (pStandaloneDir & "/vlc-plugins")
-            create folder (pStandaloneDir & "/vlc-plugins/plugins")
-            get shell("cp -rn " & QUOTE & tSysPlugins & "/." & QUOTE & " " & QUOTE & pStandaloneDir & "/vlc-plugins/plugins/" & QUOTE)
-            delete file (pStandaloneDir & "/vlc-plugins/plugins/plugins.dat")
          end if
       end if
 
