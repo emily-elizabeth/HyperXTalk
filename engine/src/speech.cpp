@@ -52,6 +52,8 @@ static MCNameRef s_msg_voice_command          = nil; // "voiceCommand"
 static MCNameRef s_msg_wake_word_detected     = nil; // "wakeWordDetected"
 static MCNameRef s_msg_listen_timeout_expired = nil; // "listenTimeoutExpired"
 static MCNameRef s_msg_unrecognized_input     = nil; // "unrecognizedVoiceCommand"
+static MCNameRef s_msg_listening_started      = nil; // "listeningStarted"
+static MCNameRef s_msg_listening_failed       = nil; // "listeningFailed"
 
 static bool _ensure_message_names()
 {
@@ -62,11 +64,15 @@ static bool _ensure_message_names()
     const char *k_wwd = "wakeWordDetected";
     const char *k_lte = "listenTimeoutExpired";
     const char *k_uri = "unrecognizedVoiceCommand";
+    const char *k_ls  = "listeningStarted";
+    const char *k_lf  = "listeningFailed";
 
     return MCNameCreateWithNativeChars((const char_t *)k_vc,  strlen(k_vc),  s_msg_voice_command) &&
            MCNameCreateWithNativeChars((const char_t *)k_wwd, strlen(k_wwd), s_msg_wake_word_detected) &&
            MCNameCreateWithNativeChars((const char_t *)k_lte, strlen(k_lte), s_msg_listen_timeout_expired) &&
-           MCNameCreateWithNativeChars((const char_t *)k_uri, strlen(k_uri), s_msg_unrecognized_input);
+           MCNameCreateWithNativeChars((const char_t *)k_uri, strlen(k_uri), s_msg_unrecognized_input) &&
+           MCNameCreateWithNativeChars((const char_t *)k_ls,  strlen(k_ls),  s_msg_listening_started) &&
+           MCNameCreateWithNativeChars((const char_t *)k_lf,  strlen(k_lf),  s_msg_listening_failed);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -206,12 +212,21 @@ void MCSpeechDispatchVoiceCommand(MCStringRef p_phrase)
     t_card->message(s_msg_voice_command, &t_param);
 }
 
+// Returns the target stack for speech messages: the owner of the first registered
+// phrase, or MCdefaultstackptr as fallback.
+static MCStack *_target_stack()
+{
+    if (s_entry_count > 0 && s_entries[0].owner_stack != nil)
+        return s_entries[0].owner_stack;
+    return MCdefaultstackptr;
+}
+
 // Dispatch:  wakeWordDetected
 void MCSpeechDispatchWakeWordDetected()
 {
     if (!_ensure_message_names())
         return;
-    MCStack *t_stack = MCdefaultstackptr;
+    MCStack *t_stack = _target_stack();
     if (t_stack == nil)
         return;
     MCCard *t_card = t_stack->getcurcard();
@@ -224,7 +239,7 @@ void MCSpeechDispatchListenTimeoutExpired()
 {
     if (!_ensure_message_names())
         return;
-    MCStack *t_stack = MCdefaultstackptr;
+    MCStack *t_stack = _target_stack();
     if (t_stack == nil)
         return;
     MCCard *t_card = t_stack->getcurcard();
@@ -237,6 +252,40 @@ void MCSpeechDispatchUnrecognizedInput(MCStringRef p_text)
 {
     if (!_ensure_message_names())
         return;
+
+    MCStack *t_stack = _target_stack();
+    if (t_stack == nil)
+        return;
+
+    MCCard *t_card = t_stack->getcurcard();
+    if (t_card == nil)
+        return;
+
+    MCParameter t_param;
+    t_param.setvalueref_argument(p_text);
+    t_card->message(s_msg_unrecognized_input, &t_param);
+}
+
+// Dispatch:  listeningStarted
+void MCSpeechDispatchListeningStarted()
+{
+    if (!_ensure_message_names())
+        return;
+    // Use MCdefaultstackptr here: listeningStarted fires before phrases are
+    // necessarily registered, so _target_stack() may not yet have an owner.
+    MCStack *t_stack = MCdefaultstackptr;
+    if (t_stack == nil)
+        return;
+    MCCard *t_card = t_stack->getcurcard();
+    if (t_card != nil)
+        t_card->message(s_msg_listening_started);
+}
+
+// Dispatch:  listeningFailed pReason
+void MCSpeechDispatchListeningFailed(MCStringRef p_reason)
+{
+    if (!_ensure_message_names())
+        return;
     MCStack *t_stack = MCdefaultstackptr;
     if (t_stack == nil)
         return;
@@ -245,8 +294,8 @@ void MCSpeechDispatchUnrecognizedInput(MCStringRef p_text)
         return;
 
     MCParameter t_param;
-    t_param.setvalueref_argument(p_text);
-    t_card->message(s_msg_unrecognized_input, &t_param);
+    t_param.setvalueref_argument(p_reason);
+    t_card->message(s_msg_listening_failed, &t_param);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
