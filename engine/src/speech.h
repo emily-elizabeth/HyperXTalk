@@ -105,4 +105,13 @@ void MCSpeechDispatchListenTimeoutExpired();
 // an active command window.
 void MCSpeechDispatchUnrecognizedInput(MCStringRef p_text);
 
+// Called when listening starts successfully after an asynchronous permission
+// request (first call to startListening when permission dialogs were shown).
+// Not fired when permissions are already cached and listening starts synchronously.
+void MCSpeechDispatchListeningStarted();
+
+// Called when startListening fails after an asynchronous permission request.
+// p_reason is a human-readable description of the failure.
+void MCSpeechDispatchListeningFailed(MCStringRef p_reason);
+
 #endif // SPEECH_H
