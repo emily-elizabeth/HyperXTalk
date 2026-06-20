@@ -41,4 +41,7 @@ all-linux-%:
 	$(MAKE) config-linux-$*
 	$(MAKE) compile-linux-$*
 
-$(addsuffix -linux,all config compile check): %: %-$(guess_linux_arch)
+package-linux-%:
+	bash packaging/linux/build-appimage.sh build-linux-$*/hyperxtalk $(BUILDTYPE)
+
+$(addsuffix -linux,all config compile check package): %: %-$(guess_linux_arch)

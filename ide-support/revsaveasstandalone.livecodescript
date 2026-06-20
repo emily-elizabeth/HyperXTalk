@@ -1420,11 +1420,46 @@ command revSaveAsLinuxStandalone pStack, pRestoreFileName, pFolder, @xStandalone
       
       revStandaloneDeployWithParams tTarget, tStackSourceFile, tDeployInfo
 
-      -- Bundle VLC runtime alongside the binary if the project uses player controls.
-      -- tDirectory ends with a path separator; strip it before passing to the helper.
-      if tNeedsVLC then
-         revSBCopyVLCToStandalone "Linux", char 1 to -2 of tDirectory, tStandalonePath, tNeedsVLC
+      -- Patch RPATH on the deployed binary so it finds bundled VLC libs in lib/.
+      -- This is safe: deploy_linux.cpp has finished embedding the project into
+      -- tStandalonePath; we are patching the OUTPUT binary, not the Standalone
+      -- engine template.  "Bad section order" does not apply here.
+      --
+      -- NOTE: standalone-community is built with -Wl,-rpath,$ORIGIN/lib baked in
+      -- at link time (engine.gyp), so the deployed binary already has the correct
+      -- RPATH.  The patchelf call below is belt-and-suspenders for older binaries
+      -- and is intentionally best-effort: if patchelf is not available, the
+      -- standalone will still work correctly because the link-time RPATH is present.
+      local tPatchelf
+      if revEnvironmentIsInstalled() then
+         -- revEnvironmentRuntimePath() = <tools>/Runtime; strip "/Runtime" to get <tools>
+         local tToolsPath
+         set the itemDelimiter to slash
+         put item 1 to -2 of revEnvironmentRuntimePath() into tToolsPath
+         set the itemDelimiter to comma
+         put tToolsPath & slash & "patchelf" into tPatchelf
+         if there is no file tPatchelf then
+            put "patchelf" into tPatchelf
+         end if
+      else
+         put "patchelf" into tPatchelf
       end if
+      -- Single-quote $ORIGIN so the shell does not expand it as a variable
+      local tSQ
+      put numToChar(39) into tSQ
+      get shell(quote & tPatchelf & quote & " --set-rpath " & tSQ & "$ORIGIN/lib" & tSQ & " " & quote & tStandalonePath & quote & " 2>&1")
+      -- Non-zero exit is non-fatal: the link-time RPATH is already correct.
+      -- Only warn if patchelf was explicitly found but still failed (suggests a
+      -- real ELF issue), not if it simply wasn't installed.
+      if the result is not 0 and tPatchelf is not "patchelf" then
+         revStandaloneAddWarning "patchelf: could not set RPATH on standalone binary. The standalone may still work if built with a recent engine." & return & it
+      end if
+
+      -- Always bundle VLC: the standalone binary links libvlc.so.5 at load time
+      -- (NEEDED entry in the ELF) and will fail to start without it, even when no
+      -- player control is used.  This matches the Windows behaviour.
+      -- tDirectory ends with a path separator; strip it before passing to the helper.
+      revSBCopyVLCToStandalone "Linux", char 1 to -2 of tDirectory, tStandalonePath, tNeedsVLC
 
       --Restore stack to its post-savingStandalone message state
       __RestoreStackFromTemporaryLocation pStack, pRestoreFileName, tOriginalFileName

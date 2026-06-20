@@ -332,9 +332,9 @@ Boolean MCScreenDC::open()
     t_community = MClicenseparameters.license_class == kMCLicenseClassCommunity;
 
     /* UNCHECKED */ MCStringCreateMutable(0, &t_class_name);
-    /* UNCHECKED */ MCStringAppendFormat(*t_class_name, "%s%s_%s", MCapplicationstring, t_community ? "community" : "", MC_BUILD_ENGINE_SHORT_VERSION);
-    /* UNCHECKED */ MCStringFindAndReplaceChar(*t_class_name, '.', '_', kMCStringOptionCompareExact);
-    /* UNCHECKED */ MCStringFindAndReplaceChar(*t_class_name, '-', '_', kMCStringOptionCompareExact);
+    // Use a stable, version-independent class name so StartupWMClass in the
+    // .desktop file never needs updating between releases.
+    /* UNCHECKED */ MCStringAppendFormat(*t_class_name, "%s", MCapplicationstring);
     /* UNCHECKED */ t_class_name_utf8.Lock(*t_class_name);
 
     // Used to load the icon and other desktop properties

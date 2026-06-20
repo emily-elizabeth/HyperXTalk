@@ -846,7 +846,9 @@ constant kCursors                    = "false"
 -- revEngineCheck("Windows") looks for Runtime/Windows/x86-32/Standalone which
 -- does not exist in the HyperXTalk release, leaving the Windows settings group
 -- permanently disabled.  Switching to the x86-64 entry matches what we install.
-constant kInitialTargets = "Windows x86-64,MacOSX arm64,MacOSX x86-64,Linux"
+-- Similarly, "Linux" checks for x86-32/Standalone which doesn't exist; use
+-- "Linux x64" which matches the x86-64 engine we bundle in the AppImage.
+constant kInitialTargets = "Windows x86-64,MacOSX arm64,MacOSX x86-64,Linux x64"
 
 on revSBDefaultStandaloneSettings pStack, @xSettingsA
    local tPlatform,tName
@@ -3552,14 +3554,73 @@ command revSBCopyVLCToStandalone pPlatform, pStandaloneDir, pEnginePath, pCopyPl
       end if
       revStandaloneProgress "VLC runtime bundled."
    else if pPlatform begins with "Linux" then
-      -- Use 'get shell(...)' so a non-zero exit (e.g. no matching .so) is a warning, not a fatal throw.
-      put pStandaloneDir & "/vlc-plugins/plugins" into tDest
-      create folder tDest
-      put pStandaloneDir & "/" into tDest
-      get shell("cp -f /usr/lib/x86_64-linux-gnu/libvlc.so* " & QUOTE & tDest & QUOTE)
-      get shell("cp -f /usr/lib/x86_64-linux-gnu/libvlccore.so* " & QUOTE & tDest & QUOTE)
-      put pStandaloneDir & "/vlc-plugins/plugins/" into tDest
-      get shell("cp -rn /usr/lib/vlc/plugins/. " & QUOTE & tDest & QUOTE)
+      -- The standalone binary links libvlc.so.5 at load time (ELF NEEDED entry).
+      -- Since there is no $ORIGIN RPATH in the binary, the dynamic linker cannot
+      -- find libs copied alongside it.  We therefore bundle libs into a lib/
+      -- subdirectory and wrap the real binary in a shell launcher that sets
+      -- LD_LIBRARY_PATH before exec-ing it — the same pattern AppImages use.
+      --
+      -- Prefer the VLC tree pre-staged in the Runtime folder by build-appimage.sh
+      -- (contains libvlc, libvlccore, all VLC support libs, FFmpeg libs and their
+      -- transitive deps).  Fall back to system paths in dev builds.
+
+      local tLinuxVLC
+      put revEnvironmentRuntimePath() & "/Linux/x86-64/vlc" into tLinuxVLC
+
+      local tLibDest
+      put pStandaloneDir & "/lib" into tLibDest
+      create folder tLibDest
+
+      if there is a folder (tLinuxVLC & "/lib") then
+         -- AppImage path: always copy the entire pre-staged lib tree — the binary
+         -- has libvlc.so.5 as a DT_NEEDED entry and will not start without it, and
+         -- libvlc in turn needs libvlccore + all bundled FFmpeg/codec libs at load
+         -- time.  Copy the plugin tree only when the project uses a player control.
+         get shell("cp -a " & QUOTE & tLinuxVLC & "/lib/." & QUOTE & " " & QUOTE & tLibDest & "/" & QUOTE)
+         if pCopyPlugins then
+            -- create folder only creates the final component; create the parent first.
+            create folder (pStandaloneDir & "/vlc-plugins")
+            create folder (pStandaloneDir & "/vlc-plugins/plugins")
+            get shell("cp -a " & QUOTE & tLinuxVLC & "/plugins/." & QUOTE & " " & QUOTE & pStandaloneDir & "/vlc-plugins/plugins/" & QUOTE)
+            delete file (pStandaloneDir & "/vlc-plugins/plugins/plugins.dat")
+         end if
+      else
+         -- Dev build: copy the two core libs (minimum needed to load libvlc at startup).
+         local tSysLib
+         repeat for each item tDir in "/usr/lib/x86_64-linux-gnu,/usr/lib,/usr/local/lib"
+            if there is a file (tDir & "/libvlc.so.5") then
+               put tDir into tSysLib
+               exit repeat
+            end if
+         end repeat
+         if tSysLib is empty then
+            revStandaloneProgress "VLC not found — skipping VLC bundle."
+            exit revSBCopyVLCToStandalone
+         end if
+         get shell("cp -fL " & QUOTE & tSysLib & "/libvlc.so.5" & QUOTE & " " & QUOTE & tLibDest & "/" & QUOTE)
+         get shell("cp -fL " & QUOTE & tSysLib & "/libvlccore.so.9" & QUOTE & " " & QUOTE & tLibDest & "/" & QUOTE)
+         -- Copy plugins only when the project uses a player control.
+         if pCopyPlugins then
+            local tSysPlugins
+            repeat for each item tDir in "/usr/lib/x86_64-linux-gnu/vlc,/usr/lib/vlc,/usr/local/lib/vlc"
+               if there is a folder (tDir & "/plugins") then
+                  put tDir & "/plugins" into tSysPlugins
+                  exit repeat
+               end if
+            end repeat
+            if tSysPlugins is not empty then
+               create folder (pStandaloneDir & "/vlc-plugins")
+               create folder (pStandaloneDir & "/vlc-plugins/plugins")
+               get shell("cp -rn " & QUOTE & tSysPlugins & "/." & QUOTE & " " & QUOTE & pStandaloneDir & "/vlc-plugins/plugins/" & QUOTE)
+               delete file (pStandaloneDir & "/vlc-plugins/plugins/plugins.dat")
+            end if
+         end if
+      end if
+
+      -- RPATH ($ORIGIN/lib) is set on the deployed output binary by
+      -- revSaveAsLinuxStandalone after the deploy step, using the patchelf
+      -- binary bundled in the AppImage at usr/bin/patchelf.
+
       revStandaloneProgress "VLC runtime bundled."
    end if
 end revSBCopyVLCToStandalone
