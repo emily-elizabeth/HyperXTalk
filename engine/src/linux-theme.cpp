@@ -317,7 +317,23 @@ bool MCPlatformGetControlThemePropColor(MCPlatformControlType p_type, MCPlatform
                 // We want the base colour, not background, for fields
                 case kMCPlatformControlTypeInputField:
                 case kMCPlatformControlTypeList:
-                    t_color = t_style->base[t_gtk_state];
+                    if (t_gtk_state == GTK_STATE_SELECTED && s_widgets[p_type] != NULL)
+                    {
+                        // GTK3: GtkStyle.base[GTK_STATE_SELECTED] is not populated
+                        // by CSS-based themes - it returns zeros.  Use GtkStyleContext
+                        // named-colour lookup instead, which is what GTK3 themes set.
+                        GtkStyleContext *t_ctx =
+                            gtk_widget_get_style_context(s_widgets[p_type]);
+                        GdkRGBA t_rgba = {0.0, 0.0, 0.0, 1.0};
+                        if (!gtk_style_context_lookup_color(t_ctx, "theme_selected_bg_color", &t_rgba))
+                            if (!gtk_style_context_lookup_color(t_ctx, "accent_bg_color", &t_rgba))
+                                gtk_style_context_lookup_color(t_ctx, "selected_bg_color", &t_rgba);
+                        t_color.red   = (guint16)(CLAMP(t_rgba.red,   0.0, 1.0) * 65535.0);
+                        t_color.green = (guint16)(CLAMP(t_rgba.green, 0.0, 1.0) * 65535.0);
+                        t_color.blue  = (guint16)(CLAMP(t_rgba.blue,  0.0, 1.0) * 65535.0);
+                    }
+                    else
+                        t_color = t_style->base[t_gtk_state];
                     break;
                     
                 // Suppress the disabled state to avoid some weird-looking menus
