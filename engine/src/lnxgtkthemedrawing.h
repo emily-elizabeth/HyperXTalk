@@ -181,6 +181,8 @@ extern "C"
 	 * returns: MOZ_GTK_SUCCESS if there was no error, an error code otherwise
 	 */
 	gint moz_gtk_shutdown();
+	// Reset any cached render state (e.g. after a theme change)
+	void moz_gtk_invalidate_caches();
 
 
 	/*** Widget drawing ***/

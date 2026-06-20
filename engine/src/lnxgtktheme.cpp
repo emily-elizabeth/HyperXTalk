@@ -247,6 +247,7 @@ static gboolean reload_theme(void)
 		if ( MCimagecache != NULL)
 			delete MCimagecache ;
 		MCimagecache = new (nothrow) MCXImageCache ;
+		moz_gtk_invalidate_caches();
 
 		MCcurtheme->unload();
 		MCcurtheme->load();

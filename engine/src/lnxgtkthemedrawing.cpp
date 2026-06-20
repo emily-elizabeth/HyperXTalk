@@ -2400,60 +2400,86 @@ moz_gtk_scale_thumb_paint(GtkThemeWidgetType type,
 	return MOZ_GTK_SUCCESS;
 }
 
+// Cached menu-item highlight colour — resolved once on first use and reused
+// for all subsequent paints.  Avoids calling gtk_render_background on every
+// hover event (which can be expensive due to GTK's CSS engine).
+static GdkRGBA  s_menuitem_hl_color  = {-1.0, 0.0, 0.0, 1.0}; // red<0 = unset
+static gboolean s_menuitem_hl_ready  = FALSE;
+
+// Called once (or on theme change) to resolve the highlight colour.
+static void resolve_menuitem_hl_color()
+{
+	// Try to get the colour from the theme's own rendering first —
+	// render the menu item widget in PRELIGHT state to a 16×16 surface
+	// and sample the centre pixel.  This gives the true theme colour
+	// including any alpha-compositing the theme might do.
+	ensure_menuitem_widget();
+	cairo_surface_t *probe =
+	    cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 16, 16);
+	cairo_t *cr = cairo_create(probe);
+	cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+	cairo_paint(cr);
+	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+
+	GtkStyleContext *ctx = gtk_widget_get_style_context(gMenuitemWidget);
+	gtk_style_context_save(ctx);
+	gtk_style_context_set_state(ctx, GTK_STATE_FLAG_PRELIGHT);
+	gtk_render_background(ctx, cr, 0, 0, 16, 16);
+	gtk_style_context_restore(ctx);
+	cairo_destroy(cr);
+
+	cairo_surface_flush(probe);
+	unsigned char *data   = cairo_image_surface_get_data(probe);
+	int            stride = cairo_image_surface_get_stride(probe);
+	unsigned char *px     = data + 8 * stride + 8 * 4; // centre pixel
+	unsigned char  a      = px[3];
+	if (a > 0)
+	{
+		// Un-premultiply and store
+		s_menuitem_hl_color.red   = px[2] / (double)a;
+		s_menuitem_hl_color.green = px[1] / (double)a;
+		s_menuitem_hl_color.blue  = px[0] / (double)a;
+		s_menuitem_hl_color.alpha = 1.0;
+	}
+	else
+	{
+		// gtk_render_background gave nothing — fall back to named theme colours.
+		ensure_label_widget();
+		GtkStyleContext *lctx = gtk_widget_get_style_context(gLabelWidget);
+		GdkRGBA rgba = {0.25, 0.55, 0.85, 1.0}; // safe default blue
+		if (!gtk_style_context_lookup_color(lctx, "theme_selected_bg_color", &rgba))
+		if (!gtk_style_context_lookup_color(lctx, "accent_bg_color",          &rgba))
+		    gtk_style_context_lookup_color(lctx, "selected_bg_color",         &rgba);
+		s_menuitem_hl_color = rgba;
+	}
+	cairo_surface_destroy(probe);
+	s_menuitem_hl_ready = TRUE;
+}
+
 // -- direct-render path (used by drawtheme_gtk3_direct, avoids the slow
 // dual-offscreen alpha-extraction loop in drawtheme_calc_alpha)
 cairo_surface_t*
 moz_gtk_menuitem_paint_to_surface(GdkRectangle *rect, int *out_width, int *out_height)
 {
-	ensure_menuitem_widget();
+	if (!s_menuitem_hl_ready)
+		resolve_menuitem_hl_color();
 
 	int width  = rect->width;
 	int height = rect->height;
 	if (out_width)  *out_width  = width;
 	if (out_height) *out_height = height;
 
+	// Fill with the pre-resolved solid colour — one cairo_paint(), no GTK calls.
 	cairo_surface_t *surface =
 	    cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
 	cairo_t *cr = cairo_create(surface);
-
-	// Start transparent
-	cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+	cairo_set_source_rgba(cr,
+	    s_menuitem_hl_color.red,
+	    s_menuitem_hl_color.green,
+	    s_menuitem_hl_color.blue,
+	    1.0);
 	cairo_paint(cr);
-	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-
-	// Ask the theme to render the menu item hover highlight
-	GtkStyleContext *context = gtk_widget_get_style_context(gMenuitemWidget);
-	gtk_style_context_save(context);
-	gtk_style_context_set_state(context, GTK_STATE_FLAG_PRELIGHT);
-	gtk_render_background(context, cr, 0, 0, width, height);
-	gtk_render_frame(context, cr, 0, 0, width, height);
-	gtk_style_context_restore(context);
-
 	cairo_destroy(cr);
-
-	// If the theme rendered nothing (transparent surface), the highlight would
-	// be invisible.  Fall back to the named theme selection colour.
-	cairo_surface_flush(surface);
-	unsigned char *data   = cairo_image_surface_get_data(surface);
-	int            stride = cairo_image_surface_get_stride(surface);
-	// Sample the centre pixel (ARGB32 = B G R A in memory on LE)
-	int cx = width / 2, cy = height / 2;
-	unsigned char alpha = data[cy * stride + cx * 4 + 3];
-	if (alpha == 0)
-	{
-		// gtk_render_background gave us nothing — fill with theme selection colour.
-		ensure_label_widget();
-		GtkStyleContext *ctx = gtk_widget_get_style_context(gLabelWidget);
-		GdkRGBA rgba = {0.25, 0.55, 0.85, 1.0};  // safe default blue
-		if (!gtk_style_context_lookup_color(ctx, "theme_selected_bg_color", &rgba))
-		if (!gtk_style_context_lookup_color(ctx, "accent_bg_color",          &rgba))
-		    gtk_style_context_lookup_color(ctx, "selected_bg_color",         &rgba);
-
-		cairo_t *cr2 = cairo_create(surface);
-		cairo_set_source_rgba(cr2, rgba.red, rgba.green, rgba.blue, 1.0);
-		cairo_paint(cr2);
-		cairo_destroy(cr2);
-	}
 
 	return surface;
 }
@@ -3352,6 +3378,11 @@ moz_gtk_widget_paint(GtkThemeWidgetType widget, GdkWindow * drawable,
 	return MOZ_GTK_UNKNOWN_WIDGET;
 }
 
+void moz_gtk_invalidate_caches()
+{
+	s_menuitem_hl_ready = FALSE;
+}
+
 gint moz_gtk_shutdown()
 {
     // Do NOT call gtk_widget_destroy() here.
@@ -3385,6 +3416,7 @@ gint moz_gtk_shutdown()
     gOptionbuttonWidget   = nullptr;
     gSpinbuttonWidget     = nullptr;
     if (gMenuitemWidget) { g_object_unref(gMenuitemWidget); gMenuitemWidget = nullptr; }
+    s_menuitem_hl_ready = FALSE;
     gHScaleWidget         = nullptr;
     gVScaleWidget         = nullptr;
 
