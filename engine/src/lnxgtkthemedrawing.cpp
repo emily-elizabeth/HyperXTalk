@@ -2942,6 +2942,12 @@ moz_gtk_spinbutton_paint_to_surface(GdkRectangle *rect, GtkWidgetState *state, g
     if (out_width)  *out_width  = width;
     if (out_height) *out_height = height;
 
+    g_warning("HXT spinbutton_paint_to_surface: w=%d h=%d flags=%d active=%d hover=%d disabled=%d",
+              width, height, flags,
+              state ? state->active : -1,
+              state ? state->inHover : -1,
+              state ? state->disabled : -1);
+
     cairo_t *cr;
     cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
 
@@ -2967,6 +2973,7 @@ moz_gtk_spinbutton_paint_to_surface(GdkRectangle *rect, GtkWidgetState *state, g
     // Render up button (top half)
     {
         GtkStyleContext *ctx = build_spinbutton_button_context(true, up_state);
+        g_warning("HXT spinbutton UP: ctx=%p state=%d half=%d", (void*)ctx, (int)up_state, half);
 
         gtk_render_background(ctx, cr, 0, 0, width, half);
         gtk_render_frame    (ctx, cr, 0, 0, width, half);

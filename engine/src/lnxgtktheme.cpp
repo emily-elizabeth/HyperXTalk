@@ -1721,6 +1721,14 @@ static GdkPixbuf* drawtheme_gtk3_direct(MCThemeDrawInfo &p_info)
 	{
 		surface = moz_gtk_spinbutton_paint_to_surface(
 			&p_info.drect, &p_info.state, p_info.flags, &widget_width, &widget_height);
+		if (surface)
+		{
+			cairo_surface_write_to_png(surface, "/tmp/hxt_spinbutton_debug.png");
+			g_warning("HXT spinbutton surface: %dx%d (drect %dx%d) written to /tmp/hxt_spinbutton_debug.png",
+			          widget_width, widget_height, p_info.drect.width, p_info.drect.height);
+		}
+		else
+			g_warning("HXT spinbutton surface: NULL returned from paint_to_surface");
 	}
 	else if (p_info.moztype == MOZ_GTK_MENUITEMHIGHLIGHT)
 	{
