@@ -52,6 +52,8 @@
 
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
+// -- tperry 12-11-2025: GtkSocket still exists in GTK3 but needs explicit include
+#include <gtk/gtkx.h>
 
 
 MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, x11::Window p_view) :
@@ -76,7 +78,8 @@ MCNativeLayerX11::~MCNativeLayerX11()
     }
     if (m_input_shape != NULL)
     {
-        gdk_region_destroy(m_input_shape);
+        // -- tperry 12-11-2025: GTK3 uses cairo_region_destroy
+        cairo_region_destroy(m_input_shape);
     }
 }
 
@@ -123,15 +126,18 @@ void MCNativeLayerX11::doAttach()
         gtk_widget_show(GTK_WIDGET(t_socket));
         
         // Create an empty region to act as an input mask while in edit mode
-        m_input_shape = gdk_region_new();
+        // -- tperry 12-11-2025: GTK3 uses cairo_region_create
+        m_input_shape = cairo_region_create();
 
 		// Retain a reference to the socket
 		m_socket = GTK_SOCKET(g_object_ref(G_OBJECT(t_socket)));
     }
     
+    // -- tperry 13-11-2025: GTK3 - gtk_socket_add_id expects ::Window (XID from global namespace)
+    // m_widget_xid is x11::Window, cast to ::Window to avoid namespace conflict
     // Attach the X11 window to this socket
     if (gtk_socket_get_plug_window(m_socket) == NULL)
-        gtk_socket_add_id(m_socket, m_widget_xid);
+        gtk_socket_add_id(m_socket, (::Window)m_widget_xid);
     //fprintf(stderr, "XID: %u\n", gtk_socket_get_id(m_socket));
     
     // Act as if there were a re-layer to put the widget in the right place
@@ -267,7 +273,8 @@ bool MCNativeLayerX11::GetNativeView(void *&r_view)
 
 x11::Window MCNativeLayerX11::getStackX11Window()
 {
-    return x11::gdk_x11_drawable_get_xid(getStackGdkWindow());
+    // -- tperry 13-11-2025: GTK3 removed gdk_x11_drawable_get_xid, use gdk_x11_window_get_xid
+    return x11::gdk_x11_window_get_xid(getStackGdkWindow());
 }
 
 GdkWindow* MCNativeLayerX11::getStackGdkWindow()
