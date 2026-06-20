@@ -2863,7 +2863,6 @@ moz_gtk_optionbutton_paint(GdkWindow * drawable, GdkRectangle * area,
 //   notebook > header.{top|bottom|left|right} > tabs > tab
 // A 2-level path (notebook > tab) doesn't match Adwaita's CSS selectors and
 // produces transparent output.  We build the full 4-level hierarchy here.
-static GtkStyleContext*
 // -- tperry 20-06-2026: Build a style context for one half of a GtkSpinButton.
 // GTK3 CSS node path: spinbutton > button.up  or  spinbutton > button.down
 static GtkStyleContext*
@@ -2889,6 +2888,7 @@ build_spinbutton_button_context(bool is_up, GtkStateFlags state_flags)
     return ctx;
 }
 
+static GtkStyleContext*
 build_tab_context(GtkPositionType gap_side, GtkStateFlags state_flags)
 {
     GtkWidgetPath *path = gtk_widget_path_new();
