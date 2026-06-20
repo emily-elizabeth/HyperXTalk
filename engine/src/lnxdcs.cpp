@@ -1741,10 +1741,31 @@ Bool MCScreenDC::is_composite_wm ( int screen_id )
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// -- tperry 15-11-2025: Linux implementation of system appearance detection
+// Linux implementation of system appearance detection.
+// MCPlatformGetSystemProperty is macOS-only; on Linux we detect dark mode
+// via the GTK theme name — if it contains "dark" (case-insensitive) we
+// report a dark appearance, otherwise light.
 void MCScreenDC::getsystemappearance(MCSystemAppearance &r_appearance)
 {
-	MCPlatformGetSystemProperty(kMCPlatformSystemPropertySystemAppearance, kMCPlatformPropertyTypeInt32, &r_appearance);
+	r_appearance = kMCSystemAppearanceLight;
+
+	GtkSettings *t_settings = gtk_settings_get_default();
+	if (t_settings == NULL)
+		return;
+
+	gchar *t_theme_name = NULL;
+	g_object_get(t_settings, "gtk-theme-name", &t_theme_name, NULL);
+	if (t_theme_name != NULL)
+	{
+		gchar *t_lower = g_ascii_strdown(t_theme_name, -1);
+		if (t_lower != NULL)
+		{
+			if (g_strstr_len(t_lower, -1, "dark") != NULL)
+				r_appearance = kMCSystemAppearanceDark;
+			g_free(t_lower);
+		}
+		g_free(t_theme_name);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
