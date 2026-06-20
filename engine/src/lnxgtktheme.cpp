@@ -1708,6 +1708,11 @@ static GdkPixbuf* drawtheme_gtk3_direct(MCThemeDrawInfo &p_info)
 		surface = moz_gtk_tabpanels_paint_to_surface(
 			&p_info.drect, p_info.state.curpos, p_info.state.maxpos, &widget_width, &widget_height);
 	}
+	else if (p_info.moztype == MOZ_GTK_TAB)
+	{
+		surface = moz_gtk_tab_paint_to_surface(
+			&p_info.drect, p_info.flags, &widget_width, &widget_height);
+	}
 	else if (p_info.moztype == MOZ_GTK_MENUITEMHIGHLIGHT)
 	{
 		surface = moz_gtk_menuitem_paint_to_surface(
@@ -2023,6 +2028,7 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 		    p_info->moztype == MOZ_GTK_SCROLLBAR_TRACK_HORIZONTAL ||
 		    p_info->moztype == MOZ_GTK_SCROLLBAR_TRACK_VERTICAL ||
 		    p_info->moztype == MOZ_GTK_TABPANELS ||
+		    p_info->moztype == MOZ_GTK_TAB ||
 		    p_info->moztype == MOZ_GTK_MENUITEMHIGHLIGHT ||
 		    p_info->moztype == MOZ_GTK_TOOLBAR ||
 		    p_info->moztype == MOZ_GTK_FRAME ||

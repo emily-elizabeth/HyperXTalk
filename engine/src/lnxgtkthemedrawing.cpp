@@ -2854,6 +2854,77 @@ moz_gtk_optionbutton_paint(GdkWindow * drawable, GdkRectangle * area,
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 20-06-2026: Build a style context targeting the "tab" CSS child node of a
+// GtkNotebook.  gtk_widget_get_style_context(gTabWidget) returns the "notebook" node;
+// calling gtk_render_extension() on that node produces solid black on modern themes
+// because the visual rendering belongs to the "tab" child CSS node.
+// This is the same pattern as build_indicator_context() for checkboxes/radios.
+static GtkStyleContext*
+build_tab_context(GtkPositionType tab_pos, gboolean selected)
+{
+    GtkWidgetPath *path = gtk_widget_path_new();
+
+    // Parent node: notebook
+    gint parent = gtk_widget_path_append_type(path, GTK_TYPE_NOTEBOOK);
+    (void)parent;
+
+    // Child node: "tab"
+    gint child = gtk_widget_path_append_type(path, GTK_TYPE_NOTEBOOK);
+    gtk_widget_path_iter_set_object_name(path, child, "tab");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+
+    GtkStateFlags state_flags = selected ? GTK_STATE_FLAG_NORMAL : GTK_STATE_FLAG_ACTIVE;
+    gtk_style_context_set_state(ctx, state_flags);
+
+    gtk_widget_path_free(path);
+    return ctx;
+}
+
+// -- tperry 20-06-2026: Render a notebook tab to a cairo surface (direct GTK3 path)
+cairo_surface_t*
+moz_gtk_tab_paint_to_surface(GdkRectangle *rect, gint flags,
+                              int *out_width, int *out_height)
+{
+    int width  = rect->width;
+    int height = rect->height;
+
+    // Adjust for tab overlap (except first tab) — mirror legacy moz_gtk_tab_paint logic
+    if (!(flags & MOZ_GTK_TAB_FIRST))
+    {
+        width  += 2;
+    }
+
+    if (out_width)  *out_width  = width;
+    if (out_height) *out_height = height;
+
+    // Determine tab position (flags encode which edge the panel is on;
+    // the extension gap opens toward the panel, so we invert)
+    GtkPositionType t;
+    if      (flags & MOZ_GTK_TAB_POS_BOTTOM) t = GTK_POS_TOP;
+    else if (flags & MOZ_GTK_TAB_POS_LEFT)   t = GTK_POS_RIGHT;
+    else if (flags & MOZ_GTK_TAB_POS_RIGHT)  t = GTK_POS_LEFT;
+    else                                      t = GTK_POS_BOTTOM;
+
+    gboolean selected = (flags & MOZ_GTK_TAB_SELECTED) ? TRUE : FALSE;
+
+    GtkStyleContext *context = build_tab_context(t, selected);
+
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_t *cr = cairo_create(surface);
+    cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR); cairo_paint(cr);
+    cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+
+    gtk_render_background(context, cr, 0, 0, width, height);
+    gtk_render_extension(context, cr, 0, 0, width, height, t);
+
+    cairo_destroy(cr);
+    g_object_unref(context);
+    return surface;
+}
+
 static gint
 moz_gtk_tab_paint(GdkWindow * drawable, GdkRectangle * rect,
                   GdkRectangle * cliprect, gint flags)
