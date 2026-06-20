@@ -17,9 +17,11 @@
 		'_FILE_OFFSET_BITS=64',			
 	],
 	
-	# We supply some pre-packaged headers for Linux libraries
+	# GTK3 system headers must come before the bundled GTK2 headers so that
+	# #include <gtk/gtk.h> resolves to GTK3, not the legacy GTK2 copies.
 	'include_dirs':
 	[
+		'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I//g")',
 		'../thirdparty/headers/linux/include',
 		'../thirdparty/libcairo/src',			# Required by the GDK headers
 		'../thirdparty/libfreetype/include',	# Required by the Pango headers

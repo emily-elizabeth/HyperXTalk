@@ -1,9 +1,26 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #ifndef	XDC_H
 #define	XDC_H
 
 #include "uidc.h"
 #include "lnxflst.h"
 #include "lnx-clipboard.h"
+#include <cairo.h>  // -- tperry 12-11-2025: GTK3 uses Cairo for drawing
 
 #define XLOOKUPSTRING_SIZE 32
 #define CONFIGURE_WAIT 0.5
@@ -19,6 +36,9 @@
 
 #include <gtk/gtk.h>
 
+// Safe replacement for gdk_event_free - clears all GObject pointers
+// before freeing to avoid crash on destroyed GdkWindows/GdkDevices.
+extern void safe_gdk_event_free(GdkEvent *event);
 
 class MCEventnode : public MCDLlist
 {
@@ -30,7 +50,8 @@ public:
 	}
     ~MCEventnode()
     {
-        gdk_event_free(event);
+        if (event != NULL)
+            safe_gdk_event_free(event);
     }
 	MCEventnode *next()
 	{
@@ -94,7 +115,8 @@ extern Boolean tripleclick;
 
 class MCScreenDC : public MCUIDC
 {
-	GdkGC* gc = nullptr;		// This is the GC in "Native" (i.e. actual screen) depth
+	// -- tperry 12-11-2025: GTK3 uses Cairo instead of GdkGC
+	cairo_t* gc = nullptr;		// Cairo context for drawing
 	
 	bool m_application_has_focus = false; // This allows us to track if the application is at the front.
 	
@@ -114,8 +136,8 @@ class MCScreenDC : public MCUIDC
 	MCString selectiontext;
 	Boolean doubleclick = False;
 
-	GdkColormap *cmap = nullptr;			// Native colourmap
-	GdkColormap *cmap32 = nullptr;		// 32-bit colourmap
+	// -- tperry 12-11-2025: GTK3 removed GdkColormap, no longer needed
+	// Colormaps are handled automatically in GTK3
 
 	GdkVisual *vis = nullptr;		// Native visual
 	GdkVisual *vis32 = nullptr;	// 32-bit visual
@@ -125,7 +147,8 @@ class MCScreenDC : public MCUIDC
 	Window backdrop = None;
 	MCColor backdropcolor {0, 0, 0};
 	// IM-2014-04-15: [[ Bug 11603 ]] Store converted backdrop pattern pixmap
-	Pixmap m_backdrop_pixmap = nullptr;
+	// -- tperry 12-11-2025: Pixmap is unsigned long, use 0 not nullptr
+	Pixmap m_backdrop_pixmap = 0;
 
 	Window last_window = None; 	//XDND - Used for the moment to shunt the ID
 	
@@ -214,9 +237,6 @@ public:
     virtual void getbeep(uint4 property, int4& r_value);
 	virtual void setbeep(uint4 property, int4 beep);
 	virtual MCNameRef getvendorname(void);
-	virtual void getsystemappearance(MCSystemAppearance &r_appearance);
-	virtual void getsystemwindowcolor(MCStringRef &r_color);
-	virtual void getsystemtextcolor(MCStringRef &r_color);
 	virtual uint2 getpad();
 	virtual Window getroot();
 
@@ -278,7 +298,7 @@ public:
 
 	void setupcolors();
 	GdkScreen* getscreen();
-	GdkColormap* getcmap();
+	// -- tperry 12-11-2025: getcmap() removed - GdkColormap not needed in GTK3
 	GdkVisual* getvisual();
 	KeySym translatekeysym(KeySym sym, uint4 keycode);
 	virtual bool getkeysdown(MCListRef& r_list);
@@ -305,11 +325,10 @@ public:
 	void make_clipboard_persistant(void) ;
 	
 	
-	// Public acccess functions get get GC's, visuals and cmaps for different depths
-	GdkGC* getgc() { return gc; }
-
-	GdkColormap* getcmapnative ( void ) { return cmap ; } ;
-	GdkColormap* getcmap32 ( void ) { return cmap32 ; } ;
+	// -- tperry 12-11-2025: Public access functions for Cairo context and visuals
+	cairo_t* getgc() { return gc; }
+	
+	// GdkColormap getters removed - not needed in GTK3
 
 	
 	virtual bool listprinters(MCStringRef& r_printers);
@@ -322,8 +341,8 @@ public:
     typedef bool (*event_filter)(GdkEvent*, void *);
     bool GetFilteredEvent(event_filter, GdkEvent* &r_event, void *, bool p_may_block = false);
     
-    // Utility function - maps an X drawing operation to the GDK equivalent
-    static GdkFunction XOpToGdkOp(int op);
+    // -- tperry 15-11-2025: XOpToGdkOp updated to return cairo_operator_t for GTK3
+    cairo_operator_t XOpToGdkOp(int op);
     
     // Queues an event as a pending event
     void EnqueueEvent(GdkEvent *);
@@ -343,6 +362,9 @@ public:
     
     virtual bool loadfont(MCStringRef p_path, bool p_globally, void*& r_loaded_font_handle);
     virtual bool unloadfont(MCStringRef p_path, bool p_globally, void *r_loaded_font_handle);
+    
+    // -- tperry 15-11-2025: System appearance detection for Linux
+    virtual void getsystemappearance(MCSystemAppearance &r_appearance);
 
 private:
     
