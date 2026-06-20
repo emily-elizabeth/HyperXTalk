@@ -159,6 +159,7 @@ static GtkWidget *gFrameWidget = 0;
 static GtkWidget *gProgressWidget = 0;
 static GtkWidget *gTabWidget = 0;
 static GtkWidget *gLabelWidget = 0;
+static GtkWidget *gLabelOffscreenWindow = 0;  // parent window that keeps gLabelWidget realized
 // -- tperry 13-11-2025: GTK3 removed GtkTooltips, tooltips are now per-widget properties
 // static GtkTooltips *gTooltipWidget = 0;  // No longer used in GTK3
 static GtkWidget *gOptionbuttonWidget = 0;
@@ -422,8 +423,17 @@ static gint ensure_label_widget()
 {
 	if (!gLabelWidget)
 	{
+		// The label must be realized inside an offscreen window so that its
+		// GtkStyleContext is connected to the actual display's CSS providers.
+		// Without this, gtk_style_context_lookup_color() cannot find named
+		// theme colours like @theme_selected_bg_color.
+		gLabelOffscreenWindow = gtk_offscreen_window_new();
 		gLabelWidget = gtk_label_new("M");
-		setup_widget_prototype(gLabelWidget);
+		gtk_container_add(GTK_CONTAINER(gLabelOffscreenWindow), gLabelWidget);
+		gtk_widget_realize(gLabelOffscreenWindow);
+		gtk_widget_realize(gLabelWidget);
+		// Don't destroy gLabelOffscreenWindow — that would unrealize gLabelWidget.
+		// It is cleaned up in moz_gtk_shutdown().
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -2790,11 +2800,22 @@ void moz_gtk_get_widget_color(GtkStateType state,
 				rgba.red   = px[2] / (double)a;
 				rgba.green = px[1] / (double)a;
 				rgba.blue  = px[0] / (double)a;
+				rgba.alpha = 1.0;
 			}
-			rgba.alpha = 1.0;
+			// else: leave rgba at {0,0,0,1} — theme rendered nothing, keep fallback
 
 			cairo_surface_destroy(surface);
 			gtk_widget_destroy(window);
+
+			// If we still have black (theme renders transparent selection),
+			// try querying the selection colour from the label's style context
+			// directly, ignoring alpha — some themes set it as a CSS property
+			// even if they don't render a background here.
+			if (rgba.red == 0.0 && rgba.green == 0.0 && rgba.blue == 0.0)
+			{
+				// Try @selected_bg_color (older theme name) as a final attempt.
+				gtk_style_context_lookup_color(ctx, "selected_bg_color", &rgba);
+			}
 		}
 	}
 	else
@@ -3305,6 +3326,7 @@ gint moz_gtk_shutdown()
     gFrameWidget          = nullptr;
     gProgressWidget       = nullptr;
     gTabWidget            = nullptr;
+    if (gLabelOffscreenWindow) { gtk_widget_destroy(gLabelOffscreenWindow); gLabelOffscreenWindow = nullptr; }
     gLabelWidget          = nullptr;
     gOptionbuttonWidget   = nullptr;
     gSpinbuttonWidget     = nullptr;
