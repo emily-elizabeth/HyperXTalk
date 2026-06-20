@@ -275,9 +275,8 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 // We are using the dragboard
                 MCLinuxRawClipboard* t_clipboard = static_cast<MCLinuxRawClipboard*> (MCdragboard->GetRawClipboard());
                 
-                // Convert the requestor window XID into a GdkWindow
-                GdkWindow *t_requestor;
-                t_requestor = x11::gdk_x11_window_foreign_new_for_display(dpy, t_event->selection.requestor);
+                // GTK3: selection.requestor is already a GdkWindow* (was GdkNativeWindow/XID in GTK2)
+                GdkWindow *t_requestor = t_event->selection.requestor;
                 
                 // There is a backwards-compatibility issue with the way the
                 // ICCCM deals with selections: older clients can request a

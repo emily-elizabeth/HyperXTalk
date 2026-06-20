@@ -771,14 +771,6 @@ void MCScreenDC::openwindow(Window window, Boolean override)
 {
 	MCStack *target = MCdispatcher->findstackd(window);
 
-	// -- tperry 12-11-2025: Show GTK3/4 window if it exists
-#ifdef _LINUX_DESKTOP
-	if (target && target->getgtkwindow() != nullptr)
-	{
-		target->getgtkwindow()->Show();
-	}
-	else
-#endif
 	{
 		// XFCE workaround: Use show_unraised for palette windows to prevent focus stealing
 		bool use_unraised = false;
@@ -832,13 +824,7 @@ void MCScreenDC::closewindow(Window window)
         MCpopoverparentstack = nullptr;
     }
 
-	// -- tperry 12-11-2025: Hide GTK3/4 window if it exists
-#ifdef _LINUX_DESKTOP
-	if (target && target->getgtkwindow() != nullptr)
-		target->getgtkwindow()->Hide();
-	else
-#endif
-		gdk_window_hide(window);
+	gdk_window_hide(window);
 }
 
 void MCScreenDC::destroywindow(Window &window)
