@@ -21,7 +21,11 @@
 	# #include <gtk/gtk.h> resolves to GTK3, not the legacy GTK2 copies.
 	'include_dirs':
 	[
-		'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I//g")',
+		# Filter out libpng16: GTK3 transitively pulls in /usr/include/libpng16
+		# whose pnglibconf.h was built against system zlib 1.3.1, but our bundled
+		# libz is 1.3.2 — causing a version-check #error in pngpriv.h.  The
+		# bundled thirdparty/libpng/include (PNG_ZLIB_VERNUM=0, no check) must win.
+		'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I//g" | tr " " "\n" | grep -v libpng | tr "\n" " ")',
 		'../thirdparty/headers/linux/include',
 		'../thirdparty/libcairo/src',			# Required by the GDK headers
 		'../thirdparty/libfreetype/include',	# Required by the Pango headers
