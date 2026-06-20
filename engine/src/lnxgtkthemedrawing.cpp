@@ -2455,6 +2455,176 @@ moz_gtk_menuitem_paint_to_surface(GdkRectangle *rect, int *out_width, int *out_h
 	return surface;
 }
 
+// ---------------------------------------------------------------------------
+// Surface-rendering variants for widgets previously handled by the slow
+// drawtheme_calc_alpha (dual-offscreen-window) path.  These let
+// drawtheme_gtk3_direct render directly to an ARGB32 cairo surface,
+// avoiding two GtkOffscreenWindow create/realize/destroy cycles per call.
+// ---------------------------------------------------------------------------
+
+// Helper: allocate a transparent ARGB32 surface and return both surface and cr.
+static cairo_surface_t*
+make_transparent_surface(int width, int height, cairo_t **cr_out)
+{
+	cairo_surface_t *s = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+	cairo_t *cr = cairo_create(s);
+	cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+	cairo_paint(cr);
+	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+	*cr_out = cr;
+	return s;
+}
+
+// MOZ_GTK_TOOLBAR — menubar / toolbar background
+cairo_surface_t*
+moz_gtk_toolbar_paint_to_surface(GdkRectangle *rect, GtkWidgetState *state,
+                                  int *out_width, int *out_height)
+{
+	ensure_handlebox_widget();
+	int width = rect->width, height = rect->height;
+	if (out_width)  *out_width  = width;
+	if (out_height) *out_height = height;
+
+	cairo_t *cr;
+	cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+	GtkStyleContext *context = gtk_widget_get_style_context(gHandleBoxWidget);
+	gtk_style_context_save(context);
+
+	GtkStateFlags sf = GTK_STATE_FLAG_NORMAL;
+	if (state && state->disabled)  sf = GTK_STATE_FLAG_INSENSITIVE;
+	else if (state && state->active)  sf = (GtkStateFlags)(sf | GTK_STATE_FLAG_ACTIVE);
+	else if (state && state->inHover) sf = (GtkStateFlags)(sf | GTK_STATE_FLAG_PRELIGHT);
+	gtk_style_context_set_state(context, sf);
+
+	gtk_render_background(context, cr, 0, 0, width, height);
+	gtk_render_frame(context, cr, 0, 0, width, height);
+
+	gtk_style_context_restore(context);
+	cairo_destroy(cr);
+	return surface;
+}
+
+// MOZ_GTK_FRAME — status-bar panels
+cairo_surface_t*
+moz_gtk_frame_paint_to_surface(GdkRectangle *rect, int *out_width, int *out_height)
+{
+	ensure_frame_widget();
+	int width = rect->width, height = rect->height;
+	if (out_width)  *out_width  = width;
+	if (out_height) *out_height = height;
+
+	cairo_t *cr;
+	cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+	GtkStyleContext *context = gtk_widget_get_style_context(gFrameWidget);
+	gtk_style_context_save(context);
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+
+	gtk_render_background(context, cr, 0, 0, width, height);
+	gtk_render_frame(context, cr, 0, 0, width, height);
+
+	gtk_style_context_restore(context);
+	cairo_destroy(cr);
+	return surface;
+}
+
+// MOZ_GTK_TOOLTIP
+cairo_surface_t*
+moz_gtk_tooltip_paint_to_surface(GdkRectangle *rect, int *out_width, int *out_height)
+{
+	ensure_tooltip_widget();
+	int width = rect->width, height = rect->height;
+	if (out_width)  *out_width  = width;
+	if (out_height) *out_height = height;
+
+	cairo_t *cr;
+	cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+	GtkStyleContext *context = gtk_widget_get_style_context(gTooltipWindow);
+	gtk_render_background(context, cr, 0, 0, width, height);
+	gtk_render_frame(context, cr, 0, 0, width, height);
+
+	cairo_destroy(cr);
+	return surface;
+}
+
+// MOZ_GTK_ENTRY_FRAME — text-field border / focus ring
+cairo_surface_t*
+moz_gtk_entry_frame_paint_to_surface(GdkRectangle *rect, GtkWidgetState *state,
+                                      int *out_width, int *out_height)
+{
+	ensure_entry_widget();
+	int width = rect->width, height = rect->height;
+	if (out_width)  *out_width  = width;
+	if (out_height) *out_height = height;
+
+	gboolean interior_focus = TRUE;
+	gint focus_width = 1;
+	gtk_widget_style_get(gEntryWidget,
+	                     "interior-focus", &interior_focus,
+	                     "focus-line-width", &focus_width,
+	                     NULL);
+	gtk_widget_set_sensitive(gEntryWidget, state ? !state->disabled : TRUE);
+
+	GtkStyleContext *context = gtk_widget_get_style_context(gEntryWidget);
+	gtk_style_context_save(context);
+
+	GtkStateFlags sf = GTK_STATE_FLAG_NORMAL;
+	if (state && state->disabled)
+		sf = GTK_STATE_FLAG_INSENSITIVE;
+	if (state && state->focused && !state->disabled)
+		sf = (GtkStateFlags)(sf | GTK_STATE_FLAG_FOCUSED);
+	gtk_style_context_set_state(context, sf);
+
+	cairo_t *cr;
+	cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+	int x = 0, y = 0, w = width, h = height;
+	if (state && state->focused && !state->disabled && !interior_focus) {
+		x += focus_width; y += focus_width;
+		w -= 2 * focus_width; h -= 2 * focus_width;
+	}
+
+	gtk_render_background(context, cr, x, y, w, h);
+	gtk_render_frame(context, cr, x, y, w, h);
+
+	if (state && state->focused && !state->disabled && !interior_focus)
+		gtk_render_focus(context, cr, 0, 0, width, height);
+
+	gtk_style_context_restore(context);
+	cairo_destroy(cr);
+	return surface;
+}
+
+// MOZ_GTK_ENTRY — text-field interior background
+cairo_surface_t*
+moz_gtk_entry_paint_to_surface(GdkRectangle *rect, GtkWidgetState *state,
+                                int *out_width, int *out_height)
+{
+	ensure_entry_widget();
+	int width = rect->width, height = rect->height;
+	if (out_width)  *out_width  = width;
+	if (out_height) *out_height = height;
+
+	int x = XTHICKNESS(gEntryWidget);
+	int y = YTHICKNESS(gEntryWidget);
+
+	GtkStyleContext *context = gtk_widget_get_style_context(gEntryWidget);
+	gtk_style_context_save(context);
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+
+	cairo_t *cr;
+	cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+	gtk_render_background(context, cr, x, y, width - 2 * x, height - 2 * y);
+
+	gtk_style_context_restore(context);
+	cairo_destroy(cr);
+	return surface;
+}
+
+// ---------------------------------------------------------------------------
 // Legacy GdkWindow paint shim — still called by the old drawtheme_calc_alpha
 // path for any widget type that reaches it; kept for completeness.
 static gint

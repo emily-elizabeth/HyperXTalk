@@ -255,6 +255,26 @@ extern "C"
 	moz_gtk_menuitem_paint_to_surface(GdkRectangle* rect,
 	                                   int *out_width, int *out_height);
 
+	cairo_surface_t*
+	moz_gtk_toolbar_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state,
+	                                  int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_frame_paint_to_surface(GdkRectangle* rect,
+	                                int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_tooltip_paint_to_surface(GdkRectangle* rect,
+	                                  int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_entry_frame_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state,
+	                                      int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_entry_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state,
+	                                int *out_width, int *out_height);
+
 
 	/*** Widget metrics ***/
 	/**

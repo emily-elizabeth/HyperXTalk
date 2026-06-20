@@ -1713,6 +1713,31 @@ static GdkPixbuf* drawtheme_gtk3_direct(MCThemeDrawInfo &p_info)
 		surface = moz_gtk_menuitem_paint_to_surface(
 			&p_info.drect, &widget_width, &widget_height);
 	}
+	else if (p_info.moztype == MOZ_GTK_TOOLBAR)
+	{
+		surface = moz_gtk_toolbar_paint_to_surface(
+			&p_info.drect, &p_info.state, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_FRAME)
+	{
+		surface = moz_gtk_frame_paint_to_surface(
+			&p_info.drect, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_TOOLTIP)
+	{
+		surface = moz_gtk_tooltip_paint_to_surface(
+			&p_info.drect, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_ENTRY_FRAME)
+	{
+		surface = moz_gtk_entry_frame_paint_to_surface(
+			&p_info.drect, &p_info.state, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_ENTRY)
+	{
+		surface = moz_gtk_entry_paint_to_surface(
+			&p_info.drect, &p_info.state, &widget_width, &widget_height);
+	}
 	else
 	{
 		return NULL;  // Widget type not supported yet
@@ -1998,7 +2023,12 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 		    p_info->moztype == MOZ_GTK_SCROLLBAR_TRACK_HORIZONTAL ||
 		    p_info->moztype == MOZ_GTK_SCROLLBAR_TRACK_VERTICAL ||
 		    p_info->moztype == MOZ_GTK_TABPANELS ||
-		    p_info->moztype == MOZ_GTK_MENUITEMHIGHLIGHT)
+		    p_info->moztype == MOZ_GTK_MENUITEMHIGHLIGHT ||
+		    p_info->moztype == MOZ_GTK_TOOLBAR ||
+		    p_info->moztype == MOZ_GTK_FRAME ||
+		    p_info->moztype == MOZ_GTK_TOOLTIP ||
+		    p_info->moztype == MOZ_GTK_ENTRY_FRAME ||
+		    p_info->moztype == MOZ_GTK_ENTRY)
 		{
 			t_argb_image = drawtheme_gtk3_direct(*p_info);
 		}
