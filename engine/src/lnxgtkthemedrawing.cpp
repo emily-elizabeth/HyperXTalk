@@ -262,8 +262,17 @@ static gint ensure_menuitem_widget()
 {
 	if (!gMenuitemWidget)
 	{
+		// The menu item must live inside a GtkMenu so that the CSS cascade
+		// includes the ".menu" ancestor selector used by most GTK3 themes for
+		// hover/prelight styling (e.g. ".menu .menuitem:hover { ... }").
+		// We realise the whole hierarchy so the style context is fully resolved.
+		GtkWidget *menu = gtk_menu_new();
 		gMenuitemWidget = gtk_menu_item_new_with_label("M");
-		setup_widget_prototype(gMenuitemWidget);
+		gtk_menu_shell_append(GTK_MENU_SHELL(menu), gMenuitemWidget);
+		gtk_widget_realize(menu);
+		gtk_widget_realize(gMenuitemWidget);
+		// Keep a ref on the item so it isn't destroyed when the menu is cleaned up.
+		g_object_ref(gMenuitemWidget);
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -2385,39 +2394,19 @@ static gint
 moz_gtk_menuitem_paint(GdkWindow * drawable, GdkRectangle * rect,
                        GdkRectangle * cliprect)
 {
-	GtkWidget *widget;
-	GtkShadowType selected_shadow_type;
-
 	ensure_menuitem_widget();
 
-	widget = gMenuitemWidget;
-
-	gtk_widget_style_get (widget,
-	                        "selected_shadow_type", &selected_shadow_type,
-	                        NULL);
-
-	// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
+	// GTK3: let the theme render the highlight — gtk_render_background with
+	// GTK_STATE_FLAG_PRELIGHT gives the correct theme selection colour without
+	// needing to query any deprecated colour APIs.
+	GtkStyleContext *context = gtk_widget_get_style_context(gMenuitemWidget);
 	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
-	
-	// Set clip region
-	if (cliprect) {
-		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
-		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
-	}
-	
-	// Get the hilite color for selected menu items
-	uint2 r, g, b;
-	moz_gtk_get_widget_color(GTK_STATE_SELECTED, r, g, b);
-	
-	// Convert from uint16 (0-65535) to double (0.0-1.0)
-	double red = r / 65535.0;
-	double green = g / 65535.0;
-	double blue = b / 65535.0;
-	
-	// Fill menu item with hilite color
-	cairo_set_source_rgb(cr, red, green, blue);
-	cairo_rectangle(cr, rect->x, rect->y, rect->width, rect->height);
-	cairo_fill(cr);
+
+	gtk_style_context_save(context);
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_PRELIGHT);
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
+	gtk_render_frame(context, cr, rect->x, rect->y, rect->width, rect->height);
+	gtk_style_context_restore(context);
 
 	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
@@ -3319,7 +3308,7 @@ gint moz_gtk_shutdown()
     gLabelWidget          = nullptr;
     gOptionbuttonWidget   = nullptr;
     gSpinbuttonWidget     = nullptr;
-    gMenuitemWidget       = nullptr;
+    if (gMenuitemWidget) { g_object_unref(gMenuitemWidget); gMenuitemWidget = nullptr; }
     gHScaleWidget         = nullptr;
     gVScaleWidget         = nullptr;
 
