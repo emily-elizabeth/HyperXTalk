@@ -2858,25 +2858,48 @@ moz_gtk_optionbutton_paint(GdkWindow * drawable, GdkRectangle * area,
 // GtkNotebook.  gtk_widget_get_style_context(gTabWidget) returns the "notebook" node;
 // calling gtk_render_extension() on that node produces solid black on modern themes
 // because the visual rendering belongs to the "tab" child CSS node.
-// This is the same pattern as build_indicator_context() for checkboxes/radios.
+//
+// The GTK3 CSS node hierarchy for notebook tabs is:
+//   notebook > header.{top|bottom|left|right} > tabs > tab
+// A 2-level path (notebook > tab) doesn't match Adwaita's CSS selectors and
+// produces transparent output.  We build the full 4-level hierarchy here.
 static GtkStyleContext*
-build_tab_context(GtkPositionType tab_pos, gboolean selected)
+build_tab_context(GtkPositionType gap_side, gboolean selected)
 {
     GtkWidgetPath *path = gtk_widget_path_new();
 
-    // Parent node: notebook
-    gint parent = gtk_widget_path_append_type(path, GTK_TYPE_NOTEBOOK);
-    (void)parent;
+    // Level 1: notebook
+    gint p0 = gtk_widget_path_append_type(path, GTK_TYPE_NOTEBOOK);
+    gtk_widget_path_iter_set_object_name(path, p0, "notebook");
 
-    // Child node: "tab"
-    gint child = gtk_widget_path_append_type(path, GTK_TYPE_NOTEBOOK);
-    gtk_widget_path_iter_set_object_name(path, child, "tab");
+    // Level 2: header with position class
+    // gap_side is which side of the tab connects to the panel; invert to get tab strip edge
+    const char *pos_class;
+    switch (gap_side) {
+        case GTK_POS_BOTTOM: pos_class = "top";    break;
+        case GTK_POS_TOP:    pos_class = "bottom"; break;
+        case GTK_POS_RIGHT:  pos_class = "left";   break;
+        case GTK_POS_LEFT:   pos_class = "right";  break;
+        default:             pos_class = "top";    break;
+    }
+    gint p1 = gtk_widget_path_append_type(path, GTK_TYPE_BOX);
+    gtk_widget_path_iter_set_object_name(path, p1, "header");
+    gtk_widget_path_iter_add_class(path, p1, pos_class);
+
+    // Level 3: tabs container
+    gint p2 = gtk_widget_path_append_type(path, GTK_TYPE_BOX);
+    gtk_widget_path_iter_set_object_name(path, p2, "tabs");
+
+    // Level 4: individual tab
+    // GTK3 uses GTK_STATE_FLAG_CHECKED for the selected (current) tab
+    gint p3 = gtk_widget_path_append_type(path, GTK_TYPE_BOX);
+    gtk_widget_path_iter_set_object_name(path, p3, "tab");
 
     GtkStyleContext *ctx = gtk_style_context_new();
     gtk_style_context_set_path(ctx, path);
     gtk_style_context_set_screen(ctx, gdk_screen_get_default());
 
-    GtkStateFlags state_flags = selected ? GTK_STATE_FLAG_NORMAL : GTK_STATE_FLAG_ACTIVE;
+    GtkStateFlags state_flags = selected ? GTK_STATE_FLAG_CHECKED : GTK_STATE_FLAG_NORMAL;
     gtk_style_context_set_state(ctx, state_flags);
 
     gtk_widget_path_free(path);
@@ -2891,34 +2914,27 @@ moz_gtk_tab_paint_to_surface(GdkRectangle *rect, gint flags,
     int width  = rect->width;
     int height = rect->height;
 
-    // Adjust for tab overlap (except first tab) — mirror legacy moz_gtk_tab_paint logic
-    if (!(flags & MOZ_GTK_TAB_FIRST))
-    {
-        width  += 2;
-    }
-
     if (out_width)  *out_width  = width;
     if (out_height) *out_height = height;
 
-    // Determine tab position (flags encode which edge the panel is on;
-    // the extension gap opens toward the panel, so we invert)
-    GtkPositionType t;
-    if      (flags & MOZ_GTK_TAB_POS_BOTTOM) t = GTK_POS_TOP;
-    else if (flags & MOZ_GTK_TAB_POS_LEFT)   t = GTK_POS_RIGHT;
-    else if (flags & MOZ_GTK_TAB_POS_RIGHT)  t = GTK_POS_LEFT;
-    else                                      t = GTK_POS_BOTTOM;
+    // gap_side: which side of the tab shape connects to the panel (opens toward panel)
+    GtkPositionType gap_side;
+    if      (flags & MOZ_GTK_TAB_POS_BOTTOM) gap_side = GTK_POS_TOP;
+    else if (flags & MOZ_GTK_TAB_POS_LEFT)   gap_side = GTK_POS_RIGHT;
+    else if (flags & MOZ_GTK_TAB_POS_RIGHT)  gap_side = GTK_POS_LEFT;
+    else                                      gap_side = GTK_POS_BOTTOM;
 
     gboolean selected = (flags & MOZ_GTK_TAB_SELECTED) ? TRUE : FALSE;
 
-    GtkStyleContext *context = build_tab_context(t, selected);
+    GtkStyleContext *context = build_tab_context(gap_side, selected);
 
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cairo_t *cr = cairo_create(surface);
     cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR); cairo_paint(cr);
     cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
 
-    gtk_render_background(context, cr, 0, 0, width, height);
-    gtk_render_extension(context, cr, 0, 0, width, height, t);
+    // gtk_render_extension renders background + border with the appropriate side open
+    gtk_render_extension(context, cr, 0, 0, width, height, gap_side);
 
     cairo_destroy(cr);
     g_object_unref(context);
