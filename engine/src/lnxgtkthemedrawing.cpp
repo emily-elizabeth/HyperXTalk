@@ -1018,6 +1018,11 @@ moz_gtk_progress_chunk_paint_to_surface(GdkRectangle * rect,
     return surface;
 }
 
+// Forward declarations for helpers defined later in this file
+static cairo_surface_t* make_transparent_surface(int width, int height, cairo_t **cr_out);
+static GtkStyleContext* build_scale_trough_context(bool is_horizontal, GtkStateFlags state_flags);
+static GtkStyleContext* build_scale_slider_context(bool is_horizontal, GtkStateFlags state_flags);
+
 // -- tperry 16-11-2025: New function to render scale using gtk_widget_draw
 // *** Uses same approach as progress bars - DO NOT break progress bars when modifying! ***
 cairo_surface_t*
