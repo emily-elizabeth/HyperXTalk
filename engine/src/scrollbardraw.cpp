@@ -967,7 +967,7 @@ uint2 MCScrollbar::getwidgetthemetype()
 	if (IsMacLFAM())
 		smallscrollbarsize = 14;
 	else if (MCcurtheme && MCcurtheme->getthemeid() == LF_NATIVEGTK)
-		smallscrollbarsize = MCU_min(smallscrollbarsize,MCcurtheme->getmetric(WTHEME_METRIC_TRACKSIZE) - 5);
+		smallscrollbarsize = 14;  // HXT: match Mac value; GTK3 tracks are narrow so TRACKSIZE-5 is too small
 	if (flags & F_PROGRESS)
 		return WTHEME_TYPE_PROGRESSBAR;
 	if (flags & F_SCALE)

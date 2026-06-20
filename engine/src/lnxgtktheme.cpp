@@ -1393,11 +1393,6 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo & winfo,
 	gint flags = 0;
 	GtkWidgetState state = getpartandstate(winfo, moztype, flags);
 
-	{
-		FILE *_f = fopen("/tmp/hxt_themedraw.txt", "a");
-		if (_f) { fprintf(_f, "drawwidget type=%d moztype=%d rect=%dx%d\n", (int)winfo.type, (int)moztype, rect.width, rect.height); fclose(_f); }
-	}
-
 	switch(winfo.type)
 	{
 	case WTHEME_TYPE_TABPANE:
@@ -1724,14 +1719,6 @@ static GdkPixbuf* drawtheme_gtk3_direct(MCThemeDrawInfo &p_info)
 	{
 		surface = moz_gtk_spinbutton_paint_to_surface(
 			&p_info.drect, &p_info.state, p_info.flags, &widget_width, &widget_height);
-		if (surface)
-		{
-			cairo_surface_write_to_png(surface, "/tmp/hxt_spinbutton_debug.png");
-			g_warning("HXT spinbutton surface: %dx%d (drect %dx%d) written to /tmp/hxt_spinbutton_debug.png",
-			          widget_width, widget_height, p_info.drect.width, p_info.drect.height);
-		}
-		else
-			g_warning("HXT spinbutton surface: NULL returned from paint_to_surface");
 	}
 	else if (p_info.moztype == MOZ_GTK_MENUITEMHIGHLIGHT)
 	{
@@ -2015,10 +2002,6 @@ static GdkPixbuf* drawtheme_calc_alpha (MCThemeDrawInfo &p_info)
 
 bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInfo *p_info)
 {
-	{
-		FILE *_f = fopen("/tmp/hxt_themedraw.txt", "a");
-		if (_f) { fprintf(_f, "MCThemeDraw moztype=%d drect=%dx%d\n", p_info->moztype, p_info->drect.width, p_info->drect.height); fclose(_f); }
-	}
 	MCXImageCacheNode *cache_node = NULL ;
 	GdkPixbuf* t_argb_image ;
 	bool t_cached ;
