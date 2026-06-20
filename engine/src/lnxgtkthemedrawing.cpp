@@ -1431,6 +1431,42 @@ moz_gtk_button_paint_to_surface(GdkRectangle * rect,
     return surface;
 }
 
+// Build a fresh GtkStyleContext targeting the indicator CSS subnode.
+//
+// In GTK3's CSS node model the visible indicator is a child node:
+//   checkbutton > check     (for checkboxes)
+//   radiobutton > radio     (for radio buttons)
+//
+// gtk_widget_get_style_context(gCheckboxWidget) returns the "checkbutton"
+// node.  Calling gtk_render_check() on that node produces nothing visible
+// on modern themes — the check mark is owned by the "check" child node.
+// We build the correct path here so gtk_render_check/option work.
+//
+// gtk_widget_path_iter_set_object_name() requires GTK >= 3.20 (2016),
+// which is satisfied by any currently supported Ubuntu/Debian release.
+static GtkStyleContext*
+build_indicator_context(gboolean isradio, GtkStateFlags state_flags)
+{
+    GtkWidgetPath *path = gtk_widget_path_new();
+
+    // Parent node: checkbutton / radiobutton
+    gint parent = gtk_widget_path_append_type(
+        path, isradio ? GTK_TYPE_RADIO_BUTTON : GTK_TYPE_CHECK_BUTTON);
+    (void)parent;
+
+    // Child indicator node: "check" or "radio"
+    gint child = gtk_widget_path_append_type(
+        path, isradio ? GTK_TYPE_RADIO_BUTTON : GTK_TYPE_CHECK_BUTTON);
+    gtk_widget_path_iter_set_object_name(path, child, isradio ? "radio" : "check");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+    gtk_style_context_set_state(ctx, state_flags);
+    gtk_widget_path_free(path);
+    return ctx;
+}
+
 // -- tperry 15-11-2025: New function to render toggle to cairo surface and return it
 // This allows capturing the rendered output without going through GdkWindow
 cairo_surface_t*
@@ -1439,76 +1475,47 @@ moz_gtk_toggle_paint_to_surface(GdkRectangle * rect,
                                  gboolean selected, gboolean isradio,
                                  int *out_width, int *out_height)
 {
-    GtkWidget *w;
     gint indicator_size, indicator_spacing;
-    gint width, height;
 
-    if (isradio) {
+    if (isradio)
         moz_gtk_radio_get_metrics(&indicator_size, &indicator_spacing);
-        w = gRadiobuttonWidget;
-    } else {
+    else
         moz_gtk_checkbox_get_metrics(&indicator_size, &indicator_spacing);
-        w = gCheckboxWidget;
-    }
 
-    width = indicator_size;
-    height = indicator_size;
-    
-    if (out_width) *out_width = width;
+    int width  = indicator_size;
+    int height = indicator_size;
+
+    if (out_width)  *out_width  = width;
     if (out_height) *out_height = height;
 
-    // Set widget state
-    gtk_widget_set_sensitive(w, !state->disabled);
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w), selected);
-    
-    // Get style context
-    GtkStyleContext *context = gtk_widget_get_style_context(w);
-    gtk_style_context_save(context);
-    
-    // Add CSS classes
-    if (isradio) {
-        gtk_style_context_add_class(context, GTK_STYLE_CLASS_RADIO);
-    } else {
-        gtk_style_context_add_class(context, GTK_STYLE_CLASS_CHECK);
-    }
-    
-    // Set state flags
+    // Compose GTK3 state flags
     GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
-    if (state->active)
-        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_ACTIVE);
-    if (state->inHover)
-        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_PRELIGHT);
-    if (state->disabled)
-        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_INSENSITIVE);
-    if (selected)
-        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_CHECKED);
-    
-    gtk_style_context_set_state(context, state_flags);
-    
+    if (state->active)   state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_ACTIVE);
+    if (state->inHover)  state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_PRELIGHT);
+    if (state->disabled) state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_INSENSITIVE);
+    if (selected)        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_CHECKED);
+
+    // Use a style context rooted at the indicator subnode, not the button node
+    GtkStyleContext *context = build_indicator_context(isradio, state_flags);
+
     // Create surface for rendering
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cairo_t *cr = cairo_create(surface);
-    
-    // Clear surface to transparent
+
     cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
     cairo_paint(cr);
     cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-    
-    // Render widget
-    if (isradio) {
-        gtk_render_background(context, cr, 0, 0, width, height);
-        gtk_render_frame(context, cr, 0, 0, width, height);
-        gtk_render_option(context, cr, 0, 0, width, height);
-    } else {
-        gtk_render_background(context, cr, 0, 0, width, height);
-        gtk_render_frame(context, cr, 0, 0, width, height);
-        gtk_render_check(context, cr, 0, 0, width, height);
-    }
-    
-    cairo_destroy(cr);
-    gtk_style_context_restore(context);
 
-    // Return the surface - caller must destroy it
+    gtk_render_background(context, cr, 0, 0, width, height);
+    gtk_render_frame(context, cr, 0, 0, width, height);
+    if (isradio)
+        gtk_render_option(context, cr, 0, 0, width, height);
+    else
+        gtk_render_check(context, cr, 0, 0, width, height);
+
+    cairo_destroy(cr);
+    g_object_unref(context);
+
     return surface;
 }
 
@@ -1517,85 +1524,49 @@ moz_gtk_toggle_paint(GdkWindow * drawable, GdkRectangle * rect,
                      GdkRectangle * cliprect, GtkWidgetState * state,
                      gboolean selected, gboolean isradio)
 {
-    // -- tperry 15-11-2025: GTK3 offscreen rendering approach
-    // Render widget to an offscreen surface, then composite to target
-    GtkWidget *w;
     gint indicator_size, indicator_spacing;
-    gint x, y, width, height;
 
-    if (isradio) {
+    if (isradio)
         moz_gtk_radio_get_metrics(&indicator_size, &indicator_spacing);
-        w = gRadiobuttonWidget;
-    } else {
+    else
         moz_gtk_checkbox_get_metrics(&indicator_size, &indicator_spacing);
-        w = gCheckboxWidget;
-    }
 
-    // Calculate rendering position
-    x = rect->x + indicator_spacing;
-    y = rect->y + (rect->height - indicator_size) / 2;
-    width = indicator_size;
-    height = indicator_size;
+    gint x      = rect->x + indicator_spacing;
+    gint y      = rect->y + (rect->height - indicator_size) / 2;
+    gint width  = indicator_size;
+    gint height = indicator_size;
 
-    // Set widget state
-    gtk_widget_set_sensitive(w, !state->disabled);
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(w), selected);
-    
-    // Get style context
-    GtkStyleContext *context = gtk_widget_get_style_context(w);
-    gtk_style_context_save(context);
-    
-    // Add CSS classes
-    if (isradio) {
-        gtk_style_context_add_class(context, GTK_STYLE_CLASS_RADIO);
-    } else {
-        gtk_style_context_add_class(context, GTK_STYLE_CLASS_CHECK);
-    }
-    
-    // Set state flags
     GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
-    if (state->active)
-        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_ACTIVE);
-    if (state->inHover)
-        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_PRELIGHT);
-    if (state->disabled)
-        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_INSENSITIVE);
-    if (selected)
-        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_CHECKED);
-    
-    gtk_style_context_set_state(context, state_flags);
-    
-    // Create offscreen surface for rendering
+    if (state->active)   state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_ACTIVE);
+    if (state->inHover)  state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_PRELIGHT);
+    if (state->disabled) state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_INSENSITIVE);
+    if (selected)        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_CHECKED);
+
+    GtkStyleContext *context = build_indicator_context(isradio, state_flags);
+
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cairo_t *offscreen_cr = cairo_create(surface);
-    
-    // Clear surface to transparent
+
     cairo_set_operator(offscreen_cr, CAIRO_OPERATOR_CLEAR);
     cairo_paint(offscreen_cr);
     cairo_set_operator(offscreen_cr, CAIRO_OPERATOR_OVER);
-    
-    // Render widget to offscreen surface
-    if (isradio) {
-        gtk_render_background(context, offscreen_cr, 0, 0, width, height);
-        gtk_render_frame(context, offscreen_cr, 0, 0, width, height);
+
+    gtk_render_background(context, offscreen_cr, 0, 0, width, height);
+    gtk_render_frame(context, offscreen_cr, 0, 0, width, height);
+    if (isradio)
         gtk_render_option(context, offscreen_cr, 0, 0, width, height);
-    } else {
-        gtk_render_background(context, offscreen_cr, 0, 0, width, height);
-        gtk_render_frame(context, offscreen_cr, 0, 0, width, height);
+    else
         gtk_render_check(context, offscreen_cr, 0, 0, width, height);
-    }
-    
-    // Composite offscreen surface to target
+
     cairo_t *target_cr = moz_gdk_create_cairo_context(drawable);
     cairo_set_source_surface(target_cr, surface, x, y);
     cairo_paint(target_cr);
-    
-    // Cleanup
+
     cairo_destroy(offscreen_cr);
     cairo_surface_destroy(surface);
     cairo_destroy(target_cr);
-    gtk_style_context_restore(context);
-    
+    g_object_unref(context);
+
     return MOZ_GTK_SUCCESS;
 }
 
