@@ -2400,25 +2400,79 @@ moz_gtk_scale_thumb_paint(GtkThemeWidgetType type,
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- direct-render path (used by drawtheme_gtk3_direct, avoids the slow
+// dual-offscreen alpha-extraction loop in drawtheme_calc_alpha)
+cairo_surface_t*
+moz_gtk_menuitem_paint_to_surface(GdkRectangle *rect, int *out_width, int *out_height)
+{
+	ensure_menuitem_widget();
+
+	int width  = rect->width;
+	int height = rect->height;
+	if (out_width)  *out_width  = width;
+	if (out_height) *out_height = height;
+
+	cairo_surface_t *surface =
+	    cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+	cairo_t *cr = cairo_create(surface);
+
+	// Start transparent
+	cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+	cairo_paint(cr);
+	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+
+	// Ask the theme to render the menu item hover highlight
+	GtkStyleContext *context = gtk_widget_get_style_context(gMenuitemWidget);
+	gtk_style_context_save(context);
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_PRELIGHT);
+	gtk_render_background(context, cr, 0, 0, width, height);
+	gtk_render_frame(context, cr, 0, 0, width, height);
+	gtk_style_context_restore(context);
+
+	cairo_destroy(cr);
+
+	// If the theme rendered nothing (transparent surface), the highlight would
+	// be invisible.  Fall back to the named theme selection colour.
+	cairo_surface_flush(surface);
+	unsigned char *data   = cairo_image_surface_get_data(surface);
+	int            stride = cairo_image_surface_get_stride(surface);
+	// Sample the centre pixel (ARGB32 = B G R A in memory on LE)
+	int cx = width / 2, cy = height / 2;
+	unsigned char alpha = data[cy * stride + cx * 4 + 3];
+	if (alpha == 0)
+	{
+		// gtk_render_background gave us nothing — fill with theme selection colour.
+		ensure_label_widget();
+		GtkStyleContext *ctx = gtk_widget_get_style_context(gLabelWidget);
+		GdkRGBA rgba = {0.25, 0.55, 0.85, 1.0};  // safe default blue
+		if (!gtk_style_context_lookup_color(ctx, "theme_selected_bg_color", &rgba))
+		if (!gtk_style_context_lookup_color(ctx, "accent_bg_color",          &rgba))
+		    gtk_style_context_lookup_color(ctx, "selected_bg_color",         &rgba);
+
+		cairo_t *cr2 = cairo_create(surface);
+		cairo_set_source_rgba(cr2, rgba.red, rgba.green, rgba.blue, 1.0);
+		cairo_paint(cr2);
+		cairo_destroy(cr2);
+	}
+
+	return surface;
+}
+
+// Legacy GdkWindow paint shim — still called by the old drawtheme_calc_alpha
+// path for any widget type that reaches it; kept for completeness.
 static gint
 moz_gtk_menuitem_paint(GdkWindow * drawable, GdkRectangle * rect,
                        GdkRectangle * cliprect)
 {
-	ensure_menuitem_widget();
+	int w, h;
+	cairo_surface_t *surface = moz_gtk_menuitem_paint_to_surface(rect, &w, &h);
+	if (!surface) return MOZ_GTK_UNKNOWN_WIDGET;
 
-	// GTK3: let the theme render the highlight — gtk_render_background with
-	// GTK_STATE_FLAG_PRELIGHT gives the correct theme selection colour without
-	// needing to query any deprecated colour APIs.
-	GtkStyleContext *context = gtk_widget_get_style_context(gMenuitemWidget);
 	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
-
-	gtk_style_context_save(context);
-	gtk_style_context_set_state(context, GTK_STATE_FLAG_PRELIGHT);
-	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
-	gtk_render_frame(context, cr, rect->x, rect->y, rect->width, rect->height);
-	gtk_style_context_restore(context);
-
+	cairo_set_source_surface(cr, surface, rect->x, rect->y);
+	cairo_paint(cr);
 	cairo_destroy(cr);
+	cairo_surface_destroy(surface);
 	return MOZ_GTK_SUCCESS;
 }
 

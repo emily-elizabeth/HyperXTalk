@@ -249,6 +249,10 @@ extern "C"
 	moz_gtk_tabpanels_paint_to_surface(GdkRectangle* rect, int y, int w,
 	                                    int *out_width, int *out_height);
 
+	cairo_surface_t*
+	moz_gtk_menuitem_paint_to_surface(GdkRectangle* rect,
+	                                   int *out_width, int *out_height);
+
 
 	/*** Widget metrics ***/
 	/**
