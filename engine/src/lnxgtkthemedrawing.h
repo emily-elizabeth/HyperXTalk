@@ -252,7 +252,7 @@ extern "C"
 	                                    int *out_width, int *out_height);
 
 	cairo_surface_t*
-	moz_gtk_tab_paint_to_surface(GdkRectangle* rect, gint flags,
+	moz_gtk_tab_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state, gint flags,
 	                              int *out_width, int *out_height);
 
 	cairo_surface_t*

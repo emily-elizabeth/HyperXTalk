@@ -2864,7 +2864,7 @@ moz_gtk_optionbutton_paint(GdkWindow * drawable, GdkRectangle * area,
 // A 2-level path (notebook > tab) doesn't match Adwaita's CSS selectors and
 // produces transparent output.  We build the full 4-level hierarchy here.
 static GtkStyleContext*
-build_tab_context(GtkPositionType gap_side, gboolean selected)
+build_tab_context(GtkPositionType gap_side, GtkStateFlags state_flags)
 {
     GtkWidgetPath *path = gtk_widget_path_new();
 
@@ -2891,15 +2891,12 @@ build_tab_context(GtkPositionType gap_side, gboolean selected)
     gtk_widget_path_iter_set_object_name(path, p2, "tabs");
 
     // Level 4: individual tab
-    // GTK3 uses GTK_STATE_FLAG_CHECKED for the selected (current) tab
     gint p3 = gtk_widget_path_append_type(path, GTK_TYPE_BOX);
     gtk_widget_path_iter_set_object_name(path, p3, "tab");
 
     GtkStyleContext *ctx = gtk_style_context_new();
     gtk_style_context_set_path(ctx, path);
     gtk_style_context_set_screen(ctx, gdk_screen_get_default());
-
-    GtkStateFlags state_flags = selected ? GTK_STATE_FLAG_CHECKED : GTK_STATE_FLAG_NORMAL;
     gtk_style_context_set_state(ctx, state_flags);
 
     gtk_widget_path_free(path);
@@ -2908,7 +2905,7 @@ build_tab_context(GtkPositionType gap_side, gboolean selected)
 
 // -- tperry 20-06-2026: Render a notebook tab to a cairo surface (direct GTK3 path)
 cairo_surface_t*
-moz_gtk_tab_paint_to_surface(GdkRectangle *rect, gint flags,
+moz_gtk_tab_paint_to_surface(GdkRectangle *rect, GtkWidgetState *state, gint flags,
                               int *out_width, int *out_height)
 {
     int width  = rect->width;
@@ -2926,7 +2923,13 @@ moz_gtk_tab_paint_to_surface(GdkRectangle *rect, gint flags,
 
     gboolean selected = (flags & MOZ_GTK_TAB_SELECTED) ? TRUE : FALSE;
 
-    GtkStyleContext *context = build_tab_context(gap_side, selected);
+    // Merge widget interaction state into the CSS state flags
+    // selected → :checked, hover → :hover (:prelight), disabled → :insensitive
+    GtkStateFlags state_flags = selected ? GTK_STATE_FLAG_CHECKED : GTK_STATE_FLAG_NORMAL;
+    if (state && state->inHover)  state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_PRELIGHT);
+    if (state && state->disabled) state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_INSENSITIVE);
+
+    GtkStyleContext *context = build_tab_context(gap_side, state_flags);
 
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cairo_t *cr = cairo_create(surface);

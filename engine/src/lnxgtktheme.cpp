@@ -1711,7 +1711,7 @@ static GdkPixbuf* drawtheme_gtk3_direct(MCThemeDrawInfo &p_info)
 	else if (p_info.moztype == MOZ_GTK_TAB)
 	{
 		surface = moz_gtk_tab_paint_to_surface(
-			&p_info.drect, p_info.flags, &widget_width, &widget_height);
+			&p_info.drect, &p_info.state, p_info.flags, &widget_width, &widget_height);
 	}
 	else if (p_info.moztype == MOZ_GTK_MENUITEMHIGHLIGHT)
 	{
