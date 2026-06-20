@@ -339,6 +339,7 @@
 								'-lpthread',
 								'-lcups',
 								'-ldbus-1',
+								'-lX11',
 							],
 						},
 					],
