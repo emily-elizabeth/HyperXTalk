@@ -2864,6 +2864,31 @@ moz_gtk_optionbutton_paint(GdkWindow * drawable, GdkRectangle * area,
 // A 2-level path (notebook > tab) doesn't match Adwaita's CSS selectors and
 // produces transparent output.  We build the full 4-level hierarchy here.
 static GtkStyleContext*
+// -- tperry 20-06-2026: Build a style context for one half of a GtkSpinButton.
+// GTK3 CSS node path: spinbutton > button.up  or  spinbutton > button.down
+static GtkStyleContext*
+build_spinbutton_button_context(bool is_up, GtkStateFlags state_flags)
+{
+    GtkWidgetPath *path = gtk_widget_path_new();
+
+    // Level 1: spinbutton
+    gint p0 = gtk_widget_path_append_type(path, GTK_TYPE_SPIN_BUTTON);
+    gtk_widget_path_iter_set_object_name(path, p0, "spinbutton");
+
+    // Level 2: button.up or button.down
+    gint p1 = gtk_widget_path_append_type(path, GTK_TYPE_BUTTON);
+    gtk_widget_path_iter_set_object_name(path, p1, "button");
+    gtk_widget_path_iter_add_class(path, p1, is_up ? "up" : "down");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+    gtk_style_context_set_state(ctx, state_flags);
+
+    gtk_widget_path_free(path);
+    return ctx;
+}
+
 build_tab_context(GtkPositionType gap_side, GtkStateFlags state_flags)
 {
     GtkWidgetPath *path = gtk_widget_path_new();
@@ -2901,6 +2926,79 @@ build_tab_context(GtkPositionType gap_side, GtkStateFlags state_flags)
 
     gtk_widget_path_free(path);
     return ctx;
+}
+
+// -- tperry 20-06-2026: Render both spinbutton arrow buttons to a cairo surface.
+// flags mirrors the legacy moz_gtk_spinbutton_paint convention:
+//   GTK_POS_TOP    → up button is active/prelight
+//   GTK_POS_BOTTOM → down button is active/prelight
+//   0              → both buttons normal
+cairo_surface_t*
+moz_gtk_spinbutton_paint_to_surface(GdkRectangle *rect, GtkWidgetState *state, gint flags,
+                                     int *out_width, int *out_height)
+{
+    int width  = rect->width;
+    int height = rect->height;
+    if (out_width)  *out_width  = width;
+    if (out_height) *out_height = height;
+
+    cairo_t *cr;
+    cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+    int half = height / 2;
+
+    // Determine per-button state flags
+    GtkStateFlags up_state   = GTK_STATE_FLAG_NORMAL;
+    GtkStateFlags down_state = GTK_STATE_FLAG_NORMAL;
+
+    if (state && state->disabled)
+    {
+        up_state   = GTK_STATE_FLAG_INSENSITIVE;
+        down_state = GTK_STATE_FLAG_INSENSITIVE;
+    }
+    else
+    {
+        if (flags == GTK_POS_TOP)
+            up_state   = state->active ? GTK_STATE_FLAG_ACTIVE : GTK_STATE_FLAG_PRELIGHT;
+        if (flags == GTK_POS_BOTTOM)
+            down_state = state->active ? GTK_STATE_FLAG_ACTIVE : GTK_STATE_FLAG_PRELIGHT;
+    }
+
+    // Render up button (top half)
+    {
+        GtkStyleContext *ctx = build_spinbutton_button_context(true, up_state);
+
+        gtk_render_background(ctx, cr, 0, 0, width, half);
+        gtk_render_frame    (ctx, cr, 0, 0, width, half);
+
+        double arrow_size = MIN(width, half) * 0.5;
+        if (arrow_size < 1.0) arrow_size = 1.0;
+        gtk_render_arrow(ctx, cr, 0.0,
+                         (width  - arrow_size) / 2.0,
+                         (half   - arrow_size) / 2.0,
+                         arrow_size);
+        g_object_unref(ctx);
+    }
+
+    // Render down button (bottom half)
+    {
+        int bot_h = height - half;
+        GtkStyleContext *ctx = build_spinbutton_button_context(false, down_state);
+
+        gtk_render_background(ctx, cr, 0, half, width, bot_h);
+        gtk_render_frame    (ctx, cr, 0, half, width, bot_h);
+
+        double arrow_size = MIN(width, bot_h) * 0.5;
+        if (arrow_size < 1.0) arrow_size = 1.0;
+        gtk_render_arrow(ctx, cr, G_PI,
+                         (width - arrow_size) / 2.0,
+                         half + (bot_h - arrow_size) / 2.0,
+                         arrow_size);
+        g_object_unref(ctx);
+    }
+
+    cairo_destroy(cr);
+    return surface;
 }
 
 // -- tperry 20-06-2026: Render a notebook tab to a cairo surface (direct GTK3 path)

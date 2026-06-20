@@ -1717,6 +1717,11 @@ static GdkPixbuf* drawtheme_gtk3_direct(MCThemeDrawInfo &p_info)
 		surface = moz_gtk_tab_paint_to_surface(
 			&p_info.drect, &p_info.state, p_info.flags, &widget_width, &widget_height);
 	}
+	else if (p_info.moztype == MOZ_GTK_SPINBUTTON)
+	{
+		surface = moz_gtk_spinbutton_paint_to_surface(
+			&p_info.drect, &p_info.state, p_info.flags, &widget_width, &widget_height);
+	}
 	else if (p_info.moztype == MOZ_GTK_MENUITEMHIGHLIGHT)
 	{
 		surface = moz_gtk_menuitem_paint_to_surface(
@@ -2038,7 +2043,8 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 		    p_info->moztype == MOZ_GTK_FRAME ||
 		    p_info->moztype == MOZ_GTK_TOOLTIP ||
 		    p_info->moztype == MOZ_GTK_ENTRY_FRAME ||
-		    p_info->moztype == MOZ_GTK_ENTRY)
+		    p_info->moztype == MOZ_GTK_ENTRY ||
+		    p_info->moztype == MOZ_GTK_SPINBUTTON)
 		{
 			t_argb_image = drawtheme_gtk3_direct(*p_info);
 		}
