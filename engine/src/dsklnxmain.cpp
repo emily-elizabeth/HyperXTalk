@@ -30,6 +30,12 @@ void X_main_loop(void)
 
 int platform_main(int argc, char *argv[], char *envp[])
 {
+    // The engine relies on X11 APIs throughout.  Force GDK to use the X11
+    // backend before any GTK/GDK initialisation occurs, so that GTK3 does
+    // not pick the Wayland backend when WAYLAND_DISPLAY is set.
+    // XWayland provides DISPLAY=:0 on Wayland desktops, so X11 works fine.
+    setenv("GDK_BACKEND", "x11", 1 /* override */);
+
 	// On Linux, the argv and envp could be in pretty much any format. The
 	// safest thing to do is let the C library's iconv convert to a known
 	// format. To do this, the system locale needs to be retrieved.

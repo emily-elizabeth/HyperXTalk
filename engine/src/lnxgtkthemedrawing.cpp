@@ -73,16 +73,10 @@ static gint calculate_arrow_dimensions(GdkRectangle * rect, GdkRectangle * arrow
 static int create_count = 0;
 static int destroy_count = 0;
 
-// Wrapper to catch Cairo crashes
 static void safe_cairo_clip(cairo_t *cr, const char *caller) {
-    fprintf(stderr, "DEBUG: %s calling cairo_clip on context %p\n", caller, cr);
-    if (cr) {
-        cairo_status_t before = cairo_status(cr);
-        fprintf(stderr, "DEBUG: Context status before clip: %d (%s)\n", before, cairo_status_to_string(before));
-        // cairo_clip(cr); // -- tperry 15-11-2025: Disabled due to system Cairo 1.16.0 crash
-        cairo_status_t after = cairo_status(cr);
-        fprintf(stderr, "DEBUG: Context status after clip: %d (%s)\n", after, cairo_status_to_string(after));
-    }
+    (void)caller;
+    // cairo_clip(cr); // -- tperry 15-11-2025: Disabled due to system Cairo 1.16.0 crash
+    (void)cr;
 }
 
 cairo_t* moz_gdk_create_cairo_context(GdkWindow *window)
@@ -503,28 +497,16 @@ static int moz_gtk_generic_container_paint(GdkWindow * drawable,
 
 	// Create cairo context from drawable (GdkWindow in GTK3)
 	cairo_t *cr = moz_gdk_create_cairo_context((GdkWindow*)drawable);
-	fprintf(stderr, "DEBUG: moz_gtk_generic_container_paint got context %p\n", cr);
 	if (cliprect) {
-		fprintf(stderr, "DEBUG: Setting clip rectangle\n");
 		gdk_cairo_rectangle(cr, cliprect);
 		safe_cairo_clip(cr, "moz_gtk_generic_container_paint");
 	}
-	
+
 	// GTK3: Use gtk_render_background instead of gtk_paint_flat_box
-	fprintf(stderr, "DEBUG: About to call gtk_render_background with context %p, cairo %p\n", context, cr);
-	cairo_status_t pre_render = cairo_status(cr);
-	fprintf(stderr, "DEBUG: Cairo status before gtk_render_background: %d (%s)\n", pre_render, cairo_status_to_string(pre_render));
-	
 	gtk_render_background(context, cr,
 	                      rect->x, rect->y, rect->width, rect->height);
-	
-	fprintf(stderr, "DEBUG: gtk_render_background completed\n");
-	cairo_status_t post_render = cairo_status(cr);
-	fprintf(stderr, "DEBUG: Cairo status after gtk_render_background: %d (%s)\n", post_render, cairo_status_to_string(post_render));
-	
-	fprintf(stderr, "DEBUG: About to destroy cairo context %p\n", cr);
+
 	cairo_destroy(cr);
-	fprintf(stderr, "DEBUG: Cairo context destroyed\n");
 	return MOZ_GTK_SUCCESS;
 }
 
@@ -922,8 +904,6 @@ moz_gtk_progressbar_paint_to_surface(GdkRectangle * rect,
     cairo_set_source_rgba(cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
     cairo_paint(cr);
     
-    fprintf(stderr, "DEBUG progressbar trough: size=%dx%d using button bg color\n", width, height);
-    
     cairo_destroy(cr);
     
     return surface;
@@ -1003,9 +983,6 @@ moz_gtk_progress_chunk_paint_to_surface(GdkRectangle * rect,
     // Fill progress chunk with hilite color
     cairo_set_source_rgb(cr, red, green, blue);
     cairo_paint(cr);
-    
-    fprintf(stderr, "DEBUG progress chunk: size=%dx%d, hilite RGB=(%d,%d,%d)\n",
-            width, height, r, g, b);
     
     cairo_destroy(cr);
     
@@ -1496,22 +1473,7 @@ moz_gtk_toggle_paint_to_surface(GdkRectangle * rect,
     
     cairo_destroy(cr);
     gtk_style_context_restore(context);
-    
-    // DEBUG: Check corner pixel to see if transparency is preserved
-    cairo_surface_flush(surface);
-    unsigned char *data = cairo_image_surface_get_data(surface);
-    int stride = cairo_image_surface_get_stride(surface);
-    static int corner_debug = 0;
-    if (corner_debug < 1) {
-        // Check top-left corner (should be transparent)
-        unsigned char b = data[0];
-        unsigned char g = data[1];
-        unsigned char r = data[2];
-        unsigned char a = data[3];
-        fprintf(stderr, "DEBUG corner pixel: RGBA=(%d,%d,%d,%d)\n", r, g, b, a);
-        corner_debug++;
-    }
-    
+
     // Return the surface - caller must destroy it
     return surface;
 }
@@ -1587,25 +1549,6 @@ moz_gtk_toggle_paint(GdkWindow * drawable, GdkRectangle * rect,
         gtk_render_background(context, offscreen_cr, 0, 0, width, height);
         gtk_render_frame(context, offscreen_cr, 0, 0, width, height);
         gtk_render_check(context, offscreen_cr, 0, 0, width, height);
-    }
-    
-    // DEBUG: Check what was actually rendered
-    cairo_surface_flush(surface);
-    unsigned char *data = cairo_image_surface_get_data(surface);
-    int stride = cairo_image_surface_get_stride(surface);
-    
-    // Sample center pixel (BGRA format in cairo ARGB32)
-    int center_offset = (height/2) * stride + (width/2) * 4;
-    unsigned char b = data[center_offset + 0];
-    unsigned char g = data[center_offset + 1];
-    unsigned char r = data[center_offset + 2];
-    unsigned char a = data[center_offset + 3];
-    
-    static int debug_count = 0;
-    if (debug_count < 2) {
-        fprintf(stderr, "DEBUG %s: center pixel RGBA=(%d,%d,%d,%d) size=%dx%d target=(%d,%d)\n",
-                isradio ? "radio" : "check", r, g, b, a, width, height, x, y);
-        debug_count++;
     }
     
     // Composite offscreen surface to target
@@ -2156,13 +2099,13 @@ moz_gtk_frame_paint(GdkWindow * drawable, GdkRectangle * rect,
                     GdkRectangle * cliprect)
 {
 	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
-	
-	// Render base background first
-	GtkStyleContext *context = gtk_widget_get_style_context(gProtoWindow);
-	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
-	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
 
 	ensure_frame_widget();
+
+	// Render base background first
+	GtkStyleContext *context = gtk_widget_get_style_context(gFrameWidget);
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
 	
 	// Set clip region for frame
 	if (cliprect) {
@@ -2333,9 +2276,6 @@ moz_gtk_scale_track_paint(GtkThemeWidgetType type,
     // AL-2014-01-16: [[ Bug 11656 ]] Don't paint box around slider trough.
 	// moz_gtk_label_paint(drawable, rect, cliprect);
 
-	fprintf(stderr, "DEBUG: moz_gtk_scale_track_paint called, rect=%dx%d at (%d,%d)\n",
-	        rect->width, rect->height, rect->x, rect->y);
-
 	// Set widget size allocation
 	GtkAllocation allocation;
 	allocation.x = rect->x;
@@ -2378,9 +2318,6 @@ moz_gtk_scale_thumb_paint(GtkThemeWidgetType type,
                           GtkWidgetState * state)
 {
 	ensure_scale_widget();
-	
-	fprintf(stderr, "DEBUG: moz_gtk_scale_thumb_paint called, rect=%dx%d at (%d,%d)\n",
-	        rect->width, rect->height, rect->x, rect->y);
 	
 	GtkWidget *scale;
 	GtkOrientation orientation;
@@ -2827,7 +2764,7 @@ void moz_gtk_get_widget_color(GtkStateType state,
 	{
 		// For other states, use the window background
 		ensure_label_widget();
-		GtkStyleContext *context = gtk_widget_get_style_context(gProtoWindow);
+		GtkStyleContext *context = gtk_widget_get_style_context(gLabelWidget);
 		
 		// Convert GtkStateType to GtkStateFlags
 		GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
@@ -2854,9 +2791,9 @@ void moz_gtk_get_widget_fg_color(GtkStateFlags state_flags,
                                  uint2 &red, uint2 &green, uint2 &blue)
 {
     ensure_label_widget();
-    if (gProtoWindow == nullptr)
+    if (gLabelWidget == nullptr)
         return;
-    GtkStyleContext *context = gtk_widget_get_style_context(gProtoWindow);
+    GtkStyleContext *context = gtk_widget_get_style_context(gLabelWidget);
     GdkRGBA color = {0, 0, 0, 1};
     gtk_style_context_get_color(context, state_flags, &color);
     red   = (uint2)(color.red   * 65535.0);

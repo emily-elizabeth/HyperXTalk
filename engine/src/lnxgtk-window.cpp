@@ -210,47 +210,12 @@ GdkWindow* MCGTKWindow::GetGdkWindow()
 
 void MCGTKWindow::AddWidget(GtkWidget* widget, int x, int y)
 {
-    fprintf(stderr, "DEBUG: MCGTKWindow::AddWidget called, this=%p, widget=%p, x=%d, y=%d\n",
-            this, widget, x, y);
-    
-    if (this == nullptr)
-    {
-        fprintf(stderr, "FATAL ERROR: MCGTKWindow::AddWidget called with null 'this' pointer!\n");
+    if (m_container == nullptr || widget == nullptr)
         return;
-    }
-    
-    fprintf(stderr, "DEBUG: About to check m_container=%p\n", m_container);
-    
-    if (m_container == nullptr)
-    {
-        fprintf(stderr, "ERROR: MCGTKWindow::AddWidget called but m_container is null!\n");
+    if (!GTK_IS_FIXED(m_container) || !GTK_IS_WIDGET(widget))
         return;
-    }
-    
-    if (widget == nullptr)
-    {
-        fprintf(stderr, "ERROR: MCGTKWindow::AddWidget called with null widget!\n");
-        return;
-    }
-    
-    if (!GTK_IS_FIXED(m_container))
-    {
-        fprintf(stderr, "ERROR: m_container is not a GtkFixed! Type: %s\n", 
-                G_OBJECT_TYPE_NAME(m_container));
-        return;
-    }
-    
-    if (!GTK_IS_WIDGET(widget))
-    {
-        fprintf(stderr, "ERROR: widget is not a GtkWidget! Type: %s\n",
-                G_OBJECT_TYPE_NAME(widget));
-        return;
-    }
-    
-    fprintf(stderr, "DEBUG: All checks passed, calling FixedPut\n");
     MCGTKWidget::FixedPut(m_container, widget, x, y);
     MCGTKWidget::Show(widget);
-    fprintf(stderr, "DEBUG: AddWidget completed successfully\n");
 }
 
 void MCGTKWindow::MoveWidget(GtkWidget* widget, int x, int y)

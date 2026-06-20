@@ -1937,26 +1937,6 @@ static GdkPixbuf* drawtheme_calc_alpha (MCThemeDrawInfo &p_info)
 	// GTK3 already provides proper RGBA, the alpha calculation destroys the colors
 	if (p_info.moztype == MOZ_GTK_CHECKBUTTON || p_info.moztype == MOZ_GTK_RADIOBUTTON)
 	{
-		// DEBUG: Check what's in BOTH pixbufs
-		static int pb_debug = 0;
-		if (pb_debug < 1) {
-			guchar *white_data = gdk_pixbuf_get_pixels(t_pb_white);
-			guchar *black_data = gdk_pixbuf_get_pixels(t_pb_black);
-			int stride = gdk_pixbuf_get_rowstride(t_pb_white);
-			int center_offset = (t_h/2) * stride + (t_w/2) * 4;
-			fprintf(stderr, "DEBUG white pixbuf: R=%d G=%d B=%d A=%d\n",
-			        white_data[center_offset + 0],
-			        white_data[center_offset + 1],
-			        white_data[center_offset + 2],
-			        white_data[center_offset + 3]);
-			fprintf(stderr, "DEBUG black pixbuf: R=%d G=%d B=%d A=%d\n",
-			        black_data[center_offset + 0],
-			        black_data[center_offset + 1],
-			        black_data[center_offset + 2],
-			        black_data[center_offset + 3]);
-			pb_debug++;
-		}
-		
 		// Just return the white-background pixbuf, free the black one
 		g_object_unref(t_pb_black);
 		gtk_widget_destroy(t_offscreen_black);
@@ -2029,17 +2009,6 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 	t_raster.height = gdk_pixbuf_get_height(t_argb_image);
 	t_raster.stride = gdk_pixbuf_get_rowstride(t_argb_image);
 	t_raster.pixels = gdk_pixbuf_get_pixels(t_argb_image);
-	
-	// DEBUG: Check pixbuf format
-	static int format_debug = 0;
-	if (format_debug < 1) {
-		int n_channels = gdk_pixbuf_get_n_channels(t_argb_image);
-		int bits_per_sample = gdk_pixbuf_get_bits_per_sample(t_argb_image);
-		gboolean has_alpha = gdk_pixbuf_get_has_alpha(t_argb_image);
-		fprintf(stderr, "DEBUG pixbuf: channels=%d bits=%d has_alpha=%d\n",
-		        n_channels, bits_per_sample, has_alpha);
-		format_debug++;
-	}
 	
 	t_raster.format = kMCGRasterFormat_ARGB;
 	

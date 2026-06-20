@@ -214,6 +214,7 @@ Boolean MCScreenDC::open()
     initialise_required_weak_link_X11();
 
     // Initialize GTK (only if not already initialized)
+    // Note: GDK_BACKEND=x11 is set early in platform_main (dsklnxmain.cpp)
     static bool gtk_initialized = false;
     if (!gtk_initialized) {
         int argc = 0;
@@ -308,7 +309,12 @@ Boolean MCScreenDC::open()
 	MCimagecache = new (nothrow) MCXImageCache ;
 
     if (MCdisplayname == NULL)
-        MCdisplayname = gdk_get_display();
+    {
+        // gdk_get_display() returns the Wayland socket name on Wayland
+        // sessions; we need an X11 display name, so read $DISPLAY directly.
+        const gchar *t_x11_display = g_getenv("DISPLAY");
+        MCdisplayname = (char *)(t_x11_display ? t_x11_display : gdk_get_display());
+    }
 
 	if ((dpy = gdk_display_open(MCdisplayname)) == NULL)
 	{
@@ -354,17 +360,20 @@ Boolean MCScreenDC::open()
             displayname.Reset(t_displayname_asname.Take());
         }
     }
-	{
+    if (XDisplay != nullptr)
+    {
         MCAutoStringRef t_vendor_string, t_vendor;
         MCNewAutoNameRef t_vendorname;
-        if (MCStringCreateWithSysString(x11::XServerVendor(XDisplay), &t_vendor) &&
+        const char *t_vendor_cstr = x11::XServerVendor(XDisplay);
+        if (t_vendor_cstr != nullptr &&
+            MCStringCreateWithSysString(t_vendor_cstr, &t_vendor) &&
             MCStringFormat(&t_vendor_string, "%@ %d", *t_vendor,
                            x11::XVendorRelease(XDisplay)) &&
             MCNameCreate(*t_vendor_string, &t_vendorname))
         {
             vendorname.Reset(t_vendorname.Take());
         }
-	}
+    }
 
 #ifdef SYNCMODE
     // TODO: equivalent in GDK?
@@ -1091,15 +1100,7 @@ MCBitmap *MCScreenDC::createimage(uint16_t depth, uint16_t width, uint16_t heigh
 void MCScreenDC::destroyimage(MCBitmap *image)
 {
     if (image != NULL && G_IS_OBJECT(image))
-    {
-        fprintf(stderr, "DEBUG: destroyimage calling g_object_unref on %p\n", image);
         g_object_unref(image);
-        fprintf(stderr, "DEBUG: destroyimage g_object_unref completed for %p\n", image);
-    }
-    else if (image != NULL)
-    {
-        fprintf(stderr, "DEBUG: destroyimage skipping invalid GObject pointer %p\n", image);
-    }
 }
 
 void MCScreenDC::putimage(Drawable d, MCBitmap *source, int2 sx, int2 sy,
