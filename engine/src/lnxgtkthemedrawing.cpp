@@ -847,8 +847,13 @@ moz_gtk_scrollbar_trough_paint_to_surface(GtkThemeWidgetType widget,
     // Get button background color for the track (same as progress bar and scale track)
     ensure_button_widget();
     GtkStyleContext *button_context = gtk_widget_get_style_context(gButtonWidget);
-    GdkRGBA bg_color;
-    gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
+    GdkRGBA bg_color = {0.8, 0.8, 0.8, 1.0};
+    if (!gtk_style_context_lookup_color(button_context, "theme_bg_color", &bg_color))
+    {
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+        gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    }
     
     // Fill track with button background color
     cairo_set_source_rgba(cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
@@ -897,8 +902,13 @@ moz_gtk_progressbar_paint_to_surface(GdkRectangle * rect,
     // Get button background color for the trough
     ensure_button_widget();
     GtkStyleContext *button_context = gtk_widget_get_style_context(gButtonWidget);
-    GdkRGBA bg_color;
-    gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
+    GdkRGBA bg_color = {0.8, 0.8, 0.8, 1.0};
+    if (!gtk_style_context_lookup_color(button_context, "theme_bg_color", &bg_color))
+    {
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+        gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    }
     
     // Fill trough with button background color
     cairo_set_source_rgba(cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
@@ -1029,8 +1039,13 @@ moz_gtk_scale_track_paint_to_surface(GtkThemeWidgetType type,
     // Get button background color for the track
     ensure_button_widget();
     GtkStyleContext *button_context = gtk_widget_get_style_context(gButtonWidget);
-    GdkRGBA bg_color;
-    gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
+    GdkRGBA bg_color = {0.8, 0.8, 0.8, 1.0};
+    if (!gtk_style_context_lookup_color(button_context, "theme_bg_color", &bg_color))
+    {
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+        gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    }
     
     // Fill track with button background color
     cairo_set_source_rgba(cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
@@ -2736,52 +2751,87 @@ moz_gtk_tab_paint(GdkWindow * drawable, GdkRectangle * rect,
 void moz_gtk_get_widget_color(GtkStateType state,
                               uint2 &red,uint2 &green,uint2 &blue)
 {
-	GdkRGBA rgba;
-	
+	// gtk_style_context_get_background_color() was deprecated in GTK 3.16 and
+	// returns black (0,0,0,1) on modern themes that use CSS nodes/gradients
+	// rather than simple GdkRGBA properties.  We use named theme colors instead,
+	// falling back to a render-and-sample approach if the named colors are absent.
+
+	GdkRGBA rgba = {0.0, 0.0, 0.0, 1.0};
+
+	// GTK3 style contexts are available on unrealized widgets; ensure we have one.
+	ensure_label_widget();
+	GtkStyleContext *ctx = gtk_widget_get_style_context(gLabelWidget);
+
 	if (state == GTK_STATE_SELECTED)
 	{
-		// For selected state, get the theme's selected background color
-		// GTK3 requires widgets to be anchored before realizing them
-		GtkWidget *window = gtk_offscreen_window_new();
-		GtkWidget *textview = gtk_text_view_new();
-		gtk_container_add(GTK_CONTAINER(window), textview);
-		gtk_widget_realize(textview);
-		
-		GtkStyleContext *context = gtk_widget_get_style_context(textview);
-		
-		// Add the :selected pseudo-class to get the selection color
-		gtk_style_context_save(context);
-		gtk_style_context_set_state(context, GTK_STATE_FLAG_SELECTED);
-		gtk_style_context_add_class(context, "view");
-		
-		// Get the background color for selected state
-		gtk_style_context_get_background_color(context, GTK_STATE_FLAG_SELECTED, &rgba);
-		
-		gtk_style_context_restore(context);
-		gtk_widget_destroy(window);
+		// Most GTK3 themes define @theme_selected_bg_color.
+		// GNOME 42+ / libadwaita themes use @accent_bg_color instead.
+		if (!gtk_style_context_lookup_color(ctx, "theme_selected_bg_color", &rgba) &&
+		    !gtk_style_context_lookup_color(ctx, "accent_bg_color", &rgba))
+		{
+			// Last resort: render a GtkListBoxRow in selected state to a tiny
+			// surface and sample the centre pixel.
+			GtkWidget *window  = gtk_offscreen_window_new();
+			GtkWidget *listbox = gtk_list_box_new();
+			GtkWidget *row     = gtk_list_box_row_new();
+			gtk_container_add(GTK_CONTAINER(listbox), row);
+			gtk_container_add(GTK_CONTAINER(window),  listbox);
+			gtk_widget_show_all(window);
+			gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row));
+
+			GtkStyleContext *row_ctx = gtk_widget_get_style_context(row);
+			cairo_surface_t *surface =
+			    cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 4, 4);
+			cairo_t *cr = cairo_create(surface);
+			gtk_style_context_save(row_ctx);
+			gtk_style_context_set_state(row_ctx,
+			    (GtkStateFlags)(GTK_STATE_FLAG_SELECTED | GTK_STATE_FLAG_FOCUSED));
+			gtk_render_background(row_ctx, cr, 0, 0, 4, 4);
+			gtk_style_context_restore(row_ctx);
+			cairo_destroy(cr);
+
+			cairo_surface_flush(surface);
+			unsigned char *data   = cairo_image_surface_get_data(surface);
+			int            stride = cairo_image_surface_get_stride(surface);
+			// Centre pixel; CAIRO_FORMAT_ARGB32 is pre-multiplied BGRA on LE
+			unsigned char *px = data + 2 * stride + 2 * 4;
+			unsigned char  a  = px[3];
+			if (a > 0)
+			{
+				rgba.red   = px[2] / (double)a;
+				rgba.green = px[1] / (double)a;
+				rgba.blue  = px[0] / (double)a;
+			}
+			rgba.alpha = 1.0;
+
+			cairo_surface_destroy(surface);
+			gtk_widget_destroy(window);
+		}
 	}
 	else
 	{
-		// For other states, use the window background
-		ensure_label_widget();
-		GtkStyleContext *context = gtk_widget_get_style_context(gLabelWidget);
-		
-		// Convert GtkStateType to GtkStateFlags
-		GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
-		if (state == GTK_STATE_ACTIVE)
-			state_flags = GTK_STATE_FLAG_ACTIVE;
-		else if (state == GTK_STATE_PRELIGHT)
-			state_flags = GTK_STATE_FLAG_PRELIGHT;
-		else if (state == GTK_STATE_INSENSITIVE)
-			state_flags = GTK_STATE_FLAG_INSENSITIVE;
-		
-		gtk_style_context_get_background_color(context, state_flags, &rgba);
+		// Normal / active / insensitive: try @theme_bg_color first.
+		if (!gtk_style_context_lookup_color(ctx, "theme_bg_color", &rgba))
+		{
+			// Fallback: ask the style context directly (may return black on
+			// some newer themes, but it is acceptable for non-selected state).
+			GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+			if (state == GTK_STATE_ACTIVE)
+				state_flags = GTK_STATE_FLAG_ACTIVE;
+			else if (state == GTK_STATE_PRELIGHT)
+				state_flags = GTK_STATE_FLAG_PRELIGHT;
+			else if (state == GTK_STATE_INSENSITIVE)
+				state_flags = GTK_STATE_FLAG_INSENSITIVE;
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+			gtk_style_context_get_background_color(ctx, state_flags, &rgba);
+G_GNUC_END_IGNORE_DEPRECATIONS
+		}
 	}
-	
-	// Convert from 0.0-1.0 range to 16-bit
-	red = (uint2)(rgba.red * 65535.0);
-	green = (uint2)(rgba.green * 65535.0);
-	blue = (uint2)(rgba.blue * 65535.0);
+
+	// Clamp to [0,1] before scaling to avoid overflow on pre-multiplied samples
+	red   = (uint2)(CLAMP(rgba.red,   0.0, 1.0) * 65535.0);
+	green = (uint2)(CLAMP(rgba.green, 0.0, 1.0) * 65535.0);
+	blue  = (uint2)(CLAMP(rgba.blue,  0.0, 1.0) * 65535.0);
 }
 
 // -- HyperXTalk: Read the foreground (text) colour for the given GTK state.
@@ -2826,9 +2876,14 @@ moz_gtk_tabpanels_paint_to_surface(GdkRectangle * rect, int y, int w,
 	// Get button background color (same as scrollbar track, progress bar trough)
 	ensure_button_widget();
 	GtkStyleContext *button_context = gtk_widget_get_style_context(gButtonWidget);
-	GdkRGBA bg_color;
-	gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
-	
+	GdkRGBA bg_color = {0.8, 0.8, 0.8, 1.0};
+	if (!gtk_style_context_lookup_color(button_context, "theme_bg_color", &bg_color))
+	{
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+		gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
+G_GNUC_END_IGNORE_DEPRECATIONS
+	}
+
 	// Fill tab panel background with button background color
 	cairo_set_source_rgba(cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
 	cairo_rectangle(cr, 0, 0, width, height);
@@ -2858,9 +2913,14 @@ moz_gtk_tabpanels_paint(GdkWindow * drawable, GdkRectangle * rect,
 	// Get button background color (same as scrollbar track, progress bar trough)
 	ensure_button_widget();
 	GtkStyleContext *button_context = gtk_widget_get_style_context(gButtonWidget);
-	GdkRGBA bg_color;
-	gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
-	
+	GdkRGBA bg_color = {0.8, 0.8, 0.8, 1.0};
+	if (!gtk_style_context_lookup_color(button_context, "theme_bg_color", &bg_color))
+	{
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+		gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
+G_GNUC_END_IGNORE_DEPRECATIONS
+	}
+
 	// Fill tab panel background with button background color
 	cairo_set_source_rgba(cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
 	cairo_rectangle(cr, rect->x, rect->y, rect->width, rect->height);
