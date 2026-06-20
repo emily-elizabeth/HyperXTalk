@@ -25,7 +25,7 @@
 		# whose pnglibconf.h was built against system zlib 1.3.1, but our bundled
 		# libz is 1.3.2 — causing a version-check #error in pngpriv.h.  The
 		# bundled thirdparty/libpng/include (PNG_ZLIB_VERNUM=0, no check) must win.
-		'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I//g" | tr " " "\n" | grep -v libpng | tr "\n" " ")',
+		'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I[^ ]*libpng[^ ]*//g" | sed "s/-I//g")',
 		'../thirdparty/headers/linux/include',
 		'../thirdparty/libcairo/src',			# Required by the GDK headers
 		'../thirdparty/libfreetype/include',	# Required by the Pango headers
