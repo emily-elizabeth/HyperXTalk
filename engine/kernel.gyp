@@ -86,7 +86,9 @@
 
 						'link_settings':
 						{
-							'ldflags':
+							# GYP 'libraries' propagates -l flags from static libs to
+							# the final linker; 'ldflags' is for -Wl,... options only.
+							'libraries':
 							[
 								'<!@(pkg-config --libs gtk+-3.0 gtk+-unix-print-3.0 2>/dev/null)',
 							],

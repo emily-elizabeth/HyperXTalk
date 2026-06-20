@@ -2155,29 +2155,17 @@ virtual real64_t GetCurrentMicroseconds(void)
         if (!t_message_utf8 . Lock(p_message))
             return;
         
-        typedef GtkMessageDialog *(*gtk_message_dialog_newPTR)(GtkWindow *parent,
-                                                               GtkDialogFlags flags,
-                                                               GtkMessageType type,
-                                                               GtkButtonsType buttons,
-                                                               const gchar *message_format,
-                                                               ...);
-        extern gtk_message_dialog_newPTR gtk_message_dialog_new_ptr;
-        
-        GtkMessageDialog *t_dialog;
-        t_dialog = gtk_message_dialog_new_ptr(NULL,
-                                              GTK_DIALOG_MODAL,
-                                              GTK_MESSAGE_INFO,
-                                              GTK_BUTTONS_CLOSE,
-                                              "%s",
-                                              *t_title_utf8);
-        
-        typedef void (*gtk_message_dialog_format_secondary_textPTR)(GtkMessageDialog *message_dialog,
-                                                                    const gchar *message_format,
-                                                                    ...);
-        extern gtk_message_dialog_format_secondary_textPTR gtk_message_dialog_format_secondary_text_ptr;
-        gtk_message_dialog_format_secondary_text_ptr(t_dialog,
-                                                     "%s",
-                                                     *t_message_utf8);
+        // GTK3: call GTK directly (removed weak-stub _ptr indirection)
+        GtkWidget *t_dialog;
+        t_dialog = gtk_message_dialog_new(NULL,
+                                          GTK_DIALOG_MODAL,
+                                          GTK_MESSAGE_INFO,
+                                          GTK_BUTTONS_CLOSE,
+                                          "%s",
+                                          *t_title_utf8);
+        gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(t_dialog),
+                                                 "%s",
+                                                 *t_message_utf8);
         gtk_dialog_run(GTK_DIALOG(t_dialog));
         gtk_widget_destroy(GTK_WIDGET(t_dialog));
     }
