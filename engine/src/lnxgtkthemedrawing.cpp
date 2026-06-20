@@ -1032,18 +1032,36 @@ moz_gtk_scale_track_paint_to_surface(GtkThemeWidgetType type,
 {
     int width = rect->width;
     int height = rect->height;
-    
+
     if (out_width) *out_width = width;
     if (out_height) *out_height = height;
-    
+
     bool is_horizontal = (type == MOZ_GTK_SCALE_TRACK_HORIZONTAL);
 
     cairo_t *cr;
     cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
 
     GtkStyleContext *ctx = build_scale_trough_context(is_horizontal, GTK_STATE_FLAG_NORMAL);
-    gtk_render_background(ctx, cr, 0, 0, width, height);
-    gtk_render_frame    (ctx, cr, 0, 0, width, height);
+
+    // GTK3 scale troughs are a thin strip - query CSS min-size, then center in rect
+    gint trough_thick = 0;
+    gtk_style_context_get(ctx, GTK_STATE_FLAG_NORMAL,
+        is_horizontal ? "min-height" : "min-width", &trough_thick, NULL);
+    if (trough_thick < 2) trough_thick = 4; // fallback if theme doesn't set it
+
+    double tx, ty, tw, th;
+    if (is_horizontal) {
+        tx = 0;      tw = width;
+        ty = (height - trough_thick) / 2.0;
+        th = trough_thick;
+    } else {
+        ty = 0;      th = height;
+        tx = (width - trough_thick) / 2.0;
+        tw = trough_thick;
+    }
+
+    gtk_render_background(ctx, cr, tx, ty, tw, th);
+    gtk_render_frame    (ctx, cr, tx, ty, tw, th);
     g_object_unref(ctx);
 
     cairo_destroy(cr);
@@ -1059,10 +1077,10 @@ moz_gtk_scale_thumb_paint_to_surface(GtkThemeWidgetType type,
 {
     int width = rect->width;
     int height = rect->height;
-    
+
     if (out_width) *out_width = width;
     if (out_height) *out_height = height;
-    
+
     bool is_horizontal = (type == MOZ_GTK_SCALE_THUMB_HORIZONTAL);
 
     GtkStateFlags sf = GTK_STATE_FLAG_NORMAL;
@@ -1074,8 +1092,21 @@ moz_gtk_scale_thumb_paint_to_surface(GtkThemeWidgetType type,
     cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
 
     GtkStyleContext *ctx = build_scale_slider_context(is_horizontal, sf);
-    gtk_render_background(ctx, cr, 0, 0, width, height);
-    gtk_render_frame    (ctx, cr, 0, 0, width, height);
+
+    // Query natural thumb size from CSS; fall back to a sensible square
+    gint thumb_w = 0, thumb_h = 0;
+    gtk_style_context_get(ctx, sf,
+        "min-width",  &thumb_w,
+        "min-height", &thumb_h, NULL);
+    if (thumb_w < 4) thumb_w = MIN(width,  14);
+    if (thumb_h < 4) thumb_h = MIN(height, 14);
+
+    // Center the thumb within the allocated rect
+    double tx = (width  - thumb_w) / 2.0;
+    double ty = (height - thumb_h) / 2.0;
+
+    gtk_render_background(ctx, cr, tx, ty, thumb_w, thumb_h);
+    gtk_render_frame    (ctx, cr, tx, ty, thumb_w, thumb_h);
     g_object_unref(ctx);
 
     cairo_destroy(cr);
