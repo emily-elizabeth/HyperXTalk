@@ -1393,8 +1393,11 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo & winfo,
 	gint flags = 0;
 	GtkWidgetState state = getpartandstate(winfo, moztype, flags);
 
-	
-	
+	{
+		FILE *_f = fopen("/tmp/hxt_themedraw.txt", "a");
+		if (_f) { fprintf(_f, "drawwidget type=%d moztype=%d rect=%dx%d\n", (int)winfo.type, (int)moztype, rect.width, rect.height); fclose(_f); }
+	}
+
 	switch(winfo.type)
 	{
 	case WTHEME_TYPE_TABPANE:
@@ -2012,6 +2015,10 @@ static GdkPixbuf* drawtheme_calc_alpha (MCThemeDrawInfo &p_info)
 
 bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInfo *p_info)
 {
+	{
+		FILE *_f = fopen("/tmp/hxt_themedraw.txt", "a");
+		if (_f) { fprintf(_f, "MCThemeDraw moztype=%d drect=%dx%d\n", p_info->moztype, p_info->drect.width, p_info->drect.height); fclose(_f); }
+	}
 	MCXImageCacheNode *cache_node = NULL ;
 	GdkPixbuf* t_argb_image ;
 	bool t_cached ;
