@@ -1025,130 +1025,55 @@ moz_gtk_scale_track_paint_to_surface(GtkThemeWidgetType type,
                                       GdkRectangle * rect,
                                       int *out_width, int *out_height)
 {
-    ensure_scale_widget();
-    
-    GtkWidget *scale;
-    if (type == MOZ_GTK_SCALE_TRACK_HORIZONTAL)
-        scale = gHScaleWidget;
-    else
-        scale = gVScaleWidget;
-    
     int width = rect->width;
     int height = rect->height;
     
     if (out_width) *out_width = width;
     if (out_height) *out_height = height;
     
-    // Set widget size allocation
-    GtkAllocation allocation;
-    allocation.x = 0;
-    allocation.y = 0;
-    allocation.width = width;
-    allocation.height = height;
-    gtk_widget_size_allocate(scale, &allocation);
-    
-    // Clear the alloc_needed flag
-    GtkRequisition minimum_size, natural_size;
-    gtk_widget_get_preferred_size(scale, &minimum_size, &natural_size);
-    
-    // Create surface for rendering
-    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
-    cairo_t *cr = cairo_create(surface);
-    
-    // Get button background color for the track
-    ensure_button_widget();
-    GtkStyleContext *button_context = gtk_widget_get_style_context(gButtonWidget);
-    GdkRGBA bg_color = {0.8, 0.8, 0.8, 1.0};
-    if (!gtk_style_context_lookup_color(button_context, "theme_bg_color", &bg_color))
-    {
-G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-        gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
-G_GNUC_END_IGNORE_DEPRECATIONS
-    }
-    
-    // Fill track with button background color
-    cairo_set_source_rgba(cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
-    cairo_paint(cr);
-    
+    bool is_horizontal = (type == MOZ_GTK_SCALE_TRACK_HORIZONTAL);
+
+    cairo_t *cr;
+    cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+    GtkStyleContext *ctx = build_scale_trough_context(is_horizontal, GTK_STATE_FLAG_NORMAL);
+    gtk_render_background(ctx, cr, 0, 0, width, height);
+    gtk_render_frame    (ctx, cr, 0, 0, width, height);
+    g_object_unref(ctx);
+
     cairo_destroy(cr);
-    cairo_surface_flush(surface);
-    
     return surface;
 }
 
-// -- tperry 16-11-2025: New function to render scale thumb (slider knob) using gtk_widget_draw
-// *** Uses same approach as progress bars - DO NOT break progress bars when modifying! ***
+// -- tperry 20-06-2026: Render scale thumb using GTK3 CSS node path (scale > trough > slider)
 cairo_surface_t*
 moz_gtk_scale_thumb_paint_to_surface(GtkThemeWidgetType type,
                                       GdkRectangle * rect,
                                       GtkWidgetState * state,
                                       int *out_width, int *out_height)
 {
-    ensure_scale_widget();
-    
-    GtkWidget *scale;
-    if (type == MOZ_GTK_SCALE_THUMB_HORIZONTAL)
-        scale = gHScaleWidget;
-    else
-        scale = gVScaleWidget;
-    
-    GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(scale));
-    
     int width = rect->width;
     int height = rect->height;
     
     if (out_width) *out_width = width;
     if (out_height) *out_height = height;
     
-    // Set adjustment values to position the slider
-    gtk_adjustment_set_lower(adj, 0);
-    gtk_adjustment_set_upper(adj, state->maxpos);
-    gtk_adjustment_set_value(adj, state->curpos);
-    gtk_adjustment_set_page_size(adj, 0);  // Scales don't have page size
-    
-    // Process events so GTK updates the slider position
-    while (gtk_events_pending())
-        gtk_main_iteration();
-    
-    // Set widget size allocation - make it large enough for the full scale
-    int full_width = (type == MOZ_GTK_SCALE_THUMB_HORIZONTAL) ? state->maxpos : width;
-    int full_height = (type == MOZ_GTK_SCALE_THUMB_VERTICAL) ? state->maxpos : height;
-    
-    GtkAllocation allocation;
-    allocation.x = 0;
-    allocation.y = 0;
-    allocation.width = full_width;
-    allocation.height = full_height;
-    gtk_widget_size_allocate(scale, &allocation);
-    
-    // Clear the alloc_needed flag
-    GtkRequisition minimum_size, natural_size;
-    gtk_widget_get_preferred_size(scale, &minimum_size, &natural_size);
-    
-    // Get the slider (thumb) position within the scale
-    gint slider_start, slider_end;
-    gtk_range_get_slider_range(GTK_RANGE(scale), &slider_start, &slider_end);
-    
-    // Create surface for rendering
-    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
-    cairo_t *cr = cairo_create(surface);
-    
-    // Get the hilite color (same as LiveCode's "get the hilitecolor")
-    uint2 r, g, b;
-    moz_gtk_get_widget_color(GTK_STATE_SELECTED, r, g, b);
-    
-    // Convert from uint16 (0-65535) to double (0.0-1.0)
-    double red = r / 65535.0;
-    double green = g / 65535.0;
-    double blue = b / 65535.0;
-    
-    // Fill thumb with hilite color
-    cairo_set_source_rgb(cr, red, green, blue);
-    cairo_paint(cr);
-    
+    bool is_horizontal = (type == MOZ_GTK_SCALE_THUMB_HORIZONTAL);
+
+    GtkStateFlags sf = GTK_STATE_FLAG_NORMAL;
+    if (state && state->disabled)        sf = GTK_STATE_FLAG_INSENSITIVE;
+    else if (state && state->active)     sf = (GtkStateFlags)(sf | GTK_STATE_FLAG_ACTIVE);
+    else if (state && state->inHover)    sf = (GtkStateFlags)(sf | GTK_STATE_FLAG_PRELIGHT);
+
+    cairo_t *cr;
+    cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+    GtkStyleContext *ctx = build_scale_slider_context(is_horizontal, sf);
+    gtk_render_background(ctx, cr, 0, 0, width, height);
+    gtk_render_frame    (ctx, cr, 0, 0, width, height);
+    g_object_unref(ctx);
+
     cairo_destroy(cr);
-    cairo_surface_flush(surface);
-    
     return surface;
 }
 
@@ -2863,6 +2788,53 @@ moz_gtk_optionbutton_paint(GdkWindow * drawable, GdkRectangle * area,
 //   notebook > header.{top|bottom|left|right} > tabs > tab
 // A 2-level path (notebook > tab) doesn't match Adwaita's CSS selectors and
 // produces transparent output.  We build the full 4-level hierarchy here.
+// -- tperry 20-06-2026: Build a style context for a GtkScale trough (track).
+// GTK3 CSS node path: scale.horizontal > trough  (or scale.vertical > trough)
+static GtkStyleContext*
+build_scale_trough_context(bool is_horizontal, GtkStateFlags state_flags)
+{
+    GtkWidgetPath *path = gtk_widget_path_new();
+
+    gint p0 = gtk_widget_path_append_type(path, GTK_TYPE_SCALE);
+    gtk_widget_path_iter_set_object_name(path, p0, "scale");
+    gtk_widget_path_iter_add_class(path, p0, is_horizontal ? "horizontal" : "vertical");
+
+    gint p1 = gtk_widget_path_append_type(path, GTK_TYPE_WIDGET);
+    gtk_widget_path_iter_set_object_name(path, p1, "trough");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+    gtk_style_context_set_state(ctx, state_flags);
+    gtk_widget_path_free(path);
+    return ctx;
+}
+
+// -- tperry 20-06-2026: Build a style context for a GtkScale slider (thumb).
+// GTK3 CSS node path: scale.horizontal > trough > slider
+static GtkStyleContext*
+build_scale_slider_context(bool is_horizontal, GtkStateFlags state_flags)
+{
+    GtkWidgetPath *path = gtk_widget_path_new();
+
+    gint p0 = gtk_widget_path_append_type(path, GTK_TYPE_SCALE);
+    gtk_widget_path_iter_set_object_name(path, p0, "scale");
+    gtk_widget_path_iter_add_class(path, p0, is_horizontal ? "horizontal" : "vertical");
+
+    gint p1 = gtk_widget_path_append_type(path, GTK_TYPE_WIDGET);
+    gtk_widget_path_iter_set_object_name(path, p1, "trough");
+
+    gint p2 = gtk_widget_path_append_type(path, GTK_TYPE_WIDGET);
+    gtk_widget_path_iter_set_object_name(path, p2, "slider");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+    gtk_style_context_set_state(ctx, state_flags);
+    gtk_widget_path_free(path);
+    return ctx;
+}
+
 // -- tperry 20-06-2026: Build a style context for one half of a GtkSpinButton.
 // GTK3 CSS node path: spinbutton > button.up  or  spinbutton > button.down
 static GtkStyleContext*
