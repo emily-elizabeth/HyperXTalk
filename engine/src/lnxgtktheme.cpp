@@ -179,6 +179,10 @@ static GtkWidgetState getpartandstate(const MCWidgetInfo &winfo, GtkThemeWidgetT
 	case WTHEME_TYPE_OPTIONBUTTON:
 		moztype = MOZ_GTK_OPTIONBUTTON;
 		break;
+	case WTHEME_TYPE_PULLDOWN:
+		// GTK has no distinct pulldown-menu button widget; render as a regular button
+		moztype = MOZ_GTK_BUTTON;
+		break;
 	case WTHEME_TYPE_TOOLTIP:
 		moztype = MOZ_GTK_TOOLTIP;
 		break;
