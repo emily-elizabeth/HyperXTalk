@@ -227,32 +227,26 @@ void MCStack::realize()
 		if (t_rect.height == 0)
 			t_rect.height = MCminsize << 3;
 
-		// -- tperry 12-11-2025: Check if we should use GTK3/4 native windows
+		// -- tperry 12-11-2025: GTK3/4 native window path (disabled: use_gtk34_windows()
+		// always returns false; MCGTKWindow prototype not wired up in HXT).
+#if 0
 		if (use_gtk34_windows())
 		{
-			// Create GTK3/4 window
 			m_gtk_window = new MCGTKWindow();
 			if (m_gtk_window->Create(this, t_rect.x, t_rect.y, t_rect.width, t_rect.height))
 			{
-				// Set window title
 				MCAutoStringRefAsCString t_title_cstring;
 				if (t_title_cstring.Lock(titlestring))
 					m_gtk_window->SetTitle(*t_title_cstring);
-
-				// Get the underlying GdkWindow for compatibility
 				window = m_gtk_window->GetGdkWindow();
-
-				fprintf(stderr, "Created GTK3/4 window for stack '%s' (%dx%d at %d,%d)\n",
-				        *t_title_cstring, t_rect.width, t_rect.height, t_rect.x, t_rect.y);
 			}
 			else
 			{
-				fprintf(stderr, "Warning: Failed to create GTK3/4 window, falling back to GdkWindow\n");
 				delete m_gtk_window;
 				m_gtk_window = nullptr;
-				// Fall through to create legacy GdkWindow
 			}
 		}
+#endif
 
 		// Create legacy GdkWindow if GTK3/4 not enabled or failed
 		if (window == nullptr)
