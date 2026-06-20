@@ -753,8 +753,11 @@ typedef MCSysWindowHandle Drawable;
 #include <gdk/gdk.h>
 
 typedef GdkWindow*      Window;
-typedef GdkPixmap*      Pixmap;
-typedef GdkDrawable*    Drawable;
+// GTK3: GdkPixmap and GdkDrawable were removed.  Use the underlying X11 types
+// (XIDs = unsigned long) directly, matching how gdk_x11_window_get_xid() etc.
+// return them.
+typedef unsigned long   Pixmap;    // X11 Pixmap (XID)
+typedef unsigned long   Drawable;  // X11 Drawable (XID)
 
 #else
 
