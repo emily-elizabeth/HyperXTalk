@@ -43,16 +43,17 @@ static void MCLinuxDragAndDropInitialize(GdkDisplay* p_display)
 // Nothing ever calls this but somebody might, one day...
 void MCLinuxDragAndDropFinalize()
 {
+    // GTK3: gdk_cursor_unref removed, use g_object_unref
     if (g_dnd_cursor_drag_init)
-        gdk_cursor_unref(g_dnd_cursor_drag_init);
+        g_object_unref(g_dnd_cursor_drag_init);
     if (g_dnd_cursor_drop_copy)
-        gdk_cursor_unref(g_dnd_cursor_drop_copy);
+        g_object_unref(g_dnd_cursor_drop_copy);
     if (g_dnd_cursor_drop_move)
-        gdk_cursor_unref(g_dnd_cursor_drop_move);
+        g_object_unref(g_dnd_cursor_drop_move);
     if (g_dnd_cursor_drop_link)
-        gdk_cursor_unref(g_dnd_cursor_drop_link);
+        g_object_unref(g_dnd_cursor_drop_link);
     if (g_dnd_cursor_drop_fail)
-        gdk_cursor_unref(g_dnd_cursor_drop_fail);
+        g_object_unref(g_dnd_cursor_drop_fail);
     g_dnd_init = false;
 }
 
@@ -95,7 +96,8 @@ static void break_dnd_modal_loop(void* context)
 {
     dnd_modal_loop_context* t_context = (dnd_modal_loop_context*)context;
     gdk_drag_abort(t_context->drag_context, GDK_CURRENT_TIME);
-    gdk_display_pointer_ungrab(t_context->display, GDK_CURRENT_TIME);
+    // GTK3: gdk_display_pointer_ungrab removed, use gdk_seat_ungrab
+    gdk_seat_ungrab(gdk_display_get_default_seat(t_context->display));
 }
 
 // SN-2014-07-11: [[ Bug 12769 ]] Update the signature - the non-implemented UIDC dodragdrop was called otherwise
@@ -420,7 +422,8 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
             case GDK_DROP_START:
                 // This is a D&D client event. Note the need to ungrab the
                 // pointer, however (just in case the stack needs it)
-                gdk_display_pointer_ungrab(dpy, t_event->dnd.time);
+                // GTK3: gdk_display_pointer_ungrab removed, use gdk_seat_ungrab
+                gdk_seat_ungrab(gdk_display_get_default_seat(dpy));
                 DnDClientEvent(t_event);
                 break;
                 
