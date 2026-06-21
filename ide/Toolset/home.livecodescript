@@ -1699,12 +1699,12 @@ command revInternal__InitialiseFinalSteps
    
    --the following *MUST* be the last item to avoid excess sending to overview as environment loads
    revInternal__Log "Message", "Installing Remaining Libraries"
-
+   
    revInternal__LoadLibrary "revFrontScriptLibrary"
    if the result is not empty then
       revInternal__Log "Error", the result  
    end if
-      
+   
    set the cREVGeneral["handlerlist"] of stack "revFrontScriptLibrary" to revInternal__FilterHandlerList(the revAvailableHandlers of stack "revFrontScriptLibrary")
    
    revInternal__LoadLibrary "revShortCutsLibrary"
@@ -1726,7 +1726,8 @@ command revInternal__InitialiseFinalSteps
    if the milliseconds - sSplashStartTime < 500 then
       wait 500 - (the milliseconds - sSplashStartTime) milliseconds
    end if
-   close stack "home"
+   --   close stack "home"  // HXT
+   close stack "revSplash"
    
    revInternal__Log "Message", "Resetting Cursors"
    if the platform is "MacOS" then
