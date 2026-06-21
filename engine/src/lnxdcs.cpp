@@ -656,7 +656,8 @@ Boolean MCScreenDC::close(Boolean force)
     }
 
     gdk_display_flush(dpy);
-    g_object_unref(gc);
+    // gc is a cairo_t*, not a GObject — release with cairo_destroy if non-null
+    if (gc) { cairo_destroy(gc); gc = nullptr; }
 
 	//XDND
 	MCLinuxDragAndDropFinalize();
