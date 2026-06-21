@@ -700,14 +700,21 @@ uint2 MCScreenDC::getdepth(void)
 
 void MCScreenDC::grabpointer(Window w)
 {
-    gdk_pointer_grab(w, False,
-                     GdkEventMask(GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK),
-                     NULL, NULL, MCeventtime);
+    // GTK3: use gdk_seat_grab instead of deprecated gdk_pointer_grab (Wayland-safe)
+    GdkWindow *t_gdkwin = gdk_x11_window_lookup_for_display(dpy, w);
+    if (!t_gdkwin)
+        return;
+    GdkSeat *t_seat = gdk_display_get_default_seat(dpy);
+    gdk_seat_grab(t_seat, t_gdkwin,
+                  GDK_SEAT_CAPABILITY_POINTER,
+                  FALSE, NULL, NULL, NULL, NULL);
 }
 
 void MCScreenDC::ungrabpointer()
 {
-	gdk_display_pointer_ungrab(dpy, MCeventtime);
+    // GTK3: use gdk_seat_ungrab instead of deprecated gdk_display_pointer_ungrab
+    GdkSeat *t_seat = gdk_display_get_default_seat(dpy);
+    gdk_seat_ungrab(t_seat);
 }
 
 // IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
@@ -1255,9 +1262,10 @@ MCImageBitmap *MCScreenDC::snapshot(MCRectangle &r, uint4 window, MCStringRef di
 		// MDW bugfix_17257
         // GdkCursor *t_cursor = gdk_cursor_new(GDK_PLUS);
         GdkCursor *t_cursor = gdk_cursor_new_from_name(gdk_display_get_default(), "crosshair");
-        if (gdk_pointer_grab(t_root, False,
-                             GdkEventMask(GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK),
-                             NULL, t_cursor, GDK_CURRENT_TIME) != GDK_GRAB_SUCCESS)
+        GdkSeat *t_seat = gdk_display_get_default_seat(t_display);
+        if (gdk_seat_grab(t_seat, t_root,
+                          GDK_SEAT_CAPABILITY_POINTER,
+                          FALSE, t_cursor, NULL, NULL, NULL) != GDK_GRAB_SUCCESS)
         {
             // Could not grab the pointer
             return NULL;
@@ -1388,8 +1396,8 @@ MCImageBitmap *MCScreenDC::snapshot(MCRectangle &r, uint4 window, MCStringRef di
         }
 
         // -- tperry 15-11-2025: GTK3 - release grabs and Cairo resources
-        gdk_display_pointer_ungrab(dpy, GDK_CURRENT_TIME);
-        gdk_cursor_unref(t_cursor);
+        gdk_seat_ungrab(gdk_display_get_default_seat(t_display));
+        g_object_unref(t_cursor);  // GTK3: gdk_cursor_unref removed, use g_object_unref
         cairo_destroy(t_cr);  // Clean up Cairo context
         gdk_display_flush(t_display);
     }

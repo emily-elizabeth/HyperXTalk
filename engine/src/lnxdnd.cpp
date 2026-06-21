@@ -155,9 +155,11 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     g_list_free(t_target_list);
     
     // Take ownership of the mouse so that nothing interferes with the drag
-    GdkGrabStatus t_grab = gdk_pointer_grab(w, FALSE,
-                                            GdkEventMask(GDK_POINTER_MOTION_MASK|GDK_BUTTON_PRESS_MASK|GDK_BUTTON_RELEASE_MASK),
-                                            NULL, NULL, MCeventtime);
+    // GTK3: use gdk_seat_grab instead of deprecated gdk_pointer_grab (Wayland-safe)
+    GdkSeat *t_seat = gdk_display_get_default_seat(dpy);
+    GdkGrabStatus t_grab = gdk_seat_grab(t_seat, w,
+                                         GDK_SEAT_CAPABILITY_POINTER,
+                                         FALSE, NULL, NULL, NULL, NULL);
     
     // We need to know what action was selected so we know whether to delete
     // the data afterwards (as done for move actions)
@@ -464,7 +466,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     
     // Other people can now use the pointer
     g_object_unref(t_context);
-    gdk_display_pointer_ungrab(dpy, GDK_CURRENT_TIME);
+    gdk_seat_ungrab(gdk_display_get_default_seat(dpy));
     t_dragboard->SetClipboardWindow(NULL);
     
     // Restore the cursor
