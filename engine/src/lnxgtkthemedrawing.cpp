@@ -1023,8 +1023,9 @@ static cairo_surface_t* make_transparent_surface(int width, int height, cairo_t 
 static GtkStyleContext* build_scale_trough_context(bool is_horizontal, GtkStateFlags state_flags);
 static GtkStyleContext* build_scale_slider_context(bool is_horizontal, GtkStateFlags state_flags);
 
-// -- tperry 16-11-2025: New function to render scale using gtk_widget_draw
-// *** Uses same approach as progress bars - DO NOT break progress bars when modifying! ***
+// -- tperry 16-11-2025 / 20-06-2026: Render scale track using the actual widget's style context.
+// Using the real widget context (not a standalone one) ensures the theme CSS is fully loaded,
+// so we get correct colors, border-radius, etc. from the active GTK theme.
 cairo_surface_t*
 moz_gtk_scale_track_paint_to_surface(GtkThemeWidgetType type,
                                       GdkRectangle * rect,
@@ -1037,38 +1038,45 @@ moz_gtk_scale_track_paint_to_surface(GtkThemeWidgetType type,
     if (out_height) *out_height = height;
 
     bool is_horizontal = (type == MOZ_GTK_SCALE_TRACK_HORIZONTAL);
+    ensure_scale_widget();
+
+    GtkStyleContext *ctx = gtk_widget_get_style_context(
+        is_horizontal ? gHScaleWidget : gVScaleWidget);
 
     cairo_t *cr;
     cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
 
-    GtkStyleContext *ctx = build_scale_trough_context(is_horizontal, GTK_STATE_FLAG_NORMAL);
+    gtk_style_context_save(ctx);
+    gtk_style_context_set_state(ctx, GTK_STATE_FLAG_NORMAL);
+    gtk_style_context_add_class(ctx, GTK_STYLE_CLASS_TROUGH);
 
-    // GTK3 scale troughs are a thin strip - query CSS min-size, then center in rect
+    // Trough is a thin strip — query the CSS min-size, fall back to 4px
     gint trough_thick = 0;
     gtk_style_context_get(ctx, GTK_STATE_FLAG_NORMAL,
         is_horizontal ? "min-height" : "min-width", &trough_thick, NULL);
-    if (trough_thick < 2) trough_thick = 4; // fallback if theme doesn't set it
+    if (trough_thick < 2) trough_thick = 4;
 
     double tx, ty, tw, th;
     if (is_horizontal) {
-        tx = 0;      tw = width;
+        tx = 0; tw = width;
         ty = (height - trough_thick) / 2.0;
         th = trough_thick;
     } else {
-        ty = 0;      th = height;
+        ty = 0; th = height;
         tx = (width - trough_thick) / 2.0;
         tw = trough_thick;
     }
 
     gtk_render_background(ctx, cr, tx, ty, tw, th);
     gtk_render_frame    (ctx, cr, tx, ty, tw, th);
-    g_object_unref(ctx);
+    gtk_style_context_restore(ctx);
 
     cairo_destroy(cr);
     return surface;
 }
 
-// -- tperry 20-06-2026: Render scale thumb using GTK3 CSS node path (scale > trough > slider)
+// -- tperry 20-06-2026: Render scale thumb using the actual widget's style context.
+// gtk_render_slider() applies border-radius and other CSS properties correctly.
 cairo_surface_t*
 moz_gtk_scale_thumb_paint_to_surface(GtkThemeWidgetType type,
                                       GdkRectangle * rect,
@@ -1088,10 +1096,16 @@ moz_gtk_scale_thumb_paint_to_surface(GtkThemeWidgetType type,
     else if (state && state->active)     sf = (GtkStateFlags)(sf | GTK_STATE_FLAG_ACTIVE);
     else if (state && state->inHover)    sf = (GtkStateFlags)(sf | GTK_STATE_FLAG_PRELIGHT);
 
+    ensure_scale_widget();
+    GtkStyleContext *ctx = gtk_widget_get_style_context(
+        is_horizontal ? gHScaleWidget : gVScaleWidget);
+
     cairo_t *cr;
     cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
 
-    GtkStyleContext *ctx = build_scale_slider_context(is_horizontal, sf);
+    gtk_style_context_save(ctx);
+    gtk_style_context_set_state(ctx, sf);
+    gtk_style_context_add_class(ctx, GTK_STYLE_CLASS_SLIDER);
 
     // Query natural thumb size from CSS; fall back to a sensible square
     gint thumb_w = 0, thumb_h = 0;
@@ -1105,9 +1119,11 @@ moz_gtk_scale_thumb_paint_to_surface(GtkThemeWidgetType type,
     double tx = (width  - thumb_w) / 2.0;
     double ty = (height - thumb_h) / 2.0;
 
-    gtk_render_background(ctx, cr, tx, ty, thumb_w, thumb_h);
-    gtk_render_frame    (ctx, cr, tx, ty, thumb_w, thumb_h);
-    g_object_unref(ctx);
+    // gtk_render_slider applies border-radius (making it circular in Adwaita)
+    gtk_render_slider(ctx, cr, tx, ty, thumb_w, thumb_h,
+        is_horizontal ? GTK_ORIENTATION_HORIZONTAL : GTK_ORIENTATION_VERTICAL);
+
+    gtk_style_context_restore(ctx);
 
     cairo_destroy(cr);
     return surface;
