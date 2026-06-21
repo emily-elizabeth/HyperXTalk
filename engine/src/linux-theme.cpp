@@ -374,11 +374,23 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 
         case kMCPlatformThemePropertyTopEdgeColor:
         case kMCPlatformThemePropertyLeftEdgeColor:
+            // Top/left highlight: let the engine use its default (white). Fine
+            // for all GTK3 themes.
+            break;
+
         case kMCPlatformThemePropertyBottomEdgeColor:
         case kMCPlatformThemePropertyRightEdgeColor:
-            // GTK3 flat/CSS themes do not have 3D bevel edge colours.
-            // Return false so the engine falls back to its own defaults.
+        {
+            // Bottom/right shadow edge: GTK3 themes express this via the named
+            // "borders" colour.  Returning it avoids the engine's fallback of
+            // getsystemfore() (near-black), which makes menu separators and
+            // other 3D borders look wrong on flat GTK3 themes.
+            static const char * const k_border_names[] = {
+                "borders", "unfocused_borders", "border_color", NULL
+            };
+            t_found = lookupNamedColor(t_ctx, k_border_names, t_rgba);
             break;
+        }
 
         default:
             break;
