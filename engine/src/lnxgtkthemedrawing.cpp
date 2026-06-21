@@ -3738,11 +3738,11 @@ gint moz_gtk_shutdown()
     gFrameWidget          = nullptr;
     gProgressWidget       = nullptr;
     gTabWidget            = nullptr;
-    if (gLabelOffscreenWindow) { gtk_widget_destroy(gLabelOffscreenWindow); gLabelOffscreenWindow = nullptr; }
+    gLabelOffscreenWindow = nullptr;
     gLabelWidget          = nullptr;
     gOptionbuttonWidget   = nullptr;
     gSpinbuttonWidget     = nullptr;
-    if (gMenuitemWidget) { g_object_unref(gMenuitemWidget); gMenuitemWidget = nullptr; }
+    gMenuitemWidget       = nullptr;
     gHScaleWidget         = nullptr;
     gVScaleWidget         = nullptr;
 
