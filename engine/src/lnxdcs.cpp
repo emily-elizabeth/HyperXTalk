@@ -701,7 +701,7 @@ uint2 MCScreenDC::getdepth(void)
 void MCScreenDC::grabpointer(Window w)
 {
     // GTK3: use gdk_seat_grab instead of deprecated gdk_pointer_grab (Wayland-safe)
-    GdkWindow *t_gdkwin = gdk_x11_window_lookup_for_display(dpy, w);
+    GdkWindow *t_gdkwin = x11::gdk_x11_window_lookup_for_display(dpy, w);
     if (!t_gdkwin)
         return;
     GdkSeat *t_seat = gdk_display_get_default_seat(dpy);
