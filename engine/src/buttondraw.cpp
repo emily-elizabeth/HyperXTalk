@@ -882,7 +882,9 @@ void MCButton::drawcheck(MCDC *dc, MCRectangle &srect, Boolean white)
 			if (white && state & CS_ARMED)
 				dc->setforeground(dc->getwhite());
 			else
-				dc->setforeground(dc->getblack());
+				// Use the theme text colour so the checkmark is visible in dark
+				// mode (where getblack() would be invisible on a dark background).
+				setforeground(dc, DI_FORE, False);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
 			dc->fillpolygon(p, 6);
 		}
@@ -1067,7 +1069,8 @@ void MCButton::drawradio(MCDC *dc, MCRectangle &srect, Boolean white)
 					if (white && state & CS_ARMED)
 						dc->setforeground(dc->getwhite());
 					else
-						dc->setforeground(dc->getblack());
+						// Use theme text colour for dark mode visibility.
+						setforeground(dc, DI_FORE, False);
 					dc->setfillstyle(FillSolid, nil, 0, 0);
 				}
 			trect.x = lx + 4;
