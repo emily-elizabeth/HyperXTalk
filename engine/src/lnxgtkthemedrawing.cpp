@@ -1113,6 +1113,9 @@ moz_gtk_scale_thumb_paint_to_surface(GtkThemeWidgetType type,
         "min-height", &thumb_h, NULL);
     if (thumb_w < 4) thumb_w = MIN(width,  14);
     if (thumb_h < 4) thumb_h = MIN(height, 14);
+    // Clamp to rect bounds so the thumb isn't clipped by the surface edges
+    thumb_w = MIN(thumb_w, width);
+    thumb_h = MIN(thumb_h, height);
 
     // Center the thumb within the allocated rect
     double tx = (width  - thumb_w) / 2.0;
