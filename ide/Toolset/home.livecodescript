@@ -2,8 +2,8 @@
 constant kImportantTextColor = "#569e54"
 
 on startup
-//     revSetTestEnvironment($TRAVIS is true)
-
+   //     revSetTestEnvironment($TRAVIS is true)
+   
    -- MW-2011-03-13: Make sure the externals are empty on startup
    set the externals of me to empty
    
@@ -255,7 +255,22 @@ on revInternal__openStack
    
    -- Now the home stack has loaded, we can allow interrupts..
    set the allowInterrupts to true
+   
+   send "DelayClosingSplash" to me in 3 ticks
 end revInternal__openStack
+
+
+on DelayClosingSplash
+   set the cREVLaunching of stack "Home" to false
+   if there is a stack "revsplash" then
+      set the destroyStack of stack "revSplash" to true
+      close stack "revSplash"
+      if there is a stack "revSplashStackBehavior" then
+         set the destroyStack of stack "revSplashStackBehavior" to true
+         close stack "revSplashStackBehavior"
+      end if
+   end if
+end DelayClosingSplash
 
 on hxtInternal__setSplashStatus pMessage
    revInternal__Log "Message", pMessage
@@ -1726,8 +1741,7 @@ command revInternal__InitialiseFinalSteps
    if the milliseconds - sSplashStartTime < 500 then
       wait 500 - (the milliseconds - sSplashStartTime) milliseconds
    end if
-   --   close stack "home"  // HXT
-   close stack "revSplash"
+   close stack "home"  // HXT
    
    revInternal__Log "Message", "Resetting Cursors"
    if the platform is "MacOS" then
