@@ -242,8 +242,9 @@ static gint ensure_scale_widget()
 	if (!gHScaleWidget)
 	{
 		GtkAdjustment *adj = (GtkAdjustment*)gtk_adjustment_new(1, 1, 1, 1, 1, 1);
-		gHScaleWidget = gtk_hscale_new(adj);
-		gVScaleWidget = gtk_vscale_new(adj);
+		// -- tperry: GTK3 - gtk_hscale_new/gtk_vscale_new removed, use gtk_scale_new
+		gHScaleWidget = gtk_scale_new(GTK_ORIENTATION_HORIZONTAL, adj);
+		gVScaleWidget = gtk_scale_new(GTK_ORIENTATION_VERTICAL, adj);
 		
 		// Hide value display - we only want the track and slider, not the text labels
 		gtk_scale_set_draw_value(GTK_SCALE(gHScaleWidget), FALSE);
@@ -334,7 +335,8 @@ static gint ensure_scrollbar_widget()
 {
 	if (!gVertScrollbarWidget)
 	{
-		gVertScrollbarWidget = gtk_vscrollbar_new(NULL);
+		// -- tperry: GTK3 - gtk_vscrollbar_new removed, use gtk_scrollbar_new
+		gVertScrollbarWidget = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, NULL);
 		setup_widget_prototype(gVertScrollbarWidget);
 		// Add CSS classes for proper GTK3 theme styling
 		GtkStyleContext *context = gtk_widget_get_style_context(gVertScrollbarWidget);
@@ -345,7 +347,8 @@ static gint ensure_scrollbar_widget()
 	}
 	if (!gHorizScrollbarWidget)
 	{
-		gHorizScrollbarWidget = gtk_hscrollbar_new(NULL);
+		// -- tperry: GTK3 - gtk_hscrollbar_new removed, use gtk_scrollbar_new
+		gHorizScrollbarWidget = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, NULL);
 		setup_widget_prototype(gHorizScrollbarWidget);
 		// Add CSS classes for proper GTK3 theme styling
 		GtkStyleContext *context = gtk_widget_get_style_context(gHorizScrollbarWidget);
@@ -374,10 +377,13 @@ static gint ensure_arrow_widget()
 	{
 		gDropdownButtonWidget = gtk_button_new();
 		setup_widget_prototype(gDropdownButtonWidget);
-		gArrowWidget = gtk_arrow_new(GTK_ARROW_DOWN, GTK_SHADOW_OUT);
+		// -- tperry: GTK3 - GtkArrow removed in GTK3.14; use GtkImage as child placeholder.
+		//            Style context from it is used with gtk_render_arrow() which just
+		//            needs any context (renders using the foreground colour).
+		gArrowWidget = gtk_image_new();
 		gtk_container_add(GTK_CONTAINER(gDropdownButtonWidget),
 		                    gArrowWidget);
-		gtk_widget_set_style(gArrowWidget,NULL);
+		// gtk_widget_set_style removed in GTK3 — deleted.
 		gtk_widget_realize(gArrowWidget);
 	}
 	return MOZ_GTK_SUCCESS;
@@ -387,7 +393,10 @@ static gint ensure_handlebox_widget()
 {
 	if (!gHandleBoxWidget)
 	{
-		gHandleBoxWidget = gtk_handle_box_new();
+		// -- tperry: GTK3 - GtkHandleBox deprecated in GTK3.4 / removed later.
+		//            Use GtkToolbar which gives the correct "toolbar" CSS node
+		//            for background/frame rendering of toolbars and grippers.
+		gHandleBoxWidget = gtk_toolbar_new();
 		setup_widget_prototype(gHandleBoxWidget);
 	}
 	return MOZ_GTK_SUCCESS;
