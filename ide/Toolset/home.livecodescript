@@ -105,6 +105,7 @@ end openStack
 
 // HXT
 on CloseStack
+   revInternal__Log "log", "Close Stack"
    close file sLogPath
 end CloseStack
 
@@ -242,13 +243,15 @@ on revInternal__openStack
       quit
    end if
    
-   if $REV_TOOLS_PATH is empty and (revInternal__CheckFileAssociations() is true) and (the platform is "win32") then
-      if revIDEGetPreference("cDontShowFileAssociationsDialog") is not true then
-         modal stack "revFileAssociations"
-      end if
-   end if
+   // HXT
+   --   if $REV_TOOLS_PATH is empty and (revInternal__CheckFileAssociations() is true) and (the platform is "win32") then
+   --      if revIDEGetPreference("cDontShowFileAssociationsDialog") is not true then
+   --         modal stack "revFileAssociations"
+   --      end if
+   --   end if
    
    close stack "revSplash"
+   send "DelayClosingSplash" to me in 3 ticks
    
    revInternal__Log "Leave", "revInternal__openStack"
    revInternal__Log "End"
@@ -256,7 +259,6 @@ on revInternal__openStack
    -- Now the home stack has loaded, we can allow interrupts..
    set the allowInterrupts to true
    
-   send "DelayClosingSplash" to me in 3 ticks
 end revInternal__openStack
 
 
@@ -1741,7 +1743,7 @@ command revInternal__InitialiseFinalSteps
    if the milliseconds - sSplashStartTime < 500 then
       wait 500 - (the milliseconds - sSplashStartTime) milliseconds
    end if
-   close stack "home"  // HXT
+   --   close stack "home"  // HXT
    
    revInternal__Log "Message", "Resetting Cursors"
    if the platform is "MacOS" then
