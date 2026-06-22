@@ -259,21 +259,31 @@ MCStringRef MCLinuxRawClipboard::DecodeTransferredFileList(MCDataRef p_data) con
     MCAutoStringRef t_encoded_string;
     if (!MCStringCreateWithBytes(MCDataGetBytePtr(p_data), MCDataGetLength(p_data), kMCStringEncodingNative, false, &t_encoded_string))
         return NULL;
-    
+
     // URL-decode the string and convert from UTF-8
     MCAutoStringRef t_string;
     MCU_urldecode(*t_encoded_string, true, &t_string);
-    
-    // Split the string on CRLF sequences
-    MCAutoArrayRef t_uri_list;
-    if (!MCStringSplit(*t_string, MCSTR("\r\n"), NULL, kMCStringOptionCompareExact, &t_uri_list))
+
+    if (!t_string.IsSet())
         return NULL;
-    
+
+    // Normalise line endings: replace \r\n with \n so that both CRLF (RFC 2483)
+    // and LF-only (common in modern GTK/GNOME) URI lists are handled uniformly.
+    MCAutoStringRef t_normalized;
+    if (!MCStringMutableCopy(*t_string, &t_normalized))
+        return NULL;
+    MCStringFindAndReplace(*t_normalized, MCSTR("\r\n"), MCSTR("\n"), kMCStringOptionCompareExact);
+
+    // Split on LF
+    MCAutoArrayRef t_uri_list;
+    if (!MCStringSplit(*t_normalized, MCSTR("\n"), NULL, kMCStringOptionCompareExact, &t_uri_list))
+        return NULL;
+
     // Output list
     MCAutoListRef t_output_list;
     if (!MCListCreateMutable('\n', &t_output_list))
         return NULL;
-    
+
     // Loop over the paths and convert to the expected form
     for (uindex_t i = 1; i <= MCArrayGetCount(*t_uri_list); i++)
     {
@@ -282,27 +292,32 @@ MCStringRef MCLinuxRawClipboard::DecodeTransferredFileList(MCDataRef p_data) con
         if (!MCArrayFetchValueAtIndex(*t_uri_list, i, (MCValueRef&)t_path))
             return NULL;
         MCAssert(MCValueGetTypeCode(t_path) == kMCValueTypeCodeString);
-        
+
+        // Skip empty lines and RFC 2483 comment lines
+        if (MCStringIsEmpty(t_path) ||
+            MCStringBeginsWithCString(t_path, (const char_t*)"#", kMCStringOptionCompareExact))
+            continue;
+
         // Create a mutable copy of this path
         MCAutoStringRef t_modified_path;
         if (!MCStringMutableCopy(t_path, &t_modified_path))
             return NULL;
-        
+
         // Remove any "file://" prefix that the path has
         if (MCStringBeginsWithCString(*t_modified_path, (const char_t*)"file:///", kMCStringOptionCompareExact))
         {
-            // Remove the "file://" prefix
+            // Remove the "file://" prefix (7 chars), leaving the leading slash
             MCStringRemove(*t_modified_path, MCRangeMake(0, 7));
         }
         else if (MCStringBeginsWithCString(*t_modified_path, (const char_t*)"file://", kMCStringOptionCompareExact))
         {
-            // Find the end of the hostname portion of the path
+            // Remote file: strip up to (but not including) the path component
             uindex_t t_end;
             if (!MCStringFirstIndexOfChar(*t_modified_path, '/', 7, kMCStringOptionCompareExact, t_end))
                 return NULL;
             MCStringRemove(*t_modified_path, MCRangeMake(0, t_end-1));
         }
-        
+
         // Append to the list
         if (!MCListAppend(*t_output_list, *t_modified_path))
             return NULL;
@@ -794,10 +809,10 @@ void MCLinuxRawClipboardItem::FetchExternalRepresentations(GdkDragContext* p_dra
             // Extend the representation list
             uindex_t t_index = m_reps.Size();
             m_reps.Extend(t_index + 1);
-            
+
             // Add the new representation
             m_reps[t_index] = new (nothrow) MCLinuxRawClipboardItemRep(m_clipboard, m_clipboard->GetSelectionAtom(), (GdkAtom)t_targets->data);
-            
+
             // Next item on the target list
             t_targets = t_targets->next;
         }
@@ -893,10 +908,10 @@ MCLinuxRawClipboardItemRep::MCLinuxRawClipboardItemRep(MCLinuxRawClipboard* p_cl
     // Request the data for this representation
     gdk_selection_convert(p_clipboard->GetClipboardWindow(),
                           p_selection, p_atom, GDK_CURRENT_TIME);
-    
+
     // Wait for a SelectionNotify event that tells us the data is ready
     bool t_timed_out = !WaitForSelectionNotify();
-    
+
     // Get the data for this property
     GdkAtom t_type;
     gint t_format;
@@ -906,7 +921,7 @@ MCLinuxRawClipboardItemRep::MCLinuxRawClipboardItemRep(MCLinuxRawClipboard* p_cl
     {
         t_data_length = gdk_selection_property_get(p_clipboard->GetClipboardWindow(), &t_data, &t_type, &t_format);
     }
-    
+
     // Copy the data for this property
     MCDataCreateWithBytes(t_data, t_data_length, &m_bytes);
     g_free(t_data);

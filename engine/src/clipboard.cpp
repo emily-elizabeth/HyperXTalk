@@ -677,12 +677,12 @@ bool MCClipboard::HasFileList() const
     MCAutoRefcounted<const MCRawClipboardItem> t_item = GetItem();
     if (t_item == NULL)
         return false;
-    
+
     if (t_item->HasRepresentation(m_clipboard->GetKnownTypeString(kMCRawClipboardKnownTypeFileURL)))
         return true;
     if (t_item->HasRepresentation(m_clipboard->GetKnownTypeString(kMCRawClipboardKnownTypeFileURLList)))
         return true;
-    
+
     return false;
 }
 
