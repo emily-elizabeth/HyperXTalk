@@ -148,12 +148,9 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     if (t_target_list == NULL)
         return DRAG_ACTION_NONE;
     
-    // Screen that we're using — gdk_drag_find_window_for_screen() still
-    // requires a GdkScreen in GTK3 (deprecated in 3.24, no replacement
-    // until GTK4's redesigned DnD API). Get it from the source window
-    // rather than via the deprecated gdk_display_get_default_screen().
+    // Screen that we're using
     GdkScreen *t_screen;
-    t_screen = gdk_window_get_screen(w);
+    t_screen = gdk_display_get_default_screen(dpy);
     
     // Create a drag-and-drop context for this operation
     GdkDragContext *t_context = gdk_drag_begin(w, t_target_list);
