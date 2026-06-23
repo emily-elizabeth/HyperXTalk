@@ -431,6 +431,16 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 // GTK3: gdk_display_pointer_ungrab removed, use gdk_seat_ungrab
                 gdk_seat_ungrab(gdk_display_get_default_seat(dpy));
                 DnDClientEvent(t_event);
+                // For same-process DnD, GDK_DROP_START arrives in our modal
+                // loop (we're acting as our own destination). DnDClientEvent
+                // has already handled the drop and called gdk_drop_finish.
+                // GDK_DROP_FINISHED may never reliably arrive for same-process
+                // DnD in GTK3, so treat the drop as complete here rather than
+                // blocking forever in g_main_context_iteration.
+                // For external destinations, GDK_DROP_START never reaches this
+                // loop, so this only triggers in the same-process case.
+                gdk_display_flush(dpy);
+                t_dnd_done = true;
                 break;
                 
             case GDK_DROP_FINISHED:
