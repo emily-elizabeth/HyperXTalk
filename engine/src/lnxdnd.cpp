@@ -560,8 +560,10 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     // Even with _NET_WM_BYPASS_COMPOSITOR set on the drag window, we keep a
     // small buffer in case the compositor needs a frame to release any minimal
     // bookkeeping it holds. See MCLinuxDragContextDestroyCallback above.
-    fprintf(stderr, "DND modal: scheduling deferred g_object_unref (200ms)\n");
-    g_timeout_add(200, MCLinuxDragContextDestroyCallback, t_context);
+    // DIAGNOSTIC: using 10s timeout to determine whether g_object_unref is
+    // the freeze trigger (freeze at ~10s) or something else is (freeze earlier).
+    fprintf(stderr, "DND modal: scheduling deferred g_object_unref (10000ms)\n");
+    g_timeout_add(10000, MCLinuxDragContextDestroyCallback, t_context);
     fprintf(stderr, "DND modal: SetClipboardWindow NULL\n");
     t_dragboard->SetClipboardWindow(NULL);
     fprintf(stderr, "DND modal: set cursor NULL\n");
