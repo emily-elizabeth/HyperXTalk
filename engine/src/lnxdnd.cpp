@@ -498,15 +498,20 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
     fprintf(stderr, "DND modal: modalLoopEnd\n");
     modalLoopEnd();
-    // Per GTK3 docs, gdk_drag_drop_done() must be called before the last
-    // g_object_unref on the context. For a successful drop it hides the
-    // drag_window (preventing the compositor from trying to composite a
-    // window that is about to be destroyed, which can hang the GPU).
+    // gdk_drag_drop_done() hides the drag window (sends XUnmapWindow) so the
+    // compositor stops compositing it. We call this before flushing.
     fprintf(stderr, "DND modal: gdk_drag_drop_done\n");
     gdk_drag_drop_done(t_context, t_action != DRAG_ACTION_NONE);
-    fprintf(stderr, "DND modal: g_object_unref context\n");
-    g_object_unref(t_context);
     gdk_display_flush(dpy);
+    // TEST: deliberately leak the context (skip g_object_unref) to prevent
+    // gdk_x11_drag_context_finalize from calling gdk_window_destroy on the
+    // drag window. Hypothesis: XDestroyWindow while Mutter still has pending
+    // GPU work on the drag window's compositor texture triggers an i915/amdgpu
+    // GPU hang ~100ms later, putting the process into D-state during select().
+    // If the freeze disappears, the fix is to defer unref until the compositor
+    // has released the window (e.g. via g_timeout_add).
+    fprintf(stderr, "DND modal: SKIPPING g_object_unref (leak test)\n");
+    // g_object_unref(t_context);
     fprintf(stderr, "DND modal: SetClipboardWindow NULL\n");
     t_dragboard->SetClipboardWindow(NULL);
     fprintf(stderr, "DND modal: set cursor NULL\n");
