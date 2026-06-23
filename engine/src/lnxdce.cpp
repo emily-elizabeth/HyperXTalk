@@ -246,7 +246,9 @@ void MCScreenDC::platform_setmouse(int16_t x, int16_t y)
 
 void MCScreenDC::device_setmouse(int2 x, int2 y)
 {
-	gdk_display_warp_pointer(dpy, gdk_display_get_default_screen(dpy), x, y);
+	// GTK3: gdk_display_warp_pointer(+screen) removed; use gdk_seat_pointer_warp
+	GdkDevice *t_pointer = gdk_seat_get_pointer(gdk_display_get_default_seat(dpy));
+	gdk_device_warp(t_pointer, gdk_display_get_default_screen(dpy), x, y);
 }
 
 Boolean MCScreenDC::getmouse(uint2 button, Boolean& r_abort)
