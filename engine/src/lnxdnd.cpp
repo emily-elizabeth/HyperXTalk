@@ -152,13 +152,21 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     GdkScreen *t_screen;
     t_screen = gdk_display_get_default_screen(dpy);
     
-    // Create a drag-and-drop context for this operation
-    GdkDragContext *t_context = gdk_drag_begin(w, t_target_list);
+    // GTK3: gdk_drag_begin() deprecated since 3.10 — it has no device
+    // association, so GDK cannot deliver GDK_DROP_FINISHED back to the
+    // source. Without that, the modal loop below never exits, the seat
+    // grab is never released, and the whole desktop locks up.
+    // Use gdk_drag_begin_with_coordinates() (GTK 3.20+, same requirement
+    // as gdk_seat_grab already used below).
+    GdkDevice *t_pointer = gdk_seat_get_pointer(gdk_display_get_default_seat(dpy));
+    gint t_drag_x, t_drag_y;
+    gdk_device_get_position(t_pointer, NULL, &t_drag_x, &t_drag_y);
+    GdkDragContext *t_context = gdk_drag_begin_with_coordinates(w, t_pointer, t_target_list, t_drag_x, t_drag_y);
     g_list_free(t_target_list);
-    
+
     // Take ownership of the mouse so that nothing interferes with the drag
     // GTK3: use gdk_seat_grab instead of deprecated gdk_pointer_grab (Wayland-safe)
-    GdkSeat *t_seat = gdk_display_get_default_seat(dpy);
+    GdkSeat *t_seat = gdk_device_get_seat(t_pointer);
     GdkGrabStatus t_grab = gdk_seat_grab(t_seat, w,
                                          GDK_SEAT_CAPABILITY_POINTER,
                                          FALSE, NULL, NULL, NULL, NULL);
