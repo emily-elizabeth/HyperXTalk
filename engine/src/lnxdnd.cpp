@@ -486,25 +486,31 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         }
         
         gdk_event_free(t_event);
-        
+        fprintf(stderr, "DND modal: post-event: resetprops\n");
         // Unlock the screen, perform redraw and other cleanup tasks
         MCU_resetprops(True);
+        fprintf(stderr, "DND modal: post-event: redraw\n");
         MCRedrawUpdateScreen();
+        fprintf(stderr, "DND modal: post-event: siguser\n");
         siguser();
+        fprintf(stderr, "DND modal: post-event: done\n");
     }
-    
+
+    fprintf(stderr, "DND modal: modalLoopEnd\n");
     modalLoopEnd();
-    
-    // Other people can now use the pointer
+    fprintf(stderr, "DND modal: g_object_unref context\n");
     g_object_unref(t_context);
+    fprintf(stderr, "DND modal: seat ungrab\n");
     gdk_seat_ungrab(gdk_display_get_default_seat(dpy));
+    gdk_display_flush(dpy);
+    fprintf(stderr, "DND modal: SetClipboardWindow NULL\n");
     t_dragboard->SetClipboardWindow(NULL);
-    
-    // Restore the cursor
+    fprintf(stderr, "DND modal: set cursor NULL\n");
     gdk_window_set_cursor(w, NULL);
-    
+    fprintf(stderr, "DND modal: returning t_action=%d\n", (int)t_action);
+
     // Restore the original modifier key state
     MCmodifierstate = t_old_modstate;
-    
+
     return t_action;
 }
