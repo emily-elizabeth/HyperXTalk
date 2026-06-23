@@ -1,5 +1,7 @@
 #include "lnxprefix.h"
 
+#include <stdio.h>
+
 #include "globdefs.h"
 #include "filedefs.h"
 #include "objdefs.h"
@@ -168,6 +170,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     GdkGrabStatus t_grab = gdk_seat_grab(t_seat, w,
                                          GDK_SEAT_CAPABILITY_POINTER,
                                          FALSE, NULL, NULL, NULL, NULL);
+    fprintf(stderr, "DND modal: seat grab status=%d (0=success)\n", (int)t_grab);
     
     // We need to know what action was selected so we know whether to delete
     // the data afterwards (as done for move actions)
@@ -223,10 +226,14 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         // If there is still no event, actively wait for one
         if (t_event == NULL)
         {
+            fprintf(stderr, "DND modal: blocking in g_main_context_iteration\n");
             g_main_context_iteration(NULL, TRUE);
+            fprintf(stderr, "DND modal: g_main_context_iteration returned\n");
             continue;
         }
-        
+
+        fprintf(stderr, "DND modal: event type=%d\n", (int)t_event->type);
+
         switch (t_event->type)
         {
             case GDK_KEY_PRESS:
@@ -269,13 +276,16 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 
             case GDK_BUTTON_RELEASE:
             {
-                // Drop the item that was being dragged
-                //fprintf(stderr, "DND: button release\n");
+                fprintf(stderr, "DND modal: button release, t_action=%d\n", (int)t_action);
                 if (t_action != DRAG_ACTION_NONE)
+                {
                     gdk_drag_drop(t_context, t_event->button.time);
+                    gdk_display_flush(dpy);
+                    fprintf(stderr, "DND modal: gdk_drag_drop sent + flushed\n");
+                }
                 else
                     t_dnd_done = true;
-                
+
                 break;
             }
                 
@@ -426,6 +436,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
             }
                 
             case GDK_DROP_START:
+                fprintf(stderr, "DND modal: GDK_DROP_START — ungrabbing + handling\n");
                 // This is a D&D client event. Note the need to ungrab the
                 // pointer, however (just in case the stack needs it)
                 // GTK3: gdk_display_pointer_ungrab removed, use gdk_seat_ungrab
@@ -441,11 +452,12 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 // loop, so this only triggers in the same-process case.
                 gdk_display_flush(dpy);
                 t_dnd_done = true;
+                fprintf(stderr, "DND modal: GDK_DROP_START done, t_dnd_done=true\n");
                 break;
                 
             case GDK_DROP_FINISHED:
             {
-                //fprintf(stderr, "DND: drop finished\n");
+                fprintf(stderr, "DND modal: GDK_DROP_FINISHED\n");
                 // Did the drop succeed?
                 bool t_success;
                 t_success = gdk_drag_drop_succeeded(t_context);
