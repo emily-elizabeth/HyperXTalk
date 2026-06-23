@@ -159,9 +159,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     // Use gdk_drag_begin_with_coordinates() (GTK 3.20+, same requirement
     // as gdk_seat_grab already used below).
     GdkDevice *t_pointer = gdk_seat_get_pointer(gdk_display_get_default_seat(dpy));
-    gint t_drag_x, t_drag_y;
-    gdk_device_get_position(t_pointer, NULL, &t_drag_x, &t_drag_y);
-    GdkDragContext *t_context = gdk_drag_begin_with_coordinates(w, t_pointer, t_target_list, t_drag_x, t_drag_y);
+    GdkDragContext *t_context = gdk_drag_begin_for_device(w, t_pointer, t_target_list);
     g_list_free(t_target_list);
 
     // Take ownership of the mouse so that nothing interferes with the drag
