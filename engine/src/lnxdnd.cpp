@@ -98,8 +98,6 @@ static void break_dnd_modal_loop(void* context)
 {
     dnd_modal_loop_context* t_context = (dnd_modal_loop_context*)context;
     gdk_drag_abort(t_context->drag_context, GDK_CURRENT_TIME);
-    // GTK3: gdk_display_pointer_ungrab removed, use gdk_seat_ungrab
-    gdk_seat_ungrab(gdk_display_get_default_seat(t_context->display));
 }
 
 // SN-2014-07-11: [[ Bug 12769 ]] Update the signature - the non-implemented UIDC dodragdrop was called otherwise
@@ -150,10 +148,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     if (t_target_list == NULL)
         return DRAG_ACTION_NONE;
     
-    // Screen that we're using
-    GdkScreen *t_screen;
-    t_screen = gdk_display_get_default_screen(dpy);
-    
     // GTK3: gdk_drag_begin() deprecated since 3.10 — it has no device
     // association, so GDK cannot deliver GDK_DROP_FINISHED back to the
     // source. Without that, the modal loop below never exits, the seat
@@ -163,14 +157,11 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     GdkDevice *t_pointer = gdk_seat_get_pointer(gdk_display_get_default_seat(dpy));
     GdkDragContext *t_context = gdk_drag_begin_for_device(w, t_pointer, t_target_list);
     g_list_free(t_target_list);
-
-    // Take ownership of the mouse so that nothing interferes with the drag
-    // GTK3: use gdk_seat_grab instead of deprecated gdk_pointer_grab (Wayland-safe)
-    GdkSeat *t_seat = gdk_device_get_seat(t_pointer);
-    GdkGrabStatus t_grab = gdk_seat_grab(t_seat, w,
-                                         GDK_SEAT_CAPABILITY_POINTER,
-                                         FALSE, NULL, NULL, NULL, NULL);
-    fprintf(stderr, "DND modal: seat grab status=%d (0=success)\n", (int)t_grab);
+    // Note: gdk_drag_begin_for_device relies on the implicit X11 pointer grab
+    // created by the initiating button-press event. We do NOT call gdk_seat_grab
+    // here: that grabs at the GDK seat level ABOVE GDK's own DnD grab management,
+    // and gdk_seat_ungrab would release the seat grab but leave GDK's internal
+    // device grab active, causing a lingering X pointer grab that freezes the display.
     
     // We need to know what action was selected so we know whether to delete
     // the data afterwards (as done for move actions)
@@ -247,16 +238,31 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 
             case GDK_MOTION_NOTIFY:
             {
-                //fprintf(stderr, "DND: motion notify\n");
-                // Find the window that the motion has moved us into
+                // Find the window that the motion has moved us into.
+                //
+                // We intentionally avoid gdk_drag_find_window_for_screen here.
+                // That function creates a GdkWindowCache for the screen, which
+                // internally calls XCompositeGetOverlayWindow to obtain Mutter's
+                // compositor overlay window. When the drag context is later
+                // finalized (via g_object_unref), GDK calls gdk_window_cache_destroy
+                // → XCompositeReleaseOverlayWindow, disturbing the compositor state.
+                // On ThinkPad/Mutter this triggers a GPU driver hang ~100ms later,
+                // requiring a hard power cycle.
+                //
+                // gdk_device_get_window_at_position finds the GDK-managed window
+                // under the pointer without touching the composite overlay. For
+                // same-process DnD (the case we care about) this correctly returns
+                // our own destination GdkWindow. For cross-process DnD the function
+                // returns NULL for foreign windows, so drops onto other apps will
+                // show a "no-drop" cursor but won't crash.
+                //
+                // All modern X11 clients (and all GTK clients) support XDND, so
+                // GDK_DRAG_PROTO_XDND is correct for any window we find.
                 GdkWindow *t_dest_window;
-                GdkDragProtocol t_protocol;
-                gdk_drag_find_window_for_screen(t_context, NULL, t_screen,
-                                                t_event->motion.x_root,
-                                                t_event->motion.y_root,
-                                                &t_dest_window,
-                                                &t_protocol);
-                
+                gint t_win_x, t_win_y;
+                t_dest_window = gdk_device_get_window_at_position(t_pointer, &t_win_x, &t_win_y);
+                GdkDragProtocol t_protocol = (t_dest_window != NULL) ? GDK_DRAG_PROTO_XDND : GDK_DRAG_PROTO_NONE;
+
                 // Clear the action if we didn't find a target
                 if (t_dest_window == NULL)
                 {
@@ -270,7 +276,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 GdkDragAction(t_suggested_action),
                                 GdkDragAction(t_possible_actions),
                                 t_event->motion.time);
-                
+
                 break;
             }
                 
@@ -436,36 +442,30 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
             }
                 
             case GDK_DROP_START:
-                fprintf(stderr, "DND modal: GDK_DROP_START — ungrabbing + handling\n");
-                // This is a D&D client event. Note the need to ungrab the
-                // pointer, however (just in case the stack needs it)
-                // GTK3: gdk_display_pointer_ungrab removed, use gdk_seat_ungrab
-                gdk_seat_ungrab(gdk_display_get_default_seat(dpy));
+                fprintf(stderr, "DND modal: GDK_DROP_START — handling\n");
+                // For same-process DnD this arrives in our modal loop because
+                // we are acting as our own destination. Handle it, flush, and
+                // exit. GDK_DROP_FINISHED is silently consumed internally by
+                // GDK for same-process drags and never delivered as a GdkEvent,
+                // so we do not attempt to wait for it.
                 DnDClientEvent(t_event);
-                // For same-process DnD, GDK_DROP_START arrives in our modal
-                // loop (we're acting as our own destination). DnDClientEvent
-                // has already handled the drop and called gdk_drop_finish.
-                // GDK_DROP_FINISHED may never reliably arrive for same-process
-                // DnD in GTK3, so treat the drop as complete here rather than
-                // blocking forever in g_main_context_iteration.
-                // For external destinations, GDK_DROP_START never reaches this
-                // loop, so this only triggers in the same-process case.
                 gdk_display_flush(dpy);
                 t_dnd_done = true;
                 fprintf(stderr, "DND modal: GDK_DROP_START done, t_dnd_done=true\n");
                 break;
-                
+
             case GDK_DROP_FINISHED:
             {
-                fprintf(stderr, "DND modal: GDK_DROP_FINISHED\n");
-                // Did the drop succeed?
+                fprintf(stderr, "DND modal: GDK_DROP_FINISHED — grab released by GDK\n");
+                // GDK has now processed XdndFinished and released its internal
+                // X pointer grab. Safe to exit and unref the context.
                 bool t_success;
                 t_success = gdk_drag_drop_succeeded(t_context);
-                
+
                 // If we failed, there was no action
                 if (!t_success)
                     t_action = DRAG_ACTION_NONE;
-                
+
                 // All done
                 t_dnd_done = true;
                 break;
@@ -498,10 +498,14 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
     fprintf(stderr, "DND modal: modalLoopEnd\n");
     modalLoopEnd();
+    // Per GTK3 docs, gdk_drag_drop_done() must be called before the last
+    // g_object_unref on the context. For a successful drop it hides the
+    // drag_window (preventing the compositor from trying to composite a
+    // window that is about to be destroyed, which can hang the GPU).
+    fprintf(stderr, "DND modal: gdk_drag_drop_done\n");
+    gdk_drag_drop_done(t_context, t_action != DRAG_ACTION_NONE);
     fprintf(stderr, "DND modal: g_object_unref context\n");
     g_object_unref(t_context);
-    fprintf(stderr, "DND modal: seat ungrab\n");
-    gdk_seat_ungrab(gdk_display_get_default_seat(dpy));
     gdk_display_flush(dpy);
     fprintf(stderr, "DND modal: SetClipboardWindow NULL\n");
     t_dragboard->SetClipboardWindow(NULL);

@@ -18,6 +18,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 // ScreenDC event and signal handling functions
 //
 #include "lnxprefix.h"
+#include <stdio.h>
 
 #include "globdefs.h"
 #include "filedefs.h"
@@ -424,8 +425,11 @@ Boolean MCScreenDC::wait(real8 duration, Boolean dispatch, Boolean anyevent)
             if (HasRunloopActions())
                 t_sleep = MCMin(t_sleep, 0.01);
             
+            fprintf(stderr, "WAIT: before gdk_display_sync (sleep=%.3f)\n", t_sleep);
             gdk_display_sync(dpy);
+            fprintf(stderr, "WAIT: before MCS_poll\n");
             done = MCS_poll(donepending ? 0 : t_sleep, x11::XConnectionNumber(x11::gdk_x11_display_get_xdisplay(dpy)));
+            fprintf(stderr, "WAIT: MCS_poll done=%d\n", (int)done);
         }
 		curtime = MCS_time();
 	}
