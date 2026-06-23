@@ -1409,10 +1409,24 @@ void MCScreenDC::DnDClientEvent(GdkEvent* p_event)
         case GDK_DROP_START:
         {
             //fprintf(stderr, "DND: drop start\n");
+            // GDK fires a synthetic GDK_DRAG_LEAVE immediately before
+            // GDK_DROP_START, which wipes the dragboard (ReleaseData clears
+            // m_item; SetDragContext(NULL) clears the context). Re-initialise
+            // both so that dragData["files"] etc. can be read from inside the
+            // dragDrop handler. The X11 selection data remains available from
+            // the drop source until we call gdk_drop_finish below.
+            if (!MCdispatcher->isdragsource())
+            {
+                MCLinuxRawClipboard* t_dragboard =
+                    static_cast<MCLinuxRawClipboard*>(MCdragboard->GetRawClipboard());
+                t_dragboard->SetDragContext(p_event->dnd.context);
+                MCdragboard->PullUpdates();
+            }
+
             // Temporarily adopt the asynchronous modifier state
             uint16_t t_old_modstate = MCmodifierstate;
             MCmodifierstate = MCscreen->querymods();
-            
+
             // Something was dropped on us
             MCdispatcher->wmdragdrop(p_event->dnd.window);
             
