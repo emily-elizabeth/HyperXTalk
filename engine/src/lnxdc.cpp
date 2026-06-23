@@ -317,26 +317,21 @@ bool MCScreenDC::platform_getdisplays(bool p_effective, MCDisplay *&r_displays, 
 // IM-2014-01-29: [[ HiDPI ]] Refactored to handle display info caching in MCUIDC superclass
 bool MCScreenDC::device_getdisplays(bool p_effective, MCDisplay * &r_displays, uint32_t &r_display_count)
 {
-	// NOTE: this code assumes that there is only one GdkScreen!
-    GdkScreen *t_screen;
-    t_screen = gdk_display_get_default_screen(dpy);
-    
-    // Get the number of monitors attached to this screen
+    // GTK3: enumerate monitors via the display, not via a GdkScreen
     gint t_monitor_count;
-    t_monitor_count = gdk_screen_get_n_monitors(t_screen);
-    
+    t_monitor_count = gdk_display_get_n_monitors(dpy);
+
     // Allocate the list of monitors
     MCDisplay *t_displays;
     if (!MCMemoryNewArray(t_monitor_count, t_displays))
-		{
-			  return false;
-		}
-    
+        return false;
+
     // Get the geometry of each monitor
     for (gint i = 0; i < t_monitor_count; i++)
     {
         GdkRectangle t_rect;
-        gdk_screen_get_monitor_geometry(t_screen, i, &t_rect);
+        GdkMonitor *t_monitor = gdk_display_get_monitor(dpy, i);
+        gdk_monitor_get_geometry(t_monitor, &t_rect);
         
         MCRectangle t_mc_rect;
         t_mc_rect = MCRectangleMake(t_rect.x, t_rect.y, t_rect.width, t_rect.height);
