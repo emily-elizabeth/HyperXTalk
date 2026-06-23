@@ -100,6 +100,25 @@ static void break_dnd_modal_loop(void* context)
     gdk_drag_abort(t_context->drag_context, GDK_CURRENT_TIME);
 }
 
+// Deferred drag-context cleanup callback.
+//
+// Destroying a drag context immediately after the drop sends XDestroyWindow
+// to the X server while Mutter's compositor still has pending GPU work on
+// the drag window's texture. That resource conflict triggers an i915/amdgpu
+// GPU hang (~100ms latency) which puts the process into an uninterruptible
+// D-state inside select(), requiring a hard reboot.
+//
+// The fix: hide the drag window immediately (via gdk_drag_drop_done), flush
+// so Mutter receives the XUnmapWindow, then wait 200ms before actually
+// destroying it. At 60 fps that is ~12 compositor frames — enough time for
+// Mutter to release its GPU resources for the window safely.
+static gboolean MCLinuxDragContextDestroyCallback(gpointer p_context)
+{
+    fprintf(stderr, "DND cleanup: deferred g_object_unref\n");
+    g_object_unref((GdkDragContext*)p_context);
+    return G_SOURCE_REMOVE;
+}
+
 // SN-2014-07-11: [[ Bug 12769 ]] Update the signature - the non-implemented UIDC dodragdrop was called otherwise
 MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions, MCImage *p_image, const MCPoint* p_image_offset)
 {
@@ -502,16 +521,14 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     // compositor stops compositing it. We call this before flushing.
     fprintf(stderr, "DND modal: gdk_drag_drop_done\n");
     gdk_drag_drop_done(t_context, t_action != DRAG_ACTION_NONE);
+    // Flush so XUnmapWindow reaches the server and Mutter can start releasing
+    // its compositor resources for the drag window.
     gdk_display_flush(dpy);
-    // TEST: deliberately leak the context (skip g_object_unref) to prevent
-    // gdk_x11_drag_context_finalize from calling gdk_window_destroy on the
-    // drag window. Hypothesis: XDestroyWindow while Mutter still has pending
-    // GPU work on the drag window's compositor texture triggers an i915/amdgpu
-    // GPU hang ~100ms later, putting the process into D-state during select().
-    // If the freeze disappears, the fix is to defer unref until the compositor
-    // has released the window (e.g. via g_timeout_add).
-    fprintf(stderr, "DND modal: SKIPPING g_object_unref (leak test)\n");
-    // g_object_unref(t_context);
+    // Destroy the drag context (and its drag window) after a short delay to
+    // give Mutter time to release the window's GPU compositor resources before
+    // XDestroyWindow arrives. See MCLinuxDragContextDestroyCallback above.
+    fprintf(stderr, "DND modal: scheduling deferred g_object_unref (200ms)\n");
+    g_timeout_add(200, MCLinuxDragContextDestroyCallback, t_context);
     fprintf(stderr, "DND modal: SetClipboardWindow NULL\n");
     t_dragboard->SetClipboardWindow(NULL);
     fprintf(stderr, "DND modal: set cursor NULL\n");
