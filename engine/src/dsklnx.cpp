@@ -1961,7 +1961,6 @@ virtual real64_t GetCurrentMicroseconds(void)
     {
         Boolean readinput = False;
         int4 n;
-        uint2 i;
         Boolean wasalarm = alarmpending;
         Boolean handled = False;
         if (alarmpending)
@@ -1969,38 +1968,7 @@ virtual real64_t GetCurrentMicroseconds(void)
 
         extern int g_notify_pipe[2];
 
-        fd_set rmaskfd, wmaskfd, emaskfd;
-        FD_ZERO(&rmaskfd);
-        FD_ZERO(&wmaskfd);
-        FD_ZERO(&emaskfd);
-        int4 maxfd = 0;
-        if (!MCnoui)
-        {
-            FD_SET(p_fd, &rmaskfd);
-            maxfd = p_fd;
-        }
-        if (MCshellfd != -1)
-        {
-            FD_SET(MCshellfd, &rmaskfd);
-            if (MCshellfd > maxfd)
-                maxfd = MCshellfd;
-        }
-        if (MCinputfd != -1)
-        {
-            FD_SET(MCinputfd, &rmaskfd);
-            if (MCinputfd > maxfd)
-                maxfd = MCinputfd;
-        }
-
-        if (g_notify_pipe[0] != -1)
-        {
-            FD_SET(g_notify_pipe[0], &rmaskfd);
-            if (g_notify_pipe[0] > maxfd)
-                maxfd = g_notify_pipe[0];
-        }
-
         // Prepare GLib for the poll we are about to do
-        fprintf(stderr, "POLL: g_main_context_prepare\n");
         gint t_glib_ready_priority;
         if (g_main_context_prepare(NULL, &t_glib_ready_priority))
             handled = true;
@@ -2011,70 +1979,104 @@ virtual real64_t GetCurrentMicroseconds(void)
 
         // Get the list of file descriptors that the GLib main loop needs to
         // add to the poll operation.
-        fprintf(stderr, "POLL: g_main_context_query\n");
         GMainContext* t_glib_main_context = g_main_context_default();
         MCAutoArray<GPollFD> t_glib_fds;
         gint t_glib_timeout;
         t_glib_fds.Extend(g_main_context_query(t_glib_main_context, G_MAXINT, &t_glib_timeout, NULL, 0));
         g_main_context_query(t_glib_main_context, G_MAXINT, &t_glib_timeout, t_glib_fds.Ptr(), t_glib_fds.Size());
 
-        // Add the GLib descriptors to the list
-        for (uindex_t i = 0; i < t_glib_fds.Size(); i++)
-        {
-            // Are we polling this FD for reading?
-            if (t_glib_fds[i].events & (G_IO_IN|G_IO_PRI))
-                FD_SET(t_glib_fds[i].fd, &rmaskfd);
-            if (t_glib_fds[i].events & (G_IO_OUT))
-                FD_SET(t_glib_fds[i].fd, &wmaskfd);
-            if (t_glib_fds[i].events & (G_IO_ERR|G_IO_HUP))
-                FD_SET(t_glib_fds[i].fd, &emaskfd);
+        // Build a pollfd array for poll() — avoids FD_SETSIZE limitation.
+        // Track indices of our own fds so we can inspect results afterwards.
+        MCAutoArray<struct pollfd> t_poll_fds;
+        int t_p_fd_idx = -1, t_shellfd_idx = -1, t_inputfd_idx = -1, t_notify_idx = -1;
 
-            if (t_glib_fds[i].events != 0 && t_glib_fds[i].fd > maxfd)
-                maxfd = t_glib_fds[i].fd;
+        if (!MCnoui)
+        {
+            t_p_fd_idx = (int)t_poll_fds.Size();
+            t_poll_fds.Extend(1);
+            t_poll_fds.Ptr()[t_p_fd_idx] = { p_fd, POLLIN, 0 };
+        }
+        if (MCshellfd != -1)
+        {
+            t_shellfd_idx = (int)t_poll_fds.Size();
+            t_poll_fds.Extend(1);
+            t_poll_fds.Ptr()[t_shellfd_idx] = { MCshellfd, POLLIN, 0 };
+        }
+        if (MCinputfd != -1)
+        {
+            t_inputfd_idx = (int)t_poll_fds.Size();
+            t_poll_fds.Extend(1);
+            t_poll_fds.Ptr()[t_inputfd_idx] = { MCinputfd, POLLIN, 0 };
+        }
+        if (g_notify_pipe[0] != -1)
+        {
+            t_notify_idx = (int)t_poll_fds.Size();
+            t_poll_fds.Extend(1);
+            t_poll_fds.Ptr()[t_notify_idx] = { g_notify_pipe[0], POLLIN, 0 };
         }
 
-        MCModePreSelectHook(maxfd, rmaskfd, wmaskfd, emaskfd);
+        // Add GLib descriptors
+        int t_glib_start_idx = (int)t_poll_fds.Size();
+        t_poll_fds.Extend(t_glib_fds.Size());
+        for (uindex_t i = 0; i < t_glib_fds.Size(); i++)
+        {
+            struct pollfd& pfd = t_poll_fds.Ptr()[t_glib_start_idx + i];
+            pfd.fd = t_glib_fds[i].fd;
+            pfd.events = 0;
+            pfd.revents = 0;
+            if (t_glib_fds[i].events & (G_IO_IN|G_IO_PRI)) pfd.events |= POLLIN;
+            if (t_glib_fds[i].events & G_IO_OUT)            pfd.events |= POLLOUT;
+            if (t_glib_fds[i].events & (G_IO_ERR|G_IO_HUP)) pfd.events |= POLLERR|POLLHUP;
+        }
 
-        struct timeval timeoutval;
-        timeoutval.tv_sec = (long)p_delay;
-        timeoutval.tv_usec = (long)((p_delay - floor(p_delay)) * 1000000.0);
+        // MCModePreSelectHook is empty in all modes; call with dummy fd_sets for API compat.
+        {
+            fd_set dummy_rfds, dummy_wfds, dummy_efds;
+            FD_ZERO(&dummy_rfds); FD_ZERO(&dummy_wfds); FD_ZERO(&dummy_efds);
+            int dummy_maxfd = 0;
+            MCModePreSelectHook(dummy_maxfd, dummy_rfds, dummy_wfds, dummy_efds);
+        }
 
-        fprintf(stderr, "POLL: select (delay=%.3f handled=%d)\n", p_delay, (int)handled);
-        n = select(maxfd + 1, &rmaskfd, &wmaskfd, &emaskfd, &timeoutval);
-        fprintf(stderr, "POLL: select returned n=%d\n", n);
+        // poll() has no FD_SETSIZE limitation; timeout in milliseconds.
+        int t_poll_timeout_ms = (p_delay <= 0.0) ? 0 : (int)(p_delay * 1000.0 + 0.5);
+
+        fprintf(stderr, "POLL: poll (delay=%.3f handled=%d nfds=%d)\n", p_delay, (int)handled, (int)t_poll_fds.Size());
+        n = poll(t_poll_fds.Ptr(), (nfds_t)t_poll_fds.Size(), t_poll_timeout_ms);
+        fprintf(stderr, "POLL: poll returned n=%d\n", n);
 
         if (n <= 0)
             return handled;
-        if (MCshellfd != -1 && FD_ISSET(MCshellfd, &rmaskfd))
+        if (t_shellfd_idx >= 0 && (t_poll_fds.Ptr()[t_shellfd_idx].revents & POLLIN))
             return True;
-        if (MCinputfd != -1 && FD_ISSET(MCinputfd, &rmaskfd))
+        if (t_inputfd_idx >= 0 && (t_poll_fds.Ptr()[t_inputfd_idx].revents & POLLIN))
             readinput = True;
 
-        // Check whether any of the GLib file descriptors were signalled
+        // Map GLib fd results back into GPollFD revents
         for (uindex_t i = 0; i < t_glib_fds.Size(); i++)
         {
-            if (FD_ISSET(t_glib_fds[i].fd, &rmaskfd))
-                t_glib_fds[i].revents |= G_IO_IN;
-            if (FD_ISSET(t_glib_fds[i].fd, &wmaskfd))
-                t_glib_fds[i].revents |= G_IO_OUT;
-            if (FD_ISSET(t_glib_fds[i].fd, &emaskfd))
-                t_glib_fds[i].revents |= G_IO_ERR;
+            struct pollfd& pfd = t_poll_fds.Ptr()[t_glib_start_idx + i];
+            if (pfd.revents & POLLIN)           t_glib_fds[i].revents |= G_IO_IN;
+            if (pfd.revents & POLLOUT)          t_glib_fds[i].revents |= G_IO_OUT;
+            if (pfd.revents & (POLLERR|POLLHUP)) t_glib_fds[i].revents |= G_IO_ERR;
         }
 
-        // Let GLib know which file descriptors were signalled. We don't
-        // dispatch these now as that will happen later.
+        // Let GLib know which file descriptors were signalled.
         fprintf(stderr, "POLL: g_main_context_check\n");
         g_main_context_check(t_glib_main_context, G_MAXINT, t_glib_fds.Ptr(), t_glib_fds.Size());
         fprintf(stderr, "POLL: post-check\n");
 
-        if (g_notify_pipe[0] != -1 && FD_ISSET(g_notify_pipe[0], &rmaskfd))
+        if (t_notify_idx >= 0 && (t_poll_fds.Ptr()[t_notify_idx].revents & POLLIN))
         {
             char t_notify_char;
             read(g_notify_pipe[0], &t_notify_char, 1);
         }
 
-        fprintf(stderr, "POLL: MCModePostSelectHook\n");
-        MCModePostSelectHook(rmaskfd, wmaskfd, emaskfd);
+        // MCModePostSelectHook is empty in all modes; call with dummy fd_sets for API compat.
+        {
+            fd_set dummy_rfds, dummy_wfds, dummy_efds;
+            FD_ZERO(&dummy_rfds); FD_ZERO(&dummy_wfds); FD_ZERO(&dummy_efds);
+            MCModePostSelectHook(dummy_rfds, dummy_wfds, dummy_efds);
+        }
         fprintf(stderr, "POLL: done\n");
 
         if (readinput)
