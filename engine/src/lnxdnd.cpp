@@ -520,18 +520,24 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     fprintf(stderr, "DND modal: modalLoopEnd\n");
     modalLoopEnd();
 
-    // Step 1: Release the device grab explicitly.
+    // Step 1: Release GDK's internal device grab from the DnD.
     //
-    // gdk_drag_drop_done() calls gdk_device_ungrab() only if drop_xid is
-    // non-zero (meaning an XdndStatus was received by the source context).
-    // For same-process DnD (source and target in the same GDK display) the
-    // XdndStatus reply may never be routed back through the source
-    // GdkDragContext, so drop_xid stays zero and the X pointer grab is
-    // never released.  Every pointer event then goes to the hidden drag
-    // window, making clicks non-functional in every application until the
-    // next power cycle.
-    fprintf(stderr, "DND cleanup: gdk_seat_ungrab\n");
-    gdk_seat_ungrab(gdk_display_get_default_seat(dpy));
+    // gdk_drag_begin_for_device() → gdk_x11_drag_context_drag_motion() calls
+    // gdk_device_grab() which adds an entry to display->device_grabs.
+    // gdk_seat_ungrab() only clears *seat-level* grabs (those created via
+    // gdk_seat_grab()); it does not remove entries from device_grabs.  As a
+    // result, even after XUnmapWindow auto-releases the X11 grab, GDK still
+    // routes all incoming pointer events to the now-hidden drag window, making
+    // every click non-functional until the context is fully destroyed.
+    //
+    // gdk_device_ungrab() (deprecated since GTK 3.20 but still functional) is
+    // the proper counterpart: it removes the entry from display->device_grabs
+    // AND calls XUngrabPointer, so GDK's event router stops pointing at the
+    // drag window and normal window delivery resumes immediately.
+    fprintf(stderr, "DND cleanup: gdk_device_ungrab\n");
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    gdk_device_ungrab(t_pointer, GDK_CURRENT_TIME);
+    G_GNUC_END_IGNORE_DEPRECATIONS
     gdk_display_flush(dpy);
 
     // Step 2: Signal drop completion and flush.
