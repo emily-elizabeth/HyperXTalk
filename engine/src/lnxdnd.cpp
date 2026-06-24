@@ -539,15 +539,27 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     gdk_drag_drop_done(t_context, t_action != DRAG_ACTION_NONE);
     gdk_display_flush(dpy);
 
-    // Step 3: Defer context destruction by 500 ms.
+    // Step 3: Defer context destruction until well after GTK3's own cleanup.
     //
-    // gdk_drag_drop_done() moves the drag window off-screen and schedules
-    // a GTK3-internal cleanup idle that eventually destroys it.  Deferring
-    // our own g_object_unref gives Mutter ~30 compositor frames (at 60 fps)
-    // to release any in-flight GPU work on the drag window before the
-    // XDestroyWindow reaches the X server.
-    fprintf(stderr, "DND modal: scheduling deferred g_object_unref (500ms)\n");
-    g_timeout_add(500, MCLinuxDragContextDestroyCallback, t_context);
+    // gdk_drag_drop_done() calls animate_drop_finished() synchronously,
+    // which calls gdk_window_hide(drag_window) — XUnmapWindow — and then
+    // schedules GTK3's internal finish_drag callback at ANIM_TIME = 1500 ms.
+    // finish_drag calls gdk_window_destroy() and then g_object_unref().
+    //
+    // If we call g_object_unref() too early (< ~1500 ms after the hide),
+    // gdk_x11_drag_context_finalize() calls gdk_window_destroy() while
+    // Mutter still holds a GPU texture reference for the unmapped window,
+    // causing a DRM/KMS uninterruptible hang that requires a power cycle.
+    //
+    // Deferring to 2000 ms guarantees that either:
+    //   a) GTK3's own finish_drag has already run (if g_main_context_dispatch
+    //      is called), setting drag_window = NULL, making our finalize a
+    //      no-op for the window; or
+    //   b) finish_drag never runs (our event loop skips g_main_context_dispatch),
+    //      but the window has been hidden for 2000 ms — long enough for Mutter
+    //      to release all GPU resources — making gdk_window_destroy() safe.
+    fprintf(stderr, "DND modal: scheduling deferred g_object_unref (2000ms)\n");
+    g_timeout_add(2000, MCLinuxDragContextDestroyCallback, t_context);
     fprintf(stderr, "DND modal: SetClipboardWindow NULL\n");
     t_dragboard->SetClipboardWindow(NULL);
     fprintf(stderr, "DND modal: set cursor NULL\n");
