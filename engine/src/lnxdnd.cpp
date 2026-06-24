@@ -182,31 +182,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     // and gdk_seat_ungrab would release the seat grab but leave GDK's internal
     // device grab active, causing a lingering X pointer grab that freezes the display.
 
-    // Tell the compositor NOT to allocate GPU resources (a compositor backing
-    // texture) for the drag window. GDK creates a GDK_WINDOW_TEMP / DND-hint
-    // window for the drag source; under Mutter this gets a compositor texture.
-    // When we later destroy the window (even with a delay), XDestroyWindow
-    // while Mutter still has GPU work pending on that texture triggers an
-    // i915/amdgpu GPU hang. Setting _NET_WM_BYPASS_COMPOSITOR = 1 prevents
-    // Mutter from compositing the window at all, avoiding the GPU resource
-    // lifecycle conflict entirely.
-    {
-        GdkWindow *t_drag_window = gdk_drag_context_get_drag_window(t_context);
-        if (t_drag_window != NULL)
-        {
-            GdkAtom t_bypass = gdk_atom_intern_static_string("_NET_WM_BYPASS_COMPOSITOR");
-            GdkAtom t_cardinal = gdk_atom_intern_static_string("CARDINAL");
-            gulong t_bypass_value = 1;
-            gdk_property_change(t_drag_window, t_bypass, t_cardinal, 32,
-                                GDK_PROP_MODE_REPLACE,
-                                (const guchar*)&t_bypass_value, 1);
-            fprintf(stderr, "DND: set _NET_WM_BYPASS_COMPOSITOR on drag window\n");
-        }
-        else
-        {
-            fprintf(stderr, "DND: no drag window (bypass not set)\n");
-        }
-    }
+    // (compositor bypass removed for isolation test — see git history)
     
     // We need to know what action was selected so we know whether to delete
     // the data afterwards (as done for move actions)
@@ -543,25 +519,12 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
     fprintf(stderr, "DND modal: modalLoopEnd\n");
     modalLoopEnd();
-    // Release any GDK seat-level grab that may have been implicitly acquired
-    // during the drag. In GTK3's unmanaged DnD path, GDK tracks the
-    // button-press implicit grab internally; if it hasn't been cleared by the
-    // time we exit the modal loop, gdk_seat_ungrab ensures the pointer is
-    // fully released so clicks reach other applications normally.
-    fprintf(stderr, "DND modal: gdk_seat_ungrab\n");
-    gdk_seat_ungrab(gdk_display_get_default_seat(dpy));
-    // gdk_drag_drop_done() hides the drag window (sends XUnmapWindow) so the
-    // compositor stops compositing it. We call this before flushing.
+    // gdk_drag_drop_done() hides the drag window (sends XUnmapWindow).
     fprintf(stderr, "DND modal: gdk_drag_drop_done\n");
     gdk_drag_drop_done(t_context, t_action != DRAG_ACTION_NONE);
-    // Flush so XUnmapWindow (and any seat ungrab) reach the server.
     gdk_display_flush(dpy);
-    // Destroy the drag context (and its drag window) after a short delay.
-    // Even with _NET_WM_BYPASS_COMPOSITOR set on the drag window, we keep a
-    // small buffer in case the compositor needs a frame to release any minimal
-    // bookkeeping it holds. See MCLinuxDragContextDestroyCallback above.
-    // DIAGNOSTIC: using 10s timeout to determine whether g_object_unref is
-    // the freeze trigger (freeze at ~10s) or something else is (freeze earlier).
+    // ISOLATION TEST: timer only, no seat ungrab, no bypass.
+    // Working baseline (5f087e787): no timer. Does adding just the timer break things?
     fprintf(stderr, "DND modal: scheduling deferred g_object_unref (10000ms)\n");
     g_timeout_add(10000, MCLinuxDragContextDestroyCallback, t_context);
     fprintf(stderr, "DND modal: SetClipboardWindow NULL\n");
