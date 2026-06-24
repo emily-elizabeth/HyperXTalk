@@ -91,6 +91,7 @@
 							'libraries':
 							[
 								'<!@(pkg-config --libs gtk+-3.0 gtk+-unix-print-3.0 2>/dev/null)',
+								'-lXcomposite',
 							],
 						},
 
