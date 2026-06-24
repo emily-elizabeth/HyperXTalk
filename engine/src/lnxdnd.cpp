@@ -1,11 +1,5 @@
 #include "lnxprefix.h"
 
-// Xcomposite must be included in the x11:: namespace — same pattern as gdkx.h
-namespace x11
-{
-#include <X11/extensions/Xcomposite.h>
-}
-
 #include <stdio.h>
 
 #include "globdefs.h"
@@ -540,42 +534,12 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     gdk_seat_ungrab(gdk_display_get_default_seat(dpy));
     gdk_display_flush(dpy);
 
-    // Step 2: Remove the drag window from Mutter's compositor pipeline.
-    //
-    // gdk_drag_drop_done() schedules a GTK3-internal animation idle that
-    // eventually calls XDestroyWindow on the drag window.  If that idle is
-    // dispatched while Mutter still holds a GPU texture reference for the
-    // window, the DRM/KMS subsystem enters an uninterruptible wait,
-    // requiring a power cycle.
-    //
-    // XCompositeUnredirectWindow tells the X server to stop maintaining an
-    // off-screen redirect for this window.  After the subsequent XSync the
-    // X server has processed the request; Mutter will receive the
-    // CompositeNotify and release its GPU resources before the next frame,
-    // making the later XDestroyWindow safe.
-    //
-    // Mutter uses CompositeRedirectManual (it composites manually).  We
-    // only own the redirect if we called XCompositeRedirectWindow first;
-    // Mutter's XCompositeRedirectSubwindows is separate.  If the X server
-    // rejects our call it will do so silently — the XSync still ensures
-    // Mutter has processed any prior requests.
-    GdkWindow *t_drag_gdk_window = gdk_drag_context_get_drag_window(t_context);
-    if (t_drag_gdk_window != NULL)
-    {
-        x11::Display *t_xdisplay = x11::gdk_x11_display_get_xdisplay(dpy);
-        x11::Window t_drag_xid = x11::gdk_x11_window_get_xid(t_drag_gdk_window);
-        fprintf(stderr, "DND cleanup: XCompositeUnredirectWindow xid=0x%lx\n", (unsigned long)t_drag_xid);
-        x11::XCompositeUnredirectWindow(t_xdisplay, t_drag_xid, CompositeRedirectManual);
-        x11::XSync(t_xdisplay, False);
-        fprintf(stderr, "DND cleanup: XSync done\n");
-    }
-
-    // Step 3: Signal drop completion and flush.
+    // Step 2: Signal drop completion and flush.
     fprintf(stderr, "DND modal: gdk_drag_drop_done\n");
     gdk_drag_drop_done(t_context, t_action != DRAG_ACTION_NONE);
     gdk_display_flush(dpy);
 
-    // Step 4: Defer context destruction by 500 ms.
+    // Step 3: Defer context destruction by 500 ms.
     //
     // Even with the unredirect above, Mutter's compositor may still be
     // mid-frame when the drag window is finally destroyed.  500 ms gives
