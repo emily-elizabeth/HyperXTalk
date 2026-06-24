@@ -541,9 +541,11 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
     // Step 3: Defer context destruction by 500 ms.
     //
-    // Even with the unredirect above, Mutter's compositor may still be
-    // mid-frame when the drag window is finally destroyed.  500 ms gives
-    // ~30 compositor frames at 60 fps for any in-flight GPU work to finish.
+    // gdk_drag_drop_done() moves the drag window off-screen and schedules
+    // a GTK3-internal cleanup idle that eventually destroys it.  Deferring
+    // our own g_object_unref gives Mutter ~30 compositor frames (at 60 fps)
+    // to release any in-flight GPU work on the drag window before the
+    // XDestroyWindow reaches the X server.
     fprintf(stderr, "DND modal: scheduling deferred g_object_unref (500ms)\n");
     g_timeout_add(500, MCLinuxDragContextDestroyCallback, t_context);
     fprintf(stderr, "DND modal: SetClipboardWindow NULL\n");
