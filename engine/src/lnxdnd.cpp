@@ -119,6 +119,12 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                            &t_rx_pre, &t_ry_pre, &t_wx_pre, &t_wy_pre, &t_mask_pre);
         fprintf(stderr, "DND diag PRE: XQueryPointer root_child=0x%lx xy=(%d,%d) mask=0x%x\n",
                 (unsigned long)t_child_ret_pre, t_rx_pre, t_ry_pre, (unsigned)t_mask_pre);
+
+        // Baseline focus: if focus is here before DnD, it must be restored here after.
+        x11::Window t_pre_focus = 0; int t_pre_revert = 0;
+        x11::XGetInputFocus(t_xdpy_pre, &t_pre_focus, &t_pre_revert);
+        fprintf(stderr, "DND diag PRE: XGetInputFocus focus=0x%lx revert=%d\n",
+                (unsigned long)t_pre_focus, t_pre_revert);
         fflush(stderr);
     }
 
@@ -481,22 +487,35 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
             }
                 
             case GDK_DROP_START:
-                fprintf(stderr, "DND modal: GDK_DROP_START — handling\n");
+            {
+                // Log the source window of the drop context. If this is
+                // XWayland's proxy (not our window), gdk_drag_abort below
+                // will send XdndLeave to XWayland's proxy, triggering
+                // xwl_dnd_leave() → Mutter releases the seat grab.
+                GdkWindow *t_drop_src = gdk_drag_context_get_source_window(t_event->dnd.context);
+                fprintf(stderr, "DND modal: GDK_DROP_START — drop_ctx_src=0x%lx our_xid=0x%lx\n",
+                        t_drop_src ? (unsigned long)x11::gdk_x11_window_get_xid(t_drop_src) : 0UL,
+                        (unsigned long)x11::gdk_x11_window_get_xid(w));
                 fflush(stderr);
-                // For same-process DnD this arrives in our modal loop because
-                // we are acting as our own destination. Handle it, then
-                // synchronise and pump the GLib event loop so that GDK can
-                // process the XdndFinished ClientMessage that gdk_drop_finish
-                // just sent to our source window. Processing XdndFinished while
-                // the drag context is still live resets GDK's device drag state
-                // and (for XWayland) signals Mutter to close its Wayland DnD
-                // seat session. Without this pump, the context is unreffed
-                // before XdndFinished is processed, leaving GDK's drag state
-                // stuck and all subsequent input silently suppressed.
+
+                // Process the drop: calls gdk_drop_finish → sends XdndFinished
+                // to context source window (may be our window or XWayland proxy).
                 DnDClientEvent(t_event);
+
+                // Send XdndLeave to whatever GDK has as dest_xid (which equals
+                // XWayland's proxy window if XdndProxy is set on our window).
+                // After the drop data is transferred, this is safe: it signals
+                // XWayland to call xwl_dnd_leave() → cancel Wayland DnD session
+                // → wl_data_source.cancelled → Mutter releases the seat grab.
+                // If XdndProxy is NOT set, dest_xid == our window and GDK sees
+                // a harmless spurious GDK_DRAG_LEAVE.
+                gdk_drag_abort(t_context, t_event->dnd.time);
+                fprintf(stderr, "DND modal: GDK_DROP_START gdk_drag_abort (XdndLeave) sent\n");
+                fflush(stderr);
+
                 gdk_display_flush(dpy);
-                // XSync round-trip — blocks until XdndFinished arrives in the
-                // Xlib event queue.
+                // XSync round-trip — blocks until XdndFinished and XdndLeave
+                // arrive in the Xlib queue and XWayland can process them.
                 gdk_display_sync(dpy);
                 {
                     int t_drop_pump = 0;
@@ -509,6 +528,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 fprintf(stderr, "DND modal: GDK_DROP_START done, t_dnd_done=true\n");
                 fflush(stderr);
                 break;
+            }
 
             case GDK_DROP_FINISHED:
             {
@@ -854,6 +874,37 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 fflush(stderr);
             }
         }
+
+        // Check if XdndProxy is set on our window. If XWayland set XdndProxy,
+        // GDK routes XdndDrop to XWayland's proxy instead of our window directly.
+        // gdk_drag_abort sends XdndLeave to dest_xid, which equals the proxy XID
+        // when XdndProxy is active — causing XWayland to call xwl_dnd_leave().
+        {
+            x11::Atom t_xdnd_proxy_atom = x11::XInternAtom(t_xdpy, "XdndProxy", True /* only-if-exists */);
+            if (t_xdnd_proxy_atom != 0L /* None */)
+            {
+                x11::Atom t_ret_type2 = 0; int t_ret_fmt2 = 0;
+                unsigned long t_ret_items2 = 0, t_ret_remaining2 = 0;
+                unsigned char *t_ret_data2 = NULL;
+                x11::XGetWindowProperty(t_xdpy, t_our_xid, t_xdnd_proxy_atom,
+                                        0L, 1L, 0 /* False */,
+                                        33L /* XA_WINDOW */,
+                                        &t_ret_type2, &t_ret_fmt2,
+                                        &t_ret_items2, &t_ret_remaining2, &t_ret_data2);
+                if (t_ret_data2 && t_ret_items2 > 0)
+                {
+                    x11::Window t_proxy_xid = *(x11::Window *)t_ret_data2;
+                    fprintf(stderr, "DND diag: XdndProxy on our window = 0x%lx (XWayland proxy)\n",
+                            (unsigned long)t_proxy_xid);
+                    x11::XFree(t_ret_data2);
+                }
+                else
+                    fprintf(stderr, "DND diag: XdndProxy NOT set on our window\n");
+            }
+            else
+                fprintf(stderr, "DND diag: XdndProxy atom does not exist\n");
+            fflush(stderr);
+        }
     }
 
     // Log the source window (w) so we can compare with XQueryPointer root_child
@@ -928,15 +979,30 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         fprintf(stderr, "DND fix: server_time=%u\n", (unsigned)t_server_time);
         fflush(stderr);
 
-        gdk_window_raise(w);
+        // gdk_window_focus sends _NET_ACTIVE_WINDOW (tells Mutter which window
+        // we want focused) and calls XSetInputFocus to GDK's focus_window child
+        // (the 1x1 InputOnly subwindow that GDK uses for focus tracking).
+        // Do NOT call XSetInputFocus directly on our main XID — that moves focus
+        // away from GDK's focus_window child, breaking GDK's keyboard dispatch.
         gdk_window_focus(w, t_server_time);
 
-        x11::Display *t_xdpy_fix = x11::gdk_x11_display_get_xdisplay(dpy);
-        x11::XSetInputFocus(t_xdpy_fix,
-                            x11::gdk_x11_window_get_xid(w),
-                            2 /* RevertToParent */,
-                            0L /* CurrentTime */);
-        x11::XFlush(t_xdpy_fix);
+        // XWarpPointer: move the pointer 1 pixel and back within our window.
+        // This generates synthetic MotionNotify events which flow through XWayland
+        // to Mutter, forcing Mutter to re-evaluate which Wayland surface receives
+        // pointer events. If Mutter's Wayland DnD session left input routing
+        // stuck (pointing at the ended drag session rather than our window surface),
+        // this poke forces it to route events to the correct surface.
+        {
+            x11::Display *t_xdpy_fix = x11::gdk_x11_display_get_xdisplay(dpy);
+            x11::Window t_fix_xid = x11::gdk_x11_window_get_xid(w);
+            // Warp to (100,100) relative to our window then back to (100,101).
+            // Use safe coords — content windows are at least 200×200.
+            x11::XWarpPointer(t_xdpy_fix, 0L, t_fix_xid, 0, 0, 0, 0, 100, 100);
+            x11::XWarpPointer(t_xdpy_fix, 0L, t_fix_xid, 0, 0, 0, 0, 100, 101);
+            x11::XFlush(t_xdpy_fix);
+            fprintf(stderr, "DND fix: XWarpPointer poke done\n");
+            fflush(stderr);
+        }
     }
 
     // Flush GDK side too, then sync to ensure all requests were processed.
