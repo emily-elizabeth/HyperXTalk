@@ -100,64 +100,28 @@ static void break_dnd_modal_loop(void* context)
     gdk_drag_abort(t_context->drag_context, GDK_CURRENT_TIME);
 }
 
-// Deferred drag-context cleanup data and callback.
-//
-// GTK3's gdk_drag_drop_done() calls animate_drop_finished() which:
-//   1. Hides the drag window (XUnmapWindow)
-//   2. Schedules GTK's own finish_drag() at ANIM_TIME = 1500 ms
-// finish_drag() calls gdk_window_destroy(), which sends XDestroyWindow.
-//
-// Problem: EnqueueGdkEvents() calls g_main_context_iteration(), which
-// dispatches GLib callbacks including this 1500 ms timer. If Mutter still
-// holds a GPU texture reference for the unmapped window at that point,
-// XDestroyWindow triggers a DRM/KMS uninterruptible kernel hang requiring
-// a hard power cycle.
-//
-// Fix: skip gdk_drag_drop_done() entirely, hide the drag window ourselves
-// immediately (so the user sees no drag cursor artifact), and schedule our
-// own callback at 2000 ms to destroy the window and unref the context.
-// By 2000 ms Mutter has always released its GPU resources, and there is no
-// GTK-internal 1500 ms timer racing us.
-//
-// gdk_x11_drag_context_finalize() also calls gdk_window_destroy(); GDK
-// returns early if window->destroyed is already true, so the double-destroy
-// is safe.
-struct MCLinuxDragCleanupData
-{
-    GdkDragContext *context;
-    GdkWindow      *drag_window; // holds +1 ref; may be NULL
-};
-
-static gboolean MCLinuxDragCleanupCallback(gpointer p_data)
-{
-    MCLinuxDragCleanupData *d = static_cast<MCLinuxDragCleanupData*>(p_data);
-    fprintf(stderr, "DND cleanup: deferred destroy+unref\n");
-
-    if (d->drag_window != nullptr)
-    {
-        // Safe: GDK returns early if window->destroyed is already true.
-        gdk_window_destroy(d->drag_window);
-        g_object_unref(d->drag_window);
-    }
-    // Finalize will call gdk_window_destroy again — no-op because
-    // window->destroyed is now true.
-    g_object_unref(d->context);
-
-    delete d;
-    return G_SOURCE_REMOVE;
-}
-
 // SN-2014-07-11: [[ Bug 12769 ]] Update the signature - the non-implemented UIDC dodragdrop was called otherwise
 MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions, MCImage *p_image, const MCPoint* p_image_offset)
 {
     //fprintf(stderr, "DND: dodragdrop\n");
     // Ensure that the DnD mechanisms are ready for use
     MCLinuxDragAndDropInitialize(dpy);
-    
-    // The source window for the drag and drop operation
-    GdkWindow *t_source;
-    t_source = last_window;
-    
+
+    // PRE-DnD diagnostic: confirm no foreign window is covering us before DnD starts.
+    // If root_child differs from our XID here, the problem pre-dates this DnD.
+    {
+        x11::Display *t_xdpy_pre = x11::gdk_x11_display_get_xdisplay(dpy);
+        x11::Window t_root_ret_pre = 0, t_child_ret_pre = 0;
+        int t_rx_pre = 0, t_ry_pre = 0, t_wx_pre = 0, t_wy_pre = 0;
+        unsigned int t_mask_pre = 0;
+        x11::XQueryPointer(t_xdpy_pre, x11::XDefaultRootWindow(t_xdpy_pre),
+                           &t_root_ret_pre, &t_child_ret_pre,
+                           &t_rx_pre, &t_ry_pre, &t_wx_pre, &t_wy_pre, &t_mask_pre);
+        fprintf(stderr, "DND diag PRE: XQueryPointer root_child=0x%lx xy=(%d,%d) mask=0x%x\n",
+                (unsigned long)t_child_ret_pre, t_rx_pre, t_ry_pre, (unsigned)t_mask_pre);
+        fflush(stderr);
+    }
+
     // Preserve the modifier state
     uint16_t t_old_modstate = MCmodifierstate;
     
@@ -205,19 +169,35 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     GdkDragContext *t_context = gdk_drag_begin_for_device(w, t_pointer, t_target_list);
     g_list_free(t_target_list);
     // Note: gdk_drag_begin_for_device relies on the implicit X11 pointer grab
-    // created by the initiating button-press event. We do NOT call gdk_seat_grab
-    // here: that grabs at the GDK seat level ABOVE GDK's own DnD grab management,
-    // and gdk_seat_ungrab would release the seat grab but leave GDK's internal
-    // device grab active, causing a lingering X pointer grab that freezes the display.
+    // created by the initiating button-press event.
+    //
+    // GTK 3.24.49 source analysis (gdkdnd-x11.c, fully read):
+    //   - _gdk_x11_window_drag_begin: no grab call of any kind.
+    //   - gdk_x11_drag_context_drag_motion: no grab call (drag_context_grab is
+    //     dead code — it checks ipc_window which is never set in our path).
+    //   - drag_context_grab / gdk_seat_grab: NEVER called. grab_seat stays NULL.
+    // The ONLY active grab is the X11 implicit pointer grab from the button press.
+    // It is released automatically by the X server when the button is released,
+    // but we also call XUngrabPointer explicitly in cleanup (belt-and-suspenders
+    // for XWayland/Mutter which may defer the release until a server round-trip).
 
-    // (compositor bypass removed for isolation test — see git history)
+    // NOTE: gdk_drag_begin_for_device internally creates a 100×100 RGBA
+    // GDK_WINDOW_TEMP drag-indicator window (create_drag_window in gdkdnd-x11.c).
+    // It starts UNMAPPED. gdk_drag_motion() calls move_drag_window() on every
+    // motion event, sending XConfigureWindow to XWayland at mouse rate (≥60 Hz).
+    // Under XWayland + Mutter + Intel i915, each XConfigureWindow triggers a
+    // Wayland surface-position update which may schedule a compositor repaint.
+    // We throttle gdk_drag_motion() calls below to ≤30 Hz to avoid overloading
+    // the i915 GPU command ring buffer.
+    //
+    // DO NOT call gdk_window_destroy() on the drag window here: gdk_window_destroy
+    // calls g_object_unref() which drops the refcount to 0 and FREES the GdkWindow
+    // object. context_x11->drag_window then becomes a dangling pointer, causing
+    // use-after-free when move_drag_window() later accesses it (BadWindow + crash).
     
     // We need to know what action was selected so we know whether to delete
     // the data afterwards (as done for move actions)
     MCDragAction t_action = DRAG_ACTION_NONE;
-    
-    // Whether the target accepted the drop or not
-    bool t_accepted = true;
     
     // Context for breaking out of the modal loop, if required
     dnd_modal_loop_context t_loop_context;
@@ -267,12 +247,15 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         if (t_event == NULL)
         {
             fprintf(stderr, "DND modal: blocking in g_main_context_iteration\n");
+            fflush(stderr);
             g_main_context_iteration(NULL, TRUE);
             fprintf(stderr, "DND modal: g_main_context_iteration returned\n");
+            fflush(stderr);
             continue;
         }
 
         fprintf(stderr, "DND modal: event type=%d\n", (int)t_event->type);
+        fflush(stderr);
 
         switch (t_event->type)
         {
@@ -287,44 +270,49 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 
             case GDK_MOTION_NOTIFY:
             {
-                // Find the window that the motion has moved us into.
+                // Throttle gdk_drag_motion() to ≤30 Hz.
                 //
-                // We intentionally avoid gdk_drag_find_window_for_screen here.
-                // That function creates a GdkWindowCache for the screen, which
-                // internally calls XCompositeGetOverlayWindow to obtain Mutter's
-                // compositor overlay window. When the drag context is later
-                // finalized (via g_object_unref), GDK calls gdk_window_cache_destroy
-                // → XCompositeReleaseOverlayWindow, disturbing the compositor state.
-                // On ThinkPad/Mutter this triggers a GPU driver hang ~100ms later,
-                // requiring a hard power cycle.
+                // gdk_drag_motion() internally calls move_drag_window() on every
+                // invocation, which sends XConfigureWindow to the X server. Under
+                // XWayland + Mutter + Intel i915, each XConfigureWindow triggers a
+                // Wayland surface-position update that schedules a compositor repaint.
+                // At mouse-event rate (≥60 Hz, often 120 Hz) this generates more GPU
+                // compositing work per second than the i915 command ring can absorb,
+                // causing a kernel TDR timeout → hard system freeze.
                 //
-                // gdk_device_get_window_at_position finds the GDK-managed window
-                // under the pointer without touching the composite overlay. For
-                // same-process DnD (the case we care about) this correctly returns
-                // our own destination GdkWindow. For cross-process DnD the function
-                // returns NULL for foreign windows, so drops onto other apps will
-                // show a "no-drop" cursor but won't crash.
-                //
-                // All modern X11 clients (and all GTK clients) support XDND, so
-                // GDK_DRAG_PROTO_XDND is correct for any window we find.
-                GdkWindow *t_dest_window;
-                gint t_win_x, t_win_y;
-                t_dest_window = gdk_device_get_window_at_position(t_pointer, &t_win_x, &t_win_y);
-                GdkDragProtocol t_protocol = (t_dest_window != NULL) ? GDK_DRAG_PROTO_XDND : GDK_DRAG_PROTO_NONE;
+                // 33 ms ≈ 30 fps. We use event timestamps (ms) to throttle. When
+                // a motion event is skipped we still track the latest position so that
+                // the final XdndPosition message (at drop time) is accurate.
+                static guint32 s_last_motion_ms = 0;
+                bool t_skip_position = (t_event->motion.time - s_last_motion_ms < 33);
 
-                // Clear the action if we didn't find a target
-                if (t_dest_window == NULL)
+                GdkWindow *t_dest_window = nullptr;
+                gint t_win_x = 0, t_win_y = 0;
+
+                if (!t_skip_position)
                 {
-                    t_action = DRAG_ACTION_NONE;
-                    MCLinuxDragAndDropSetCursorForAction(w, DRAG_ACTION_NONE, p_image);
-                }
+                    s_last_motion_ms = t_event->motion.time;
 
-                // Send a drag motion event
-                gdk_drag_motion(t_context, t_dest_window, t_protocol,
-                                t_event->motion.x_root, t_event->motion.y_root,
-                                GdkDragAction(t_suggested_action),
-                                GdkDragAction(t_possible_actions),
-                                t_event->motion.time);
+                    // Use gdk_device_get_window_at_position (not gdk_drag_find_window_for_screen).
+                    // The latter creates a GdkWindowCache via XCompositeGetOverlayWindow which
+                    // disturbs Mutter's compositor state → GPU hang on ThinkPad/Intel i915.
+                    t_dest_window = gdk_device_get_window_at_position(t_pointer, &t_win_x, &t_win_y);
+                    GdkDragProtocol t_protocol = (t_dest_window != NULL) ? GDK_DRAG_PROTO_XDND : GDK_DRAG_PROTO_NONE;
+
+                    // Clear the action if we didn't find a target
+                    if (t_dest_window == NULL)
+                    {
+                        t_action = DRAG_ACTION_NONE;
+                        MCLinuxDragAndDropSetCursorForAction(w, DRAG_ACTION_NONE, p_image);
+                    }
+
+                    // Send a drag motion event (calls move_drag_window internally)
+                    gdk_drag_motion(t_context, t_dest_window, t_protocol,
+                                    t_event->motion.x_root, t_event->motion.y_root,
+                                    GdkDragAction(t_suggested_action),
+                                    GdkDragAction(t_possible_actions),
+                                    t_event->motion.time);
+                }
 
                 break;
             }
@@ -332,11 +320,13 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
             case GDK_BUTTON_RELEASE:
             {
                 fprintf(stderr, "DND modal: button release, t_action=%d\n", (int)t_action);
+                fflush(stderr);
                 if (t_action != DRAG_ACTION_NONE)
                 {
                     gdk_drag_drop(t_context, t_event->button.time);
                     gdk_display_flush(dpy);
                     fprintf(stderr, "DND modal: gdk_drag_drop sent + flushed\n");
+                    fflush(stderr);
                 }
                 else
                     t_dnd_done = true;
@@ -492,20 +482,38 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 
             case GDK_DROP_START:
                 fprintf(stderr, "DND modal: GDK_DROP_START — handling\n");
+                fflush(stderr);
                 // For same-process DnD this arrives in our modal loop because
-                // we are acting as our own destination. Handle it, flush, and
-                // exit. GDK_DROP_FINISHED is silently consumed internally by
-                // GDK for same-process drags and never delivered as a GdkEvent,
-                // so we do not attempt to wait for it.
+                // we are acting as our own destination. Handle it, then
+                // synchronise and pump the GLib event loop so that GDK can
+                // process the XdndFinished ClientMessage that gdk_drop_finish
+                // just sent to our source window. Processing XdndFinished while
+                // the drag context is still live resets GDK's device drag state
+                // and (for XWayland) signals Mutter to close its Wayland DnD
+                // seat session. Without this pump, the context is unreffed
+                // before XdndFinished is processed, leaving GDK's drag state
+                // stuck and all subsequent input silently suppressed.
                 DnDClientEvent(t_event);
                 gdk_display_flush(dpy);
+                // XSync round-trip — blocks until XdndFinished arrives in the
+                // Xlib event queue.
+                gdk_display_sync(dpy);
+                {
+                    int t_drop_pump = 0;
+                    while (g_main_context_iteration(g_main_context_default(), FALSE))
+                        t_drop_pump++;
+                    fprintf(stderr, "DND modal: GDK_DROP_START post-sync pump: %d events\n", t_drop_pump);
+                    fflush(stderr);
+                }
                 t_dnd_done = true;
                 fprintf(stderr, "DND modal: GDK_DROP_START done, t_dnd_done=true\n");
+                fflush(stderr);
                 break;
 
             case GDK_DROP_FINISHED:
             {
                 fprintf(stderr, "DND modal: GDK_DROP_FINISHED — grab released by GDK\n");
+                fflush(stderr);
                 // GDK has now processed XdndFinished and released its internal
                 // X pointer grab. Safe to exit and unref the context.
                 bool t_success;
@@ -536,71 +544,428 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         
         gdk_event_free(t_event);
         fprintf(stderr, "DND modal: post-event: resetprops\n");
+        fflush(stderr);
         // Unlock the screen, perform redraw and other cleanup tasks
         MCU_resetprops(True);
         fprintf(stderr, "DND modal: post-event: redraw\n");
+        fflush(stderr);
         MCRedrawUpdateScreen();
         fprintf(stderr, "DND modal: post-event: siguser\n");
+        fflush(stderr);
         siguser();
         fprintf(stderr, "DND modal: post-event: done\n");
+        fflush(stderr);
     }
 
     fprintf(stderr, "DND modal: modalLoopEnd\n");
+    fflush(stderr);
     modalLoopEnd();
 
-    // Step 1: Release GDK's internal device grab from the DnD.
+    // Step 1: Signal GDK that the DnD has completed successfully.
     //
-    // gdk_drag_begin_for_device() → gdk_x11_drag_context_drag_motion() calls
-    // gdk_device_grab() which adds an entry to display->device_grabs.
-    // gdk_seat_ungrab() only clears *seat-level* grabs (those created via
-    // gdk_seat_grab()); it does not remove entries from device_grabs.  As a
-    // result, even after XUnmapWindow auto-releases the X11 grab, GDK still
-    // routes all incoming pointer events to the now-hidden drag window, making
-    // every click non-functional until the context is fully destroyed.
+    // GTK 3.24.49 source analysis confirms that in our code path:
+    //   - drag_context_grab / gdk_seat_grab: NEVER called (ipc_window is NULL
+    //     because we don't call gdk_drag_context_manage_dnd).
+    //   - gdk_drag_begin_for_device → _gdk_x11_window_drag_begin: NO grab.
+    //   - gdk_drag_motion → gdk_x11_drag_context_drag_motion: NO grab.
+    //   - gdk_drag_drop → gdk_x11_drag_context_drag_drop: NO ungrab either
+    //     (drag_context_ungrab is a no-op because grab_seat is NULL).
     //
-    // gdk_device_ungrab() (deprecated since GTK 3.20 but still functional) is
-    // the proper counterpart: it removes the entry from display->device_grabs
-    // AND calls XUngrabPointer, so GDK's event router stops pointing at the
-    // drag window and normal window delivery resumes immediately.
-    fprintf(stderr, "DND cleanup: gdk_device_ungrab\n");
+    // gdk_drag_drop_done():
+    //   - Sets context->drop_done = TRUE (idempotent sentinel).
+    //   - On the success path, calls gdk_window_hide(x11_context->drag_window)
+    //     followed by move_drag_window(context, -100, -100). move_drag_window
+    //     calls gdk_window_show — so the drag window is RE-MAPPED off-screen
+    //     at (-100,-100) after gdk_drag_drop_done returns. This leaves it as
+    //     a live Wayland surface with X11/Wayland focus, consuming all keyboard
+    //     and pointer events until explicitly hidden.
+    //   - After this call, gdk_drag_context_handle_source_event() will
+    //     process GDK_DROP_FINISHED as a no-op (drop_done guard fires).
+
+    // Grab the drag window reference BEFORE gdk_drag_drop_done so we can
+    // explicitly hide it again after gdk_drag_drop_done re-maps it.
+    GdkWindow *t_drag_win = gdk_drag_context_get_drag_window(t_context);
+    fprintf(stderr, "DND cleanup: drag_win=%p XID=0x%lx visible=%d\n",
+            (void*)t_drag_win,
+            t_drag_win ? (unsigned long)x11::gdk_x11_window_get_xid(t_drag_win) : 0UL,
+            t_drag_win ? (int)gdk_window_is_visible(t_drag_win) : -1);
+    fflush(stderr);
+
+    fprintf(stderr, "DND cleanup: gdk_drag_drop_done\n");
+    fflush(stderr);
+    gdk_drag_drop_done(t_context, TRUE);
+
+    // gdk_drag_drop_done just re-mapped the drag window at (-100,-100).
+    // Force-hide it so XWayland unmaps the Wayland surface and Mutter's
+    // drag-session seat grab is properly released.
+    if (t_drag_win)
+    {
+        gdk_window_hide(t_drag_win);
+        fprintf(stderr, "DND cleanup: drag_win force-hidden, visible=%d\n",
+                (int)gdk_window_is_visible(t_drag_win));
+        fflush(stderr);
+    }
+
+    // Step 2: Unconditionally release any lingering pointer grabs.
+    //
+    // The only grab that can exist at this point is the implicit X11 pointer
+    // grab created by the initiating button-press event, which the X server
+    // normally releases automatically when all buttons are released.
+    //
+    // Under XWayland/Mutter the release of that implicit grab may be deferred
+    // until the compositor processes the next X server round-trip.  We call
+    // all three ungrab APIs as belt-and-suspenders to cover:
+    //   (a) GDK seat-level grabs  (b) GDK XI2 device grabs
+    //   (c) X11 core-protocol grabs (the most likely survivor).
+
+    // 2a. GDK seat-level ungrab — covers gdk_seat_grab (not used in our path
+    //     but harmless).
+    gdk_seat_ungrab(gdk_device_get_seat(t_pointer));
+
+    // 2b. GDK device-level ungrab — also clears GDK's internal grab-tracking
+    //     tables (display->device_grabs / _gdk_display_set_has_pointer_grab)
+    //     and calls XIUngrabDevice.
     G_GNUC_BEGIN_IGNORE_DEPRECATIONS
     gdk_device_ungrab(t_pointer, GDK_CURRENT_TIME);
     G_GNUC_END_IGNORE_DEPRECATIONS
-    gdk_display_flush(dpy);
 
-    // Step 2: Hide the drag window ourselves and schedule deferred destroy.
-    //
-    // We intentionally do NOT call gdk_drag_drop_done() here.
-    // gdk_drag_drop_done() -> animate_drop_finished() schedules GTK3's
-    // internal finish_drag() at ANIM_TIME = 1500 ms.  finish_drag() calls
-    // gdk_window_destroy() which sends XDestroyWindow.  EnqueueGdkEvents()
-    // calls g_main_context_iteration() which dispatches that timer, so
-    // finish_drag fires ~1500 ms after the drop during ordinary event
-    // processing.  If Mutter still holds a GPU texture for the unmapped
-    // window at that moment, XDestroyWindow causes an uninterruptible
-    // DRM/KMS kernel hang requiring a power cycle.
-    //
-    // Instead: hide the window ourselves right now (same visual effect,
-    // zero delay) and schedule our own destroy+unref at 2000 ms.  By then
-    // Mutter has released all GPU resources and the destroy is safe.
-    // gdk_x11_drag_context_finalize() also calls gdk_window_destroy();
-    // GDK returns early if window->destroyed is true, so the double-destroy
-    // is harmless.
-    GdkWindow *t_drag_window = gdk_drag_context_get_drag_window(t_context);
-    if (t_drag_window != nullptr)
-        g_object_ref(t_drag_window); // keep alive until callback fires
-    if (t_drag_window != nullptr)
-        gdk_window_hide(t_drag_window);
-    gdk_display_flush(dpy);
+    // 2c. Direct Xlib core-protocol ungrab — releases any active XGrabPointer
+    //     or passive-grab-promoted active grab, including deferred XWayland
+    //     releases that XIUngrabDevice misses. Also ungrab the keyboard: if
+    //     GDK or XWayland grabbed the keyboard for the drag (e.g. via
+    //     XGrabKeyboard or the XWayland keyboard-grab protocol), this forces
+    //     it to release. XUngrabKeyboard is a no-op when no grab is active.
+    {
+        x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
+        x11::XUngrabPointer(t_xdpy, 0L /* CurrentTime */);
+        x11::XUngrabKeyboard(t_xdpy, 0L /* CurrentTime */);
+        x11::XFlush(t_xdpy);
+    }
 
-    fprintf(stderr, "DND modal: scheduling deferred destroy+unref (2000ms)\n");
-    MCLinuxDragCleanupData *t_cleanup = new MCLinuxDragCleanupData { t_context, t_drag_window };
-    g_timeout_add(2000, MCLinuxDragCleanupCallback, t_cleanup);
-    fprintf(stderr, "DND modal: SetClipboardWindow NULL\n");
+    fprintf(stderr, "DND cleanup: all ungrabs called\n");
+    fflush(stderr);
+
+    // Step 3: Blocking sync — wait for the X server to process the ungrab
+    // requests and return any pending error replies before we continue.
+    // The DnD protocol is already complete at this point, so gdk_display_sync
+    // (XSync round-trip) is safe and cannot cause the GPU stall that was the
+    // reason we switched to gdk_display_flush in the main wait() loop.
+    gdk_display_sync(dpy);
+    fprintf(stderr, "DND cleanup: gdk_display_sync done\n");
+    fflush(stderr);
+
+    // Step 3b: Pump the GLib/GDK event loop while the drag context is still
+    // live. The GDK_DROP_START handler already did a sync+pump inside the
+    // modal loop, but any events that arrived between then and now (e.g., a
+    // second XdndFinished attempt, or Mutter's Wayland DnD teardown events)
+    // still need processing. Doing this before g_object_unref(t_context)
+    // keeps GDK's state machine coherent.
+    {
+        int t_preunref_pump = 0;
+        while (g_main_context_iteration(g_main_context_default(), FALSE))
+            t_preunref_pump++;
+        fprintf(stderr, "DND cleanup: pre-unref pump: %d events\n", t_preunref_pump);
+        fflush(stderr);
+    }
+
+    // Diagnostic: query actual X11 pointer grab state after all ungrabs.
+    // child_ret == None means the pointer is on a background window (no app window
+    // under it), which would explain why no events are delivered.
+    // mask & Button1Mask (bit 8) set means button 1 is still physically held.
+    {
+        x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
+        x11::Window t_root_ret = 0, t_child_ret = 0;
+        int t_rx = 0, t_ry = 0, t_wx = 0, t_wy = 0;
+        unsigned int t_mask = 0;
+        // XQueryPointer on root reports: child=topmost window under pointer,
+        // mask=modifier+button state, root=root window actually containing pointer.
+        // If an X11 grab is active, child reflects the grab tree, not actual position.
+        x11::XQueryPointer(t_xdpy,
+                           x11::XDefaultRootWindow(t_xdpy),
+                           &t_root_ret, &t_child_ret,
+                           &t_rx, &t_ry, &t_wx, &t_wy, &t_mask);
+        fprintf(stderr, "DND diag: XQueryPointer root_child=0x%lx root_xy=(%d,%d) mask=0x%x (btn1=%d btn2=%d btn3=%d)\n",
+                (unsigned long)t_child_ret, t_rx, t_ry, (unsigned)t_mask,
+                !!(t_mask & (1u<<8)), !!(t_mask & (1u<<9)), !!(t_mask & (1u<<10)));
+        fflush(stderr);
+
+        // If root_child differs from our window, identify the foreign window.
+        // class: 1=InputOutput (visible, has pixels), 2=InputOnly (invisible, events only).
+        // map_state: 0=Unmapped, 1=Unviewable (parent unmapped), 2=IsViewable (visible).
+        // override_redirect: 1=WM cannot manage it (popup/tooltip/DnD overlay).
+        x11::Window t_our_xid = x11::gdk_x11_window_get_xid(w);
+        if (t_child_ret != 0 && t_child_ret != t_our_xid)
+        {
+            x11::XWindowAttributes t_attrs = {};
+            if (x11::XGetWindowAttributes(t_xdpy, t_child_ret, &t_attrs))
+            {
+                fprintf(stderr, "DND diag: foreign window 0x%lx: class=%d map_state=%d override_redirect=%d"
+                        " geom=(%d,%d %dx%d) event_mask=0x%lx all_event_masks=0x%lx\n",
+                        (unsigned long)t_child_ret,
+                        (int)t_attrs.c_class,
+                        (int)t_attrs.map_state,
+                        (int)t_attrs.override_redirect,
+                        t_attrs.x, t_attrs.y, t_attrs.width, t_attrs.height,
+                        (unsigned long)t_attrs.your_event_mask,
+                        (unsigned long)t_attrs.all_event_masks);
+                fflush(stderr);
+            }
+            else
+            {
+                fprintf(stderr, "DND diag: foreign window 0x%lx: XGetWindowAttributes failed\n",
+                        (unsigned long)t_child_ret);
+                fflush(stderr);
+            }
+
+            // Find the parent of the foreign window.
+            // If parent == root: true sibling (stacking issue).
+            // If parent == our XID: it's a child of ours (unexpected).
+            // If parent == some other window: reparented (WM frame hierarchy).
+            {
+                x11::Window t_qt_root = 0, t_qt_parent = 0;
+                x11::Window *t_qt_children = NULL;
+                unsigned int t_qt_nchildren = 0;
+                if (x11::XQueryTree(t_xdpy, t_child_ret,
+                                    &t_qt_root, &t_qt_parent,
+                                    &t_qt_children, &t_qt_nchildren))
+                {
+                    fprintf(stderr, "DND diag: foreign window 0x%lx parent=0x%lx"
+                            " (our_xid=0x%lx x11_root=0x%lx)\n",
+                            (unsigned long)t_child_ret,
+                            (unsigned long)t_qt_parent,
+                            (unsigned long)t_our_xid,
+                            (unsigned long)t_qt_root);
+                    if (t_qt_children)
+                        x11::XFree(t_qt_children);
+                }
+                fflush(stderr);
+            }
+        }
+
+        // Check where keyboard focus is right now.
+        // PointerRoot(1) = focus follows pointer.
+        // None(0) = no focus window.
+        // Any other XID = that window has focus.
+        {
+            x11::Window t_focus_win = 0;
+            int t_focus_revert = 0;
+            x11::XGetInputFocus(t_xdpy, &t_focus_win, &t_focus_revert);
+            fprintf(stderr, "DND diag: XGetInputFocus focus=0x%lx revert=%d (our_xid=0x%lx)\n",
+                    (unsigned long)t_focus_win, t_focus_revert,
+                    (unsigned long)t_our_xid);
+            fflush(stderr);
+
+            // Identify the focus window when it differs from our main window.
+            // class: 1=InputOutput, 2=InputOnly.
+            // map_state: 0=Unmapped, 1=Unviewable, 2=IsViewable.
+            // A tiny InputOnly window is typically GDK's focus_window child.
+            if (t_focus_win != 0 && t_focus_win != t_our_xid)
+            {
+                x11::XWindowAttributes t_fa = {};
+                if (x11::XGetWindowAttributes(t_xdpy, t_focus_win, &t_fa))
+                {
+                    fprintf(stderr,
+                            "DND diag: focus window 0x%lx: class=%d map_state=%d"
+                            " size=%dx%d pos=(%d,%d) override=%d\n",
+                            (unsigned long)t_focus_win,
+                            (int)t_fa.c_class,
+                            (int)t_fa.map_state,
+                            t_fa.width, t_fa.height,
+                            t_fa.x, t_fa.y,
+                            (int)t_fa.override_redirect);
+
+                    // Is it a child of our window?
+                    x11::Window t_fw_root = 0, t_fw_parent = 0;
+                    x11::Window *t_fw_children = NULL;
+                    unsigned int t_fw_nchildren = 0;
+                    x11::XQueryTree(t_xdpy, t_focus_win,
+                                    &t_fw_root, &t_fw_parent,
+                                    &t_fw_children, &t_fw_nchildren);
+                    if (t_fw_children) x11::XFree(t_fw_children);
+                    fprintf(stderr,
+                            "DND diag: focus window parent=0x%lx"
+                            " (our_xid=0x%lx, %s)\n",
+                            (unsigned long)t_fw_parent,
+                            (unsigned long)t_our_xid,
+                            t_fw_parent == t_our_xid ? "CHILD OF OURS"
+                            : t_fw_parent == 0 ? "root child"
+                            : "other parent");
+                }
+                else
+                {
+                    fprintf(stderr, "DND diag: focus window 0x%lx: XGetWindowAttributes failed\n",
+                            (unsigned long)t_focus_win);
+                }
+                fflush(stderr);
+            }
+        }
+
+        // Find the parent of OUR window to answer: sibling or frame?
+        // If our parent == root (t_root_ret): true siblings, stacking issue.
+        // If our parent == t_child_ret: we're inside the "foreign" frame window.
+        {
+            x11::Window t_op_root = 0, t_op_parent = 0;
+            x11::Window *t_op_children = NULL;
+            unsigned int t_op_nchildren = 0;
+            if (x11::XQueryTree(t_xdpy, t_our_xid, &t_op_root, &t_op_parent,
+                                &t_op_children, &t_op_nchildren))
+            {
+                fprintf(stderr, "DND diag: our window 0x%lx parent=0x%lx root=0x%lx\n",
+                        (unsigned long)t_our_xid, (unsigned long)t_op_parent,
+                        (unsigned long)t_op_root);
+                if (t_op_children) x11::XFree(t_op_children);
+            }
+            fflush(stderr);
+        }
+
+        // WM_CLASS of the foreign window — identifies who created it.
+        // "hyperxtalk\0HyperXTalk\0" → our own frame/shell window (WM reparented us)
+        // "gnome-shell\0..."         → compositor overlay
+        // <not set>                  → internal/anonymous window
+        if (t_child_ret != 0 && t_child_ret != t_our_xid)
+        {
+            x11::Atom t_wm_class_atom =
+                x11::XInternAtom(t_xdpy, "WM_CLASS", 0 /* False — create if absent */);
+            if (t_wm_class_atom)
+            {
+                x11::Atom t_ret_type = 0;
+                int t_ret_fmt = 0;
+                unsigned long t_ret_nitems = 0, t_ret_remaining = 0;
+                unsigned char *t_ret_data = NULL;
+                int t_prop_rc = x11::XGetWindowProperty(
+                    t_xdpy, t_child_ret, t_wm_class_atom,
+                    0L, 256L, 0 /* False/no-delete */,
+                    0L /* AnyPropertyType */,
+                    &t_ret_type, &t_ret_fmt,
+                    &t_ret_nitems, &t_ret_remaining, &t_ret_data);
+                if (t_prop_rc == 0 /* Success */ && t_ret_data && t_ret_nitems > 0)
+                {
+                    // WM_CLASS = "instance\0class\0"
+                    const char *t_instance = (const char *)t_ret_data;
+                    const char *t_class    = t_instance + strlen(t_instance) + 1;
+                    fprintf(stderr, "DND diag: foreign WM_CLASS='%s' class='%s'\n",
+                            t_instance, t_class);
+                    x11::XFree(t_ret_data);
+                }
+                else
+                {
+                    fprintf(stderr, "DND diag: foreign WM_CLASS=<none rc=%d>\n", t_prop_rc);
+                }
+                fflush(stderr);
+            }
+        }
+    }
+
+    // Log the source window (w) so we can compare with XQueryPointer root_child
+    // and gdk_device_get_window_at_position to see if they all agree on the same window.
+    fprintf(stderr, "DND diag: source window w=%p XID=0x%lx\n",
+            (void*)w, (unsigned long)x11::gdk_x11_window_get_xid(w));
+    fflush(stderr);
+
+    // Force GDK to re-query the pointer position. This updates GDK's internal
+    // "pointer window" tracking, which may have gone stale while the drag window
+    // was on top of the main window. Without this, GDK may continue routing
+    // subsequent pointer events to the (now unmapped) drag window and silently
+    // discarding them.
+    {
+        gint t_gdk_wx = 0, t_gdk_wy = 0;
+        GdkWindow *t_ptr_window = gdk_device_get_window_at_position(t_pointer, &t_gdk_wx, &t_gdk_wy);
+        fprintf(stderr, "DND diag: gdk_device_get_window_at_position = %p XID=0x%lx (%d,%d)\n",
+                (void*)t_ptr_window,
+                t_ptr_window ? (unsigned long)x11::gdk_x11_window_get_xid(t_ptr_window) : 0UL,
+                t_gdk_wx, t_gdk_wy);
+        fflush(stderr);
+    }
+
+    // Step 4: Release the context reference immediately.
+    //
+    // We called gdk_drag_drop_done() in Step 1, which set drop_done = TRUE.
+    // If GDK_DROP_FINISHED arrives later and gdk_drag_context_handle_source_event
+    // processes it, gdk_drag_drop_done is idempotent and the double-call is
+    // harmless.  Dropping our ref now removes the context from GDK's internal
+    // 'contexts' list, so subsequent events are never routed through it.
+    //
+    // NOTE: gdk_x11_drag_context_finalize does NOT destroy x11_context->drag_window
+    // (only the base-class context->drag_window field, which is NULL for X11).
+    // The 100×100 drag-indicator window therefore leaks at refcount 1 — this
+    // is identical to GTK's own accepted behavior on the success path.
+    fprintf(stderr, "DND cleanup: g_object_unref context\n");
+    fflush(stderr);
+    g_object_unref(t_context);
+    fprintf(stderr, "DND cleanup: done\n");
+    fflush(stderr);
+
     t_dragboard->SetClipboardWindow(NULL);
-    fprintf(stderr, "DND modal: set cursor NULL\n");
     gdk_window_set_cursor(w, NULL);
+
+    // Restore our window's Z-order and input focus after DnD.
+    //
+    // Root cause (confirmed by diagnostics):
+    //   - A foreign X11 window (root child, sibling to ours) sits above our window
+    //     after DnD. XQueryPointer returns it as root_child.
+    //   - XRaiseWindow on our window is silently ignored by Mutter (focus-stealing
+    //     prevention: Mutter won't honor client-initiated raises unless they come
+    //     from explicit user interaction at the Wayland level).
+    //   - XSetInputFocus / _NET_ACTIVE_WINDOW DO move X11 keyboard focus to our
+    //     window, but Mutter's Wayland seat focus stays on the foreign window, so
+    //     neither typing nor clicking works.
+    //
+    // Strategy: pump the GLib/GDK event loop first. Mutter may have queued
+    // cleanup events (e.g., XdndFinished acknowledgment, selection release, or
+    // Wayland dnd_leave) that — once processed — will cause it to lower the
+    // foreign window on its own. Only then do the raise+focus calls.
+    {
+        // Pump pending GLib/GDK events. The drag context's XdndFinished and
+        // any selection events are processed here, which may trigger Mutter to
+        // tear down its internal DnD state and lower the proxy window.
+        int t_pump_count = 0;
+        while (g_main_context_iteration(g_main_context_default(), FALSE))
+            t_pump_count++;
+        fprintf(stderr, "DND fix: pumped %d g_main_context iterations\n", t_pump_count);
+        fflush(stderr);
+
+        guint32 t_server_time = x11::gdk_x11_get_server_time(w);
+        fprintf(stderr, "DND fix: server_time=%u\n", (unsigned)t_server_time);
+        fflush(stderr);
+
+        gdk_window_raise(w);
+        gdk_window_focus(w, t_server_time);
+
+        x11::Display *t_xdpy_fix = x11::gdk_x11_display_get_xdisplay(dpy);
+        x11::XSetInputFocus(t_xdpy_fix,
+                            x11::gdk_x11_window_get_xid(w),
+                            2 /* RevertToParent */,
+                            0L /* CurrentTime */);
+        x11::XFlush(t_xdpy_fix);
+    }
+
+    // Flush GDK side too, then sync to ensure all requests were processed.
+    gdk_display_flush(dpy);
+
+    // Post-fix: confirm stacking and focus were actually restored.
+    {
+        x11::Display *t_xdpy_post = x11::gdk_x11_display_get_xdisplay(dpy);
+        x11::XSync(t_xdpy_post, False);
+
+        x11::Window t_post_root = 0, t_post_child = 0;
+        int t_post_rx = 0, t_post_ry = 0, t_post_wx = 0, t_post_wy = 0;
+        unsigned int t_post_mask = 0;
+        x11::XQueryPointer(t_xdpy_post, x11::XDefaultRootWindow(t_xdpy_post),
+                           &t_post_root, &t_post_child,
+                           &t_post_rx, &t_post_ry, &t_post_wx, &t_post_wy, &t_post_mask);
+
+        x11::Window t_post_focus = 0;
+        int t_post_revert = 0;
+        x11::XGetInputFocus(t_xdpy_post, &t_post_focus, &t_post_revert);
+
+        fprintf(stderr, "DND post-fix: root_child=0x%lx focus=0x%lx revert=%d our_xid=0x%lx\n",
+                (unsigned long)t_post_child, (unsigned long)t_post_focus,
+                t_post_revert, (unsigned long)x11::gdk_x11_window_get_xid(w));
+        fflush(stderr);
+    }
+
     fprintf(stderr, "DND modal: returning t_action=%d\n", (int)t_action);
+    fflush(stderr);
 
     // Restore the original modifier key state
     MCmodifierstate = t_old_modstate;
