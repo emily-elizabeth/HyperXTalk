@@ -481,6 +481,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     x11::Display *t_xdisplay  = x11::gdk_x11_display_get_xdisplay(dpy);
     x11::Window   t_src_xid   = x11::gdk_x11_window_get_xid(w);
     x11::Window   t_xdnd_foreign_dest = None;  // foreign XID we last entered
+    GdkWindow    *t_foreign_gdk = NULL;         // GdkWindow wrapper for foreign dest
     MCLinuxXdndInitAtoms(t_xdisplay);
 
     // gdk_drag_begin claims XdndSelection for an internal IPC/proxy window,
@@ -694,191 +695,60 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         t_is_foreign = true;
                 }
 
-                // ── XdndEnter / XdndLeave (unthrottled) ──
+                // ── Foreign-window wrapper management (unthrottled) ──
                 //
-                // All manual Xdnd messages use t_xdnd_ipc_xid (the XdndSelection
-                // owner = GDK's IPC/proxy window) as the source.  Mutter's bridge
-                // validates XdndEnter.data.l[0] == XGetSelectionOwner(XdndSelection)
-                // and silently drops messages where they don't match.
+                // We use gdk_drag_motion for BOTH intra-app and foreign targets.
+                // For foreign windows, GDK sends XdndEnter (when dest changes) and
+                // XdndPosition using the drag context's IPC window as source — the
+                // same window that owns XdndSelection. GDK also installs its own
+                // filter on the IPC window for XdndStatus / XdndFinished, routing
+                // them back as GDK_DRAG_STATUS / GDK_DROP_FINISHED events.
+                //
+                // Manual XSendEvent sends to Mutter's DnD tracking window produce
+                // zero response; Mutter's bridge apparently requires that the drag
+                // context and window wrappers be registered via GDK's own internals.
                 if (t_is_foreign)
                 {
                     if (t_xdnd_foreign_dest != t_xtarget)
                     {
-                        if (t_xdnd_foreign_dest != None)
+                        // Leaving the old foreign window — GDK sends XdndLeave
+                        // implicitly when gdk_drag_motion is called with a new dest
+                        if (t_foreign_gdk != NULL)
                         {
-                            MCLinuxXdndSendLeave(t_xdisplay, t_xdnd_ipc_xid,
-                                                 t_xdnd_foreign_dest);
+                            g_object_unref(t_foreign_gdk);
+                            t_foreign_gdk = NULL;
                         }
-
-                        const gulong *t_type_atoms =
-                            reinterpret_cast<const gulong*>(
-                                MCDataGetBytePtr(*t_targets));
-                        uindex_t t_type_count =
-                            MCDataGetLength(*t_targets) / sizeof(gulong);
-
-                        // Re-query XdndSelection owner — Mutter may have claimed
-                        // it as its own relay window after the TARGETS exchange.
-                        // Using a stale owner causes Mutter to silently reject
-                        // XdndEnter (source != XGetSelectionOwner(XdndSelection)).
-                        {
-                            x11::Window t_fresh_ipc =
-                                x11::XGetSelectionOwner(t_xdisplay, t_xdnd_sel_atom);
-                            if (t_fresh_ipc != None && t_fresh_ipc != t_xdnd_ipc_xid)
-                            {
-                                fprintf(stderr,
-                                        "DND: XdndSelection owner changed %lu → %lu\n",
-                                        (unsigned long)t_xdnd_ipc_xid,
-                                        (unsigned long)t_fresh_ipc);
-                                fflush(stderr);
-                                t_xdnd_ipc_xid = t_fresh_ipc;
-                            }
-                            // Ensure XdndTypeList is set on whoever owns the selection
-                            x11::XChangeProperty(t_xdisplay, t_xdnd_ipc_xid,
-                                                 s_xdnd.xdnd_type_list,
-                                                 (x11::Atom)4 /* XA_ATOM */, 32,
-                                                 PropModeReplace,
-                                                 reinterpret_cast<const unsigned char*>(
-                                                     t_type_atoms),
-                                                 (int)t_type_count);
-                            fprintf(stderr,
-                                    "DND: XdndSelection owner now=%lu (used as src)\n",
-                                    (unsigned long)t_xdnd_ipc_xid);
-                            fflush(stderr);
-                        }
-
-                        // ── Target window diagnostics ──
-                        // Log the target window's WM_CLASS, XdndAware version, and
-                        // whether it has _XWAYLAND_SURFACE_ID (XWayland proxy window).
-                        {
-                            // XdndAware version
-                            unsigned int t_xdnd_ver = 0;
-                            {
-                                static x11::Atom s_aware =
-                                    x11::XInternAtom(t_xdisplay, "XdndAware", False);
-                                x11::Atom t_at; int t_fmt;
-                                unsigned long t_ni, t_ba;
-                                unsigned char *t_dp = NULL;
-                                if (x11::XGetWindowProperty(t_xdisplay, t_xtarget,
-                                        s_aware, 0, 1, False, AnyPropertyType,
-                                        &t_at, &t_fmt, &t_ni, &t_ba, &t_dp)
-                                        == Success && t_dp)
-                                {
-                                    t_xdnd_ver = (t_fmt == 32)
-                                        ? (unsigned int)(*(unsigned long*)t_dp)
-                                        : (unsigned int)(*t_dp);
-                                    x11::XFree(t_dp);
-                                }
-                            }
-                            // WM_CLASS
-                            char t_wm_class[256] = "(none)";
-                            {
-                                x11::Atom t_wc =
-                                    x11::XInternAtom(t_xdisplay, "WM_CLASS", True);
-                                if (t_wc != None)
-                                {
-                                    x11::Atom t_at; int t_fmt;
-                                    unsigned long t_ni, t_ba;
-                                    unsigned char *t_dp = NULL;
-                                    if (x11::XGetWindowProperty(t_xdisplay, t_xtarget,
-                                            t_wc, 0, 64, False, AnyPropertyType,
-                                            &t_at, &t_fmt, &t_ni, &t_ba, &t_dp)
-                                            == Success && t_dp)
-                                    {
-                                        snprintf(t_wm_class, sizeof(t_wm_class),
-                                                 "%s", (char*)t_dp);
-                                        x11::XFree(t_dp);
-                                    }
-                                }
-                            }
-                            // _XWAYLAND_SURFACE_ID (present on XWayland proxy windows)
-                            bool t_is_xwl = false;
-                            {
-                                x11::Atom t_xa =
-                                    x11::XInternAtom(t_xdisplay,
-                                                     "_XWAYLAND_SURFACE_ID", True);
-                                if (t_xa != None)
-                                {
-                                    x11::Atom t_at; int t_fmt;
-                                    unsigned long t_ni, t_ba;
-                                    unsigned char *t_dp = NULL;
-                                    if (x11::XGetWindowProperty(t_xdisplay, t_xtarget,
-                                            t_xa, 0, 1, False, AnyPropertyType,
-                                            &t_at, &t_fmt, &t_ni, &t_ba, &t_dp)
-                                            == Success && t_dp)
-                                    {
-                                        t_is_xwl = true;
-                                        x11::XFree(t_dp);
-                                    }
-                                }
-                            }
-                            fprintf(stderr,
-                                    "DND target xid=%lu: XdndAware v%u, "
-                                    "WM_CLASS='%s', xwayland_proxy=%d\n",
-                                    (unsigned long)t_xtarget, t_xdnd_ver,
-                                    t_wm_class, (int)t_is_xwl);
-                            fflush(stderr);
-                        }
-
-                        fprintf(stderr,
-                                "DND XdndEnter → xid=%lu (ipc_src=%lu, %u types)\n",
-                                (unsigned long)t_xtarget,
-                                (unsigned long)t_xdnd_ipc_xid,
-                                (unsigned)t_type_count);
-                        fflush(stderr);
-                        MCLinuxXdndSendEnter(t_xdisplay, t_xdnd_ipc_xid, t_xtarget,
-                                             t_type_atoms, t_type_count);
+                        // Create a GdkWindow wrapper for the new foreign dest.
+                        // This registers the XID as GDK_WINDOW_FOREIGN in GDK's
+                        // internal table; our foreign-detection check (type !=
+                        // GDK_WINDOW_FOREIGN) ensures subsequent lookups still
+                        // classify it as foreign, not intra-app.
+                        t_foreign_gdk =
+                            gdk_x11_window_foreign_new_for_display(dpy, t_xtarget);
                         t_xdnd_foreign_dest = t_xtarget;
-                        x11::XFlush(t_xdisplay);
-
-                        // ── Sync-and-poll: wait up to 200ms for Mutter's XdndStatus ──
-                        // After XdndEnter + first Position, Mutter needs to bridge to
-                        // Wayland and get a response from the target app. On a Wayland
-                        // compositor over a local socket this is typically <10ms.
-                        // If we see "DND syncpoll" in the log but no XdndStatus type,
-                        // Mutter is sending something else. If we see nothing at all,
-                        // Mutter never responds.
-                        {
-                            // Send one Position immediately so Mutter has something to
-                            // respond to (XdndStatus is sent in response to Position)
-                            int t_rx = (int)t_event->motion.x_root;
-                            int t_ry = (int)t_event->motion.y_root;
-                            MCLinuxXdndSendPosition(t_xdisplay, t_xdnd_ipc_xid,
-                                                    t_xtarget, t_rx, t_ry,
-                                                    t_event->motion.time,
-                                                    t_xdnd_action);
-                            x11::XFlush(t_xdisplay);
-
-                            // Poll for up to 200ms (20 × 10ms naps)
-                            for (int t_poll_i = 0; t_poll_i < 20; t_poll_i++)
-                            {
-                                g_usleep(10000); // 10ms
-                                x11::XEvent t_ev;
-                                if (x11::XCheckTypedEvent(t_xdisplay,
-                                                          ClientMessage, &t_ev))
-                                {
-                                    fprintf(stderr,
-                                            "DND syncpoll[%d]: ClientMessage "
-                                            "type=%lu window=%lu\n",
-                                            t_poll_i,
-                                            (unsigned long)t_ev.xclient.message_type,
-                                            (unsigned long)t_ev.xclient.window);
-                                    fflush(stderr);
-                                    // Put it back for main loop to handle
-                                    x11::XPutBackEvent(t_xdisplay, &t_ev);
-                                    break;
-                                }
-                            }
-                        }
+                        fprintf(stderr,
+                                "DND: entered foreign xid=%lu wrapper=%s\n",
+                                (unsigned long)t_xtarget,
+                                t_foreign_gdk ? "ok" : "FAILED");
+                        fflush(stderr);
                     }
+                    // Use the foreign GdkWindow wrapper as the gdk_drag_motion dest
+                    if (t_foreign_gdk != NULL)
+                        t_dest_gdk = t_foreign_gdk;
                 }
                 else if (t_xdnd_foreign_dest != None)
                 {
-                    fprintf(stderr, "DND XdndLeave → xid=%lu\n",
+                    // Pointer left the foreign window; release wrapper.
+                    // GDK will send XdndLeave when gdk_drag_motion is next called
+                    // with the new (non-foreign) dest.
+                    fprintf(stderr, "DND: left foreign xid=%lu\n",
                             (unsigned long)t_xdnd_foreign_dest);
                     fflush(stderr);
-                    MCLinuxXdndSendLeave(t_xdisplay, t_xdnd_ipc_xid,
-                                        t_xdnd_foreign_dest);
-                    x11::XFlush(t_xdisplay);
+                    if (t_foreign_gdk != NULL)
+                    {
+                        g_object_unref(t_foreign_gdk);
+                        t_foreign_gdk = NULL;
+                    }
                     t_xdnd_foreign_dest = None;
                     t_action = DRAG_ACTION_NONE;
                 }
@@ -898,37 +768,23 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                             t_event->motion.x_root, t_event->motion.y_root);
                     fflush(stderr);
 
-                    if (t_is_foreign)
+                    // GDK path for all targets (intra-app and foreign alike).
+                    // For foreign: GDK sends XdndEnter (if dest changed) + Position.
+                    // For intra-app / no target: GDK handles normally.
+                    if (t_dest_gdk == NULL)
                     {
-                        // Cross-app: manual XdndPosition from IPC window.
-                        // XdndStatus comes back to t_xdnd_ipc_xid; our
-                        // display-level filter catches it and sets got_status.
-                        MCLinuxXdndSendPosition(t_xdisplay, t_xdnd_ipc_xid,
-                                                t_xtarget,
-                                                (int)t_event->motion.x_root,
-                                                (int)t_event->motion.y_root,
-                                                t_event->motion.time,
-                                                t_xdnd_action);
-                        x11::XFlush(t_xdisplay);
+                        t_action = DRAG_ACTION_NONE;
+                        MCLinuxDragAndDropSetCursorForAction(w, DRAG_ACTION_NONE,
+                                                             p_image);
                     }
-                    else
-                    {
-                        // Intra-app or no target: GDK path
-                        if (t_dest_gdk == NULL)
-                        {
-                            t_action = DRAG_ACTION_NONE;
-                            MCLinuxDragAndDropSetCursorForAction(w, DRAG_ACTION_NONE,
-                                                                 p_image);
-                        }
-                        gdk_drag_motion(t_context, t_dest_gdk,
-                                        t_dest_gdk ? GDK_DRAG_PROTO_XDND
-                                                   : GDK_DRAG_PROTO_NONE,
-                                        t_event->motion.x_root,
-                                        t_event->motion.y_root,
-                                        GdkDragAction(t_suggested_action),
-                                        GdkDragAction(t_possible_actions),
-                                        t_event->motion.time);
-                    }
+                    gdk_drag_motion(t_context, t_dest_gdk,
+                                    t_dest_gdk ? GDK_DRAG_PROTO_XDND
+                                               : GDK_DRAG_PROTO_NONE,
+                                    t_event->motion.x_root,
+                                    t_event->motion.y_root,
+                                    GdkDragAction(t_suggested_action),
+                                    GdkDragAction(t_possible_actions),
+                                    t_event->motion.time);
                 }
 
                 break;
@@ -1212,14 +1068,16 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     // Remove the Xdnd display-level filter now that the drag is complete
     gdk_window_remove_filter(NULL, MCLinuxXdndFilter, &t_xdnd_filter);
 
-    // Send XdndLeave if we're still over a foreign window (drag cancelled
-    // via grab-broken or modal-loop break without completing a drop).
-    if (t_xdnd_foreign_dest != None)
+    // Release the foreign GdkWindow wrapper if still held.
+    // gdk_drag_abort (called by break_dnd_modal_loop) sends XdndLeave to the
+    // GDK drag context's current dest_window, so we don't need to send it
+    // manually here.
+    if (t_foreign_gdk != NULL)
     {
-        MCLinuxXdndSendLeave(t_xdisplay, t_xdnd_ipc_xid, t_xdnd_foreign_dest);
-        x11::XFlush(t_xdisplay);
-        t_xdnd_foreign_dest = None;
+        g_object_unref(t_foreign_gdk);
+        t_foreign_gdk = NULL;
     }
+    t_xdnd_foreign_dest = None;
 
     // Release the drag context and any remaining pointer grab
     g_object_unref(t_context);
