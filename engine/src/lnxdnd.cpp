@@ -777,12 +777,31 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         MCLinuxDragAndDropSetCursorForAction(w, DRAG_ACTION_NONE,
                                                              p_image);
                     }
+                    // For foreign targets, prefer COPY (most apps accept it for
+                    // text drops). Fall back to MOVE, then the caller's
+                    // t_suggested_action.  Keep the full t_possible_actions mask
+                    // so modifier-key overrides can work later.
+                    GdkDragAction t_eff_suggested;
+                    if (t_is_foreign)
+                    {
+                        if (t_possible_actions & GDK_ACTION_COPY)
+                            t_eff_suggested = GDK_ACTION_COPY;
+                        else if (t_possible_actions & GDK_ACTION_MOVE)
+                            t_eff_suggested = GDK_ACTION_MOVE;
+                        else
+                            t_eff_suggested = GdkDragAction(t_suggested_action);
+                    }
+                    else
+                    {
+                        t_eff_suggested = GdkDragAction(t_suggested_action);
+                    }
+
                     gdk_drag_motion(t_context, t_dest_gdk,
                                     t_dest_gdk ? GDK_DRAG_PROTO_XDND
                                                : GDK_DRAG_PROTO_NONE,
                                     t_event->motion.x_root,
                                     t_event->motion.y_root,
-                                    GdkDragAction(t_suggested_action),
+                                    t_eff_suggested,
                                     GdkDragAction(t_possible_actions),
                                     t_event->motion.time);
                 }
