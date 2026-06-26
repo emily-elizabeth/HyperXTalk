@@ -306,6 +306,21 @@ static GdkFilterReturn MCLinuxXdndFilter(GdkXEvent *p_xevent,
                                           GdkEvent  */*p_event*/,
                                           gpointer   p_data)
 {
+    // Diagnostic: count every call to verify gdk_window_add_filter(NULL,...) works.
+    // If we never see "DND filter #1" in the log, the display-level filter is not
+    // being called at all (GTK3 build issue or filter not installed).
+    {
+        static unsigned long s_filter_count = 0;
+        s_filter_count++;
+        if (s_filter_count <= 5 || s_filter_count % 500 == 0)
+        {
+            x11::XEvent *t_dbg = static_cast<x11::XEvent*>(p_xevent);
+            fprintf(stderr, "DND filter #%lu: X event type=%d\n",
+                    s_filter_count, t_dbg->type);
+            fflush(stderr);
+        }
+    }
+
     x11::XEvent *t_xev = static_cast<x11::XEvent*>(p_xevent);
     if (t_xev->type != ClientMessage)
         return GDK_FILTER_CONTINUE;
@@ -731,6 +746,79 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                             fflush(stderr);
                         }
 
+                        // ── Target window diagnostics ──
+                        // Log the target window's WM_CLASS, XdndAware version, and
+                        // whether it has _XWAYLAND_SURFACE_ID (XWayland proxy window).
+                        {
+                            // XdndAware version
+                            unsigned int t_xdnd_ver = 0;
+                            {
+                                static x11::Atom s_aware =
+                                    x11::XInternAtom(t_xdisplay, "XdndAware", False);
+                                x11::Atom t_at; int t_fmt;
+                                unsigned long t_ni, t_ba;
+                                unsigned char *t_dp = NULL;
+                                if (x11::XGetWindowProperty(t_xdisplay, t_xtarget,
+                                        s_aware, 0, 1, False, AnyPropertyType,
+                                        &t_at, &t_fmt, &t_ni, &t_ba, &t_dp)
+                                        == Success && t_dp)
+                                {
+                                    t_xdnd_ver = (t_fmt == 32)
+                                        ? (unsigned int)(*(unsigned long*)t_dp)
+                                        : (unsigned int)(*t_dp);
+                                    x11::XFree(t_dp);
+                                }
+                            }
+                            // WM_CLASS
+                            char t_wm_class[256] = "(none)";
+                            {
+                                x11::Atom t_wc =
+                                    x11::XInternAtom(t_xdisplay, "WM_CLASS", True);
+                                if (t_wc != None)
+                                {
+                                    x11::Atom t_at; int t_fmt;
+                                    unsigned long t_ni, t_ba;
+                                    unsigned char *t_dp = NULL;
+                                    if (x11::XGetWindowProperty(t_xdisplay, t_xtarget,
+                                            t_wc, 0, 64, False, AnyPropertyType,
+                                            &t_at, &t_fmt, &t_ni, &t_ba, &t_dp)
+                                            == Success && t_dp)
+                                    {
+                                        snprintf(t_wm_class, sizeof(t_wm_class),
+                                                 "%s", (char*)t_dp);
+                                        x11::XFree(t_dp);
+                                    }
+                                }
+                            }
+                            // _XWAYLAND_SURFACE_ID (present on XWayland proxy windows)
+                            bool t_is_xwl = false;
+                            {
+                                x11::Atom t_xa =
+                                    x11::XInternAtom(t_xdisplay,
+                                                     "_XWAYLAND_SURFACE_ID", True);
+                                if (t_xa != None)
+                                {
+                                    x11::Atom t_at; int t_fmt;
+                                    unsigned long t_ni, t_ba;
+                                    unsigned char *t_dp = NULL;
+                                    if (x11::XGetWindowProperty(t_xdisplay, t_xtarget,
+                                            t_xa, 0, 1, False, AnyPropertyType,
+                                            &t_at, &t_fmt, &t_ni, &t_ba, &t_dp)
+                                            == Success && t_dp)
+                                    {
+                                        t_is_xwl = true;
+                                        x11::XFree(t_dp);
+                                    }
+                                }
+                            }
+                            fprintf(stderr,
+                                    "DND target xid=%lu: XdndAware v%u, "
+                                    "WM_CLASS='%s', xwayland_proxy=%d\n",
+                                    (unsigned long)t_xtarget, t_xdnd_ver,
+                                    t_wm_class, (int)t_is_xwl);
+                            fflush(stderr);
+                        }
+
                         fprintf(stderr,
                                 "DND XdndEnter → xid=%lu (ipc_src=%lu, %u types)\n",
                                 (unsigned long)t_xtarget,
@@ -741,6 +829,46 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                              t_type_atoms, t_type_count);
                         t_xdnd_foreign_dest = t_xtarget;
                         x11::XFlush(t_xdisplay);
+
+                        // ── Sync-and-poll: wait up to 200ms for Mutter's XdndStatus ──
+                        // After XdndEnter + first Position, Mutter needs to bridge to
+                        // Wayland and get a response from the target app. On a Wayland
+                        // compositor over a local socket this is typically <10ms.
+                        // If we see "DND syncpoll" in the log but no XdndStatus type,
+                        // Mutter is sending something else. If we see nothing at all,
+                        // Mutter never responds.
+                        {
+                            // Send one Position immediately so Mutter has something to
+                            // respond to (XdndStatus is sent in response to Position)
+                            int t_rx = (int)t_event->motion.x_root;
+                            int t_ry = (int)t_event->motion.y_root;
+                            MCLinuxXdndSendPosition(t_xdisplay, t_xdnd_ipc_xid,
+                                                    t_xtarget, t_rx, t_ry,
+                                                    t_event->motion.time,
+                                                    t_xdnd_action);
+                            x11::XFlush(t_xdisplay);
+
+                            // Poll for up to 200ms (20 × 10ms naps)
+                            for (int t_poll_i = 0; t_poll_i < 20; t_poll_i++)
+                            {
+                                g_usleep(10000); // 10ms
+                                x11::XEvent t_ev;
+                                if (x11::XCheckTypedEvent(t_xdisplay,
+                                                          ClientMessage, &t_ev))
+                                {
+                                    fprintf(stderr,
+                                            "DND syncpoll[%d]: ClientMessage "
+                                            "type=%lu window=%lu\n",
+                                            t_poll_i,
+                                            (unsigned long)t_ev.xclient.message_type,
+                                            (unsigned long)t_ev.xclient.window);
+                                    fflush(stderr);
+                                    // Put it back for main loop to handle
+                                    x11::XPutBackEvent(t_xdisplay, &t_ev);
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
                 else if (t_xdnd_foreign_dest != None)
