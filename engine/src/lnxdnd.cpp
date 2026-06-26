@@ -724,7 +724,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         // GDK_WINDOW_FOREIGN) ensures subsequent lookups still
                         // classify it as foreign, not intra-app.
                         t_foreign_gdk =
-                            gdk_x11_window_foreign_new_for_display(dpy, t_xtarget);
+                            x11::gdk_x11_window_foreign_new_for_display(dpy, t_xtarget);
                         t_xdnd_foreign_dest = t_xtarget;
                         fprintf(stderr,
                                 "DND: entered foreign xid=%lu wrapper=%s\n",
