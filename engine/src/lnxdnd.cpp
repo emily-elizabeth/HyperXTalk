@@ -469,11 +469,50 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     GdkWindow    *t_foreign_gdk = NULL;        // GdkWindow wrapper for the foreign XID
     MCLinuxXdndInitAtoms(t_xdisplay);
 
-    // Install a display-level GDK filter (window=NULL) to capture XdndStatus
-    // and XdndFinished ClientMessages before GDK's own DnD filter discards them.
-    // GTK3 removed GdkEventClient so these never appear as GdkEvents.
-    // Using NULL ensures our filter runs before the per-window filters that
-    // gdk_drag_begin installs, giving us first crack at the raw XEvent.
+    // GTK3's gdk_drag_begin sets XdndTypeList and XdndActionList on its
+    // internal IPC/proxy window, but gdk_drag_motion sends XdndEnter with
+    // source = our visible window (w = t_src_xid).  The XDND spec requires
+    // XdndTypeList to be on the window named as source in XdndEnter.data.l[0].
+    // Without it, the receiver reads an empty type list and rejects (action=0).
+    // Set both properties on our visible source window now.
+    {
+        const gulong *t_type_atoms =
+            reinterpret_cast<const gulong*>(MCDataGetBytePtr(*t_targets));
+        uindex_t t_type_count = MCDataGetLength(*t_targets) / sizeof(gulong);
+
+        x11::XChangeProperty(t_xdisplay, t_src_xid,
+                             s_xdnd.xdnd_type_list,
+                             (x11::Atom)4 /* XA_ATOM */, 32,
+                             PropModeReplace,
+                             reinterpret_cast<const unsigned char*>(t_type_atoms),
+                             (int)t_type_count);
+
+        x11::Atom t_action_atoms[3];
+        int t_action_count = 0;
+        if (t_possible_actions & GDK_ACTION_COPY)
+            t_action_atoms[t_action_count++] = s_xdnd.xdnd_action_copy;
+        if (t_possible_actions & GDK_ACTION_MOVE)
+            t_action_atoms[t_action_count++] = s_xdnd.xdnd_action_move;
+        if (t_possible_actions & GDK_ACTION_LINK)
+            t_action_atoms[t_action_count++] = s_xdnd.xdnd_action_link;
+        x11::Atom t_xdnd_action_list_atom =
+            x11::XInternAtom(t_xdisplay, "XdndActionList", False);
+        x11::XChangeProperty(t_xdisplay, t_src_xid,
+                             t_xdnd_action_list_atom,
+                             (x11::Atom)4 /* XA_ATOM */, 32,
+                             PropModeReplace,
+                             reinterpret_cast<const unsigned char*>(t_action_atoms),
+                             t_action_count);
+        x11::XFlush(t_xdisplay);
+        fprintf(stderr,
+                "DND: set XdndTypeList (%u types) + XdndActionList on src xid=%lu\n",
+                (unsigned)t_type_count, (unsigned long)t_src_xid);
+        fflush(stderr);
+    }
+
+    // Install a display-level GDK filter (window=NULL) to capture XdndFinished
+    // ClientMessages.  GTK3 removed GdkEventClient so these never appear as
+    // GdkEvents.  NULL ensures our filter runs before per-window filters.
     MCLinuxXdndFilterData t_xdnd_filter = {};
     t_xdnd_filter.atoms = &s_xdnd;
     gdk_window_add_filter(NULL, MCLinuxXdndFilter, &t_xdnd_filter);
@@ -580,10 +619,15 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 {
                     GdkWindow *t_known =
                         x11::gdk_x11_window_lookup_for_display(dpy, t_xtarget);
-                    if (t_known != NULL)
+                    // gdk_x11_window_foreign_new_for_display registers the XID
+                    // in GDK's table, so lookup returns non-NULL for wrappers we
+                    // created.  Check window type to distinguish our real windows
+                    // (TOPLEVEL/CHILD) from foreign wrappers (GDK_WINDOW_FOREIGN).
+                    if (t_known != NULL &&
+                        gdk_window_get_window_type(t_known) != GDK_WINDOW_FOREIGN)
                         t_dest_gdk = t_known;   // one of our own GDK windows
                     else
-                        t_is_foreign = true;    // belongs to another app
+                        t_is_foreign = true;    // unknown, or our foreign wrapper
                 }
 
                 // ── Foreign window entry/exit tracking (unthrottled) ──
