@@ -489,34 +489,17 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 
             case GDK_DROP_START:
             {
-                // Log the source window of the drop context. If this is
-                // XWayland's proxy (not our window), gdk_drag_abort below
-                // will send XdndLeave to XWayland's proxy, triggering
-                // xwl_dnd_leave() → Mutter releases the seat grab.
-                GdkWindow *t_drop_src = gdk_drag_context_get_source_window(t_event->dnd.context);
-                fprintf(stderr, "DND modal: GDK_DROP_START — drop_ctx_src=0x%lx our_xid=0x%lx\n",
-                        t_drop_src ? (unsigned long)x11::gdk_x11_window_get_xid(t_drop_src) : 0UL,
-                        (unsigned long)x11::gdk_x11_window_get_xid(w));
+                fprintf(stderr, "DND modal: GDK_DROP_START\n");
                 fflush(stderr);
 
-                // Process the drop: calls gdk_drop_finish → sends XdndFinished
-                // to context source window (may be our window or XWayland proxy).
+                // Process the drop: calls gdk_drop_finish → sends XdndFinished.
+                // NOTE: do NOT call gdk_drag_abort here — that sends XdndLeave
+                // AFTER XdndDrop, which is a protocol violation and generates a
+                // spurious GDK_DRAG_LEAVE that can confuse GDK/XWayland state.
                 DnDClientEvent(t_event);
 
-                // Send XdndLeave to whatever GDK has as dest_xid (which equals
-                // XWayland's proxy window if XdndProxy is set on our window).
-                // After the drop data is transferred, this is safe: it signals
-                // XWayland to call xwl_dnd_leave() → cancel Wayland DnD session
-                // → wl_data_source.cancelled → Mutter releases the seat grab.
-                // If XdndProxy is NOT set, dest_xid == our window and GDK sees
-                // a harmless spurious GDK_DRAG_LEAVE.
-                gdk_drag_abort(t_context, t_event->dnd.time);
-                fprintf(stderr, "DND modal: GDK_DROP_START gdk_drag_abort (XdndLeave) sent\n");
-                fflush(stderr);
-
                 gdk_display_flush(dpy);
-                // XSync round-trip — blocks until XdndFinished and XdndLeave
-                // arrive in the Xlib queue and XWayland can process them.
+                // XSync round-trip — blocks until XdndFinished is processed.
                 gdk_display_sync(dpy);
                 {
                     int t_drop_pump = 0;
@@ -974,11 +957,44 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     //
     // NOTE: gdk_x11_drag_context_finalize does NOT destroy x11_context->drag_window
     // (only the base-class context->drag_window field, which is NULL for X11).
-    // The 100×100 drag-indicator window therefore leaks at refcount 1 — this
-    // is identical to GTK's own accepted behavior on the success path.
+    // The drag-indicator window therefore survives context finalization.
     fprintf(stderr, "DND cleanup: g_object_unref context\n");
     fflush(stderr);
     g_object_unref(t_context);
+
+    // Step 4b: Explicitly destroy the drag indicator window.
+    //
+    // gdk_window_hide() above sent XUnmapWindow, which tells XWayland to
+    // unmap the Wayland surface — but the surface REMAINS in Mutter's
+    // compositor layer stack (just with no buffer / invisible).  Mutter may
+    // still route pointer events to this surface (it was the last surface
+    // moving under the cursor), causing all clicks after DnD to be silently
+    // discarded.
+    //
+    // gdk_window_destroy() → XDestroyWindow → XWayland calls wl_surface.destroy
+    // → Mutter removes the surface from the compositor entirely → pointer events
+    // are re-routed to our main window.
+    //
+    // This is safe here because:
+    //   (a) g_object_unref(t_context) was just called — the context no longer
+    //       holds a reference to the drag window or calls move_drag_window().
+    //   (b) The DnD protocol is complete (XdndFinished already sent/received).
+    //   (c) The comment at the top of the function warns against calling
+    //       gdk_window_destroy DURING the drag (dangling pointer in context);
+    //       that restriction does not apply here.
+    if (t_drag_win)
+    {
+        fprintf(stderr, "DND cleanup: destroying drag_win XID=0x%lx\n",
+                t_drag_win ? (unsigned long)x11::gdk_x11_window_get_xid(t_drag_win) : 0UL);
+        fflush(stderr);
+        gdk_window_destroy(t_drag_win);
+        t_drag_win = NULL;
+        // Sync so Mutter processes wl_surface.destroy before we restore focus.
+        gdk_display_sync(dpy);
+        fprintf(stderr, "DND cleanup: drag_win destroyed\n");
+        fflush(stderr);
+    }
+
     fprintf(stderr, "DND cleanup: done\n");
     fflush(stderr);
 
