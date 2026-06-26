@@ -1,6 +1,7 @@
 #include "lnxprefix.h"
 
 #include <stdio.h>
+#include <dlfcn.h>
 
 #include "globdefs.h"
 #include "filedefs.h"
@@ -667,9 +668,32 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         // received because the DnD swallowed the XdndDrop / XdndFinished
         // sequence without a real button-up event reaching the compositor), this
         // synthetic release should clear it and unblock input routing.
-        x11::XTestFakeButtonEvent(t_xdpy, 1 /* button 1 */, 0 /* False = release */, 0L /* CurrentTime */);
-        fprintf(stderr, "DND cleanup: XTestFakeButtonEvent button-1 release sent\n");
-        fflush(stderr);
+        //
+        // We load XTestFakeButtonEvent via dlopen/dlsym to avoid adding -lXtst
+        // to the link flags (standalone.target.mk is GYP-generated and -ldl is
+        // already present in LIBS).
+        {
+            typedef int (*XTestFakeButtonEvent_fn)(x11::Display*, unsigned int, int, unsigned long);
+            static XTestFakeButtonEvent_fn s_fn = NULL;
+            static bool s_init = false;
+            if (!s_init)
+            {
+                void *t_lib = dlopen("libXtst.so.6", RTLD_LAZY | RTLD_NOLOAD);
+                if (!t_lib)
+                    t_lib = dlopen("libXtst.so", RTLD_LAZY);
+                if (t_lib)
+                    s_fn = (XTestFakeButtonEvent_fn)dlsym(t_lib, "XTestFakeButtonEvent");
+                s_init = true;
+            }
+            if (s_fn)
+            {
+                s_fn(t_xdpy, 1 /* button 1 */, 0 /* False = release */, 0L /* CurrentTime */);
+                fprintf(stderr, "DND cleanup: XTestFakeButtonEvent button-1 release sent\n");
+            }
+            else
+                fprintf(stderr, "DND cleanup: XTestFakeButtonEvent not available (libXtst missing)\n");
+            fflush(stderr);
+        }
 
         x11::XFlush(t_xdpy);
     }
