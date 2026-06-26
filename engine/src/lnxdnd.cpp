@@ -575,6 +575,23 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                                  t_xdnd_foreign_dest);
                         }
 
+                        // The XDND spec requires the source to own XdndSelection
+                        // BEFORE sending XdndEnter, otherwise conforming receivers
+                        // (including XWayland's DnD bridge) silently ignore it.
+                        //
+                        // Mutter's freeze (our original bug) is triggered by
+                        // claiming XdndSelection while the button is pressed AND
+                        // the cursor is over an XWayland surface — but the grab
+                        // it installs only swallows button-PRESS events, not
+                        // button-RELEASE. So we still receive GDK_BUTTON_RELEASE
+                        // to complete the drop, and XdndFinished tears the grab
+                        // down cleanly. For intra-app DnD the claim stays at
+                        // GDK_BUTTON_RELEASE as before.
+                        gdk_selection_owner_set_for_display(dpy, w, t_selection,
+                                                            GDK_CURRENT_TIME, TRUE);
+                        fprintf(stderr, "DND XdndSelection claimed for foreign drop\n");
+                        fflush(stderr);
+
                         const gulong *t_type_atoms =
                             reinterpret_cast<const gulong*>(
                                 MCDataGetBytePtr(*t_targets));
