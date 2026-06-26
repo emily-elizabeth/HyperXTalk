@@ -544,6 +544,64 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         if (t_modal_loop.broken)
             break;
 
+        // Poll the X event queue directly for XdndStatus / XdndFinished on
+        // both the IPC/relay window and the visible source window.
+        // GDK's display-level filter may not fire for events on GDK-internal
+        // windows (the IPC window is managed internally by GDK and its events
+        // may be routed through a separate code path that bypasses our filter).
+        // XCheckTypedWindowEvent is non-blocking and removes the event from
+        // the queue so GDK won't also process it.
+        {
+            x11::XEvent t_xpoll;
+            // Check IPC/relay window
+            while (x11::XCheckTypedWindowEvent(t_xdisplay, t_xdnd_ipc_xid,
+                                               ClientMessage, &t_xpoll))
+            {
+                x11::XClientMessageEvent *t_cm = &t_xpoll.xclient;
+                fprintf(stderr,
+                        "DND Xpoll(ipc): ClientMessage msgtype=%lu\n",
+                        (unsigned long)t_cm->message_type);
+                fflush(stderr);
+                if (t_cm->message_type == s_xdnd.xdnd_status)
+                {
+                    t_xdnd_filter.status_accept =
+                        (t_cm->data.l[1] & 1L) != 0;
+                    t_xdnd_filter.status_action =
+                        (x11::Atom)(unsigned long)t_cm->data.l[4];
+                    t_xdnd_filter.got_status = true;
+                }
+                else if (t_cm->message_type == s_xdnd.xdnd_finished)
+                {
+                    t_xdnd_filter.got_finished = true;
+                }
+            }
+            // Also check visible source window (some compositors send to it)
+            if (t_src_xid != t_xdnd_ipc_xid)
+            {
+                while (x11::XCheckTypedWindowEvent(t_xdisplay, t_src_xid,
+                                                   ClientMessage, &t_xpoll))
+                {
+                    x11::XClientMessageEvent *t_cm = &t_xpoll.xclient;
+                    fprintf(stderr,
+                            "DND Xpoll(src): ClientMessage msgtype=%lu\n",
+                            (unsigned long)t_cm->message_type);
+                    fflush(stderr);
+                    if (t_cm->message_type == s_xdnd.xdnd_status)
+                    {
+                        t_xdnd_filter.status_accept =
+                            (t_cm->data.l[1] & 1L) != 0;
+                        t_xdnd_filter.status_action =
+                            (x11::Atom)(unsigned long)t_cm->data.l[4];
+                        t_xdnd_filter.got_status = true;
+                    }
+                    else if (t_cm->message_type == s_xdnd.xdnd_finished)
+                    {
+                        t_xdnd_filter.got_finished = true;
+                    }
+                }
+            }
+        }
+
         // Check for Xdnd responses captured by the raw-X11 window filter.
         // The filter runs inside g_main_context_iteration / EnqueueGdkEvents
         // and sets these flags; we poll them here each loop iteration.
@@ -662,6 +720,37 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 MCDataGetBytePtr(*t_targets));
                         uindex_t t_type_count =
                             MCDataGetLength(*t_targets) / sizeof(gulong);
+
+                        // Re-query XdndSelection owner — Mutter may have claimed
+                        // it as its own relay window after the TARGETS exchange.
+                        // Using a stale owner causes Mutter to silently reject
+                        // XdndEnter (source != XGetSelectionOwner(XdndSelection)).
+                        {
+                            x11::Window t_fresh_ipc =
+                                x11::XGetSelectionOwner(t_xdisplay, t_xdnd_sel_atom);
+                            if (t_fresh_ipc != None && t_fresh_ipc != t_xdnd_ipc_xid)
+                            {
+                                fprintf(stderr,
+                                        "DND: XdndSelection owner changed %lu → %lu\n",
+                                        (unsigned long)t_xdnd_ipc_xid,
+                                        (unsigned long)t_fresh_ipc);
+                                fflush(stderr);
+                                t_xdnd_ipc_xid = t_fresh_ipc;
+                            }
+                            // Ensure XdndTypeList is set on whoever owns the selection
+                            x11::XChangeProperty(t_xdisplay, t_xdnd_ipc_xid,
+                                                 s_xdnd.xdnd_type_list,
+                                                 (x11::Atom)4 /* XA_ATOM */, 32,
+                                                 PropModeReplace,
+                                                 reinterpret_cast<const unsigned char*>(
+                                                     t_type_atoms),
+                                                 (int)t_type_count);
+                            fprintf(stderr,
+                                    "DND: XdndSelection owner now=%lu (used as src)\n",
+                                    (unsigned long)t_xdnd_ipc_xid);
+                            fflush(stderr);
+                        }
+
                         fprintf(stderr,
                                 "DND XdndEnter → xid=%lu (ipc_src=%lu, %u types)\n",
                                 (unsigned long)t_xtarget,
