@@ -283,6 +283,52 @@ static void MCLinuxXdndSendDrop(x11::Display  *p_xdpy,
                            (long)p_src, 0L, (long)p_time, 0L, 0L);
 }
 
+// ── Raw X11 event filter for Xdnd source responses ───────────────────────────
+//
+// GTK3 removed GdkEventClient, so XdndStatus / XdndFinished ClientMessages
+// arriving on the source window are never delivered as GdkEvents.
+// We install a GDK window filter that intercepts the raw XEvent before GDK
+// can discard it, stores the result in a small struct, and removes the event
+// from GDK's queue.
+
+struct MCLinuxXdndFilterData
+{
+    const MCLinuxXdndAtoms *atoms;
+    // XdndStatus response
+    bool         got_status;
+    bool         status_accept;
+    x11::Atom    status_action;
+    // XdndFinished response
+    bool         got_finished;
+};
+
+static GdkFilterReturn MCLinuxXdndFilter(GdkXEvent *p_xevent,
+                                          GdkEvent  */*p_event*/,
+                                          gpointer   p_data)
+{
+    x11::XEvent *t_xev = static_cast<x11::XEvent*>(p_xevent);
+    if (t_xev->type != ClientMessage)
+        return GDK_FILTER_CONTINUE;
+
+    x11::XClientMessageEvent *t_cm = &t_xev->xclient;
+    MCLinuxXdndFilterData    *t_fd = static_cast<MCLinuxXdndFilterData*>(p_data);
+
+    if (t_cm->message_type == t_fd->atoms->xdnd_status)
+    {
+        t_fd->status_accept = (t_cm->data.l[1] & 1L) != 0;
+        t_fd->status_action = (x11::Atom)(unsigned long)t_cm->data.l[4];
+        t_fd->got_status    = true;
+        return GDK_FILTER_REMOVE;   // consume; don't let GDK discard it
+    }
+    if (t_cm->message_type == t_fd->atoms->xdnd_finished)
+    {
+        t_fd->got_finished = true;
+        return GDK_FILTER_REMOVE;
+    }
+
+    return GDK_FILTER_CONTINUE;
+}
+
 struct dnd_modal_loop_context
 {
     GdkDragContext* drag_context;
@@ -399,6 +445,13 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     x11::Window   t_xdnd_foreign_dest = None;  // foreign window we last sent XdndEnter to
     MCLinuxXdndInitAtoms(t_xdisplay);
 
+    // Install a GDK window filter to capture XdndStatus / XdndFinished
+    // ClientMessages. GTK3 removed GdkEventClient so these never appear
+    // as GdkEvents; we intercept them at the raw XEvent level.
+    MCLinuxXdndFilterData t_xdnd_filter = {};
+    t_xdnd_filter.atoms = &s_xdnd;
+    gdk_window_add_filter(w, MCLinuxXdndFilter, &t_xdnd_filter);
+
     // Pre-compute the preferred Xdnd action atom
     x11::Atom t_xdnd_action = s_xdnd.xdnd_action_copy;
     if (t_suggested_action == GDK_ACTION_MOVE)
@@ -412,6 +465,41 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     {
         if (t_modal_loop.broken)
             break;
+
+        // Check for Xdnd responses captured by the raw-X11 window filter.
+        // The filter runs inside g_main_context_iteration / EnqueueGdkEvents
+        // and sets these flags; we poll them here each loop iteration.
+        if (t_xdnd_filter.got_status)
+        {
+            t_xdnd_filter.got_status = false;
+            if (t_xdnd_filter.status_accept)
+            {
+                if (t_xdnd_filter.status_action == s_xdnd.xdnd_action_move)
+                    t_action = DRAG_ACTION_MOVE;
+                else if (t_xdnd_filter.status_action == s_xdnd.xdnd_action_link)
+                    t_action = DRAG_ACTION_LINK;
+                else
+                    t_action = DRAG_ACTION_COPY;
+            }
+            else
+            {
+                t_action = DRAG_ACTION_NONE;
+            }
+            MCLinuxDragAndDropSetCursorForAction(w, t_action, p_image);
+            fprintf(stderr,
+                    "DND XdndStatus: accept=%d action=%lu → t_action=%d\n",
+                    (int)t_xdnd_filter.status_accept,
+                    (unsigned long)t_xdnd_filter.status_action,
+                    (int)t_action);
+            fflush(stderr);
+        }
+        if (t_xdnd_filter.got_finished)
+        {
+            fprintf(stderr, "DND XdndFinished received\n");
+            fflush(stderr);
+            t_xdnd_filter.got_finished = false;
+            t_dnd_done = true;
+        }
 
         // Run the GLib event loop to exhaustion
         EnqueueGdkEvents();
@@ -549,50 +637,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     }
                 }
 
-                break;
-            }
-
-            case GDK_CLIENT_EVENT:
-            {
-                // Raw ClientMessage — used for Xdnd responses from foreign apps.
-                // GDK delivers XdndStatus / XdndFinished here when we sent
-                // XdndPosition manually (not via gdk_drag_motion).
-                x11::Atom t_msg_type =
-                    (x11::Atom)(unsigned long)t_event->client.message_type;
-
-                if (t_msg_type == s_xdnd.xdnd_status)
-                {
-                    long t_flags     = t_event->client.data.l[1];
-                    bool t_will_accept = (t_flags & 1L) != 0;
-                    x11::Atom t_recv_action =
-                        (x11::Atom)(unsigned long)t_event->client.data.l[4];
-
-                    if (t_will_accept)
-                    {
-                        if (t_recv_action == s_xdnd.xdnd_action_move)
-                            t_action = DRAG_ACTION_MOVE;
-                        else if (t_recv_action == s_xdnd.xdnd_action_link)
-                            t_action = DRAG_ACTION_LINK;
-                        else
-                            t_action = DRAG_ACTION_COPY;
-                    }
-                    else
-                    {
-                        t_action = DRAG_ACTION_NONE;
-                    }
-                    MCLinuxDragAndDropSetCursorForAction(w, t_action, p_image);
-                    fprintf(stderr,
-                            "DND XdndStatus: accept=%d action=%lu → t_action=%d\n",
-                            (int)t_will_accept,
-                            (unsigned long)t_recv_action, (int)t_action);
-                    fflush(stderr);
-                }
-                else if (t_msg_type == s_xdnd.xdnd_finished)
-                {
-                    fprintf(stderr, "DND XdndFinished received\n");
-                    fflush(stderr);
-                    t_dnd_done = true;
-                }
                 break;
             }
 
@@ -861,6 +905,9 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     }
 
     modalLoopEnd();
+
+    // Remove the Xdnd filter now that the drag is complete
+    gdk_window_remove_filter(w, MCLinuxXdndFilter, &t_xdnd_filter);
 
     // If the drag ended while still over a foreign window (e.g. cancelled by
     // GDK_GRAB_BROKEN or modal loop break), tell the foreign target we left.
