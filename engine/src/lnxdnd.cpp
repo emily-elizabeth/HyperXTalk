@@ -348,6 +348,16 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     if (*t_targets != NULL)
                     {
                         uindex_t t_target_atom_count = MCDataGetLength(*t_targets)/sizeof(gulong);
+                        const gulong *t_atom_ptr = (const gulong*)MCDataGetBytePtr(*t_targets);
+                        fprintf(stderr, "DND TARGETS: offering %u formats:\n", (unsigned)t_target_atom_count);
+                        for (uindex_t i = 0; i < t_target_atom_count; i++)
+                        {
+                            gchar *t_aname = gdk_atom_name((GdkAtom)t_atom_ptr[i]);
+                            fprintf(stderr, "  [%u] %s\n", (unsigned)i, t_aname ? t_aname : "(unknown)");
+                            g_free(t_aname);
+                        }
+                        fflush(stderr);
+
                         gdk_property_change(t_requestor, t_property,
                                             GDK_SELECTION_TYPE_ATOM,
                                             32,
@@ -438,11 +448,17 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 GdkDragAction t_gdk_action;
                 t_gdk_action = gdk_drag_context_get_selected_action(t_context);
 
-                if (t_gdk_action == GDK_ACTION_LINK)
+                // Reset first: if destination returns action=0 (rejected), clear
+                // t_action so that a button-release won't call gdk_drag_drop on
+                // a target that has already refused us (which causes a ~5s wait
+                // for an XdndFinished that will never arrive promptly).
+                if (t_gdk_action == 0)
+                    t_action = DRAG_ACTION_NONE;
+                else if (t_gdk_action == GDK_ACTION_LINK)
                     t_action = DRAG_ACTION_LINK;
-                if (t_gdk_action == GDK_ACTION_MOVE)
+                else if (t_gdk_action == GDK_ACTION_MOVE)
                     t_action = DRAG_ACTION_MOVE;
-                if (t_gdk_action == GDK_ACTION_COPY)
+                else if (t_gdk_action == GDK_ACTION_COPY)
                     t_action = DRAG_ACTION_COPY;
 
                 fprintf(stderr, "DND drag-status: gdk_action=%d → t_action=%d\n",
