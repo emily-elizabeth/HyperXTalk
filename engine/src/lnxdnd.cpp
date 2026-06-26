@@ -395,6 +395,23 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     G_GNUC_END_IGNORE_DEPRECATIONS
     g_list_free(t_target_list);
 
+    // Diagnostic: check whether gdk_drag_begin claimed XdndSelection internally.
+    // GTK3's X11 DnD source (gdk_x11_drag_context_drag_begin_for_device) is
+    // supposed to call _gdk_x11_display_set_selection_owner for XdndSelection.
+    // If it does, we already own it and XdndEnter to foreign windows should be
+    // accepted by conforming receivers without any extra claim.
+    {
+        x11::Display *t_xdpy_check = x11::gdk_x11_display_get_xdisplay(dpy);
+        x11::Window  t_src_check   = x11::gdk_x11_window_get_xid(w);
+        x11::Atom t_xdnd_sel_xatom = x11::XInternAtom(t_xdpy_check, "XdndSelection", False);
+        x11::Window t_xdnd_sel_owner = x11::XGetSelectionOwner(t_xdpy_check, t_xdnd_sel_xatom);
+        fprintf(stderr, "DND: after gdk_drag_begin — XdndSelection owner=%lu, our xid=%lu (%s)\n",
+                (unsigned long)t_xdnd_sel_owner,
+                (unsigned long)t_src_check,
+                t_xdnd_sel_owner == t_src_check ? "WE OWN IT" : "not owned by us");
+        fflush(stderr);
+    }
+
     // Take ownership of the mouse so that nothing interferes with the drag.
     // gdk_pointer_grab is deprecated since GTK 3.0 but still present in 3.24;
     // it wraps gdk_seat_grab internally.
@@ -575,22 +592,27 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                                  t_xdnd_foreign_dest);
                         }
 
-                        // The XDND spec requires the source to own XdndSelection
-                        // BEFORE sending XdndEnter, otherwise conforming receivers
-                        // (including XWayland's DnD bridge) silently ignore it.
+                        // DO NOT claim XdndSelection here.
+                        // Claiming while the button is pressed AND the cursor is
+                        // over an XWayland surface triggers Mutter's exclusive
+                        // Clutter grab (meta_wayland_data_device_start_drag via
+                        // XFixesSelectionNotify). That grab swallows ALL events
+                        // (motion, button-release, everything), deadlocking us in
+                        // this modal loop forever.
                         //
-                        // Mutter's freeze (our original bug) is triggered by
-                        // claiming XdndSelection while the button is pressed AND
-                        // the cursor is over an XWayland surface — but the grab
-                        // it installs only swallows button-PRESS events, not
-                        // button-RELEASE. So we still receive GDK_BUTTON_RELEASE
-                        // to complete the drop, and XdndFinished tears the grab
-                        // down cleanly. For intra-app DnD the claim stays at
-                        // GDK_BUTTON_RELEASE as before.
-                        gdk_selection_owner_set_for_display(dpy, w, t_selection,
-                                                            GDK_CURRENT_TIME, TRUE);
-                        fprintf(stderr, "DND XdndSelection claimed for foreign drop\n");
-                        fflush(stderr);
+                        // If gdk_drag_begin already claimed XdndSelection (GTK3
+                        // x11 DnD source does this internally), we own it from
+                        // drag-start and XdndEnter will be accepted. The "DND:
+                        // after gdk_drag_begin" log line above confirms this.
+                        {
+                            x11::Atom t_xdnd_sel_xatom = x11::XInternAtom(t_xdisplay, "XdndSelection", False);
+                            x11::Window t_xdnd_sel_owner = x11::XGetSelectionOwner(t_xdisplay, t_xdnd_sel_xatom);
+                            fprintf(stderr, "DND XdndEnter: XdndSelection owner=%lu src=%lu (%s)\n",
+                                    (unsigned long)t_xdnd_sel_owner,
+                                    (unsigned long)t_src_xid,
+                                    t_xdnd_sel_owner == t_src_xid ? "owned" : "NOT owned");
+                            fflush(stderr);
+                        }
 
                         const gulong *t_type_atoms =
                             reinterpret_cast<const gulong*>(
