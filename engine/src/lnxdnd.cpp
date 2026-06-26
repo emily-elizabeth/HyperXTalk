@@ -180,10 +180,24 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     // Set the cursor
     MCLinuxDragAndDropSetCursorDragStart(w, p_image);
 
-    // Take ownership of the drag-and-drop selection
+    // Prepare the drag-and-drop selection atom but do NOT claim ownership yet.
+    //
+    // Root cause of the system-wide input freeze on XWayland + Mutter 48:
+    //   Mutter watches XdndSelection via XFixes (XFixesSelectSelectionInput).
+    //   When XdndSelection is claimed AND a button is pressed over an XWayland
+    //   surface, meta_xwayland_dnd_handle_xfixes_selection_notify calls
+    //   meta_wayland_data_device_start_drag, which installs an exclusive Clutter
+    //   event handler (xdnd_event_interface). That handler swallows all button-
+    //   press events (CLUTTER_EVENT_STOP) and, if it is never torn down, freezes
+    //   click input system-wide.
+    //
+    // Fix: delay claiming XdndSelection until GDK_BUTTON_RELEASE (just before
+    // gdk_drag_drop). X11 event ordering guarantees that Mutter's XFixesSelection-
+    // Notify handler runs AFTER Mutter has already processed the ButtonRelease.
+    // At that point n_buttons_pressed == 0 in Clutter, find_dnd_candidate_device
+    // returns FALSE, and meta_wayland_data_device_start_drag is never called.
     t_dragboard->SetClipboardWindow(w);
     GdkAtom t_selection = t_dragboard->GetSelectionAtom();
-    gdk_selection_owner_set_for_display(dpy, w, t_selection, GDK_CURRENT_TIME, TRUE);
 
     // The drag-and-drop loop
     bool t_dnd_done = false;
@@ -268,9 +282,18 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_BUTTON_RELEASE:
             {
-                // Drop the item that was being dragged
+                // Drop the item that was being dragged.
                 if (t_action != DRAG_ACTION_NONE)
+                {
+                    // Claim XdndSelection NOW — after the button-release event
+                    // has been enqueued in the X server. Mutter will process
+                    // ButtonRelease before XFixesSelectionNotify (X11 ordering
+                    // guarantee), so when its XFixes handler fires, the button
+                    // is no longer pressed → no exclusive DnD grab is installed.
+                    gdk_selection_owner_set_for_display(dpy, w, t_selection,
+                                                        t_event->button.time, TRUE);
                     gdk_drag_drop(t_context, t_event->button.time);
+                }
                 else
                     t_dnd_done = true;
 
