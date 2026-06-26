@@ -544,23 +544,22 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         if (t_modal_loop.broken)
             break;
 
-        // Poll the X event queue directly for XdndStatus / XdndFinished on
-        // both the IPC/relay window and the visible source window.
-        // GDK's display-level filter may not fire for events on GDK-internal
-        // windows (the IPC window is managed internally by GDK and its events
-        // may be routed through a separate code path that bypasses our filter).
-        // XCheckTypedWindowEvent is non-blocking and removes the event from
-        // the queue so GDK won't also process it.
+        // Poll the X event queue for ALL ClientMessages (any window).
+        // XCheckTypedEvent catches XdndStatus / XdndFinished regardless of
+        // which window Mutter addressed them to. Non-Xdnd ClientMessages
+        // are put back via XPutBackEvent so GDK can still see them.
+        // Only drain when we have an active foreign destination to avoid
+        // consuming unrelated ClientMessages during intra-app drags.
+        if (t_xdnd_foreign_dest != None)
         {
             x11::XEvent t_xpoll;
-            // Check IPC/relay window
-            while (x11::XCheckTypedWindowEvent(t_xdisplay, t_xdnd_ipc_xid,
-                                               ClientMessage, &t_xpoll))
+            while (x11::XCheckTypedEvent(t_xdisplay, ClientMessage, &t_xpoll))
             {
                 x11::XClientMessageEvent *t_cm = &t_xpoll.xclient;
                 fprintf(stderr,
-                        "DND Xpoll(ipc): ClientMessage msgtype=%lu\n",
-                        (unsigned long)t_cm->message_type);
+                        "DND Xpoll: ClientMessage msgtype=%lu window=%lu\n",
+                        (unsigned long)t_cm->message_type,
+                        (unsigned long)t_cm->window);
                 fflush(stderr);
                 if (t_cm->message_type == s_xdnd.xdnd_status)
                 {
@@ -574,30 +573,11 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 {
                     t_xdnd_filter.got_finished = true;
                 }
-            }
-            // Also check visible source window (some compositors send to it)
-            if (t_src_xid != t_xdnd_ipc_xid)
-            {
-                while (x11::XCheckTypedWindowEvent(t_xdisplay, t_src_xid,
-                                                   ClientMessage, &t_xpoll))
+                else
                 {
-                    x11::XClientMessageEvent *t_cm = &t_xpoll.xclient;
-                    fprintf(stderr,
-                            "DND Xpoll(src): ClientMessage msgtype=%lu\n",
-                            (unsigned long)t_cm->message_type);
-                    fflush(stderr);
-                    if (t_cm->message_type == s_xdnd.xdnd_status)
-                    {
-                        t_xdnd_filter.status_accept =
-                            (t_cm->data.l[1] & 1L) != 0;
-                        t_xdnd_filter.status_action =
-                            (x11::Atom)(unsigned long)t_cm->data.l[4];
-                        t_xdnd_filter.got_status = true;
-                    }
-                    else if (t_cm->message_type == s_xdnd.xdnd_finished)
-                    {
-                        t_xdnd_filter.got_finished = true;
-                    }
+                    // Not an Xdnd message — put back for GDK to handle
+                    x11::XPutBackEvent(t_xdisplay, &t_xpoll);
+                    break;  // stop draining to avoid spin on this event
                 }
             }
         }
