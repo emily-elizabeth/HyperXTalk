@@ -1,8 +1,6 @@
 #include "lnxprefix.h"
 
 #include <stdio.h>
-#include <gdk/gdkx.h>
-#include <X11/Xatom.h>
 
 #include "globdefs.h"
 #include "filedefs.h"
@@ -99,60 +97,68 @@ void MCLinuxDragAndDropSetCursorForAction(GdkWindow *w, MCDragAction p_action, M
 //   2. Walk UP from that child looking for a window with the XdndAware
 //      property set — that is the correct XdndDrop target.
 //
+// All X11 types and functions are in the x11:: namespace because lnxprefix.h
+// wraps <gdk/gdkx.h> (and thereby all of Xlib) in "namespace x11 {}".
+// X11 constant macros (None, False, AnyPropertyType, Success) are #defines
+// and remain globally visible.
+//
 // Returns None if no XdndAware window is found (e.g. cursor over desktop).
-static Window MCLinuxFindXdndTarget(Display *p_display)
+static x11::Window MCLinuxFindXdndTarget(x11::Display *p_display,
+                                         x11::Window   p_root)
 {
-    static Atom s_xdnd_aware = None;
+    static x11::Atom s_xdnd_aware = None;
     if (s_xdnd_aware == None)
-        s_xdnd_aware = XInternAtom(p_display, "XdndAware", False);
+        s_xdnd_aware = x11::XInternAtom(p_display, "XdndAware", False);
 
-    Window t_root = DefaultRootWindow(p_display);
-    Window t_child = t_root;
+    x11::Window t_child = p_root;
 
     // Step 1: descend to the deepest child under the pointer
     for (;;)
     {
-        Window t_root_ret, t_next = None;
+        x11::Window t_root_ret, t_next = None;
         int t_rx, t_ry, t_wx, t_wy;
         unsigned int t_mask;
-        if (!XQueryPointer(p_display, t_child,
-                           &t_root_ret, &t_next,
-                           &t_rx, &t_ry, &t_wx, &t_wy, &t_mask)
+        if (!x11::XQueryPointer(p_display, t_child,
+                                &t_root_ret, &t_next,
+                                &t_rx, &t_ry, &t_wx, &t_wy, &t_mask)
                 || t_next == None)
             break;
         t_child = t_next;
     }
 
     // Step 2: walk up looking for XdndAware
-    Window t_w = t_child;
-    while (t_w != None && t_w != t_root)
+    x11::Window t_w = t_child;
+    while (t_w != None && t_w != p_root)
     {
-        Atom t_type;
+        x11::Atom t_type;
         int t_fmt;
         unsigned long t_items, t_after;
         unsigned char *t_data = NULL;
 
-        int t_rc = XGetWindowProperty(p_display, t_w, s_xdnd_aware,
-                                      0, 1, False,
-                                      XA_ATOM, &t_type, &t_fmt,
-                                      &t_items, &t_after, &t_data);
+        // AnyPropertyType (0) avoids needing XA_ATOM across the namespace boundary;
+        // we only care whether the property exists, not its type value.
+        int t_rc = x11::XGetWindowProperty(p_display, t_w, s_xdnd_aware,
+                                           0, 1, False,
+                                           AnyPropertyType,
+                                           &t_type, &t_fmt,
+                                           &t_items, &t_after, &t_data);
         if (t_rc == Success && t_data != NULL)
         {
-            XFree(t_data);
+            x11::XFree(t_data);
             return t_w;   // found it
         }
         if (t_data != NULL)
-            XFree(t_data);
+            x11::XFree(t_data);
 
         // Move to parent
-        Window t_parent, t_root2;
-        Window *t_children = NULL;
+        x11::Window t_parent, t_root2;
+        x11::Window *t_children = NULL;
         unsigned int t_nch;
-        XQueryTree(p_display, t_w,
-                   &t_root2, &t_parent,
-                   &t_children, &t_nch);
+        x11::XQueryTree(p_display, t_w,
+                        &t_root2, &t_parent,
+                        &t_children, &t_nch);
         if (t_children != NULL)
-            XFree(t_children);
+            x11::XFree(t_children);
         t_w = t_parent;
     }
 
@@ -334,8 +340,11 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     // gdk_drag_find_window_for_screen is avoided because it uses
                     // XCompositeGetOverlayWindow (via GdkWindowCache), which
                     // disturbs Mutter's compositor state and causes GPU hangs.
-                    Display *t_xdisplay = GDK_DISPLAY_XDISPLAY(dpy);
-                    Window t_xtarget = MCLinuxFindXdndTarget(t_xdisplay);
+                    // All GDK-X11 functions and Xlib types are in x11:: namespace
+                    // (lnxprefix.h wraps <gdk/gdkx.h> in "namespace x11 {}").
+                    x11::Display *t_xdisplay = x11::gdk_x11_display_get_xdisplay(dpy);
+                    x11::Window   t_xroot    = x11::gdk_x11_window_get_xid(gdk_get_default_root_window());
+                    x11::Window   t_xtarget  = MCLinuxFindXdndTarget(t_xdisplay, t_xroot);
 
                     // Wrap the X11 target as a GdkWindow for gdk_drag_motion.
                     // If the window is already registered in GDK (one of ours),
@@ -347,21 +356,21 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
                     if (t_xtarget != None)
                     {
-                        GdkWindow *t_known = gdk_x11_window_lookup_for_display(dpy, t_xtarget);
+                        GdkWindow *t_known = x11::gdk_x11_window_lookup_for_display(dpy, t_xtarget);
                         if (t_known != NULL)
                         {
                             t_dest_window = t_known;   // intra-app, already ref'd
                         }
                         else
                         {
-                            t_dest_window = gdk_x11_window_foreign_new_for_display(dpy, t_xtarget);
+                            t_dest_window = x11::gdk_x11_window_foreign_new_for_display(dpy, t_xtarget);
                             t_dest_foreign = true;     // cross-app, we own this ref
                         }
                         t_protocol = GDK_DRAG_PROTO_XDND;
                     }
 
                     fprintf(stderr, "DND motion: dest_xid=%lu foreign=%d proto=%d root=(%.0f,%.0f)\n",
-                            (unsigned long)t_xtarget, (int)t_dest_foreign, (int)t_protocol,
+                            (unsigned long)(x11::Window)t_xtarget, (int)t_dest_foreign, (int)t_protocol,
                             t_event->motion.x_root, t_event->motion.y_root);
                     fflush(stderr);
 
