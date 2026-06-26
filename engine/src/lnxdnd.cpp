@@ -659,6 +659,18 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
         x11::XUngrabPointer(t_xdpy, 0L /* CurrentTime */);
         x11::XUngrabKeyboard(t_xdpy, 0L /* CurrentTime */);
+
+        // Synthetic button-1 release via XTEST. Under XWayland, XTEST events
+        // are forwarded through XWayland's fake libinput device and reach Mutter
+        // as real Wayland input events. If Mutter still holds a Wayland-level
+        // implicit pointer grab (waiting for the physical button release it never
+        // received because the DnD swallowed the XdndDrop / XdndFinished
+        // sequence without a real button-up event reaching the compositor), this
+        // synthetic release should clear it and unblock input routing.
+        x11::XTestFakeButtonEvent(t_xdpy, 1 /* button 1 */, 0 /* False = release */, 0L /* CurrentTime */);
+        fprintf(stderr, "DND cleanup: XTestFakeButtonEvent button-1 release sent\n");
+        fflush(stderr);
+
         x11::XFlush(t_xdpy);
     }
 

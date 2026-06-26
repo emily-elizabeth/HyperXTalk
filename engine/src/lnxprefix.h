@@ -9,6 +9,7 @@
 namespace x11
 {
 #include <gdk/gdkx.h>
+#include <X11/extensions/XTest.h>
 }
 
 extern GdkDisplay *MCdpy;
