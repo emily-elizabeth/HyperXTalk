@@ -426,19 +426,27 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
             }
 
             case GDK_DROP_START:
+            {
                 // Release the pointer grab before processing the drop so that
                 // the drop target (and Mutter) can receive input normally.
                 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
                 gdk_display_pointer_ungrab(dpy, t_event->dnd.time);
                 G_GNUC_END_IGNORE_DEPRECATIONS
                 DnDClientEvent(t_event);
-                // Don't set t_dnd_done here; wait for GDK_DROP_FINISHED which
-                // arrives after the destination sends XdndFinished.
+                // Exit the modal loop immediately. GDK_DROP_FINISHED would be
+                // the cleaner exit point (after the destination sends XdndFinished)
+                // but in GTK3 without gdk_drag_context_manage_dnd, the source-
+                // side event filter only handles GDK_DROP_FINISHED — it is not
+                // reliably delivered for intra-app drops. Staying in the loop
+                // blocks g_main_context_iteration forever, freezing the app.
+                t_dnd_done = true;
                 break;
+            }
 
             case GDK_DROP_FINISHED:
             {
-                // Did the drop succeed?
+                // Received when the destination sends XdndFinished (cross-app
+                // DnD or future GTK3 paths that do deliver this event).
                 bool t_success;
                 t_success = gdk_drag_drop_succeeded(t_context);
 
