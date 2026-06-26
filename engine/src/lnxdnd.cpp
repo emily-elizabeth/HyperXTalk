@@ -1,5 +1,7 @@
 #include "lnxprefix.h"
 
+#include <stdio.h>
+
 #include "globdefs.h"
 #include "filedefs.h"
 #include "objdefs.h"
@@ -263,6 +265,10 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     gint t_win_x = 0, t_win_y = 0;
                     GdkWindow *t_dest_window = gdk_device_get_window_at_position(t_pointer, &t_win_x, &t_win_y);
                     GdkDragProtocol t_protocol = (t_dest_window != NULL) ? GDK_DRAG_PROTO_XDND : GDK_DRAG_PROTO_NONE;
+                    fprintf(stderr, "DND motion: dest_window=%p proto=%d root=(%.0f,%.0f)\n",
+                            (void*)t_dest_window, (int)t_protocol,
+                            t_event->motion.x_root, t_event->motion.y_root);
+                    fflush(stderr);
 
                     if (t_dest_window == NULL)
                     {
@@ -282,9 +288,14 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_BUTTON_RELEASE:
             {
+                fprintf(stderr, "DND button-release: t_action=%d (0=none,1=copy,2=move,4=link)\n",
+                        (int)t_action);
+                fflush(stderr);
                 // Drop the item that was being dragged.
                 if (t_action != DRAG_ACTION_NONE)
                 {
+                    fprintf(stderr, "DND button-release: calling gdk_drag_drop\n");
+                    fflush(stderr);
                     // Claim XdndSelection NOW — after the button-release event
                     // has been enqueued in the X server. Mutter will process
                     // ButtonRelease before XFixesSelectionNotify (X11 ordering
@@ -302,6 +313,14 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_SELECTION_REQUEST:
             {
+                {
+                    gchar *t_target_name = gdk_atom_name(t_event->selection.target);
+                    fprintf(stderr, "DND selection-request: target=%s\n",
+                            t_target_name ? t_target_name : "(null)");
+                    fflush(stderr);
+                    g_free(t_target_name);
+                }
+
                 // We are using the dragboard
                 MCLinuxRawClipboard* t_clipboard = static_cast<MCLinuxRawClipboard*> (MCdragboard->GetRawClipboard());
 
@@ -367,6 +386,10 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     if (t_rep != NULL)
                         t_data.Give(t_rep->CopyData());
 
+                    fprintf(stderr, "DND selection-request: data %s\n",
+                            (*t_data != NULL) ? "FOUND — sending" : "NOT FOUND — sending GDK_NONE");
+                    fflush(stderr);
+
                     if (*t_data != NULL)
                     {
                         gdk_property_change(t_requestor, t_property,
@@ -409,6 +432,8 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_DRAG_STATUS:
             {
+                fprintf(stderr, "DND drag-status received\n");
+                fflush(stderr);
                 // Which action did the destination request?
                 GdkDragAction t_gdk_action;
                 t_gdk_action = gdk_drag_context_get_selected_action(t_context);
@@ -420,6 +445,10 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 if (t_gdk_action == GDK_ACTION_COPY)
                     t_action = DRAG_ACTION_COPY;
 
+                fprintf(stderr, "DND drag-status: gdk_action=%d → t_action=%d\n",
+                        (int)t_gdk_action, (int)t_action);
+                fflush(stderr);
+
                 MCLinuxDragAndDropSetCursorForAction(w, t_action, p_image);
 
                 break;
@@ -427,6 +456,8 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_DROP_START:
             {
+                fprintf(stderr, "DND drop-start received (intra-app drop)\n");
+                fflush(stderr);
                 // Release the pointer grab before processing the drop so that
                 // the drop target (and Mutter) can receive input normally.
                 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
@@ -449,6 +480,8 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 // DnD or future GTK3 paths that do deliver this event).
                 bool t_success;
                 t_success = gdk_drag_drop_succeeded(t_context);
+                fprintf(stderr, "DND drop-finished received: success=%d\n", (int)t_success);
+                fflush(stderr);
 
                 if (!t_success)
                     t_action = DRAG_ACTION_NONE;
@@ -459,6 +492,8 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_GRAB_BROKEN:
             {
+                fprintf(stderr, "DND grab-broken received — drag cancelled\n");
+                fflush(stderr);
                 // Drag operation was a failure
                 t_action = DRAG_ACTION_NONE;
                 t_dnd_done = true;
