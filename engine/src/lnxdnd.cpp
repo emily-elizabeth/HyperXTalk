@@ -498,6 +498,29 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 // spurious GDK_DRAG_LEAVE that can confuse GDK/XWayland state.
                 DnDClientEvent(t_event);
 
+                // Explicitly release XdndSelection. GDK normally releases it
+                // when it processes GDK_DROP_FINISHED on the source side, but
+                // we exit the modal loop here on GDK_DROP_START and never
+                // process GDK_DROP_FINISHED. XWayland watches XdndSelection
+                // ownership to drive wl_data_source.dnd_finished; if we still
+                // own it, XWayland never sends that event, Mutter never
+                // releases its seat grab, and the entire desktop input freezes.
+                {
+                    x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
+                    x11::Atom t_xdnd_sel = x11::XInternAtom(t_xdpy, "XdndSelection", 0);
+                    if (t_xdnd_sel)
+                    {
+                        x11::Window t_owner = x11::XGetSelectionOwner(t_xdpy, t_xdnd_sel);
+                        fprintf(stderr, "DND modal: XdndSelection owner=0x%lx before release\n",
+                                (unsigned long)t_owner);
+                        fflush(stderr);
+                        x11::XSetSelectionOwner(t_xdpy, t_xdnd_sel, 0L, t_event->dnd.time);
+                        x11::XFlush(t_xdpy);
+                        fprintf(stderr, "DND modal: XdndSelection released\n");
+                        fflush(stderr);
+                    }
+                }
+
                 gdk_display_flush(dpy);
                 // XSync round-trip — blocks until XdndFinished is processed.
                 gdk_display_sync(dpy);
