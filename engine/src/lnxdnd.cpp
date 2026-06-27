@@ -498,6 +498,11 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     int           t_last_foreign_x     = 0;
     int           t_last_foreign_y     = 0;
     unsigned long t_last_foreign_time  = 0;
+    // Re-enter tracking: after a few motion events inside a foreign window with
+    // action=0, we send XdndLeave then a fresh XdndEnter+XdndPosition once to
+    // break GDK's rect suppression and restart Mutter's Wayland handshake.
+    int           t_foreign_motion_count  = 0; // motions with entered=true, action=0
+    bool          t_foreign_reenter_done  = false; // only re-enter once per window
     MCLinuxXdndInitAtoms(t_xdisplay);
 
     // Resolve the IPC/relay window that owns XdndSelection — this is the
@@ -872,6 +877,8 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                             x11::gdk_x11_window_foreign_new_for_display(dpy, t_xtarget);
                         t_xdnd_foreign_dest = t_xtarget;
                         t_xdnd_foreign_entered = false;  // first motion will use gdk_drag_motion
+                        t_foreign_motion_count = 0;
+                        t_foreign_reenter_done = false;
                         fprintf(stderr,
                                 "DND: entered foreign xid=%lu wrapper=%s\n",
                                 (unsigned long)t_xtarget,
@@ -981,6 +988,41 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 (unsigned)t_possible_actions,
                                 (unsigned)t_eff_suggested, t_dest_gdk ? "ok" : "NULL");
                         fflush(stderr);
+                        // Re-enter: after a few motions inside a foreign window
+                        // with action=0, Mutter's XdndStatus rect suppression has
+                        // prevented GDK from sending further XdndPosition updates.
+                        // Mutter's async X11→Wayland handshake with Text Editor
+                        // may have completed but Mutter can't tell us because
+                        // it only sends XdndStatus in response to XdndPosition.
+                        // Fix: send XdndLeave then a fresh XdndEnter+XdndPosition
+                        // ONCE per foreign window entry, giving Mutter a clean cycle.
+                        if (t_is_foreign &&
+                            t_xdnd_foreign_entered &&
+                            !t_foreign_reenter_done &&
+                            t_action == DRAG_ACTION_NONE)
+                        {
+                            t_foreign_motion_count++;
+                            if (t_foreign_motion_count >= 3)
+                            {
+                                t_foreign_reenter_done = true;
+                                t_xdnd_foreign_entered = false; // so next call sends XdndEnter
+                                t_deferred_drop_dest   = None;  // stale after leave
+                                fprintf(stderr,
+                                        "DND: re-entering foreign (action=0 after %d motions)"
+                                        " — sending XdndLeave then fresh XdndEnter\n",
+                                        t_foreign_motion_count);
+                                fflush(stderr);
+                                gdk_drag_motion(t_context, NULL, GDK_DRAG_PROTO_NONE,
+                                                t_event->motion.x_root,
+                                                t_event->motion.y_root,
+                                                GdkDragAction(t_suggested_action),
+                                                GdkDragAction(t_possible_actions),
+                                                t_event->motion.time);
+                                // Fall through: the gdk_drag_motion call below will
+                                // now send XdndEnter+XdndPosition (dest_window cleared).
+                            }
+                        }
+
                         // This gdk_drag_motion call will send XdndLeave to any
                         // previous dest (including the deferred foreign dest).
                         // Invalidate the deferred dest now so button-release
