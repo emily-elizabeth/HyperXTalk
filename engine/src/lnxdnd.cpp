@@ -344,6 +344,11 @@ static GdkFilterReturn MCLinuxXdndFilter(GdkXEvent *p_xevent,
     }
     if (t_cm->message_type == t_fd->atoms->xdnd_finished)
     {
+        bool t_accept = (t_cm->data.l[1] & 1L) != 0;
+        fprintf(stderr,
+                "DND filter: XdndFinished caught! window=%lu accept=%d\n",
+                (unsigned long)t_cm->window, (int)t_accept);
+        fflush(stderr);
         t_fd->got_finished = true;
         return GDK_FILTER_REMOVE;
     }
