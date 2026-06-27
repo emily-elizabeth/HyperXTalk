@@ -896,6 +896,37 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         t_xdnd_foreign_entered = false;  // first motion will use gdk_drag_motion
                         t_foreign_enter_time   = 0;      // set on first gdk_drag_motion
                         t_foreign_reenter_done = false;
+
+                        // Send raw XdndEnter from the IPC/selection window.
+                        // GDK3 sends XdndEnter with context->source_window (the
+                        // visible widget window, t_src_xid) as data.l[0].  Mutter's
+                        // meta_xwayland_dnd_handle_client_message checks
+                        //   (Window) event->data.l[0] == dnd->owner
+                        // where dnd->owner = XGetSelectionOwner(XdndSelection) =
+                        // t_xdnd_ipc_xid.  The mismatch causes Mutter to silently
+                        // discard GDK's XdndEnter, XdndPosition, and XdndDrop, so
+                        // text never reaches the Wayland-native target.
+                        //
+                        // Fix: bypass GDK and send from t_xdnd_ipc_xid so Mutter
+                        // accepts the message.  XdndTypeList is already written on
+                        // t_xdnd_ipc_xid during setup, so we set the type-list flag
+                        // (bit 0) and let the target read the property directly.
+                        if (t_xdnd_ipc_xid != None)
+                        {
+                            MCLinuxXdndSendMessage(
+                                t_xdisplay, t_xtarget,
+                                s_xdnd.xdnd_enter,
+                                (long)t_xdnd_ipc_xid,
+                                (5L << 24) | 1L,  // XDND v5, type-list flag
+                                0L, 0L, 0L);
+                            x11::XFlush(t_xdisplay);
+                            fprintf(stderr,
+                                    "DND: sent raw XdndEnter from ipc=%lu to foreign=%lu\n",
+                                    (unsigned long)t_xdnd_ipc_xid,
+                                    (unsigned long)t_xtarget);
+                            fflush(stderr);
+                        }
+
                         fprintf(stderr,
                                 "DND: entered foreign xid=%lu wrapper=%s\n",
                                 (unsigned long)t_xtarget,
@@ -1005,17 +1036,21 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 (unsigned)t_possible_actions,
                                 (unsigned)t_eff_suggested, t_dest_gdk ? "ok" : "NULL");
                         fflush(stderr);
-                        // Re-enter: Mutter's first XdndStatus always has action=0
-                        // because the Wayland round-trip to the native target (Text
-                        // Editor) is async. Mutter also sets want_more=0, so GDK
-                        // applies rect suppression and stops sending XdndPosition —
-                        // leaving Mutter with no new position to trigger an updated
-                        // XdndStatus once the round-trip finishes.
-                        //
-                        // Fix: after 200ms (enough for the Wayland IPC to complete),
-                        // send ONE XdndLeave + XdndEnter + XdndPosition. Mutter has
-                        // by then received Text Editor's acceptance; it responds to
-                        // the fresh XdndPosition with XdndStatus(action=Copy).
+                        // Re-enter approach (DISABLED):
+                        // Previously we sent XdndLeave + XdndEnter after 200ms to
+                        // break "rect suppression" when Mutter's first XdndStatus
+                        // had action=0.  This was the wrong diagnosis: want_more is
+                        // always 1 from Mutter (no rect suppression), and the real
+                        // problem was that GDK3 sends all XdndEnter/Position/Drop
+                        // with t_src_xid (widget window) as data.l[0], but Mutter
+                        // checks data.l[0] == dnd->owner (= t_xdnd_ipc_xid, the
+                        // XdndSelection owner).  Mutter silently discarded every GDK
+                        // message.  The re-enter loop sent XdndLeave+XdndEnter also
+                        // via GDK, so they used the same wrong source and were equally
+                        // ignored, while confusing our enter-tracking state.
+                        // Fixed properly by sending raw XdndEnter/Position/Drop from
+                        // t_xdnd_ipc_xid — see raw sends above and below.
+#if 0
                         if (t_is_foreign &&
                             t_xdnd_foreign_entered &&
                             !t_foreign_reenter_done &&
@@ -1023,27 +1058,21 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         {
                             gint64 t_now = g_get_monotonic_time();
                             if (t_foreign_enter_time == 0)
-                                t_foreign_enter_time = t_now;  // should have been set already, safety
-                            if ((t_now - t_foreign_enter_time) >= 200000LL) // 200 ms
+                                t_foreign_enter_time = t_now;
+                            if ((t_now - t_foreign_enter_time) >= 200000LL)
                             {
                                 t_foreign_reenter_done = true;
-                                t_xdnd_foreign_entered = false; // so next call sends XdndEnter
-                                t_deferred_drop_dest   = None;  // stale after leave
-                                fprintf(stderr,
-                                        "DND: re-entering foreign after %" G_GINT64_FORMAT
-                                        "ms (action=0) — XdndLeave + fresh XdndEnter\n",
-                                        (t_now - t_foreign_enter_time) / 1000LL);
-                                fflush(stderr);
+                                t_xdnd_foreign_entered = false;
+                                t_deferred_drop_dest   = None;
                                 gdk_drag_motion(t_context, NULL, GDK_DRAG_PROTO_NONE,
                                                 t_event->motion.x_root,
                                                 t_event->motion.y_root,
                                                 GdkDragAction(t_suggested_action),
                                                 GdkDragAction(t_possible_actions),
                                                 t_event->motion.time);
-                                // Fall through: the gdk_drag_motion call below
-                                // sends XdndEnter+XdndPosition to the fresh dest.
                             }
                         }
+#endif
 
                         // This gdk_drag_motion call will send XdndLeave to any
                         // previous dest (including the deferred foreign dest).
@@ -1070,24 +1099,27 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                             t_last_foreign_y    = t_event->motion.y_root;
                             t_last_foreign_time = t_event->motion.time;
 
-                            // Raw XdndPosition bypass: was needed for Mutter 46
-                            // (Ubuntu 24.04) to work around rect suppression
-                            // (want_more=0 from XdndStatus stopping GDK from sending
-                            // further positions). Fixed in Mutter 48 (Ubuntu 25.04,
-                            // LP: #2097415). With Mutter 48 GDK receives want_more=1
-                            // and continues normally; the extra raw send duplicates
-                            // GDK's position and can confuse Mutter's state machine.
-                            // Re-enable if testing on Ubuntu 24.04 with old Mutter.
-#if 0
-                            MCLinuxXdndSendPosition(
-                                t_xdisplay, t_src_xid,
-                                t_xdnd_foreign_dest,
-                                t_event->motion.x_root,
-                                t_event->motion.y_root,
-                                t_event->motion.time,
-                                s_xdnd.xdnd_action_copy);
-                            x11::XFlush(t_xdisplay);
-#endif
+                            // Send raw XdndPosition from the IPC/selection window.
+                            // GDK3 sends XdndPosition with t_src_xid (widget window)
+                            // as data.l[0], which Mutter rejects (see XdndEnter
+                            // comment above for full explanation).  We bypass GDK's
+                            // send and use t_xdnd_ipc_xid instead.  GDK's call above
+                            // (gdk_drag_motion) still runs to keep GDK's internal
+                            // context state consistent; its XdndPosition is ignored by
+                            // Mutter but Mutter's XdndStatus (in reply to ours) is
+                            // received by GDK's IPC-window filter and delivered as
+                            // GDK_DRAG_STATUS, updating t_action normally.
+                            if (t_xdnd_ipc_xid != None)
+                            {
+                                MCLinuxXdndSendPosition(
+                                    t_xdisplay, t_xdnd_ipc_xid,
+                                    t_xdnd_foreign_dest,
+                                    t_event->motion.x_root,
+                                    t_event->motion.y_root,
+                                    t_event->motion.time,
+                                    s_xdnd.xdnd_action_copy);
+                                x11::XFlush(t_xdisplay);
+                            }
                         }
                     }  // end else (!t_skip_gdk_motion)
                 }
@@ -1133,27 +1165,21 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     if (t_foreign_drop_xid != None)
                     {
                         // ── Cross-app drop ──
-                        // Use gdk_drag_drop() — NOT MCLinuxXdndSendDrop.
+                        // We send raw XdndDrop from t_xdnd_ipc_xid (see below), then
+                        // also call gdk_drag_drop() for GDK state housekeeping.
                         //
-                        // GDK's XdndEnter declares context->source_window (the
-                        // widget window, t_src_xid=37749302) as data.l[0].
-                        // Mutter remembers this as the source and sends XdndFinished
-                        // to that same XID.  gdk_drag_drop also uses source_window
-                        // for XdndDrop data.l[0], so the source matches XdndEnter.
+                        // Root cause: GDK3 sends all Xdnd messages (Enter/Position/
+                        // Drop) with context->source_window = t_src_xid (the visible
+                        // widget window) as data.l[0].  Mutter's bridge checks
+                        //   (Window) event->data.l[0] == dnd->owner
+                        // where dnd->owner = XGetSelectionOwner(XdndSelection) =
+                        // t_xdnd_ipc_xid.  Mismatch → Mutter silently discards every
+                        // GDK message → text never reaches the Wayland-native target.
                         //
-                        // Our earlier MCLinuxXdndSendDrop attempts used the IPC
-                        // window (35651591) or t_src_xid but never got Mutter to
-                        // reply — Mutter silently ignored the mismatch.  Using
-                        // gdk_drag_drop ensures GDK and Mutter agree on the source.
-                        //
-                        // gdk_drag_drop sends to context->dest_window.  In the
-                        // deferred case, the last gdk_drag_motion targeting the
-                        // foreign window was not undone (t_skip_gdk_motion prevented
-                        // XdndLeave), so context->dest_window is still the foreign
-                        // Mutter tracking window — correct.
-                        //
-                        // After the drop GDK will receive XdndFinished and deliver
-                        // GDK_DROP_FINISHED; our existing handler sets t_dnd_done.
+                        // gdk_drag_drop() is still called to mark the context as
+                        // drop-initiated; GDK's IPC-window filter only translates
+                        // XdndFinished → GDK_DROP_FINISHED when that flag is set.
+                        // GDK's own XdndDrop (wrong source) is ignored by Mutter.
                         fprintf(stderr,
                                 "DND button-release: gdk_drag_drop (foreign) → xid=%lu t_action=%d deferred=%d\n",
                                 (unsigned long)t_foreign_drop_xid,
@@ -1161,27 +1187,55 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 (int)(t_deferred_drop_dest != None));
                         fflush(stderr);
 
-                        // Pre-drop XdndPosition reminder: was used for Mutter 46
-                        // (Ubuntu 24.04) deferred-dest case to keep Mutter's Wayland
-                        // target valid before XdndDrop. Not needed on Mutter 48
-                        // (Ubuntu 25.04) — gdk_drag_drop alone is sufficient.
-                        // Re-enable if testing on Ubuntu 24.04 with old Mutter.
-#if 0
-                        if (t_deferred_drop_dest != None && t_last_foreign_x != 0)
+                        // Pre-drop XdndPosition (deferred case): if the cursor left
+                        // the foreign window on the same event as button-release we
+                        // saved the dest as t_deferred_drop_dest and skipped
+                        // XdndLeave.  Mutter's Wayland state is still valid, but
+                        // send a reminder XdndPosition from t_xdnd_ipc_xid to give
+                        // Mutter a fresh position before the drop.
+                        if (t_deferred_drop_dest != None && t_last_foreign_x != 0
+                            && t_xdnd_ipc_xid != None)
                         {
                             MCLinuxXdndSendPosition(
-                                t_xdisplay, t_src_xid,
+                                t_xdisplay, t_xdnd_ipc_xid,
                                 t_foreign_drop_xid,
                                 t_last_foreign_x, t_last_foreign_y,
                                 t_last_foreign_time,
                                 s_xdnd.xdnd_action_copy);
                             x11::XFlush(t_xdisplay);
                             fprintf(stderr,
-                                    "DND button-release: sent pre-drop XdndPosition at (%d,%d)\n",
+                                    "DND button-release: sent pre-drop XdndPosition from ipc=%lu at (%d,%d)\n",
+                                    (unsigned long)t_xdnd_ipc_xid,
                                     t_last_foreign_x, t_last_foreign_y);
                             fflush(stderr);
                         }
-#endif
+
+                        // Send raw XdndDrop from the IPC/selection window.
+                        // GDK3's gdk_drag_drop() sends XdndDrop with t_src_xid
+                        // (widget window) as data.l[0], which Mutter rejects because
+                        // data.l[0] != dnd->owner (= t_xdnd_ipc_xid).  Mutter never
+                        // processes the drop so text never reaches the target.
+                        //
+                        // Fix: send raw XdndDrop from t_xdnd_ipc_xid first, then
+                        // call gdk_drag_drop() to put GDK's context into drop-
+                        // initiated state.  GDK's drop is ignored by Mutter (wrong
+                        // source) but the state change is needed: when Mutter replies
+                        // with XdndFinished → t_xdnd_ipc_xid, GDK's IPC-window
+                        // filter translates it to GDK_DROP_FINISHED only if the
+                        // context was marked drop-initiated by gdk_drag_drop().
+                        if (t_xdnd_ipc_xid != None)
+                        {
+                            MCLinuxXdndSendDrop(
+                                t_xdisplay, t_xdnd_ipc_xid,
+                                t_foreign_drop_xid,
+                                t_event->button.time);
+                            x11::XFlush(t_xdisplay);
+                            fprintf(stderr,
+                                    "DND button-release: sent raw XdndDrop from ipc=%lu to foreign=%lu\n",
+                                    (unsigned long)t_xdnd_ipc_xid,
+                                    (unsigned long)t_foreign_drop_xid);
+                            fflush(stderr);
+                        }
 
                         G_GNUC_BEGIN_IGNORE_DEPRECATIONS
                         gdk_display_pointer_ungrab(dpy, t_event->button.time);
