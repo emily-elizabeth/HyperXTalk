@@ -993,14 +993,16 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 (unsigned)t_possible_actions,
                                 (unsigned)t_eff_suggested, t_dest_gdk ? "ok" : "NULL");
                         fflush(stderr);
-                        // Re-enter: after a few motions inside a foreign window
-                        // with action=0, Mutter's XdndStatus rect suppression has
-                        // prevented GDK from sending further XdndPosition updates.
-                        // Mutter's async X11→Wayland handshake with Text Editor
-                        // may have completed but Mutter can't tell us because
-                        // it only sends XdndStatus in response to XdndPosition.
-                        // Fix: send XdndLeave then a fresh XdndEnter+XdndPosition
-                        // ONCE per foreign window entry, giving Mutter a clean cycle.
+                        // Re-enter workaround: was needed for Mutter 46 (Ubuntu 24.04)
+                        // which always returned XdndStatus(action=0, want_more=0) due
+                        // to a Wayland handshake bug (LP: #2097415, fixed upstream in
+                        // GNOME 47+ / mutter 46.2-1ubuntu0.24.04.7).
+                        // With Mutter 48 (Ubuntu 25.04) the handshake completes and
+                        // GDK receives proper XdndStatus(action=Copy, want_more=1);
+                        // re-entering (XdndLeave + fresh XdndEnter) interrupts the
+                        // completing handshake and causes action=0 to persist.
+                        // Disabled for Mutter 48+. Re-enable if testing on 24.04.
+#if 0
                         if (t_is_foreign &&
                             t_xdnd_foreign_entered &&
                             !t_foreign_reenter_done &&
@@ -1027,6 +1029,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 // now send XdndEnter+XdndPosition (dest_window cleared).
                             }
                         }
+#endif
 
                         // This gdk_drag_motion call will send XdndLeave to any
                         // previous dest (including the deferred foreign dest).
@@ -1047,14 +1050,19 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         if (t_is_foreign && t_dest_gdk != NULL)
                         {
                             t_xdnd_foreign_entered = true;
+                            t_last_foreign_x    = t_event->motion.x_root;
+                            t_last_foreign_y    = t_event->motion.y_root;
+                            t_last_foreign_time = t_event->motion.time;
 
-                            // GDK applies Mutter's XdndStatus rect suppression
-                            // (want_more=0) and stops sending XdndPosition.
-                            // Bypass by sending a raw XdndPosition directly so
-                            // Mutter keeps updating its Wayland→Text Editor
-                            // handshake and eventually returns a non-zero action.
-                            // Use t_src_xid (visible window) as source — matches
-                            // what GDK puts in XdndEnter's data.l[0].
+                            // Raw XdndPosition bypass: was needed for Mutter 46
+                            // (Ubuntu 24.04) to work around rect suppression
+                            // (want_more=0 from XdndStatus stopping GDK from sending
+                            // further positions). Fixed in Mutter 48 (Ubuntu 25.04,
+                            // LP: #2097415). With Mutter 48 GDK receives want_more=1
+                            // and continues normally; the extra raw send duplicates
+                            // GDK's position and can confuse Mutter's state machine.
+                            // Re-enable if testing on Ubuntu 24.04 with old Mutter.
+#if 0
                             MCLinuxXdndSendPosition(
                                 t_xdisplay, t_src_xid,
                                 t_xdnd_foreign_dest,
@@ -1063,9 +1071,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 t_event->motion.time,
                                 s_xdnd.xdnd_action_copy);
                             x11::XFlush(t_xdisplay);
-                            t_last_foreign_x    = t_event->motion.x_root;
-                            t_last_foreign_y    = t_event->motion.y_root;
-                            t_last_foreign_time = t_event->motion.time;
+#endif
                         }
                     }  // end else (!t_skip_gdk_motion)
                 }
@@ -1139,9 +1145,12 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 (int)(t_deferred_drop_dest != None));
                         fflush(stderr);
 
-                        // If using the deferred dest, send one final XdndPosition
-                        // at the last known in-foreign coordinates to remind Mutter
-                        // of the active Wayland target before XdndDrop arrives.
+                        // Pre-drop XdndPosition reminder: was used for Mutter 46
+                        // (Ubuntu 24.04) deferred-dest case to keep Mutter's Wayland
+                        // target valid before XdndDrop. Not needed on Mutter 48
+                        // (Ubuntu 25.04) — gdk_drag_drop alone is sufficient.
+                        // Re-enable if testing on Ubuntu 24.04 with old Mutter.
+#if 0
                         if (t_deferred_drop_dest != None && t_last_foreign_x != 0)
                         {
                             MCLinuxXdndSendPosition(
@@ -1156,6 +1165,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                     t_last_foreign_x, t_last_foreign_y);
                             fflush(stderr);
                         }
+#endif
 
                         G_GNUC_BEGIN_IGNORE_DEPRECATIONS
                         gdk_display_pointer_ungrab(dpy, t_event->button.time);
