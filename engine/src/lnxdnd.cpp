@@ -484,29 +484,28 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     GdkWindow    *t_foreign_gdk = NULL;         // GdkWindow wrapper for foreign dest
     MCLinuxXdndInitAtoms(t_xdisplay);
 
-    // gdk_drag_begin claims XdndSelection for an internal IPC/proxy window,
-    // NOT for our visible window (t_src_xid).  Mutter's XWayland DnD bridge
-    // checks: XGetSelectionOwner(XdndSelection) == XdndEnter.data.l[0].
-    // If they don't match it silently discards XdndEnter and never sends
-    // XdndStatus back.
-    //
-    // Fix: use the XdndSelection owner as the source in all manual Xdnd
-    // messages (XdndEnter / XdndPosition / XdndLeave / XdndDrop).  The
-    // TARGETS exchange at drag-start already told Mutter what types we offer
-    // via the IPC window, so XdndTypeList on that window is already set.
-    // We still set it on our visible window as a belt-and-suspenders measure.
+    // Resolve the IPC/relay window that owns XdndSelection — this is the
+    // source XID that Mutter (and all XDND targets) will identify as the drag
+    // source when they read XdndTypeList and XdndActionList.
+    // Must be done before setting properties so we target the right window.
+    x11::Atom   t_xdnd_sel_atom = x11::XInternAtom(t_xdisplay, "XdndSelection", False);
+    x11::Window t_xdnd_ipc_xid  = x11::XGetSelectionOwner(t_xdisplay, t_xdnd_sel_atom);
+    if (t_xdnd_ipc_xid == None)
+        t_xdnd_ipc_xid = t_src_xid;   // fallback: no IPC window, use visible
+    fprintf(stderr, "DND: IPC/relay xid=%lu (XdndSelection owner, used as Xdnd src)\n",
+            (unsigned long)t_xdnd_ipc_xid);
+    fflush(stderr);
+
+    // Set XdndTypeList and XdndActionList on the IPC window.
+    // Per XDND protocol, the target reads these properties from whichever
+    // window owns XdndSelection (the IPC window, not the visible window).
+    // Setting them only on the visible window means the target reads an empty
+    // property and rejects the drag regardless of the action we suggest.
     {
         const gulong *t_type_atoms =
             reinterpret_cast<const gulong*>(MCDataGetBytePtr(*t_targets));
         uindex_t t_type_count = MCDataGetLength(*t_targets) / sizeof(gulong);
 
-        // XdndTypeList on visible window (t_src_xid) — extra safety copy
-        x11::XChangeProperty(t_xdisplay, t_src_xid,
-                             s_xdnd.xdnd_type_list,
-                             (x11::Atom)4 /* XA_ATOM */, 32,
-                             PropModeReplace,
-                             reinterpret_cast<const unsigned char*>(t_type_atoms),
-                             (int)t_type_count);
         x11::Atom t_action_list_atom =
             x11::XInternAtom(t_xdisplay, "XdndActionList", False);
         x11::Atom t_action_atoms[3];
@@ -517,27 +516,40 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
             t_action_atoms[t_action_count++] = s_xdnd.xdnd_action_move;
         if (t_possible_actions & GDK_ACTION_LINK)
             t_action_atoms[t_action_count++] = s_xdnd.xdnd_action_link;
+
+        // Primary: set on IPC window (what the target actually reads)
+        x11::XChangeProperty(t_xdisplay, t_xdnd_ipc_xid,
+                             s_xdnd.xdnd_type_list,
+                             (x11::Atom)4 /* XA_ATOM */, 32,
+                             PropModeReplace,
+                             reinterpret_cast<const unsigned char*>(t_type_atoms),
+                             (int)t_type_count);
+        x11::XChangeProperty(t_xdisplay, t_xdnd_ipc_xid,
+                             t_action_list_atom,
+                             (x11::Atom)4 /* XA_ATOM */, 32,
+                             PropModeReplace,
+                             reinterpret_cast<const unsigned char*>(t_action_atoms),
+                             t_action_count);
+
+        // Also set on visible window as belt-and-suspenders for intra-app drops
+        x11::XChangeProperty(t_xdisplay, t_src_xid,
+                             s_xdnd.xdnd_type_list,
+                             (x11::Atom)4 /* XA_ATOM */, 32,
+                             PropModeReplace,
+                             reinterpret_cast<const unsigned char*>(t_type_atoms),
+                             (int)t_type_count);
         x11::XChangeProperty(t_xdisplay, t_src_xid,
                              t_action_list_atom,
                              (x11::Atom)4 /* XA_ATOM */, 32,
                              PropModeReplace,
                              reinterpret_cast<const unsigned char*>(t_action_atoms),
                              t_action_count);
+
         x11::XFlush(t_xdisplay);
-        fprintf(stderr, "DND: set XdndTypeList+ActionList on visible xid=%lu\n",
-                (unsigned long)t_src_xid);
+        fprintf(stderr, "DND: set XdndTypeList+ActionList on ipc_xid=%lu and visible xid=%lu\n",
+                (unsigned long)t_xdnd_ipc_xid, (unsigned long)t_src_xid);
         fflush(stderr);
     }
-
-    // Resolve the IPC/relay window that owns XdndSelection — this is the
-    // source XID we must use in all manual Xdnd cross-app messages.
-    x11::Atom   t_xdnd_sel_atom = x11::XInternAtom(t_xdisplay, "XdndSelection", False);
-    x11::Window t_xdnd_ipc_xid  = x11::XGetSelectionOwner(t_xdisplay, t_xdnd_sel_atom);
-    if (t_xdnd_ipc_xid == None)
-        t_xdnd_ipc_xid = t_src_xid;   // fallback: no IPC window, use visible
-    fprintf(stderr, "DND: IPC/relay xid=%lu (XdndSelection owner, used as Xdnd src)\n",
-            (unsigned long)t_xdnd_ipc_xid);
-    fflush(stderr);
 
     // Install a display-level GDK filter (window=NULL) to capture XdndFinished
     // ClientMessages.  GTK3 removed GdkEventClient so these never appear as
