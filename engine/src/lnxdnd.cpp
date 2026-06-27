@@ -489,6 +489,10 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     // defer that one gdk_drag_motion call and keep the last foreign dest here so
     // the button-release handler can still attempt XdndDrop.
     x11::Window   t_deferred_drop_dest = None; // foreign XID saved when leaving, cleared on next motion
+    // Set to true once XdndDrop has been sent cross-app; suppresses subsequent
+    // motion and button-release events that arrive before XdndFinished.
+    bool          t_sent_foreign_drop  = false;
+    gint64        t_foreign_drop_time  = 0;    // g_get_monotonic_time() at drop send
     MCLinuxXdndInitAtoms(t_xdisplay);
 
     // Resolve the IPC/relay window that owns XdndSelection — this is the
@@ -654,7 +658,18 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         // are put back via XPutBackEvent so GDK can still see them.
         // Only drain when we have an active foreign destination to avoid
         // consuming unrelated ClientMessages during intra-app drags.
-        if (t_xdnd_foreign_dest != None)
+        // After XdndDrop is sent, Mutter must reply with XdndFinished.
+        // Bail out if it hasn't arrived after 2 seconds (prevents infinite wait).
+        if (t_sent_foreign_drop &&
+            (g_get_monotonic_time() - t_foreign_drop_time) > 2000000LL)
+        {
+            fprintf(stderr,
+                    "DND: XdndFinished timeout after 2s — ending modal loop\n");
+            fflush(stderr);
+            t_dnd_done = true;
+        }
+
+        if (t_xdnd_foreign_dest != None || t_sent_foreign_drop)
         {
             x11::XEvent t_xpoll;
             while (x11::XCheckTypedEvent(t_xdisplay, ClientMessage, &t_xpoll))
@@ -760,6 +775,11 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_MOTION_NOTIFY:
             {
+                // After XdndDrop has been sent, ignore all further motion events;
+                // we're waiting for XdndFinished and any motion is just noise.
+                if (t_sent_foreign_drop)
+                    break;
+
                 // When the cursor leaves a foreign window we save the dest as
                 // t_deferred_drop_dest (set below) so button-release can still
                 // drop there if no further motion arrives.  We skip the
@@ -959,6 +979,13 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_BUTTON_RELEASE:
             {
+                // After XdndDrop is sent cross-app, a phantom button-release can
+                // arrive (buffered in the X queue or synthesised after pointer
+                // ungrab). Ignore it — the modal loop exits via XdndFinished or
+                // the 2-second timeout, not a second button-release.
+                if (t_sent_foreign_drop)
+                    break;
+
                 fprintf(stderr, "DND button-release: t_action=%d (0=none,1=copy,2=move,4=link)\n",
                         (int)t_action);
                 fflush(stderr);
@@ -1010,7 +1037,11 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                             t_foreign_drop_xid,
                                             t_event->button.time);
                         x11::XFlush(t_xdisplay);
-                        // Stay in the modal loop until XdndFinished arrives via filter
+                        t_sent_foreign_drop = true;
+                        t_foreign_drop_time = g_get_monotonic_time();
+                        // Stay in the modal loop until XdndFinished arrives via
+                        // filter (or 2-second timeout). Suppress subsequent motion
+                        // and button-release events with t_sent_foreign_drop guard.
                     }
                     else if (t_action != DRAG_ACTION_NONE)
                     {
