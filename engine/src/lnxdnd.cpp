@@ -493,6 +493,11 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     // motion and button-release events that arrive before XdndFinished.
     bool          t_sent_foreign_drop  = false;
     gint64        t_foreign_drop_time  = 0;    // g_get_monotonic_time() at drop send
+    // Last position successfully sent to the foreign dest as raw XdndPosition.
+    // Used to send a reminder XdndPosition before XdndDrop in the deferred case.
+    int           t_last_foreign_x     = 0;
+    int           t_last_foreign_y     = 0;
+    unsigned long t_last_foreign_time  = 0;
     MCLinuxXdndInitAtoms(t_xdisplay);
 
     // Resolve the IPC/relay window that owns XdndSelection — this is the
@@ -970,7 +975,26 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                         t_event->motion.time);
 
                         if (t_is_foreign && t_dest_gdk != NULL)
+                        {
                             t_xdnd_foreign_entered = true;
+
+                            // GDK applies Mutter's XdndStatus rect suppression
+                            // (want_more=0) and stops sending XdndPosition.
+                            // Bypass by sending a raw XdndPosition directly so
+                            // Mutter keeps updating its Wayland→Text Editor
+                            // handshake and eventually returns a non-zero action.
+                            MCLinuxXdndSendPosition(
+                                t_xdisplay, t_xdnd_ipc_xid,
+                                t_xdnd_foreign_dest,
+                                t_event->motion.x_root,
+                                t_event->motion.y_root,
+                                t_event->motion.time,
+                                s_xdnd.xdnd_action_copy);
+                            x11::XFlush(t_xdisplay);
+                            t_last_foreign_x    = t_event->motion.x_root;
+                            t_last_foreign_y    = t_event->motion.y_root;
+                            t_last_foreign_time = t_event->motion.time;
+                        }
                     }  // end else (!t_skip_gdk_motion)
                 }
 
@@ -1030,6 +1054,27 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 (int)t_action,
                                 (int)(t_deferred_drop_dest != None));
                         fflush(stderr);
+
+                        // If using the deferred dest, Mutter may have updated its
+                        // internal Wayland state when the cursor left Text Editor.
+                        // Send one more XdndPosition at the last-known position
+                        // inside the foreign window to re-sync Mutter's target
+                        // before XdndDrop arrives.
+                        if (t_deferred_drop_dest != None && t_last_foreign_x != 0)
+                        {
+                            MCLinuxXdndSendPosition(
+                                t_xdisplay, t_xdnd_ipc_xid,
+                                t_foreign_drop_xid,
+                                t_last_foreign_x, t_last_foreign_y,
+                                t_last_foreign_time,
+                                s_xdnd.xdnd_action_copy);
+                            x11::XFlush(t_xdisplay);
+                            fprintf(stderr,
+                                    "DND button-release: sent pre-drop XdndPosition at (%d,%d)\n",
+                                    t_last_foreign_x, t_last_foreign_y);
+                            fflush(stderr);
+                        }
+
                         G_GNUC_BEGIN_IGNORE_DEPRECATIONS
                         gdk_display_pointer_ungrab(dpy, t_event->button.time);
                         G_GNUC_END_IGNORE_DEPRECATIONS
