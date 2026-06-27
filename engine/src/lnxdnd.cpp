@@ -796,6 +796,11 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         t_eff_suggested = GdkDragAction(t_suggested_action);
                     }
 
+                    fprintf(stderr,
+                            "DND gdk_drag_motion: foreign=%d possible=0x%x eff_suggested=0x%x dest=%s\n",
+                            (int)t_is_foreign, (unsigned)t_possible_actions,
+                            (unsigned)t_eff_suggested, t_dest_gdk ? "ok" : "NULL");
+                    fflush(stderr);
                     gdk_drag_motion(t_context, t_dest_gdk,
                                     t_dest_gdk ? GDK_DRAG_PROTO_XDND
                                                : GDK_DRAG_PROTO_NONE,
