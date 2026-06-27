@@ -503,10 +503,14 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     int           t_last_foreign_x     = 0;
     int           t_last_foreign_y     = 0;
     unsigned long t_last_foreign_time  = 0;
-    // Re-enter tracking: after a few motion events inside a foreign window with
-    // action=0, we send XdndLeave then a fresh XdndEnter+XdndPosition once to
-    // break GDK's rect suppression and restart Mutter's Wayland handshake.
-    int           t_foreign_motion_count  = 0; // motions with entered=true, action=0
+    // Re-enter tracking: after a delay inside a foreign window with action=0,
+    // we send XdndLeave then a fresh XdndEnter+XdndPosition once to break
+    // GDK's rect suppression and let Mutter respond with the real action.
+    // Time-based: Mutter's first XdndStatus(action=0, want_more=0) fires
+    // immediately (before the async Wayland round-trip to the native target
+    // completes). We wait 200ms for the round-trip to finish, then re-enter
+    // once so Mutter can answer with the actual action.
+    gint64        t_foreign_enter_time   = 0;  // g_get_monotonic_time() on first entry
     bool          t_foreign_reenter_done  = false; // only re-enter once per window
     MCLinuxXdndInitAtoms(t_xdisplay);
 
@@ -882,7 +886,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                             x11::gdk_x11_window_foreign_new_for_display(dpy, t_xtarget);
                         t_xdnd_foreign_dest = t_xtarget;
                         t_xdnd_foreign_entered = false;  // first motion will use gdk_drag_motion
-                        t_foreign_motion_count = 0;
+                        t_foreign_enter_time   = 0;      // set on first gdk_drag_motion
                         t_foreign_reenter_done = false;
                         fprintf(stderr,
                                 "DND: entered foreign xid=%lu wrapper=%s\n",
@@ -993,31 +997,34 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 (unsigned)t_possible_actions,
                                 (unsigned)t_eff_suggested, t_dest_gdk ? "ok" : "NULL");
                         fflush(stderr);
-                        // Re-enter workaround: was needed for Mutter 46 (Ubuntu 24.04)
-                        // which always returned XdndStatus(action=0, want_more=0) due
-                        // to a Wayland handshake bug (LP: #2097415, fixed upstream in
-                        // GNOME 47+ / mutter 46.2-1ubuntu0.24.04.7).
-                        // With Mutter 48 (Ubuntu 25.04) the handshake completes and
-                        // GDK receives proper XdndStatus(action=Copy, want_more=1);
-                        // re-entering (XdndLeave + fresh XdndEnter) interrupts the
-                        // completing handshake and causes action=0 to persist.
-                        // Disabled for Mutter 48+. Re-enable if testing on 24.04.
-#if 0
+                        // Re-enter: Mutter's first XdndStatus always has action=0
+                        // because the Wayland round-trip to the native target (Text
+                        // Editor) is async. Mutter also sets want_more=0, so GDK
+                        // applies rect suppression and stops sending XdndPosition —
+                        // leaving Mutter with no new position to trigger an updated
+                        // XdndStatus once the round-trip finishes.
+                        //
+                        // Fix: after 200ms (enough for the Wayland IPC to complete),
+                        // send ONE XdndLeave + XdndEnter + XdndPosition. Mutter has
+                        // by then received Text Editor's acceptance; it responds to
+                        // the fresh XdndPosition with XdndStatus(action=Copy).
                         if (t_is_foreign &&
                             t_xdnd_foreign_entered &&
                             !t_foreign_reenter_done &&
                             t_action == DRAG_ACTION_NONE)
                         {
-                            t_foreign_motion_count++;
-                            if (t_foreign_motion_count >= 3)
+                            gint64 t_now = g_get_monotonic_time();
+                            if (t_foreign_enter_time == 0)
+                                t_foreign_enter_time = t_now;  // should have been set already, safety
+                            if ((t_now - t_foreign_enter_time) >= 200000LL) // 200 ms
                             {
                                 t_foreign_reenter_done = true;
                                 t_xdnd_foreign_entered = false; // so next call sends XdndEnter
                                 t_deferred_drop_dest   = None;  // stale after leave
                                 fprintf(stderr,
-                                        "DND: re-entering foreign (action=0 after %d motions)"
-                                        " — sending XdndLeave then fresh XdndEnter\n",
-                                        t_foreign_motion_count);
+                                        "DND: re-entering foreign after %" G_GINT64_FORMAT
+                                        "ms (action=0) — XdndLeave + fresh XdndEnter\n",
+                                        (t_now - t_foreign_enter_time) / 1000LL);
                                 fflush(stderr);
                                 gdk_drag_motion(t_context, NULL, GDK_DRAG_PROTO_NONE,
                                                 t_event->motion.x_root,
@@ -1025,11 +1032,10 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                                 GdkDragAction(t_suggested_action),
                                                 GdkDragAction(t_possible_actions),
                                                 t_event->motion.time);
-                                // Fall through: the gdk_drag_motion call below will
-                                // now send XdndEnter+XdndPosition (dest_window cleared).
+                                // Fall through: the gdk_drag_motion call below
+                                // sends XdndEnter+XdndPosition to the fresh dest.
                             }
                         }
-#endif
 
                         // This gdk_drag_motion call will send XdndLeave to any
                         // previous dest (including the deferred foreign dest).
@@ -1049,6 +1055,8 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
                         if (t_is_foreign && t_dest_gdk != NULL)
                         {
+                            if (!t_xdnd_foreign_entered && t_foreign_enter_time == 0)
+                                t_foreign_enter_time = g_get_monotonic_time();
                             t_xdnd_foreign_entered = true;
                             t_last_foreign_x    = t_event->motion.x_root;
                             t_last_foreign_y    = t_event->motion.y_root;
