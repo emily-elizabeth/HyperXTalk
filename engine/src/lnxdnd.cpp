@@ -860,38 +860,26 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                                              p_image);
                     }
 
-                    if (t_is_foreign && t_xdnd_foreign_entered && t_dest_gdk != NULL)
+                    // When we've already entered a foreign window but haven't
+                    // received a non-zero action yet, Mutter's async X11→Wayland
+                    // handshake may still be in progress.  GDK stops sending
+                    // XdndPosition after it receives XdndStatus with want_more=0
+                    // (which Mutter always sends on the first reply), so we force
+                    // a re-enter: gdk_drag_leave makes GDK send XdndLeave and
+                    // resets its rect suppression, after which the gdk_drag_motion
+                    // below sends XdndEnter + XdndPosition again, giving Mutter
+                    // another chance to complete the handshake.
+                    if (t_is_foreign && t_xdnd_foreign_entered && t_dest_gdk != NULL
+                        && t_action == DRAG_ACTION_NONE)
                     {
-                        // Subsequent positions to the same foreign dest.
-                        // GDK suppresses XdndPosition after receiving XdndStatus
-                        // with want_more=0.  Mutter's first XdndStatus is always 0
-                        // because the X11→Wayland handshake with the target is
-                        // async; by the time it completes, GDK has stopped
-                        // sending positions.  Bypass the suppression by sending
-                        // XdndPosition manually from the IPC window.
-                        x11::XClientMessageEvent t_pos_ev = {};
-                        t_pos_ev.type = ClientMessage;
-                        t_pos_ev.window = t_xdnd_foreign_dest;
-                        t_pos_ev.message_type = s_xdnd.xdnd_position;
-                        t_pos_ev.format = 32;
-                        t_pos_ev.data.l[0] = (long)t_xdnd_ipc_xid;
-                        t_pos_ev.data.l[1] = 0;
-                        t_pos_ev.data.l[2] =
-                            (((long)(int)t_event->motion.x_root) << 16)
-                            | ((long)(int)t_event->motion.y_root & 0xFFFFl);
-                        t_pos_ev.data.l[3] = (long)t_event->motion.time;
-                        t_pos_ev.data.l[4] = (long)s_xdnd.xdnd_action_copy;
-                        x11::XSendEvent(t_xdisplay, t_xdnd_foreign_dest,
-                                        False, NoEventMask,
-                                        reinterpret_cast<x11::XEvent*>(&t_pos_ev));
-                        x11::XFlush(t_xdisplay);
                         fprintf(stderr,
-                                "DND: re-sent XdndPosition → xid=%lu (%.0f,%.0f)\n",
-                                (unsigned long)t_xdnd_foreign_dest,
-                                t_event->motion.x_root, t_event->motion.y_root);
+                                "DND: force re-enter xid=%lu — sending XdndLeave to reset GDK\n",
+                                (unsigned long)t_xdnd_foreign_dest);
                         fflush(stderr);
+                        gdk_drag_leave(t_context, t_event->motion.time);
+                        t_xdnd_foreign_entered = false;  // gdk_drag_motion below will re-set
                     }
-                    else
+
                     {
                         // For foreign targets, prefer COPY (most apps accept it for
                         // text drops). Fall back to MOVE, then the caller's
@@ -928,9 +916,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                         GdkDragAction(t_possible_actions),
                                         t_event->motion.time);
 
-                        // After the first gdk_drag_motion to a foreign dest, GDK has
-                        // sent XdndEnter + XdndPosition.  Subsequent positions must
-                        // bypass GDK's want_more=0 suppression (see above).
                         if (t_is_foreign && t_dest_gdk != NULL)
                             t_xdnd_foreign_entered = true;
                     }
