@@ -342,8 +342,11 @@ static gint ensure_scrollbar_widget()
 		GtkStyleContext *context = gtk_widget_get_style_context(gVertScrollbarWidget);
 		gtk_style_context_add_class(context, GTK_STYLE_CLASS_SCROLLBAR);
 		gtk_style_context_add_class(context, GTK_STYLE_CLASS_VERTICAL);
-		// -- tperry 16-11-2025: Show widget so GTK will apply theme colors
-		gtk_widget_show(gVertScrollbarWidget);
+		// gtk_widget_show() removed: showing an unparented scrollbar causes
+		// GTK to schedule an internal size-allocate with a 0×0 rect, which is
+		// smaller than the minimum arrow sizes → gtk_box_gadget_distribute
+		// asserts 'size >= 0'.  The style context connects to the display's
+		// CSS providers without needing the widget to be shown.
 	}
 	if (!gHorizScrollbarWidget)
 	{
@@ -354,8 +357,6 @@ static gint ensure_scrollbar_widget()
 		GtkStyleContext *context = gtk_widget_get_style_context(gHorizScrollbarWidget);
 		gtk_style_context_add_class(context, GTK_STYLE_CLASS_SCROLLBAR);
 		gtk_style_context_add_class(context, GTK_STYLE_CLASS_HORIZONTAL);
-		// -- tperry 16-11-2025: Show widget so GTK will apply theme colors
-		gtk_widget_show(gHorizScrollbarWidget);
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -383,8 +384,13 @@ static gint ensure_arrow_widget()
 		gArrowWidget = gtk_image_new();
 		gtk_container_add(GTK_CONTAINER(gDropdownButtonWidget),
 		                    gArrowWidget);
-		// gtk_widget_set_style removed in GTK3 — deleted.
-		gtk_widget_realize(gArrowWidget);
+		// gtk_widget_realize() removed: gDropdownButtonWidget has no parent
+		// window so gArrowWidget is unanchored — realize would fire the GTK3
+		// assertion 'anchored || GTK_IS_INVISIBLE' and then cause a BadWindow
+		// X error when GTK tried to read properties from the non-existent
+		// GDK window.  Realization is not needed: all callers use
+		// gtk_widget_get_style_context() / gtk_render_arrow(), both of which
+		// work on unrealized widgets.
 	}
 	return MOZ_GTK_SUCCESS;
 }
