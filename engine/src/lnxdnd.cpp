@@ -484,6 +484,11 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     x11::Window   t_xdnd_foreign_dest = None;  // foreign XID we last entered
     GdkWindow    *t_foreign_gdk = NULL;         // GdkWindow wrapper for foreign dest
     bool          t_xdnd_foreign_entered = false; // true after first gdk_drag_motion to current foreign dest
+    // When the cursor leaves a foreign window on the same event as (or just before)
+    // button-release, GDK would normally send XdndLeave before we can drop.  We
+    // defer that one gdk_drag_motion call and keep the last foreign dest here so
+    // the button-release handler can still attempt XdndDrop.
+    x11::Window   t_deferred_drop_dest = None; // foreign XID saved when leaving, cleared on next motion
     MCLinuxXdndInitAtoms(t_xdisplay);
 
     // Resolve the IPC/relay window that owns XdndSelection — this is the
@@ -823,10 +828,16 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 else if (t_xdnd_foreign_dest != None)
                 {
                     // Pointer left the foreign window; release wrapper.
-                    // GDK will send XdndLeave when gdk_drag_motion is next called
-                    // with the new (non-foreign) dest.
-                    fprintf(stderr, "DND: left foreign xid=%lu\n",
-                            (unsigned long)t_xdnd_foreign_dest);
+                    // Save dest as t_deferred_drop_dest: if button-release arrives
+                    // before the NEXT motion event (common when the cursor crosses
+                    // the boundary while releasing), we can still send XdndDrop
+                    // without the intervening XdndLeave that gdk_drag_motion would
+                    // send.  t_deferred_drop_dest is cleared on the next motion.
+                    if (t_xdnd_foreign_entered)
+                        t_deferred_drop_dest = t_xdnd_foreign_dest;
+                    fprintf(stderr, "DND: left foreign xid=%lu (deferred=%lu)\n",
+                            (unsigned long)t_xdnd_foreign_dest,
+                            (unsigned long)t_deferred_drop_dest);
                     fflush(stderr);
                     if (t_foreign_gdk != NULL)
                     {
@@ -900,6 +911,13 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 (unsigned)t_possible_actions,
                                 (unsigned)t_eff_suggested, t_dest_gdk ? "ok" : "NULL");
                         fflush(stderr);
+                        // This gdk_drag_motion call will send XdndLeave to any
+                        // previous dest (including the deferred foreign dest).
+                        // Invalidate the deferred dest now so button-release
+                        // doesn't try to drop there after the leave is sent.
+                        if (t_deferred_drop_dest != None && !t_is_foreign)
+                            t_deferred_drop_dest = None;
+
                         gdk_drag_motion(t_context, t_dest_gdk,
                                         t_dest_gdk ? GDK_DRAG_PROTO_XDND
                                                    : GDK_DRAG_PROTO_NONE,
@@ -928,15 +946,24 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 // X11→Wayland handshake with the Wayland-native target is async;
                 // by the time the user releases the button the handshake has had
                 // time to complete, so Mutter can accept the actual drop.
+                //
+                // t_deferred_drop_dest handles the case where the cursor crossed
+                // the foreign-window boundary on the same event as (or just before)
+                // the button-release: we saved the last foreign XID without sending
+                // XdndLeave, so Mutter's Wayland state is still valid for the drop.
+                x11::Window t_foreign_drop_xid =
+                    (t_xdnd_foreign_dest != None) ? t_xdnd_foreign_dest
+                                                  : t_deferred_drop_dest;
                 bool t_attempt_foreign_drop =
-                    (t_xdnd_foreign_dest != None && t_xdnd_foreign_entered);
+                    (t_foreign_drop_xid != None &&
+                     (t_xdnd_foreign_entered || t_deferred_drop_dest != None));
 
                 if (t_action != DRAG_ACTION_NONE || t_attempt_foreign_drop)
                 {
                     // Claim XdndSelection NOW — after the button-release event.
                     // Mutter processes ButtonRelease before XFixesSelectionNotify
                     // (X11 ordering guarantee), so no exclusive DnD grab fires.
-                    if (t_xdnd_foreign_dest != None)
+                    if (t_foreign_drop_xid != None)
                     {
                         // ── Cross-app drop ──
                         // Send XdndDrop from the IPC/relay window (t_xdnd_ipc_xid)
@@ -948,16 +975,17 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         // claimed it for the IPC window; re-claiming would trigger
                         // XFixesSelectionNotify and potentially freeze Mutter.
                         fprintf(stderr,
-                                "DND button-release: XdndDrop → xid=%lu (ipc_src=%lu) t_action=%d\n",
-                                (unsigned long)t_xdnd_foreign_dest,
+                                "DND button-release: XdndDrop → xid=%lu (ipc_src=%lu) t_action=%d deferred=%d\n",
+                                (unsigned long)t_foreign_drop_xid,
                                 (unsigned long)t_xdnd_ipc_xid,
-                                (int)t_action);
+                                (int)t_action,
+                                (int)(t_deferred_drop_dest != None));
                         fflush(stderr);
                         G_GNUC_BEGIN_IGNORE_DEPRECATIONS
                         gdk_display_pointer_ungrab(dpy, t_event->button.time);
                         G_GNUC_END_IGNORE_DEPRECATIONS
                         MCLinuxXdndSendDrop(t_xdisplay, t_xdnd_ipc_xid,
-                                            t_xdnd_foreign_dest,
+                                            t_foreign_drop_xid,
                                             t_event->button.time);
                         x11::XFlush(t_xdisplay);
                         // Stay in the modal loop until XdndFinished arrives via filter
@@ -1171,7 +1199,14 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         (int)t_gdk_action, (int)t_action);
                 fflush(stderr);
 
-                MCLinuxDragAndDropSetCursorForAction(w, t_action, p_image);
+                // For foreign (Wayland-native) targets, Mutter always returns
+                // action=0 initially because the X11→Wayland handshake is async.
+                // Show COPY cursor optimistically so the user doesn't think the
+                // drop is rejected and move the mouse away before releasing.
+                if (t_xdnd_foreign_dest != None || t_deferred_drop_dest != None)
+                    MCLinuxDragAndDropSetCursorForAction(w, DRAG_ACTION_COPY, p_image);
+                else
+                    MCLinuxDragAndDropSetCursorForAction(w, t_action, p_image);
 
                 break;
             }
