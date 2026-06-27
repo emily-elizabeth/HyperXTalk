@@ -681,9 +681,12 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
             {
                 x11::XClientMessageEvent *t_cm = &t_xpoll.xclient;
                 fprintf(stderr,
-                        "DND Xpoll: ClientMessage msgtype=%lu window=%lu\n",
+                        "DND Xpoll: ClientMessage msgtype=%lu window=%lu"
+                        " (xdnd_status=%lu xdnd_finished=%lu)\n",
                         (unsigned long)t_cm->message_type,
-                        (unsigned long)t_cm->window);
+                        (unsigned long)t_cm->window,
+                        (unsigned long)s_xdnd.xdnd_status,
+                        (unsigned long)s_xdnd.xdnd_finished);
                 fflush(stderr);
                 if (t_cm->message_type == s_xdnd.xdnd_status)
                 {
@@ -692,14 +695,34 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     t_xdnd_filter.status_action =
                         (x11::Atom)(unsigned long)t_cm->data.l[4];
                     t_xdnd_filter.got_status = true;
+                    fprintf(stderr,
+                            "DND Xpoll: XdndStatus accept=%d action=%lu\n",
+                            (int)t_xdnd_filter.status_accept,
+                            (unsigned long)t_xdnd_filter.status_action);
+                    fflush(stderr);
                 }
                 else if (t_cm->message_type == s_xdnd.xdnd_finished)
                 {
+                    bool t_accept = (t_cm->data.l[1] & 1L) != 0;
+                    fprintf(stderr,
+                            "DND Xpoll: XdndFinished accept=%d\n",
+                            (int)t_accept);
+                    fflush(stderr);
                     t_xdnd_filter.got_finished = true;
                 }
                 else
                 {
-                    // Not an Xdnd message — put back for GDK to handle
+                    // Not an Xdnd message — identify atom for diagnostics then
+                    // put back for GDK to handle.
+                    char *t_atom_name =
+                        x11::XGetAtomName(t_xdisplay, t_cm->message_type);
+                    fprintf(stderr,
+                            "DND Xpoll: unknown ClientMessage atom=%lu name='%s'\n",
+                            (unsigned long)t_cm->message_type,
+                            t_atom_name ? t_atom_name : "(null)");
+                    fflush(stderr);
+                    if (t_atom_name)
+                        x11::XFree(t_atom_name);
                     x11::XPutBackEvent(t_xdisplay, &t_xpoll);
                     break;  // stop draining to avoid spin on this event
                 }
@@ -983,8 +1006,10 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                             // Bypass by sending a raw XdndPosition directly so
                             // Mutter keeps updating its Wayland→Text Editor
                             // handshake and eventually returns a non-zero action.
+                            // Use t_src_xid (visible window) as source — matches
+                            // what GDK puts in XdndEnter's data.l[0].
                             MCLinuxXdndSendPosition(
-                                t_xdisplay, t_xdnd_ipc_xid,
+                                t_xdisplay, t_src_xid,
                                 t_xdnd_foreign_dest,
                                 t_event->motion.x_root,
                                 t_event->motion.y_root,
@@ -1047,23 +1072,28 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         // Do NOT re-claim XdndSelection — gdk_drag_begin already
                         // claimed it for the IPC window; re-claiming would trigger
                         // XFixesSelectionNotify and potentially freeze Mutter.
+                        // XdndDrop must use t_src_xid (visible source window) as
+                        // the source, NOT t_xdnd_ipc_xid (IPC window).
+                        // GDK's XdndEnter declares t_src_xid as the source; Mutter
+                        // sends XdndFinished back to whatever it saw in XdndEnter.
+                        // Previous tests showed Mutter replying to t_src_xid
+                        // (37749302) but our Xpoll drain missed it because the atom
+                        // didn't match (wrong source window in XdndDrop).
                         fprintf(stderr,
-                                "DND button-release: XdndDrop → xid=%lu (ipc_src=%lu) t_action=%d deferred=%d\n",
+                                "DND button-release: XdndDrop → xid=%lu src=%lu t_action=%d deferred=%d\n",
                                 (unsigned long)t_foreign_drop_xid,
-                                (unsigned long)t_xdnd_ipc_xid,
+                                (unsigned long)t_src_xid,
                                 (int)t_action,
                                 (int)(t_deferred_drop_dest != None));
                         fflush(stderr);
 
-                        // If using the deferred dest, Mutter may have updated its
-                        // internal Wayland state when the cursor left Text Editor.
-                        // Send one more XdndPosition at the last-known position
-                        // inside the foreign window to re-sync Mutter's target
-                        // before XdndDrop arrives.
+                        // If using the deferred dest, send one final XdndPosition
+                        // at the last known in-foreign coordinates to remind Mutter
+                        // of the active Wayland target before XdndDrop arrives.
                         if (t_deferred_drop_dest != None && t_last_foreign_x != 0)
                         {
                             MCLinuxXdndSendPosition(
-                                t_xdisplay, t_xdnd_ipc_xid,
+                                t_xdisplay, t_src_xid,
                                 t_foreign_drop_xid,
                                 t_last_foreign_x, t_last_foreign_y,
                                 t_last_foreign_time,
@@ -1078,7 +1108,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         G_GNUC_BEGIN_IGNORE_DEPRECATIONS
                         gdk_display_pointer_ungrab(dpy, t_event->button.time);
                         G_GNUC_END_IGNORE_DEPRECATIONS
-                        MCLinuxXdndSendDrop(t_xdisplay, t_xdnd_ipc_xid,
+                        MCLinuxXdndSendDrop(t_xdisplay, t_src_xid,
                                             t_foreign_drop_xid,
                                             t_event->button.time);
                         x11::XFlush(t_xdisplay);
