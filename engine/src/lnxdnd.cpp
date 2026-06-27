@@ -1,6 +1,7 @@
 #include "lnxprefix.h"
 
 #include <stdio.h>
+#include <vector>
 
 #include "globdefs.h"
 #include "filedefs.h"
@@ -501,10 +502,55 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     // window owns XdndSelection (the IPC window, not the visible window).
     // Setting them only on the visible window means the target reads an empty
     // property and rejects the drag regardless of the action we suggest.
+    //
+    // Additionally, Mutter's X11→Wayland bridge passes X11 atom names verbatim
+    // as Wayland MIME type strings.  Wayland-native apps (e.g. GNOME Text
+    // Editor) register "text/plain;charset=utf-8" as their DnD target — not
+    // "UTF8_STRING".  We augment the type list with the standard text/plain
+    // aliases so Mutter can offer them to the Wayland app.  SelectionRequests
+    // for these aliases are satisfied by falling back to UTF8_STRING data.
     {
-        const gulong *t_type_atoms =
+        const gulong *t_base_atoms =
             reinterpret_cast<const gulong*>(MCDataGetBytePtr(*t_targets));
-        uindex_t t_type_count = MCDataGetLength(*t_targets) / sizeof(gulong);
+        uindex_t t_base_count = MCDataGetLength(*t_targets) / sizeof(gulong);
+
+        // Check whether the dragboard already offers UTF8_STRING data so we
+        // know if it's safe to advertise the text/plain aliases.
+        x11::Atom t_utf8_atom = x11::XInternAtom(t_xdisplay, "UTF8_STRING", False);
+        bool t_has_utf8 = false;
+        for (uindex_t i = 0; i < t_base_count; i++)
+        {
+            if ((x11::Atom)t_base_atoms[i] == t_utf8_atom)
+            {
+                t_has_utf8 = true;
+                break;
+            }
+        }
+
+        // Build augmented type list: base types + text/plain aliases (if we
+        // have UTF8 data and the alias isn't already in the list).
+        static const char *s_plain_aliases[] = {
+            "text/plain;charset=utf-8",
+            "text/plain;charset=UTF-8",
+            "text/plain",
+        };
+        const int k_alias_count = (int)(sizeof(s_plain_aliases)/sizeof(s_plain_aliases[0]));
+
+        // Reserve space for worst case: base + all aliases
+        std::vector<x11::Atom> t_aug_atoms(t_base_atoms, t_base_atoms + t_base_count);
+        if (t_has_utf8)
+        {
+            for (int ai = 0; ai < k_alias_count; ai++)
+            {
+                x11::Atom t_a = x11::XInternAtom(t_xdisplay, s_plain_aliases[ai], False);
+                // Only add if not already advertised
+                bool t_dup = false;
+                for (uindex_t i = 0; i < t_base_count; i++)
+                    if ((x11::Atom)t_base_atoms[i] == t_a) { t_dup = true; break; }
+                if (!t_dup)
+                    t_aug_atoms.push_back(t_a);
+            }
+        }
 
         x11::Atom t_action_list_atom =
             x11::XInternAtom(t_xdisplay, "XdndActionList", False);
@@ -517,13 +563,13 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         if (t_possible_actions & GDK_ACTION_LINK)
             t_action_atoms[t_action_count++] = s_xdnd.xdnd_action_link;
 
-        // Primary: set on IPC window (what the target actually reads)
+        // Primary: augmented list on IPC window (what the target actually reads)
         x11::XChangeProperty(t_xdisplay, t_xdnd_ipc_xid,
                              s_xdnd.xdnd_type_list,
                              (x11::Atom)4 /* XA_ATOM */, 32,
                              PropModeReplace,
-                             reinterpret_cast<const unsigned char*>(t_type_atoms),
-                             (int)t_type_count);
+                             reinterpret_cast<const unsigned char*>(t_aug_atoms.data()),
+                             (int)t_aug_atoms.size());
         x11::XChangeProperty(t_xdisplay, t_xdnd_ipc_xid,
                              t_action_list_atom,
                              (x11::Atom)4 /* XA_ATOM */, 32,
@@ -531,13 +577,13 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                              reinterpret_cast<const unsigned char*>(t_action_atoms),
                              t_action_count);
 
-        // Also set on visible window as belt-and-suspenders for intra-app drops
+        // Also set on visible window (base list only) for intra-app drops
         x11::XChangeProperty(t_xdisplay, t_src_xid,
                              s_xdnd.xdnd_type_list,
                              (x11::Atom)4 /* XA_ATOM */, 32,
                              PropModeReplace,
-                             reinterpret_cast<const unsigned char*>(t_type_atoms),
-                             (int)t_type_count);
+                             reinterpret_cast<const unsigned char*>(t_base_atoms),
+                             (int)t_base_count);
         x11::XChangeProperty(t_xdisplay, t_src_xid,
                              t_action_list_atom,
                              (x11::Atom)4 /* XA_ATOM */, 32,
@@ -546,8 +592,10 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                              t_action_count);
 
         x11::XFlush(t_xdisplay);
-        fprintf(stderr, "DND: set XdndTypeList+ActionList on ipc_xid=%lu and visible xid=%lu\n",
-                (unsigned long)t_xdnd_ipc_xid, (unsigned long)t_src_xid);
+        fprintf(stderr,
+                "DND: XdndTypeList on ipc=%lu (%zu types, has_utf8=%d) visible=%lu (%zu types)\n",
+                (unsigned long)t_xdnd_ipc_xid, t_aug_atoms.size(), (int)t_has_utf8,
+                (unsigned long)t_src_xid, (size_t)t_base_count);
         fflush(stderr);
     }
 
@@ -966,7 +1014,41 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     if (t_rep != NULL)
                         t_data.Give(t_rep->CopyData());
 
-                    fprintf(stderr, "DND selection-request: data %s\n",
+                    // Fallback: text/plain* aliases → serve UTF8_STRING data.
+                    // Mutter's X11→Wayland bridge passes atom names verbatim as
+                    // MIME types, so Wayland apps request text/plain;charset=utf-8
+                    // instead of UTF8_STRING.  Serve the same bytes either way.
+                    if (*t_data == NULL && t_item != NULL && *t_atom_string != NULL)
+                    {
+                        static const char *s_plain_aliases[] = {
+                            "text/plain;charset=utf-8",
+                            "text/plain;charset=UTF-8",
+                            "text/plain",
+                        };
+                        bool t_is_plain_alias = false;
+                        for (auto alias : s_plain_aliases)
+                        {
+                            if (MCStringIsEqualToCString(*t_atom_string, alias,
+                                                          kMCStringOptionCompareCaseless))
+                            {
+                                t_is_plain_alias = true;
+                                break;
+                            }
+                        }
+                        if (t_is_plain_alias)
+                        {
+                            MCAutoStringRef t_utf8_str;
+                            MCStringCreateWithCString("UTF8_STRING", &t_utf8_str);
+                            const MCRawClipboardItemRep *t_utf8_rep =
+                                t_item->FetchRepresentationByType(*t_utf8_str);
+                            if (t_utf8_rep != NULL)
+                                t_data.Give(t_utf8_rep->CopyData());
+                        }
+                    }
+
+                    fprintf(stderr, "DND selection-request: target=%s data %s\n",
+                            (*t_atom_string != NULL)
+                                ? MCStringGetCString(*t_atom_string) : "?",
                             (*t_data != NULL) ? "FOUND — sending" : "NOT FOUND — sending GDK_NONE");
                     fflush(stderr);
 
