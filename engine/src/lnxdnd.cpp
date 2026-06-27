@@ -1064,25 +1064,30 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     if (t_foreign_drop_xid != None)
                     {
                         // ── Cross-app drop ──
-                        // Send XdndDrop from the IPC/relay window (t_xdnd_ipc_xid)
-                        // which owns XdndSelection — this is what Mutter validates.
-                        // Do NOT call gdk_drag_drop here: GDK sends XdndDrop from
-                        // the visible source window XID which does NOT match the
-                        // XdndSelection owner, so Mutter would reject it.
-                        // Do NOT re-claim XdndSelection — gdk_drag_begin already
-                        // claimed it for the IPC window; re-claiming would trigger
-                        // XFixesSelectionNotify and potentially freeze Mutter.
-                        // XdndDrop must use t_src_xid (visible source window) as
-                        // the source, NOT t_xdnd_ipc_xid (IPC window).
-                        // GDK's XdndEnter declares t_src_xid as the source; Mutter
-                        // sends XdndFinished back to whatever it saw in XdndEnter.
-                        // Previous tests showed Mutter replying to t_src_xid
-                        // (37749302) but our Xpoll drain missed it because the atom
-                        // didn't match (wrong source window in XdndDrop).
+                        // Use gdk_drag_drop() — NOT MCLinuxXdndSendDrop.
+                        //
+                        // GDK's XdndEnter declares context->source_window (the
+                        // widget window, t_src_xid=37749302) as data.l[0].
+                        // Mutter remembers this as the source and sends XdndFinished
+                        // to that same XID.  gdk_drag_drop also uses source_window
+                        // for XdndDrop data.l[0], so the source matches XdndEnter.
+                        //
+                        // Our earlier MCLinuxXdndSendDrop attempts used the IPC
+                        // window (35651591) or t_src_xid but never got Mutter to
+                        // reply — Mutter silently ignored the mismatch.  Using
+                        // gdk_drag_drop ensures GDK and Mutter agree on the source.
+                        //
+                        // gdk_drag_drop sends to context->dest_window.  In the
+                        // deferred case, the last gdk_drag_motion targeting the
+                        // foreign window was not undone (t_skip_gdk_motion prevented
+                        // XdndLeave), so context->dest_window is still the foreign
+                        // Mutter tracking window — correct.
+                        //
+                        // After the drop GDK will receive XdndFinished and deliver
+                        // GDK_DROP_FINISHED; our existing handler sets t_dnd_done.
                         fprintf(stderr,
-                                "DND button-release: XdndDrop → xid=%lu src=%lu t_action=%d deferred=%d\n",
+                                "DND button-release: gdk_drag_drop (foreign) → xid=%lu t_action=%d deferred=%d\n",
                                 (unsigned long)t_foreign_drop_xid,
-                                (unsigned long)t_src_xid,
                                 (int)t_action,
                                 (int)(t_deferred_drop_dest != None));
                         fflush(stderr);
@@ -1108,15 +1113,12 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         G_GNUC_BEGIN_IGNORE_DEPRECATIONS
                         gdk_display_pointer_ungrab(dpy, t_event->button.time);
                         G_GNUC_END_IGNORE_DEPRECATIONS
-                        MCLinuxXdndSendDrop(t_xdisplay, t_src_xid,
-                                            t_foreign_drop_xid,
-                                            t_event->button.time);
-                        x11::XFlush(t_xdisplay);
+                        gdk_drag_drop(t_context, t_event->button.time);
                         t_sent_foreign_drop = true;
                         t_foreign_drop_time = g_get_monotonic_time();
-                        // Stay in the modal loop until XdndFinished arrives via
-                        // filter (or 2-second timeout). Suppress subsequent motion
-                        // and button-release events with t_sent_foreign_drop guard.
+                        // Wait for GDK_DROP_FINISHED (GDK receives XdndFinished
+                        // and sets t_dnd_done) or 2-second timeout.  Suppress
+                        // phantom motion/button-release via t_sent_foreign_drop.
                     }
                     else if (t_action != DRAG_ACTION_NONE)
                     {
