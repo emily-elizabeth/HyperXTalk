@@ -337,9 +337,15 @@ static GdkFilterReturn MCLinuxXdndFilter(GdkXEvent *p_xevent,
 
     if (t_cm->message_type == t_fd->atoms->xdnd_status)
     {
+        bool t_want_more = (t_cm->data.l[1] & 2L) != 0;
         t_fd->status_accept = (t_cm->data.l[1] & 1L) != 0;
         t_fd->status_action = (x11::Atom)(unsigned long)t_cm->data.l[4];
         t_fd->got_status    = true;
+        fprintf(stderr,
+                "DND filter: XdndStatus caught! accept=%d want_more=%d action=%lu\n",
+                (int)t_fd->status_accept, (int)t_want_more,
+                (unsigned long)t_fd->status_action);
+        fflush(stderr);
         return GDK_FILTER_REMOVE;   // consume; don't let GDK discard it
     }
     if (t_cm->message_type == t_fd->atoms->xdnd_finished)
@@ -704,14 +710,16 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 fflush(stderr);
                 if (t_cm->message_type == s_xdnd.xdnd_status)
                 {
+                    bool t_want_more = (t_cm->data.l[1] & 2L) != 0;
                     t_xdnd_filter.status_accept =
                         (t_cm->data.l[1] & 1L) != 0;
                     t_xdnd_filter.status_action =
                         (x11::Atom)(unsigned long)t_cm->data.l[4];
                     t_xdnd_filter.got_status = true;
                     fprintf(stderr,
-                            "DND Xpoll: XdndStatus accept=%d action=%lu\n",
+                            "DND Xpoll: XdndStatus accept=%d want_more=%d action=%lu\n",
                             (int)t_xdnd_filter.status_accept,
+                            (int)t_want_more,
                             (unsigned long)t_xdnd_filter.status_action);
                     fflush(stderr);
                 }
