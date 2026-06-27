@@ -483,6 +483,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     x11::Window   t_src_xid   = x11::gdk_x11_window_get_xid(w);
     x11::Window   t_xdnd_foreign_dest = None;  // foreign XID we last entered
     GdkWindow    *t_foreign_gdk = NULL;         // GdkWindow wrapper for foreign dest
+    bool          t_xdnd_foreign_entered = false; // true after first gdk_drag_motion to current foreign dest
     MCLinuxXdndInitAtoms(t_xdisplay);
 
     // Resolve the IPC/relay window that owns XdndSelection — this is the
@@ -808,6 +809,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         t_foreign_gdk =
                             x11::gdk_x11_window_foreign_new_for_display(dpy, t_xtarget);
                         t_xdnd_foreign_dest = t_xtarget;
+                        t_xdnd_foreign_entered = false;  // first motion will use gdk_drag_motion
                         fprintf(stderr,
                                 "DND: entered foreign xid=%lu wrapper=%s\n",
                                 (unsigned long)t_xtarget,
@@ -832,6 +834,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         t_foreign_gdk = NULL;
                     }
                     t_xdnd_foreign_dest = None;
+                    t_xdnd_foreign_entered = false;
                     t_action = DRAG_ACTION_NONE;
                 }
 
@@ -850,47 +853,87 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                             t_event->motion.x_root, t_event->motion.y_root);
                     fflush(stderr);
 
-                    // GDK path for all targets (intra-app and foreign alike).
-                    // For foreign: GDK sends XdndEnter (if dest changed) + Position.
-                    // For intra-app / no target: GDK handles normally.
                     if (t_dest_gdk == NULL)
                     {
                         t_action = DRAG_ACTION_NONE;
                         MCLinuxDragAndDropSetCursorForAction(w, DRAG_ACTION_NONE,
                                                              p_image);
                     }
-                    // For foreign targets, prefer COPY (most apps accept it for
-                    // text drops). Fall back to MOVE, then the caller's
-                    // t_suggested_action.  Keep the full t_possible_actions mask
-                    // so modifier-key overrides can work later.
-                    GdkDragAction t_eff_suggested;
-                    if (t_is_foreign)
+
+                    if (t_is_foreign && t_xdnd_foreign_entered && t_dest_gdk != NULL)
                     {
-                        if (t_possible_actions & GDK_ACTION_COPY)
-                            t_eff_suggested = GDK_ACTION_COPY;
-                        else if (t_possible_actions & GDK_ACTION_MOVE)
-                            t_eff_suggested = GDK_ACTION_MOVE;
-                        else
-                            t_eff_suggested = GdkDragAction(t_suggested_action);
+                        // Subsequent positions to the same foreign dest.
+                        // GDK suppresses XdndPosition after receiving XdndStatus
+                        // with want_more=0.  Mutter's first XdndStatus is always 0
+                        // because the X11→Wayland handshake with the target is
+                        // async; by the time it completes, GDK has stopped
+                        // sending positions.  Bypass the suppression by sending
+                        // XdndPosition manually from the IPC window.
+                        x11::XClientMessageEvent t_pos_ev = {};
+                        t_pos_ev.type = ClientMessage;
+                        t_pos_ev.window = t_xdnd_foreign_dest;
+                        t_pos_ev.message_type = s_xdnd.xdnd_position;
+                        t_pos_ev.format = 32;
+                        t_pos_ev.data.l[0] = (long)t_xdnd_ipc_xid;
+                        t_pos_ev.data.l[1] = 0;
+                        t_pos_ev.data.l[2] =
+                            (((long)(int)t_event->motion.x_root) << 16)
+                            | ((long)(int)t_event->motion.y_root & 0xFFFFl);
+                        t_pos_ev.data.l[3] = (long)t_event->motion.time;
+                        t_pos_ev.data.l[4] = (long)s_xdnd.xdnd_action_copy;
+                        x11::XSendEvent(t_xdisplay, t_xdnd_foreign_dest,
+                                        False, NoEventMask,
+                                        reinterpret_cast<x11::XEvent*>(&t_pos_ev));
+                        x11::XFlush(t_xdisplay);
+                        fprintf(stderr,
+                                "DND: re-sent XdndPosition → xid=%lu (%.0f,%.0f)\n",
+                                (unsigned long)t_xdnd_foreign_dest,
+                                t_event->motion.x_root, t_event->motion.y_root);
+                        fflush(stderr);
                     }
                     else
                     {
-                        t_eff_suggested = GdkDragAction(t_suggested_action);
-                    }
+                        // For foreign targets, prefer COPY (most apps accept it for
+                        // text drops). Fall back to MOVE, then the caller's
+                        // t_suggested_action.  Keep the full t_possible_actions mask
+                        // so modifier-key overrides can work later.
+                        GdkDragAction t_eff_suggested;
+                        if (t_is_foreign)
+                        {
+                            if (t_possible_actions & GDK_ACTION_COPY)
+                                t_eff_suggested = GDK_ACTION_COPY;
+                            else if (t_possible_actions & GDK_ACTION_MOVE)
+                                t_eff_suggested = GDK_ACTION_MOVE;
+                            else
+                                t_eff_suggested = GdkDragAction(t_suggested_action);
+                        }
+                        else
+                        {
+                            t_eff_suggested = GdkDragAction(t_suggested_action);
+                        }
 
-                    fprintf(stderr,
-                            "DND gdk_drag_motion: foreign=%d possible=0x%x eff_suggested=0x%x dest=%s\n",
-                            (int)t_is_foreign, (unsigned)t_possible_actions,
-                            (unsigned)t_eff_suggested, t_dest_gdk ? "ok" : "NULL");
-                    fflush(stderr);
-                    gdk_drag_motion(t_context, t_dest_gdk,
-                                    t_dest_gdk ? GDK_DRAG_PROTO_XDND
-                                               : GDK_DRAG_PROTO_NONE,
-                                    t_event->motion.x_root,
-                                    t_event->motion.y_root,
-                                    t_eff_suggested,
-                                    GdkDragAction(t_possible_actions),
-                                    t_event->motion.time);
+                        fprintf(stderr,
+                                "DND gdk_drag_motion: foreign=%d entered=%d possible=0x%x"
+                                " eff_suggested=0x%x dest=%s\n",
+                                (int)t_is_foreign, (int)t_xdnd_foreign_entered,
+                                (unsigned)t_possible_actions,
+                                (unsigned)t_eff_suggested, t_dest_gdk ? "ok" : "NULL");
+                        fflush(stderr);
+                        gdk_drag_motion(t_context, t_dest_gdk,
+                                        t_dest_gdk ? GDK_DRAG_PROTO_XDND
+                                                   : GDK_DRAG_PROTO_NONE,
+                                        t_event->motion.x_root,
+                                        t_event->motion.y_root,
+                                        t_eff_suggested,
+                                        GdkDragAction(t_possible_actions),
+                                        t_event->motion.time);
+
+                        // After the first gdk_drag_motion to a foreign dest, GDK has
+                        // sent XdndEnter + XdndPosition.  Subsequent positions must
+                        // bypass GDK's want_more=0 suppression (see above).
+                        if (t_is_foreign && t_dest_gdk != NULL)
+                            t_xdnd_foreign_entered = true;
+                    }
                 }
 
                 break;
