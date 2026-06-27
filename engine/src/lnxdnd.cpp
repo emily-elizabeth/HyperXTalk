@@ -514,17 +514,39 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
             reinterpret_cast<const gulong*>(MCDataGetBytePtr(*t_targets));
         uindex_t t_base_count = MCDataGetLength(*t_targets) / sizeof(gulong);
 
-        // Check whether the dragboard already offers UTF8_STRING data so we
-        // know if it's safe to advertise the text/plain aliases.
-        x11::Atom t_utf8_atom = x11::XInternAtom(t_xdisplay, "UTF8_STRING", False);
-        bool t_has_utf8 = false;
+        // Dump every atom name to confirm what the dragboard contains.
+        fprintf(stderr, "DND: dragboard types (%zu):\n", (size_t)t_base_count);
         for (uindex_t i = 0; i < t_base_count; i++)
         {
-            if ((x11::Atom)t_base_atoms[i] == t_utf8_atom)
+            gchar *t_n = gdk_atom_name((GdkAtom)(guintptr)t_base_atoms[i]);
+            fprintf(stderr, "  [%zu] atom=%lu  %s\n",
+                    (size_t)i, (unsigned long)t_base_atoms[i], t_n ? t_n : "?");
+            g_free(t_n);
+        }
+        fflush(stderr);
+
+        // Probe for any text-related type so we know whether to add text/plain aliases.
+        static const char *s_text_probes[] = {
+            "UTF8_STRING", "UTF-8",
+            "text/plain;charset=utf-8", "text/plain;charset=UTF-8",
+            "text/plain", "STRING",
+        };
+        bool t_has_utf8 = false;
+        for (auto probe : s_text_probes)
+        {
+            x11::Atom t_probe_atom = x11::XInternAtom(t_xdisplay, probe, True /* only_if_exists */);
+            if (t_probe_atom == None) continue;
+            for (uindex_t i = 0; i < t_base_count; i++)
             {
-                t_has_utf8 = true;
-                break;
+                if ((x11::Atom)t_base_atoms[i] == t_probe_atom)
+                {
+                    t_has_utf8 = true;
+                    fprintf(stderr, "DND: found text probe '%s' at [%zu]\n", probe, (size_t)i);
+                    fflush(stderr);
+                    break;
+                }
             }
+            if (t_has_utf8) break;
         }
 
         // Build augmented type list: base types + text/plain aliases (if we
