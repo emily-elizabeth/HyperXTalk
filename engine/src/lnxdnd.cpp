@@ -859,34 +859,18 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         MCLinuxDragAndDropSetCursorForAction(w, DRAG_ACTION_NONE,
                                                              p_image);
                     }
-
-                    // When we've already entered a foreign window but haven't
-                    // received a non-zero action yet, Mutter's async X11→Wayland
-                    // handshake may still be in progress.  GDK stops sending
-                    // XdndPosition after it receives XdndStatus with want_more=0
-                    // (which Mutter always sends on the first reply), so we force
-                    // a re-enter: gdk_drag_leave makes GDK send XdndLeave and
-                    // resets its rect suppression, after which the gdk_drag_motion
-                    // below sends XdndEnter + XdndPosition again, giving Mutter
-                    // another chance to complete the handshake.
-                    if (t_is_foreign && t_xdnd_foreign_entered && t_dest_gdk != NULL
-                        && t_action == DRAG_ACTION_NONE)
+                    // When over a foreign window, show COPY cursor immediately without
+                    // waiting for Mutter's XdndStatus.  Mutter's async X11→Wayland
+                    // handshake means the first XdndStatus always has action=0; the
+                    // real action is only confirmed at drop time.  Sending repeated
+                    // XdndLeave+XdndEnter (the previous re-enter approach) resets the
+                    // Wayland handshake on every mouse-move, so it never completes.
+                    // Instead we send ONE XdndEnter+XdndPosition (on first entry),
+                    // let the handshake finish undisturbed, and attempt the drop on
+                    // button-release regardless of t_action (see GDK_BUTTON_RELEASE).
+                    else if (t_is_foreign && t_dest_gdk != NULL)
                     {
-                        // gdk_drag_leave doesn't exist in GTK3.  Instead, call
-                        // gdk_drag_motion with NULL dest: GDK detects the dest
-                        // changed, sends XdndLeave to the old target, and resets
-                        // its internal rect suppression.  The gdk_drag_motion call
-                        // below then sends XdndEnter + XdndPosition fresh.
-                        fprintf(stderr,
-                                "DND: force re-enter xid=%lu — NULL motion to trigger XdndLeave\n",
-                                (unsigned long)t_xdnd_foreign_dest);
-                        fflush(stderr);
-                        gdk_drag_motion(t_context, NULL, GDK_DRAG_PROTO_NONE,
-                                        t_event->motion.x_root, t_event->motion.y_root,
-                                        GdkDragAction(t_suggested_action),
-                                        GdkDragAction(t_possible_actions),
-                                        t_event->motion.time);
-                        t_xdnd_foreign_entered = false;  // gdk_drag_motion below will re-set
+                        MCLinuxDragAndDropSetCursorForAction(w, DRAG_ACTION_COPY, p_image);
                     }
 
                     {
@@ -939,7 +923,15 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         (int)t_action);
                 fflush(stderr);
 
-                if (t_action != DRAG_ACTION_NONE)
+                // For cross-app drops, attempt XdndDrop even when t_action==0.
+                // Mutter's first XdndStatus always has action=0 because the
+                // X11→Wayland handshake with the Wayland-native target is async;
+                // by the time the user releases the button the handshake has had
+                // time to complete, so Mutter can accept the actual drop.
+                bool t_attempt_foreign_drop =
+                    (t_xdnd_foreign_dest != None && t_xdnd_foreign_entered);
+
+                if (t_action != DRAG_ACTION_NONE || t_attempt_foreign_drop)
                 {
                     // Claim XdndSelection NOW — after the button-release event.
                     // Mutter processes ButtonRelease before XFixesSelectionNotify
@@ -956,9 +948,10 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         // claimed it for the IPC window; re-claiming would trigger
                         // XFixesSelectionNotify and potentially freeze Mutter.
                         fprintf(stderr,
-                                "DND button-release: XdndDrop → xid=%lu (ipc_src=%lu)\n",
+                                "DND button-release: XdndDrop → xid=%lu (ipc_src=%lu) t_action=%d\n",
                                 (unsigned long)t_xdnd_foreign_dest,
-                                (unsigned long)t_xdnd_ipc_xid);
+                                (unsigned long)t_xdnd_ipc_xid,
+                                (int)t_action);
                         fflush(stderr);
                         G_GNUC_BEGIN_IGNORE_DEPRECATIONS
                         gdk_display_pointer_ungrab(dpy, t_event->button.time);
@@ -969,7 +962,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         x11::XFlush(t_xdisplay);
                         // Stay in the modal loop until XdndFinished arrives via filter
                     }
-                    else
+                    else if (t_action != DRAG_ACTION_NONE)
                     {
                         // ── Intra-app drop ──
                         // Claim XdndSelection now — safe because the button just
@@ -981,6 +974,8 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         fflush(stderr);
                         gdk_drag_drop(t_context, t_event->button.time);
                     }
+                    else
+                        t_dnd_done = true;
                 }
                 else
                     t_dnd_done = true;
