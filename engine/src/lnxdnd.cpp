@@ -519,7 +519,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         for (uindex_t i = 0; i < t_base_count; i++)
         {
             gchar *t_n = gdk_atom_name((GdkAtom)(guintptr)t_base_atoms[i]);
-            fprintf(stderr, "  [%zu] atom=%lu  %s\n",
+            fprintf(stderr, "DND:  [%zu] atom=%lu  %s\n",
                     (size_t)i, (unsigned long)t_base_atoms[i], t_n ? t_n : "?");
             g_free(t_n);
         }
@@ -993,7 +993,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         for (uindex_t i = 0; i < t_target_atom_count; i++)
                         {
                             gchar *t_aname = gdk_atom_name((GdkAtom)t_atom_ptr[i]);
-                            fprintf(stderr, "  [%u] %s\n", (unsigned)i, t_aname ? t_aname : "(unknown)");
+                            fprintf(stderr, "DND:  [%u] %s\n", (unsigned)i, t_aname ? t_aname : "(unknown)");
                             g_free(t_aname);
                         }
                         fflush(stderr);
