@@ -760,6 +760,15 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_MOTION_NOTIFY:
             {
+                // When the cursor leaves a foreign window we save the dest as
+                // t_deferred_drop_dest (set below) so button-release can still
+                // drop there if no further motion arrives.  We skip the
+                // gdk_drag_motion call for that one "leave" event to avoid
+                // sending XdndLeave prematurely (which would cancel Mutter's
+                // Wayland accept state).  Cleared to false at the top so it
+                // only suppresses exactly one gdk_drag_motion per leave.
+                bool t_skip_gdk_motion = false;
+
                 // Detect the XdndAware target via X11 tree-walk (bypasses GDK's
                 // window cache which only knows our own GDK windows).
                 x11::Window t_xroot   = x11::gdk_x11_window_get_xid(
@@ -834,10 +843,14 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     // without the intervening XdndLeave that gdk_drag_motion would
                     // send.  t_deferred_drop_dest is cleared on the next motion.
                     if (t_xdnd_foreign_entered)
+                    {
                         t_deferred_drop_dest = t_xdnd_foreign_dest;
-                    fprintf(stderr, "DND: left foreign xid=%lu (deferred=%lu)\n",
+                        t_skip_gdk_motion    = true;  // don't send XdndLeave this event
+                    }
+                    fprintf(stderr, "DND: left foreign xid=%lu (deferred=%lu skip=%d)\n",
                             (unsigned long)t_xdnd_foreign_dest,
-                            (unsigned long)t_deferred_drop_dest);
+                            (unsigned long)t_deferred_drop_dest,
+                            (int)t_skip_gdk_motion);
                     fflush(stderr);
                     if (t_foreign_gdk != NULL)
                     {
@@ -884,6 +897,15 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         MCLinuxDragAndDropSetCursorForAction(w, DRAG_ACTION_COPY, p_image);
                     }
 
+                    if (t_skip_gdk_motion)
+                    {
+                        // "Left foreign" event: defer XdndLeave until next motion
+                        // so button-release can still use t_deferred_drop_dest.
+                        fprintf(stderr,
+                                "DND: skipping gdk_drag_motion (XdndLeave deferred)\n");
+                        fflush(stderr);
+                    }
+                    else
                     {
                         // For foreign targets, prefer COPY (most apps accept it for
                         // text drops). Fall back to MOVE, then the caller's
@@ -929,7 +951,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
                         if (t_is_foreign && t_dest_gdk != NULL)
                             t_xdnd_foreign_entered = true;
-                    }
+                    }  // end else (!t_skip_gdk_motion)
                 }
 
                 break;
