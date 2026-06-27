@@ -872,11 +872,20 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     if (t_is_foreign && t_xdnd_foreign_entered && t_dest_gdk != NULL
                         && t_action == DRAG_ACTION_NONE)
                     {
+                        // gdk_drag_leave doesn't exist in GTK3.  Instead, call
+                        // gdk_drag_motion with NULL dest: GDK detects the dest
+                        // changed, sends XdndLeave to the old target, and resets
+                        // its internal rect suppression.  The gdk_drag_motion call
+                        // below then sends XdndEnter + XdndPosition fresh.
                         fprintf(stderr,
-                                "DND: force re-enter xid=%lu — sending XdndLeave to reset GDK\n",
+                                "DND: force re-enter xid=%lu — NULL motion to trigger XdndLeave\n",
                                 (unsigned long)t_xdnd_foreign_dest);
                         fflush(stderr);
-                        gdk_drag_leave(t_context, t_event->motion.time);
+                        gdk_drag_motion(t_context, NULL, GDK_DRAG_PROTO_NONE,
+                                        t_event->motion.x_root, t_event->motion.y_root,
+                                        GdkDragAction(t_suggested_action),
+                                        GdkDragAction(t_possible_actions),
+                                        t_event->motion.time);
                         t_xdnd_foreign_entered = false;  // gdk_drag_motion below will re-set
                     }
 
