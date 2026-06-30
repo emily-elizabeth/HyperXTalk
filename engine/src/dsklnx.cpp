@@ -2046,9 +2046,7 @@ virtual real64_t GetCurrentMicroseconds(void)
         // poll() has no FD_SETSIZE limitation; timeout in milliseconds.
         int t_poll_timeout_ms = (p_delay <= 0.0) ? 0 : (int)(p_delay * 1000.0 + 0.5);
 
-        fprintf(stderr, "POLL: poll (delay=%.3f handled=%d nfds=%d)\n", p_delay, (int)handled, (int)t_poll_fds.Size());
         n = poll(t_poll_fds.Ptr(), (nfds_t)t_poll_fds.Size(), t_poll_timeout_ms);
-        fprintf(stderr, "POLL: poll returned n=%d\n", n);
 
         if (n <= 0)
             return handled;
@@ -2066,30 +2064,8 @@ virtual real64_t GetCurrentMicroseconds(void)
             if (pfd.revents & (POLLERR|POLLHUP)) t_glib_fds[i].revents |= G_IO_ERR;
         }
 
-        // Let GLib know which file descriptors were signalled.
-        // Log which fds have revents so we can identify what triggered n>0
-        for (uindex_t i = 0; i < t_poll_fds.Size(); i++)
-        {
-            if (t_poll_fds.Ptr()[i].revents)
-            {
-                fprintf(stderr, "POLL: fd[%u]=%d revents=0x%x (p_fd_idx=%d notify_idx=%d glib_start=%d)\n",
-                        (unsigned)i, t_poll_fds.Ptr()[i].fd, (unsigned)t_poll_fds.Ptr()[i].revents,
-                        t_p_fd_idx, t_notify_idx, t_glib_start_idx);
-                fflush(stderr);
-            }
-        }
-        fprintf(stderr, "POLL: g_main_context_check\n");
-        fflush(stderr);
         g_main_context_check(t_glib_main_context, G_MAXINT, t_glib_fds.Ptr(), t_glib_fds.Size());
-        fprintf(stderr, "POLL: post-check\n");
-        fflush(stderr);
 
-        fprintf(stderr, "POLL: notify_idx=%d notify_fd_polled=%d g_notify_pipe[0]=%d notify_revents=0x%x\n",
-                t_notify_idx,
-                t_notify_idx >= 0 ? t_poll_fds.Ptr()[t_notify_idx].fd : -1,
-                g_notify_pipe[0],
-                t_notify_idx >= 0 ? (unsigned)t_poll_fds.Ptr()[t_notify_idx].revents : 0u);
-        fflush(stderr);
         if (t_notify_idx >= 0 && (t_poll_fds.Ptr()[t_notify_idx].revents & POLLIN))
         {
             // Sanity check: the fd we polled must actually be our notify pipe.
@@ -2100,33 +2076,23 @@ virtual real64_t GetCurrentMicroseconds(void)
             // forever — skip the drain and let the next iteration re-check.
             if (t_poll_fds.Ptr()[t_notify_idx].fd != g_notify_pipe[0])
             {
-                fprintf(stderr, "POLL: notify fd mismatch — polled fd=%d but g_notify_pipe[0]=%d, skipping drain\n",
-                        t_poll_fds.Ptr()[t_notify_idx].fd, g_notify_pipe[0]);
-                fflush(stderr);
+                // Sanity check failed: fd mismatch, skip drain.
             }
             else
             {
-                fprintf(stderr, "POLL: reading notify pipe fd=%d\n", g_notify_pipe[0]);
-                fflush(stderr);
                 char t_notify_char;
                 // O_NONBLOCK is set at pipe creation; EAGAIN here means data
                 // was already consumed, which is fine.
                 (void)read(g_notify_pipe[0], &t_notify_char, 1);
-                fprintf(stderr, "POLL: notify pipe read done\n");
-                fflush(stderr);
             }
         }
 
-        fprintf(stderr, "POLL: MCModePostSelectHook\n");
-        fflush(stderr);
         // MCModePostSelectHook is empty in all modes; call with dummy fd_sets for API compat.
         {
             fd_set dummy_rfds, dummy_wfds, dummy_efds;
             FD_ZERO(&dummy_rfds); FD_ZERO(&dummy_wfds); FD_ZERO(&dummy_efds);
             MCModePostSelectHook(dummy_rfds, dummy_wfds, dummy_efds);
         }
-        fprintf(stderr, "POLL: done\n");
-        fflush(stderr);
 
         if (readinput)
         {

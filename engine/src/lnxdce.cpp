@@ -425,8 +425,6 @@ Boolean MCScreenDC::wait(real8 duration, Boolean dispatch, Boolean anyevent)
             if (HasRunloopActions())
                 t_sleep = MCMin(t_sleep, 0.01);
             
-            fprintf(stderr, "WAIT: before gdk_display_flush (sleep=%.3f)\n", t_sleep);
-            fflush(stderr);
             // Use gdk_display_flush (non-blocking XFlush) instead of
             // gdk_display_sync (blocking XSync round-trip). XSync blocks
             // the main thread until the X server acknowledges all pending
@@ -435,11 +433,7 @@ Boolean MCScreenDC::wait(real8 duration, Boolean dispatch, Boolean anyevent)
             // DRM/KMS can stall the GPU command queue and cause a hard
             // kernel hang requiring a power cycle.
             gdk_display_flush(dpy);
-            fprintf(stderr, "WAIT: before MCS_poll\n");
-            fflush(stderr);
             done = MCS_poll(donepending ? 0 : t_sleep, x11::XConnectionNumber(x11::gdk_x11_display_get_xdisplay(dpy)));
-            fprintf(stderr, "WAIT: MCS_poll done=%d\n", (int)done);
-            fflush(stderr);
         }
 		curtime = MCS_time();
 	}
