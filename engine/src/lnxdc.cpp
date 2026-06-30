@@ -50,6 +50,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "graphics_util.h"
 #include <fontconfig/fontconfig.h>
 #include "font.h"
+#include "redraw.h"
+#include "resolution.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -308,13 +310,11 @@ bool MCScreenDC::apply_partial_struts(MCDisplay *p_displays, uint32_t p_display_
 	return t_success;
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
 bool MCScreenDC::platform_getdisplays(bool p_effective, MCDisplay *&r_displays, uint32_t &r_display_count)
 {
 	return device_getdisplays(p_effective, r_displays, r_display_count);
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Refactored to handle display info caching in MCUIDC superclass
 bool MCScreenDC::device_getdisplays(bool p_effective, MCDisplay * &r_displays, uint32_t &r_display_count)
 {
     // GTK3: enumerate monitors via the display, not via a GdkScreen
@@ -326,18 +326,24 @@ bool MCScreenDC::device_getdisplays(bool p_effective, MCDisplay * &r_displays, u
     if (!MCMemoryNewArray(t_monitor_count, t_displays))
         return false;
 
-    // Get the geometry of each monitor
+    // Get the geometry and HiDPI scale of each monitor.
+    // gdk_monitor_get_geometry() returns logical (application) pixels —
+    // physical pixels = logical * scale_factor.
+    // gdk_monitor_get_scale_factor() (GDK 3.22+) returns the integer
+    // HiDPI factor (1 for 1×, 2 for 2× / Retina-equivalent, etc.).
     for (gint i = 0; i < t_monitor_count; i++)
     {
         GdkRectangle t_rect;
         GdkMonitor *t_monitor = gdk_display_get_monitor(dpy, i);
         gdk_monitor_get_geometry(t_monitor, &t_rect);
-        
+
+        gint t_scale = gdk_monitor_get_scale_factor(t_monitor);
+
         MCRectangle t_mc_rect;
         t_mc_rect = MCRectangleMake(t_rect.x, t_rect.y, t_rect.width, t_rect.height);
-        
+
         t_displays[i].index = i;
-        t_displays[i].pixel_scale = 1.0;
+        t_displays[i].pixel_scale = (MCGFloat)t_scale;
         t_displays[i].viewport = t_displays[i].workarea = t_mc_rect;
     }
     
@@ -384,28 +390,43 @@ MCPrinter *MCScreenDC::createprinter(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
+// Return the HiDPI scale factor of the primary (or first) monitor.
+// Mirrors MCWin32GetLogicalToScreenScale() on Windows.
+// Returns 1.0 when pixel scaling is disabled so callers need no special case.
+MCGFloat MCLinuxGetLogicalToScreenScale(void)
+{
+    if (!MCResGetUsePixelScaling())
+        return 1.0;
+
+    GdkMonitor *t_monitor = gdk_display_get_primary_monitor(dpy);
+    if (t_monitor == NULL)
+        t_monitor = gdk_display_get_monitor(dpy, 0);
+    if (t_monitor == NULL)
+        return 1.0;
+
+    return (MCGFloat)gdk_monitor_get_scale_factor(t_monitor);
+}
+
 MCPoint MCScreenDC::logicaltoscreenpoint(const MCPoint &p_point)
 {
-	return p_point;
+    MCGFloat t_scale = MCLinuxGetLogicalToScreenScale();
+    return MCPointTransform(p_point, MCGAffineTransformMakeScale(t_scale, t_scale));
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
 MCPoint MCScreenDC::screentologicalpoint(const MCPoint &p_point)
 {
-	return p_point;
+    MCGFloat t_scale = 1.0 / MCLinuxGetLogicalToScreenScale();
+    return MCPointTransform(p_point, MCGAffineTransformMakeScale(t_scale, t_scale));
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
 MCRectangle MCScreenDC::logicaltoscreenrect(const MCRectangle &p_rect)
 {
-	return p_rect;
+    return MCRectangleGetScaledFloorRect(p_rect, MCLinuxGetLogicalToScreenScale());
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
 MCRectangle MCScreenDC::screentologicalrect(const MCRectangle &p_rect)
 {
-	return p_rect;
+    return MCRectangleGetScaledCeilingRect(p_rect, 1.0 / MCLinuxGetLogicalToScreenScale());
 }
 
 bool MCScreenDC::platform_get_display_handle(void *&r_display)
@@ -428,41 +449,61 @@ void *MCScreenDC::GetNativeWindowHandle(Window p_window)
 
 void MCResPlatformInitPixelScaling(void)
 {
+    // GDK handles HiDPI awareness automatically on GTK3 — no explicit
+    // process-level DPI awareness call is needed (unlike Windows where
+    // SetProcessDPIAware() must be called at startup).
+    // Runtime scale-change notifications are handled via GDK monitor
+    // signals connected in lnxdcs.cpp.
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Pixel scaling not supported on Linux
+// GTK3 (GDK 3.22+) exposes per-monitor scale factors via
+// gdk_monitor_get_scale_factor(), so HiDPI is fully supported.
 bool MCResPlatformSupportsPixelScaling(void)
 {
-	return false;
+    return MCModeGetPixelScalingEnabled();
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Pixel scaling not supported on Linux
+// Scale factor is read from GDK at runtime; it cannot be set by the user
+// from within the app (controlled by GNOME display settings / GDK_SCALE).
 bool MCResPlatformCanChangePixelScaling(void)
 {
-	return false;
+    return false;
 }
 
-// IM-2014-01-30: [[ HiDPI ]] Pixel scaling not supported on Linux
 bool MCResPlatformCanSetPixelScale(void)
 {
-	return false;
+    return false;
 }
 
-// IM-2014-01-30: [[ HiDPI ]] Pixel scale is 1.0 on Linux
+// Return the primary monitor's GDK scale factor as the default.
 MCGFloat MCResPlatformGetDefaultPixelScale(void)
 {
-	return 1.0;
+    return MCLinuxGetLogicalToScreenScale();
 }
 
-// IM-2014-03-14: [[ HiDPI ]] UI scale is 1.0 on Linux
+// UI and device coordinates are the same on Linux (no separate UIKit-style
+// layer), matching the Windows and desktop macOS behaviour.
 MCGFloat MCResPlatformGetUIDeviceScale(void)
 {
-	return 1.0;
+    return 1.0;
 }
 
-// IM-2014-01-30: [[ HiDPI ]] Pixel scaling not supported on Linux
+// Called by MCResSetPixelScale() when the global pixel scale changes.
+// Iterates all open stacks, updates their backing scale, marks content
+// dirty, and schedules a redraw — mirroring the WM_DPICHANGED handler
+// on Windows (w32dcw32.cpp).
 void MCResPlatformHandleScaleChange(void)
 {
+    MCGFloat t_new_scale = MCLinuxGetLogicalToScreenScale();
+
+    MCdispatcher->foreachstack([](MCStack *p_stack, void *p_context) -> bool
+    {
+        MCGFloat t_scale = *(MCGFloat *)p_context;
+        p_stack->view_setbackingscale(t_scale);
+        p_stack->dirtyall();
+        MCRedrawScheduleUpdateForStack(p_stack);
+        return true; // continue iteration
+    }, &t_new_scale);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
