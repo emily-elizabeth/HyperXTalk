@@ -225,17 +225,21 @@ GdkWindow* MCLinuxPopoverShow(MCStack * /*p_stack*/)
     gtk_popover_set_position(GTK_POPOVER(s_popover.popover), t_pos);
 
     // Realize and map the widget tree.
-    // gtk_widget_realize() is SYNCHRONOUS — it creates the GdkWindow immediately
-    // without needing a main-loop iteration.  We must realize in parent-first
-    // order so each child can create its GdkWindow as a sub-window of its parent.
+    //
+    // ORDERING IS CRITICAL:
+    // gtk_widget_show_all(popover) must be called BEFORE gtk_widget_show(proxy).
+    // When the proxy is shown, GTK propagates realize/map down the widget tree —
+    // but it only processes children that are already marked visible.  If we show
+    // the proxy first, the drawing area has not yet been marked visible, so GTK
+    // skips it during tree realization and gtk_widget_get_window(area) returns
+    // nullptr.  Marking all popover children visible first ensures the entire
+    // tree is realized when the proxy is shown.
+    //
     // DO NOT use g_main_context_iteration() here: draining the event queue before
     // MCpopoverstack is set causes re-entrancy — the "closed" signal may fire and
     // be ignored, leaving the popover in a broken state with no close notification.
-    gtk_widget_show(s_popover.proxy);
-    gtk_widget_realize(s_popover.proxy);    // proxy's GdkWindow created now
-    gtk_widget_show_all(s_popover.popover); // mark area visible for realize
-    gtk_widget_realize(s_popover.popover);  // popover (and possibly its window)
-    gtk_widget_realize(s_popover.area);     // drawing area's GdkWindow created now
+    gtk_widget_show_all(s_popover.popover); // mark popover + area visible FIRST
+    gtk_widget_show(s_popover.proxy);       // now realize cascades to all children
     gtk_popover_popup(GTK_POPOVER(s_popover.popover)); // map visually
 
     // GdkWindows were created synchronously above; read them now.
