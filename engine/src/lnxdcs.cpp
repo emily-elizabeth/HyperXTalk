@@ -85,6 +85,22 @@ bool MCImageBitmapCreateWithGdkPixbuf(GdkPixbuf *p_image, MCImageBitmap *&r_bitm
 // Defined in lnxdc.cpp — returns the HiDPI scale of the primary monitor.
 extern MCGFloat MCLinuxGetLogicalToScreenScale(void);
 
+// HiDPI: GLib signal callbacks must be plain C function pointers —
+// lambdas cannot be cast to GCallback in C++.
+
+// Called when a monitor's scale factor changes at runtime.
+static void MCLinuxOnMonitorScaleChanged(GdkMonitor *, GParamSpec *, gpointer)
+{
+    MCResSetPixelScale(MCLinuxGetLogicalToScreenScale());
+}
+
+// Called when a new monitor is added; connects the scale-factor signal to it.
+static void MCLinuxOnMonitorAdded(GdkDisplay *, GdkMonitor *p_monitor, gpointer)
+{
+    g_signal_connect(p_monitor, "notify::scale-factor",
+                     G_CALLBACK(MCLinuxOnMonitorScaleChanged), nullptr);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 GdkDisplay *MCdpy;
@@ -355,20 +371,9 @@ Boolean MCScreenDC::open()
     // We connect to existing monitors now and to any added later via the
     // display's "monitor-added" signal.
     //
-    // On scale change: update the global pixel scale (MCResSetPixelScale),
+    // On scale change: MCLinuxOnMonitorScaleChanged calls MCResSetPixelScale()
     // which calls MCResPlatformHandleScaleChange() to re-scale all open
     // stacks — mirroring the WM_DPICHANGED path on Windows.
-
-    // Callback: a monitor's scale factor changed.
-    auto on_scale_changed = [](GdkMonitor *, GParamSpec *, gpointer) {
-        MCResSetPixelScale(MCLinuxGetLogicalToScreenScale());
-    };
-
-    // Callback: a new monitor was added — connect to its scale signal.
-    auto on_monitor_added = [](GdkDisplay *p_display, GdkMonitor *p_monitor, gpointer p_cb) {
-        g_signal_connect(p_monitor, "notify::scale-factor",
-                         G_CALLBACK(*(decltype(on_scale_changed) *)p_cb), nullptr);
-    };
 
     // Connect to all monitors currently known to the display.
     gint t_n = gdk_display_get_n_monitors(dpy);
@@ -376,13 +381,12 @@ Boolean MCScreenDC::open()
     {
         GdkMonitor *t_mon = gdk_display_get_monitor(dpy, i);
         g_signal_connect(t_mon, "notify::scale-factor",
-                         G_CALLBACK(+on_scale_changed), nullptr);
+                         G_CALLBACK(MCLinuxOnMonitorScaleChanged), nullptr);
     }
 
     // Connect for monitors added in the future (e.g. plugging in a display).
-    static decltype(on_scale_changed) s_on_scale_changed = on_scale_changed;
     g_signal_connect(dpy, "monitor-added",
-                     G_CALLBACK(+on_monitor_added), &s_on_scale_changed);
+                     G_CALLBACK(MCLinuxOnMonitorAdded), nullptr);
 
     x11::Display* XDisplay;
     XDisplay = x11::gdk_x11_display_get_xdisplay(dpy);
