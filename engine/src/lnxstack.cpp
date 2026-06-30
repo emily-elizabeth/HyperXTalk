@@ -148,21 +148,29 @@ GdkWindow* MCLinuxPopoverCreate(MCStack *p_stack)
                           GDK_ALL_EVENTS_MASK & ~GDK_POINTER_MOTION_HINT_MASK);
     gtk_container_add(GTK_CONTAINER(t_popover), t_area);
 
-    // 4. Realize the widget tree (creates GdkWindows without mapping/showing).
-    gtk_widget_realize(t_proxy);
-    gtk_widget_realize(t_popover);
-    gtk_widget_realize(t_area);
-
-    // 5. Make the proxy pass-through so clicks reach the real parent stack.
-    GdkWindow *t_proxy_gdk = gtk_widget_get_window(t_proxy);
-    if (t_proxy_gdk != nullptr)
-        gdk_window_set_pass_through(t_proxy_gdk, TRUE);
-
-    // 6. Stash widgets for Show/Hide/Destroy.
+    // 4. Stash widgets before mapping (signal handlers check s_popover.stack).
     s_popover.stack   = p_stack;
     s_popover.proxy   = t_proxy;
     s_popover.popover = t_popover;
     s_popover.area    = t_area;
+
+    // 5. GTK3 does not create GdkWindows for GtkPopover children during
+    //    gtk_widget_realize() — they are only created when the popover is
+    //    actually mapped.  We must map briefly to force GdkWindow creation.
+    //    The proxy has opacity 0.0 so this is invisible to the user.
+    //    MCpopoverstack is not set yet, so the "closed" signal handler is a
+    //    no-op if gtk_popover_popdown() triggers it before we return.
+    gtk_widget_show(t_area);           // Mark content visible before popup
+    gtk_widget_show(t_proxy);          // Map the transparent proxy
+    gtk_popover_popup(GTK_POPOVER(t_popover));  // Map popover → creates GdkWindows
+    // Immediately hide — MCLinuxPopoverShow() will re-show when ready.
+    gtk_popover_popdown(GTK_POPOVER(t_popover));
+    gtk_widget_hide(t_proxy);
+
+    // 6. Make the proxy pass-through so clicks reach the real parent stack.
+    GdkWindow *t_proxy_gdk = gtk_widget_get_window(t_proxy);
+    if (t_proxy_gdk != nullptr)
+        gdk_window_set_pass_through(t_proxy_gdk, TRUE);
 
     // 7. Return the drawing area's GdkWindow — this becomes stack->window.
     //    All rendering and event dispatch uses this pointer from here on.
@@ -504,16 +512,23 @@ void MCStack::realize()
         }
 #endif // MODE_DEVELOPMENT
 
-        // FG-2014-07-30: [[ Bugfix 12905 ]]
-        // This is necessary otherwise the window manager might ignore the
-        // position that we have specified for the new window
-        view_platform_setgeom(t_rect);
+        // WM_POPOVER: window is the GtkDrawingArea's child GdkWindow inside
+        // the GtkPopover.  Geometry, DnD registration, and transient hints are
+        // handled by GTK — applying them to the child GdkWindow directly would
+        // have no effect or cause errors.
+        if (getmode() != WM_POPOVER)
+        {
+            // FG-2014-07-30: [[ Bugfix 12905 ]]
+            // This is necessary otherwise the window manager might ignore the
+            // position that we have specified for the new window
+            view_platform_setgeom(t_rect);
 
-		// This is necessary to be able to receive drag-and-drop events
-        gdk_window_register_dnd(window);
+            // This is necessary to be able to receive drag-and-drop events
+            gdk_window_register_dnd(window);
 
-		if (screen -> get_backdrop() != DNULL)
-            gdk_window_set_transient_for(window, screen->get_backdrop());
+            if (screen->get_backdrop() != DNULL)
+                gdk_window_set_transient_for(window, screen->get_backdrop());
+        }
 
 		loadwindowshape();
 		// -- tperry 12-11-2025: GTK3 removed gdk_window_shape_combine_mask, use cairo_region_t
