@@ -52,6 +52,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "font.h"
 #include "redraw.h"
 #include "resolution.h"
+#include "mode.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
