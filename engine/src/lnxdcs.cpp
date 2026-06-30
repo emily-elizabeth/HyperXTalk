@@ -830,7 +830,7 @@ void MCScreenDC::closewindow(Window window)
         MCdispatcher->wclose(t_popover->getwindowalways());
     }
 
-    // WM_POPOVER: hide via GtkPopover path.
+    // WM_POPOVER: hide the GDK_WINDOW_TEMP popup.
     if (target != nullptr && target->getmode() == WM_POPOVER)
     {
         if (MCpopoverstack == target)
@@ -868,7 +868,7 @@ void MCScreenDC::destroywindow(Window &window)
         MCdispatcher->wclose(t_popover->getwindowalways());
     }
 
-    // WM_POPOVER: tear down the GtkPopover widget tree.
+    // WM_POPOVER: destroy the GDK_WINDOW_TEMP popup.
     if (target != nullptr && target->getmode() == WM_POPOVER)
     {
         if (MCpopoverstack == target)

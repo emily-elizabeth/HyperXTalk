@@ -67,17 +67,20 @@ static uint2 calldepth;
 static uint2 nwait;
 
 ////////////////////////////////////////////////////////////////////////////////
-// GtkPopover support
+// WM_POPOVER support — GDK_WINDOW_TEMP approach
 //
 // HyperXTalk stacks use raw GdkWindow* for all rendering and event dispatch.
-// GtkPopover requires a GtkWidget parent, so for WM_POPOVER stacks we create:
-//   proxy   — a transparent, pass-through GtkWindow positioned over the parent
-//             stack. Its only job is to give GtkPopover a valid GtkWidget to
-//             attach to and an origin for pointing_to coordinates.
-//   popover — GtkPopover attached to the proxy, arrow pointing at the anchor.
-//   area    — GtkDrawingArea inside the popover. After realize we hand its
-//             GdkWindow to the MCStack as its `window`; the stack renders into
-//             it exactly as it would into any other GdkWindow.
+// For WM_POPOVER stacks we create a GDK_WINDOW_TEMP GdkWindow directly.
+//
+// Why GDK_WINDOW_TEMP and NOT gtk_window_new(GTK_WINDOW_POPUP):
+//   A GtkWindow (even GTK_WINDOW_POPUP) intercepts all X Expose events and
+//   routes them through GTK's "draw" signal.  Our MCScreenDC::expose() handler
+//   never sees them, so nothing is rendered into the window.
+//   GDK_WINDOW_TEMP is the same mechanism GDK3 uses internally for menus and
+//   tooltips: it creates an override-redirect native window, and its events
+//   flow through the normal GDK event pump as plain GDK_EXPOSE events.
+//   Our existing expose() → MCX11PutImage() path then handles rendering
+//   without any changes, exactly as it does for every other stack window.
 //
 // Only one popover can be open at a time (matching MCpopoverstack semantics).
 ////////////////////////////////////////////////////////////////////////////////
@@ -85,89 +88,58 @@ static uint2 nwait;
 struct MCLinuxPopoverState
 {
     MCStack   *stack  = nullptr;
-    GtkWidget *window = nullptr;   // GTK_WINDOW_POPUP — render target + visual container
+    GdkWindow *gdkwin = nullptr;   // GDK_WINDOW_TEMP — raw override-redirect
 };
 static MCLinuxPopoverState s_popover;
 
-// Signal: fired when the popup window is hidden.
-// Forwards to the LiveCode close path so the script stack is torn down.
-static void MCLinuxOnPopupHide(GtkWidget * /*widget*/, gpointer /*unused*/)
-{
-    if (s_popover.stack != nullptr && MCpopoverstack == s_popover.stack)
-    {
-        MCStack *t_stack     = MCpopoverstack;
-        MCpopoverstack       = nullptr;
-        MCpopoverparentstack = nullptr;
-        // wclose() calls closewindow() → MCLinuxPopoverHide() → gtk_widget_hide()
-        // which would re-emit "hide".  MCpopoverstack is already nullptr so this
-        // handler is a no-op on re-entry.
-        MCdispatcher->wclose(t_stack->getwindowalways());
-    }
-}
-
 // Called from MCStack::realize() for WM_POPOVER stacks.
-// Creates a GTK_WINDOW_POPUP as the render surface.
-//
-// NOTE: GtkPopover cannot serve as a render target in GTK3.  Child widgets
-// inside a GtkPopover (including GtkDrawingArea) do not receive their own
-// native GdkWindows — the entire popover is composited as an overlay on the
-// parent GtkWindow's surface.  GTK_WINDOW_POPUP creates a native override-
-// redirect window that gives us a stable GdkWindow immediately after show(),
-// exactly like GTK3 uses internally for menus and tooltips.
-// CSS styling provides the popover-like appearance (border, shadow, radius).
-// A native arrow pointing at the anchor is left as a future enhancement.
+// Creates a raw GDK_WINDOW_TEMP and returns it so realize() can assign it
+// directly to MCStack::window.  The window is hidden until MCLinuxPopoverShow().
 GdkWindow* MCLinuxPopoverCreate(MCStack *p_stack)
 {
     MCRectangle t_content = p_stack->getrect();
 
-    GtkWidget *t_win = gtk_window_new(GTK_WINDOW_POPUP);
-    gtk_window_set_resizable(GTK_WINDOW(t_win), FALSE);
-    gtk_window_resize(GTK_WINDOW(t_win),
-                      (gint)t_content.width, (gint)t_content.height);
-    gtk_widget_add_events(t_win,
-                          GDK_ALL_EVENTS_MASK & ~GDK_POINTER_MOTION_HINT_MASK);
-
-    // RGBA visual is required for border-radius and shadow to render correctly.
-    GdkScreen *t_screen = gtk_widget_get_screen(t_win);
+    // Prefer RGBA visual so compositors can apply drop-shadows.
+    GdkScreen *t_screen = gdk_screen_get_default();
     GdkVisual *t_rgba   = gdk_screen_get_rgba_visual(t_screen);
-    if (t_rgba != nullptr)
-        gtk_widget_set_visual(t_win, t_rgba);
-    gtk_widget_set_app_paintable(t_win, TRUE);
+    GdkVisual *t_visual = t_rgba ? t_rgba : gdk_screen_get_system_visual(t_screen);
 
-    // Popover-like appearance via GTK3 CSS.
-    GtkCssProvider *t_css = gtk_css_provider_new();
-    gtk_css_provider_load_from_data(t_css,
-        "window {"
-        "  border-radius: 6px;"
-        "  border: 1px solid alpha(@borders, 0.8);"
-        "  background-color: @theme_bg_color;"
-        "  box-shadow: 0 2px 8px rgba(0,0,0,0.3);"
-        "}",
-        -1, nullptr);
-    gtk_style_context_add_provider(gtk_widget_get_style_context(t_win),
-        GTK_STYLE_PROVIDER(t_css),
-        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-    g_object_unref(t_css);
+    GdkWindowAttr t_attrs;
+    memset(&t_attrs, 0, sizeof(t_attrs));
+    t_attrs.window_type = GDK_WINDOW_TEMP;          // override-redirect; no WM decoration
+    t_attrs.wclass      = GDK_INPUT_OUTPUT;
+    t_attrs.x           = 0;                         // positioned in Show()
+    t_attrs.y           = 0;
+    t_attrs.width       = (gint)(t_content.width  > 0 ? t_content.width  : 1);
+    t_attrs.height      = (gint)(t_content.height > 0 ? t_content.height : 1);
+    t_attrs.visual      = t_visual;
+    t_attrs.event_mask  = GDK_ALL_EVENTS_MASK & ~GDK_POINTER_MOTION_HINT_MASK;
 
-    // Forward hide events to the engine so the script stack closes cleanly.
-    g_signal_connect(t_win, "hide", G_CALLBACK(MCLinuxOnPopupHide), nullptr);
+    GdkWindow *t_gdkwin = gdk_window_new(gdk_get_default_root_window(),
+                                          &t_attrs,
+                                          GDK_WA_X | GDK_WA_Y | GDK_WA_VISUAL);
+    if (t_gdkwin == nullptr)
+        return nullptr;
+
+    // Transparent background — the engine paints every pixel via MCX11PutImage.
+    GdkRGBA t_transparent = {0.0, 0.0, 0.0, 0.0};
+    gdk_window_set_background_rgba(t_gdkwin, &t_transparent);
 
     s_popover.stack  = p_stack;
-    s_popover.window = t_win;
+    s_popover.gdkwin = t_gdkwin;
 
-    // Return nullptr — stack->window is set in MCLinuxPopoverShow() after show().
-    return nullptr;
+    return t_gdkwin;
 }
 
 // Called from platform_openwindow() for WM_POPOVER stacks.
-// Positions the popup next to the anchor rect and shows it.
-// Returns the GdkWindow* immediately — GTK_WINDOW_POPUP realizes synchronously.
+// Positions the window adjacent to the anchor rect and maps it.
+// Returns the GdkWindow* (same as s_popover.gdkwin set in Create).
 GdkWindow* MCLinuxPopoverShow(MCStack * /*p_stack*/)
 {
-    if (s_popover.window == nullptr)
+    if (s_popover.gdkwin == nullptr)
         return nullptr;
 
-    // Position popup adjacent to the anchor rect, on the requested edge.
+    // Position adjacent to the anchor rect on the requested edge.
     MCRectangle t_rect = s_popover.stack->getrect();
     int t_x = (int)MCpopoveranchor.x;
     int t_y = (int)MCpopoveranchor.y;
@@ -189,36 +161,42 @@ GdkWindow* MCLinuxPopoverShow(MCStack * /*p_stack*/)
             t_y = (int)MCpopoveranchor.y +
                   ((int)MCpopoveranchor.height - (int)t_rect.height) / 2;
             break;
-        default: // bottom (default GTK popover edge)
+        default: // bottom
             t_y = (int)MCpopoveranchor.y + (int)MCpopoveranchor.height;
             t_x = (int)MCpopoveranchor.x +
                   ((int)MCpopoveranchor.width - (int)t_rect.width) / 2;
             break;
     }
 
-    gtk_window_move(GTK_WINDOW(s_popover.window), t_x, t_y);
-    gtk_widget_show(s_popover.window);
+    // Clamp to screen bounds so the popup is always visible even when the
+    // anchor rect is {0,0,0,0} (e.g. during testing without a real anchor).
+    GdkDisplay *t_display = gdk_window_get_display(s_popover.gdkwin);
+    GdkScreen  *t_scr     = gdk_display_get_default_screen(t_display);
+    int t_sw = gdk_screen_get_width(t_scr);
+    int t_sh = gdk_screen_get_height(t_scr);
+    if (t_x + (int)t_rect.width  > t_sw) t_x = t_sw - (int)t_rect.width;
+    if (t_y + (int)t_rect.height > t_sh) t_y = t_sh - (int)t_rect.height;
+    if (t_x < 0) t_x = 0;
+    if (t_y < 0) t_y = 0;
 
-    // GTK_WINDOW_POPUP is realized synchronously on show() — GdkWindow valid now.
-    GdkWindow *t_gdk = gtk_widget_get_window(s_popover.window);
-    if (t_gdk != nullptr)
-        gdk_window_invalidate_rect(t_gdk, nullptr, TRUE);
+    gdk_window_move(s_popover.gdkwin, t_x, t_y);
+    gdk_window_show(s_popover.gdkwin);
 
-    return t_gdk;
+    return s_popover.gdkwin;
 }
 
-// Called from closewindow() — hides the popup without destroying it.
+// Called from closewindow() — hides the window without destroying it.
 void MCLinuxPopoverHide(MCStack * /*p_stack*/)
 {
-    if (s_popover.window != nullptr)
-        gtk_widget_hide(s_popover.window);
+    if (s_popover.gdkwin != nullptr)
+        gdk_window_hide(s_popover.gdkwin);
 }
 
-// Called from destroywindow() — destroys the popup window.
+// Called from destroywindow() — destroys the raw GdkWindow.
 void MCLinuxPopoverDestroy(MCStack * /*p_stack*/)
 {
-    if (s_popover.window != nullptr)
-        gtk_widget_destroy(s_popover.window);
+    if (s_popover.gdkwin != nullptr)
+        gdk_window_destroy(s_popover.gdkwin);
     s_popover = MCLinuxPopoverState{};
 }
 
@@ -411,15 +389,16 @@ void MCStack::realize()
 		}
 #endif
 
+		if (window == nullptr)
+		{
 		if (getmode() == WM_POPOVER)
 		{
-			// WM_POPOVER: build the GtkPopover widget tree.  The GdkWindow* for
-			// the drawing area is NOT available until the popover is first mapped
-			// in MCLinuxPopoverShow(); stack->window is set there.
-			// We must NOT fall through to gdk_window_new() — hence the if/else.
-			MCLinuxPopoverCreate(this);  // returns nullptr; result intentionally ignored
+			// WM_POPOVER: create a raw GDK_WINDOW_TEMP override-redirect window.
+			// Events flow through the normal GDK_EXPOSE path — no GTK widget needed.
+			// The window is hidden until platform_openwindow() calls MCLinuxPopoverShow().
+			window = MCLinuxPopoverCreate(this);
 		}
-		else if (window == nullptr)
+		else
 		{
 			// All other window modes: create a raw toplevel GdkWindow.
 			GdkWindowAttr gdkwa;
@@ -437,6 +416,7 @@ void MCStack::realize()
 
 			window = gdk_window_new(screen->getroot(), &gdkwa, gdk_valid_wa);
 		}
+		} // if (window == nullptr)
 
 #ifdef MODE_DEVELOPMENT
         // Set _NET_WM_ICON on the first top-level window so the taskbar,
@@ -494,10 +474,9 @@ void MCStack::realize()
         }
 #endif // MODE_DEVELOPMENT
 
-        // WM_POPOVER: window is the GtkDrawingArea's child GdkWindow inside
-        // the GtkPopover.  Geometry, DnD registration, and transient hints are
-        // handled by GTK — applying them to the child GdkWindow directly would
-        // have no effect or cause errors.
+        // WM_POPOVER: window is a GDK_WINDOW_TEMP override-redirect GdkWindow.
+        // It is managed entirely by our MCLinuxPopover* helpers.  Geometry,
+        // DnD registration, and transient hints must not be applied to it here.
         if (getmode() != WM_POPOVER)
         {
             // FG-2014-07-30: [[ Bugfix 12905 ]]
@@ -1091,10 +1070,10 @@ void MCStack::platform_openwindow(Boolean override)
 	{
 		if (getmode() == WM_POPOVER)
 		{
-			// WM_POPOVER stacks go through the GtkPopover path, not the raw
-			// GdkWindow path.  MCLinuxPopoverShow() maps the proxy + popover
-			// and returns the drawing area's GdkWindow.  We assign it here
-			// (inside a member function) because MCStack::window is protected.
+			// window was already created in realize() as a GDK_WINDOW_TEMP.
+			// MCLinuxPopoverShow() positions it at the anchor and maps it.
+			// We reassign window from its return value so a Show() failure
+			// (returns nullptr) propagates correctly.
 			window = MCLinuxPopoverShow(this);
 			MCstacks->enableformodal(window, False);
 			MCpopoverstack = this;
