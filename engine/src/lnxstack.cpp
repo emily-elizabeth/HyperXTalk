@@ -154,27 +154,15 @@ GdkWindow* MCLinuxPopoverCreate(MCStack *p_stack)
     s_popover.popover = t_popover;
     s_popover.area    = t_area;
 
-    // 5. GTK3 does not create GdkWindows for GtkPopover children during
-    //    gtk_widget_realize() — they are only created when the popover is
-    //    actually mapped.  We must map briefly to force GdkWindow creation.
-    //    The proxy has opacity 0.0 so this is invisible to the user.
-    //    MCpopoverstack is not set yet, so the "closed" signal handler is a
-    //    no-op if gtk_popover_popdown() triggers it before we return.
-    gtk_widget_show(t_area);           // Mark content visible before popup
-    gtk_widget_show(t_proxy);          // Map the transparent proxy
-    gtk_popover_popup(GTK_POPOVER(t_popover));  // Map popover → creates GdkWindows
-    // Immediately hide — MCLinuxPopoverShow() will re-show when ready.
-    gtk_popover_popdown(GTK_POPOVER(t_popover));
-    gtk_widget_hide(t_proxy);
-
-    // 6. Make the proxy pass-through so clicks reach the real parent stack.
-    GdkWindow *t_proxy_gdk = gtk_widget_get_window(t_proxy);
-    if (t_proxy_gdk != nullptr)
-        gdk_window_set_pass_through(t_proxy_gdk, TRUE);
-
-    // 7. Return the drawing area's GdkWindow — this becomes stack->window.
-    //    All rendering and event dispatch uses this pointer from here on.
-    return gtk_widget_get_window(t_area);
+    // 5. The widget tree is now set up.  We do NOT map anything here.
+    //    The GdkWindow for the drawing area is only created when the popover is
+    //    first mapped, which happens in MCLinuxPopoverShow().  stack->window is
+    //    set there rather than here to avoid popup/popdown animation races that
+    //    can leave the GtkPopover state machine in a broken closed state.
+    //
+    //    Return nullptr — realize() must NOT fall through to gdk_window_new()
+    //    for WM_POPOVER (see the if/else guard in MCStack::realize()).
+    return nullptr;
 }
 
 // Called from openwindow() after the stack's window has been created.
@@ -214,9 +202,29 @@ void MCLinuxPopoverShow(MCStack * /*p_stack*/)
     }
     gtk_popover_set_position(GTK_POPOVER(s_popover.popover), t_pos);
 
-    // Map the proxy (transparent, pass-through) then show the popover.
+    // Map proxy then show the popover.  The drawing area is shown as part of
+    // the popover's child hierarchy — gtk_widget_show_all handles it.
     gtk_widget_show(s_popover.proxy);
+    gtk_widget_show_all(s_popover.popover);
     gtk_popover_popup(GTK_POPOVER(s_popover.popover));
+
+    // Now that the popover is mapped, its children have been realized and their
+    // GdkWindows created.  Capture the drawing area's GdkWindow and store it as
+    // stack->window so event dispatch and rendering work correctly.
+    // (realize() left stack->window = nullptr for WM_POPOVER to avoid the
+    // gdk_window_new() fallback path; this is where it gets its real value.)
+    if (s_popover.stack != nullptr)
+    {
+        GdkWindow *t_gdk = gtk_widget_get_window(s_popover.area);
+        s_popover.stack->window = t_gdk;
+        // Make the proxy pass-through so pointer events reach the parent stack.
+        GdkWindow *t_proxy_gdk = gtk_widget_get_window(s_popover.proxy);
+        if (t_proxy_gdk != nullptr)
+            gdk_window_set_pass_through(t_proxy_gdk, TRUE);
+        // Trigger an initial repaint of the popover content.
+        if (t_gdk != nullptr)
+            gdk_window_invalidate_rect(t_gdk, nullptr, TRUE);
+    }
 }
 
 // Called from closewindow() — hides the popover without destroying it.
@@ -428,18 +436,17 @@ void MCStack::realize()
 		}
 #endif
 
-		// WM_POPOVER: create via GtkPopover infrastructure instead of a raw
-		// toplevel GdkWindow.  The returned GdkWindow* belongs to the
-		// GtkDrawingArea inside the popover; the stack renders into it as
-		// normal and event dispatch finds it via the usual window pointer match.
-		if (window == nullptr && getmode() == WM_POPOVER)
+		if (getmode() == WM_POPOVER)
 		{
-			window = MCLinuxPopoverCreate(this);
+			// WM_POPOVER: build the GtkPopover widget tree.  The GdkWindow* for
+			// the drawing area is NOT available until the popover is first mapped
+			// in MCLinuxPopoverShow(); stack->window is set there.
+			// We must NOT fall through to gdk_window_new() — hence the if/else.
+			MCLinuxPopoverCreate(this);  // returns nullptr; result intentionally ignored
 		}
-
-		// All other window modes: create a raw toplevel GdkWindow.
-		if (window == nullptr)
+		else if (window == nullptr)
 		{
+			// All other window modes: create a raw toplevel GdkWindow.
 			GdkWindowAttr gdkwa;
 			guint gdk_valid_wa;
 			gdk_valid_wa = GDK_WA_X|GDK_WA_Y|GDK_WA_VISUAL;
@@ -499,7 +506,7 @@ void MCStack::realize()
                 if (t_icon[0] != '\0' && access(t_icon, F_OK) == 0)
                 {
                     GdkPixbuf *t_pb = gdk_pixbuf_new_from_file(t_icon, NULL);
-                    if (t_pb != NULL)
+                    if (t_pb != NULL && window != nullptr)
                     {
                         GList *t_list = g_list_append(NULL, t_pb);
                         gdk_window_set_icon_list(window, t_list);
