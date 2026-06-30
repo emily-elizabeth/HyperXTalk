@@ -168,7 +168,7 @@ GdkWindow* MCLinuxPopoverCreate(MCStack *p_stack)
 // Called from openwindow() after the stack's window has been created.
 // Positions the proxy over the parent stack, sets the pointing_to rect and
 // preferred edge on the popover, then maps both.
-void MCLinuxPopoverShow(MCStack * /*p_stack*/)
+GdkWindow* MCLinuxPopoverShow(MCStack * /*p_stack*/)
 {
     if (s_popover.proxy == nullptr || s_popover.popover == nullptr)
         return;
@@ -209,22 +209,21 @@ void MCLinuxPopoverShow(MCStack * /*p_stack*/)
     gtk_popover_popup(GTK_POPOVER(s_popover.popover));
 
     // Now that the popover is mapped, its children have been realized and their
-    // GdkWindows created.  Capture the drawing area's GdkWindow and store it as
-    // stack->window so event dispatch and rendering work correctly.
-    // (realize() left stack->window = nullptr for WM_POPOVER to avoid the
-    // gdk_window_new() fallback path; this is where it gets its real value.)
-    if (s_popover.stack != nullptr)
-    {
-        GdkWindow *t_gdk = gtk_widget_get_window(s_popover.area);
-        s_popover.stack->window = t_gdk;
-        // Make the proxy pass-through so pointer events reach the parent stack.
-        GdkWindow *t_proxy_gdk = gtk_widget_get_window(s_popover.proxy);
-        if (t_proxy_gdk != nullptr)
-            gdk_window_set_pass_through(t_proxy_gdk, TRUE);
-        // Trigger an initial repaint of the popover content.
-        if (t_gdk != nullptr)
-            gdk_window_invalidate_rect(t_gdk, nullptr, TRUE);
-    }
+    // GdkWindows created.  Capture the drawing area's GdkWindow and return it
+    // to the caller (MCStack::platform_openwindow, a member function) so it can
+    // assign it to the protected stack->window field.
+    GdkWindow *t_gdk = gtk_widget_get_window(s_popover.area);
+
+    // Make the proxy pass-through so pointer events reach the parent stack.
+    GdkWindow *t_proxy_gdk = gtk_widget_get_window(s_popover.proxy);
+    if (t_proxy_gdk != nullptr)
+        gdk_window_set_pass_through(t_proxy_gdk, TRUE);
+
+    // Trigger an initial repaint of the popover content.
+    if (t_gdk != nullptr)
+        gdk_window_invalidate_rect(t_gdk, nullptr, TRUE);
+
+    return t_gdk;
 }
 
 // Called from closewindow() — hides the popover without destroying it.
@@ -1114,6 +1113,18 @@ void MCStack::platform_openwindow(Boolean override)
 {
 	if (MCModeMakeLocalWindows())
 	{
+		if (getmode() == WM_POPOVER)
+		{
+			// WM_POPOVER stacks go through the GtkPopover path, not the raw
+			// GdkWindow path.  MCLinuxPopoverShow() maps the proxy + popover
+			// and returns the drawing area's GdkWindow.  We assign it here
+			// (inside a member function) because MCStack::window is protected.
+			window = MCLinuxPopoverShow(this);
+			MCstacks->enableformodal(window, False);
+			MCpopoverstack = this;
+			return;
+		}
+
 		// MW-2010-11-29: Make sure we reset the geometry on the window before
 		//   it gets mapped - otherwise we will get upward drift due to StaticGravity
 		//   being used.

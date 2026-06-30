@@ -783,7 +783,7 @@ uint2 MCScreenDC::getvclass()
 }
 
 // Popover helpers defined in lnxstack.cpp.
-extern void MCLinuxPopoverShow(MCStack *p_stack);
+extern GdkWindow* MCLinuxPopoverShow(MCStack *p_stack);
 extern void MCLinuxPopoverHide(MCStack *p_stack);
 extern void MCLinuxPopoverDestroy(MCStack *p_stack);
 
@@ -791,14 +791,9 @@ void MCScreenDC::openwindow(Window window, Boolean override)
 {
 	MCStack *target = MCdispatcher->findstackd(window);
 
-    // WM_POPOVER: show via GtkPopover rather than mapping a raw GdkWindow.
-    if (target != nullptr && target->getmode() == WM_POPOVER)
-    {
-        MCLinuxPopoverShow(target);
-        MCstacks->enableformodal(window, False);
-        MCpopoverstack = target;
-        return;
-    }
+	// WM_POPOVER is handled entirely in MCStack::platform_openwindow() before
+	// this function is ever called (it short-circuits to avoid passing a null
+	// window here), so no WM_POPOVER check is needed.
 
 	{
 		// XFCE workaround: Use show_unraised for palette windows to prevent focus stealing
