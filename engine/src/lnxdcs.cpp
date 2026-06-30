@@ -894,7 +894,8 @@ void MCScreenDC::destroywindow(Window &window)
 
 void MCScreenDC::raisewindow(Window window)
 {
-	gdk_window_raise(window);
+    if (window != nullptr)
+        gdk_window_raise(window);
 }
 
 void MCScreenDC::iconifywindow(Window window)

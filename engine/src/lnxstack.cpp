@@ -91,6 +91,19 @@ struct MCLinuxPopoverState
 };
 static MCLinuxPopoverState s_popover;
 
+// Draw callback for the proxy GtkWindow: paint the background fully transparent.
+// We use RGBA visual + this callback instead of gtk_widget_set_opacity(0.0)
+// because set_opacity composites the *entire* window — including the GtkPopover
+// that's anchored to it — making the popover invisible to the user.
+static gboolean MCLinuxProxyOnDraw(GtkWidget * /*widget*/, cairo_t *cr,
+                                   gpointer /*data*/)
+{
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+    cairo_set_source_rgba(cr, 0.0, 0.0, 0.0, 0.0);
+    cairo_paint(cr);
+    return FALSE;   // let child widgets draw normally
+}
+
 // Signal handler: GtkPopover emits "closed" when dismissed by clicking outside.
 // Forward to the LiveCode close path so the stack is properly torn down.
 static void MCLinuxOnPopoverClosed(GtkPopover * /*p_popover*/, gpointer /*unused*/)
@@ -130,7 +143,16 @@ GdkWindow* MCLinuxPopoverCreate(MCStack *p_stack)
     gtk_window_set_default_size(GTK_WINDOW(t_proxy),
                                 (gint)t_parent.width, (gint)t_parent.height);
     gtk_window_move(GTK_WINDOW(t_proxy), (gint)t_parent.x, (gint)t_parent.y);
-    gtk_widget_set_opacity(t_proxy, 0.0);   // Fully transparent
+
+    // Make the proxy background transparent using an RGBA visual so that only
+    // the GtkPopover chrome is visible.  gtk_widget_set_opacity(0.0) cannot be
+    // used because it composites the whole window tree (including the popover).
+    GdkScreen *t_screen = gtk_widget_get_screen(t_proxy);
+    GdkVisual *t_rgba   = gdk_screen_get_rgba_visual(t_screen);
+    if (t_rgba != nullptr)
+        gtk_widget_set_visual(t_proxy, t_rgba);
+    gtk_widget_set_app_paintable(t_proxy, TRUE);
+    g_signal_connect(t_proxy, "draw", G_CALLBACK(MCLinuxProxyOnDraw), nullptr);
 
     // 2. GtkPopover attached to the proxy window widget.
     GtkWidget *t_popover = gtk_popover_new(t_proxy);
@@ -202,11 +224,17 @@ GdkWindow* MCLinuxPopoverShow(MCStack * /*p_stack*/)
     }
     gtk_popover_set_position(GTK_POPOVER(s_popover.popover), t_pos);
 
-    // Map proxy then show the popover.  The drawing area is shown as part of
-    // the popover's child hierarchy — gtk_widget_show_all handles it.
+    // Map proxy then show the popover.  gtk_widget_show_all ensures the drawing
+    // area inside the popover is marked visible before gtk_popover_popup().
     gtk_widget_show(s_popover.proxy);
     gtk_widget_show_all(s_popover.popover);
     gtk_popover_popup(GTK_POPOVER(s_popover.popover));
+
+    // GTK maps and realizes widgets asynchronously (deferred to the next main-
+    // loop iteration).  Drain pending events now so that GdkWindows are created
+    // before we try to read them with gtk_widget_get_window().
+    while (g_main_context_pending(nullptr))
+        g_main_context_iteration(nullptr, FALSE);
 
     // Now that the popover is mapped, its children have been realized and their
     // GdkWindows created.  Capture the drawing area's GdkWindow and return it
