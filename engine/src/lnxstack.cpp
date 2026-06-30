@@ -224,22 +224,21 @@ GdkWindow* MCLinuxPopoverShow(MCStack * /*p_stack*/)
     }
     gtk_popover_set_position(GTK_POPOVER(s_popover.popover), t_pos);
 
-    // Map proxy then show the popover.  gtk_widget_show_all ensures the drawing
-    // area inside the popover is marked visible before gtk_popover_popup().
+    // Realize and map the widget tree.
+    // gtk_widget_realize() is SYNCHRONOUS — it creates the GdkWindow immediately
+    // without needing a main-loop iteration.  We must realize in parent-first
+    // order so each child can create its GdkWindow as a sub-window of its parent.
+    // DO NOT use g_main_context_iteration() here: draining the event queue before
+    // MCpopoverstack is set causes re-entrancy — the "closed" signal may fire and
+    // be ignored, leaving the popover in a broken state with no close notification.
     gtk_widget_show(s_popover.proxy);
-    gtk_widget_show_all(s_popover.popover);
-    gtk_popover_popup(GTK_POPOVER(s_popover.popover));
+    gtk_widget_realize(s_popover.proxy);    // proxy's GdkWindow created now
+    gtk_widget_show_all(s_popover.popover); // mark area visible for realize
+    gtk_widget_realize(s_popover.popover);  // popover (and possibly its window)
+    gtk_widget_realize(s_popover.area);     // drawing area's GdkWindow created now
+    gtk_popover_popup(GTK_POPOVER(s_popover.popover)); // map visually
 
-    // GTK maps and realizes widgets asynchronously (deferred to the next main-
-    // loop iteration).  Drain pending events now so that GdkWindows are created
-    // before we try to read them with gtk_widget_get_window().
-    while (g_main_context_pending(nullptr))
-        g_main_context_iteration(nullptr, FALSE);
-
-    // Now that the popover is mapped, its children have been realized and their
-    // GdkWindows created.  Capture the drawing area's GdkWindow and return it
-    // to the caller (MCStack::platform_openwindow, a member function) so it can
-    // assign it to the protected stack->window field.
+    // GdkWindows were created synchronously above; read them now.
     GdkWindow *t_gdk = gtk_widget_get_window(s_popover.area);
 
     // Make the proxy pass-through so pointer events reach the parent stack.
