@@ -782,9 +782,23 @@ uint2 MCScreenDC::getvclass()
     }
 }
 
+// Popover helpers defined in lnxstack.cpp.
+extern void MCLinuxPopoverShow(MCStack *p_stack);
+extern void MCLinuxPopoverHide(MCStack *p_stack);
+extern void MCLinuxPopoverDestroy(MCStack *p_stack);
+
 void MCScreenDC::openwindow(Window window, Boolean override)
 {
 	MCStack *target = MCdispatcher->findstackd(window);
+
+    // WM_POPOVER: show via GtkPopover rather than mapping a raw GdkWindow.
+    if (target != nullptr && target->getmode() == WM_POPOVER)
+    {
+        MCLinuxPopoverShow(target);
+        MCstacks->enableformodal(window, False);
+        MCpopoverstack = target;
+        return;
+    }
 
 	{
 		// XFCE workaround: Use show_unraised for palette windows to prevent focus stealing
@@ -802,27 +816,16 @@ void MCScreenDC::openwindow(Window window, Boolean override)
 			gdk_window_show(window);
 	}
 
-	MCstacks -> enableformodal(window, False);
-
-    // WM_POPOVER on Linux: track the open popover stack so the
-    // GDK_BUTTON_PRESS and GDK_CONFIGURE handlers in lnxdclnx.cpp can
-    // implement click-outside dismiss and dismiss-on-parent-move.
-    if (target != nullptr && target->getmode() == WM_POPOVER)
-    {
-        MCpopoverstack = target;
-    }
+	MCstacks->enableformodal(window, False);
 }
 
 void MCScreenDC::closewindow(Window window)
 {
 	MCStack *target = MCdispatcher->findstackd(window);
-	MCstacks -> enableformodal(window, True);
+	MCstacks->enableformodal(window, True);
 
     // If the parent stack for the current popover is being closed, dismiss
     // the popover first so it doesn't outlive its anchor.
-    // Only check the parent — dismissing on ANY other window close (the old
-    // behaviour) caused the popover to vanish whenever an unrelated window
-    // such as a tooltip or dialog was hidden.
     if (MCpopoverstack != nullptr && MCpopoverparentstack != nullptr &&
         MCpopoverparentstack->getwindowalways() == window)
     {
@@ -832,7 +835,20 @@ void MCScreenDC::closewindow(Window window)
         MCdispatcher->wclose(t_popover->getwindowalways());
     }
 
-    // If the popover itself is being closed, clear our tracking state.
+    // WM_POPOVER: hide via GtkPopover path.
+    if (target != nullptr && target->getmode() == WM_POPOVER)
+    {
+        if (MCpopoverstack == target)
+        {
+            MCpopoverstack = nullptr;
+            MCpopoverparentstack = nullptr;
+        }
+        MCLinuxPopoverHide(target);
+        return;
+    }
+
+    // If the popover itself is being closed via the raw GdkWindow path,
+    // clear tracking state (legacy fallback).
     if (MCpopoverstack != nullptr && MCpopoverstack->getwindowalways() == window)
     {
         MCpopoverstack = nullptr;
@@ -844,11 +860,10 @@ void MCScreenDC::closewindow(Window window)
 
 void MCScreenDC::destroywindow(Window &window)
 {
-    // If the parent stack for the current popover is being closed, dismiss
+    MCStack *target = MCdispatcher->findstackd(window);
+
+    // If the parent stack for the current popover is being destroyed, dismiss
     // the popover first so it doesn't outlive its anchor.
-    // Only check the parent — dismissing on ANY other window close (the old
-    // behaviour) caused the popover to vanish whenever an unrelated window
-    // such as a tooltip or dialog was hidden.
     if (MCpopoverstack != nullptr && MCpopoverparentstack != nullptr &&
         MCpopoverparentstack->getwindowalways() == window)
     {
@@ -858,7 +873,20 @@ void MCScreenDC::destroywindow(Window &window)
         MCdispatcher->wclose(t_popover->getwindowalways());
     }
 
-    // If the popover itself is being closed, clear our tracking state.
+    // WM_POPOVER: tear down the GtkPopover widget tree.
+    if (target != nullptr && target->getmode() == WM_POPOVER)
+    {
+        if (MCpopoverstack == target)
+        {
+            MCpopoverstack = nullptr;
+            MCpopoverparentstack = nullptr;
+        }
+        MCLinuxPopoverDestroy(target);
+        window = DNULL;
+        return;
+    }
+
+    // Legacy tracking clear for non-GTK popover path.
     if (MCpopoverstack != nullptr && MCpopoverstack->getwindowalways() == window)
     {
         MCpopoverstack = nullptr;
