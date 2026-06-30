@@ -1299,13 +1299,13 @@ void MCStack::view_platform_updatewindowwithcallback(MCRegionRef p_region, MCSta
 
 void MCStack::onexpose(MCRegionRef p_region)
 {
-    // Update backing scale before rendering — mirrors desktop-stack.cpp
-    // (wredraw) which calls view_setbackingscale on every redraw so the
-    // tilecache is always built at the correct physical pixel density.
-    // On Linux there is no MCPlatformSurface path, so we read the GDK
-    // monitor scale directly.  view_setbackingscale() is a no-op when
-    // the scale hasn't changed, so this is cheap in the common case.
-    view_setbackingscale(MCLinuxGetLogicalToScreenScale());
+    // TODO [[ HiDPI ]]: set view_setbackingscale(MCLinuxGetLogicalToScreenScale())
+    // here once MCLinuxStackSurface creates surfaces at physical pixel dimensions.
+    // Currently the surface is created at logical pixel size and blitted via
+    // MCX11PutImage, bypassing GDK's scaling layer.  Setting backing scale > 1
+    // causes the tilecache to render at Nx but the output raster stays 1x,
+    // garbling the display.  XWayland already handles logical→physical scaling
+    // at the compositor level so no additional scale is needed in this path.
 
     MCLinuxStackSurface t_surface(this, (MCGRegionRef)p_region);
     if (t_surface.Lock())

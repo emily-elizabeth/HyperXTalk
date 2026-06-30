@@ -467,13 +467,18 @@ void MCResPlatformInitPixelScaling(void)
 }
 
 // GTK3 (GDK 3.22+) exposes per-monitor scale factors via
-// gdk_monitor_get_scale_factor(), so HiDPI is fully supported.
-// GDK handles DPI awareness automatically (no process-level flag like
-// Windows SetProcessDPIAware), so we return true unconditionally —
-// matching the macOS desktop-dc.cpp implementation.
+// gdk_monitor_get_scale_factor(), so HiDPI detection infrastructure is
+// in place.  However, MCLinuxStackSurface currently creates its pixbuf
+// at *logical* pixel dimensions and blits via MCX11PutImage, bypassing
+// GDK's scaling layer.  XWayland already handles logical→physical scaling
+// at the compositor level, so enabling pixel scaling here causes the
+// tilecache to render at Nx into a 1× raster, garbling the display.
+//
+// TODO [[ HiDPI ]]: return true once MCLinuxStackSurface creates surfaces
+// at physical pixel dimensions (and coordinate math is updated accordingly).
 bool MCResPlatformSupportsPixelScaling(void)
 {
-    return true;
+    return false;
 }
 
 // Scale factor is read from GDK at runtime; it cannot be set by the user
