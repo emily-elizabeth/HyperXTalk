@@ -398,9 +398,19 @@ MCGFloat MCLinuxGetLogicalToScreenScale(void)
     if (!MCResGetUsePixelScaling())
         return 1.0;
 
-    GdkMonitor *t_monitor = gdk_display_get_primary_monitor(dpy);
+    // Use the default GDK display rather than MCScreenDC::dpy so this free
+    // function can be called before MCScreenDC::open() (MCResInitPixelScaling
+    // is called twice in globals.cpp: once before and once after open()).
+    // gdk_display_get_default() returns NULL until gdk_display_open() runs,
+    // in which case we fall back to 1.0 — the second post-open call then
+    // picks up the real monitor scale.
+    GdkDisplay *t_display = gdk_display_get_default();
+    if (t_display == NULL)
+        return 1.0;
+
+    GdkMonitor *t_monitor = gdk_display_get_primary_monitor(t_display);
     if (t_monitor == NULL)
-        t_monitor = gdk_display_get_monitor(dpy, 0);
+        t_monitor = gdk_display_get_monitor(t_display, 0);
     if (t_monitor == NULL)
         return 1.0;
 

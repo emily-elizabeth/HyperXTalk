@@ -65,6 +65,9 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 static uint2 calldepth;
 static uint2 nwait;
 
+// Defined in lnxdc.cpp
+extern MCGFloat MCLinuxGetLogicalToScreenScale(void);
+
 // -- tperry 12-11-2025: Helper to convert bitmap pixmap to cairo_region_t for window shapes
 static cairo_region_t* pixmap_to_region(Pixmap p_pixmap, uint32_t p_width, uint32_t p_height)
 {
@@ -1296,6 +1299,14 @@ void MCStack::view_platform_updatewindowwithcallback(MCRegionRef p_region, MCSta
 
 void MCStack::onexpose(MCRegionRef p_region)
 {
+    // Update backing scale before rendering — mirrors desktop-stack.cpp
+    // (wredraw) which calls view_setbackingscale on every redraw so the
+    // tilecache is always built at the correct physical pixel density.
+    // On Linux there is no MCPlatformSurface path, so we read the GDK
+    // monitor scale directly.  view_setbackingscale() is a no-op when
+    // the scale hasn't changed, so this is cheap in the common case.
+    view_setbackingscale(MCLinuxGetLogicalToScreenScale());
+
     MCLinuxStackSurface t_surface(this, (MCGRegionRef)p_region);
     if (t_surface.Lock())
     {
