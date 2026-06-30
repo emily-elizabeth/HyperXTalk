@@ -171,7 +171,7 @@ GdkWindow* MCLinuxPopoverCreate(MCStack *p_stack)
 GdkWindow* MCLinuxPopoverShow(MCStack * /*p_stack*/)
 {
     if (s_popover.proxy == nullptr || s_popover.popover == nullptr)
-        return;
+        return nullptr;
 
     // Reposition proxy to match current parent stack bounds.
     MCRectangle t_parent = {0, 0, 800, 600};
