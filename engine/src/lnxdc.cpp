@@ -52,7 +52,6 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "font.h"
 #include "redraw.h"
 #include "resolution.h"
-#include "mode.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -469,9 +468,12 @@ void MCResPlatformInitPixelScaling(void)
 
 // GTK3 (GDK 3.22+) exposes per-monitor scale factors via
 // gdk_monitor_get_scale_factor(), so HiDPI is fully supported.
+// GDK handles DPI awareness automatically (no process-level flag like
+// Windows SetProcessDPIAware), so we return true unconditionally —
+// matching the macOS desktop-dc.cpp implementation.
 bool MCResPlatformSupportsPixelScaling(void)
 {
-    return MCModeGetPixelScalingEnabled();
+    return true;
 }
 
 // Scale factor is read from GDK at runtime; it cannot be set by the user
