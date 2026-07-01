@@ -475,6 +475,15 @@ void MCStack::realize()
 			// and placed at (0,0), so GtkFixed coordinates equal screen coordinates.
 			// gtk_popover_set_pointing_to() can then receive MCpopoveranchor directly.
 			s_popover_proxy = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+			// gtk_window_new() attaches to gdk_display_get_default(), but the
+			// engine opened its own GDK display connection (MCdpy) via
+			// gdk_display_open().  All engine cursors are created on MCdpy.
+			// GDK asserts that gdk_window_get_display(window) ==
+			// gdk_cursor_get_display(cursor) in gdk_window_set_cursor_internal(),
+			// so W3 (DA) must live on the same GdkDisplay* as MCdpy.
+			// gtk_window_set_screen() must be called before realization.
+			gtk_window_set_screen(GTK_WINDOW(s_popover_proxy),
+			                      gdk_display_get_default_screen(MCdpy));
 			gtk_window_set_decorated(GTK_WINDOW(s_popover_proxy), FALSE);
 			gtk_window_set_skip_taskbar_hint(GTK_WINDOW(s_popover_proxy), TRUE);
 			gtk_window_set_skip_pager_hint  (GTK_WINDOW(s_popover_proxy), TRUE);
