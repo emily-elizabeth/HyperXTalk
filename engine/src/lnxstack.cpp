@@ -1116,6 +1116,21 @@ void MCStack::platform_openwindow(Boolean override)
 		{
 			// Native GtkPopover path.  Track the active popover, set the
 			// pointing_to rect, then let GTK show and grab.
+
+			// The GTK hierarchy may not have been created yet.  createwindow()
+			// short-circuits with "if (window != nil) return true" when the stack
+			// has a stale window pointer from a previous open in a different mode,
+			// meaning realize() is never called.  Build the hierarchy on demand here
+			// if it is missing — realize() is idempotent for WM_POPOVER (it tears
+			// down stale state before rebuilding).
+			if (s_popover_widget == nullptr || s_popover_proxy == nullptr)
+			{
+				realize();
+				// If realize() still could not create the hierarchy, bail.
+				if (s_popover_widget == nullptr || s_popover_proxy == nullptr)
+					return;
+			}
+
 			MCpopoverstack = this;
 
 			// The proxy GtkWindow is at screen (0,0), so widget coords are
