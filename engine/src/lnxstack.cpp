@@ -1244,7 +1244,21 @@ void MCStack::platform_openwindow(Boolean override)
 			// Map the proxy and show the popover.
 			// gtk_popover_popup() maps + grabs; GtkPopover handles outside-click
 			// dismiss natively and emits "closed" → on_popover_closed().
+			//
+			// gtk_widget_show_all(proxy) only iterates the proxy's normal widget
+			// tree (proxy→GtkFixed).  GtkPopover is registered as a popup of the
+			// proxy window, not as a container child, so show_all does NOT recurse
+			// into the popover or its children.  gtk_popover_popup() internally
+			// calls gtk_widget_show(popover) — non-recursive — so the
+			// GtkDrawingArea inside the popover also stays VISIBLE=false.
+			// A widget whose VISIBLE flag is false is never mapped and never
+			// receives GTK "draw" signals, giving a permanently blank content area.
+			//
+			// Fix: explicitly show the DA (and any other children) before popup so
+			// they are marked visible and get mapped when the popover maps its
+			// GdkWindow.
 			gtk_widget_show_all(s_popover_proxy);
+			gtk_widget_show(s_popover_da);   // must be visible before popover maps
 			gtk_popover_popup(GTK_POPOVER(s_popover_widget));
 
 			// gtk_popover_popup() sets up pointer/keyboard grabs which may generate
