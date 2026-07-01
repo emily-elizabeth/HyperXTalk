@@ -1192,6 +1192,13 @@ void MCStack::platform_openwindow(Boolean override)
 			// dismiss natively and emits "closed" → on_popover_closed().
 			gtk_widget_show_all(s_popover_proxy);
 			gtk_popover_popup(GTK_POPOVER(s_popover_widget));
+
+			// gtk_popover_popup() sets up pointer/keyboard grabs which may generate
+			// FocusIn/FocusOut or ConfigureNotify events that let the main window
+			// sneak back on top of the override-redirect proxy.  Re-raise
+			// explicitly and flush so the raise takes effect before we return.
+			gdk_window_raise(gtk_widget_get_window(s_popover_proxy));
+			gdk_display_flush(gdk_display_get_default());
 			return;
 		}
 
