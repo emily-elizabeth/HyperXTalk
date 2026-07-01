@@ -824,9 +824,13 @@ void MCScreenDC::closewindow(Window window)
         MCdispatcher->wclose(t_popover->getwindowalways());
     }
 
-    // If the popover itself is being closed, clear tracking state.
+    // If the popover itself is being closed, release the pointer grab and
+    // clear tracking state.
     if (MCpopoverstack != nullptr && MCpopoverstack->getwindowalways() == window)
     {
+        GdkDisplay *t_dpy  = gdk_window_get_display(window);
+        GdkSeat    *t_seat = gdk_display_get_default_seat(t_dpy);
+        gdk_seat_ungrab(t_seat);
         MCpopoverstack = nullptr;
         MCpopoverparentstack = nullptr;
     }

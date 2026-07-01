@@ -313,6 +313,10 @@ void safe_gdk_event_free(GdkEvent *event)
             
         case GDK_GRAB_BROKEN:
             event->grab_broken.grab_window = NULL;
+            // If another client stole our pointer grab while a popover is open,
+            // dismiss the popover so it doesn't stay visible with no grab.
+            if (!event->grab_broken.keyboard && MCpopoverstack != nullptr)
+                MCdispatcher->wclose(MCpopoverstack->getwindowalways());
             break;
             
         default:
@@ -672,9 +676,26 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
             case GDK_SCROLL:
             case GDK_BUTTON_PRESS:
             {
+                // WM_POPOVER dismiss: if a popover is open and the button press
+                // lands outside its window, close the popover first then let the
+                // event propagate normally.  We hold a seat grab while the popover
+                // is open, so button events outside our application still reach us.
+                if (t_event->type == GDK_BUTTON_PRESS &&
+                    MCpopoverstack != nullptr &&
+                    t_event->button.window != MCpopoverstack->getwindowalways())
+                {
+                    Window t_popover_win = MCpopoverstack->getwindowalways();
+                    GdkDisplay *t_dpy    = gdk_window_get_display(t_popover_win);
+                    GdkSeat    *t_seat   = gdk_display_get_default_seat(t_dpy);
+                    gdk_seat_ungrab(t_seat);          // release before dispatching
+                    MCdispatcher->wclose(t_popover_win);
+                    // Fall through so the click that triggered the dismiss is
+                    // still delivered to whatever was clicked.
+                }
+
                 // We're not dragging
                 dragclick = false;
-                
+
                 // Update the mouse button status
                 if (t_event->type == GDK_BUTTON_PRESS)
                     setmods(t_event->button.state, 0, t_event->button.button, False);

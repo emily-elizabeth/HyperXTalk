@@ -489,10 +489,10 @@ void MCStack::sethints()
             break;
 
         case WM_POPOVER:
-            // A popover is a floating panel, not a transient menu.  Use UTILITY
-            // so that compositors apply a proper drop-shadow and focus handling
-            // is not suppressed the way it is for POPUP_MENU windows.
-            t_type_hint = GDK_WINDOW_TYPE_HINT_UTILITY;
+            // DROPDOWN_MENU is the hint compositors (picom, mutter, kwin) use
+            // to decide whether to apply a drop-shadow to override-redirect
+            // windows.  UTILITY is typically not shadowed when override-redirect.
+            t_type_hint = GDK_WINDOW_TYPE_HINT_DROPDOWN_MENU;
             break;
 
         case WM_COMBO:
@@ -924,6 +924,22 @@ void MCStack::platform_openwindow(Boolean override)
 		setgeom();
 		MCscreen -> openwindow(window, override);
 		setmodalhints();
+
+		// WM_POPOVER: grab the pointer so button presses outside the popover
+		// window are still delivered to our event loop.  owner_events=TRUE means
+		// events inside any of our windows are delivered normally; only events
+		// outside our application windows are redirected to the popover window.
+		// This lets the main stack still receive mouse-move events while the
+		// popover is open, and lets us detect the outside click to dismiss.
+		if (getmode() == WM_POPOVER && window != nullptr)
+		{
+			GdkDisplay *t_dpy  = gdk_window_get_display(window);
+			GdkSeat    *t_seat = gdk_display_get_default_seat(t_dpy);
+			gdk_seat_grab(t_seat, window,
+			              GDK_SEAT_CAPABILITY_ALL_POINTING,
+			              TRUE,   // owner_events
+			              NULL, NULL, NULL, NULL);
+		}
 	}
 }
 
