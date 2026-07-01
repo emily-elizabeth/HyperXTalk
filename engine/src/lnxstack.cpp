@@ -92,8 +92,9 @@ static uint2 nwait;
 ////////////////////////////////////////////////////////////////////////////////
 
 // GTK widget handles and last-frame pixbuf for the active popover.
-static GtkWidget  *s_popover_proxy      = nullptr; // transparent proxy GtkWindow
-static GtkWidget  *s_popover_widget     = nullptr; // the GtkPopover
+static GtkWidget  *s_popover_proxy      = nullptr; // transparent proxy GtkWindow (full-screen, at 0,0)
+static GtkWidget  *s_popover_fixed      = nullptr; // GtkFixed child of proxy — the relative_to widget
+static GtkWidget  *s_popover_widget     = nullptr; // the GtkPopover (relative_to = s_popover_fixed)
 static GtkWidget  *s_popover_da         = nullptr; // GtkDrawingArea (content area)
 static GdkPixbuf  *s_popover_pixbuf     = nullptr; // last rendered frame
 // Pointer to MCStack::window for the active popover.  Taken with &window inside
@@ -155,7 +156,8 @@ void MCLinuxPopoverClose(void)
         gtk_widget_destroy(s_popover_proxy);
         s_popover_proxy = nullptr;
     }
-    s_popover_da = nullptr;
+    s_popover_fixed = nullptr;
+    s_popover_da    = nullptr;
 }
 
 // -- tperry 12-11-2025: Helper to convert bitmap pixmap to cairo_region_t for window shapes
@@ -381,27 +383,48 @@ void MCStack::realize()
 				gtk_widget_destroy(s_popover_proxy);
 				s_popover_proxy = nullptr;
 			}
-			s_popover_da = nullptr;
+			s_popover_fixed = nullptr;
+			s_popover_da    = nullptr;
 			if (s_popover_pixbuf != nullptr)
 			{
 				g_object_unref(s_popover_pixbuf);
 				s_popover_pixbuf = nullptr;
 			}
 
-			// Build the fresh proxy → popover → drawing-area hierarchy.
+			// Build the fresh proxy → fixed → popover → drawing-area hierarchy.
+			//
+			// IMPORTANT: gtk_popover_new(relative_to) requires relative_to to be a
+			// child widget INSIDE a GtkWindow — passing the GtkWindow itself fails
+			// GTK's strict ancestor check in _gtk_window_add_popover().
+			// We therefore add a GtkFixed as the sole child of the proxy window and
+			// use that as relative_to.  The proxy is sized to cover the whole screen
+			// and placed at (0,0), so GtkFixed coordinates equal screen coordinates.
+			// gtk_popover_set_pointing_to() can then receive MCpopoveranchor directly.
 			s_popover_proxy = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 			gtk_window_set_decorated(GTK_WINDOW(s_popover_proxy), FALSE);
-			gtk_window_set_default_size(GTK_WINDOW(s_popover_proxy), 1, 1);
-			gtk_window_move(GTK_WINDOW(s_popover_proxy), 0, 0);
+			gtk_window_set_skip_taskbar_hint(GTK_WINDOW(s_popover_proxy), TRUE);
+			gtk_window_set_skip_pager_hint  (GTK_WINDOW(s_popover_proxy), TRUE);
+			gtk_window_set_accept_focus     (GTK_WINDOW(s_popover_proxy), FALSE);
+			gtk_window_set_focus_on_map     (GTK_WINDOW(s_popover_proxy), FALSE);
 			gtk_widget_set_app_paintable(s_popover_proxy, TRUE);
-			// RGBA visual so the proxy is fully transparent.
+			// RGBA visual so the proxy renders fully transparent.
 			GdkScreen *t_gscreen = gtk_widget_get_screen(s_popover_proxy);
 			GdkVisual *t_rgba    = gdk_screen_get_rgba_visual(t_gscreen);
 			if (t_rgba != nullptr)
 				gtk_widget_set_visual(s_popover_proxy, t_rgba);
+			// Cover the whole screen so any anchor coordinate is valid in fixed-space.
+			gint t_sw = gdk_screen_get_width(t_gscreen);
+			gint t_sh = gdk_screen_get_height(t_gscreen);
+			gtk_window_set_default_size(GTK_WINDOW(s_popover_proxy), t_sw, t_sh);
+			gtk_window_move(GTK_WINDOW(s_popover_proxy), 0, 0);
 
-			// GtkPopover relative to the proxy window.
-			s_popover_widget = gtk_popover_new(s_popover_proxy);
+			// GtkFixed fills the proxy — this is the relative_to widget.
+			// Its coordinate space == screen coordinates (proxy is at 0,0).
+			s_popover_fixed = gtk_fixed_new();
+			gtk_container_add(GTK_CONTAINER(s_popover_proxy), s_popover_fixed);
+
+			// GtkPopover relative to the fixed widget (a proper child of the window).
+			s_popover_widget = gtk_popover_new(s_popover_fixed);
 			gtk_popover_set_modal(GTK_POPOVER(s_popover_widget), TRUE);
 
 			// Preferred position from MCpopoveredge.
@@ -430,10 +453,11 @@ void MCStack::realize()
 
 			// Realize the hierarchy to create GdkWindows (without mapping).
 			gtk_widget_realize(s_popover_proxy);
+			gtk_widget_realize(s_popover_fixed);
 			gtk_widget_realize(s_popover_widget);
 			gtk_widget_realize(s_popover_da);
 
-			// Zero the input shape so the proxy never intercepts events.
+			// Zero the input shape so the proxy never steals pointer events.
 			cairo_region_t *t_empty = cairo_region_create();
 			gdk_window_input_shape_combine_region(
 				gtk_widget_get_window(s_popover_proxy), t_empty, 0, 0);
