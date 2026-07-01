@@ -53,6 +53,10 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "license.h"
 #include "revbuild.h"
 
+// Tears down the native GtkPopover hierarchy created in lnxstack.cpp::realize().
+// MCpopoverstack must be nulled before calling so on_popover_closed() is a no-op.
+extern void MCLinuxPopoverClose(void);
+
 #include <langinfo.h>
 #include <fcntl.h>
 #include <sys/shm.h>
@@ -824,15 +828,17 @@ void MCScreenDC::closewindow(Window window)
         MCdispatcher->wclose(t_popover->getwindowalways());
     }
 
-    // If the popover itself is being closed, release the pointer grab and
-    // clear tracking state.
+    // If the popover itself is being closed, tear down the GTK hierarchy.
     if (MCpopoverstack != nullptr && MCpopoverstack->getwindowalways() == window)
     {
-        GdkDisplay *t_dpy  = gdk_window_get_display(window);
-        GdkSeat    *t_seat = gdk_display_get_default_seat(t_dpy);
-        gdk_seat_ungrab(t_seat);
-        MCpopoverstack = nullptr;
+        MCpopoverstack = nullptr;          // null first so on_popover_closed is a no-op
         MCpopoverparentstack = nullptr;
+        // MCLinuxPopoverClose() nulls MCStack::window via s_popover_window_ptr
+        // (a &window pointer stored in realize()) before calling gtk_widget_destroy,
+        // so MCStack::destroywindow()'s `if (window == nil)` guard fires cleanly.
+        MCLinuxPopoverClose();
+        // Do NOT call gdk_window_hide() — the GdkWindow belongs to GTK.
+        return;
     }
 
 	gdk_window_hide(window);
@@ -851,11 +857,14 @@ void MCScreenDC::destroywindow(Window &window)
         MCdispatcher->wclose(t_popover->getwindowalways());
     }
 
-    // If the popover itself is being destroyed, clear tracking state.
+    // If the popover itself is being destroyed, tear down the GTK hierarchy.
     if (MCpopoverstack != nullptr && MCpopoverstack->getwindowalways() == window)
     {
         MCpopoverstack = nullptr;
         MCpopoverparentstack = nullptr;
+        window = DNULL;                    // GdkWindow is GTK-owned; null before destroy
+        MCLinuxPopoverClose();
+        return;
     }
 
 	gdk_window_destroy(window);

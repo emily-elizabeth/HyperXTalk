@@ -67,15 +67,96 @@ static uint2 calldepth;
 static uint2 nwait;
 
 ////////////////////////////////////////////////////////////////////////////////
-// WM_POPOVER support
+// WM_POPOVER support — native GtkPopover
 //
-// WM_POPOVER uses the same GDK_WINDOW_TOPLEVEL + override-redirect path as
-// WM_PULLDOWN/WM_POPUP menus.  Positioning is computed by positionrel() in
-// openrect() before openwindow() is called, so the normal setgeom() /
-// MCscreen->openwindow() chain handles geometry and gdk_window_show() just
-// like every other popup mode.  MCpopoverstack is set in platform_openwindow()
-// so that closewindow() can clean up when the popover is dismissed.
+// Architecture:
+//   MCStack::realize() creates a lightweight GTK hierarchy:
+//     proxy GtkWindow  (1×1, screen origin, input pass-through)
+//     └── GtkPopover   (relative_to=proxy; pointing_to set at show time)
+//         └── GtkDrawingArea  (engine renders here via "draw" signal bridge)
+//
+//   MCStack::window is set to gtk_widget_get_window(drawing_area).
+//   The engine renders into it by:
+//     1. Unlock() saves the rendered GdkPixbuf in s_popover_pixbuf and calls
+//        gtk_widget_queue_draw() instead of MCX11PutImage().
+//     2. on_popover_da_draw() blits s_popover_pixbuf via cairo.
+//
+//   platform_openwindow() short-circuits for WM_POPOVER:
+//     sets pointing_to = MCpopoveranchor (in screen coords == proxy coords),
+//     then calls gtk_popover_popup().  GtkPopover handles its own grab and
+//     outside-click dismiss.  on_popover_closed() drives wclose() when GTK
+//     dismisses the popover.
+//
+//   MCLinuxPopoverClose() (called from lnxdcs.cpp closewindow/destroywindow)
+//     tears down the GTK hierarchy and releases the pixbuf ref.
 ////////////////////////////////////////////////////////////////////////////////
+
+// GTK widget handles and last-frame pixbuf for the active popover.
+static GtkWidget  *s_popover_proxy      = nullptr; // transparent proxy GtkWindow
+static GtkWidget  *s_popover_widget     = nullptr; // the GtkPopover
+static GtkWidget  *s_popover_da         = nullptr; // GtkDrawingArea (content area)
+static GdkPixbuf  *s_popover_pixbuf     = nullptr; // last rendered frame
+// Pointer to MCStack::window for the active popover.  Taken with &window inside
+// realize() (an MCStack member — protected access is legal there), then used by
+// MCLinuxPopoverClose() to null the field before GTK destroys the GdkWindow,
+// preventing a double-free when MCStack::destroywindow() runs later.
+static GdkWindow **s_popover_window_ptr = nullptr;
+
+// GTK "draw" signal callback: blit the engine's latest frame into the DA.
+static gboolean on_popover_da_draw(GtkWidget * /*widget*/, cairo_t *cr, gpointer /*data*/)
+{
+    if (s_popover_pixbuf != nullptr)
+    {
+        gdk_cairo_set_source_pixbuf(cr, s_popover_pixbuf, 0, 0);
+        cairo_paint(cr);
+    }
+    return FALSE;
+}
+
+// GtkPopover "closed" signal callback: GTK dismissed the popover, drive close.
+static void on_popover_closed(GtkPopover * /*popover*/, gpointer /*data*/)
+{
+    if (MCpopoverstack == nullptr)
+        return; // already handled (programmatic close in flight)
+    // Null before wclose so closewindow() sees it as already dismissed.
+    s_popover_widget = nullptr;
+    MCdispatcher->wclose(MCpopoverstack->getwindowalways());
+}
+
+// Tear down the native GtkPopover hierarchy.  Called from closewindow() and
+// destroywindow() in lnxdcs.cpp.  MCpopoverstack must be nulled by the caller
+// first so on_popover_closed() is a no-op if GTK fires "closed" during popdown.
+void MCLinuxPopoverClose(void)
+{
+    if (s_popover_pixbuf != nullptr)
+    {
+        g_object_unref(s_popover_pixbuf);
+        s_popover_pixbuf = nullptr;
+    }
+    // If GTK hasn't dismissed yet (programmatic close), do it now.
+    // s_popover_widget is nulled by on_popover_closed() before wclose() is
+    // called, so a non-null value here means the popover is still visible.
+    if (s_popover_widget != nullptr)
+    {
+        gtk_popover_popdown(GTK_POPOVER(s_popover_widget));
+        s_popover_widget = nullptr;
+    }
+    // Null MCStack::window BEFORE gtk_widget_destroy destroys the GdkWindow.
+    // We stored &window (protected) from within realize() (an MCStack member),
+    // so dereferencing here is safe.  MCStack::destroywindow() checks
+    // `if (window == nil) return;` and will skip gdk_window_destroy() cleanly.
+    if (s_popover_window_ptr != nullptr)
+    {
+        *s_popover_window_ptr = nullptr;
+        s_popover_window_ptr = nullptr;
+    }
+    if (s_popover_proxy != nullptr)
+    {
+        gtk_widget_destroy(s_popover_proxy);
+        s_popover_proxy = nullptr;
+    }
+    s_popover_da = nullptr;
+}
 
 // -- tperry 12-11-2025: Helper to convert bitmap pixmap to cairo_region_t for window shapes
 static cairo_region_t* pixmap_to_region(Pixmap p_pixmap, uint32_t p_width, uint32_t p_height)
@@ -266,7 +347,76 @@ void MCStack::realize()
 
 		if (window == nullptr)
 		{
-			// All window modes (including WM_POPOVER) use a GDK_WINDOW_TOPLEVEL.
+			if (getmode() == WM_POPOVER)
+			{
+				// Native GtkPopover path.
+				//
+				// Proxy window: 1×1, at screen (0,0), input pass-through.
+				// Because the proxy is at the screen origin, widget coordinates
+				// equal screen coordinates, so we can pass MCpopoveranchor
+				// directly to gtk_popover_set_pointing_to() without translation.
+				s_popover_proxy = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+				gtk_window_set_decorated(GTK_WINDOW(s_popover_proxy), FALSE);
+				gtk_window_set_default_size(GTK_WINDOW(s_popover_proxy), 1, 1);
+				gtk_window_move(GTK_WINDOW(s_popover_proxy), 0, 0);
+				gtk_widget_set_app_paintable(s_popover_proxy, TRUE);
+				// RGBA visual so the proxy is fully transparent.
+				GdkScreen *t_gscreen = gtk_widget_get_screen(s_popover_proxy);
+				GdkVisual *t_rgba    = gdk_screen_get_rgba_visual(t_gscreen);
+				if (t_rgba != nullptr)
+					gtk_widget_set_visual(s_popover_proxy, t_rgba);
+
+				// GtkPopover relative to the proxy window.
+				s_popover_widget = gtk_popover_new(s_popover_proxy);
+				gtk_popover_set_modal(GTK_POPOVER(s_popover_widget), TRUE);
+
+				// Preferred position from MCpopoveredge.
+				GtkPositionType t_pos = GTK_POS_BOTTOM;
+				switch (MCpopoveredge)
+				{
+					case KMCPlatformWindowEdgeTop:   t_pos = GTK_POS_TOP;    break;
+					case kMCPlatformWindowEdgeLeft:  t_pos = GTK_POS_LEFT;   break;
+					case kMCPlatformWindowEdgeRight: t_pos = GTK_POS_RIGHT;  break;
+					default:                         t_pos = GTK_POS_BOTTOM; break;
+				}
+				gtk_popover_set_position(GTK_POPOVER(s_popover_widget), t_pos);
+
+				// GtkDrawingArea sized to the popover stack's content.
+				MCRectangle t_rect = MCscreen->logicaltoscreenrect(view_getrect());
+				if (t_rect.width  == 0) t_rect.width  = MCminsize << 4;
+				if (t_rect.height == 0) t_rect.height = MCminsize << 3;
+				s_popover_da = gtk_drawing_area_new();
+				gtk_widget_set_size_request(s_popover_da, t_rect.width, t_rect.height);
+				gtk_container_add(GTK_CONTAINER(s_popover_widget), s_popover_da);
+
+				// Draw callback blits s_popover_pixbuf (saved in Unlock()).
+				g_signal_connect(s_popover_da,     "draw",   G_CALLBACK(on_popover_da_draw), nullptr);
+				// Closed callback drives engine wclose() when GTK dismisses.
+				g_signal_connect(s_popover_widget, "closed", G_CALLBACK(on_popover_closed),  nullptr);
+
+				// Realize the hierarchy to create GdkWindows (without mapping).
+				gtk_widget_realize(s_popover_proxy);
+				gtk_widget_realize(s_popover_widget);
+				gtk_widget_realize(s_popover_da);
+
+				// Zero the input shape so the proxy never intercepts events.
+				cairo_region_t *t_empty = cairo_region_create();
+				gdk_window_input_shape_combine_region(
+					gtk_widget_get_window(s_popover_proxy), t_empty, 0, 0);
+				cairo_region_destroy(t_empty);
+
+				// Engine renders into the drawing area's GdkWindow.
+				window = gtk_widget_get_window(s_popover_da);
+				// Store &window so MCLinuxPopoverClose() can null it (protected access
+				// is legal here — realize() is an MCStack member function).
+				s_popover_window_ptr = &window;
+
+				gdk_display_sync(MCdpy);
+				start_externals();
+				return;
+			}
+
+			// All other modes: raw GDK_WINDOW_TOPLEVEL.
 			// For WM_POPOVER, sethints() sets override-redirect so it behaves
 			// like a popup menu — positioned precisely, no WM decoration.
 			GdkWindowAttr gdkwa;
@@ -807,6 +957,13 @@ MCRectangle MCStack::view_device_setgeom(const MCRectangle &p_rect,
     MCRectangle t_old_rect;
     t_old_rect = MCU_make_rect(t_root_x, t_root_y, t_width, t_height);
 
+    // For WM_POPOVER with native GtkPopover, the drawing area's GdkWindow is
+    // a child managed entirely by GTK.  gdk_window_move_resize() with screen
+    // coordinates would misplace it within the popover interior.  GTK handles
+    // positioning via gtk_popover_set_pointing_to() in platform_openwindow().
+    if (getmode() == WM_POPOVER && s_popover_da != nullptr)
+        return t_old_rect;
+
     // Menus, popups, popovers, and tooltips are all self-positioned — either
     // because they're override-redirect (WM never sees them) or because the
     // engine computes the exact anchor-relative position.  Bypass F_WM_PLACE
@@ -914,9 +1071,28 @@ void MCStack::platform_openwindow(Boolean override)
 {
 	if (MCModeMakeLocalWindows())
 	{
-		// Track the active popover so closewindow() can clean up.
 		if (getmode() == WM_POPOVER)
+		{
+			// Native GtkPopover path.  Track the active popover, set the
+			// pointing_to rect, then let GTK show and grab.
 			MCpopoverstack = this;
+
+			// The proxy GtkWindow is at screen (0,0), so widget coords are
+			// screen coords — pass MCpopoveranchor directly.
+			GdkRectangle t_anchor;
+			t_anchor.x      = MCpopoveranchor.x;
+			t_anchor.y      = MCpopoveranchor.y;
+			t_anchor.width  = (MCpopoveranchor.width  > 0) ? MCpopoveranchor.width  : 1;
+			t_anchor.height = (MCpopoveranchor.height > 0) ? MCpopoveranchor.height : 1;
+			gtk_popover_set_pointing_to(GTK_POPOVER(s_popover_widget), &t_anchor);
+
+			// Map the proxy and show the popover.
+			// gtk_popover_popup() maps + grabs; GtkPopover handles outside-click
+			// dismiss natively and emits "closed" → on_popover_closed().
+			gtk_widget_show_all(s_popover_proxy);
+			gtk_popover_popup(GTK_POPOVER(s_popover_widget));
+			return;
+		}
 
 		// MW-2010-11-29: Make sure we reset the geometry on the window before
 		//   it gets mapped - otherwise we will get upward drift due to StaticGravity
@@ -924,22 +1100,6 @@ void MCStack::platform_openwindow(Boolean override)
 		setgeom();
 		MCscreen -> openwindow(window, override);
 		setmodalhints();
-
-		// WM_POPOVER: grab the pointer so button presses outside the popover
-		// window are still delivered to our event loop.  owner_events=TRUE means
-		// events inside any of our windows are delivered normally; only events
-		// outside our application windows are redirected to the popover window.
-		// This lets the main stack still receive mouse-move events while the
-		// popover is open, and lets us detect the outside click to dismiss.
-		if (getmode() == WM_POPOVER && window != nullptr)
-		{
-			GdkDisplay *t_dpy  = gdk_window_get_display(window);
-			GdkSeat    *t_seat = gdk_display_get_default_seat(t_dpy);
-			gdk_seat_grab(t_seat, window,
-			              GDK_SEAT_CAPABILITY_ALL_POINTING,
-			              TRUE,   // owner_events
-			              NULL, NULL, NULL, NULL);
-		}
 	}
 }
 
@@ -1153,14 +1313,29 @@ public:
 				surface_merge_with_alpha(m_raster.pixels, m_raster.stride, t_src_ptr, t_mask -> stride, t_width, t_height);
 			}
 
-		cairo_region_t* t_region;
-		t_region = nil;
+		if (m_stack->getmode() == WM_POPOVER && s_popover_da != nullptr)
+		{
+			// Pixbuf bridge: save the rendered frame and ask GTK to redraw.
+			// The "draw" signal callback (on_popover_da_draw) blits it via
+			// cairo.  We must NOT call MCX11PutImage() here — GtkPopover's
+			// own draw dispatch owns the cairo context for this GdkWindow.
+			if (s_popover_pixbuf != nullptr)
+				g_object_unref(s_popover_pixbuf);
+			g_object_ref(m_bitmap);
+			s_popover_pixbuf = m_bitmap;
+			gtk_widget_queue_draw(s_popover_da);
+		}
+		else
+		{
+			cairo_region_t* t_region;
+			t_region = nil;
 
-		/* UNCHECKED */ MCLinuxMCGRegionToRegion(m_region, t_region);
+			/* UNCHECKED */ MCLinuxMCGRegionToRegion(m_region, t_region);
 
-		MCX11PutImage(((MCScreenDC*)MCscreen)->getDisplay(), m_stack->getwindow(), t_region, m_bitmap, 0, 0, m_area.origin.x, m_area.origin.y, m_area.size.width, m_area.size.height);
+			MCX11PutImage(((MCScreenDC*)MCscreen)->getDisplay(), m_stack->getwindow(), t_region, m_bitmap, 0, 0, m_area.origin.x, m_area.origin.y, m_area.size.width, m_area.size.height);
 
-		MCLinuxRegionDestroy(t_region);
+			MCLinuxRegionDestroy(t_region);
+		}
 		}
 
 		((MCScreenDC*)MCscreen)->destroyimage(m_bitmap);
