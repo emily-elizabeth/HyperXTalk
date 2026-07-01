@@ -1747,18 +1747,14 @@ void MCDispatch::wmdrag(Window w)
         
         // Begin the drag-drop modal loop
 		MCdragaction = MCscreen -> dodragdrop(w, MCallowabledragactions, t_image, t_image != NULL ? &MCdragimageoffset : NULL);
-        fprintf(stderr, "DND caller: dodragdrop returned MCdragaction=%d\n", (int)MCdragaction);
 
         // Perform the drop operation.
 		dodrop(true);
-        fprintf(stderr, "DND caller: dodrop(true) returned\n");
 
         // Clear the drag board as its contents are no longer required. A manual
         // push is required as the drag board doesn't update automatically.
         MCdragboard->Clear();
-        fprintf(stderr, "DND caller: Clear() returned\n");
         MCdragboard->PushUpdates(true);
-        fprintf(stderr, "DND caller: PushUpdates(true) returned\n");
 
 		MCdragsource = nil;
 		MCdragdest = nil;
