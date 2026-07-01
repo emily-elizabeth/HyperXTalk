@@ -524,6 +524,22 @@ void MCStack::realize()
 			if (t_rect.height == 0) t_rect.height = MCminsize << 3;
 			s_popover_da = gtk_drawing_area_new();
 			gtk_widget_set_size_request(s_popover_da, t_rect.width, t_rect.height);
+			// GtkDrawingArea requests no input events by default.  Without an
+			// explicit event mask, X11 delivers button press / motion / etc. to
+			// the nearest ancestor (W2, the popover GdkWindow) instead of W3
+			// (the DA GdkWindow).  MCdispatcher only knows about W3, so wmdown /
+			// wmfocus on W2 would return nullptr and nothing would fire.  Request
+			// the full set of pointer and keyboard events the engine needs.
+			gtk_widget_add_events(s_popover_da,
+				GDK_BUTTON_PRESS_MASK   |
+				GDK_BUTTON_RELEASE_MASK |
+				GDK_POINTER_MOTION_MASK |
+				GDK_BUTTON_MOTION_MASK  |
+				GDK_ENTER_NOTIFY_MASK   |
+				GDK_LEAVE_NOTIFY_MASK   |
+				GDK_KEY_PRESS_MASK      |
+				GDK_KEY_RELEASE_MASK    |
+				GDK_SCROLL_MASK);
 			gtk_container_add(GTK_CONTAINER(s_popover_widget), s_popover_da);
 
 			// Proxy draw: clear to transparent so it doesn't paint an opaque
