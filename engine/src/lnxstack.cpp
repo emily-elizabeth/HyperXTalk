@@ -149,8 +149,32 @@ static gboolean on_popover_da_draw(GtkWidget *widget, cairo_t *cr, gpointer /*da
     }
     if (s_popover_pixbuf != nullptr)
     {
-        gdk_cairo_set_source_pixbuf(cr, s_popover_pixbuf, 0, 0);
-        cairo_paint(cr);
+        // Do NOT use gdk_cairo_set_source_pixbuf() here.
+        //
+        // The engine renders via LockPixels (kMCGRasterFormat_xRGB): it writes
+        // [Blue, Green, Red] bytes but leaves the 4th byte untouched.
+        // gdk_pixbuf_new() zero-initialises pixel memory, so alpha bytes are 0.
+        // gdk_cairo_set_source_pixbuf() treats the buffer as non-premultiplied
+        // RGBA and premultiplies by A=0 → every pixel becomes (0,0,0,0) →
+        // cairo_paint() composites nothing → blank content area.
+        //
+        // Instead: create a temporary cairo_image_surface_t over the same pixel
+        // data declared as CAIRO_FORMAT_RGB24 (no alpha channel, all pixels
+        // treated as fully opaque).  On little-endian the byte layout of
+        // CAIRO_FORMAT_RGB24 is [B, G, R, padding] — exactly the engine's xRGB
+        // output — so channel order is correct with no conversion needed.
+        guchar         *t_px     = gdk_pixbuf_get_pixels(s_popover_pixbuf);
+        int             t_w      = gdk_pixbuf_get_width(s_popover_pixbuf);
+        int             t_h      = gdk_pixbuf_get_height(s_popover_pixbuf);
+        int             t_stride = gdk_pixbuf_get_rowstride(s_popover_pixbuf);
+        cairo_surface_t *t_surf  = cairo_image_surface_create_for_data(
+                t_px, CAIRO_FORMAT_RGB24, t_w, t_h, t_stride);
+        if (cairo_surface_status(t_surf) == CAIRO_STATUS_SUCCESS)
+        {
+            cairo_set_source_surface(cr, t_surf, 0, 0);
+            cairo_paint(cr);
+        }
+        cairo_surface_destroy(t_surf); // releases the surface wrapper, not the pixel data
     }
     return FALSE;
 }
