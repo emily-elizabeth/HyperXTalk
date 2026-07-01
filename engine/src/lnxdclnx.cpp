@@ -714,10 +714,13 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         Window t_popover_win = MCpopoverstack->getwindowalways();
                         GdkDisplay *t_dpy    = gdk_window_get_display(t_popover_win);
                         GdkSeat    *t_seat   = gdk_display_get_default_seat(t_dpy);
-                        gdk_seat_ungrab(t_seat);      // release before dispatching
+                        gdk_seat_ungrab(t_seat);      // no-op if no grab; harmless
                         MCdispatcher->wclose(t_popover_win);
-                        // Fall through so the click that triggered the dismiss is
-                        // still delivered to whatever was clicked.
+                        // wclose() → MCLinuxPopoverClose() destroys the proxy and
+                        // all its GdkWindows.  Do NOT fall through: the event's
+                        // window pointer is now dangling.  The dismiss click is
+                        // consumed (standard popover behaviour).
+                        break;
                     }
                 }
 

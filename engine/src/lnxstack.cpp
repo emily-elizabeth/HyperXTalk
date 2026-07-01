@@ -499,7 +499,13 @@ void MCStack::realize()
 
 			// GtkPopover relative to the fixed widget (a proper child of the window).
 			s_popover_widget = gtk_popover_new(s_popover_fixed);
-			gtk_popover_set_modal(GTK_POPOVER(s_popover_widget), TRUE);
+			// modal=FALSE: disable GTK's built-in auto-dismiss handler.
+			// GTK's handler fires on button-press when event->window != W2
+			// (the popover's own GdkWindow), which includes the DA (W3) — so it
+			// dismisses on every inside click.  We manage dismissal ourselves:
+			// the full-screen proxy (override-redirect, no empty input shape)
+			// intercepts all outside clicks; lnxdclnx.cpp drives wclose().
+			gtk_popover_set_modal(GTK_POPOVER(s_popover_widget), FALSE);
 
 			// Preferred position from MCpopoveredge.
 			GtkPositionType t_pos = GTK_POS_BOTTOM;
@@ -541,11 +547,11 @@ void MCStack::realize()
 			// (a sub-window of the proxy) is never visible.
 			gdk_window_set_override_redirect(gtk_widget_get_window(s_popover_proxy), TRUE);
 
-			// Zero the input shape so the proxy never steals pointer events.
-			cairo_region_t *t_empty = cairo_region_create();
-			gdk_window_input_shape_combine_region(
-				gtk_widget_get_window(s_popover_proxy), t_empty, 0, 0);
-			cairo_region_destroy(t_empty);
+			// The proxy covers the full screen with override-redirect, so it
+			// physically intercepts all pointer events outside the popover area.
+			// We rely on this to detect outside clicks — do NOT set an empty input
+			// shape here; that would make the proxy pass-through and we would
+			// never receive the GDK_BUTTON_PRESS events needed for dismiss logic.
 
 			// Engine renders into the drawing area's GdkWindow.
 			window = gtk_widget_get_window(s_popover_da);
@@ -1251,8 +1257,11 @@ void MCStack::platform_openwindow(Boolean override)
 			gtk_popover_set_pointing_to(GTK_POPOVER(s_popover_widget), &t_anchor);
 
 			// Map the proxy and show the popover.
-			// gtk_popover_popup() maps + grabs; GtkPopover handles outside-click
-			// dismiss natively and emits "closed" → on_popover_closed().
+			// gtk_popover_popup() maps the popover.  With modal=FALSE, GTK does
+			// NOT install a grab or auto-dismiss handler.  Outside-click dismiss
+			// is driven by lnxdclnx.cpp: the full-screen proxy (override-redirect,
+			// no empty input shape) intercepts all outside clicks, which our
+			// GDK_BUTTON_PRESS handler detects via a GdkWindow parent-chain walk.
 			//
 			// gtk_widget_show_all(proxy) only iterates the proxy's normal widget
 			// tree (proxy→GtkFixed).  GtkPopover is registered as a popup of the
