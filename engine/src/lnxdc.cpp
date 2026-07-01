@@ -315,7 +315,12 @@ bool MCScreenDC::platform_getdisplays(bool p_effective, MCDisplay *&r_displays, 
 	return device_getdisplays(p_effective, r_displays, r_display_count);
 }
 
-bool MCScreenDC::device_getdisplays(bool p_effective, MCDisplay * &r_displays, uint32_t &r_display_count)
+// p_effective is not used here: both MCDisplay::viewport (full geometry) and
+// MCDisplay::workarea (taskbar-excluded) are always populated.  The superclass
+// (MCUIDC::getdisplays) uses p_effective solely for cache invalidation and
+// callers read whichever field they need.  This matches all other platform
+// implementations (Windows, Android, etc.).
+bool MCScreenDC::device_getdisplays(bool /*p_effective*/, MCDisplay * &r_displays, uint32_t &r_display_count)
 {
     // GTK3: enumerate monitors via the display, not via a GdkScreen
     gint t_monitor_count;
