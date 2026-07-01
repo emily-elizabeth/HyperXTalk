@@ -71,9 +71,11 @@ static uint2 nwait;
 //
 // Architecture:
 //   MCStack::realize() creates a lightweight GTK hierarchy:
-//     proxy GtkWindow  (1×1, screen origin, input pass-through)
-//     └── GtkPopover   (relative_to=proxy; pointing_to set at show time)
-//         └── GtkDrawingArea  (engine renders here via "draw" signal bridge)
+//     proxy GtkWindow  (full-screen, at screen origin, override-redirect,
+//                       input shape = empty so it never steals pointer events)
+//     └── GtkFixed     (relative_to for the popover; coords == screen coords)
+//         └── GtkPopover   (pointing_to = MCpopoveranchor set at show time)
+//             └── GtkDrawingArea  (engine renders here via "draw" signal bridge)
 //
 //   MCStack::window is set to gtk_widget_get_window(drawing_area).
 //   The engine renders into it by:
@@ -102,6 +104,10 @@ static GdkPixbuf  *s_popover_pixbuf     = nullptr; // last rendered frame
 // MCLinuxPopoverClose() to null the field before GTK destroys the GdkWindow,
 // preventing a double-free when MCStack::destroywindow() runs later.
 static GdkWindow **s_popover_window_ptr = nullptr;
+// Re-entrancy guard for on_popover_da_draw(): prevents a recursive "draw"
+// signal (e.g. if Unlock()'s gtk_widget_queue_draw fires before GTK finishes
+// the current draw dispatch) from launching a second onexpose() call.
+static bool        s_popover_drawing     = false;
 
 // GTK "draw" signal callback: clear the proxy window to fully transparent.
 // Without this, GTK's theme engine paints an opaque background, hiding
@@ -115,8 +121,32 @@ static gboolean on_popover_proxy_draw(GtkWidget * /*widget*/, cairo_t *cr, gpoin
 }
 
 // GTK "draw" signal callback: blit the engine's latest frame into the DA.
-static gboolean on_popover_da_draw(GtkWidget * /*widget*/, cairo_t *cr, gpointer /*data*/)
+//
+// GTK3 converts expose events for widget GdkWindows into "draw" signals before
+// they reach the GDK event queue, so the engine's expose() loop never sees them
+// and Unlock() is not called before the first draw.  We therefore bootstrap the
+// initial render here: if no pixbuf has been stored yet, drive onexpose()
+// synchronously so we have pixels to blit on the very first "draw".
+//
+// s_popover_drawing prevents re-entrant renders if Unlock()'s
+// gtk_widget_queue_draw() somehow fires another "draw" before this one returns.
+static gboolean on_popover_da_draw(GtkWidget *widget, cairo_t *cr, gpointer /*data*/)
 {
+    if (!s_popover_drawing && s_popover_pixbuf == nullptr
+            && MCpopoverstack != nullptr && s_popover_da != nullptr)
+    {
+        s_popover_drawing = true;
+        int t_w = gtk_widget_get_allocated_width(widget);
+        int t_h = gtk_widget_get_allocated_height(widget);
+        if (t_w > 0 && t_h > 0)
+        {
+            cairo_rectangle_int_t t_crect = { 0, 0, t_w, t_h };
+            cairo_region_t *t_region = cairo_region_create_rectangle(&t_crect);
+            MCpopoverstack->onexpose((MCRegionRef)t_region);
+            cairo_region_destroy(t_region);
+        }
+        s_popover_drawing = false;
+    }
     if (s_popover_pixbuf != nullptr)
     {
         gdk_cairo_set_source_pixbuf(cr, s_popover_pixbuf, 0, 0);
