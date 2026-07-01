@@ -403,12 +403,15 @@ MCGFloat MCLinuxGetLogicalToScreenScale(void)
     if (!MCResGetUsePixelScaling())
         return 1.0;
 
-    // Use the default GDK display rather than MCScreenDC::dpy so this free
-    // function can be called before MCScreenDC::open() (MCResInitPixelScaling
-    // is called twice in globals.cpp: once before and once after open()).
-    // gdk_display_get_default() returns NULL until gdk_display_open() runs,
-    // in which case we fall back to 1.0 — the second post-open call then
-    // picks up the real monitor scale.
+    // MCResInitPixelScaling() is called twice in globals.cpp: once before
+    // MCScreenDC::open() and once after.  The first call arrives before GTK
+    // has been initialised, so gdk_display_get_default() returns NULL —
+    // 1.0 is the correct safe default for that phase.  A spin-wait would
+    // deadlock: gdk_display_get_default() only becomes non-NULL after
+    // gdk_display_open() runs and there is no event loop to pump while
+    // waiting.  The second call, made after open(), picks up the real monitor
+    // scale.  We use the default display rather than MCScreenDC::dpy so this
+    // free function works correctly in both phases.
     GdkDisplay *t_display = gdk_display_get_default();
     if (t_display == NULL)
         return 1.0;
