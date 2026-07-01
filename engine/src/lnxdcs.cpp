@@ -782,11 +782,6 @@ uint2 MCScreenDC::getvclass()
     }
 }
 
-// Popover helpers defined in lnxstack.cpp.
-extern GdkWindow* MCLinuxPopoverShow(MCStack *p_stack);
-extern void MCLinuxPopoverHide(MCStack *p_stack);
-extern void MCLinuxPopoverDestroy(MCStack *p_stack);
-
 void MCScreenDC::openwindow(Window window, Boolean override)
 {
 	MCStack *target = MCdispatcher->findstackd(window);
@@ -816,7 +811,6 @@ void MCScreenDC::openwindow(Window window, Boolean override)
 
 void MCScreenDC::closewindow(Window window)
 {
-	MCStack *target = MCdispatcher->findstackd(window);
 	MCstacks->enableformodal(window, True);
 
     // If the parent stack for the current popover is being closed, dismiss
@@ -830,20 +824,7 @@ void MCScreenDC::closewindow(Window window)
         MCdispatcher->wclose(t_popover->getwindowalways());
     }
 
-    // WM_POPOVER: hide the GDK_WINDOW_TEMP popup.
-    if (target != nullptr && target->getmode() == WM_POPOVER)
-    {
-        if (MCpopoverstack == target)
-        {
-            MCpopoverstack = nullptr;
-            MCpopoverparentstack = nullptr;
-        }
-        MCLinuxPopoverHide(target);
-        return;
-    }
-
-    // If the popover itself is being closed via the raw GdkWindow path,
-    // clear tracking state (legacy fallback).
+    // If the popover itself is being closed, clear tracking state.
     if (MCpopoverstack != nullptr && MCpopoverstack->getwindowalways() == window)
     {
         MCpopoverstack = nullptr;
@@ -855,8 +836,6 @@ void MCScreenDC::closewindow(Window window)
 
 void MCScreenDC::destroywindow(Window &window)
 {
-    MCStack *target = MCdispatcher->findstackd(window);
-
     // If the parent stack for the current popover is being destroyed, dismiss
     // the popover first so it doesn't outlive its anchor.
     if (MCpopoverstack != nullptr && MCpopoverparentstack != nullptr &&
@@ -868,20 +847,7 @@ void MCScreenDC::destroywindow(Window &window)
         MCdispatcher->wclose(t_popover->getwindowalways());
     }
 
-    // WM_POPOVER: destroy the GDK_WINDOW_TEMP popup.
-    if (target != nullptr && target->getmode() == WM_POPOVER)
-    {
-        if (MCpopoverstack == target)
-        {
-            MCpopoverstack = nullptr;
-            MCpopoverparentstack = nullptr;
-        }
-        MCLinuxPopoverDestroy(target);
-        window = DNULL;
-        return;
-    }
-
-    // Legacy tracking clear for non-GTK popover path.
+    // If the popover itself is being destroyed, clear tracking state.
     if (MCpopoverstack != nullptr && MCpopoverstack->getwindowalways() == window)
     {
         MCpopoverstack = nullptr;
