@@ -103,6 +103,17 @@ static GdkPixbuf  *s_popover_pixbuf     = nullptr; // last rendered frame
 // preventing a double-free when MCStack::destroywindow() runs later.
 static GdkWindow **s_popover_window_ptr = nullptr;
 
+// GTK "draw" signal callback: clear the proxy window to fully transparent.
+// Without this, GTK's theme engine paints an opaque background, hiding
+// everything beneath the full-screen proxy window.
+static gboolean on_popover_proxy_draw(GtkWidget * /*widget*/, cairo_t *cr, gpointer /*data*/)
+{
+    cairo_set_source_rgba(cr, 0, 0, 0, 0);
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+    cairo_paint(cr);
+    return FALSE; // let child widgets (GtkFixed, GtkPopover) draw normally
+}
+
 // GTK "draw" signal callback: blit the engine's latest frame into the DA.
 static gboolean on_popover_da_draw(GtkWidget * /*widget*/, cairo_t *cr, gpointer /*data*/)
 {
@@ -446,16 +457,26 @@ void MCStack::realize()
 			gtk_widget_set_size_request(s_popover_da, t_rect.width, t_rect.height);
 			gtk_container_add(GTK_CONTAINER(s_popover_widget), s_popover_da);
 
+			// Proxy draw: clear to transparent so it doesn't paint an opaque
+			// background over the full screen (RGBA visual alone is not enough
+			// without explicitly clearing the cairo surface to alpha=0).
+			g_signal_connect(s_popover_proxy, "draw",   G_CALLBACK(on_popover_proxy_draw), nullptr);
 			// Draw callback blits s_popover_pixbuf (saved in Unlock()).
-			g_signal_connect(s_popover_da,     "draw",   G_CALLBACK(on_popover_da_draw), nullptr);
+			g_signal_connect(s_popover_da,    "draw",   G_CALLBACK(on_popover_da_draw),    nullptr);
 			// Closed callback drives engine wclose() when GTK dismisses.
-			g_signal_connect(s_popover_widget, "closed", G_CALLBACK(on_popover_closed),  nullptr);
+			g_signal_connect(s_popover_widget,"closed", G_CALLBACK(on_popover_closed),     nullptr);
 
 			// Realize the hierarchy to create GdkWindows (without mapping).
 			gtk_widget_realize(s_popover_proxy);
 			gtk_widget_realize(s_popover_fixed);
 			gtk_widget_realize(s_popover_widget);
 			gtk_widget_realize(s_popover_da);
+
+			// Make the proxy override-redirect so it sits above all WM-managed
+			// windows (including the main HyperXTalk window).  Without this,
+			// the WM places the proxy behind existing windows and the GtkPopover
+			// (a sub-window of the proxy) is never visible.
+			gdk_window_set_override_redirect(gtk_widget_get_window(s_popover_proxy), TRUE);
 
 			// Zero the input shape so the proxy never steals pointer events.
 			cairo_region_t *t_empty = cairo_region_create();
