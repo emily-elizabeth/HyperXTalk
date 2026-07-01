@@ -44,6 +44,10 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include "resolution.h"
 
+// Declared in lnxstack.cpp — returns the realized GdkWindow of the GtkPopover
+// widget so the dismiss check can walk the GdkWindow parent chain.
+extern GdkWindow *MCLinuxPopoverGetGdkWindow(void);
+
 #define XK_Window_L 0xFF6C
 #define XK_Window_R 0xFF6D
 
@@ -680,17 +684,41 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 // lands outside its window, close the popover first then let the
                 // event propagate normally.  We hold a seat grab while the popover
                 // is open, so button events outside our application still reach us.
-                if (t_event->type == GDK_BUTTON_PRESS &&
-                    MCpopoverstack != nullptr &&
-                    t_event->button.window != MCpopoverstack->getwindowalways())
+                //
+                // NOTE: with GtkPopover's modal grab, clicks inside the popover
+                // content area may arrive with event->window set to the GtkPopover's
+                // own GdkWindow (W2) rather than the GtkDrawingArea's GdkWindow (W3).
+                // We must therefore test whether the event window is anywhere within
+                // the popover's GdkWindow subtree, not just check for exact equality
+                // against W3.  Walk the GdkWindow parent chain upward: if we reach
+                // the popover's GdkWindow the click is inside and we should NOT dismiss.
+                if (t_event->type == GDK_BUTTON_PRESS && MCpopoverstack != nullptr)
                 {
-                    Window t_popover_win = MCpopoverstack->getwindowalways();
-                    GdkDisplay *t_dpy    = gdk_window_get_display(t_popover_win);
-                    GdkSeat    *t_seat   = gdk_display_get_default_seat(t_dpy);
-                    gdk_seat_ungrab(t_seat);          // release before dispatching
-                    MCdispatcher->wclose(t_popover_win);
-                    // Fall through so the click that triggered the dismiss is
-                    // still delivered to whatever was clicked.
+                    GdkWindow *t_popover_gdk = MCLinuxPopoverGetGdkWindow();
+                    bool t_inside = false;
+                    if (t_popover_gdk != nullptr)
+                    {
+                        GdkWindow *t_w = t_event->button.window;
+                        while (t_w != nullptr)
+                        {
+                            if (t_w == t_popover_gdk)
+                            {
+                                t_inside = true;
+                                break;
+                            }
+                            t_w = gdk_window_get_parent(t_w);
+                        }
+                    }
+                    if (!t_inside)
+                    {
+                        Window t_popover_win = MCpopoverstack->getwindowalways();
+                        GdkDisplay *t_dpy    = gdk_window_get_display(t_popover_win);
+                        GdkSeat    *t_seat   = gdk_display_get_default_seat(t_dpy);
+                        gdk_seat_ungrab(t_seat);      // release before dispatching
+                        MCdispatcher->wclose(t_popover_win);
+                        // Fall through so the click that triggered the dismiss is
+                        // still delivered to whatever was clicked.
+                    }
                 }
 
                 // We're not dragging

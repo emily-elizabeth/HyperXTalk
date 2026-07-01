@@ -225,6 +225,15 @@ void MCLinuxPopoverClose(void)
     s_popover_da    = nullptr;
 }
 
+// Returns the realized GdkWindow of the GtkPopover itself (W2 in the hierarchy),
+// used by lnxdclnx.cpp to widen the "inside popover" test for dismiss logic.
+GdkWindow *MCLinuxPopoverGetGdkWindow(void)
+{
+    if (s_popover_widget == nullptr)
+        return nullptr;
+    return gtk_widget_get_window(s_popover_widget);
+}
+
 // -- tperry 12-11-2025: Helper to convert bitmap pixmap to cairo_region_t for window shapes
 static cairo_region_t* pixmap_to_region(Pixmap p_pixmap, uint32_t p_width, uint32_t p_height)
 {
