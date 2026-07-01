@@ -1,4 +1,4 @@
-﻿script "revfileassociations.livecodescript"
+﻿script "revfileassociations"
 
 -- create a Yes and No button
 -- create a checkbox "Do not show this dialog again"
