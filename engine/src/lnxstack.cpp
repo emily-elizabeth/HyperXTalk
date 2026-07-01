@@ -345,80 +345,114 @@ void MCStack::realize()
 		}
 #endif
 
-		if (window == nullptr)
+		if (getmode() == WM_POPOVER)
 		{
-			if (getmode() == WM_POPOVER)
+			// Native GtkPopover path.
+			//
+			// This block runs UNCONDITIONALLY for WM_POPOVER, regardless of
+			// whether MCStack::window is already set.  openrect() calls
+			// destroywindow() when changing modes but does NOT null MCStack::window
+			// afterward, so `window` may hold a stale (already-destroyed) GdkWindow
+			// pointer from a prior open in a different mode.  We must create a fresh
+			// GTK hierarchy and overwrite window before platform_openwindow() runs.
+			//
+			// Proxy window: 1×1, at screen (0,0), input pass-through.
+			// Because the proxy is at the screen origin, widget coordinates
+			// equal screen coordinates, so we can pass MCpopoveranchor
+			// directly to gtk_popover_set_pointing_to() without translation.
+
+			// Tear down any stale GTK hierarchy from a previous open, without
+			// going through the normal wclose() path (MCpopoverstack is not yet
+			// set for this new open).  Disconnect "closed" first so that
+			// gtk_widget_destroy does not re-enter on_popover_closed().
+			if (s_popover_widget != nullptr)
 			{
-				// Native GtkPopover path.
-				//
-				// Proxy window: 1×1, at screen (0,0), input pass-through.
-				// Because the proxy is at the screen origin, widget coordinates
-				// equal screen coordinates, so we can pass MCpopoveranchor
-				// directly to gtk_popover_set_pointing_to() without translation.
-				s_popover_proxy = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-				gtk_window_set_decorated(GTK_WINDOW(s_popover_proxy), FALSE);
-				gtk_window_set_default_size(GTK_WINDOW(s_popover_proxy), 1, 1);
-				gtk_window_move(GTK_WINDOW(s_popover_proxy), 0, 0);
-				gtk_widget_set_app_paintable(s_popover_proxy, TRUE);
-				// RGBA visual so the proxy is fully transparent.
-				GdkScreen *t_gscreen = gtk_widget_get_screen(s_popover_proxy);
-				GdkVisual *t_rgba    = gdk_screen_get_rgba_visual(t_gscreen);
-				if (t_rgba != nullptr)
-					gtk_widget_set_visual(s_popover_proxy, t_rgba);
-
-				// GtkPopover relative to the proxy window.
-				s_popover_widget = gtk_popover_new(s_popover_proxy);
-				gtk_popover_set_modal(GTK_POPOVER(s_popover_widget), TRUE);
-
-				// Preferred position from MCpopoveredge.
-				GtkPositionType t_pos = GTK_POS_BOTTOM;
-				switch (MCpopoveredge)
-				{
-					case KMCPlatformWindowEdgeTop:   t_pos = GTK_POS_TOP;    break;
-					case kMCPlatformWindowEdgeLeft:  t_pos = GTK_POS_LEFT;   break;
-					case kMCPlatformWindowEdgeRight: t_pos = GTK_POS_RIGHT;  break;
-					default:                         t_pos = GTK_POS_BOTTOM; break;
-				}
-				gtk_popover_set_position(GTK_POPOVER(s_popover_widget), t_pos);
-
-				// GtkDrawingArea sized to the popover stack's content.
-				MCRectangle t_rect = MCscreen->logicaltoscreenrect(view_getrect());
-				if (t_rect.width  == 0) t_rect.width  = MCminsize << 4;
-				if (t_rect.height == 0) t_rect.height = MCminsize << 3;
-				s_popover_da = gtk_drawing_area_new();
-				gtk_widget_set_size_request(s_popover_da, t_rect.width, t_rect.height);
-				gtk_container_add(GTK_CONTAINER(s_popover_widget), s_popover_da);
-
-				// Draw callback blits s_popover_pixbuf (saved in Unlock()).
-				g_signal_connect(s_popover_da,     "draw",   G_CALLBACK(on_popover_da_draw), nullptr);
-				// Closed callback drives engine wclose() when GTK dismisses.
-				g_signal_connect(s_popover_widget, "closed", G_CALLBACK(on_popover_closed),  nullptr);
-
-				// Realize the hierarchy to create GdkWindows (without mapping).
-				gtk_widget_realize(s_popover_proxy);
-				gtk_widget_realize(s_popover_widget);
-				gtk_widget_realize(s_popover_da);
-
-				// Zero the input shape so the proxy never intercepts events.
-				cairo_region_t *t_empty = cairo_region_create();
-				gdk_window_input_shape_combine_region(
-					gtk_widget_get_window(s_popover_proxy), t_empty, 0, 0);
-				cairo_region_destroy(t_empty);
-
-				// Engine renders into the drawing area's GdkWindow.
-				window = gtk_widget_get_window(s_popover_da);
-				// Store &window so MCLinuxPopoverClose() can null it (protected access
-				// is legal here — realize() is an MCStack member function).
-				s_popover_window_ptr = &window;
-
-				gdk_display_sync(MCdpy);
-				start_externals();
-				return;
+				g_signal_handlers_disconnect_by_func(s_popover_widget,
+					(gpointer)on_popover_closed, nullptr);
+				s_popover_widget = nullptr;
+			}
+			if (s_popover_window_ptr != nullptr)
+			{
+				// Don't write through the old pointer — we're about to replace window.
+				s_popover_window_ptr = nullptr;
+			}
+			if (s_popover_proxy != nullptr)
+			{
+				gtk_widget_destroy(s_popover_proxy);
+				s_popover_proxy = nullptr;
+			}
+			s_popover_da = nullptr;
+			if (s_popover_pixbuf != nullptr)
+			{
+				g_object_unref(s_popover_pixbuf);
+				s_popover_pixbuf = nullptr;
 			}
 
+			// Build the fresh proxy → popover → drawing-area hierarchy.
+			s_popover_proxy = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+			gtk_window_set_decorated(GTK_WINDOW(s_popover_proxy), FALSE);
+			gtk_window_set_default_size(GTK_WINDOW(s_popover_proxy), 1, 1);
+			gtk_window_move(GTK_WINDOW(s_popover_proxy), 0, 0);
+			gtk_widget_set_app_paintable(s_popover_proxy, TRUE);
+			// RGBA visual so the proxy is fully transparent.
+			GdkScreen *t_gscreen = gtk_widget_get_screen(s_popover_proxy);
+			GdkVisual *t_rgba    = gdk_screen_get_rgba_visual(t_gscreen);
+			if (t_rgba != nullptr)
+				gtk_widget_set_visual(s_popover_proxy, t_rgba);
+
+			// GtkPopover relative to the proxy window.
+			s_popover_widget = gtk_popover_new(s_popover_proxy);
+			gtk_popover_set_modal(GTK_POPOVER(s_popover_widget), TRUE);
+
+			// Preferred position from MCpopoveredge.
+			GtkPositionType t_pos = GTK_POS_BOTTOM;
+			switch (MCpopoveredge)
+			{
+				case KMCPlatformWindowEdgeTop:   t_pos = GTK_POS_TOP;    break;
+				case kMCPlatformWindowEdgeLeft:  t_pos = GTK_POS_LEFT;   break;
+				case kMCPlatformWindowEdgeRight: t_pos = GTK_POS_RIGHT;  break;
+				default:                         t_pos = GTK_POS_BOTTOM; break;
+			}
+			gtk_popover_set_position(GTK_POPOVER(s_popover_widget), t_pos);
+
+			// GtkDrawingArea sized to the popover stack's content.
+			MCRectangle t_rect = MCscreen->logicaltoscreenrect(view_getrect());
+			if (t_rect.width  == 0) t_rect.width  = MCminsize << 4;
+			if (t_rect.height == 0) t_rect.height = MCminsize << 3;
+			s_popover_da = gtk_drawing_area_new();
+			gtk_widget_set_size_request(s_popover_da, t_rect.width, t_rect.height);
+			gtk_container_add(GTK_CONTAINER(s_popover_widget), s_popover_da);
+
+			// Draw callback blits s_popover_pixbuf (saved in Unlock()).
+			g_signal_connect(s_popover_da,     "draw",   G_CALLBACK(on_popover_da_draw), nullptr);
+			// Closed callback drives engine wclose() when GTK dismisses.
+			g_signal_connect(s_popover_widget, "closed", G_CALLBACK(on_popover_closed),  nullptr);
+
+			// Realize the hierarchy to create GdkWindows (without mapping).
+			gtk_widget_realize(s_popover_proxy);
+			gtk_widget_realize(s_popover_widget);
+			gtk_widget_realize(s_popover_da);
+
+			// Zero the input shape so the proxy never intercepts events.
+			cairo_region_t *t_empty = cairo_region_create();
+			gdk_window_input_shape_combine_region(
+				gtk_widget_get_window(s_popover_proxy), t_empty, 0, 0);
+			cairo_region_destroy(t_empty);
+
+			// Engine renders into the drawing area's GdkWindow.
+			window = gtk_widget_get_window(s_popover_da);
+			// Store &window so MCLinuxPopoverClose() can null it (protected access
+			// is legal here — realize() is an MCStack member function).
+			s_popover_window_ptr = &window;
+
+			gdk_display_sync(MCdpy);
+			start_externals();
+			return;
+		}
+
+		if (window == nullptr)
+		{
 			// All other modes: raw GDK_WINDOW_TOPLEVEL.
-			// For WM_POPOVER, sethints() sets override-redirect so it behaves
-			// like a popup menu — positioned precisely, no WM decoration.
 			GdkWindowAttr gdkwa;
 			guint gdk_valid_wa;
 			gdk_valid_wa = GDK_WA_X|GDK_WA_Y|GDK_WA_VISUAL;
@@ -599,6 +633,13 @@ void MCStack::sethints()
 {
 	if (!opened || MCnoui || window == DNULL)
 		return;
+
+    // For native GtkPopover, GTK manages all window-manager hints internally.
+    // The drawing area's GdkWindow is a child window; calling X11 toplevel-only
+    // functions (type hint, override-redirect, group) on it is invalid and can
+    // trigger X errors that destroy the widget hierarchy.
+    if (getmode() == WM_POPOVER && s_popover_da != nullptr)
+        return;
 
     // Choose the appropriate type hint for the window
     GdkWindowTypeHint t_type_hint = GDK_WINDOW_TYPE_HINT_NORMAL;
