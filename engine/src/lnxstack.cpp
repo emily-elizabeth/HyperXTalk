@@ -1279,11 +1279,18 @@ void MCStack::platform_openwindow(Boolean override)
 			gtk_widget_show(s_popover_da);   // must be visible before popover maps
 			gtk_popover_popup(GTK_POPOVER(s_popover_widget));
 
-			// gtk_popover_popup() sets up pointer/keyboard grabs which may generate
-			// FocusIn/FocusOut or ConfigureNotify events that let the main window
-			// sneak back on top of the override-redirect proxy.  Re-raise
-			// explicitly and flush so the raise takes effect before we return.
+			// Establish the correct X11 stacking order:
+			//   W2 (popover) > W1 (proxy) > main HyperXTalk window
+			//
+			// gtk_popover_popup() may generate FocusIn/FocusOut or ConfigureNotify
+			// events that let the main window sneak above the proxy.  Re-raise the
+			// proxy first to push it above the main window, then raise the popover
+			// above the proxy so pointer events in the popover area go to W2/W3
+			// (not to the full-screen proxy).  Without this second raise, the proxy
+			// intercepts all clicks — including inside-popover ones — because it
+			// sits on top of W2 in the stacking order.
 			gdk_window_raise(gtk_widget_get_window(s_popover_proxy));
+			gdk_window_raise(gtk_widget_get_window(s_popover_widget));
 			gdk_display_flush(gdk_display_get_default());
 			return;
 		}
