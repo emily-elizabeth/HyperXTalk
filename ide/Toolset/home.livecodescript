@@ -2,8 +2,8 @@
 constant kImportantTextColor = "#569e54"
 
 on startup
-   //     revSetTestEnvironment($TRAVIS is true)
-   
+//     revSetTestEnvironment($TRAVIS is true)
+
    -- MW-2011-03-13: Make sure the externals are empty on startup
    set the externals of me to empty
    
@@ -105,7 +105,6 @@ end openStack
 
 // HXT
 on CloseStack
-   revInternal__Log "log", "Close Stack"
    close file sLogPath
 end CloseStack
 
@@ -243,36 +242,20 @@ on revInternal__openStack
       quit
    end if
    
-   // HXT
-   --   if $REV_TOOLS_PATH is empty and (revInternal__CheckFileAssociations() is true) and (the platform is "win32") then
-   --      if revIDEGetPreference("cDontShowFileAssociationsDialog") is not true then
-   --         modal stack "revFileAssociations"
-   --      end if
-   --   end if
+   if $REV_TOOLS_PATH is empty and (revInternal__CheckFileAssociations() is true) and (the platform is "win32") then
+      if revIDEGetPreference("cDontShowFileAssociationsDialog") is not true then
+         modal stack "revFileAssociations"
+      end if
+   end if
    
    close stack "revSplash"
-   send "DelayClosingSplash" to me in 3 ticks
    
    revInternal__Log "Leave", "revInternal__openStack"
    revInternal__Log "End"
    
    -- Now the home stack has loaded, we can allow interrupts..
    set the allowInterrupts to true
-   
 end revInternal__openStack
-
-
-on DelayClosingSplash
-   set the cREVLaunching of stack "Home" to false
-   if there is a stack "revsplash" then
-      set the destroyStack of stack "revSplash" to true
-      close stack "revSplash"
-      if there is a stack "revSplashStackBehavior" then
-         set the destroyStack of stack "revSplashStackBehavior" to true
-         close stack "revSplashStackBehavior"
-      end if
-   end if
-end DelayClosingSplash
 
 on hxtInternal__setSplashStatus pMessage
    revInternal__Log "Message", pMessage
@@ -1716,12 +1699,12 @@ command revInternal__InitialiseFinalSteps
    
    --the following *MUST* be the last item to avoid excess sending to overview as environment loads
    revInternal__Log "Message", "Installing Remaining Libraries"
-   
+
    revInternal__LoadLibrary "revFrontScriptLibrary"
    if the result is not empty then
       revInternal__Log "Error", the result  
    end if
-   
+      
    set the cREVGeneral["handlerlist"] of stack "revFrontScriptLibrary" to revInternal__FilterHandlerList(the revAvailableHandlers of stack "revFrontScriptLibrary")
    
    revInternal__LoadLibrary "revShortCutsLibrary"
@@ -1743,7 +1726,7 @@ command revInternal__InitialiseFinalSteps
    if the milliseconds - sSplashStartTime < 500 then
       wait 500 - (the milliseconds - sSplashStartTime) milliseconds
    end if
-   --   close stack "home"  // HXT
+   close stack "home"
    
    revInternal__Log "Message", "Resetting Cursors"
    if the platform is "MacOS" then
@@ -2385,4 +2368,4 @@ function revEnvironmentPlatform
    return tPlatform
 end revEnvironmentPlatform
 */
-                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                
