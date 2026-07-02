@@ -139,11 +139,11 @@ static gboolean on_popover_da_draw(GtkWidget *widget, cairo_t *cr, gpointer /*da
         // Fallback: drive the first render synchronously.
         GtkAllocation t_alloc;
         gtk_widget_get_allocation(widget, &t_alloc);
-        if (t_alloc.width > 0 && t_alloc.height > 0)
+        if (t_alloc.width > 0 && t_alloc.height > 0 && MCpopoverstack != nullptr)
         {
             cairo_rectangle_int_t t_crect = {0, 0, t_alloc.width, t_alloc.height};
             cairo_region_t *t_region = cairo_region_create_rectangle(&t_crect);
-            onexpose((MCRegionRef)t_region);
+            MCpopoverstack->onexpose((MCRegionRef)t_region);
             cairo_region_destroy(t_region);
         }
     }
