@@ -1314,10 +1314,10 @@ void MCStack::platform_openwindow(Boolean override)
 			// blit, giving a permanently blank popover on non-Ubuntu desktops.
 			// Firing onexpose() here — outside any draw dispatch — is safe and
 			// consistent across all GTK/compositor environments.
-			// We use t_rect (the requested size) rather than get_allocated_* which
-			// may not yet reflect the final allocation after gtk_popover_popup().
+			// We use rect (the stack's requested size) rather than get_allocated_*
+			// which may not yet reflect the final allocation after gtk_popover_popup().
 			{
-				cairo_rectangle_int_t t_crect = {0, 0, t_rect.width, t_rect.height};
+				cairo_rectangle_int_t t_crect = {0, 0, rect.width, rect.height};
 				cairo_region_t *t_region = cairo_region_create_rectangle(&t_crect);
 				onexpose((MCRegionRef)t_region);
 				cairo_region_destroy(t_region);
