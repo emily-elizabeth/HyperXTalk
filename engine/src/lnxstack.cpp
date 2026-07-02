@@ -104,11 +104,6 @@ static GdkPixbuf  *s_popover_pixbuf     = nullptr; // last rendered frame
 // MCLinuxPopoverClose() to null the field before GTK destroys the GdkWindow,
 // preventing a double-free when MCStack::destroywindow() runs later.
 static GdkWindow **s_popover_window_ptr = nullptr;
-// Re-entrancy guard for on_popover_da_draw(): prevents a recursive "draw"
-// signal (e.g. if Unlock()'s gtk_widget_queue_draw fires before GTK finishes
-// the current draw dispatch) from launching a second onexpose() call.
-static bool        s_popover_drawing     = false;
-
 // GTK "draw" signal callback: clear the proxy window to fully transparent.
 // Without this, GTK's theme engine paints an opaque background, hiding
 // everything beneath the full-screen proxy window.
@@ -120,62 +115,53 @@ static gboolean on_popover_proxy_draw(GtkWidget * /*widget*/, cairo_t *cr, gpoin
     return FALSE; // let child widgets (GtkFixed, GtkPopover) draw normally
 }
 
-// GTK "draw" signal callback: blit the engine's latest frame into the DA.
+// GTK "draw" signal callback: pure blit of the engine's latest frame into the DA.
 //
-// GTK3 converts expose events for widget GdkWindows into "draw" signals before
-// they reach the GDK event queue, so the engine's expose() loop never sees them
-// and Unlock() is not called before the first draw.  We therefore bootstrap the
-// initial render here: if no pixbuf has been stored yet, drive onexpose()
-// synchronously so we have pixels to blit on the very first "draw".
+// Unlock() sets s_popover_pixbuf and calls gtk_widget_queue_draw() to schedule
+// this callback.  The first frame is seeded by a bootstrap onexpose() call in
+// platform_openwindow() after gtk_popover_popup(), so s_popover_pixbuf is
+// already populated before the first draw signal fires.
 //
-// s_popover_drawing prevents re-entrant renders if Unlock()'s
-// gtk_widget_queue_draw() somehow fires another "draw" before this one returns.
-static gboolean on_popover_da_draw(GtkWidget *widget, cairo_t *cr, gpointer /*data*/)
+// onexpose() is NOT called from here: on some GTK/compositor combinations
+// gtk_widget_queue_draw() fires synchronously during a draw dispatch, which
+// would re-enter this callback before s_popover_pixbuf is set, leaving the
+// popover permanently blank.
+static gboolean on_popover_da_draw(GtkWidget * /*widget*/, cairo_t *cr, gpointer /*data*/)
 {
-    if (!s_popover_drawing && s_popover_pixbuf == nullptr
-            && MCpopoverstack != nullptr && s_popover_da != nullptr)
+    // Pure blit: Unlock() fills s_popover_pixbuf and calls gtk_widget_queue_draw;
+    // the bootstrap render in platform_openwindow seeds the first frame.
+    // We do NOT call onexpose() from here — on systems where queue_draw fires
+    // synchronously during a draw dispatch, that would re-enter this callback
+    // and the content would never be painted.
+    if (s_popover_pixbuf == nullptr)
+        return FALSE;
+
+    // Do NOT use gdk_cairo_set_source_pixbuf() here.
+    //
+    // The engine renders via LockPixels (kMCGRasterFormat_xRGB): it writes
+    // [Blue, Green, Red] bytes but leaves the 4th byte untouched.
+    // gdk_pixbuf_new() zero-initialises pixel memory, so alpha bytes are 0.
+    // gdk_cairo_set_source_pixbuf() treats the buffer as non-premultiplied
+    // RGBA and premultiplies by A=0 → every pixel becomes (0,0,0,0) →
+    // cairo_paint() composites nothing → blank content area.
+    //
+    // Instead: create a temporary cairo_image_surface_t over the same pixel
+    // data declared as CAIRO_FORMAT_RGB24 (no alpha channel, all pixels
+    // treated as fully opaque).  On little-endian the byte layout of
+    // CAIRO_FORMAT_RGB24 is [B, G, R, padding] — exactly the engine's xRGB
+    // output — so channel order is correct with no conversion needed.
+    guchar         *t_px     = gdk_pixbuf_get_pixels(s_popover_pixbuf);
+    int             t_w      = gdk_pixbuf_get_width(s_popover_pixbuf);
+    int             t_h      = gdk_pixbuf_get_height(s_popover_pixbuf);
+    int             t_stride = gdk_pixbuf_get_rowstride(s_popover_pixbuf);
+    cairo_surface_t *t_surf  = cairo_image_surface_create_for_data(
+            t_px, CAIRO_FORMAT_RGB24, t_w, t_h, t_stride);
+    if (cairo_surface_status(t_surf) == CAIRO_STATUS_SUCCESS)
     {
-        s_popover_drawing = true;
-        int t_w = gtk_widget_get_allocated_width(widget);
-        int t_h = gtk_widget_get_allocated_height(widget);
-        if (t_w > 0 && t_h > 0)
-        {
-            cairo_rectangle_int_t t_crect = { 0, 0, t_w, t_h };
-            cairo_region_t *t_region = cairo_region_create_rectangle(&t_crect);
-            MCpopoverstack->onexpose((MCRegionRef)t_region);
-            cairo_region_destroy(t_region);
-        }
-        s_popover_drawing = false;
+        cairo_set_source_surface(cr, t_surf, 0, 0);
+        cairo_paint(cr);
     }
-    if (s_popover_pixbuf != nullptr)
-    {
-        // Do NOT use gdk_cairo_set_source_pixbuf() here.
-        //
-        // The engine renders via LockPixels (kMCGRasterFormat_xRGB): it writes
-        // [Blue, Green, Red] bytes but leaves the 4th byte untouched.
-        // gdk_pixbuf_new() zero-initialises pixel memory, so alpha bytes are 0.
-        // gdk_cairo_set_source_pixbuf() treats the buffer as non-premultiplied
-        // RGBA and premultiplies by A=0 → every pixel becomes (0,0,0,0) →
-        // cairo_paint() composites nothing → blank content area.
-        //
-        // Instead: create a temporary cairo_image_surface_t over the same pixel
-        // data declared as CAIRO_FORMAT_RGB24 (no alpha channel, all pixels
-        // treated as fully opaque).  On little-endian the byte layout of
-        // CAIRO_FORMAT_RGB24 is [B, G, R, padding] — exactly the engine's xRGB
-        // output — so channel order is correct with no conversion needed.
-        guchar         *t_px     = gdk_pixbuf_get_pixels(s_popover_pixbuf);
-        int             t_w      = gdk_pixbuf_get_width(s_popover_pixbuf);
-        int             t_h      = gdk_pixbuf_get_height(s_popover_pixbuf);
-        int             t_stride = gdk_pixbuf_get_rowstride(s_popover_pixbuf);
-        cairo_surface_t *t_surf  = cairo_image_surface_create_for_data(
-                t_px, CAIRO_FORMAT_RGB24, t_w, t_h, t_stride);
-        if (cairo_surface_status(t_surf) == CAIRO_STATUS_SUCCESS)
-        {
-            cairo_set_source_surface(cr, t_surf, 0, 0);
-            cairo_paint(cr);
-        }
-        cairo_surface_destroy(t_surf); // releases the surface wrapper, not the pixel data
-    }
+    cairo_surface_destroy(t_surf); // releases the surface wrapper, not the pixel data
     return FALSE;
 }
 
@@ -1317,6 +1303,25 @@ void MCStack::platform_openwindow(Boolean override)
 			gdk_window_raise(gtk_widget_get_window(s_popover_proxy));
 			gdk_window_raise(gtk_widget_get_window(s_popover_widget));
 			gdk_display_flush(gdk_display_get_default());
+
+			// Bootstrap the first render now that the popover is mapped.
+			// on_popover_da_draw is a pure blit: it only draws s_popover_pixbuf.
+			// Without this call there is no pixbuf yet, so the first draw signal
+			// would show a blank frame.  On systems where gtk_widget_queue_draw
+			// fires synchronously during a GTK draw dispatch, calling onexpose()
+			// from inside the draw callback causes re-entrancy; the
+			// s_popover_drawing guard that was there before blocked the second
+			// blit, giving a permanently blank popover on non-Ubuntu desktops.
+			// Firing onexpose() here — outside any draw dispatch — is safe and
+			// consistent across all GTK/compositor environments.
+			// We use t_rect (the requested size) rather than get_allocated_* which
+			// may not yet reflect the final allocation after gtk_popover_popup().
+			{
+				cairo_rectangle_int_t t_crect = {0, 0, t_rect.width, t_rect.height};
+				cairo_region_t *t_region = cairo_region_create_rectangle(&t_crect);
+				onexpose((MCRegionRef)t_region);
+				cairo_region_destroy(t_region);
+			}
 			return;
 		}
 

@@ -221,16 +221,28 @@ bool MCScreenDC::apply_partial_struts(MCDisplay *p_displays, uint32_t p_display_
 		int32_t t_screenwidth, t_screenheight;
 		t_screenwidth = device_getwidth();
 		t_screenheight = device_getheight();
-		for (uindex_t i = 0; t_success && i < t_client_count; i++)
+		for (uindex_t i = 0; i < t_client_count; i++)
 		{
 			unsigned long t_strut_count;
 			unsigned long *t_struts = nil;
-			
+
+            // A client window may be destroyed between the _NET_CLIENT_LIST
+            // fetch above and this per-window property query.  Without an
+            // error trap the default GDK handler calls exit() on BadWindow.
+            // XGetWindowProperty is a synchronous round-trip, so any error
+            // reply is already queued when it returns — no XSync needed.
+            gdk_error_trap_push();
             t_status = x11::XGetWindowProperty(x11::gdk_x11_display_get_xdisplay(dpy),
                                                t_clients[i],
                                                x11::gdk_x11_atom_to_xatom_for_display(dpy, MCstrutpartialatom),
                                                0, 12, False, XA_CARDINAL, &t_ret, &t_format, &t_strut_count, &t_after,
                                                (unsigned char **)&t_struts);
+            if (gdk_error_trap_pop() != 0)
+            {
+                // Window destroyed — t_struts may be uninitialised; skip it.
+                if (t_struts != nil) { x11::XFree(t_struts); t_struts = nil; }
+                continue;
+            }
 
 			if (t_status == Success && t_ret == XA_CARDINAL && t_format == 32 && t_strut_count == 12)
 			{
