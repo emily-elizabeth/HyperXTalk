@@ -115,24 +115,39 @@ static gboolean on_popover_proxy_draw(GtkWidget * /*widget*/, cairo_t *cr, gpoin
     return FALSE; // let child widgets (GtkFixed, GtkPopover) draw normally
 }
 
-// GTK "draw" signal callback: pure blit of the engine's latest frame into the DA.
+// GTK "draw" signal callback: blit the engine's latest frame into the DA.
 //
-// Unlock() sets s_popover_pixbuf and calls gtk_widget_queue_draw() to schedule
-// this callback.  The first frame is seeded by a bootstrap onexpose() call in
-// platform_openwindow() after gtk_popover_popup(), so s_popover_pixbuf is
-// already populated before the first draw signal fires.
+// Normal path: Unlock() sets s_popover_pixbuf and calls gtk_widget_queue_draw()
+// to schedule this callback.  The first frame is also seeded by a bootstrap
+// onexpose() call in platform_openwindow() after gtk_popover_popup(), so the
+// pixbuf is usually already populated before the first draw signal fires.
 //
-// onexpose() is NOT called from here: on some GTK/compositor combinations
-// gtk_widget_queue_draw() fires synchronously during a draw dispatch, which
-// would re-enter this callback before s_popover_pixbuf is set, leaving the
-// popover permanently blank.
-static gboolean on_popover_da_draw(GtkWidget * /*widget*/, cairo_t *cr, gpointer /*data*/)
+// Fallback path: if a draw signal arrives before the bootstrap completes (e.g.
+// fired during gtk_popover_popup() or gdk_display_flush(), or if Lock() failed
+// in the bootstrap), s_popover_pixbuf will be null.  In that case we drive
+// onexpose() here to produce the first frame synchronously.
+//
+// Re-entrancy note: onexpose() → Unlock() → gtk_widget_queue_draw() can fire a
+// synchronous re-entrant draw signal on some GTK/compositor combinations.  That
+// is safe here because Unlock() sets s_popover_pixbuf *before* calling
+// queue_draw(), so the re-entrant call finds a valid pixbuf and blits it.
+// There is intentionally no re-entrancy guard.
+static gboolean on_popover_da_draw(GtkWidget *widget, cairo_t *cr, gpointer /*data*/)
 {
-    // Pure blit: Unlock() fills s_popover_pixbuf and calls gtk_widget_queue_draw;
-    // the bootstrap render in platform_openwindow seeds the first frame.
-    // We do NOT call onexpose() from here — on systems where queue_draw fires
-    // synchronously during a draw dispatch, that would re-enter this callback
-    // and the content would never be painted.
+    if (s_popover_pixbuf == nullptr)
+    {
+        // Fallback: drive the first render synchronously.
+        GtkAllocation t_alloc;
+        gtk_widget_get_allocation(widget, &t_alloc);
+        if (t_alloc.width > 0 && t_alloc.height > 0)
+        {
+            cairo_rectangle_int_t t_crect = {0, 0, t_alloc.width, t_alloc.height};
+            cairo_region_t *t_region = cairo_region_create_rectangle(&t_crect);
+            onexpose((MCRegionRef)t_region);
+            cairo_region_destroy(t_region);
+        }
+    }
+
     if (s_popover_pixbuf == nullptr)
         return FALSE;
 
@@ -1304,16 +1319,11 @@ void MCStack::platform_openwindow(Boolean override)
 			gdk_window_raise(gtk_widget_get_window(s_popover_widget));
 			gdk_display_flush(gdk_display_get_default());
 
-			// Bootstrap the first render now that the popover is mapped.
-			// on_popover_da_draw is a pure blit: it only draws s_popover_pixbuf.
-			// Without this call there is no pixbuf yet, so the first draw signal
-			// would show a blank frame.  On systems where gtk_widget_queue_draw
-			// fires synchronously during a GTK draw dispatch, calling onexpose()
-			// from inside the draw callback causes re-entrancy; the
-			// s_popover_drawing guard that was there before blocked the second
-			// blit, giving a permanently blank popover on non-Ubuntu desktops.
-			// Firing onexpose() here — outside any draw dispatch — is safe and
-			// consistent across all GTK/compositor environments.
+			// Bootstrap: pre-fill s_popover_pixbuf before the first draw signal.
+			// on_popover_da_draw has a fallback that calls onexpose() if the pixbuf
+			// is still null when the draw fires, so this is not strictly required —
+			// but doing it here (outside any draw dispatch) avoids re-entrant draws
+			// on most systems and ensures a frame is ready as early as possible.
 			// We use rect (the stack's requested size) rather than get_allocated_*
 			// which may not yet reflect the final allocation after gtk_popover_popup().
 			{
