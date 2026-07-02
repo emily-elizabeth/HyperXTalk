@@ -331,24 +331,33 @@ bool MCScreenDC::device_getdisplays(bool /*p_effective*/, MCDisplay * &r_display
     if (!MCMemoryNewArray(t_monitor_count, t_displays))
         return false;
 
-    // Get the geometry and HiDPI scale of each monitor.
-    // gdk_monitor_get_geometry() returns logical (application) pixels —
-    // physical pixels = logical * scale_factor.
-    // gdk_monitor_get_scale_factor() (GDK 3.22+) returns the integer
-    // HiDPI factor (1 for 1×, 2 for 2× / Retina-equivalent, etc.).
+    // Get the geometry of each monitor.
+    // gdk_monitor_get_geometry() returns logical (application) pixels.
     for (gint i = 0; i < t_monitor_count; i++)
     {
         GdkRectangle t_rect;
         GdkMonitor *t_monitor = gdk_display_get_monitor(dpy, i);
         gdk_monitor_get_geometry(t_monitor, &t_rect);
 
-        gint t_scale = gdk_monitor_get_scale_factor(t_monitor);
-
         MCRectangle t_mc_rect;
         t_mc_rect = MCRectangleMake(t_rect.x, t_rect.y, t_rect.width, t_rect.height);
 
         t_displays[i].index = i;
-        t_displays[i].pixel_scale = (MCGFloat)t_scale;
+        // MCDisplay::pixel_scale is read by the 'screenpixelscale(s)' property
+        // and by getmaxdisplayscale().  While pixel scaling is disabled on
+        // Linux (MCResPlatformSupportsPixelScaling() returns false), IDE scripts
+        // that use 'the screenpixelscale' to position windows expect 1.0 here.
+        // Setting it to gdk_monitor_get_scale_factor() breaks multi-monitor
+        // placement because the script computes logical-pixel rects that no
+        // longer match the GDK coordinate space.
+        //
+        // The signal handlers and MCLinuxGetLogicalToScreenScale() query GDK
+        // directly and do not rely on this field, so they remain correct.
+        //
+        // TODO [[ HiDPI ]]: set pixel_scale = gdk_monitor_get_scale_factor(t_monitor)
+        // once MCLinuxStackSurface renders at physical pixel dimensions and
+        // MCResPlatformSupportsPixelScaling() returns true.
+        t_displays[i].pixel_scale = 1.0;
         t_displays[i].viewport = t_displays[i].workarea = t_mc_rect;
     }
     
