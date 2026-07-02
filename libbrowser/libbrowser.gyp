@@ -56,7 +56,9 @@
 				'src/libbrowser_nsvalue.mm',
 				
 				'src/libbrowser_android.cpp',
-				
+
+				'src/libbrowser_webkitgtk.cpp',
+
 				'src/libbrowser_lnx_factories.cpp',
 				'src/libbrowser_win_factories.cpp',
 				'src/libbrowser_osx_factories.cpp',
@@ -149,6 +151,7 @@
 						'sources!':
 						[
 							'src/libbrowser_lnx_factories.cpp',
+							'src/libbrowser_webkitgtk.cpp',
 						],
 					},
 				],
