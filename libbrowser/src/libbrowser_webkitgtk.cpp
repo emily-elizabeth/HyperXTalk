@@ -239,6 +239,12 @@ static bool LoadWebKit(void)
     // bridge is incompatible with the dynamically loaded WebKit.
     setenv("NO_AT_BRIDGE", "1", 0);
 
+    // Disable the bubblewrap sandbox.  When WebKit is loaded via dlopen inside
+    // another application's process (rather than as a direct dependency), the
+    // sandbox's seccomp filter frequently prevents the web process from starting,
+    // leaving the view permanently blank.
+    setenv("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS", "1", 0);
+
     // Suppress noisy GIO volume monitor / file monitor that aren't needed.
     setenv("GIO_USE_FILE_MONITOR",   "none",  1);
     setenv("GIO_USE_VOLUME_MONITOR", "none",  1);
@@ -584,7 +590,14 @@ bool MCWebKitGTKBrowser::Init(void)
         return false;
 
     wk.gtk_container_add(GTK_CONTAINER(m_plug), (GtkWidget*)m_web_view);
-    wk.gtk_widget_show_all(m_plug);
+
+    // Realize without mapping.  Showing the plug as a top-level X window
+    // before the GtkSocket embeds it via XEMBED causes the WM to manage it
+    // as a floating window and can interfere with embedding.
+    // gtk_widget_realize gives us a valid XID for GetNativeLayer() while
+    // letting the GtkSocket control visibility via XEMBED.
+    gtk_widget_realize(GTK_WIDGET(m_plug));
+    gtk_widget_realize(GTK_WIDGET(m_web_view));
 
     // --- Connect signals ---
     m_load_changed_id = wk.g_signal_connect_data(m_web_view, "load-changed",
@@ -631,6 +644,8 @@ bool MCWebKitGTKBrowser::SetRect(const MCBrowserRect &p_rect)
         return false;
     int t_w = p_rect.right  - p_rect.left;
     int t_h = p_rect.bottom - p_rect.top;
+    if (t_w <= 0) t_w = 1;
+    if (t_h <= 0) t_h = 1;
     wk.gtk_widget_set_size_request((GtkWidget*)m_web_view, t_w, t_h);
     if (m_plug)
         wk.gtk_widget_set_size_request(m_plug, t_w, t_h);
