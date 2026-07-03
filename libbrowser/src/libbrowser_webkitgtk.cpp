@@ -52,6 +52,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 // Pull in GTK/GDK/X11 type definitions only — we do NOT link against these
 // directly; symbol addresses come from dlsym().
 #include <gtk/gtk.h>
+#include <gtk/gtkx.h>   // GtkPlug, gtk_plug_get_id, GTK_PLUG — XEMBED support
 #include <gdk/gdkx.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -177,7 +178,7 @@ static struct WKSymbols
     void     (*g_object_unref)(gpointer);
     gpointer (*g_object_ref)(gpointer);
     void     (*g_free)(gpointer);
-    gchar*   (*g_strdup)(const gchar*);
+    gchar*   (*fn_g_strdup)(const gchar*);  // avoid GLib's #define g_strdup(x) g_strdup_inline(x)
     gchar*   (*g_strdup_printf)(const gchar*, ...);
     void     (*g_error_free)(GError*);
     gboolean (*g_main_context_iteration)(GMainContext*, gboolean);
@@ -406,7 +407,7 @@ static bool LoadWebKit(void)
     LOAD_SYM(t_wk, g_object_unref);
     LOAD_SYM(t_wk, g_object_ref);
     LOAD_SYM(t_wk, g_free);
-    LOAD_SYM(t_wk, g_strdup);
+    wk.fn_g_strdup = (gchar*(*)(const gchar*))dlsym(t_wk, "g_strdup");
     LOAD_SYM(t_wk, g_strdup_printf);
     LOAD_SYM(t_wk, g_error_free);
     LOAD_SYM(t_wk, g_main_context_iteration);
@@ -497,6 +498,8 @@ private:
     // Async JS evaluation state
     bool   m_js_finished;
     char  *m_js_result;
+
+    friend void JSFinishWithValue(MCWebKitGTKBrowser*, JSCValue*, GError*);
 
     // Helpers
     bool GetUrl(char *&r_url);
@@ -1166,7 +1169,7 @@ bool MCWebKitGTKBrowser::SetStringProperty(MCBrowserProperty p_property, const c
     {
         if (m_js_handlers) { wk.g_free(m_js_handlers); m_js_handlers = nil; }
         if (!MCCStringIsEmpty(p_utf8_string))
-            m_js_handlers = wk.g_strdup(p_utf8_string);
+            m_js_handlers = wk.fn_g_strdup ? wk.fn_g_strdup(p_utf8_string) : strdup(p_utf8_string);
         SyncJavaScriptHandlers();
         return true;
     }
