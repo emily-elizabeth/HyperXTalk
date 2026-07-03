@@ -20,6 +20,7 @@ X11 libX11.so.6
 	XUngrabPointer: (pointer, integer) -> ()
 	XMoveResizeWindow: (pointer, integer, integer, integer, integer, integer) -> ()
 	XGetWindowAttributes: (pointer, integer, pointer) -> (integer)
+	XReparentWindow: (pointer, integer, integer, integer, integer) -> ()
 	XMapWindow: (pointer, integer) -> ()
 	XUnmapWindow: (pointer, integer) -> ()
 	XDestroyWindow: (pointer, integer) -> ()
