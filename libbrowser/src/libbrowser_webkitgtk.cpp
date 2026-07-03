@@ -25,9 +25,15 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 // that brings its own shared GLib would register duplicate types.  We therefore
 // try SYSTEM webkit2gtk-4.1 first, fall back to 4.0, then bundled.
 //
-// Embedding: WebKitWebView is housed in a GtkPlug so it speaks XEMBED.
-// native-layer-x11.cpp embeds it via gtk_socket_add_id(), unchanged from the
-// CEF/browser path.  GetNativeLayer() returns the GtkPlug's XID.
+// Embedding: WebKitWebView is housed in a GTK_WINDOW_TOPLEVEL container.
+// native-layer-x11.cpp embeds it via gtk_socket_add_id().
+// GetNativeLayer() returns the container window's X11 XID.
+//
+// NOTE: We do NOT use GtkPlug (XEMBED client) because GtkPlug ignores raw
+// XMoveResizeWindow / ConfigureNotify events — it only resizes when GtkSocket
+// sends XEMBED_SIZE_CHANGE.  A plain GTK_WINDOW_TOPLEVEL processes
+// ConfigureNotify normally, so native-layer-x11's XMoveResizeWindow correctly
+// triggers a WebKit layout at the right size.
 //
 // Event pumping: WebKit2GTK drives rendering and IPC through GLib's main
 // context.  We register MCLinuxWebKitGTKRunloopAction via
@@ -52,8 +58,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 // Pull in GTK/GDK/X11 type definitions only — we do NOT link against these
 // directly; symbol addresses come from dlsym().
 #include <gtk/gtk.h>
-#include <gtk/gtkx.h>   // GtkPlug, gtk_plug_get_id, GTK_PLUG — XEMBED support
-#include <gdk/gdkx.h>
+#include <gdk/gdkx.h>   // gdk_x11_window_get_xid, Window type
 
 ////////////////////////////////////////////////////////////////////////////////
 // WebKit / JSC opaque type aliases
@@ -185,8 +190,8 @@ static struct WKSymbols
     gboolean (*g_main_context_pending)(GMainContext*);
 
     // ---- GTK ----
-    GtkWidget* (*gtk_plug_new)(Window);   // GTK3: takes X11 Window (XID), not GdkNativeWindow
-    Window     (*gtk_plug_get_id)(GtkPlug*);  // GTK3: returns Window, not GdkNativeWindow
+    GtkWidget* (*gtk_window_new)(GtkWindowType);
+    GdkWindow* (*gtk_widget_get_window)(GtkWidget*);
     void (*gtk_container_add)(GtkContainer*, GtkWidget*);
     void (*gtk_widget_show)(GtkWidget*);
     void (*gtk_widget_show_all)(GtkWidget*);
@@ -194,6 +199,9 @@ static struct WKSymbols
     void (*gtk_widget_set_size_request)(GtkWidget*, gint, gint);
     void (*gtk_widget_set_sensitive)(GtkWidget*, gboolean);
     gboolean (*gtk_widget_is_sensitive)(GtkWidget*);
+
+    // ---- GDK/X11 ----
+    Window (*gdk_x11_window_get_xid)(GdkWindow*);
 
     // ---- is4_1: true when evaluate_javascript resolved ----
     bool is4_1;
@@ -425,8 +433,8 @@ static bool LoadWebKit(void)
     if (!t_gtk)
         return false;
 
-    LOAD_SYM(t_gtk, gtk_plug_new);
-    LOAD_SYM(t_gtk, gtk_plug_get_id);
+    LOAD_SYM(t_gtk, gtk_window_new);
+    LOAD_SYM(t_gtk, gtk_widget_get_window);
     LOAD_SYM(t_gtk, gtk_container_add);
     LOAD_SYM(t_gtk, gtk_widget_show);
     LOAD_SYM(t_gtk, gtk_widget_show_all);
@@ -435,7 +443,13 @@ static bool LoadWebKit(void)
     LOAD_SYM(t_gtk, gtk_widget_set_sensitive);
     LOAD_SYM(t_gtk, gtk_widget_is_sensitive);
 
-    if (!wk.webkit_web_view_load_uri || !wk.gtk_plug_new || !wk.gtk_plug_get_id)
+    // GDK/X11 — resolve gdk_x11_window_get_xid for GetNativeLayer()
+    void *t_gdk = dlopen("libgdk-3.so.0", RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD);
+    if (!t_gdk) t_gdk = dlopen("libgdk-3.so.0", RTLD_LAZY | RTLD_LOCAL);
+    if (t_gdk)
+        LOAD_SYM(t_gdk, gdk_x11_window_get_xid);
+
+    if (!wk.webkit_web_view_load_uri || !wk.gtk_window_new || !wk.gdk_x11_window_get_xid)
         return false;
 
     s_webkit_loaded = true;
@@ -584,25 +598,33 @@ bool MCWebKitGTKBrowser::Init(void)
             wk.webkit_settings_set_javascript_can_open_windows_automatically(t_settings, FALSE);
     }
 
-    // --- GtkPlug for XEMBED ---
-    m_plug = (GtkWidget*)wk.gtk_plug_new(0);
+    // --- Container window ---
+    // Use a plain GTK_WINDOW_TOPLEVEL rather than GtkPlug.
+    //
+    // GtkPlug implements the XEMBED client protocol and therefore IGNORES
+    // raw XMoveResizeWindow / ConfigureNotify events — it only changes size
+    // when GtkSocket sends an XEMBED_SIZE_CHANGE message.  GtkSocket does
+    // not send XEMBED_SIZE_CHANGE when we bypass GTK's allocation system
+    // (which is what native-layer-x11's gdk_window_move_resize does), so
+    // the plug stays at its initial size and WebKit renders blank.
+    //
+    // A plain GTK_WINDOW_TOPLEVEL processes ConfigureNotify normally, so
+    // native-layer-x11's XMoveResizeWindow triggers a proper GTK reallocation
+    // and WebKit redraws at the correct size.
+    m_plug = wk.gtk_window_new(GTK_WINDOW_TOPLEVEL);
     if (m_plug == nil)
         return false;
 
-    // Make the plug undecorated and skip-taskbar so it doesn't appear as a
-    // managed window during the brief period before XEMBED embeds it.
+    // Suppress decorations and taskbar entry to minimise the brief period
+    // the window is visible as a floating toplevel before native-layer-x11
+    // embeds it via GtkSocket.
     gtk_window_set_decorated(GTK_WINDOW(m_plug), FALSE);
     gtk_window_set_skip_taskbar_hint(GTK_WINDOW(m_plug), TRUE);
 
     wk.gtk_container_add(GTK_CONTAINER(m_plug), (GtkWidget*)m_web_view);
 
-    // Map the plug and all children so WebKit initializes its rendering
-    // surface against a mapped X11 window.  If we only call realize(), the
-    // plug's X11 window is withdrawn/unmapped, and WebKit2GTK switches to
-    // headless/offscreen rendering — meaning it never draws to a visible
-    // surface even after XEMBED embeds the plug into the socket.
-    // GtkPlug(0) appears briefly as a floating window; the XEMBED socket
-    // embedding in doAttach() reparents it immediately after.
+    // Show both the container and the web view so WebKit initialises its
+    // rendering surface against a mapped X11 window.
     gtk_widget_show_all(GTK_WIDGET(m_plug));
 
     // --- Connect signals ---
@@ -626,9 +648,12 @@ bool MCWebKitGTKBrowser::Init(void)
 
 void *MCWebKitGTKBrowser::GetNativeLayer()
 {
-    if (m_plug == nil)
+    if (m_plug == nil || !wk.gtk_widget_get_window || !wk.gdk_x11_window_get_xid)
         return nil;
-    return (void*)(uintptr_t)wk.gtk_plug_get_id(GTK_PLUG(m_plug));
+    GdkWindow *t_gdk_win = wk.gtk_widget_get_window(m_plug);
+    if (t_gdk_win == nil)
+        return nil;
+    return (void*)(uintptr_t)wk.gdk_x11_window_get_xid(t_gdk_win);
 }
 
 bool MCWebKitGTKBrowser::GetRect(MCBrowserRect &r_rect)
