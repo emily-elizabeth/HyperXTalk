@@ -193,8 +193,10 @@ void MCNativeLayerX11::updateContainerGeometry()
     // Clear any minimum size parameters for the GTK widgets
     gtk_widget_set_size_request(GTK_WIDGET(m_child_window), -1, -1);
 
-    // Resize by adjusting the widget's containing GtkWindow
-    gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)), m_intersect_rect.x, m_intersect_rect.y, m_intersect_rect.width, m_intersect_rect.height);
+    // Resize by adjusting the widget's containing GtkWindow.
+    // Guard against zero size — X11 requires w > 0, h > 0.
+    if (m_intersect_rect.width > 0 && m_intersect_rect.height > 0)
+        gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)), m_intersect_rect.x, m_intersect_rect.y, m_intersect_rect.width, m_intersect_rect.height);
 
     // We need to set the requested minimum size in order to get in-process GTK
     // widgets to re-size automatically. Unfortunately, that is the only widget
@@ -225,20 +227,22 @@ void MCNativeLayerX11::doSetGeometry(const MCRectangle& p_rect)
 
     // Clear any minimum size parameters for the GTK widgets
     gtk_widget_set_size_request(GTK_WIDGET(m_socket), -1, -1);
-    
-    // Resize the socket
-    gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_socket)), t_rect.x, t_rect.y, t_rect.width, t_rect.height);
-    
+
+    // Resize the socket — guard against zero size (X11 requires w > 0, h > 0).
+    if (t_rect.width > 0 && t_rect.height > 0)
+        gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_socket)), t_rect.x, t_rect.y, t_rect.width, t_rect.height);
+
     // We need to set the requested minimum size in order to get in-process GTK
     // widgets to re-size automatically. Unfortunately, that is the only widget
     // category that this works for... others need to do it themselves.
     gtk_widget_set_size_request(GTK_WIDGET(m_socket), t_rect.width, t_rect.height);
-    
+
     // Resize the embedded window directly via raw X11.
     // The widget window was reparented into m_child_window with XReparentWindow
     // (not XEMBED), so we drive its geometry directly from m_widget_xid.
-    // Using the engine's x11:: namespace avoids any cross-GDK-instance issues.
-    if (m_widget_xid != 0)
+    // Guard against zero size — XMoveResizeWindow with w=0 or h=0 generates
+    // X11 BadValue which can crash via the engine's error handler.
+    if (m_widget_xid != 0 && t_rect.width > 0 && t_rect.height > 0)
     {
         GdkWindow *t_child_gdk = gtk_widget_get_window(GTK_WIDGET(m_child_window));
         if (t_child_gdk != NULL)
