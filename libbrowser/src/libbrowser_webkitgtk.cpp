@@ -185,8 +185,8 @@ static struct WKSymbols
     gboolean (*g_main_context_pending)(GMainContext*);
 
     // ---- GTK ----
-    GtkWidget* (*gtk_plug_new)(GdkNativeWindow);
-    GdkNativeWindow (*gtk_plug_get_id)(GtkPlug*);
+    GtkWidget* (*gtk_plug_new)(Window);   // GTK3: takes X11 Window (XID), not GdkNativeWindow
+    Window     (*gtk_plug_get_id)(GtkPlug*);  // GTK3: returns Window, not GdkNativeWindow
     void (*gtk_container_add)(GtkContainer*, GtkWidget*);
     void (*gtk_widget_show)(GtkWidget*);
     void (*gtk_widget_show_all)(GtkWidget*);
@@ -693,7 +693,7 @@ bool MCWebKitGTKBrowser::Reload()
 
 // Shared finish helper: extracts string result from a JSCValue*, stores it in
 // the browser's m_js_result, signals completion.
-static void JSFinishWithValue(MCWebKitGTKBrowser *t_browser, JSCValue *t_value, GError *t_error)
+void JSFinishWithValue(MCWebKitGTKBrowser *t_browser, JSCValue *t_value, GError *t_error)
 {
     if (t_error != nil)
     {
