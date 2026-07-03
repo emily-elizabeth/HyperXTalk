@@ -1,16 +1,16 @@
 /* Copyright (C) 2015 LiveCode Ltd.
- 
+
  This file is part of LiveCode.
- 
+
  LiveCode is free software; you can redistribute it and/or modify it under
  the terms of the GNU General Public License v3 as published by the Free
  Software Foundation.
- 
+
  LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
  WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
@@ -52,15 +52,37 @@
 
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
-// -- tperry 12-11-2025: GtkSocket still exists in GTK3 but needs explicit include
-#include <gtk/gtkx.h>
 
 
-MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, x11::Window p_view) :
+// Design notes
+// ------------
+// m_child_window is a GTK_WINDOW_POPUP (override_redirect=TRUE) whose
+// underlying X11 window is reparented into the engine's stack window via
+// gdk_window_reparent.  This makes it appear at the correct on-screen
+// position while the WM never manages it.
+//
+// m_browser_widget (WebKitWebView) is added directly as a GTK child of
+// m_child_window.  This keeps the full GTK widget hierarchy intact:
+//
+//   m_child_window (GtkWindow/popup) → m_browser_widget (WebKitWebView)
+//
+// m_child_window's GTK frame clock drives all rendering.  When WebKit
+// queues a redraw (gtk_widget_queue_draw), the frame clock fires, GTK
+// calls the draw signal on m_browser_widget, and WebKit composites its
+// content.  Because m_child_window's X11 window is mapped inside the
+// stack window, the content appears at the correct position on screen.
+//
+// Sizing: gtk_window_resize(m_child_window, w, h) triggers GTK's layout
+// cascade which allocates m_browser_widget to fill the window.
+//
+// No GtkSocket, no GtkPlug, no XEMBED — those approaches broke the GTK3
+// frame clock for the embedded widget.
+
+
+MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_child_window(NULL),
   m_input_shape(NULL),
-  m_socket(NULL),
-  m_widget_xid(p_view)
+  m_browser_widget(p_view)
 {
 	m_object = p_object;
 	m_intersect_rect = MCRectangleMake(0,0,0,0);
@@ -68,17 +90,12 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, x11::Window p_view) :
 
 MCNativeLayerX11::~MCNativeLayerX11()
 {
-    if (m_socket != NULL)
-    {
-        g_object_unref(m_socket);
-    }
     if (m_child_window != NULL)
     {
         gtk_widget_destroy(GTK_WIDGET(m_child_window));
     }
     if (m_input_shape != NULL)
     {
-        // -- tperry 12-11-2025: GTK3 uses cairo_region_destroy
         cairo_region_destroy(m_input_shape);
     }
 }
@@ -91,6 +108,8 @@ void MCNativeLayerX11::OnToolChanged(Tool p_new_tool)
 
 void MCNativeLayerX11::updateInputShape()
 {
+    if (m_child_window == NULL)
+        return;
     if (!m_show_for_tool)
         // In edit mode. Mask out all input events
         gdk_window_input_shape_combine_region(gtk_widget_get_window(GTK_WIDGET(m_child_window)), m_input_shape, 0, 0);
@@ -101,68 +120,42 @@ void MCNativeLayerX11::updateInputShape()
 
 void MCNativeLayerX11::doAttach()
 {
-    if (m_socket == NULL)
+    if (m_child_window == NULL)
     {
-        // Create a new GTK socket to deal with the XEMBED protocol
-        GtkSocket *t_socket;
-		t_socket = GTK_SOCKET(gtk_socket_new());
-        
-        // Create a new GTK window to hold the socket
         MCRectangle t_rect;
         t_rect = m_object->getrect();
+
+        // Create a popup window to hold the browser widget.  GTK_WINDOW_POPUP
+        // sets override_redirect=TRUE so the WM never manages it.
         m_child_window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_POPUP));
-        gtk_widget_set_parent_window(GTK_WIDGET(m_child_window), getStackGdkWindow());
-        gtk_widget_realize(GTK_WIDGET(m_child_window));
-        gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)), getStackGdkWindow(), t_rect.x, t_rect.y);
-        
-        // Add the socket BEFORE reparenting so it gets anchored to the
-        // popup toplevel (required for GTK3 realization).
-        gtk_container_add(GTK_CONTAINER(m_child_window), GTK_WIDGET(t_socket));
 
-        // Realize while the popup is still a toplevel — GTK3 requires widgets
-        // to be "anchored" before they can be realized.
-        gtk_widget_realize(GTK_WIDGET(m_child_window));
-        gtk_widget_realize(GTK_WIDGET(t_socket));
-
-        // Show both so the socket is mapped when gtk_socket_add_id is called;
-        // an unmapped socket won't be able to accept the plug.
-        gtk_widget_show(GTK_WIDGET(t_socket));
-        gtk_widget_show(GTK_WIDGET(m_child_window));
-
-        // Now reparent into the stack window.
-        gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)), getStackGdkWindow(), t_rect.x, t_rect.y);
-
-        // Create an empty region to act as an input mask while in edit mode
-        // -- tperry 12-11-2025: GTK3 uses cairo_region_create
-        m_input_shape = cairo_region_create();
-
-		// Retain a reference to the socket
-		m_socket = GTK_SOCKET(g_object_ref(G_OBJECT(t_socket)));
-    }
-
-    // Reparent the browser/widget window directly into m_child_window via raw X11.
-    // We do NOT use gtk_socket_add_id / XEMBED here: GTK_WINDOW_TOPLEVEL windows
-    // are not XEMBED clients and gtk_socket_add_id cannot embed them.  Direct
-    // XReparentWindow bypasses the XEMBED protocol entirely; the embedded window
-    // receives normal ConfigureNotify events and resizes correctly.
-    if (m_widget_xid != 0)
-    {
-        GdkWindow *t_child_gdk = gtk_widget_get_window(GTK_WIDGET(m_child_window));
-        if (t_child_gdk != NULL)
+        if (m_browser_widget != NULL)
         {
-            x11::Display *t_display = x11::gdk_x11_display_get_xdisplay(
-                gdk_window_get_display(t_child_gdk));
-            x11::Window t_child_xid = x11::gdk_x11_window_get_xid(t_child_gdk);
-            if (t_display != NULL && t_child_xid != None)
-            {
-                x11::XReparentWindow(t_display, m_widget_xid, t_child_xid, 0, 0);
-                x11::XMapWindow(t_display, m_widget_xid);
-            }
+            // Add the browser widget as the only GTK child.  GTK will
+            // allocate it to fill the window on every layout pass.
+            gtk_container_add(GTK_CONTAINER(m_child_window), m_browser_widget);
         }
+
+        // Realize m_child_window (and its child) while it is still an
+        // unparented toplevel — GTK3 requires widgets to be anchored to a
+        // GtkWindow before they can be realized.
+        gtk_widget_realize(GTK_WIDGET(m_child_window));
+
+        // Show the window and child so the frame clock starts and WebKit's
+        // rendering pipeline initialises.
+        gtk_widget_show_all(GTK_WIDGET(m_child_window));
+
+        // Reparent the popup's X11 window into the stack window.  GDK still
+        // thinks m_child_window is a root-level popup; that is intentional —
+        // GTK's frame clock keeps ticking, driving WebKit's draw cycle.
+        gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
+                            getStackGdkWindow(), t_rect.x, t_rect.y);
+
+        // Create an empty region to act as an input mask while in edit mode.
+        m_input_shape = cairo_region_create();
     }
-    //fprintf(stderr, "XID: %u\n", gtk_socket_get_id(m_socket));
-    
-    // Act as if there were a re-layer to put the widget in the right place
+
+    // Position and size everything correctly.
     doRelayer();
     doSetViewportGeometry(m_viewport_rect);
     doSetGeometry(m_rect);
@@ -171,8 +164,9 @@ void MCNativeLayerX11::doAttach()
 
 void MCNativeLayerX11::doDetach()
 {
-    // We don't really detach; just stop showing the socket
-    gtk_widget_hide(GTK_WIDGET(m_child_window));
+    // Just hide the container; leave the widget hierarchy intact for re-attach.
+    if (m_child_window != NULL)
+        gtk_widget_hide(GTK_WIDGET(m_child_window));
 }
 
 // We can't get a snapshot of X11 windows so override this to return false
@@ -190,18 +184,28 @@ void MCNativeLayerX11::updateContainerGeometry()
 {
 	m_intersect_rect = MCU_intersect_rect(m_viewport_rect, m_rect);
 
-    // Clear any minimum size parameters for the GTK widgets
+    if (m_child_window == NULL)
+        return;
+
+    // Clear any minimum size hint so the resize below is authoritative.
     gtk_widget_set_size_request(GTK_WIDGET(m_child_window), -1, -1);
 
-    // Resize by adjusting the widget's containing GtkWindow.
+    // Move and resize the X11 window within the stack window.
     // Guard against zero size — X11 requires w > 0, h > 0.
     if (m_intersect_rect.width > 0 && m_intersect_rect.height > 0)
-        gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)), m_intersect_rect.x, m_intersect_rect.y, m_intersect_rect.width, m_intersect_rect.height);
+    {
+        gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
+            m_intersect_rect.x, m_intersect_rect.y,
+            m_intersect_rect.width, m_intersect_rect.height);
 
-    // We need to set the requested minimum size in order to get in-process GTK
-    // widgets to re-size automatically. Unfortunately, that is the only widget
-    // category that this works for... others need to do it themselves.
-    gtk_widget_set_size_request(GTK_WIDGET(m_child_window), m_intersect_rect.width, m_intersect_rect.height);
+        // gtk_window_resize tells GTK the new logical size so the layout
+        // cascade allocates m_browser_widget to fill the window.
+        gtk_window_resize(GTK_WINDOW(m_child_window),
+            m_intersect_rect.width, m_intersect_rect.height);
+    }
+
+    gtk_widget_set_size_request(GTK_WIDGET(m_child_window),
+        m_intersect_rect.width, m_intersect_rect.height);
 }
 
 void MCNativeLayerX11::doSetViewportGeometry(const MCRectangle &p_rect)
@@ -210,54 +214,45 @@ void MCNativeLayerX11::doSetViewportGeometry(const MCRectangle &p_rect)
 	updateContainerGeometry();
 }
 
-// IM-2016-01-21: [[ NativeLayer ]] Place the socket window relative to its
+// IM-2016-01-21: [[ NativeLayer ]] Place the widget window relative to its
 //    container, so only the visible area (clipped by any containing groups)
 //    is displayed.
 void MCNativeLayerX11::doSetGeometry(const MCRectangle& p_rect)
 {
 	m_rect = p_rect;
 	updateContainerGeometry();
-	
+
+	if (m_child_window == NULL || m_browser_widget == NULL)
+        return;
+
+	// Compute the browser widget's position within m_child_window.
+	// When m_rect extends beyond the viewport, x/y may be negative,
+	// which clips the browser to the visible area.
 	MCRectangle t_rect;
 	t_rect = m_rect;
 	t_rect.x -= m_intersect_rect.x;
 	t_rect.y -= m_intersect_rect.y;
-	
-    // Move the overlay window first, to ensure events don't get stolen
 
-    // Clear any minimum size parameters for the GTK widgets
-    gtk_widget_set_size_request(GTK_WIDGET(m_socket), -1, -1);
-
-    // Resize the socket — guard against zero size (X11 requires w > 0, h > 0).
     if (t_rect.width > 0 && t_rect.height > 0)
-        gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_socket)), t_rect.x, t_rect.y, t_rect.width, t_rect.height);
-
-    // We need to set the requested minimum size in order to get in-process GTK
-    // widgets to re-size automatically. Unfortunately, that is the only widget
-    // category that this works for... others need to do it themselves.
-    gtk_widget_set_size_request(GTK_WIDGET(m_socket), t_rect.width, t_rect.height);
-
-    // Resize the embedded window directly via raw X11.
-    // The widget window was reparented into m_child_window with XReparentWindow
-    // (not XEMBED), so we drive its geometry directly from m_widget_xid.
-    // Guard against zero size — XMoveResizeWindow with w=0 or h=0 generates
-    // X11 BadValue which can crash via the engine's error handler.
-    if (m_widget_xid != 0 && t_rect.width > 0 && t_rect.height > 0)
     {
-        GdkWindow *t_child_gdk = gtk_widget_get_window(GTK_WIDGET(m_child_window));
-        if (t_child_gdk != NULL)
-        {
-            x11::Display *t_display = x11::gdk_x11_display_get_xdisplay(
-                gdk_window_get_display(t_child_gdk));
-            if (t_display != NULL)
-                x11::XMoveResizeWindow(t_display, m_widget_xid,
-                    t_rect.x, t_rect.y, t_rect.width, t_rect.height);
-        }
+        // Set the minimum size so WebKit knows its render surface dimensions.
+        gtk_widget_set_size_request(m_browser_widget, t_rect.width, t_rect.height);
+
+        // Directly allocate so GTK layout takes effect immediately rather
+        // than waiting for the next frame clock cycle.
+        GtkAllocation t_alloc;
+        t_alloc.x      = t_rect.x;
+        t_alloc.y      = t_rect.y;
+        t_alloc.width  = t_rect.width;
+        t_alloc.height = t_rect.height;
+        gtk_widget_size_allocate(m_browser_widget, &t_alloc);
     }
 }
 
 void MCNativeLayerX11::doSetVisible(bool p_visible)
 {
+    if (m_child_window == NULL)
+        return;
     if (p_visible)
         gtk_widget_show(GTK_WIDGET(m_child_window));
     else
@@ -265,7 +260,7 @@ void MCNativeLayerX11::doSetVisible(bool p_visible)
 
 	if (p_visible)
 		doSetGeometry(m_object->getrect());
-		
+
 	updateInputShape();
 }
 
@@ -273,11 +268,14 @@ void MCNativeLayerX11::doRelayer()
 {
     // Ensure that the input mask for the widget is up to date
     updateInputShape();
-    
+
+    if (m_child_window == NULL)
+        return;
+
     // Find which native layer this should be inserted below
     MCObject *t_before;
     t_before = findNextLayerAbove(m_object);
-    
+
     // Insert the widget in the correct place (but only if the card is current)
     if (isAttached() && m_object->getstack()->getcard() == m_object->getstack()->getcurcard())
     {
@@ -302,7 +300,7 @@ void MCNativeLayerX11::doRelayer()
 
 bool MCNativeLayerX11::GetNativeView(void *&r_view)
 {
-    r_view = (void*)m_widget_xid;
+    r_view = (void*)m_browser_widget;
     return true;
 }
 
@@ -323,7 +321,9 @@ GdkWindow* MCNativeLayerX11::getStackGdkWindow()
 
 MCNativeLayer* MCNativeLayer::CreateNativeLayer(MCObject *p_object, void *p_native_view)
 {
-    return new MCNativeLayerX11(p_object, (x11::Window)p_native_view);
+    // p_native_view is a GtkWidget* (WebKitWebView) returned by
+    // MCWebKitGTKBrowser::GetNativeLayer().
+    return new MCNativeLayerX11(p_object, GTK_WIDGET(p_native_view));
 }
 
 bool MCNativeLayer::CreateNativeContainer(MCObject *p_object, void *&r_view)

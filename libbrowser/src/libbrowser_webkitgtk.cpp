@@ -204,6 +204,9 @@ static struct WKSymbols
     // ---- GTK window management ----
     void (*gtk_window_move)(GtkWindow*, gint, gint);
 
+    // ---- GtkPlug (XEMBED client) ----
+    GtkWidget* (*gtk_plug_new)(Window);
+
     // ---- GDK/X11 ----
     Window (*gdk_x11_window_get_xid)(GdkWindow*);
 
@@ -449,6 +452,10 @@ static bool LoadWebKit(void)
     LOAD_SYM(t_gtk, gtk_widget_is_sensitive);
     LOAD_SYM(t_gtk, gtk_window_move);
 
+    // gtk_plug_new is in libgdk-3 / libgtk-3 as part of the XEMBED support.
+    // It lives in libgtk-3 on GTK3 systems (same handle as t_gtk).
+    LOAD_SYM(t_gtk, gtk_plug_new);
+
     // GDK/X11 — needed for GetNativeLayer()
     void *t_gdk = dlopen("libgdk-3.so.0", RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD);
     if (!t_gdk) t_gdk = dlopen("libgdk-3.so.0", RTLD_LAZY | RTLD_LOCAL);
@@ -574,8 +581,7 @@ MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
         if (m_progress_id)      wk.g_signal_handler_disconnect(m_web_view, m_progress_id);
     }
 
-    if (m_plug != nil)
-        wk.gtk_widget_destroy(m_plug);
+    // m_web_view is owned by m_child_window in native-layer-x11; no destroy here.
 
     if (m_js_handlers != nil) wk.g_free(m_js_handlers);
     if (m_js_result   != nil) wk.g_free(m_js_result);
@@ -607,39 +613,11 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     }
 
     // --- Container window ---
-    // Use GTK_WINDOW_POPUP, not GTK_WINDOW_TOPLEVEL or GtkPlug:
-    //
-    //  • GtkPlug (XEMBED) ignores XMoveResizeWindow/ConfigureNotify; it only
-    //    resizes when the socket sends XEMBED_SIZE_CHANGE.  We've bypassed
-    //    XEMBED entirely in native-layer-x11, so GtkPlug is wrong here.
-    //
-    //  • GTK_WINDOW_TOPLEVEL is managed by the WM.  Pre-reparenting it before
-    //    show avoids the WM frame, but XReparentWindow in Init() can crash when
-    //    the parent XID is invalid (e.g. during drag-and-drop the stack window
-    //    may not exist yet).
-    //
-    //  • GTK_WINDOW_POPUP sets override_redirect = TRUE automatically during
-    //    realize.  The WM never manages it regardless of when it is shown or
-    //    where it lives in the window tree.  ConfigureNotify is processed
-    //    normally, so XMoveResizeWindow in doSetGeometry correctly resizes
-    //    WebKit's layout.
-    //
-    // We position it far offscreen before show so it is never visible at its
-    // default (0, 0) root position.  native-layer-x11's doAttach() will
-    // XReparentWindow it into m_child_window and XMoveResizeWindow it to the
-    // correct rect.
-    m_plug = wk.gtk_window_new(GTK_WINDOW_POPUP);
-    if (m_plug == nil)
-        return false;
-
-    wk.gtk_container_add(GTK_CONTAINER(m_plug), (GtkWidget*)m_web_view);
-
-    // Park offscreen before mapping so it never appears at (0,0) root.
-    if (wk.gtk_window_move)
-        wk.gtk_window_move(GTK_WINDOW(m_plug), -32000, -32000);
-
-    // Show so WebKit's rendering pipeline starts immediately.
-    wk.gtk_widget_show_all(m_plug);
+    // We do NOT create a container here.  native-layer-x11::doAttach() adds
+    // m_web_view directly as a GTK child of its GTK_WINDOW_POPUP (m_child_window)
+    // and calls gtk_widget_show_all.  That window's frame clock drives all
+    // WebKit rendering.  GetNativeLayer() returns (void*)m_web_view so
+    // native-layer-x11 can receive the widget pointer.
 
     // --- Connect signals ---
     m_load_changed_id = wk.g_signal_connect_data(m_web_view, "load-changed",
@@ -662,20 +640,17 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
 
 void *MCWebKitGTKBrowser::GetNativeLayer()
 {
-    if (m_plug == nil || !wk.gtk_widget_get_window || !wk.gdk_x11_window_get_xid)
-        return nil;
-    GdkWindow *t_gdk_win = wk.gtk_widget_get_window(m_plug);
-    if (t_gdk_win == nil)
-        return nil;
-    return (void*)(uintptr_t)wk.gdk_x11_window_get_xid(t_gdk_win);
+    // Return the WebKitWebView widget pointer directly.  native-layer-x11
+    // receives it as void* and casts to GtkWidget* to add it to its container.
+    return (void*)m_web_view;
 }
 
 bool MCWebKitGTKBrowser::GetRect(MCBrowserRect &r_rect)
 {
-    if (m_plug == nil)
+    if (m_web_view == nil)
         return false;
     GtkAllocation t_alloc;
-    gtk_widget_get_allocation(m_plug, &t_alloc);
+    gtk_widget_get_allocation((GtkWidget*)m_web_view, &t_alloc);
     r_rect.left   = t_alloc.x;
     r_rect.top    = t_alloc.y;
     r_rect.right  = t_alloc.x + t_alloc.width;
@@ -692,8 +667,6 @@ bool MCWebKitGTKBrowser::SetRect(const MCBrowserRect &p_rect)
     if (t_w <= 0) t_w = 1;
     if (t_h <= 0) t_h = 1;
     wk.gtk_widget_set_size_request((GtkWidget*)m_web_view, t_w, t_h);
-    if (m_plug)
-        wk.gtk_widget_set_size_request(m_plug, t_w, t_h);
     return true;
 }
 
