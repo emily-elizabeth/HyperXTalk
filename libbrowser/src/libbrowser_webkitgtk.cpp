@@ -591,13 +591,19 @@ bool MCWebKitGTKBrowser::Init(void)
 
     wk.gtk_container_add(GTK_CONTAINER(m_plug), (GtkWidget*)m_web_view);
 
-    // Realize without mapping.  Showing the plug as a top-level X window
-    // before the GtkSocket embeds it via XEMBED causes the WM to manage it
-    // as a floating window and can interfere with embedding.
-    // gtk_widget_realize gives us a valid XID for GetNativeLayer() while
-    // letting the GtkSocket control visibility via XEMBED.
+    // Realize the plug without mapping it as a top-level X window.
+    // Mapping it before XEMBED connects causes the WM to manage it as a
+    // floating window, which interferes with embedding.
     gtk_widget_realize(GTK_WIDGET(m_plug));
-    gtk_widget_realize(GTK_WIDGET(m_web_view));
+
+    // Mark the WebKitWebView as visible (sets the GTK visible flag, realizes
+    // it as a child of the plug, but does NOT map it yet because the plug
+    // is still unrealized/unmapped from GTK's perspective).
+    // When the GtkSocket embeds the plug via XEMBED and GTK calls
+    // gtk_widget_map(plug), it cascades to children with the visible flag —
+    // so the web view will be mapped at that point and WebKit's compositor
+    // will have a valid surface to draw on.
+    gtk_widget_show(GTK_WIDGET(m_web_view));
 
     // --- Connect signals ---
     m_load_changed_id = wk.g_signal_connect_data(m_web_view, "load-changed",
