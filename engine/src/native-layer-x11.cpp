@@ -99,6 +99,14 @@ void MCNativeLayerX11::updateInputShape()
         gdk_window_input_shape_combine_region(gtk_widget_get_window(GTK_WIDGET(m_child_window)), NULL, 0, 0);
 }
 
+/*static*/ void MCNativeLayerX11::onPlugAdded(GtkSocket *p_socket, gpointer p_data)
+{
+    // XEMBED handshake is complete — plug window now exists in the socket.
+    // Re-apply geometry so the plug and its WebKit content get the right size.
+    MCNativeLayerX11 *t_self = static_cast<MCNativeLayerX11*>(p_data);
+    t_self->doSetGeometry(t_self->m_rect);
+}
+
 void MCNativeLayerX11::doAttach()
 {
     if (m_socket == NULL)
@@ -137,7 +145,12 @@ void MCNativeLayerX11::doAttach()
     // m_widget_xid is x11::Window, cast to ::Window to avoid namespace conflict
     // Attach the X11 window to this socket
     if (gtk_socket_get_plug_window(m_socket) == NULL)
+    {
+        // The XEMBED handshake is async: plug-added fires after events are pumped.
+        // Connect before add_id so we re-apply geometry once the plug is confirmed.
+        g_signal_connect(m_socket, "plug-added", G_CALLBACK(MCNativeLayerX11::onPlugAdded), this);
         gtk_socket_add_id(m_socket, (::Window)m_widget_xid);
+    }
     //fprintf(stderr, "XID: %u\n", gtk_socket_get_id(m_socket));
     
     // Act as if there were a re-layer to put the widget in the right place
