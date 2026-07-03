@@ -589,21 +589,21 @@ bool MCWebKitGTKBrowser::Init(void)
     if (m_plug == nil)
         return false;
 
+    // Make the plug undecorated and skip-taskbar so it doesn't appear as a
+    // managed window during the brief period before XEMBED embeds it.
+    gtk_window_set_decorated(GTK_WINDOW(m_plug), FALSE);
+    gtk_window_set_skip_taskbar_hint(GTK_WINDOW(m_plug), TRUE);
+
     wk.gtk_container_add(GTK_CONTAINER(m_plug), (GtkWidget*)m_web_view);
 
-    // Realize the plug without mapping it as a top-level X window.
-    // Mapping it before XEMBED connects causes the WM to manage it as a
-    // floating window, which interferes with embedding.
-    gtk_widget_realize(GTK_WIDGET(m_plug));
-
-    // Mark the WebKitWebView as visible (sets the GTK visible flag, realizes
-    // it as a child of the plug, but does NOT map it yet because the plug
-    // is still unrealized/unmapped from GTK's perspective).
-    // When the GtkSocket embeds the plug via XEMBED and GTK calls
-    // gtk_widget_map(plug), it cascades to children with the visible flag —
-    // so the web view will be mapped at that point and WebKit's compositor
-    // will have a valid surface to draw on.
-    gtk_widget_show(GTK_WIDGET(m_web_view));
+    // Map the plug and all children so WebKit initializes its rendering
+    // surface against a mapped X11 window.  If we only call realize(), the
+    // plug's X11 window is withdrawn/unmapped, and WebKit2GTK switches to
+    // headless/offscreen rendering — meaning it never draws to a visible
+    // surface even after XEMBED embeds the plug into the socket.
+    // GtkPlug(0) appears briefly as a floating window; the XEMBED socket
+    // embedding in doAttach() reparents it immediately after.
+    gtk_widget_show_all(GTK_WIDGET(m_plug));
 
     // --- Connect signals ---
     m_load_changed_id = wk.g_signal_connect_data(m_web_view, "load-changed",
