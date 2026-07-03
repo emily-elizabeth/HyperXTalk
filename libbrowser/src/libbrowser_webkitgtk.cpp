@@ -195,6 +195,7 @@ static struct WKSymbols
     void (*gtk_container_add)(GtkContainer*, GtkWidget*);
     void (*gtk_widget_show)(GtkWidget*);
     void (*gtk_widget_show_all)(GtkWidget*);
+    void (*gtk_widget_realize)(GtkWidget*);
     void (*gtk_widget_destroy)(GtkWidget*);
     void (*gtk_widget_set_size_request)(GtkWidget*, gint, gint);
     void (*gtk_widget_set_sensitive)(GtkWidget*, gboolean);
@@ -202,6 +203,11 @@ static struct WKSymbols
 
     // ---- GDK/X11 ----
     Window (*gdk_x11_window_get_xid)(GdkWindow*);
+    // Used by Init() to pre-reparent the container into the parent stack window
+    // BEFORE showing, so the WM never manages it as a floating toplevel.
+    GdkDisplay* (*gdk_display_get_default)(void);
+    GdkWindow*  (*gdk_x11_window_foreign_new_for_display)(GdkDisplay*, Window);
+    void        (*gdk_window_reparent)(GdkWindow*, GdkWindow*, gint, gint);
 
     // ---- is4_1: true when evaluate_javascript resolved ----
     bool is4_1;
@@ -438,16 +444,22 @@ static bool LoadWebKit(void)
     LOAD_SYM(t_gtk, gtk_container_add);
     LOAD_SYM(t_gtk, gtk_widget_show);
     LOAD_SYM(t_gtk, gtk_widget_show_all);
+    LOAD_SYM(t_gtk, gtk_widget_realize);
     LOAD_SYM(t_gtk, gtk_widget_destroy);
     LOAD_SYM(t_gtk, gtk_widget_set_size_request);
     LOAD_SYM(t_gtk, gtk_widget_set_sensitive);
     LOAD_SYM(t_gtk, gtk_widget_is_sensitive);
 
-    // GDK/X11 — resolve gdk_x11_window_get_xid for GetNativeLayer()
+    // GDK/X11 — needed for GetNativeLayer() and Init() pre-reparenting
     void *t_gdk = dlopen("libgdk-3.so.0", RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD);
     if (!t_gdk) t_gdk = dlopen("libgdk-3.so.0", RTLD_LAZY | RTLD_LOCAL);
     if (t_gdk)
+    {
         LOAD_SYM(t_gdk, gdk_x11_window_get_xid);
+        LOAD_SYM(t_gdk, gdk_display_get_default);
+        LOAD_SYM(t_gdk, gdk_x11_window_foreign_new_for_display);
+        LOAD_SYM(t_gdk, gdk_window_reparent);
+    }
 
     if (!wk.webkit_web_view_load_uri || !wk.gtk_window_new || !wk.gdk_x11_window_get_xid)
         return false;
@@ -465,7 +477,7 @@ public:
     MCWebKitGTKBrowser();
     virtual ~MCWebKitGTKBrowser();
 
-    bool Init(void);
+    bool Init(void *p_display, void *p_parent_window);
 
     virtual void *GetNativeLayer();
     virtual bool GetRect(MCBrowserRect &r_rect);
@@ -573,7 +585,7 @@ MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
     if (m_js_result   != nil) wk.g_free(m_js_result);
 }
 
-bool MCWebKitGTKBrowser::Init(void)
+bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
 {
     if (!wk.webkit_user_content_manager_new)
         return false;
@@ -599,32 +611,50 @@ bool MCWebKitGTKBrowser::Init(void)
     }
 
     // --- Container window ---
-    // Use a plain GTK_WINDOW_TOPLEVEL rather than GtkPlug.
-    //
-    // GtkPlug implements the XEMBED client protocol and therefore IGNORES
-    // raw XMoveResizeWindow / ConfigureNotify events — it only changes size
-    // when GtkSocket sends an XEMBED_SIZE_CHANGE message.  GtkSocket does
-    // not send XEMBED_SIZE_CHANGE when we bypass GTK's allocation system
-    // (which is what native-layer-x11's gdk_window_move_resize does), so
-    // the plug stays at its initial size and WebKit renders blank.
-    //
-    // A plain GTK_WINDOW_TOPLEVEL processes ConfigureNotify normally, so
-    // native-layer-x11's XMoveResizeWindow triggers a proper GTK reallocation
-    // and WebKit redraws at the correct size.
+    // Use GTK_WINDOW_TOPLEVEL (not GtkPlug): GtkPlug ignores ConfigureNotify
+    // and only resizes via XEMBED_SIZE_CHANGE, which the socket never sends
+    // when we bypass GTK's allocation system.  A plain toplevel processes
+    // ConfigureNotify normally, so XMoveResizeWindow triggers a proper layout.
     m_plug = wk.gtk_window_new(GTK_WINDOW_TOPLEVEL);
     if (m_plug == nil)
         return false;
 
-    // Suppress decorations and taskbar entry to minimise the brief period
-    // the window is visible as a floating toplevel before native-layer-x11
-    // embeds it via GtkSocket.
     gtk_window_set_decorated(GTK_WINDOW(m_plug), FALSE);
     gtk_window_set_skip_taskbar_hint(GTK_WINDOW(m_plug), TRUE);
 
     wk.gtk_container_add(GTK_CONTAINER(m_plug), (GtkWidget*)m_web_view);
 
-    // Show both the container and the web view so WebKit initialises its
-    // rendering surface against a mapped X11 window.
+    // Realize the container to get its GdkWindow WITHOUT mapping it yet.
+    if (wk.gtk_widget_realize)
+        wk.gtk_widget_realize(m_plug);
+
+    // Pre-reparent into the parent stack window BEFORE showing.
+    // If we show first, the WM gets a MapRequest and adds a frame window,
+    // leaving a floating toplevel even after XReparentWindow.  Reparenting
+    // into a non-root parent before the first XMapWindow means the WM never
+    // receives a MapRequest and never manages the window.
+    // native-layer-x11's doAttach() will subsequently XReparentWindow it
+    // into m_child_window for correct layering.
+    if (p_parent_window != nil &&
+        wk.gtk_widget_get_window && wk.gdk_display_get_default &&
+        wk.gdk_x11_window_foreign_new_for_display && wk.gdk_window_reparent)
+    {
+        GdkDisplay *t_display = wk.gdk_display_get_default();
+        GdkWindow  *t_container = wk.gtk_widget_get_window(m_plug);
+        if (t_display != NULL && t_container != NULL)
+        {
+            GdkWindow *t_parent = wk.gdk_x11_window_foreign_new_for_display(
+                t_display, (Window)(uintptr_t)p_parent_window);
+            if (t_parent != NULL)
+            {
+                wk.gdk_window_reparent(t_container, t_parent, 0, 0);
+                wk.g_object_unref(t_parent);
+            }
+        }
+    }
+
+    // Now show — the container is already a child of the parent (not root),
+    // so WebKit gets a mapped window and renders correctly.
     gtk_widget_show_all(GTK_WIDGET(m_plug));
 
     // --- Connect signals ---
@@ -1288,7 +1318,7 @@ public:
         MCWebKitGTKLibraryFinalize();
     }
 
-    virtual bool CreateBrowser(void * /*p_display*/, void * /*p_parent_view*/,
+    virtual bool CreateBrowser(void *p_display, void *p_parent_view,
                                MCBrowser *&r_browser)
     {
         MCWebKitGTKLibraryInitialize();
@@ -1297,7 +1327,7 @@ public:
         if (t_browser == nil)
             return false;
 
-        if (!t_browser->Init())
+        if (!t_browser->Init(p_display, p_parent_view))
         {
             delete t_browser;
             return false;
