@@ -75,10 +75,6 @@ private:
     void updateInputShape();
 
 	void updateContainerGeometry();
-
-    // Signal handler: fires when XEMBED plug connects to socket.
-    // Re-applies geometry so the plug window gets correct dimensions.
-    static void onPlugAdded(GtkSocket *p_socket, gpointer p_data);
 };
 
 #endif // ifndef __MC_NATIVE_LAYER_X11__

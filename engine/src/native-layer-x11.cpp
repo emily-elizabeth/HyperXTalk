@@ -99,14 +99,6 @@ void MCNativeLayerX11::updateInputShape()
         gdk_window_input_shape_combine_region(gtk_widget_get_window(GTK_WIDGET(m_child_window)), NULL, 0, 0);
 }
 
-/*static*/ void MCNativeLayerX11::onPlugAdded(GtkSocket *p_socket, gpointer p_data)
-{
-    // XEMBED handshake is complete — plug window now exists in the socket.
-    // Re-apply geometry so the plug and its WebKit content get the right size.
-    MCNativeLayerX11 *t_self = static_cast<MCNativeLayerX11*>(p_data);
-    t_self->doSetGeometry(t_self->m_rect);
-}
-
 void MCNativeLayerX11::doAttach()
 {
     if (m_socket == NULL)
@@ -123,16 +115,23 @@ void MCNativeLayerX11::doAttach()
         gtk_widget_realize(GTK_WIDGET(m_child_window));
         gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)), getStackGdkWindow(), t_rect.x, t_rect.y);
         
-        // Add the socket to the window
+        // Add the socket BEFORE reparenting so it gets anchored to the
+        // popup toplevel (required for GTK3 realization).
         gtk_container_add(GTK_CONTAINER(m_child_window), GTK_WIDGET(t_socket));
-        
-        // The socket needs to be realised before going any further or any
-        // operations on it will fail.
+
+        // Realize while the popup is still a toplevel — GTK3 requires widgets
+        // to be "anchored" before they can be realized.
+        gtk_widget_realize(GTK_WIDGET(m_child_window));
         gtk_widget_realize(GTK_WIDGET(t_socket));
-        
-        // Show the socket (we'll control visibility at the window level)
+
+        // Show both so the socket is mapped when gtk_socket_add_id is called;
+        // an unmapped socket won't be able to accept the plug.
         gtk_widget_show(GTK_WIDGET(t_socket));
-        
+        gtk_widget_show(GTK_WIDGET(m_child_window));
+
+        // Now reparent into the stack window.
+        gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)), getStackGdkWindow(), t_rect.x, t_rect.y);
+
         // Create an empty region to act as an input mask while in edit mode
         // -- tperry 12-11-2025: GTK3 uses cairo_region_create
         m_input_shape = cairo_region_create();
@@ -140,17 +139,12 @@ void MCNativeLayerX11::doAttach()
 		// Retain a reference to the socket
 		m_socket = GTK_SOCKET(g_object_ref(G_OBJECT(t_socket)));
     }
-    
+
     // -- tperry 13-11-2025: GTK3 - gtk_socket_add_id expects ::Window (XID from global namespace)
     // m_widget_xid is x11::Window, cast to ::Window to avoid namespace conflict
     // Attach the X11 window to this socket
     if (gtk_socket_get_plug_window(m_socket) == NULL)
-    {
-        // The XEMBED handshake is async: plug-added fires after events are pumped.
-        // Connect before add_id so we re-apply geometry once the plug is confirmed.
-        g_signal_connect(m_socket, "plug-added", G_CALLBACK(MCNativeLayerX11::onPlugAdded), this);
         gtk_socket_add_id(m_socket, (::Window)m_widget_xid);
-    }
     //fprintf(stderr, "XID: %u\n", gtk_socket_get_id(m_socket));
     
     // Act as if there were a re-layer to put the widget in the right place
@@ -225,11 +219,22 @@ void MCNativeLayerX11::doSetGeometry(const MCRectangle& p_rect)
     // category that this works for... others need to do it themselves.
     gtk_widget_set_size_request(GTK_WIDGET(m_socket), t_rect.width, t_rect.height);
     
-    // Update the contained window too
+    // Update the contained (plug) window too.
+    // Use raw X11 rather than gdk_window_move_resize: the plug may belong to
+    // a different GDK instance (e.g., WebKit loaded via dlopen), and calling
+    // the engine's GDK functions on it causes silent failures or type conflicts.
     GdkWindow* t_remote;
     t_remote = gtk_socket_get_plug_window(m_socket);
     if (t_remote != NULL)
-        gdk_window_move_resize(t_remote, t_rect.x, t_rect.y, t_rect.width, t_rect.height);
+    {
+        x11::Window t_plug_xid = x11::gdk_x11_window_get_xid(t_remote);
+        if (t_plug_xid != None)
+        {
+            x11::Display *t_display = x11::gdk_x11_display_get_xdisplay(gdk_window_get_display(t_remote));
+            if (t_display != NULL)
+                x11::XMoveResizeWindow(t_display, t_plug_xid, t_rect.x, t_rect.y, t_rect.width, t_rect.height);
+        }
+    }
 }
 
 void MCNativeLayerX11::doSetVisible(bool p_visible)
