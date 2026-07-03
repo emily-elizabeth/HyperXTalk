@@ -202,12 +202,13 @@ static struct WKSymbols
     gboolean (*gtk_widget_is_sensitive)(GtkWidget*);
 
     // ---- GDK/X11 ----
-    Window (*gdk_x11_window_get_xid)(GdkWindow*);
-    // Used by Init() to pre-reparent the container into the parent stack window
-    // BEFORE showing, so the WM never manages it as a floating toplevel.
+    Window   (*gdk_x11_window_get_xid)(GdkWindow*);
     GdkDisplay* (*gdk_display_get_default)(void);
-    GdkWindow*  (*gdk_x11_window_foreign_new_for_display)(GdkDisplay*, Window);
-    void        (*gdk_window_reparent)(GdkWindow*, GdkWindow*, gint, gint);
+    // Used to obtain the raw X11 Display* for XReparentWindow in Init()
+    Display* (*gdk_x11_display_get_xdisplay)(GdkDisplay*);
+    // Raw XReparentWindow from libX11 — bypasses GDK foreign-window wrappers
+    // which can crash or silently no-op when given a foreign parent.
+    int (*x11_XReparentWindow)(Display*, Window, Window, int, int);
 
     // ---- is4_1: true when evaluate_javascript resolved ----
     bool is4_1;
@@ -457,9 +458,16 @@ static bool LoadWebKit(void)
     {
         LOAD_SYM(t_gdk, gdk_x11_window_get_xid);
         LOAD_SYM(t_gdk, gdk_display_get_default);
-        LOAD_SYM(t_gdk, gdk_x11_window_foreign_new_for_display);
-        LOAD_SYM(t_gdk, gdk_window_reparent);
+        LOAD_SYM(t_gdk, gdk_x11_display_get_xdisplay);
     }
+    // libX11 — raw XReparentWindow for Init() pre-reparenting.
+    // gdk_window_reparent() with a foreign GdkWindow wrapper crashes; raw
+    // XReparentWindow bypasses GDK hierarchy tracking entirely.
+    void *t_x11 = dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD);
+    if (!t_x11) t_x11 = dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
+    if (t_x11)
+        wk.x11_XReparentWindow = (int(*)(Display*, Window, Window, int, int))
+            dlsym(t_x11, "XReparentWindow");
 
     if (!wk.webkit_web_view_load_uri || !wk.gtk_window_new || !wk.gdk_x11_window_get_xid)
         return false;
@@ -628,28 +636,35 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     if (wk.gtk_widget_realize)
         wk.gtk_widget_realize(m_plug);
 
-    // Pre-reparent into the parent stack window BEFORE showing.
-    // If we show first, the WM gets a MapRequest and adds a frame window,
-    // leaving a floating toplevel even after XReparentWindow.  Reparenting
-    // into a non-root parent before the first XMapWindow means the WM never
-    // receives a MapRequest and never manages the window.
-    // native-layer-x11's doAttach() will subsequently XReparentWindow it
-    // into m_child_window for correct layering.
-    if (p_parent_window != nil &&
-        wk.gtk_widget_get_window && wk.gdk_display_get_default &&
-        wk.gdk_x11_window_foreign_new_for_display && wk.gdk_window_reparent)
+    // Pre-reparent the realized-but-unmapped container into the parent stack
+    // window using raw XReparentWindow BEFORE calling gtk_widget_show_all.
+    //
+    // Why raw X11 and not gdk_window_reparent?
+    //   gdk_window_reparent() into a foreign GdkWindow wrapper (from
+    //   gdk_x11_window_foreign_new_for_display) crashes or silently no-ops
+    //   because GDK's internal hierarchy tracking doesn't support foreign
+    //   parents.  Raw XReparentWindow bypasses GDK entirely.
+    //
+    // Why before show?
+    //   Window managers subscribe to SubstructureRedirect on the root window.
+    //   They only manage windows that are direct root children at map time.
+    //   Reparenting into a non-root window (the stack) before the first
+    //   XMapWindow means the WM never sees a MapRequest and never decorates
+    //   or frames the window.  native-layer-x11's doAttach() will then
+    //   XReparentWindow it again into m_child_window for correct layering.
+    if (p_parent_window != nil && wk.gtk_widget_get_window &&
+        wk.gdk_display_get_default && wk.gdk_x11_display_get_xdisplay &&
+        wk.gdk_x11_window_get_xid && wk.x11_XReparentWindow)
     {
-        GdkDisplay *t_display = wk.gdk_display_get_default();
+        GdkDisplay *t_gdisplay = wk.gdk_display_get_default();
         GdkWindow  *t_container = wk.gtk_widget_get_window(m_plug);
-        if (t_display != NULL && t_container != NULL)
+        if (t_gdisplay != NULL && t_container != NULL)
         {
-            GdkWindow *t_parent = wk.gdk_x11_window_foreign_new_for_display(
-                t_display, (Window)(uintptr_t)p_parent_window);
-            if (t_parent != NULL)
-            {
-                wk.gdk_window_reparent(t_container, t_parent, 0, 0);
-                wk.g_object_unref(t_parent);
-            }
+            Display *t_xdisplay = wk.gdk_x11_display_get_xdisplay(t_gdisplay);
+            Window t_plug_xid   = wk.gdk_x11_window_get_xid(t_container);
+            Window t_parent_xid = (Window)(uintptr_t)p_parent_window;
+            if (t_xdisplay != NULL && t_plug_xid != None && t_parent_xid != None)
+                wk.x11_XReparentWindow(t_xdisplay, t_plug_xid, t_parent_xid, 0, 0);
         }
     }
 
