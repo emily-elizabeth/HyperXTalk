@@ -39,17 +39,17 @@ public:
     
     virtual bool GetNativeView(void *&r_view);
     
-    MCNativeLayerX11(MCObject *p_object, x11::Window p_view);
+    MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view);
     ~MCNativeLayerX11();
-    
+
 private:
-    
+
     GtkWindow* m_child_window;
     // -- tperry 12-11-2025: GTK3 uses cairo_region_t instead of GdkRegion
     cairo_region_t* m_input_shape;
-    // -- tperry 12-11-2025: GtkSocket still exists in GTK3 (removed in GTK4)
-    GtkSocket* m_socket;
-    x11::Window m_widget_xid;
+    // The native browser widget (WebKitWebView) added directly as a GTK child
+    // of m_child_window.  Received as a GtkWidget* from GetNativeLayer().
+    GtkWidget* m_browser_widget;
 	MCRectangle m_intersect_rect;
     
     // Returns the handle for the stack containing this widget
