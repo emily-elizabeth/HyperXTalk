@@ -201,14 +201,11 @@ static struct WKSymbols
     void (*gtk_widget_set_sensitive)(GtkWidget*, gboolean);
     gboolean (*gtk_widget_is_sensitive)(GtkWidget*);
 
+    // ---- GTK window management ----
+    void (*gtk_window_move)(GtkWindow*, gint, gint);
+
     // ---- GDK/X11 ----
-    Window   (*gdk_x11_window_get_xid)(GdkWindow*);
-    GdkDisplay* (*gdk_display_get_default)(void);
-    // Used to obtain the raw X11 Display* for XReparentWindow in Init()
-    Display* (*gdk_x11_display_get_xdisplay)(GdkDisplay*);
-    // Raw XReparentWindow from libX11 — bypasses GDK foreign-window wrappers
-    // which can crash or silently no-op when given a foreign parent.
-    int (*x11_XReparentWindow)(Display*, Window, Window, int, int);
+    Window (*gdk_x11_window_get_xid)(GdkWindow*);
 
     // ---- is4_1: true when evaluate_javascript resolved ----
     bool is4_1;
@@ -450,24 +447,15 @@ static bool LoadWebKit(void)
     LOAD_SYM(t_gtk, gtk_widget_set_size_request);
     LOAD_SYM(t_gtk, gtk_widget_set_sensitive);
     LOAD_SYM(t_gtk, gtk_widget_is_sensitive);
+    LOAD_SYM(t_gtk, gtk_window_move);
 
-    // GDK/X11 — needed for GetNativeLayer() and Init() pre-reparenting
+    // GDK/X11 — needed for GetNativeLayer()
     void *t_gdk = dlopen("libgdk-3.so.0", RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD);
     if (!t_gdk) t_gdk = dlopen("libgdk-3.so.0", RTLD_LAZY | RTLD_LOCAL);
     if (t_gdk)
     {
         LOAD_SYM(t_gdk, gdk_x11_window_get_xid);
-        LOAD_SYM(t_gdk, gdk_display_get_default);
-        LOAD_SYM(t_gdk, gdk_x11_display_get_xdisplay);
     }
-    // libX11 — raw XReparentWindow for Init() pre-reparenting.
-    // gdk_window_reparent() with a foreign GdkWindow wrapper crashes; raw
-    // XReparentWindow bypasses GDK hierarchy tracking entirely.
-    void *t_x11 = dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD);
-    if (!t_x11) t_x11 = dlopen("libX11.so.6", RTLD_LAZY | RTLD_LOCAL);
-    if (t_x11)
-        wk.x11_XReparentWindow = (int(*)(Display*, Window, Window, int, int))
-            dlsym(t_x11, "XReparentWindow");
 
     if (!wk.webkit_web_view_load_uri || !wk.gtk_window_new || !wk.gdk_x11_window_get_xid)
         return false;
@@ -619,58 +607,39 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     }
 
     // --- Container window ---
-    // Use GTK_WINDOW_TOPLEVEL (not GtkPlug): GtkPlug ignores ConfigureNotify
-    // and only resizes via XEMBED_SIZE_CHANGE, which the socket never sends
-    // when we bypass GTK's allocation system.  A plain toplevel processes
-    // ConfigureNotify normally, so XMoveResizeWindow triggers a proper layout.
-    m_plug = wk.gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    // Use GTK_WINDOW_POPUP, not GTK_WINDOW_TOPLEVEL or GtkPlug:
+    //
+    //  • GtkPlug (XEMBED) ignores XMoveResizeWindow/ConfigureNotify; it only
+    //    resizes when the socket sends XEMBED_SIZE_CHANGE.  We've bypassed
+    //    XEMBED entirely in native-layer-x11, so GtkPlug is wrong here.
+    //
+    //  • GTK_WINDOW_TOPLEVEL is managed by the WM.  Pre-reparenting it before
+    //    show avoids the WM frame, but XReparentWindow in Init() can crash when
+    //    the parent XID is invalid (e.g. during drag-and-drop the stack window
+    //    may not exist yet).
+    //
+    //  • GTK_WINDOW_POPUP sets override_redirect = TRUE automatically during
+    //    realize.  The WM never manages it regardless of when it is shown or
+    //    where it lives in the window tree.  ConfigureNotify is processed
+    //    normally, so XMoveResizeWindow in doSetGeometry correctly resizes
+    //    WebKit's layout.
+    //
+    // We position it far offscreen before show so it is never visible at its
+    // default (0, 0) root position.  native-layer-x11's doAttach() will
+    // XReparentWindow it into m_child_window and XMoveResizeWindow it to the
+    // correct rect.
+    m_plug = wk.gtk_window_new(GTK_WINDOW_POPUP);
     if (m_plug == nil)
         return false;
 
-    gtk_window_set_decorated(GTK_WINDOW(m_plug), FALSE);
-    gtk_window_set_skip_taskbar_hint(GTK_WINDOW(m_plug), TRUE);
-
     wk.gtk_container_add(GTK_CONTAINER(m_plug), (GtkWidget*)m_web_view);
 
-    // Realize the container to get its GdkWindow WITHOUT mapping it yet.
-    if (wk.gtk_widget_realize)
-        wk.gtk_widget_realize(m_plug);
+    // Park offscreen before mapping so it never appears at (0,0) root.
+    if (wk.gtk_window_move)
+        wk.gtk_window_move(GTK_WINDOW(m_plug), -32000, -32000);
 
-    // Pre-reparent the realized-but-unmapped container into the parent stack
-    // window using raw XReparentWindow BEFORE calling gtk_widget_show_all.
-    //
-    // Why raw X11 and not gdk_window_reparent?
-    //   gdk_window_reparent() into a foreign GdkWindow wrapper (from
-    //   gdk_x11_window_foreign_new_for_display) crashes or silently no-ops
-    //   because GDK's internal hierarchy tracking doesn't support foreign
-    //   parents.  Raw XReparentWindow bypasses GDK entirely.
-    //
-    // Why before show?
-    //   Window managers subscribe to SubstructureRedirect on the root window.
-    //   They only manage windows that are direct root children at map time.
-    //   Reparenting into a non-root window (the stack) before the first
-    //   XMapWindow means the WM never sees a MapRequest and never decorates
-    //   or frames the window.  native-layer-x11's doAttach() will then
-    //   XReparentWindow it again into m_child_window for correct layering.
-    if (p_parent_window != nil && wk.gtk_widget_get_window &&
-        wk.gdk_display_get_default && wk.gdk_x11_display_get_xdisplay &&
-        wk.gdk_x11_window_get_xid && wk.x11_XReparentWindow)
-    {
-        GdkDisplay *t_gdisplay = wk.gdk_display_get_default();
-        GdkWindow  *t_container = wk.gtk_widget_get_window(m_plug);
-        if (t_gdisplay != NULL && t_container != NULL)
-        {
-            Display *t_xdisplay = wk.gdk_x11_display_get_xdisplay(t_gdisplay);
-            Window t_plug_xid   = wk.gdk_x11_window_get_xid(t_container);
-            Window t_parent_xid = (Window)(uintptr_t)p_parent_window;
-            if (t_xdisplay != NULL && t_plug_xid != None && t_parent_xid != None)
-                wk.x11_XReparentWindow(t_xdisplay, t_plug_xid, t_parent_xid, 0, 0);
-        }
-    }
-
-    // Now show — the container is already a child of the parent (not root),
-    // so WebKit gets a mapped window and renders correctly.
-    gtk_widget_show_all(GTK_WIDGET(m_plug));
+    // Show so WebKit's rendering pipeline starts immediately.
+    wk.gtk_widget_show_all(m_plug);
 
     // --- Connect signals ---
     m_load_changed_id = wk.g_signal_connect_data(m_web_view, "load-changed",
