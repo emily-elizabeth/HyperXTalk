@@ -140,11 +140,26 @@ void MCNativeLayerX11::doAttach()
 		m_socket = GTK_SOCKET(g_object_ref(G_OBJECT(t_socket)));
     }
 
-    // -- tperry 13-11-2025: GTK3 - gtk_socket_add_id expects ::Window (XID from global namespace)
-    // m_widget_xid is x11::Window, cast to ::Window to avoid namespace conflict
-    // Attach the X11 window to this socket
-    if (gtk_socket_get_plug_window(m_socket) == NULL)
-        gtk_socket_add_id(m_socket, (::Window)m_widget_xid);
+    // Reparent the browser/widget window directly into m_child_window via raw X11.
+    // We do NOT use gtk_socket_add_id / XEMBED here: GTK_WINDOW_TOPLEVEL windows
+    // are not XEMBED clients and gtk_socket_add_id cannot embed them.  Direct
+    // XReparentWindow bypasses the XEMBED protocol entirely; the embedded window
+    // receives normal ConfigureNotify events and resizes correctly.
+    if (m_widget_xid != 0)
+    {
+        GdkWindow *t_child_gdk = gtk_widget_get_window(GTK_WIDGET(m_child_window));
+        if (t_child_gdk != NULL)
+        {
+            x11::Display *t_display = x11::gdk_x11_display_get_xdisplay(
+                gdk_window_get_display(t_child_gdk));
+            x11::Window t_child_xid = x11::gdk_x11_window_get_xid(t_child_gdk);
+            if (t_display != NULL && t_child_xid != None)
+            {
+                x11::XReparentWindow(t_display, m_widget_xid, t_child_xid, 0, 0);
+                x11::XMapWindow(t_display, m_widget_xid);
+            }
+        }
+    }
     //fprintf(stderr, "XID: %u\n", gtk_socket_get_id(m_socket));
     
     // Act as if there were a re-layer to put the widget in the right place
@@ -219,20 +234,20 @@ void MCNativeLayerX11::doSetGeometry(const MCRectangle& p_rect)
     // category that this works for... others need to do it themselves.
     gtk_widget_set_size_request(GTK_WIDGET(m_socket), t_rect.width, t_rect.height);
     
-    // Update the contained (plug) window too.
-    // Use raw X11 rather than gdk_window_move_resize: the plug may belong to
-    // a different GDK instance (e.g., WebKit loaded via dlopen), and calling
-    // the engine's GDK functions on it causes silent failures or type conflicts.
-    GdkWindow* t_remote;
-    t_remote = gtk_socket_get_plug_window(m_socket);
-    if (t_remote != NULL)
+    // Resize the embedded window directly via raw X11.
+    // The widget window was reparented into m_child_window with XReparentWindow
+    // (not XEMBED), so we drive its geometry directly from m_widget_xid.
+    // Using the engine's x11:: namespace avoids any cross-GDK-instance issues.
+    if (m_widget_xid != 0)
     {
-        x11::Window t_plug_xid = x11::gdk_x11_window_get_xid(t_remote);
-        if (t_plug_xid != None)
+        GdkWindow *t_child_gdk = gtk_widget_get_window(GTK_WIDGET(m_child_window));
+        if (t_child_gdk != NULL)
         {
-            x11::Display *t_display = x11::gdk_x11_display_get_xdisplay(gdk_window_get_display(t_remote));
+            x11::Display *t_display = x11::gdk_x11_display_get_xdisplay(
+                gdk_window_get_display(t_child_gdk));
             if (t_display != NULL)
-                x11::XMoveResizeWindow(t_display, t_plug_xid, t_rect.x, t_rect.y, t_rect.width, t_rect.height);
+                x11::XMoveResizeWindow(t_display, m_widget_xid,
+                    t_rect.x, t_rect.y, t_rect.width, t_rect.height);
         }
     }
 }
