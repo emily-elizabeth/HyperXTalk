@@ -118,14 +118,15 @@ static gboolean on_popover_proxy_draw(GtkWidget * /*widget*/, cairo_t *cr, gpoin
 // GTK "draw" signal callback: blit the engine's latest frame into the DA.
 //
 // Normal path: Unlock() sets s_popover_pixbuf and calls gtk_widget_queue_draw()
-// to schedule this callback.  The first frame is also seeded by a bootstrap
-// onexpose() call in platform_openwindow() after gtk_popover_popup(), so the
-// pixbuf is usually already populated before the first draw signal fires.
+// to schedule this callback.  The first frame is seeded by a bootstrap
+// onexpose() call in platform_openwindow() BEFORE gtk_widget_show_all(), so
+// s_popover_pixbuf is always populated before the first X11 Expose can arrive.
 //
-// Fallback path: if a draw signal arrives before the bootstrap completes (e.g.
-// fired during gtk_popover_popup() or gdk_display_flush(), or if Lock() failed
-// in the bootstrap), s_popover_pixbuf will be null.  In that case we drive
-// onexpose() here to produce the first frame synchronously.
+// Fallback path: if a draw signal somehow arrives before the bootstrap completes
+// (e.g. Lock() failed in the bootstrap), s_popover_pixbuf will be null.  In
+// that case we attempt to drive onexpose() here synchronously.  If that also
+// fails (null pixbuf after onexpose), we schedule a retry draw — the next
+// draw signal will find the pixbuf ready once the bootstrap eventually succeeds.
 //
 // Re-entrancy note: onexpose() → Unlock() → gtk_widget_queue_draw() can fire a
 // synchronous re-entrant draw signal on some GTK/compositor combinations.  That
@@ -137,19 +138,35 @@ static gboolean on_popover_da_draw(GtkWidget *widget, cairo_t *cr, gpointer /*da
     if (s_popover_pixbuf == nullptr)
     {
         // Fallback: drive the first render synchronously.
-        GtkAllocation t_alloc;
-        gtk_widget_get_allocation(widget, &t_alloc);
-        if (t_alloc.width > 0 && t_alloc.height > 0 && MCpopoverstack != nullptr)
+        // Prefer the DA's own allocation; fall back to the stack's rect when
+        // the allocation is still uninitialised (-1x-1) — this happens on
+        // Cinnamon/Muffin where the GTK layout pass is deferred past the
+        // first draw signal.
+        if (MCpopoverstack != nullptr)
         {
-            cairo_rectangle_int_t t_crect = {0, 0, t_alloc.width, t_alloc.height};
-            cairo_region_t *t_region = cairo_region_create_rectangle(&t_crect);
-            MCpopoverstack->onexpose((MCRegionRef)t_region);
-            cairo_region_destroy(t_region);
+            GtkAllocation t_alloc;
+            gtk_widget_get_allocation(widget, &t_alloc);
+            MCRectangle t_srect = MCpopoverstack->getrect();
+            int t_w = (t_alloc.width  > 0) ? t_alloc.width  : t_srect.width;
+            int t_h = (t_alloc.height > 0) ? t_alloc.height : t_srect.height;
+            if (t_w > 0 && t_h > 0)
+            {
+                cairo_rectangle_int_t t_crect = {0, 0, t_w, t_h};
+                cairo_region_t *t_region = cairo_region_create_rectangle(&t_crect);
+                MCpopoverstack->onexpose((MCRegionRef)t_region);
+                cairo_region_destroy(t_region);
+            }
         }
     }
 
     if (s_popover_pixbuf == nullptr)
+    {
+        // Fallback failed (onexpose may still be in flight, or Lock failed).
+        // Schedule a retry — the next draw will find the pixbuf ready.
+        if (s_popover_da != nullptr && MCpopoverstack != nullptr)
+            gtk_widget_queue_draw(widget);
         return FALSE;
+    }
 
     // Do NOT use gdk_cairo_set_source_pixbuf() here.
     //
@@ -173,6 +190,17 @@ static gboolean on_popover_da_draw(GtkWidget *widget, cairo_t *cr, gpointer /*da
             t_px, CAIRO_FORMAT_RGB24, t_w, t_h, t_stride);
     if (cairo_surface_status(t_surf) == CAIRO_STATUS_SUCCESS)
     {
+        // Reset the cairo clip to the full surface (GdkWindow) extents.
+        //
+        // GTK passes a cairo context clipped to the damage region — normally
+        // the full window, but on a first-map or partial expose it can be a
+        // sub-rectangle.  Painting only the damage rect is an optimisation
+        // for incremental redraws, but for a popover we always blit the
+        // whole pixbuf anyway, so resetting to the surface extents costs
+        // nothing and prevents the "1×1 damage → blank content" failure mode
+        // that can occur if the GdkWindow is resized between the damage
+        // calculation and this callback.
+        cairo_reset_clip(cr);
         cairo_set_source_surface(cr, t_surf, 0, 0);
         cairo_paint(cr);
     }
@@ -1282,6 +1310,30 @@ void MCStack::platform_openwindow(Boolean override)
 			t_anchor.height = (MCpopoveranchor.height > 0) ? MCpopoveranchor.height : 1;
 			gtk_popover_set_pointing_to(GTK_POPOVER(s_popover_widget), &t_anchor);
 
+			// Bootstrap: render the first frame into s_popover_pixbuf BEFORE the
+			// widget is shown or mapped.
+			//
+			// gtk_popover_popup() (and even gtk_widget_show_all()) can emit "draw"
+			// signals synchronously on some GTK/compositor combinations — e.g.
+			// during the XMapWindow → Expose round-trip inside GDK's event loop.
+			// If s_popover_pixbuf is null when that first draw fires, the fallback
+			// in on_popover_da_draw calls onexpose() synchronously, but the cairo
+			// clip passed to the draw callback may still be empty (1×1 GdkWindow
+			// at realize time, deferred layout pass) so cairo_paint() composites
+			// nothing and the content area appears blank.
+			//
+			// By rendering here — before show_all/popup/flush — we guarantee that
+			// s_popover_pixbuf is always populated before any Expose can arrive.
+			// Lock() only needs rect dimensions to allocate a GdkPixbuf; it does
+			// not require a realised or visible GtkWidget.  The queue_draw emitted
+			// by Unlock() is harmless on an unmapped widget (no-op until mapped).
+			{
+				cairo_rectangle_int_t t_crect = {0, 0, rect.width, rect.height};
+				cairo_region_t *t_region = cairo_region_create_rectangle(&t_crect);
+				onexpose((MCRegionRef)t_region);
+				cairo_region_destroy(t_region);
+			}
+
 			// Map the proxy and show the popover.
 			// gtk_popover_popup() maps the popover.  With modal=FALSE, GTK does
 			// NOT install a grab or auto-dismiss handler.  Outside-click dismiss
@@ -1303,6 +1355,58 @@ void MCStack::platform_openwindow(Boolean override)
 			// GdkWindow.
 			gtk_widget_show_all(s_popover_proxy);
 			gtk_widget_show(s_popover_da);   // must be visible before popover maps
+
+			// Force the DA to have its correct allocation BEFORE gtk_popover_popup().
+			//
+			// gtk_popover_popup() can emit "draw" signals internally (e.g. during
+			// the window-map event processing).  If the DA's GTK allocation is still
+			// the uninitialised sentinel (-1×-1) at that point, the cairo context
+			// passed to on_popover_da_draw is clipped to an empty region, so
+			// cairo_paint() composites nothing — blank content area.
+			//
+			// Calling gtk_widget_size_allocate() here, before popup, guarantees that
+			// any draw fired inside gtk_popover_popup() already has a valid clip.
+			// On systems where GTK's layout pass runs before the draw (Ubuntu/Mutter)
+			// the allocation is overwritten with the same value on the next layout
+			// cycle — safe and harmless.
+			// Pre-size the DA's GdkWindow BEFORE gtk_popover_popup().
+			//
+			// The GdkWindow for the DA was created during MCStack::realize() when
+			// the widget's allocation was still the GTK sentinel (1×1).  It
+			// persists between opens; GTK only resizes it during its own layout
+			// pass, which runs AFTER the first "draw" signal fires.
+			//
+			// gtk_popover_popup() maps the popover and can fire a synchronous
+			// "draw" on the DA immediately.  If the GdkWindow is still 1×1 at
+			// that point, the cairo context delivered to on_popover_da_draw is
+			// clipped to a 1×1 region — cairo_paint() composites at most one
+			// pixel, leaving the content area blank even though s_popover_pixbuf
+			// is already populated.
+			//
+			// Calling gtk_widget_size_allocate() updates GTK's logical allocation
+			// (used by the layout pass) but does NOT resize an already-created
+			// GdkWindow.  gdk_window_resize() does: it sends X11 ConfigureWindow
+			// directly, bypassing the layout pass, so the GdkWindow is w×h
+			// before the first draw fires inside gtk_popover_popup().
+			//
+			// Both calls are safe on an unrealised widget: the DA was realized
+			// in MCStack::realize() so gtk_widget_get_window() is non-null, and
+			// gdk_window_resize() works on hidden windows.
+			{
+				GtkAllocation t_da_alloc;
+				t_da_alloc.x      = 0;
+				t_da_alloc.y      = 0;
+				t_da_alloc.width  = rect.width;
+				t_da_alloc.height = rect.height;
+				gtk_widget_size_allocate(s_popover_da, &t_da_alloc);
+			}
+			if (rect.width > 0 && rect.height > 0)
+			{
+				GdkWindow *t_da_win = gtk_widget_get_window(s_popover_da);
+				if (t_da_win != nullptr)
+					gdk_window_resize(t_da_win, rect.width, rect.height);
+			}
+
 			gtk_popover_popup(GTK_POPOVER(s_popover_widget));
 
 			// Establish the correct X11 stacking order:
@@ -1319,19 +1423,12 @@ void MCStack::platform_openwindow(Boolean override)
 			gdk_window_raise(gtk_widget_get_window(s_popover_widget));
 			gdk_display_flush(gdk_display_get_default());
 
-			// Bootstrap: pre-fill s_popover_pixbuf before the first draw signal.
-			// on_popover_da_draw has a fallback that calls onexpose() if the pixbuf
-			// is still null when the draw fires, so this is not strictly required —
-			// but doing it here (outside any draw dispatch) avoids re-entrant draws
-			// on most systems and ensures a frame is ready as early as possible.
-			// We use rect (the stack's requested size) rather than get_allocated_*
-			// which may not yet reflect the final allocation after gtk_popover_popup().
-			{
-				cairo_rectangle_int_t t_crect = {0, 0, rect.width, rect.height};
-				cairo_region_t *t_region = cairo_region_create_rectangle(&t_crect);
-				onexpose((MCRegionRef)t_region);
-				cairo_region_destroy(t_region);
-			}
+			// Belt-and-suspenders: request another draw now that flush has
+			// synchronised the X11 state (GdkWindow is the right size, popover is
+			// fully mapped).  Pixbuf is already populated by the bootstrap above,
+			// so this draw will always blit content.
+			if (s_popover_da != nullptr)
+				gtk_widget_queue_draw(s_popover_da);
 			return;
 		}
 
