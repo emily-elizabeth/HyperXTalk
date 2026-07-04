@@ -168,54 +168,43 @@ static gboolean on_popover_da_draw(GtkWidget *widget, cairo_t *cr, gpointer /*da
         return FALSE;
     }
 
-    // Do NOT use gdk_cairo_set_source_pixbuf() here.
+    // Use gdk_cairo_set_source_pixbuf() to blit the frame.
     //
-    // The engine renders via LockPixels (kMCGRasterFormat_xRGB): it writes
-    // [Blue, Green, Red] bytes but leaves the 4th byte untouched.
-    // gdk_pixbuf_new() zero-initialises pixel memory, so alpha bytes are 0.
-    // gdk_cairo_set_source_pixbuf() treats the buffer as non-premultiplied
-    // RGBA and premultiplies by A=0 → every pixel becomes (0,0,0,0) →
-    // cairo_paint() composites nothing → blank content area.
+    // The engine renders into a GdkPixbuf (RGBA byte layout: R,G,B,A) via
+    // Skia's kRGBA_8888 path.  gdk_cairo_set_source_pixbuf() correctly
+    // converts RGBA → ARGB32 (swapping R↔B channels as needed for cairo).
+    // CAIRO_FORMAT_RGB24 reads [B,G,R,pad] on little-endian and therefore
+    // maps channel positions incorrectly for this RGBA layout, producing a
+    // red↔blue swap.
     //
-    // Instead: create a temporary cairo_image_surface_t over the same pixel
-    // data declared as CAIRO_FORMAT_RGB24 (no alpha channel, all pixels
-    // treated as fully opaque).  On little-endian the byte layout of
-    // CAIRO_FORMAT_RGB24 is [B, G, R, padding] — exactly the engine's xRGB
-    // output — so channel order is correct with no conversion needed.
-    guchar         *t_px     = gdk_pixbuf_get_pixels(s_popover_pixbuf);
-    int             t_w      = gdk_pixbuf_get_width(s_popover_pixbuf);
-    int             t_h      = gdk_pixbuf_get_height(s_popover_pixbuf);
-    int             t_stride = gdk_pixbuf_get_rowstride(s_popover_pixbuf);
-    cairo_surface_t *t_surf  = cairo_image_surface_create_for_data(
-            t_px, CAIRO_FORMAT_RGB24, t_w, t_h, t_stride);
+    // Unlock() sets alpha=0xFF on every pixel before storing s_popover_pixbuf,
+    // so gdk_cairo_set_source_pixbuf's premultiplication by alpha is a no-op
+    // (multiply by 1) and all pixels are rendered fully opaque.
+
     // If the GdkWindow is the wrong size (X11 resize not yet processed),
     // resize it now and schedule a retry draw.  The retry fires after GDK
-    // processes the ConfigureNotify and recomputes the cairo surface size,
-    // so that draw will paint the full pixbuf correctly.
+    // processes the ConfigureNotify and recomputes the surface size.
     GdkWindow *t_win = gtk_widget_get_window(widget);
     if (t_win != nullptr)
     {
+        int t_pix_w = gdk_pixbuf_get_width(s_popover_pixbuf);
+        int t_pix_h = gdk_pixbuf_get_height(s_popover_pixbuf);
         int t_win_w = gdk_window_get_width(t_win);
         int t_win_h = gdk_window_get_height(t_win);
-        if (t_win_w != t_w || t_win_h != t_h)
+        if (t_win_w != t_pix_w || t_win_h != t_pix_h)
         {
-            gdk_window_resize(t_win, t_w, t_h);
+            gdk_window_resize(t_win, t_pix_w, t_pix_h);
             gtk_widget_queue_draw(widget);
-            cairo_surface_destroy(t_surf);
             return FALSE;
         }
     }
 
-    if (cairo_surface_status(t_surf) == CAIRO_STATUS_SUCCESS)
-    {
-        // Reset the cairo clip to the full surface (GdkWindow) extents before
-        // painting so that a partial damage region from GTK's expose handling
-        // cannot cause a blank or clipped blit.
-        cairo_reset_clip(cr);
-        cairo_set_source_surface(cr, t_surf, 0, 0);
-        cairo_paint(cr);
-    }
-    cairo_surface_destroy(t_surf); // releases the surface wrapper, not the pixel data
+    // Reset the cairo clip to the full surface (GdkWindow) extents before
+    // painting so that a partial damage region from GTK's expose handling
+    // cannot cause a blank or clipped blit.
+    cairo_reset_clip(cr);
+    gdk_cairo_set_source_pixbuf(cr, s_popover_pixbuf, 0, 0);
+    cairo_paint(cr);
     return FALSE;
 }
 
@@ -1705,6 +1694,27 @@ public:
 			// The "draw" signal callback (on_popover_da_draw) blits it via
 			// cairo.  We must NOT call MCX11PutImage() here — GtkPopover's
 			// own draw dispatch owns the cairo context for this GdkWindow.
+
+			// Fix alpha channel: the engine renders with kMCGRasterFormat_xRGB
+			// which leaves alpha bytes undefined (often 0 from gdk_pixbuf_new).
+			// gdk_cairo_set_source_pixbuf() premultiplies by alpha, so A=0
+			// would make every pixel fully transparent.  Set A=0xFF on all
+			// pixels to ensure fully-opaque compositing.
+			// GdkPixbuf RGBA layout: byte[3] of each uint32 is the alpha byte.
+			// On little-endian, 0xFF000000U sets byte[3] of each pixel.
+			{
+				int t_fix_h      = gdk_pixbuf_get_height(m_bitmap);
+				int t_fix_stride = gdk_pixbuf_get_rowstride(m_bitmap);
+				guchar *t_fix_px = gdk_pixbuf_get_pixels(m_bitmap);
+				for (int y = 0; y < t_fix_h; y++)
+				{
+					uint32_t *t_row = (uint32_t *)(t_fix_px + y * t_fix_stride);
+					int t_fix_w = gdk_pixbuf_get_width(m_bitmap);
+					for (int x = 0; x < t_fix_w; x++)
+						t_row[x] |= 0xFF000000U;
+				}
+			}
+
 			if (s_popover_pixbuf != nullptr)
 				g_object_unref(s_popover_pixbuf);
 			g_object_ref(m_bitmap);
