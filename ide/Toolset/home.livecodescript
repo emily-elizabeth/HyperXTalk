@@ -75,14 +75,11 @@ on saveStackRequest
    pass saveStackRequest
 end saveStackRequest
 
-local sLogPath
 on preOpenStack
    local tEdition, tSplashPath
    if the short name of the owner of the target is not "Home" then
       pass preOpenStack
    end if
-   
-   open file sLogPath for text write  // HXT
    
    revInternal__Log "Enter", "Pre-Open Stack"
    
@@ -101,12 +98,8 @@ on openStack
    revInternal__openStack
    
    revInternal__Log "Leave", "Open Stack"
+   revInternal__Log "End"
 end openStack
-
-// HXT
-on CloseStack
-   close file sLogPath
-end CloseStack
 
 local sSplashStartTime
 on revInternal__openStack
@@ -227,14 +220,13 @@ on revInternal__openStack
       
       if tSuccess then
          hxtInternal__setSplashStatus "Performing Final Steps..."
-         hxtInternal__setSplashStatus ""
          revInternal__InitialiseFinalSteps
-         
          put the result into tSuccess
       end if
    catch tError
       revInternal__Log "Error", tError
    end try
+   hxtInternal__setSplashStatus ""
    
    set the cREVLaunching of stack "Home" to false
    
@@ -251,7 +243,6 @@ on revInternal__openStack
    close stack "revSplash"
    
    revInternal__Log "Leave", "revInternal__openStack"
-   revInternal__Log "End"
    
    -- Now the home stack has loaded, we can allow interrupts..
    set the allowInterrupts to true
@@ -1009,14 +1000,13 @@ command revInternal__InstallFileAssociations
    end if
 end revInternal__InstallFileAssociations
 
---local sLogIndent, sLogPath, sLog  // HXT
-local sLogIndent, sLog
+local sLogIndent, sLogPath, sLog
 private command revInternal__LogToFile pType, pMessage   
    if sLogPath is empty then
       exit revInternal__LogToFile
    end if
    
-   --   open file sLogPath for text append  // HXT
+   open file sLogPath for text append
    
    if pType is not "Message" then
       put pType && pMessage into pMessage
@@ -1029,7 +1019,7 @@ private command revInternal__LogToFile pType, pMessage
       write tLine & return to file sLogPath
    end repeat
    
-   --   close file sLogPath  // HXT
+   close file sLogPath
 end revInternal__LogToFile
 
 private command revInternal__LogToVariable pType, pMessage  
@@ -1085,6 +1075,7 @@ command revInternal__Log pType, pMessage
       set the itemDelimiter to comma
       if tLogPath is not empty then
          put tLogPath into sLogPath
+         delete file sLogPath
          revInternal__Log "Message", "-------- Startup Started:" && the internet date
       end if
       exit revInternal__Log

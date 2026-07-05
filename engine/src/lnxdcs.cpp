@@ -52,6 +52,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include "license.h"
 #include "revbuild.h"
+#include "resolution.h"
 
 // Tears down the native GtkPopover hierarchy created in lnxstack.cpp::realize().
 // MCpopoverstack must be nulled before calling so on_popover_closed() is a no-op.
@@ -84,6 +85,25 @@ namespace x11
 ////////////////////////////////////////////////////////////////////////////////
 
 bool MCImageBitmapCreateWithGdkPixbuf(GdkPixbuf *p_image, MCImageBitmap *&r_bitmap);
+
+// Defined in lnxdc.cpp — returns the HiDPI scale of the primary monitor.
+extern MCGFloat MCLinuxGetLogicalToScreenScale(void);
+
+// HiDPI: GLib signal callbacks must be plain C function pointers —
+// lambdas cannot be cast to GCallback in C++.
+
+// Called when a monitor's scale factor changes at runtime.
+static void MCLinuxOnMonitorScaleChanged(GdkMonitor *, GParamSpec *, gpointer)
+{
+    MCResSetPixelScale(MCLinuxGetLogicalToScreenScale());
+}
+
+// Called when a new monitor is added; connects the scale-factor signal to it.
+static void MCLinuxOnMonitorAdded(GdkDisplay *, GdkMonitor *p_monitor, gpointer)
+{
+    g_signal_connect(p_monitor, "notify::scale-factor",
+                     G_CALLBACK(MCLinuxOnMonitorScaleChanged), nullptr);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -347,6 +367,30 @@ Boolean MCScreenDC::open()
     // The GLib event loop calls this function to respond to GDK events.
     // Unfortunately, when GTK gets initied, it will try to steal this from us.
     gdk_event_handler_set(&gdk_event_fn, gpointer(this), &gdk_event_fn_lost);
+
+    // ── HiDPI: monitor scale-factor change notifications ──
+    //
+    // GDK fires "notify::scale-factor" on each GdkMonitor when the user
+    // changes the display scale in GNOME Settings (or GDK_SCALE changes).
+    // We connect to existing monitors now and to any added later via the
+    // display's "monitor-added" signal.
+    //
+    // On scale change: MCLinuxOnMonitorScaleChanged calls MCResSetPixelScale()
+    // which calls MCResPlatformHandleScaleChange() to re-scale all open
+    // stacks — mirroring the WM_DPICHANGED path on Windows.
+
+    // Connect to all monitors currently known to the display.
+    gint t_n = gdk_display_get_n_monitors(dpy);
+    for (gint i = 0; i < t_n; i++)
+    {
+        GdkMonitor *t_mon = gdk_display_get_monitor(dpy, i);
+        g_signal_connect(t_mon, "notify::scale-factor",
+                         G_CALLBACK(MCLinuxOnMonitorScaleChanged), nullptr);
+    }
+
+    // Connect for monitors added in the future (e.g. plugging in a display).
+    g_signal_connect(dpy, "monitor-added",
+                     G_CALLBACK(MCLinuxOnMonitorAdded), nullptr);
 
     x11::Display* XDisplay;
     XDisplay = x11::gdk_x11_display_get_xdisplay(dpy);

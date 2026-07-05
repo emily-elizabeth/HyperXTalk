@@ -219,6 +219,8 @@ GdkWindow *MCLinuxPopoverGetGdkWindow(void)
         return nullptr;
     return gtk_widget_get_window(s_popover_widget);
 }
+// Defined in lnxdc.cpp
+extern MCGFloat MCLinuxGetLogicalToScreenScale(void);
 
 // -- tperry 12-11-2025: Helper to convert bitmap pixmap to cairo_region_t for window shapes
 static cairo_region_t* pixmap_to_region(Pixmap p_pixmap, uint32_t p_width, uint32_t p_height)
@@ -1842,6 +1844,14 @@ void MCStack::view_platform_updatewindowwithcallback(MCRegionRef p_region, MCSta
 
 void MCStack::onexpose(MCRegionRef p_region)
 {
+    // TODO [[ HiDPI ]]: set view_setbackingscale(MCLinuxGetLogicalToScreenScale())
+    // here once MCLinuxStackSurface creates surfaces at physical pixel dimensions.
+    // Currently the surface is created at logical pixel size and blitted via
+    // MCX11PutImage, bypassing GDK's scaling layer.  Setting backing scale > 1
+    // causes the tilecache to render at Nx but the output raster stays 1x,
+    // garbling the display.  XWayland already handles logical→physical scaling
+    // at the compositor level so no additional scale is needed in this path.
+
     MCLinuxStackSurface t_surface(this, (MCGRegionRef)p_region);
     if (t_surface.Lock())
     {
