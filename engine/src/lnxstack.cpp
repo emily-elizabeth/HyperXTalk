@@ -156,28 +156,29 @@ static gboolean on_popover_idle_redraw(gpointer /*data*/)
 
 // "draw" signal callback for the GtkDrawingArea.
 //
-// WHY WE DON'T PAINT VIA THE PROVIDED cr:
-// Every approach tried (CAIRO_FORMAT_RGB24, CAIRO_FORMAT_ARGB32, explicit
-// R↔B swap, gdk_cairo_set_source_pixbuf) shows an R↔B colour swap when
-// painting through the cr provided here.  The GtkPopover uses an RGBA X11
-// visual; the cairo context backed by that visual appears to have a different
-// channel ordering than the cairo context obtained via gdk_window_begin_draw_frame
-// (which MCX11PutImage uses for normal windows and which gives correct colours).
+// GTK clears the invalidated region before calling this handler.  Without an
+// immediate repaint that cleared area stays blank until the idle-driven
+// MCX11PutImage fires — causing content to disappear after field changes.
+// With the DA now on an RGB24 visual (set in realize()), painting the cached
+// last frame via the provided cr is correct (no R↔B swap).
 //
-// APPROACH: schedule a re-render via a GLib idle callback.  The idle fires
-// after the draw frame is closed, so Unlock() can call MCX11PutImage →
-// gdk_window_begin_draw_frame on the DA window directly — same code path,
-// correct colours.
+// Two-phase approach:
+//   1. Blit s_popover_pixbuf immediately via cr so the GTK-cleared region is
+//      refilled without delay.
+//   2. Schedule an idle to drive a fresh engine render (onexpose → Unlock →
+//      MCX11PutImage).  MCX11PutImage needs gdk_window_begin_draw_frame which
+//      must not be called while a draw frame is already active, so it cannot
+//      run here directly.
 //
 // For the very first draw (before any Unlock() has run), onexpose() is driven
-// synchronously so the first frame is seeded immediately.
-static gboolean on_popover_da_draw(GtkWidget *widget, cairo_t */*cr*/, gpointer /*data*/)
+// synchronously so s_popover_pixbuf is populated before we return.
+static gboolean on_popover_da_draw(GtkWidget *widget, cairo_t *cr, gpointer /*data*/)
 {
     if (s_popover_pixbuf == nullptr)
     {
-        // First draw before bootstrap: drive synchronously.
-        // Prefer the DA's allocation; fall back to the stack rect on
-        // Cinnamon/Muffin where the layout pass is deferred.
+        // First draw before bootstrap: drive synchronously so we have a frame
+        // to blit below.  Prefer the DA's allocation; fall back to the stack
+        // rect on Cinnamon/Muffin where the layout pass is deferred.
         if (MCpopoverstack != nullptr)
         {
             GtkAllocation t_alloc;
@@ -195,8 +196,17 @@ static gboolean on_popover_da_draw(GtkWidget *widget, cairo_t */*cr*/, gpointer 
         }
     }
 
-    // Schedule a re-render outside the draw frame so MCX11PutImage can
-    // paint correctly.  The pending flag prevents stacking idle callbacks.
+    // Repaint the last rendered frame immediately so the region GTK cleared
+    // before calling us doesn't stay blank.  The DA uses the system RGB24
+    // visual so gdk_cairo_set_source_pixbuf produces correct colours here.
+    if (s_popover_pixbuf != nullptr)
+    {
+        gdk_cairo_set_source_pixbuf(cr, s_popover_pixbuf, 0, 0);
+        cairo_paint(cr);
+    }
+
+    // Schedule a fresh engine render outside this draw frame.
+    // The pending flag prevents idle callbacks from stacking up.
     if (!s_popover_redraw_pending && s_popover_da != nullptr && MCpopoverstack != nullptr)
     {
         s_popover_redraw_pending = TRUE;
