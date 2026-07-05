@@ -611,6 +611,17 @@ void MCStack::realize()
 				gtk_widget_size_allocate(s_popover_da, &t_da_alloc);
 			}
 
+			// Force the DA to use the system (RGB24/opaque) visual, not the
+			// RGBA visual inherited from GtkPopover.  MCX11PutImage on an
+			// RGB24 window produces correct colours; the RGBA visual causes
+			// R↔B channel swap on this system's GDK/cairo stack.
+			// gtk_widget_set_visual() MUST be called before realize().
+			{
+				GdkScreen *t_screen = gdk_screen_get_default();
+				GdkVisual *t_sys_vis = gdk_screen_get_system_visual(t_screen);
+				gtk_widget_set_visual(s_popover_da, t_sys_vis);
+			}
+
 			// Realize the hierarchy to create GdkWindows (without mapping).
 			gtk_widget_realize(s_popover_proxy);
 			gtk_widget_realize(s_popover_fixed);
