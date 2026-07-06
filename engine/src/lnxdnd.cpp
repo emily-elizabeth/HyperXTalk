@@ -323,21 +323,6 @@ static GdkFilterReturn MCLinuxXdndFilter(GdkXEvent *p_xevent,
                                           GdkEvent  */*p_event*/,
                                           gpointer   p_data)
 {
-    // Diagnostic: count every call to verify gdk_window_add_filter(NULL,...) works.
-    // If we never see "DND filter #1" in the log, the display-level filter is not
-    // being called at all (GTK3 build issue or filter not installed).
-    {
-        static unsigned long s_filter_count = 0;
-        s_filter_count++;
-        if (s_filter_count <= 5 || s_filter_count % 500 == 0)
-        {
-            x11::XEvent *t_dbg = static_cast<x11::XEvent*>(p_xevent);
-            fprintf(stderr, "DND filter #%lu: X event type=%d\n",
-                    s_filter_count, t_dbg->type);
-            fflush(stderr);
-        }
-    }
-
     x11::XEvent *t_xev = static_cast<x11::XEvent*>(p_xevent);
     if (t_xev->type != ClientMessage)
         return GDK_FILTER_CONTINUE;
@@ -345,32 +330,15 @@ static GdkFilterReturn MCLinuxXdndFilter(GdkXEvent *p_xevent,
     x11::XClientMessageEvent *t_cm = &t_xev->xclient;
     MCLinuxXdndFilterData    *t_fd = static_cast<MCLinuxXdndFilterData*>(p_data);
 
-    // Diagnostic: log all ClientMessages so we can confirm XdndStatus is arriving
-    fprintf(stderr, "DND filter: ClientMessage msgtype=%lu window=%lu\n",
-            (unsigned long)t_cm->message_type,
-            (unsigned long)t_cm->window);
-    fflush(stderr);
-
     if (t_cm->message_type == t_fd->atoms->xdnd_status)
     {
-        bool t_want_more = (t_cm->data.l[1] & 2L) != 0;
         t_fd->status_accept = (t_cm->data.l[1] & 1L) != 0;
         t_fd->status_action = (x11::Atom)(unsigned long)t_cm->data.l[4];
         t_fd->got_status    = true;
-        fprintf(stderr,
-                "DND filter: XdndStatus caught! accept=%d want_more=%d action=%lu\n",
-                (int)t_fd->status_accept, (int)t_want_more,
-                (unsigned long)t_fd->status_action);
-        fflush(stderr);
         return GDK_FILTER_REMOVE;   // consume; don't let GDK discard it
     }
     if (t_cm->message_type == t_fd->atoms->xdnd_finished)
     {
-        bool t_accept = (t_cm->data.l[1] & 1L) != 0;
-        fprintf(stderr,
-                "DND filter: XdndFinished caught! window=%lu accept=%d\n",
-                (unsigned long)t_cm->window, (int)t_accept);
-        fflush(stderr);
         t_fd->got_finished = true;
         return GDK_FILTER_REMOVE;
     }
@@ -443,23 +411,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     GdkDragContext *t_context = gdk_drag_begin(w, t_target_list);
     G_GNUC_END_IGNORE_DEPRECATIONS
     g_list_free(t_target_list);
-
-    // Diagnostic: check whether gdk_drag_begin claimed XdndSelection internally.
-    // GTK3's X11 DnD source (gdk_x11_drag_context_drag_begin_for_device) is
-    // supposed to call _gdk_x11_display_set_selection_owner for XdndSelection.
-    // If it does, we already own it and XdndEnter to foreign windows should be
-    // accepted by conforming receivers without any extra claim.
-    {
-        x11::Display *t_xdpy_check = x11::gdk_x11_display_get_xdisplay(dpy);
-        x11::Window  t_src_check   = x11::gdk_x11_window_get_xid(w);
-        x11::Atom t_xdnd_sel_xatom = x11::XInternAtom(t_xdpy_check, "XdndSelection", False);
-        x11::Window t_xdnd_sel_owner = x11::XGetSelectionOwner(t_xdpy_check, t_xdnd_sel_xatom);
-        fprintf(stderr, "DND: after gdk_drag_begin — XdndSelection owner=%lu, our xid=%lu (%s)\n",
-                (unsigned long)t_xdnd_sel_owner,
-                (unsigned long)t_src_check,
-                t_xdnd_sel_owner == t_src_check ? "WE OWN IT" : "not owned by us");
-        fflush(stderr);
-    }
 
     // Take ownership of the mouse so that nothing interferes with the drag.
     // gdk_pointer_grab is deprecated since GTK 3.0 but still present in 3.24;
@@ -544,9 +495,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
     x11::Window t_xdnd_ipc_xid  = x11::XGetSelectionOwner(t_xdisplay, t_xdnd_sel_atom);
     if (t_xdnd_ipc_xid == None)
         t_xdnd_ipc_xid = t_src_xid;   // fallback: no IPC window, use visible
-    fprintf(stderr, "DND: IPC/relay xid=%lu (XdndSelection owner, used as Xdnd src)\n",
-            (unsigned long)t_xdnd_ipc_xid);
-    fflush(stderr);
 
     // Set XdndTypeList and XdndActionList on the IPC window.
     // Per XDND protocol, the target reads these properties from whichever
@@ -565,17 +513,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
             reinterpret_cast<const gulong*>(MCDataGetBytePtr(*t_targets));
         uindex_t t_base_count = MCDataGetLength(*t_targets) / sizeof(gulong);
 
-        // Dump every atom name to confirm what the dragboard contains.
-        fprintf(stderr, "DND: dragboard types (%zu):\n", (size_t)t_base_count);
-        for (uindex_t i = 0; i < t_base_count; i++)
-        {
-            gchar *t_n = gdk_atom_name((GdkAtom)(guintptr)t_base_atoms[i]);
-            fprintf(stderr, "DND:  [%zu] atom=%lu  %s\n",
-                    (size_t)i, (unsigned long)t_base_atoms[i], t_n ? t_n : "?");
-            g_free(t_n);
-        }
-        fflush(stderr);
-
         // Probe for any text-related type so we know whether to add text/plain aliases.
         static const char *s_text_probes[] = {
             "UTF8_STRING", "UTF-8",
@@ -592,8 +529,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 if ((x11::Atom)t_base_atoms[i] == t_probe_atom)
                 {
                     t_has_utf8 = true;
-                    fprintf(stderr, "DND: found text probe '%s' at [%zu]\n", probe, (size_t)i);
-                    fflush(stderr);
                     break;
                 }
             }
@@ -665,11 +600,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                              t_action_count);
 
         x11::XFlush(t_xdisplay);
-        fprintf(stderr,
-                "DND: XdndTypeList on ipc=%lu (%zu types, has_utf8=%d) visible=%lu (%zu types)\n",
-                (unsigned long)t_xdnd_ipc_xid, t_aug_atoms.size(), (int)t_has_utf8,
-                (unsigned long)t_src_xid, (size_t)t_base_count);
-        fflush(stderr);
     }
 
     // Install a display-level GDK filter (window=NULL) to capture XdndFinished
@@ -704,9 +634,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
         if (t_sent_foreign_drop &&
             (g_get_monotonic_time() - t_foreign_drop_time) > 2000000LL)
         {
-            fprintf(stderr,
-                    "DND: XdndFinished timeout after 2s — ending modal loop\n");
-            fflush(stderr);
             t_dnd_done = true;
         }
 
@@ -716,51 +643,21 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
             while (x11::XCheckTypedEvent(t_xdisplay, ClientMessage, &t_xpoll))
             {
                 x11::XClientMessageEvent *t_cm = &t_xpoll.xclient;
-                fprintf(stderr,
-                        "DND Xpoll: ClientMessage msgtype=%lu window=%lu"
-                        " (xdnd_status=%lu xdnd_finished=%lu)\n",
-                        (unsigned long)t_cm->message_type,
-                        (unsigned long)t_cm->window,
-                        (unsigned long)s_xdnd.xdnd_status,
-                        (unsigned long)s_xdnd.xdnd_finished);
-                fflush(stderr);
                 if (t_cm->message_type == s_xdnd.xdnd_status)
                 {
-                    bool t_want_more = (t_cm->data.l[1] & 2L) != 0;
                     t_xdnd_filter.status_accept =
                         (t_cm->data.l[1] & 1L) != 0;
                     t_xdnd_filter.status_action =
                         (x11::Atom)(unsigned long)t_cm->data.l[4];
                     t_xdnd_filter.got_status = true;
-                    fprintf(stderr,
-                            "DND Xpoll: XdndStatus accept=%d want_more=%d action=%lu\n",
-                            (int)t_xdnd_filter.status_accept,
-                            (int)t_want_more,
-                            (unsigned long)t_xdnd_filter.status_action);
-                    fflush(stderr);
                 }
                 else if (t_cm->message_type == s_xdnd.xdnd_finished)
                 {
-                    bool t_accept = (t_cm->data.l[1] & 1L) != 0;
-                    fprintf(stderr,
-                            "DND Xpoll: XdndFinished accept=%d\n",
-                            (int)t_accept);
-                    fflush(stderr);
                     t_xdnd_filter.got_finished = true;
                 }
                 else
                 {
-                    // Not an Xdnd message — identify atom for diagnostics then
-                    // put back for GDK to handle.
-                    char *t_atom_name =
-                        x11::XGetAtomName(t_xdisplay, t_cm->message_type);
-                    fprintf(stderr,
-                            "DND Xpoll: unknown ClientMessage atom=%lu name='%s'\n",
-                            (unsigned long)t_cm->message_type,
-                            t_atom_name ? t_atom_name : "(null)");
-                    fflush(stderr);
-                    if (t_atom_name)
-                        x11::XFree(t_atom_name);
+                    // Not an Xdnd message — put back for GDK to handle.
                     x11::XPutBackEvent(t_xdisplay, &t_xpoll);
                     break;  // stop draining to avoid spin on this event
                 }
@@ -787,17 +684,9 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 t_action = DRAG_ACTION_NONE;
             }
             MCLinuxDragAndDropSetCursorForAction(w, t_action, p_image);
-            fprintf(stderr,
-                    "DND XdndStatus: accept=%d action=%lu → t_action=%d\n",
-                    (int)t_xdnd_filter.status_accept,
-                    (unsigned long)t_xdnd_filter.status_action,
-                    (int)t_action);
-            fflush(stderr);
         }
         if (t_xdnd_filter.got_finished)
         {
-            fprintf(stderr, "DND XdndFinished received\n");
-            fflush(stderr);
             t_xdnd_filter.got_finished = false;
             t_dnd_done = true;
         }
@@ -936,18 +825,7 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 (5L << 24) | 1L,  // XDND v5, type-list flag
                                 0L, 0L, 0L);
                             x11::XFlush(t_xdisplay);
-                            fprintf(stderr,
-                                    "DND: sent raw XdndEnter from ipc=%lu to foreign=%lu\n",
-                                    (unsigned long)t_xdnd_ipc_xid,
-                                    (unsigned long)t_xtarget);
-                            fflush(stderr);
                         }
-
-                        fprintf(stderr,
-                                "DND: entered foreign xid=%lu wrapper=%s\n",
-                                (unsigned long)t_xtarget,
-                                t_foreign_gdk ? "ok" : "FAILED");
-                        fflush(stderr);
                     }
                     // Use the foreign GdkWindow wrapper as the gdk_drag_motion dest
                     if (t_foreign_gdk != NULL)
@@ -966,11 +844,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         t_deferred_drop_dest = t_xdnd_foreign_dest;
                         t_skip_gdk_motion    = true;  // don't send XdndLeave this event
                     }
-                    fprintf(stderr, "DND: left foreign xid=%lu (deferred=%lu skip=%d)\n",
-                            (unsigned long)t_xdnd_foreign_dest,
-                            (unsigned long)t_deferred_drop_dest,
-                            (int)t_skip_gdk_motion);
-                    fflush(stderr);
                     if (t_foreign_gdk != NULL)
                     {
                         g_object_unref(t_foreign_gdk);
@@ -989,12 +862,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 if (!t_skip_position)
                 {
                     s_last_motion_ms = t_event->motion.time;
-
-                    fprintf(stderr,
-                            "DND motion: dest_xid=%lu foreign=%d root=(%.0f,%.0f)\n",
-                            (unsigned long)t_xtarget, (int)t_is_foreign,
-                            t_event->motion.x_root, t_event->motion.y_root);
-                    fflush(stderr);
 
                     if (t_dest_gdk == NULL)
                     {
@@ -1020,9 +887,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     {
                         // "Left foreign" event: defer XdndLeave until next motion
                         // so button-release can still use t_deferred_drop_dest.
-                        fprintf(stderr,
-                                "DND: skipping gdk_drag_motion (XdndLeave deferred)\n");
-                        fflush(stderr);
                     }
                     else
                     {
@@ -1045,13 +909,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                             t_eff_suggested = GdkDragAction(t_suggested_action);
                         }
 
-                        fprintf(stderr,
-                                "DND gdk_drag_motion: foreign=%d entered=%d possible=0x%x"
-                                " eff_suggested=0x%x dest=%s\n",
-                                (int)t_is_foreign, (int)t_xdnd_foreign_entered,
-                                (unsigned)t_possible_actions,
-                                (unsigned)t_eff_suggested, t_dest_gdk ? "ok" : "NULL");
-                        fflush(stderr);
                         // Re-enter approach (DISABLED):
                         // Previously we sent XdndLeave + XdndEnter after 200ms to
                         // break "rect suppression" when Mutter's first XdndStatus
@@ -1152,10 +1009,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 if (t_sent_foreign_drop)
                     break;
 
-                fprintf(stderr, "DND button-release: t_action=%d (0=none,1=copy,2=move,4=link)\n",
-                        (int)t_action);
-                fflush(stderr);
-
                 // For cross-app drops, attempt XdndDrop even when t_action==0.
                 // Mutter's first XdndStatus always has action=0 because the
                 // X11→Wayland handshake with the Wayland-native target is async;
@@ -1196,13 +1049,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         // drop-initiated; GDK's IPC-window filter only translates
                         // XdndFinished → GDK_DROP_FINISHED when that flag is set.
                         // GDK's own XdndDrop (wrong source) is ignored by Mutter.
-                        fprintf(stderr,
-                                "DND button-release: gdk_drag_drop (foreign) → xid=%lu t_action=%d deferred=%d\n",
-                                (unsigned long)t_foreign_drop_xid,
-                                (int)t_action,
-                                (int)(t_deferred_drop_dest != None));
-                        fflush(stderr);
-
                         // Pre-drop XdndPosition (deferred case): if the cursor left
                         // the foreign window on the same event as button-release we
                         // saved the dest as t_deferred_drop_dest and skipped
@@ -1219,11 +1065,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 t_last_foreign_time,
                                 s_xdnd.xdnd_action_copy);
                             x11::XFlush(t_xdisplay);
-                            fprintf(stderr,
-                                    "DND button-release: sent pre-drop XdndPosition from ipc=%lu at (%d,%d)\n",
-                                    (unsigned long)t_xdnd_ipc_xid,
-                                    t_last_foreign_x, t_last_foreign_y);
-                            fflush(stderr);
                         }
 
                         // Send raw XdndDrop from the IPC/selection window.
@@ -1246,11 +1087,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                                 t_foreign_drop_xid,
                                 t_event->button.time);
                             x11::XFlush(t_xdisplay);
-                            fprintf(stderr,
-                                    "DND button-release: sent raw XdndDrop from ipc=%lu to foreign=%lu\n",
-                                    (unsigned long)t_xdnd_ipc_xid,
-                                    (unsigned long)t_foreign_drop_xid);
-                            fflush(stderr);
                         }
 
                         G_GNUC_BEGIN_IGNORE_DEPRECATIONS
@@ -1271,8 +1107,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         // XFixesSelectionNotify fires (X11 event ordering guarantee).
                         gdk_selection_owner_set_for_display(dpy, w, t_selection,
                                                             t_event->button.time, TRUE);
-                        fprintf(stderr, "DND button-release: gdk_drag_drop intra-app\n");
-                        fflush(stderr);
                         gdk_drag_drop(t_context, t_event->button.time);
                     }
                     else
@@ -1286,14 +1120,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_SELECTION_REQUEST:
             {
-                {
-                    gchar *t_target_name = gdk_atom_name(t_event->selection.target);
-                    fprintf(stderr, "DND selection-request: target=%s\n",
-                            t_target_name ? t_target_name : "(null)");
-                    fflush(stderr);
-                    g_free(t_target_name);
-                }
-
                 // We are using the dragboard
                 MCLinuxRawClipboard* t_clipboard = static_cast<MCLinuxRawClipboard*> (MCdragboard->GetRawClipboard());
 
@@ -1321,15 +1147,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                     if (*t_targets != NULL)
                     {
                         uindex_t t_target_atom_count = MCDataGetLength(*t_targets)/sizeof(gulong);
-                        const gulong *t_atom_ptr = (const gulong*)MCDataGetBytePtr(*t_targets);
-                        fprintf(stderr, "DND TARGETS: offering %u formats:\n", (unsigned)t_target_atom_count);
-                        for (uindex_t i = 0; i < t_target_atom_count; i++)
-                        {
-                            gchar *t_aname = gdk_atom_name((GdkAtom)t_atom_ptr[i]);
-                            fprintf(stderr, "DND:  [%u] %s\n", (unsigned)i, t_aname ? t_aname : "(unknown)");
-                            g_free(t_aname);
-                        }
-                        fflush(stderr);
 
                         gdk_property_change(t_requestor, t_property,
                                             GDK_SELECTION_TYPE_ATOM,
@@ -1401,12 +1218,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                         }
                     }
 
-                    fprintf(stderr, "DND selection-request: target=%s data %s\n",
-                            (*t_atom_string != NULL)
-                                ? MCStringGetCString(*t_atom_string) : "?",
-                            (*t_data != NULL) ? "FOUND — sending" : "NOT FOUND — sending GDK_NONE");
-                    fflush(stderr);
-
                     if (*t_data != NULL)
                     {
                         gdk_property_change(t_requestor, t_property,
@@ -1449,8 +1260,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_DRAG_STATUS:
             {
-                fprintf(stderr, "DND drag-status received\n");
-                fflush(stderr);
                 // Which action did the destination request?
                 GdkDragAction t_gdk_action;
                 t_gdk_action = gdk_drag_context_get_selected_action(t_context);
@@ -1468,10 +1277,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 else if (t_gdk_action == GDK_ACTION_COPY)
                     t_action = DRAG_ACTION_COPY;
 
-                fprintf(stderr, "DND drag-status: gdk_action=%d → t_action=%d\n",
-                        (int)t_gdk_action, (int)t_action);
-                fflush(stderr);
-
                 // For foreign (Wayland-native) targets, Mutter always returns
                 // action=0 initially because the X11→Wayland handshake is async.
                 // Show COPY cursor optimistically so the user doesn't think the
@@ -1486,8 +1291,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_DROP_START:
             {
-                fprintf(stderr, "DND drop-start received (intra-app drop)\n");
-                fflush(stderr);
                 // Release the pointer grab before processing the drop so that
                 // the drop target (and Mutter) can receive input normally.
                 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
@@ -1510,8 +1313,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
                 // DnD or future GTK3 paths that do deliver this event).
                 bool t_success;
                 t_success = gdk_drag_drop_succeeded(t_context);
-                fprintf(stderr, "DND drop-finished received: success=%d\n", (int)t_success);
-                fflush(stderr);
 
                 if (!t_success)
                     t_action = DRAG_ACTION_NONE;
@@ -1522,8 +1323,6 @@ MCDragAction MCScreenDC::dodragdrop(Window w, MCDragActionSet p_allowed_actions,
 
             case GDK_GRAB_BROKEN:
             {
-                fprintf(stderr, "DND grab-broken received — drag cancelled\n");
-                fflush(stderr);
                 // Drag operation was a failure
                 t_action = DRAG_ACTION_NONE;
                 t_dnd_done = true;

@@ -61,10 +61,164 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include "license.h"
 #include "revbuild.h"
+#include "platform.h"
 
 static uint2 calldepth;
 static uint2 nwait;
 
+////////////////////////////////////////////////////////////////////////////////
+// WM_POPOVER support — native GtkPopover
+//
+// Architecture:
+//   MCStack::realize() creates a lightweight GTK hierarchy:
+//     proxy GtkWindow  (full-screen, at screen origin, override-redirect,
+//                       input shape = empty so it never steals pointer events)
+//     └── GtkFixed     (relative_to for the popover; coords == screen coords)
+//         └── GtkPopover   (pointing_to = MCpopoveranchor set at show time)
+//             └── GtkDrawingArea  (engine renders here via "draw" signal bridge)
+//
+//   MCStack::window is set to gtk_widget_get_window(drawing_area).
+//   The engine renders into it by:
+//     1. Unlock() saves the rendered GdkPixbuf in s_popover_pixbuf and calls
+//        gtk_widget_queue_draw() instead of MCX11PutImage().
+//     2. on_popover_da_draw() blits s_popover_pixbuf via cairo.
+//
+//   platform_openwindow() short-circuits for WM_POPOVER:
+//     sets pointing_to = MCpopoveranchor (in screen coords == proxy coords),
+//     then calls gtk_popover_popup().  GtkPopover handles its own grab and
+//     outside-click dismiss.  on_popover_closed() drives wclose() when GTK
+//     dismisses the popover.
+//
+//   MCLinuxPopoverClose() (called from lnxdcs.cpp closewindow/destroywindow)
+//     tears down the GTK hierarchy and releases the pixbuf ref.
+////////////////////////////////////////////////////////////////////////////////
+
+// GTK widget handles and last-frame pixbuf for the active popover.
+static GtkWidget  *s_popover_proxy      = nullptr; // transparent proxy GtkWindow (full-screen, at 0,0)
+static GtkWidget  *s_popover_fixed      = nullptr; // GtkFixed child of proxy — the relative_to widget
+static GtkWidget  *s_popover_widget     = nullptr; // the GtkPopover (relative_to = s_popover_fixed)
+static GtkWidget  *s_popover_da         = nullptr; // GtkDrawingArea (content area)
+static GdkPixbuf  *s_popover_pixbuf     = nullptr; // last rendered frame (used as "has rendered" sentinel)
+// Pointer to MCStack::window for the active popover.  Taken with &window inside
+// realize() (an MCStack member — protected access is legal there), then used by
+// MCLinuxPopoverClose() to null the field before GTK destroys the GdkWindow,
+// preventing a double-free when MCStack::destroywindow() runs later.
+static GdkWindow **s_popover_window_ptr = nullptr;
+// GTK "draw" signal callback: clear the proxy window to fully transparent.
+// Without this, GTK's theme engine paints an opaque background, hiding
+// everything beneath the full-screen proxy window.
+static gboolean on_popover_proxy_draw(GtkWidget * /*widget*/, cairo_t *cr, gpointer /*data*/)
+{
+    cairo_set_source_rgba(cr, 0, 0, 0, 0);
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+    cairo_paint(cr);
+    return FALSE; // let child widgets (GtkFixed, GtkPopover) draw normally
+}
+
+// "draw" signal callback for the GtkDrawingArea.
+//
+// Unlock() saves each rendered frame in s_popover_pixbuf and calls
+// gtk_widget_queue_draw(), which schedules this callback.  We blit the pixbuf
+// via the cairo_t GTK provides.  This is correct because the DA uses the
+// system RGB24 visual (forced in realize() before realization), so
+// gdk_cairo_set_source_pixbuf produces the same channel order as the engine's
+// GdkPixbuf — no R↔B swap.
+//
+// GTK clears the invalidated region before calling us.  We always repaint the
+// full last frame so no area stays blank regardless of what region was damaged.
+//
+// For the very first draw (before any Unlock() has run), onexpose() is driven
+// synchronously so s_popover_pixbuf is populated before we blit.
+static gboolean on_popover_da_draw(GtkWidget *widget, cairo_t *cr, gpointer /*data*/)
+{
+    if (s_popover_pixbuf == nullptr)
+    {
+        // First draw before bootstrap: drive synchronously so we have a frame
+        // to blit below.  Prefer the DA's allocation; fall back to the stack
+        // rect on Cinnamon/Muffin where the layout pass is deferred.
+        if (MCpopoverstack != nullptr)
+        {
+            GtkAllocation t_alloc;
+            gtk_widget_get_allocation(widget, &t_alloc);
+            MCRectangle t_srect = MCpopoverstack->getrect();
+            int t_w = (t_alloc.width  > 0) ? t_alloc.width  : t_srect.width;
+            int t_h = (t_alloc.height > 0) ? t_alloc.height : t_srect.height;
+            if (t_w > 0 && t_h > 0)
+            {
+                cairo_rectangle_int_t t_crect = {0, 0, t_w, t_h};
+                cairo_region_t *t_region = cairo_region_create_rectangle(&t_crect);
+                MCpopoverstack->onexpose((MCRegionRef)t_region);
+                cairo_region_destroy(t_region);
+            }
+        }
+    }
+
+    // Blit the last rendered frame.  The DA uses the system RGB24 visual so
+    // gdk_cairo_set_source_pixbuf produces correct colours here.
+    // Unlock() saves each rendered frame in s_popover_pixbuf and calls
+    // gtk_widget_queue_draw(), which brings us here.
+    if (s_popover_pixbuf != nullptr)
+    {
+        gdk_cairo_set_source_pixbuf(cr, s_popover_pixbuf, 0, 0);
+        cairo_paint(cr);
+    }
+    return FALSE;
+}
+
+// GtkPopover "closed" signal callback: GTK dismissed the popover, drive close.
+static void on_popover_closed(GtkPopover * /*popover*/, gpointer /*data*/)
+{
+    if (MCpopoverstack == nullptr)
+        return; // already handled (programmatic close in flight)
+    // Null before wclose so closewindow() sees it as already dismissed.
+    s_popover_widget = nullptr;
+    MCdispatcher->wclose(MCpopoverstack->getwindowalways());
+}
+
+// Tear down the native GtkPopover hierarchy.  Called from closewindow() and
+// destroywindow() in lnxdcs.cpp.  MCpopoverstack must be nulled by the caller
+// first so on_popover_closed() is a no-op if GTK fires "closed" during popdown.
+void MCLinuxPopoverClose(void)
+{
+    if (s_popover_pixbuf != nullptr)
+    {
+        g_object_unref(s_popover_pixbuf);
+        s_popover_pixbuf = nullptr;
+    }
+    // If GTK hasn't dismissed yet (programmatic close), do it now.
+    // s_popover_widget is nulled by on_popover_closed() before wclose() is
+    // called, so a non-null value here means the popover is still visible.
+    if (s_popover_widget != nullptr)
+    {
+        gtk_popover_popdown(GTK_POPOVER(s_popover_widget));
+        s_popover_widget = nullptr;
+    }
+    // Null MCStack::window BEFORE gtk_widget_destroy destroys the GdkWindow.
+    // We stored &window (protected) from within realize() (an MCStack member),
+    // so dereferencing here is safe.  MCStack::destroywindow() checks
+    // `if (window == nil) return;` and will skip gdk_window_destroy() cleanly.
+    if (s_popover_window_ptr != nullptr)
+    {
+        *s_popover_window_ptr = nullptr;
+        s_popover_window_ptr = nullptr;
+    }
+    if (s_popover_proxy != nullptr)
+    {
+        gtk_widget_destroy(s_popover_proxy);
+        s_popover_proxy = nullptr;
+    }
+    s_popover_fixed = nullptr;
+    s_popover_da    = nullptr;
+}
+
+// Returns the realized GdkWindow of the GtkPopover itself (W2 in the hierarchy),
+// used by lnxdclnx.cpp to widen the "inside popover" test for dismiss logic.
+GdkWindow *MCLinuxPopoverGetGdkWindow(void)
+{
+    if (s_popover_widget == nullptr)
+        return nullptr;
+    return gtk_widget_get_window(s_popover_widget);
+}
 // Defined in lnxdc.cpp
 extern MCGFloat MCLinuxGetLogicalToScreenScale(void);
 
@@ -255,9 +409,212 @@ void MCStack::realize()
 		}
 #endif
 
-		// Create legacy GdkWindow if GTK3/4 not enabled or failed
+		if (getmode() == WM_POPOVER)
+		{
+			// Native GtkPopover path.
+			//
+			// This block runs UNCONDITIONALLY for WM_POPOVER, regardless of
+			// whether MCStack::window is already set.  openrect() calls
+			// destroywindow() when changing modes but does NOT null MCStack::window
+			// afterward, so `window` may hold a stale (already-destroyed) GdkWindow
+			// pointer from a prior open in a different mode.  We must create a fresh
+			// GTK hierarchy and overwrite window before platform_openwindow() runs.
+			//
+			// Proxy window: 1×1, at screen (0,0), input pass-through.
+			// Because the proxy is at the screen origin, widget coordinates
+			// equal screen coordinates, so we can pass MCpopoveranchor
+			// directly to gtk_popover_set_pointing_to() without translation.
+
+			// Tear down any stale GTK hierarchy from a previous open, without
+			// going through the normal wclose() path (MCpopoverstack is not yet
+			// set for this new open).  Disconnect "closed" first so that
+			// gtk_widget_destroy does not re-enter on_popover_closed().
+			if (s_popover_widget != nullptr)
+			{
+				g_signal_handlers_disconnect_by_func(s_popover_widget,
+					(gpointer)on_popover_closed, nullptr);
+				s_popover_widget = nullptr;
+			}
+			if (s_popover_window_ptr != nullptr)
+			{
+				// Don't write through the old pointer — we're about to replace window.
+				s_popover_window_ptr = nullptr;
+			}
+			if (s_popover_proxy != nullptr)
+			{
+				gtk_widget_destroy(s_popover_proxy);
+				s_popover_proxy = nullptr;
+			}
+			s_popover_fixed = nullptr;
+			s_popover_da    = nullptr;
+			if (s_popover_pixbuf != nullptr)
+			{
+				g_object_unref(s_popover_pixbuf);
+				s_popover_pixbuf = nullptr;
+			}
+
+			// Build the fresh proxy → fixed → popover → drawing-area hierarchy.
+			//
+			// IMPORTANT: gtk_popover_new(relative_to) requires relative_to to be a
+			// child widget INSIDE a GtkWindow — passing the GtkWindow itself fails
+			// GTK's strict ancestor check in _gtk_window_add_popover().
+			// We therefore add a GtkFixed as the sole child of the proxy window and
+			// use that as relative_to.  The proxy is sized to cover the whole screen
+			// and placed at (0,0), so GtkFixed coordinates equal screen coordinates.
+			// gtk_popover_set_pointing_to() can then receive MCpopoveranchor directly.
+			s_popover_proxy = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+			// gtk_window_new() attaches to gdk_display_get_default(), but the
+			// engine opened its own GDK display connection (MCdpy) via
+			// gdk_display_open().  All engine cursors are created on MCdpy.
+			// GDK asserts that gdk_window_get_display(window) ==
+			// gdk_cursor_get_display(cursor) in gdk_window_set_cursor_internal(),
+			// so W3 (DA) must live on the same GdkDisplay* as MCdpy.
+			// gtk_window_set_screen() must be called before realization.
+			gtk_window_set_screen(GTK_WINDOW(s_popover_proxy),
+			                      gdk_display_get_default_screen(MCdpy));
+			gtk_window_set_decorated(GTK_WINDOW(s_popover_proxy), FALSE);
+			gtk_window_set_skip_taskbar_hint(GTK_WINDOW(s_popover_proxy), TRUE);
+			gtk_window_set_skip_pager_hint  (GTK_WINDOW(s_popover_proxy), TRUE);
+			gtk_window_set_accept_focus     (GTK_WINDOW(s_popover_proxy), FALSE);
+			gtk_window_set_focus_on_map     (GTK_WINDOW(s_popover_proxy), FALSE);
+			gtk_widget_set_app_paintable(s_popover_proxy, TRUE);
+			// RGBA visual so the proxy renders fully transparent.
+			GdkScreen *t_gscreen = gtk_widget_get_screen(s_popover_proxy);
+			GdkVisual *t_rgba    = gdk_screen_get_rgba_visual(t_gscreen);
+			if (t_rgba != nullptr)
+				gtk_widget_set_visual(s_popover_proxy, t_rgba);
+			// Cover the whole screen so any anchor coordinate is valid in fixed-space.
+			gint t_sw = gdk_screen_get_width(t_gscreen);
+			gint t_sh = gdk_screen_get_height(t_gscreen);
+			gtk_window_set_default_size(GTK_WINDOW(s_popover_proxy), t_sw, t_sh);
+			gtk_window_move(GTK_WINDOW(s_popover_proxy), 0, 0);
+
+			// GtkFixed fills the proxy — this is the relative_to widget.
+			// Its coordinate space == screen coordinates (proxy is at 0,0).
+			s_popover_fixed = gtk_fixed_new();
+			gtk_container_add(GTK_CONTAINER(s_popover_proxy), s_popover_fixed);
+
+			// GtkPopover relative to the fixed widget (a proper child of the window).
+			s_popover_widget = gtk_popover_new(s_popover_fixed);
+			// modal=FALSE: disable GTK's built-in auto-dismiss handler.
+			// GTK's handler fires on button-press when event->window != W2
+			// (the popover's own GdkWindow), which includes the DA (W3) — so it
+			// dismisses on every inside click.  We manage dismissal ourselves:
+			// the full-screen proxy (override-redirect, no empty input shape)
+			// intercepts all outside clicks; lnxdclnx.cpp drives wclose().
+			gtk_popover_set_modal(GTK_POPOVER(s_popover_widget), FALSE);
+
+			// Preferred position from MCpopoveredge.
+			GtkPositionType t_pos = GTK_POS_BOTTOM;
+			switch (MCpopoveredge)
+			{
+				case KMCPlatformWindowEdgeTop:   t_pos = GTK_POS_TOP;    break;
+				case kMCPlatformWindowEdgeLeft:  t_pos = GTK_POS_LEFT;   break;
+				case kMCPlatformWindowEdgeRight: t_pos = GTK_POS_RIGHT;  break;
+				default:                         t_pos = GTK_POS_BOTTOM; break;
+			}
+			gtk_popover_set_position(GTK_POPOVER(s_popover_widget), t_pos);
+
+			// GtkDrawingArea sized to the popover stack's content.
+			MCRectangle t_rect = MCscreen->logicaltoscreenrect(view_getrect());
+			if (t_rect.width  == 0) t_rect.width  = MCminsize << 4;
+			if (t_rect.height == 0) t_rect.height = MCminsize << 3;
+			s_popover_da = gtk_drawing_area_new();
+			gtk_widget_set_size_request(s_popover_da, t_rect.width, t_rect.height);
+			// GtkDrawingArea requests no input events by default.  Without an
+			// explicit event mask, X11 delivers button press / motion / etc. to
+			// the nearest ancestor (W2, the popover GdkWindow) instead of W3
+			// (the DA GdkWindow).  MCdispatcher only knows about W3, so wmdown /
+			// wmfocus on W2 would return nullptr and nothing would fire.  Request
+			// the full set of pointer and keyboard events the engine needs.
+			gtk_widget_add_events(s_popover_da,
+				GDK_BUTTON_PRESS_MASK   |
+				GDK_BUTTON_RELEASE_MASK |
+				GDK_POINTER_MOTION_MASK |
+				GDK_BUTTON_MOTION_MASK  |
+				GDK_ENTER_NOTIFY_MASK   |
+				GDK_LEAVE_NOTIFY_MASK   |
+				GDK_KEY_PRESS_MASK      |
+				GDK_KEY_RELEASE_MASK    |
+				GDK_SCROLL_MASK);
+			gtk_container_add(GTK_CONTAINER(s_popover_widget), s_popover_da);
+
+			// Proxy draw: clear to transparent so it doesn't paint an opaque
+			// background over the full screen (RGBA visual alone is not enough
+			// without explicitly clearing the cairo surface to alpha=0).
+			g_signal_connect(s_popover_proxy, "draw",   G_CALLBACK(on_popover_proxy_draw), nullptr);
+			// Draw callback blits s_popover_pixbuf (saved in Unlock()).
+			g_signal_connect(s_popover_da,    "draw",   G_CALLBACK(on_popover_da_draw),    nullptr);
+			// Closed callback drives engine wclose() when GTK dismisses.
+			g_signal_connect(s_popover_widget,"closed", G_CALLBACK(on_popover_closed),     nullptr);
+
+			// Pre-allocate the DA to its final size BEFORE realization.
+			//
+			// gtk_widget_set_size_request() (above) sets the preferred-size hint
+			// only — it does not update the widget's GTK allocation.  When
+			// gtk_widget_realize() creates the GdkWindow it uses the allocation,
+			// not the size request.  An unrealized widget's default allocation is
+			// the GTK sentinel (-1×-1), which GDK clamps to 1×1, so the GdkWindow
+			// is born 1×1.  gdk_window_resize() can fix this later, but only if
+			// the X11 ConfigureWindow round-trip completes before the first "draw"
+			// signal fires — a race that cannot be reliably won.
+			//
+			// Calling gtk_widget_size_allocate() here, before any realize call,
+			// sets the allocation to the correct pixel size.  When the realize
+			// calls below create the GdkWindow they see w×h and create it at w×h
+			// from the start — no post-realize resize, no race.
+			{
+				GtkAllocation t_da_alloc;
+				t_da_alloc.x      = 0;
+				t_da_alloc.y      = 0;
+				t_da_alloc.width  = (gint)t_rect.width;
+				t_da_alloc.height = (gint)t_rect.height;
+				gtk_widget_size_allocate(s_popover_da, &t_da_alloc);
+			}
+
+			// Force the DA to use the system (RGB24/opaque) visual, not the
+			// RGBA visual inherited from GtkPopover.  MCX11PutImage on an
+			// RGB24 window produces correct colours; the RGBA visual causes
+			// R↔B channel swap on this system's GDK/cairo stack.
+			// gtk_widget_set_visual() MUST be called before realize().
+			{
+				GdkScreen *t_screen = gdk_screen_get_default();
+				GdkVisual *t_sys_vis = gdk_screen_get_system_visual(t_screen);
+				gtk_widget_set_visual(s_popover_da, t_sys_vis);
+			}
+
+			// Realize the hierarchy to create GdkWindows (without mapping).
+			gtk_widget_realize(s_popover_proxy);
+			gtk_widget_realize(s_popover_fixed);
+			gtk_widget_realize(s_popover_widget);
+			gtk_widget_realize(s_popover_da);
+
+			// Make the proxy override-redirect so it sits above all WM-managed
+			// windows (including the main HyperXTalk window).  Without this,
+			// the WM places the proxy behind existing windows and the GtkPopover
+			// (a sub-window of the proxy) is never visible.
+			gdk_window_set_override_redirect(gtk_widget_get_window(s_popover_proxy), TRUE);
+
+			// The proxy covers the full screen with override-redirect, so it
+			// physically intercepts all pointer events outside the popover area.
+			// We rely on this to detect outside clicks — do NOT set an empty input
+			// shape here; that would make the proxy pass-through and we would
+			// never receive the GDK_BUTTON_PRESS events needed for dismiss logic.
+
+			// Engine renders into the drawing area's GdkWindow.
+			window = gtk_widget_get_window(s_popover_da);
+			// Store &window so MCLinuxPopoverClose() can null it (protected access
+			// is legal here — realize() is an MCStack member function).
+			s_popover_window_ptr = &window;
+
+			gdk_display_sync(MCdpy);
+			start_externals();
+			return;
+		}
+
 		if (window == nullptr)
 		{
+			// All other modes: raw GDK_WINDOW_TOPLEVEL.
 			GdkWindowAttr gdkwa;
 			guint gdk_valid_wa;
 			gdk_valid_wa = GDK_WA_X|GDK_WA_Y|GDK_WA_VISUAL;
@@ -272,7 +629,7 @@ void MCStack::realize()
 			gdkwa.event_mask = GDK_ALL_EVENTS_MASK & ~GDK_POINTER_MOTION_HINT_MASK;
 
 			window = gdk_window_new(screen->getroot(), &gdkwa, gdk_valid_wa);
-		}
+		} // if (window == nullptr)
 
 #ifdef MODE_DEVELOPMENT
         // Set _NET_WM_ICON on the first top-level window so the taskbar,
@@ -317,7 +674,7 @@ void MCStack::realize()
                 if (t_icon[0] != '\0' && access(t_icon, F_OK) == 0)
                 {
                     GdkPixbuf *t_pb = gdk_pixbuf_new_from_file(t_icon, NULL);
-                    if (t_pb != NULL)
+                    if (t_pb != NULL && window != nullptr)
                     {
                         GList *t_list = g_list_append(NULL, t_pb);
                         gdk_window_set_icon_list(window, t_list);
@@ -335,10 +692,10 @@ void MCStack::realize()
         // position that we have specified for the new window
         view_platform_setgeom(t_rect);
 
-		// This is necessary to be able to receive drag-and-drop events
+        // This is necessary to be able to receive drag-and-drop events
         gdk_window_register_dnd(window);
 
-		if (screen -> get_backdrop() != DNULL)
+        if (screen->get_backdrop() != DNULL)
             gdk_window_set_transient_for(window, screen->get_backdrop());
 
 		loadwindowshape();
@@ -439,7 +796,14 @@ void MCStack::sethints()
 	if (!opened || MCnoui || window == DNULL)
 		return;
 
-    // Choose the appropriate type fint for the window
+    // For native GtkPopover, GTK manages all window-manager hints internally.
+    // The drawing area's GdkWindow is a child window; calling X11 toplevel-only
+    // functions (type hint, override-redirect, group) on it is invalid and can
+    // trigger X errors that destroy the widget hierarchy.
+    if (getmode() == WM_POPOVER && s_popover_da != nullptr)
+        return;
+
+    // Choose the appropriate type hint for the window
     GdkWindowTypeHint t_type_hint = GDK_WINDOW_TYPE_HINT_NORMAL;
 
     // XFCE workaround: Treat palette windows as modeless on XFCE
@@ -478,10 +842,10 @@ void MCStack::sethints()
             break;
 
         case WM_POPOVER:
-            // A popover is a floating panel, not a transient menu.  Use UTILITY
-            // so that compositors apply a proper drop-shadow and focus handling
-            // is not suppressed the way it is for POPUP_MENU windows.
-            t_type_hint = GDK_WINDOW_TYPE_HINT_UTILITY;
+            // DROPDOWN_MENU is the hint compositors (picom, mutter, kwin) use
+            // to decide whether to apply a drop-shadow to override-redirect
+            // windows.  UTILITY is typically not shadowed when override-redirect.
+            t_type_hint = GDK_WINDOW_TYPE_HINT_DROPDOWN_MENU;
             break;
 
         case WM_COMBO:
@@ -510,24 +874,15 @@ void MCStack::sethints()
         gdk_window_set_focus_on_map(window, FALSE);
     }
 
-    // Popovers must NOT be override-redirect: they need the compositor to
-    // apply drop-shadows and the WM to manage z-order so they don't float
-    // above unrelated applications.
-    if ((mode >= WM_PULLDOWN && mode <= WM_LICENSE) && mode != WM_POPOVER)
+    // All popup/menu modes (including WM_POPOVER) use override-redirect so the
+    // WM does not intercept positioning or add decorations.
+    if (mode >= WM_PULLDOWN && mode <= WM_LICENSE)
     {
         gdk_window_set_override_redirect(window, TRUE);
     }
     else
     {
         gdk_window_set_override_redirect(window, FALSE);
-    }
-
-    // For popovers: make the window transient for its anchor stack so the WM
-    // keeps it above the parent application but not above other applications.
-    if (mode == WM_POPOVER && MCpopoverparentstack != nullptr)
-    {
-        gdk_window_set_transient_for(window,
-                                     MCpopoverparentstack->getwindowalways());
     }
 
     // TODO: initial input focus and initial window state
@@ -805,6 +1160,13 @@ MCRectangle MCStack::view_device_setgeom(const MCRectangle &p_rect,
     MCRectangle t_old_rect;
     t_old_rect = MCU_make_rect(t_root_x, t_root_y, t_width, t_height);
 
+    // For WM_POPOVER with native GtkPopover, the drawing area's GdkWindow is
+    // a child managed entirely by GTK.  gdk_window_move_resize() with screen
+    // coordinates would misplace it within the popover interior.  GTK handles
+    // positioning via gtk_popover_set_pointing_to() in platform_openwindow().
+    if (getmode() == WM_POPOVER && s_popover_da != nullptr)
+        return t_old_rect;
+
     // Menus, popups, popovers, and tooltips are all self-positioned — either
     // because they're override-redirect (WM never sees them) or because the
     // engine computes the exact anchor-relative position.  Bypass F_WM_PLACE
@@ -912,6 +1274,171 @@ void MCStack::platform_openwindow(Boolean override)
 {
 	if (MCModeMakeLocalWindows())
 	{
+		if (getmode() == WM_POPOVER)
+		{
+			// Native GtkPopover path.  Track the active popover, set the
+			// pointing_to rect, then let GTK show and grab.
+
+			// The GTK hierarchy may not have been created yet.  createwindow()
+			// short-circuits with "if (window != nil) return true" when the stack
+			// has a stale window pointer from a previous open in a different mode,
+			// meaning realize() is never called.  Build the hierarchy on demand here
+			// if it is missing — realize() is idempotent for WM_POPOVER (it tears
+			// down stale state before rebuilding).
+			if (s_popover_widget == nullptr || s_popover_proxy == nullptr)
+			{
+				realize();
+				// If realize() still could not create the hierarchy, bail.
+				if (s_popover_widget == nullptr || s_popover_proxy == nullptr)
+					return;
+			}
+
+			MCpopoverstack = this;
+
+			// The proxy GtkWindow is at screen (0,0), so widget coords are
+			// screen coords — pass MCpopoveranchor directly.
+			GdkRectangle t_anchor;
+			t_anchor.x      = MCpopoveranchor.x;
+			t_anchor.y      = MCpopoveranchor.y;
+			t_anchor.width  = (MCpopoveranchor.width  > 0) ? MCpopoveranchor.width  : 1;
+			t_anchor.height = (MCpopoveranchor.height > 0) ? MCpopoveranchor.height : 1;
+			gtk_popover_set_pointing_to(GTK_POPOVER(s_popover_widget), &t_anchor);
+
+			// Map the proxy and show the popover.
+			// gtk_popover_popup() maps the popover.  With modal=FALSE, GTK does
+			// NOT install a grab or auto-dismiss handler.  Outside-click dismiss
+			// is driven by lnxdclnx.cpp: the full-screen proxy (override-redirect,
+			// no empty input shape) intercepts all outside clicks, which our
+			// GDK_BUTTON_PRESS handler detects via a GdkWindow parent-chain walk.
+			//
+			// gtk_widget_show_all(proxy) only iterates the proxy's normal widget
+			// tree (proxy→GtkFixed).  GtkPopover is registered as a popup of the
+			// proxy window, not as a container child, so show_all does NOT recurse
+			// into the popover or its children.  gtk_popover_popup() internally
+			// calls gtk_widget_show(popover) — non-recursive — so the
+			// GtkDrawingArea inside the popover also stays VISIBLE=false.
+			// A widget whose VISIBLE flag is false is never mapped and never
+			// receives GTK "draw" signals, giving a permanently blank content area.
+			//
+			// Fix: explicitly show the DA (and any other children) before popup so
+			// they are marked visible and get mapped when the popover maps its
+			// GdkWindow.
+			gtk_widget_show_all(s_popover_proxy);
+			gtk_widget_show(s_popover_da);   // must be visible before popover maps
+
+			// Force the DA to have its correct allocation BEFORE gtk_popover_popup().
+			//
+			// gtk_popover_popup() can emit "draw" signals internally (e.g. during
+			// the window-map event processing).  If the DA's GTK allocation is still
+			// the uninitialised sentinel (-1×-1) at that point, the cairo context
+			// passed to on_popover_da_draw is clipped to an empty region, so
+			// cairo_paint() composites nothing — blank content area.
+			//
+			// Calling gtk_widget_size_allocate() here, before popup, guarantees that
+			// any draw fired inside gtk_popover_popup() already has a valid clip.
+			// On systems where GTK's layout pass runs before the draw (Ubuntu/Mutter)
+			// the allocation is overwritten with the same value on the next layout
+			// cycle — safe and harmless.
+			// Pre-size the DA's GdkWindow BEFORE gtk_popover_popup().
+			//
+			// The GdkWindow for the DA was created during MCStack::realize() when
+			// the widget's allocation was still the GTK sentinel (1×1).  It
+			// persists between opens; GTK only resizes it during its own layout
+			// pass, which runs AFTER the first "draw" signal fires.
+			//
+			// gtk_popover_popup() maps the popover and can fire a synchronous
+			// "draw" on the DA immediately.  If the GdkWindow is still 1×1 at
+			// that point, the cairo context delivered to on_popover_da_draw is
+			// clipped to a 1×1 region — cairo_paint() composites at most one
+			// pixel, leaving the content area blank even though s_popover_pixbuf
+			// is already populated.
+			//
+			// Calling gtk_widget_size_allocate() updates GTK's logical allocation
+			// (used by the layout pass) but does NOT resize an already-created
+			// GdkWindow.  gdk_window_resize() does: it sends X11 ConfigureWindow
+			// directly, bypassing the layout pass, so the GdkWindow is w×h
+			// before the first draw fires inside gtk_popover_popup().
+			//
+			// Both calls are safe on an unrealised widget: the DA was realized
+			// in MCStack::realize() so gtk_widget_get_window() is non-null, and
+			// gdk_window_resize() works on hidden windows.
+			{
+				GtkAllocation t_da_alloc;
+				t_da_alloc.x      = 0;
+				t_da_alloc.y      = 0;
+				t_da_alloc.width  = rect.width;
+				t_da_alloc.height = rect.height;
+				gtk_widget_size_allocate(s_popover_da, &t_da_alloc);
+			}
+			if (rect.width > 0 && rect.height > 0)
+			{
+				GdkWindow *t_da_win = gtk_widget_get_window(s_popover_da);
+				if (t_da_win != nullptr)
+				{
+					gdk_window_resize(t_da_win, rect.width, rect.height);
+					// gdk_window_resize() sends X11 ConfigureWindow but the
+					// request is asynchronous: the X11 server may not have
+					// processed it by the time gtk_popover_popup() maps the
+					// window and fires the first "draw" signal.  If the X11
+					// window is still the old size at draw time, the cairo
+					// surface is the old size too — cairo_paint() clips to
+					// a partial or 1×1 region and the content appears blank.
+					//
+					// gdk_display_sync() flushes pending requests AND waits
+					// for the X11 server to acknowledge them all (XSync), so
+					// after this call the ConfigureWindow is guaranteed to
+					// have been processed and the X11 window IS rect.w×rect.h
+					// before gtk_popover_popup() maps it.
+					gdk_display_sync(gdk_display_get_default());
+				}
+			}
+
+			gtk_popover_popup(GTK_POPOVER(s_popover_widget));
+
+			// Establish the correct X11 stacking order:
+			//   W2 (popover) > W1 (proxy) > main HyperXTalk window
+			//
+			// gtk_popover_popup() may generate FocusIn/FocusOut or ConfigureNotify
+			// events that let the main window sneak above the proxy.  Re-raise the
+			// proxy first to push it above the main window, then raise the popover
+			// above the proxy so pointer events in the popover area go to W2/W3
+			// (not to the full-screen proxy).  Without this second raise, the proxy
+			// intercepts all clicks — including inside-popover ones — because it
+			// sits on top of W2 in the stacking order.
+			gdk_window_raise(gtk_widget_get_window(s_popover_proxy));
+			gdk_window_raise(gtk_widget_get_window(s_popover_widget));
+			gdk_display_flush(MCdpy);
+
+			// Bootstrap: render the first frame now that the popover is fully
+			// mapped and the stack is in its "shown" state.
+			//
+			// Rendering before show/popup could produce a blank pixbuf because
+			// LiveCode controls may treat themselves as invisible until their
+			// parent stack is shown.  Rendering here — after gtk_popover_popup()
+			// and the X11 flush — guarantees the stack is open and controls draw
+			// correctly.  s_popover_pixbuf is set by Unlock(), which also calls
+			// gtk_widget_queue_draw(); the explicit queue_draw below is a second
+			// belt-and-suspenders trigger.
+			//
+			// Queue draw on the whole GtkPopover (s_popover_widget), not just
+			// the DA (s_popover_da).  This forces a full repaint of W2's cairo
+			// surface including the DA's area, giving the compositor a fresh
+			// snapshot that includes W3's newly painted content.  Without this,
+			// the compositor may cache a stale blank frame of W2 taken before
+			// W3 painted, leaving the content area visually empty even though
+			// cursor hit-testing (which uses X11 events, not the compositor
+			// snapshot) works correctly.
+			{
+				cairo_rectangle_int_t t_crect = {0, 0, rect.width, rect.height};
+				cairo_region_t *t_region = cairo_region_create_rectangle(&t_crect);
+				onexpose((MCRegionRef)t_region);
+				cairo_region_destroy(t_region);
+			}
+			if (s_popover_widget != nullptr)
+				gtk_widget_queue_draw(s_popover_widget);
+			return;
+		}
+
 		// MW-2010-11-29: Make sure we reset the geometry on the window before
 		//   it gets mapped - otherwise we will get upward drift due to StaticGravity
 		//   being used.
@@ -1131,14 +1658,32 @@ public:
 				surface_merge_with_alpha(m_raster.pixels, m_raster.stride, t_src_ptr, t_mask -> stride, t_width, t_height);
 			}
 
-		cairo_region_t* t_region;
-		t_region = nil;
+		if (m_stack->getmode() == WM_POPOVER && s_popover_da != nullptr)
+		{
+			// Save the rendered frame and ask GTK to redraw the DA.
+			// on_popover_da_draw() blits s_popover_pixbuf via the cairo_t
+			// that GTK provides, which is correct now that the DA uses the
+			// system RGB24 visual (set in realize() before realization).
+			// We do NOT call MCX11PutImage here: painting via both the GTK
+			// draw-signal cr and gdk_window_begin_draw_frame on the same
+			// window causes conflicts that erase content on some compositors.
+			if (s_popover_pixbuf != nullptr)
+				g_object_unref(s_popover_pixbuf);
+			g_object_ref(m_bitmap);
+			s_popover_pixbuf = m_bitmap;
+			gtk_widget_queue_draw(s_popover_da);
+		}
+		else
+		{
+			cairo_region_t* t_region;
+			t_region = nil;
 
-		/* UNCHECKED */ MCLinuxMCGRegionToRegion(m_region, t_region);
+			/* UNCHECKED */ MCLinuxMCGRegionToRegion(m_region, t_region);
 
-		MCX11PutImage(((MCScreenDC*)MCscreen)->getDisplay(), m_stack->getwindow(), t_region, m_bitmap, 0, 0, m_area.origin.x, m_area.origin.y, m_area.size.width, m_area.size.height);
+			MCX11PutImage(((MCScreenDC*)MCscreen)->getDisplay(), m_stack->getwindow(), t_region, m_bitmap, 0, 0, m_area.origin.x, m_area.origin.y, m_area.size.width, m_area.size.height);
 
-		MCLinuxRegionDestroy(t_region);
+			MCLinuxRegionDestroy(t_region);
+		}
 		}
 
 		((MCScreenDC*)MCscreen)->destroyimage(m_bitmap);

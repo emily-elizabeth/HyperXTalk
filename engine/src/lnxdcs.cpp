@@ -54,6 +54,10 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "revbuild.h"
 #include "resolution.h"
 
+// Tears down the native GtkPopover hierarchy created in lnxstack.cpp::realize().
+// MCpopoverstack must be nulled before calling so on_popover_closed() is a no-op.
+extern void MCLinuxPopoverClose(void);
+
 #include <langinfo.h>
 #include <fcntl.h>
 #include <sys/shm.h>
@@ -830,6 +834,10 @@ void MCScreenDC::openwindow(Window window, Boolean override)
 {
 	MCStack *target = MCdispatcher->findstackd(window);
 
+	// WM_POPOVER is handled entirely in MCStack::platform_openwindow() before
+	// this function is ever called (it short-circuits to avoid passing a null
+	// window here), so no WM_POPOVER check is needed.
+
 	{
 		// XFCE workaround: Use show_unraised for palette windows to prevent focus stealing
 		bool use_unraised = false;
@@ -846,27 +854,15 @@ void MCScreenDC::openwindow(Window window, Boolean override)
 			gdk_window_show(window);
 	}
 
-	MCstacks -> enableformodal(window, False);
-
-    // WM_POPOVER on Linux: track the open popover stack so the
-    // GDK_BUTTON_PRESS and GDK_CONFIGURE handlers in lnxdclnx.cpp can
-    // implement click-outside dismiss and dismiss-on-parent-move.
-    if (target != nullptr && target->getmode() == WM_POPOVER)
-    {
-        MCpopoverstack = target;
-    }
+	MCstacks->enableformodal(window, False);
 }
 
 void MCScreenDC::closewindow(Window window)
 {
-	MCStack *target = MCdispatcher->findstackd(window);
-	MCstacks -> enableformodal(window, True);
+	MCstacks->enableformodal(window, True);
 
     // If the parent stack for the current popover is being closed, dismiss
     // the popover first so it doesn't outlive its anchor.
-    // Only check the parent — dismissing on ANY other window close (the old
-    // behaviour) caused the popover to vanish whenever an unrelated window
-    // such as a tooltip or dialog was hidden.
     if (MCpopoverstack != nullptr && MCpopoverparentstack != nullptr &&
         MCpopoverparentstack->getwindowalways() == window)
     {
@@ -876,11 +872,17 @@ void MCScreenDC::closewindow(Window window)
         MCdispatcher->wclose(t_popover->getwindowalways());
     }
 
-    // If the popover itself is being closed, clear our tracking state.
+    // If the popover itself is being closed, tear down the GTK hierarchy.
     if (MCpopoverstack != nullptr && MCpopoverstack->getwindowalways() == window)
     {
-        MCpopoverstack = nullptr;
+        MCpopoverstack = nullptr;          // null first so on_popover_closed is a no-op
         MCpopoverparentstack = nullptr;
+        // MCLinuxPopoverClose() nulls MCStack::window via s_popover_window_ptr
+        // (a &window pointer stored in realize()) before calling gtk_widget_destroy,
+        // so MCStack::destroywindow()'s `if (window == nil)` guard fires cleanly.
+        MCLinuxPopoverClose();
+        // Do NOT call gdk_window_hide() — the GdkWindow belongs to GTK.
+        return;
     }
 
 	gdk_window_hide(window);
@@ -888,11 +890,8 @@ void MCScreenDC::closewindow(Window window)
 
 void MCScreenDC::destroywindow(Window &window)
 {
-    // If the parent stack for the current popover is being closed, dismiss
+    // If the parent stack for the current popover is being destroyed, dismiss
     // the popover first so it doesn't outlive its anchor.
-    // Only check the parent — dismissing on ANY other window close (the old
-    // behaviour) caused the popover to vanish whenever an unrelated window
-    // such as a tooltip or dialog was hidden.
     if (MCpopoverstack != nullptr && MCpopoverparentstack != nullptr &&
         MCpopoverparentstack->getwindowalways() == window)
     {
@@ -902,11 +901,14 @@ void MCScreenDC::destroywindow(Window &window)
         MCdispatcher->wclose(t_popover->getwindowalways());
     }
 
-    // If the popover itself is being closed, clear our tracking state.
+    // If the popover itself is being destroyed, tear down the GTK hierarchy.
     if (MCpopoverstack != nullptr && MCpopoverstack->getwindowalways() == window)
     {
         MCpopoverstack = nullptr;
         MCpopoverparentstack = nullptr;
+        window = DNULL;                    // GdkWindow is GTK-owned; null before destroy
+        MCLinuxPopoverClose();
+        return;
     }
 
 	gdk_window_destroy(window);
@@ -915,7 +917,8 @@ void MCScreenDC::destroywindow(Window &window)
 
 void MCScreenDC::raisewindow(Window window)
 {
-	gdk_window_raise(window);
+    if (window != nullptr)
+        gdk_window_raise(window);
 }
 
 void MCScreenDC::iconifywindow(Window window)
