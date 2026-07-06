@@ -65,8 +65,10 @@
 	<string>$(BUILD_LONG_VERSION)</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>HyperXTalk needs to send Apple events to control other applications via AppleScript.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>HyperXTalk scripts may access your calendar events when requested by a standalone application built with HyperXTalk.</string>
 	<key>NSContactsUsageDescription</key>
-	<string>This app reads your contacts</string>
+	<string>HyperXTalk scripts may access your contacts when requested by a standalone application built with HyperXTalk.</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 	<key>LFPrefersCarbon</key>
