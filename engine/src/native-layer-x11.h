@@ -26,6 +26,10 @@ namespace x11
 #include <gdk/gdkx.h>
 }
 
+// -- tperry 12-11-2025: GTK3 requires explicit include for GtkSocket
+// Must be after x11 namespace to avoid conflicts
+#include <gtk/gtkx.h>
+
 class MCNativeLayerX11 : public MCNativeLayer
 {
 public:
@@ -41,7 +45,9 @@ public:
 private:
     
     GtkWindow* m_child_window;
-    GdkRegion* m_input_shape;
+    // -- tperry 12-11-2025: GTK3 uses cairo_region_t instead of GdkRegion
+    cairo_region_t* m_input_shape;
+    // -- tperry 12-11-2025: GtkSocket still exists in GTK3 (removed in GTK4)
     GtkSocket* m_socket;
     x11::Window m_widget_xid;
 	MCRectangle m_intersect_rect;

@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "lnxprefix.h"
 
 #include "globdefs.h"
@@ -28,8 +44,8 @@
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
 #include <gdk/gdkx.h>
-#include <gtk/gtkpagesetupunixdialog.h>
-#include <gtk/gtkprintunixdialog.h>
+// -- tperry 13-11-2025: GTK3 Unix print headers from thirdparty/headers/linux/include/gtk3
+#include <gtk/gtkunixprint.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -141,7 +157,8 @@ void gtk_init(void)
                 gtk_window_set_default_icon_from_file(t_icon, NULL);
         }
 #endif // MODE_DEVELOPMENT
-		gdk_error_trap_push(); 		// Disable all x-error trapping ...
+	// -- tperry 13-11-2025: GTK3 - use gdk_x11_display_error_trap_push() instead of gdk_error_trap_push()
+	x11::gdk_x11_display_error_trap_push(gdk_display_get_default()); 		// Disable all x-error trapping ...
 		
 		
 		// These are free'd in gtk_file_tidy_up that is called from MCscreen::close()
@@ -316,8 +333,9 @@ void make_front_widget ( GtkWidget *p_widget)
 	
 	if ( t_window != NULL)
 	{
+		// -- tperry 13-11-2025: GTK3 - use gtk_widget_get_window() instead of widget->window
 		GdkWindow * gdk_window = NULL ;
-		gdk_window = GTK_WIDGET ( p_widget ) -> window ;
+		gdk_window = gtk_widget_get_window(GTK_WIDGET(p_widget));
 		if ( gdk_window != NULL )
             gdk_window_set_transient_for(gdk_window, t_window);
 		else 
@@ -336,7 +354,8 @@ GtkWidget * create_open_dialog (MCStringRef p_title , GtkFileChooserAction actio
 
     MCAutoStringRefAsSysString t_title;
     t_title.Lock(p_title);
-    dialog = gtk_file_chooser_dialog_new_ptr(*t_title, NULL, action,
+    // -- tperry 16-11-2025: Use gtk_file_chooser_dialog_new directly (GTK3 is statically linked)
+    dialog = gtk_file_chooser_dialog_new(*t_title, NULL, action,
 											 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 											 (action == GTK_FILE_CHOOSER_ACTION_SAVE) ? GTK_STOCK_SAVE : GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
 											 NULL);
@@ -799,33 +818,35 @@ int MCA_folder(MCStringRef p_title, MCStringRef p_prompt, MCStringRef p_initial,
 
 bool MCA_color(MCStringRef p_title, MCColor p_initial_color, bool p_as_sheet, bool& r_chosen, MCColor& r_chosen_color)
 {
+	// -- tperry 13-11-2025: GTK3 - use GtkColorChooserDialog and GdkRGBA instead of GtkColorSelectionDialog and GdkColor
 	GtkWidget * dialog ;
-	GtkColorSelection *colorsel;
-    GdkColor gdk_color;
+    GdkRGBA rgba_color;
 	
 	gtk_init();
 	
-    gdk_color . red = p_initial_color . red;
-    gdk_color . green = p_initial_color . green;
-    gdk_color . blue = p_initial_color . blue;
+	// Convert MCColor (16-bit) to GdkRGBA (0.0-1.0)
+    rgba_color.red = p_initial_color.red / 65535.0;
+    rgba_color.green = p_initial_color.green / 65535.0;
+    rgba_color.blue = p_initial_color.blue / 65535.0;
+    rgba_color.alpha = 1.0;
 		
     MCAutoStringRefAsSysString t_title;
     /* UNCHECKED */ t_title.Lock(p_title);
-    dialog = gtk_color_selection_dialog_new  (*t_title);
+    dialog = gtk_color_chooser_dialog_new(*t_title, NULL);
 	make_front_widget ( dialog ) ;
-	colorsel = GTK_COLOR_SELECTION ( GTK_COLOR_SELECTION_DIALOG (dialog)->colorsel );
-
-	gtk_color_selection_set_current_color  ( colorsel, &gdk_color ) ;
+	
+	gtk_color_chooser_set_rgba(GTK_COLOR_CHOOSER(dialog), &rgba_color);
 
 	g_timeout_add(100, gtk_idle_callback, NULL);
 	
 	if (gtk_dialog_run(GTK_DIALOG (dialog)) == GTK_RESPONSE_OK)
 	{
-        gtk_color_selection_get_current_color(colorsel, &gdk_color);
+        gtk_color_chooser_get_rgba(GTK_COLOR_CHOOSER(dialog), &rgba_color);
 
-		r_chosen_color . red = gdk_color . red;
-		r_chosen_color . blue = gdk_color . blue;
-		r_chosen_color . green = gdk_color . green;
+		// Convert GdkRGBA (0.0-1.0) back to MCColor (16-bit)
+		r_chosen_color.red = (uint16_t)(rgba_color.red * 65535.0);
+		r_chosen_color.green = (uint16_t)(rgba_color.green * 65535.0);
+		r_chosen_color.blue = (uint16_t)(rgba_color.blue * 65535.0);
 		r_chosen = true;
 	}
 	else
@@ -907,7 +928,7 @@ MCPrinterDialogResult MCA_gtk_printer_setup ( PSPrinterSettings &p_settings )
 
 		if ( p_settings . outputfilename != NULL ) 
 			delete (p_settings . outputfilename - 7 );
-// 2023.06.13 mdw feature_linux_printing : place the output file in the proper place
+		// 2023.06.13 mdw feature_linux_printing : place the output file in the proper place
 		p_settings . outputfilename = "/tmp/tmpprintfile.ps" ;
 		p_settings . printertype = PRINTER_OUTPUT_DEVICE ;
 		

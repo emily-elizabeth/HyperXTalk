@@ -16,17 +16,20 @@ ARCHIVE_DESTINATION="${SHORT_THIS}sr${JPEG_MAJOR_VERSION}"
 FILE_DIRECTORY="../../thirdparty/${THIS}/src"
 
 fetchBinary
-rm -rf ${SHORT_THIS}-${libjpeg_VERSION}
-#unxzBinary
-untarBinary
-mv ${SHORT_THIS}-${libjpeg_VERSION} ${ARCHIVE_DESTINATION}
-# have to convert the windows-style line endings to linux
-# sudo apt install dos2unix
-pushd ${BUILDDIR}/${ARCHIVE_DESTINATION}
-if [ -e "${BUILDDIR}/${ARCHIVE_DESTINATION}/configure" ] ; then
-	echo "running configure"
-	./configure
+if [ ${DOWNLOADED} == 1 ] ; then
+	#rm -rf ${SHORT_THIS}-${libjpeg_VERSION}
+	#unxzBinary
+	untarBinary
+	mv ${SHORT_THIS}-${libjpeg_VERSION} ${ARCHIVE_DESTINATION}
+	# have to convert the windows-style line endings to linux
+	# sudo apt install dos2unix
+	pushd ${BUILDDIR}/${ARCHIVE_DESTINATION}
+	if [ -e "${BUILDDIR}/${ARCHIVE_DESTINATION}/configure" ] ; then
+		echo "running configure"
+		./configure
+	fi
+	makeBinary
+	popd
+	buildLibrary
 fi
-makeBinary
-popd
-buildLibrary
+

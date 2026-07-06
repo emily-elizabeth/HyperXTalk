@@ -727,6 +727,8 @@
 			'src/lnxaudio.h',
 			'src/lnxdc.h',
 			'src/lnxflst.h',
+			'src/lnxgtk-compat.h',
+			'src/lnxgtk-window.h',
 			'src/lnxgtkthemedrawing.h',
 			'src/lnximagecache.h',
 			'src/lnxmplayer.h',
@@ -742,6 +744,8 @@
 			'src/lnxdclnx.cpp',
 			'src/lnxdcs.cpp',
 			'src/lnxdnd.cpp',
+			'src/lnxgtk-compat.cpp',
+			'src/lnxgtk-window.cpp',
 			'src/lnxgtktheme.cpp',
 			'src/lnxgtkthemedrawing.cpp',
 			'src/lnximage.cpp',
@@ -752,6 +756,7 @@
 			'src/lnx-activate.cpp',
 			'src/lnx-core-compat.cpp',
 			'src/lnx-fileicon.cpp',
+			'src/lnx-gtk3-direct-stubs.cpp',
 			'src/lnxpsprinter.cpp',
 			'src/lnxspec.cpp',
 			'src/lnxstack.cpp',
@@ -1261,10 +1266,11 @@
 						'src/platform-recorder.cpp',
 						'src/platform-surface.cpp',
 						'src/platform-window.cpp',
+						'src/gtk3_direct_stubs.cpp',
 					],
 				},
 			],
-			
+
 			[
 				'OS == "mac"',
 				{
@@ -1277,6 +1283,7 @@
 						'src/tilecachegl.cpp',
 						'src/tilecachegl3.x.cpp',
 						'src/glcontext.cpp',
+						'src/gtk3_direct_stubs.cpp',
 					],
 				},
 			],

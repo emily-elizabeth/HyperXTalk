@@ -677,12 +677,12 @@ bool MCClipboard::HasFileList() const
     MCAutoRefcounted<const MCRawClipboardItem> t_item = GetItem();
     if (t_item == NULL)
         return false;
-    
+
     if (t_item->HasRepresentation(m_clipboard->GetKnownTypeString(kMCRawClipboardKnownTypeFileURL)))
         return true;
     if (t_item->HasRepresentation(m_clipboard->GetKnownTypeString(kMCRawClipboardKnownTypeFileURLList)))
         return true;
-    
+
     return false;
 }
 
@@ -868,7 +868,7 @@ bool MCClipboard::HasPrivateData() const
 bool MCClipboard::CopyAsFileList(MCStringRef& r_file_list) const
 {
     AutoLock t_lock(this);
-    
+
     // String containing a newline-separated list of file paths
     MCStringRef t_output = NULL;
     
@@ -935,7 +935,7 @@ bool MCClipboard::CopyAsFileList(MCStringRef& r_file_list) const
     // All done
     if (t_output != NULL)
         r_file_list = t_output;
-    
+
     return t_output != NULL;
 }
 

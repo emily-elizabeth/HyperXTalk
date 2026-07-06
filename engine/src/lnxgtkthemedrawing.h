@@ -50,7 +50,8 @@
 #include <X11/Xlib.h>
 
 #include <gdk/gdk.h>
-#include <gtk/gtkstyle.h>
+#include <gtk/gtk.h>
+// -- tperry 12-11-2025: GTK3 uses GtkStyleContext instead of GtkStyle (gtkstyle.h removed)
 
 #ifdef __cplusplus
 extern "C"
@@ -91,7 +92,8 @@ extern "C"
 	} GtkTabFlags;
 
 	/* function type for moz_gtk_enable_style_props */
-	typedef gint (*style_prop_t)(GtkStyle*, const gchar*, gint);
+	// -- tperry 12-11-2025: GTK3 uses GtkStyleContext instead of GtkStyle
+	typedef gint (*style_prop_t)(GtkStyleContext*, const gchar*, gint);
 
 	/*** result/error codes ***/
 #define MOZ_GTK_SUCCESS 0
@@ -148,7 +150,9 @@ extern "C"
 	    MOZ_GTK_SPINBUTTON,
 	    MOZ_GTK_MENUITEMHIGHLIGHT,
 	    MOZ_GTK_SCALE_TRACK_VERTICAL,
-	    MOZ_GTK_SCALE_TRACK_HORIZONTAL
+	    MOZ_GTK_SCALE_TRACK_HORIZONTAL,
+	    MOZ_GTK_SCALE_THUMB_VERTICAL,
+	    MOZ_GTK_SCALE_THUMB_HORIZONTAL
 	} GtkThemeWidgetType;
 
 	/*** General library functions ***/
@@ -177,6 +181,8 @@ extern "C"
 	 * returns: MOZ_GTK_SUCCESS if there was no error, an error code otherwise
 	 */
 	gint moz_gtk_shutdown();
+	// Reset any cached render state (e.g. after a theme change)
+	void moz_gtk_invalidate_caches();
 
 
 	/*** Widget drawing ***/
@@ -188,10 +194,94 @@ extern "C"
 	 * state:    the state of the widget.  ignored for some widgets.
 	 * flags:    widget-dependant flags; see the GtkThemeWidgetType definition.
 	 */
+	// -- tperry 12-11-2025: GTK3 removed GdkDrawable, use GdkWindow instead
 	gint
-	moz_gtk_widget_paint(GtkThemeWidgetType widget, GdkDrawable* drawable,
+	moz_gtk_widget_paint(GtkThemeWidgetType widget, GdkWindow* drawable,
 	                     GdkRectangle* rect, GdkRectangle* cliprect,
 	                     GtkWidgetState* state, gint flags);
+	
+	// -- tperry 15-11-2025: Direct surface rendering for GTK3 capture
+	cairo_surface_t*
+	moz_gtk_button_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state,
+	                                GtkReliefStyle relief,
+	                                int *out_width, int *out_height);
+	
+	cairo_surface_t*
+	moz_gtk_dropdown_arrow_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state,
+	                                         int *out_width, int *out_height);
+	
+	cairo_surface_t*
+	moz_gtk_optionbutton_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state,
+	                                       int *out_width, int *out_height);
+	
+	cairo_surface_t*
+	moz_gtk_progressbar_paint_to_surface(GdkRectangle* rect,
+	                                      int *out_width, int *out_height);
+	
+	cairo_surface_t*
+	moz_gtk_progress_chunk_paint_to_surface(GdkRectangle* rect, gint flags,
+	                                         int *out_width, int *out_height);
+	
+	cairo_surface_t*
+	moz_gtk_scale_track_paint_to_surface(GtkThemeWidgetType type, GdkRectangle* rect,
+	                                      int *out_width, int *out_height);
+	
+	cairo_surface_t*
+	moz_gtk_scale_thumb_paint_to_surface(GtkThemeWidgetType type, GdkRectangle* rect,
+	                                      GtkWidgetState* state, int *out_width, int *out_height);
+	
+	cairo_surface_t*
+	moz_gtk_toggle_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state,
+	                                gboolean selected, gboolean isradio,
+	                                int *out_width, int *out_height);
+	
+	cairo_surface_t*
+	moz_gtk_scrollbar_thumb_paint_to_surface(GtkThemeWidgetType widget,
+	                                          GdkRectangle* rect,
+	                                          GtkWidgetState* state,
+	                                          int *out_width, int *out_height);
+	
+	cairo_surface_t*
+	moz_gtk_scrollbar_trough_paint_to_surface(GtkThemeWidgetType widget,
+	                                           GdkRectangle* rect,
+	                                           GtkWidgetState* state,
+	                                           int *out_width, int *out_height);
+	
+	cairo_surface_t*
+	moz_gtk_tabpanels_paint_to_surface(GdkRectangle* rect, int y, int w,
+	                                    int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_spinbutton_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state, gint flags,
+	                                     int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_tab_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state, gint flags,
+	                              int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_menuitem_paint_to_surface(GdkRectangle* rect,
+	                                   int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_toolbar_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state,
+	                                  int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_frame_paint_to_surface(GdkRectangle* rect,
+	                                int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_tooltip_paint_to_surface(GdkRectangle* rect,
+	                                  int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_entry_frame_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state,
+	                                      int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_entry_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state,
+	                                int *out_width, int *out_height);
 
 
 	/*** Widget metrics ***/
@@ -263,8 +353,12 @@ extern "C"
 
 	void moz_gtk_get_widget_color(GtkStateType widgettype,
 	                              uint2 &red,uint2 &blue,uint2 &green);
-	// Read the foreground (text) colour for the given GTK state.
-	void moz_gtk_get_widget_fg_color(GtkStateType state,
+
+	// -- tperry 15-11-2025: GTK 3.22+ cairo context creation wrapper
+	cairo_t* moz_gdk_create_cairo_context(GdkWindow *window);
+
+	// HXT: foreground colour for a widget in a given GTK3 state
+	void moz_gtk_get_widget_fg_color(GtkStateFlags state,
 	                                 uint2 &red, uint2 &green, uint2 &blue);
 
 #ifdef __cplusplus

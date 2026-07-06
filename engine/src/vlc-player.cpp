@@ -2002,8 +2002,8 @@ bool MCVLCPlayer::SetNativeParentView(void *p_parent_view)
     // Use raw X11 child window instead of GDK — VLC's xcb video output
     // does not render into GDK-managed windows.
     GdkWindow *t_gdk_parent = (GdkWindow *)p_parent_view;
-    x11::Window t_parent_xid = x11::gdk_x11_drawable_get_xid(
-        (GdkDrawable *)t_gdk_parent);
+    // GTK3: gdk_x11_drawable_get_xid removed; use gdk_x11_window_get_xid
+    x11::Window t_parent_xid = x11::gdk_x11_window_get_xid(t_gdk_parent);
     x11::Display *t_dpy = x11::gdk_x11_display_get_xdisplay(
         gdk_display_get_default());
 

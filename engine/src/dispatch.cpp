@@ -1,4 +1,21 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
+#include <stdio.h>
 
 #include "globdefs.h"
 #include "filedefs.h"
@@ -1746,14 +1763,18 @@ void MCDispatch::wmdrag(Window w)
         
         // Begin the drag-drop modal loop
 		MCdragaction = MCscreen -> dodragdrop(w, MCallowabledragactions, t_image, t_image != NULL ? &MCdragimageoffset : NULL);
+        fprintf(stderr, "DND caller: dodragdrop returned MCdragaction=%d\n", (int)MCdragaction);
 
         // Perform the drop operation.
 		dodrop(true);
-        
+        fprintf(stderr, "DND caller: dodrop(true) returned\n");
+
         // Clear the drag board as its contents are no longer required. A manual
         // push is required as the drag board doesn't update automatically.
         MCdragboard->Clear();
+        fprintf(stderr, "DND caller: Clear() returned\n");
         MCdragboard->PushUpdates(true);
+        fprintf(stderr, "DND caller: PushUpdates(true) returned\n");
 
 		MCdragsource = nil;
 		MCdragdest = nil;

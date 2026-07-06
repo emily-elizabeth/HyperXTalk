@@ -10,7 +10,7 @@
 ; ============================================================
 
 #define MyAppName      "HyperXTalk"
-#define MyAppVersion   "0.9.13"
+#define MyAppVersion   "0.9.15"
 #define MyAppPublisher "HyperXTalk.com"
 #define MyAppURL       "https://HyperXTalk.com"
 #define MyAppExeName   "HyperXTalk.exe"

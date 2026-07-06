@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 //
 // Linux toolbar backend for MCToolbar.
 //
@@ -182,15 +198,16 @@ public:
         t_attr.y           = m_top_y;
         t_attr.width       = m_parent_width > 0 ? m_parent_width : 1;
         t_attr.height      = kToolbarHeight;
-        // Match the parent's visual and colormap exactly.  The engine may use
-        // an RGBA composite visual; if the child window uses a different visual
-        // the compositor treats it as transparent.
-        t_attr.visual   = gdk_drawable_get_visual((GdkDrawable *)m_parent);
-        t_attr.colormap = gdk_drawable_get_colormap((GdkDrawable *)m_parent);
+        // Match the parent's visual exactly.  The engine may use an RGBA
+        // composite visual; if the child window uses a different visual the
+        // compositor treats it as transparent.
+        // GTK3: GdkDrawable removed — use gdk_window_get_visual(); colormaps
+        // are gone, so GDK_WA_COLORMAP and t_attr.colormap are not needed.
+        t_attr.visual = gdk_window_get_visual(m_parent);
 
         m_window = gdk_window_new(m_parent, &t_attr,
                                   GDK_WA_X | GDK_WA_Y |
-                                  GDK_WA_VISUAL | GDK_WA_COLORMAP);
+                                  GDK_WA_VISUAL);
         if (!m_window)
             return;
 

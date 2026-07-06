@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 // Warning: X headers define True and False!
 
 #include "lnxprefix.h"
@@ -163,6 +179,10 @@ static GtkWidgetState getpartandstate(const MCWidgetInfo &winfo, GtkThemeWidgetT
 	case WTHEME_TYPE_OPTIONBUTTON:
 		moztype = MOZ_GTK_OPTIONBUTTON;
 		break;
+	case WTHEME_TYPE_PULLDOWN:
+		// GTK has no distinct pulldown-menu button widget; render as a regular button
+		moztype = MOZ_GTK_BUTTON;
+		break;
 	case WTHEME_TYPE_TOOLTIP:
 		moztype = MOZ_GTK_TOOLTIP;
 		break;
@@ -171,11 +191,13 @@ static GtkWidgetState getpartandstate(const MCWidgetInfo &winfo, GtkThemeWidgetT
 		moztype = MOZ_GTK_PROGRESSBAR;
 		break;
 	case WTHEME_TYPE_PROGRESSBAR_CHUNK:
-		flags = GTK_PROGRESS_LEFT_TO_RIGHT;
+		// -- tperry 13-11-2025: GTK3 removed GTK_PROGRESS_* constants, use 0 for default horizontal
+		flags = 0;  // Left to right is default
 		moztype = MOZ_GTK_PROGRESS_CHUNK;
 		break;
 	case WTHEME_TYPE_PROGRESSBAR_CHUNK_VERTICAL:
-		flags = GTK_PROGRESS_BOTTOM_TO_TOP;
+		// -- tperry 13-11-2025: GTK3 removed GTK_PROGRESS_* constants, use 1 for vertical
+		flags = 1;  // Vertical orientation
 		moztype = MOZ_GTK_PROGRESS_CHUNK;
 		break;
 	case WTHEME_TYPE_LISTBOX:
@@ -208,161 +230,36 @@ static GtkWidgetState getpartandstate(const MCWidgetInfo &winfo, GtkThemeWidgetT
 	case WTHEME_TYPE_SLIDER_TRACK_HORIZONTAL:
 		moztype = MOZ_GTK_SCALE_TRACK_HORIZONTAL;
 		break;
+	case WTHEME_TYPE_SLIDER_THUMB_VERTICAL:
+		moztype = MOZ_GTK_SCALE_THUMB_VERTICAL;
+		break;
+	case WTHEME_TYPE_SLIDER_THUMB_HORIZONTAL:
+		moztype = MOZ_GTK_SCALE_THUMB_HORIZONTAL;
+		break;
 	default:
 		moztype = MOZ_GTK_LABEL;
 	}
 	return state;
 }
 
-// Declared in linux-theme.cpp — flushes the cached GtkStyle/GtkWidget
-// pointers so MCPlatformGetControlThemePropColor() re-reads fresh styles.
-extern void MCLinuxThemeFlushCache(void);
-
-// Forward declarations — defined later in this file.
-extern "C" bool MCplatformIsDarkMode(void);
-extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen);
-extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen);
-
-// g_object_get is variadic so the stub table only exposes the raw pointer
-// (g_object_get_ptr).  Use the same casting pattern as lnxcursor.cpp.
-typedef void (*g_object_getPTR)(void *object, const gchar *first_property_name, ...);
-extern g_object_getPTR g_object_get_ptr;
-
-// g_object_class_find_property: check whether a named property exists on a
-// GObject class before trying to get/connect-notify it.  Avoids the GLib
-// warning spam "has no property named '...'" on GTK builds that don't expose
-// gtk-application-prefer-dark-theme.
-// Use the _ptr pattern (matching g_object_get_ptr above): the stubs generator
-// produces a void*(void*,void*) wrapper, whose C++ mangled name differs from
-// a void*(void*,const gchar*) extern declaration, causing a link error.
-typedef void *(*g_object_class_find_propertyPTR)(void *oclass, void *property_name);
-extern g_object_class_find_propertyPTR g_object_class_find_property_ptr;
-
-// Returns true if GtkSettings exposes the "gtk-application-prefer-dark-theme"
-// property on the running GTK version.  Checked once and cached.
-static bool s_prefer_dark_prop_checked = false;
-static bool s_prefer_dark_prop_exists  = false;
-
-static bool prefer_dark_prop_exists(GtkSettings *t_settings)
-{
-    if (!s_prefer_dark_prop_checked)
-    {
-        s_prefer_dark_prop_checked = true;
-        if (g_object_class_find_property_ptr != nullptr)
-        {
-            // G_OBJECT_GET_CLASS: first word of any GObject instance is a pointer
-            // to its GObjectClass — this layout is guaranteed by the GObject ABI.
-            void *cls = *(void **)t_settings;
-            s_prefer_dark_prop_exists =
-                (g_object_class_find_property_ptr(cls,
-                     (void *)"gtk-application-prefer-dark-theme") != nullptr);
-        }
-    }
-    return s_prefer_dark_prop_exists;
-}
-
-static gboolean do_reload_theme(gpointer /*user_data*/)
-{
-	if (MCcurtheme && MCcurtheme->getthemeid() == LF_NATIVEGTK)
-	{
-		// Remove the image cache and replace with a fresh one.
-		if (MCimagecache != NULL)
-			delete MCimagecache;
-		MCimagecache = new (nothrow) MCXImageCache;
-
-		// Flush the linux-theme.cpp style cache so that
-		// MCPlatformGetControlThemePropColor() re-reads styles from the new
-		// theme rather than returning stale cached colours.
-		// NOTE: We do NOT call unload()/moz_gtk_shutdown() here.
-		// GTK's notify::gtk-theme-name and notify::gtk-application-prefer-dark-theme
-		// handlers propagate new styles to all realized widgets via the "style-set"
-		// mechanism BEFORE our callback fires.  This means gProtoWindow and its
-		// children already carry the new theme's styles by the time we reach this
-		// point.  Calling gtk_widget_destroy(gProtoWindow) from inside a GtkSettings
-		// notify handler is unsafe: with the prefer-dark signal connected, the
-		// destroy fires while GTK is mid-way through its own style-update pass,
-		// leaving the widget in a transient state that causes a SIGSEGV.
-		// We only need to destroy/recreate the linux-theme.cpp widget container
-		// (done by MCLinuxThemeFlushCache below); the moz-gtk proto-widgets are
-		// updated in place by GTK and reused by load() correctly.
-		MCLinuxThemeFlushCache();
-
-		// load() refreshes background_pixel, system_fore_pixel, and MChilitecolor
-		// from the current GTK theme.  The moz-gtk proto-widgets (gProtoWindow etc.)
-		// are still alive and already have the new theme's styles applied by GTK.
-		MCcurtheme->load();
-
-		// desktop.cpp is excluded from the Linux build, so
-		// MCPlatformHandleSystemAppearanceChanged() is never called.
-		// Replicate its essential work here:
-		//   • dirty every open stack so the next repaint uses the new colours
-		//   • dispatch systemAppearanceChanged(pMode, pBackColor, pTextColor)
-		//     to every open stack's current card so scripts can react.
-		bool    t_is_dark = MCplatformIsDarkMode();
-		char    t_bg_buf[8]   = {};
-		char    t_fg_buf[8]   = {};
-		MCplatformGetWindowBackgroundColor(t_bg_buf,   sizeof(t_bg_buf));
-		MCplatformGetLabelColor           (t_fg_buf,   sizeof(t_fg_buf));
-
-		MCStacknode *t_node  = MCstacks->topnode();
-		MCStacknode *t_first = t_node;
-		while (t_node != nullptr)
-		{
-			MCStack *t_stack = t_node->getstack();
-			if (t_stack != nullptr && t_stack->getcurcard() != nullptr)
-			{
-				t_stack->dirtyall();
-
-				// Queue systemAppearanceChanged with the same three parameters
-				// that desktop.cpp passes on macOS/Windows.
-				MCStringRef t_bg_str  = nullptr;
-				MCStringRef t_fg_str  = nullptr;
-				/* UNCHECKED */ MCStringCreateWithCString(t_bg_buf, t_bg_str);
-				/* UNCHECKED */ MCStringCreateWithCString(t_fg_buf, t_fg_str);
-				MCscreen->delaymessage(t_stack->getcurcard(),
-				                       MCM_system_appearance_changed,
-				                       t_is_dark ? MCSTR("dark") : MCSTR("light"),
-				                       t_bg_str,
-				                       t_fg_str);
-				MCValueRelease(t_bg_str);
-				MCValueRelease(t_fg_str);
-			}
-			t_node = t_node->next();
-			if (t_node == t_first)
-				break;
-		}
-
-		MCRedrawDirtyScreen();
-
-		// Notify all open MCToolbar objects so they reload dark/light icon
-		// variants and push updated image data to their platform backends.
-		//
-		// Defer via g_timeout_add(0) so this runs in the *next* GLib main-loop
-		// iteration, fully outside do_reload_theme().  Calling MCImage::GetText
-		// (which can invoke recompress/finishediting) while nested inside a GLib
-		// timeout callback can hit edge cases in the engine's image rep state
-		// machine that crash when a "-DM" variant image is present.
-		g_timeout_add(0, [](gpointer) -> gboolean {
-			MCToolbarNotifyThemeChanged();
-			return FALSE; // G_SOURCE_REMOVE
-		}, nullptr);
-	}
-	return FALSE; // G_SOURCE_REMOVE — run once, do not reschedule
-}
-
 static gboolean reload_theme(void)
 {
-	// Defer all work to do_reload_theme() so we return to GTK quickly.
-	// We do NOT call unload()/moz_gtk_shutdown() here (or anywhere in the
-	// reload path).  See the comment in do_reload_theme() for the full
-	// explanation; the short version: calling gtk_widget_destroy(gProtoWindow)
-	// from inside a GtkSettings notify handler is unsafe when the
-	// prefer-dark-theme signal is also connected, because the destroy fires
-	// while GTK's own style-update machinery is still running.
-	// GTK's style-set mechanism keeps gProtoWindow and its children up-to-date
-	// automatically, so we never need to rebuild them on a theme change.
-	g_timeout_add(0, do_reload_theme, nullptr);
-	return TRUE;
+	Boolean reload = True;
+	if (MCcurtheme && MCcurtheme->getthemeid() == LF_NATIVEGTK)
+	{
+		// We have changed themes, so remove the image cache and replace with new one
+		if ( MCimagecache != NULL)
+			delete MCimagecache ;
+		MCimagecache = new (nothrow) MCXImageCache ;
+		moz_gtk_invalidate_caches();
+
+		MCcurtheme->unload();
+		MCcurtheme->load();
+
+		// MW-2011-08-17: [[ Redraw ]] The theme has changed so redraw everything.
+		MCRedrawDirtyScreen();
+	}
+	return (TRUE);
 }
 
 
@@ -404,27 +301,26 @@ Boolean MCNativeTheme::load()
 	if (!MCscreen -> hasfeature(PLATFORM_FEATURE_NATIVE_THEMES))
 		return false;
 	
+	// Initialize member variables
+	m_settings = NULL;
+	m_settings_signal_handler = 0;
+	
 	if (!initialised)
 	{
 		gtk_init();
 		
 		initialised = True;
-		GtkSettings *settings = gtk_settings_get_default();
-		if (settings)
+		m_settings = gtk_settings_get_default();
+		if (m_settings)
 		{
-			g_signal_connect_data(settings, "notify::gtk-theme-name",
-			                      G_CALLBACK(reload_theme),
-			                      NULL, NULL, (GConnectFlags)0);
-			// Dark mode switches toggle gtk-application-prefer-dark-theme
-			// without changing the theme name (e.g. Adwaita stays Adwaita).
-			// Only connect when the property actually exists on this GTK
-			// build — GLib warns and no-ops the connect otherwise.
-			if (prefer_dark_prop_exists(settings))
-			    g_signal_connect_data(settings, "notify::gtk-application-prefer-dark-theme",
-			                          G_CALLBACK(reload_theme),
-			                          NULL, NULL, (GConnectFlags)0);
+			// Store the signal handler ID so we can disconnect it later
+			m_settings_signal_handler = g_signal_connect_data(m_settings, "notify::gtk-theme-name", 
+			                                                    G_CALLBACK(reload_theme),
+			                                                    NULL, NULL, (GConnectFlags)0);
 		}
 	}
+	// -- tperry 15-11-2025: GTK3 - initialize offscreen window for theme rendering
+	gtkpix_offscreen = NULL;
 	gtkpix = NULL;
 	mNeedNewGC = true;
 
@@ -434,15 +330,7 @@ Boolean MCNativeTheme::load()
 		moz_gtk_get_widget_color(GTK_STATE_NORMAL,
 		                         tbackcolor.red,tbackcolor.green,tbackcolor.blue) ;
 		MCscreen->background_pixel = tbackcolor;//tcolor = zcolor;
-
-		// Foreground (label/text) colour — used by controls that inherit the
-		// system default.  On a dark theme this should be near-white; without
-		// this update controls render dark text on a dark background.
-		MCColor tforecolor;
-		moz_gtk_get_widget_fg_color(GTK_STATE_NORMAL,
-		                            tforecolor.red, tforecolor.green, tforecolor.blue);
-		MCscreen->system_fore_pixel = tforecolor;
-
+		
 		// MW-2012-01-27: [[ Bug 9511 ]] Set the hilite color based on the current GTK theme.
 		MCColor thilitecolor;
 		moz_gtk_get_widget_color(GTK_STATE_SELECTED, thilitecolor.red, thilitecolor.green, thilitecolor.blue);
@@ -452,99 +340,27 @@ Boolean MCNativeTheme::load()
 	return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// Linux implementations of the platform appearance query functions.
-// These override the stub definitions in desktop.cpp (which are gated to
-// non-Linux platforms after our desktop.cpp change).
-
-// Format a GDK colour (16-bit components) as an "#rrggbb" hex string.
-static void format_gdk_color(uint2 red, uint2 green, uint2 blue,
-                             char *p_buf, size_t p_buflen)
-{
-    if (p_buflen < 8)
-        return;
-    // GDK components are 0..65535; hex string uses 0..255.
-    snprintf(p_buf, p_buflen, "#%02x%02x%02x",
-             (unsigned)(red   >> 8),
-             (unsigned)(green >> 8),
-             (unsigned)(blue  >> 8));
-}
-
-extern "C" bool MCplatformIsDarkMode(void)
-{
-    // Fast path: explicit "prefer dark theme" GtkSettings flag.
-    // Only attempted when the property actually exists on this GTK build —
-    // g_object_get prints a warning (and returns nothing useful) when the
-    // property name is unknown, so we must guard the call.
-    GtkSettings *t_settings = gtk_settings_get_default();
-    if (t_settings != nullptr && g_object_get_ptr != nullptr
-        && prefer_dark_prop_exists(t_settings))
-    {
-        gboolean t_prefer_dark = FALSE;
-        g_object_get_ptr(t_settings, "gtk-application-prefer-dark-theme",
-                         &t_prefer_dark, (gchar *)nullptr);
-        if (t_prefer_dark)
-            return true;
-    }
-
-    // Fallback: measure the window background luminance.  Themes like
-    // "Adwaita-dark" or "Yaru-dark" don't set gtk-application-prefer-dark-theme
-    // but render a dark background.  GDK colour components are 0–65535;
-    // weighted luminance below 50 % (ITU-R BT.709) means dark.
-    uint2 r = 0xffff, g = 0xffff, b = 0xffff;
-    moz_gtk_get_widget_color(GTK_STATE_NORMAL, r, g, b);
-    double lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    return lum < (0.5 * 65535.0);
-}
-
-extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen)
-{
-    uint2 r = 0xffff, g = 0xffff, b = 0xffff;
-    moz_gtk_get_widget_color(GTK_STATE_NORMAL, r, g, b);
-    format_gdk_color(r, g, b, p_buf, p_buflen);
-}
-
-extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen)
-{
-    uint2 r = 0, g = 0, b = 0;
-    moz_gtk_get_widget_fg_color(GTK_STATE_NORMAL, r, g, b);
-    format_gdk_color(r, g, b, p_buf, p_buflen);
-}
-
-// Implement getsystemappearance() for Linux so that "the systemAppearance"
-// property returns "dark" or "light" correctly.  desktop-dc.cpp is excluded
-// from the Linux build, so without this override the base-class stub in
-// uidc.cpp always returns kMCSystemAppearanceLight.
-#include "lnxdc.h"
-void MCScreenDC::getsystemappearance(MCSystemAppearance &r_appearance)
-{
-    r_appearance = MCplatformIsDarkMode() ? kMCSystemAppearanceDark
-                                          : kMCSystemAppearanceLight;
-}
-
-void MCScreenDC::getsystemwindowcolor(MCStringRef &r_color)
-{
-    char t_buf[8] = "#ffffff";
-    MCplatformGetWindowBackgroundColor(t_buf, sizeof(t_buf));
-    /* UNCHECKED */ MCStringCreateWithCString(t_buf, r_color);
-}
-
-void MCScreenDC::getsystemtextcolor(MCStringRef &r_color)
-{
-    char t_buf[8] = "#000000";
-    MCplatformGetLabelColor(t_buf, sizeof(t_buf));
-    /* UNCHECKED */ MCStringCreateWithCString(t_buf, r_color);
-}
-
 
 
 
 void MCNativeTheme::unload()
 {
+	// Disconnect the signal handler before cleanup to avoid the finalization warning
+	if (m_settings && m_settings_signal_handler != 0)
+	{
+		g_signal_handler_disconnect(m_settings, m_settings_signal_handler);
+		m_settings_signal_handler = 0;
+		m_settings = NULL;
+	}
 		
 	//unload gtk libraries at runtime and do deinit stuff
-	if (gtkpix != NULL)
-		g_object_unref(gtkpix);
+	// -- tperry 15-11-2025: GTK3 - destroy offscreen window (which also destroys the GdkWindow)
+	if (gtkpix_offscreen != NULL)
+	{
+		gtk_widget_destroy(gtkpix_offscreen);
+		gtkpix_offscreen = NULL;
+		gtkpix = NULL;
+	}
 
 	//make sure that we call moz_gtk_shutdown first in case it uses gtk
 	moz_gtk_shutdown();
@@ -1265,6 +1081,7 @@ Boolean MCNativeTheme::drawprogressbar(MCDC *dc, const MCWidgetInfo &winfo, cons
 	                           : WTHEME_STATE_CLEAR;
 	MCWidgetScrollBarInfo *sbinfo = (MCWidgetScrollBarInfo *)winfo.data;
 	MCWidgetInfo twinfo = winfo;
+	// -- tperry 16-11-2025: Use progressbar for trough (now works with gtk_widget_draw)
 	twinfo.type = winfo.attributes & WTHEME_ATT_SBVERTICAL
 	              ? WTHEME_TYPE_PROGRESSBAR_VERTICAL
 	              : WTHEME_TYPE_PROGRESSBAR_HORIZONTAL;
@@ -1308,6 +1125,7 @@ Boolean MCNativeTheme::drawprogressbar(MCDC *dc, const MCWidgetInfo &winfo, cons
 			if ( ( endpos - progressbarrect.x - bordersize ) < 0 ) 
 				progressbarrect . width = 0 ;
 		}
+		// -- tperry 16-11-2025: Use progressbar chunk for filled portion (now works with gtk_widget_draw)
 		twinfo.type = winfo.attributes & WTHEME_ATT_SBVERTICAL
 		              ? WTHEME_TYPE_PROGRESSBAR_CHUNK_VERTICAL
 		              : WTHEME_TYPE_PROGRESSBAR_CHUNK;
@@ -1347,10 +1165,10 @@ void MCNativeTheme::drawSlider(MCDC *dc, const MCWidgetInfo &winfo,
 	drawwidget(dc, twinfo, rangerect);
 	if(sbthumbrect.height && sbthumbrect.width)
 	{
-		//draw thumb
+		//draw thumb - use slider thumb, not scrollbar thumb!
 		twinfo.type = winfo.attributes & WTHEME_ATT_SBVERTICAL
-		              ? WTHEME_TYPE_SCROLLBAR_THUMB_VERTICAL
-		              : WTHEME_TYPE_SCROLLBAR_THUMB_HORIZONTAL;
+		              ? WTHEME_TYPE_SLIDER_THUMB_VERTICAL
+		              : WTHEME_TYPE_SLIDER_THUMB_HORIZONTAL;
 		twinfo.state = sbpartdefaultstate;
 		if (winfo.part == WTHEME_PART_THUMB)
 			twinfo.state = winfo.state;
@@ -1449,8 +1267,9 @@ void MCNativeTheme::drawScrollbar(MCDC *dc, const MCWidgetInfo &winfo,
 }
 
 
+// -- tperry 15-11-2025: GTK3 - updated to take GdkWindow* instead of cairo_surface_t*
 void MCNativeTheme::make_theme_info(MCThemeDrawInfo& ret, GtkThemeWidgetType widget, 
-									 GdkDrawable * drawable,
+									 GdkWindow * drawable,
                      				 GdkRectangle * rect, 
 									 GdkRectangle * cliprect,
                      				 GtkWidgetState state, 
@@ -1468,9 +1287,10 @@ void MCNativeTheme::make_theme_info(MCThemeDrawInfo& ret, GtkThemeWidgetType wid
 }
 
 
+// -- tperry 15-11-2025: GTK3 - use GdkWindow* from offscreen window
 void MCNativeTheme::drawTab(MCDC *t_dc, 
 							const MCWidgetInfo &winfo,
-                            const MCRectangle &drect, GdkPixmap *tpix)
+                            const MCRectangle &drect, GdkWindow *tpix)
 {
 	int flags = 0;
 	GdkRectangle rect, cliprect;
@@ -1518,16 +1338,12 @@ void MCNativeTheme::drawTab(MCDC *t_dc,
 Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo & winfo,
                                   const MCRectangle & drect)
 {
-	GdkGC *gc ;
-	
 	MCThemeDrawInfo di ;
 
 	MCDC * t_dc = dc ;	
 	Boolean ret = False;
 	
 	static MCRectangle gtkpixrect = {0,0,0,0};
-
-	GdkDisplay *display = MCdpy;
 
 	GdkRectangle rect;
 	GdkRectangle cliprect;
@@ -1545,15 +1361,38 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo & winfo,
 	rect.x = cliprect.x = 0;
 	rect.y = cliprect.y = 0;
 
-
 	if (rect.width <= 0 || rect.height <= 0)
 		return False;
+	
+	// -- tperry 15-11-2025: GTK3 - create/resize offscreen window as needed
+	if (gtkpix_offscreen == NULL || gtkpixrect.width != rect.width || gtkpixrect.height != rect.height)
+	{
+		// Destroy old offscreen window if it exists
+		if (gtkpix_offscreen != NULL)
+		{
+			gtk_widget_destroy(gtkpix_offscreen);
+		}
+		
+		// Create new offscreen window with the required size
+		gtkpix_offscreen = gtk_offscreen_window_new();
+		gtk_window_resize(GTK_WINDOW(gtkpix_offscreen), rect.width, rect.height);
+		gtk_widget_realize(gtkpix_offscreen);
+		gtkpix = gtk_widget_get_window(gtkpix_offscreen);
+		
+		if (!gtkpix)
+		{
+			gtk_widget_destroy(gtkpix_offscreen);
+			gtkpix_offscreen = NULL;
+			return False;
+		}
+		
+		gtkpixrect.width = rect.width;
+		gtkpixrect.height = rect.height;
+	}
 	GtkThemeWidgetType  moztype;
 	gint flags = 0;
 	GtkWidgetState state = getpartandstate(winfo, moztype, flags);
 
-	
-	
 	switch(winfo.type)
 	{
 	case WTHEME_TYPE_TABPANE:
@@ -1787,98 +1626,378 @@ static GdkPixbuf* calc_alpha_from_pixbufs(GdkPixbuf *p_pb_black, GdkPixbuf *p_pb
 	return p_pb_black;
 }
 	
-static void fill_gdk_drawable(GdkDrawable *p_drawable, GdkColormap *p_colormap, int p_red, int p_green, int p_blue, int p_width, int p_height)
+// -- tperry 13-11-2025: GTK3 - rewrite to use Cairo instead of GdkGC/GdkDrawable
+static void fill_cairo_surface(cairo_surface_t *p_surface, int p_red, int p_green, int p_blue, int p_width, int p_height)
 {
-	GdkGC *t_gc;
-	t_gc = gdk_gc_new(p_drawable);
-	gdk_gc_set_colormap(t_gc, p_colormap);
+	cairo_t *cr = cairo_create(p_surface);
 	
-	GdkColor t_color;
-	t_color . red = p_red;
-	t_color . green = p_green;
-	t_color . blue = p_blue;
+	// Convert 16-bit color values to 0.0-1.0 range
+	cairo_set_source_rgb(cr, p_red / 65535.0, p_green / 65535.0, p_blue / 65535.0);
+	cairo_rectangle(cr, 0, 0, p_width, p_height);
+	cairo_fill(cr);
 	
-	gdk_gc_set_rgb_fg_color(t_gc, &t_color);
-	gdk_draw_rectangle(p_drawable, t_gc, TRUE, 0, 0, p_width, p_height);
-	g_object_unref(t_gc);
+	cairo_destroy(cr);
 }
 
+// -- tperry 15-11-2025: GTK3 direct rendering - render directly to cairo surface
+// This bypasses the GdkWindow/offscreen window issues entirely
+static GdkPixbuf* drawtheme_gtk3_direct(MCThemeDrawInfo &p_info)
+{
+	cairo_surface_t *surface = NULL;
+	int widget_width, widget_height;
+	
+	// Render based on widget type
+	if (p_info.moztype == MOZ_GTK_BUTTON)
+	{
+		GtkReliefStyle relief = (GtkReliefStyle)p_info.flags;
+		surface = moz_gtk_button_paint_to_surface(
+			&p_info.drect, &p_info.state, relief, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_DROPDOWN_ARROW)
+	{
+		surface = moz_gtk_dropdown_arrow_paint_to_surface(
+			&p_info.drect, &p_info.state, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_OPTIONBUTTON)
+	{
+		surface = moz_gtk_optionbutton_paint_to_surface(
+			&p_info.drect, &p_info.state, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_CHECKBUTTON || p_info.moztype == MOZ_GTK_RADIOBUTTON)
+	{
+		gboolean isradio = (p_info.moztype == MOZ_GTK_RADIOBUTTON);
+		gboolean selected = (gboolean)p_info.flags;
+		surface = moz_gtk_toggle_paint_to_surface(
+			&p_info.drect, &p_info.state, selected, isradio, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_PROGRESSBAR)
+	{
+		surface = moz_gtk_progressbar_paint_to_surface(
+			&p_info.drect, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_PROGRESS_CHUNK)
+	{
+		surface = moz_gtk_progress_chunk_paint_to_surface(
+			&p_info.drect, p_info.flags, &widget_width, &widget_height);
+	}
+	// Scale tracks and thumbs now use gtk_widget_draw() with a real visible window
+	else if (p_info.moztype == MOZ_GTK_SCALE_TRACK_HORIZONTAL || 
+	         p_info.moztype == MOZ_GTK_SCALE_TRACK_VERTICAL)
+	{
+		surface = moz_gtk_scale_track_paint_to_surface(
+			p_info.moztype, &p_info.drect, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_SCALE_THUMB_HORIZONTAL ||
+	         p_info.moztype == MOZ_GTK_SCALE_THUMB_VERTICAL)
+	{
+		surface = moz_gtk_scale_thumb_paint_to_surface(
+			p_info.moztype, &p_info.drect, &p_info.state, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_SCROLLBAR_THUMB_HORIZONTAL || 
+	         p_info.moztype == MOZ_GTK_SCROLLBAR_THUMB_VERTICAL)
+	{
+		surface = moz_gtk_scrollbar_thumb_paint_to_surface(
+			p_info.moztype, &p_info.drect, &p_info.state, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_SCROLLBAR_TRACK_HORIZONTAL || 
+	         p_info.moztype == MOZ_GTK_SCROLLBAR_TRACK_VERTICAL)
+	{
+		surface = moz_gtk_scrollbar_trough_paint_to_surface(
+			p_info.moztype, &p_info.drect, &p_info.state, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_TABPANELS)
+	{
+		surface = moz_gtk_tabpanels_paint_to_surface(
+			&p_info.drect, p_info.state.curpos, p_info.state.maxpos, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_TAB)
+	{
+		surface = moz_gtk_tab_paint_to_surface(
+			&p_info.drect, &p_info.state, p_info.flags, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_SPINBUTTON)
+	{
+		surface = moz_gtk_spinbutton_paint_to_surface(
+			&p_info.drect, &p_info.state, p_info.flags, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_MENUITEMHIGHLIGHT)
+	{
+		surface = moz_gtk_menuitem_paint_to_surface(
+			&p_info.drect, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_TOOLBAR)
+	{
+		surface = moz_gtk_toolbar_paint_to_surface(
+			&p_info.drect, &p_info.state, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_FRAME)
+	{
+		surface = moz_gtk_frame_paint_to_surface(
+			&p_info.drect, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_TOOLTIP)
+	{
+		surface = moz_gtk_tooltip_paint_to_surface(
+			&p_info.drect, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_ENTRY_FRAME)
+	{
+		surface = moz_gtk_entry_frame_paint_to_surface(
+			&p_info.drect, &p_info.state, &widget_width, &widget_height);
+	}
+	else if (p_info.moztype == MOZ_GTK_ENTRY)
+	{
+		surface = moz_gtk_entry_paint_to_surface(
+			&p_info.drect, &p_info.state, &widget_width, &widget_height);
+	}
+	else
+	{
+		return NULL;  // Widget type not supported yet
+	}
+	
+	if (!surface)
+		return NULL;
+	
+	// If the requested size matches the widget size, convert directly
+	if (widget_width == p_info.drect.width && widget_height == p_info.drect.height)
+	{
+		GdkPixbuf *pixbuf_rgba = gdk_pixbuf_get_from_surface(surface, 0, 0, widget_width, widget_height);
+		cairo_surface_destroy(surface);
+		
+		if (!pixbuf_rgba)
+			return NULL;
+		
+		// Convert RGBA unpremultiplied to ARGB premultiplied
+		GdkPixbuf *pixbuf_argb = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, widget_width, widget_height);
+		if (!pixbuf_argb)
+		{
+			g_object_unref(pixbuf_rgba);
+			return NULL;
+		}
+		
+		guchar *src = gdk_pixbuf_get_pixels(pixbuf_rgba);
+		guchar *dst = gdk_pixbuf_get_pixels(pixbuf_argb);
+		int src_stride = gdk_pixbuf_get_rowstride(pixbuf_rgba);
+		int dst_stride = gdk_pixbuf_get_rowstride(pixbuf_argb);
+		
+		for (int y = 0; y < widget_height; y++)
+		{
+			guchar *src_row = src + y * src_stride;
+			guchar *dst_row = dst + y * dst_stride;
+			for (int x = 0; x < widget_width; x++)
+			{
+				// GdkPixbuf is RGBA
+				guchar r = src_row[x * 4 + 0];
+				guchar g = src_row[x * 4 + 1];
+				guchar b = src_row[x * 4 + 2];
+				guchar a = src_row[x * 4 + 3];
+				
+				// Premultiply RGB by alpha
+				uint32_t r_premult = (r * a + 127) / 255;
+				uint32_t g_premult = (g * a + 127) / 255;
+				uint32_t b_premult = (b * a + 127) / 255;
+				
+				// LiveCode expects ARGB byte order (but actually BGRA on little-endian)
+				// So we write: R, G, B, A (wait, that's just RGBA!)
+				dst_row[x * 4 + 0] = (guchar)r_premult;
+				dst_row[x * 4 + 1] = (guchar)g_premult;
+				dst_row[x * 4 + 2] = (guchar)b_premult;
+				dst_row[x * 4 + 3] = a;
+			}
+		}
+		
+		g_object_unref(pixbuf_rgba);
+		return pixbuf_argb;
+	}
+	
+	// Otherwise, create a new surface at the requested size and center the widget
+	cairo_surface_t *scaled_surface = cairo_image_surface_create(
+		CAIRO_FORMAT_ARGB32, p_info.drect.width, p_info.drect.height);
+	cairo_t *cr = cairo_create(scaled_surface);
+	
+	// Clear to transparent
+	cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+	cairo_paint(cr);
+	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+	
+	// Center the widget in the requested rectangle
+	int x_offset = (p_info.drect.width - widget_width) / 2;
+	int y_offset = (p_info.drect.height - widget_height) / 2;
+	
+	cairo_set_source_surface(cr, surface, x_offset, y_offset);
+	cairo_paint(cr);
+	cairo_destroy(cr);
+	cairo_surface_destroy(surface);
+	
+	// Convert to pixbuf
+	// Note: gdk_pixbuf_get_from_surface converts cairo's premultiplied BGRA to unpremultiplied RGBA
+	// LiveCode expects premultiplied ARGB, so we need to convert
+	GdkPixbuf *pixbuf_rgba = gdk_pixbuf_get_from_surface(scaled_surface, 0, 0, 
+	                                                      p_info.drect.width, p_info.drect.height);
+	cairo_surface_destroy(scaled_surface);
+	
+	if (!pixbuf_rgba)
+		return NULL;
+	
+	// Convert RGBA unpremultiplied to ARGB premultiplied
+	int width = gdk_pixbuf_get_width(pixbuf_rgba);
+	int height = gdk_pixbuf_get_height(pixbuf_rgba);
+	GdkPixbuf *pixbuf_argb = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, width, height);
+	
+	if (!pixbuf_argb)
+	{
+		g_object_unref(pixbuf_rgba);
+		return NULL;
+	}
+	
+	guchar *src = gdk_pixbuf_get_pixels(pixbuf_rgba);
+	guchar *dst = gdk_pixbuf_get_pixels(pixbuf_argb);
+	int src_stride = gdk_pixbuf_get_rowstride(pixbuf_rgba);
+	int dst_stride = gdk_pixbuf_get_rowstride(pixbuf_argb);
+	
+	for (int y = 0; y < height; y++)
+	{
+		guchar *src_row = src + y * src_stride;
+		guchar *dst_row = dst + y * dst_stride;
+		for (int x = 0; x < width; x++)
+		{
+			// GdkPixbuf is RGBA
+			guchar r = src_row[x * 4 + 0];
+			guchar g = src_row[x * 4 + 1];
+			guchar b = src_row[x * 4 + 2];
+			guchar a = src_row[x * 4 + 3];
+			
+			// Premultiply RGB by alpha
+			uint32_t r_premult = (r * a + 127) / 255;
+			uint32_t g_premult = (g * a + 127) / 255;
+			uint32_t b_premult = (b * a + 127) / 255;
+			
+			// LiveCode expects ARGB byte order (but actually BGRA on little-endian)
+			// So we write: R, G, B, A (wait, that's just RGBA!)
+			dst_row[x * 4 + 0] = (guchar)r_premult;
+			dst_row[x * 4 + 1] = (guchar)g_premult;
+			dst_row[x * 4 + 2] = (guchar)b_premult;
+			dst_row[x * 4 + 3] = a;
+		}
+	}
+	
+	g_object_unref(pixbuf_rgba);
+	return pixbuf_argb;
+}
+
+// -- tperry 15-11-2025: GTK3 - rewrite to use GtkOffscreenWindow for proper GTK3 rendering
 static GdkPixbuf* drawtheme_calc_alpha (MCThemeDrawInfo &p_info)
 {
 	GdkPixbuf *t_pb_black;
     GdkPixbuf *t_pb_white;
     
-	GdkPixmap *t_black ;
-	GdkPixmap *t_white ;
-
-	GdkColormap *cm ;
-	GdkVisual *best_vis ;
-	
 	uint4	t_w ;
 	uint4	t_h ;	
 		
 	t_w = p_info.drect.width ;
 	t_h = p_info.drect.height ;
 
-	// MM-2013-11-06: [[ Bug 11360 ]] Make sure we take into account the screen depth when creating pixmaps.
-	uint4 t_screen_depth;
-	t_screen_depth = ((MCScreenDC*) MCscreen) -> getdepth();
+	// Create two offscreen windows for rendering with black and white backgrounds
+	GtkWidget *t_offscreen_black = gtk_offscreen_window_new();
+	GtkWidget *t_offscreen_white = gtk_offscreen_window_new();
 	
-	// Create two new pixmaps
-	t_black = gdk_pixmap_new(NULL, t_w, t_h, t_screen_depth);
-	t_white = gdk_pixmap_new(NULL, t_w, t_h, t_screen_depth);
+	if (!t_offscreen_black || !t_offscreen_white)
+	{
+		if (t_offscreen_black) gtk_widget_destroy(t_offscreen_black);
+		if (t_offscreen_white) gtk_widget_destroy(t_offscreen_white);
+		return NULL;
+	}
 	
-	// We need to attach a colourmap to the Drawables in GDK
-	best_vis = gdk_visual_get_best_with_depth(t_screen_depth);
-    if (best_vis == NULL)
-        return NULL;
-    
-	cm = gdk_colormap_new(best_vis, FALSE) ;
-	gdk_drawable_set_colormap(t_black, cm);
-	gdk_drawable_set_colormap(t_white, cm);
-
-	// Render solid black into one and white into the other.
-	fill_gdk_drawable(t_black, cm, 0, 0, 0, t_w, t_h);
-	fill_gdk_drawable(t_white, cm, 65535, 65535, 65535, t_w, t_h);
+	// Set the size of the offscreen windows
+	gtk_window_resize(GTK_WINDOW(t_offscreen_black), t_w, t_h);
+	gtk_window_resize(GTK_WINDOW(t_offscreen_white), t_w, t_h);
 	
+	// Realize the windows to create their GdkWindows
+	gtk_widget_realize(t_offscreen_black);
+	gtk_widget_realize(t_offscreen_white);
+	
+	GdkWindow *t_gdk_black = gtk_widget_get_window(t_offscreen_black);
+	GdkWindow *t_gdk_white = gtk_widget_get_window(t_offscreen_white);
+	
+	if (!t_gdk_black || !t_gdk_white)
+	{
+		gtk_widget_destroy(t_offscreen_black);
+		gtk_widget_destroy(t_offscreen_white);
+		return NULL;
+	}
+	
+	// Fill backgrounds - black and white
+	// -- tperry 15-11-2025: Use wrapper to avoid deprecated gdk_cairo_create
+	cairo_t *cr_black = moz_gdk_create_cairo_context(t_gdk_black);
+	cairo_set_source_rgb(cr_black, 0.0, 0.0, 0.0);
+	cairo_paint(cr_black);
+	cairo_destroy(cr_black);
+	
+	cairo_t *cr_white = moz_gdk_create_cairo_context(t_gdk_white);
+	cairo_set_source_rgb(cr_white, 1.0, 1.0, 1.0);
+	cairo_paint(cr_white);
+	cairo_destroy(cr_white);
+	
+	// Render the widget onto both backgrounds
 	MCThemeDrawInfo t_info;
 	
 	t_info = p_info;
-	moz_gtk_widget_paint ( p_info.moztype, t_white , &t_info.drect, &t_info.cliprect, &t_info.state, t_info.flags ) ;
+	moz_gtk_widget_paint(p_info.moztype, t_gdk_white, &t_info.drect, &t_info.cliprect, &t_info.state, t_info.flags);
 	
 	t_info = p_info;
-	moz_gtk_widget_paint ( p_info.moztype, t_black , &t_info.drect, &t_info.cliprect, &t_info.state, t_info.flags ) ;
-
-	gdk_flush();
+	moz_gtk_widget_paint(p_info.moztype, t_gdk_black, &t_info.drect, &t_info.cliprect, &t_info.state, t_info.flags);
 	
-    // Convert the server-side pixmaps into client-side pixbufs. The black
-    // pixbuf will need to have an alpha channel so that we can fill it in.
-    t_pb_black = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, t_w, t_h);
-    if (t_pb_black == NULL)
-        return NULL;
-        
-    t_pb_white = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, t_w, t_h);
-    if (t_pb_white == NULL)
-        return NULL;
-    
-    t_pb_black = gdk_pixbuf_get_from_drawable(t_pb_black, t_black, NULL, 0, 0, 0, 0, t_w, t_h);
-    if (t_pb_black == NULL)
-        return NULL;
-    
-    t_pb_white = gdk_pixbuf_get_from_drawable(t_pb_white, t_white, NULL, 0, 0, 0, 0, t_w, t_h);
-    if (t_pb_white == NULL)
-        return NULL;
-    
-	// Calculate the alpha from these two bitmaps --- the t_bm_black image now has full ARGB
-    // Note that this also frees the t_pb_white pixbuf
-	calc_alpha_from_pixbufs(t_pb_black, t_pb_white);
+	// Get the rendered surfaces from the offscreen windows
+	cairo_surface_t *t_surf_black = gtk_offscreen_window_get_surface(GTK_OFFSCREEN_WINDOW(t_offscreen_black));
+	cairo_surface_t *t_surf_white = gtk_offscreen_window_get_surface(GTK_OFFSCREEN_WINDOW(t_offscreen_white));
 	
-	// clean up.
-	g_object_unref(t_black);
-	g_object_unref(t_white);
-	g_object_unref(cm);
+	if (!t_surf_black || !t_surf_white)
+	{
+		gtk_widget_destroy(t_offscreen_black);
+		gtk_widget_destroy(t_offscreen_white);
+		return NULL;
+	}
+	
+	// Convert the cairo surfaces into pixbufs
+	t_pb_black = gdk_pixbuf_get_from_surface(t_surf_black, 0, 0, t_w, t_h);
+	if (t_pb_black == NULL)
+	{
+		gtk_widget_destroy(t_offscreen_black);
+		gtk_widget_destroy(t_offscreen_white);
+		return NULL;
+	}
+	
+	t_pb_white = gdk_pixbuf_get_from_surface(t_surf_white, 0, 0, t_w, t_h);
+	if (t_pb_white == NULL)
+	{
+		g_object_unref(t_pb_black);
+		gtk_widget_destroy(t_offscreen_black);
+		gtk_widget_destroy(t_offscreen_white);
+		return NULL;
+	}
+	
+	// -- tperry 15-11-2025: For GTK3 checkboxes/radio buttons, skip alpha calculation
+	// GTK3 already provides proper RGBA, the alpha calculation destroys the colors
+	if (p_info.moztype == MOZ_GTK_CHECKBUTTON || p_info.moztype == MOZ_GTK_RADIOBUTTON)
+	{
+		// Just return the white-background pixbuf, free the black one
+		g_object_unref(t_pb_black);
+		gtk_widget_destroy(t_offscreen_black);
+		gtk_widget_destroy(t_offscreen_white);
+		return t_pb_white;
+	}
+	else
+	{
+		// Calculate the alpha from these two bitmaps --- the t_pb_black image now has full ARGB
+		// Note that this also frees the t_pb_white pixbuf
+		calc_alpha_from_pixbufs(t_pb_black, t_pb_white);
 		
-	return t_pb_black;
+		// Clean up offscreen windows
+		gtk_widget_destroy(t_offscreen_black);
+		gtk_widget_destroy(t_offscreen_white);
+			
+		return t_pb_black;
+	}
 }
 
 bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInfo *p_info)
@@ -1897,8 +2016,40 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
     }
 	else
 	{
-		// Calculate the alpha for the rendered widget, by rendering against white & black.
-		t_argb_image = drawtheme_calc_alpha (*p_info) ;
+		// -- tperry 15-11-2025: Use direct surface rendering for supported widgets
+		// Try direct rendering first, fall back to legacy alpha calculation
+		// Note: Scales now use direct rendering with gtk_widget_draw() in a real visible window
+		if (p_info->moztype == MOZ_GTK_BUTTON ||
+		    p_info->moztype == MOZ_GTK_DROPDOWN_ARROW ||
+		    p_info->moztype == MOZ_GTK_OPTIONBUTTON ||
+		    p_info->moztype == MOZ_GTK_CHECKBUTTON || 
+		    p_info->moztype == MOZ_GTK_RADIOBUTTON ||
+		    p_info->moztype == MOZ_GTK_PROGRESSBAR ||
+		    p_info->moztype == MOZ_GTK_PROGRESS_CHUNK ||
+		    p_info->moztype == MOZ_GTK_SCALE_TRACK_HORIZONTAL ||
+		    p_info->moztype == MOZ_GTK_SCALE_TRACK_VERTICAL ||
+		    p_info->moztype == MOZ_GTK_SCALE_THUMB_HORIZONTAL ||
+		    p_info->moztype == MOZ_GTK_SCALE_THUMB_VERTICAL ||
+		    p_info->moztype == MOZ_GTK_SCROLLBAR_THUMB_HORIZONTAL ||
+		    p_info->moztype == MOZ_GTK_SCROLLBAR_THUMB_VERTICAL ||
+		    p_info->moztype == MOZ_GTK_SCROLLBAR_TRACK_HORIZONTAL ||
+		    p_info->moztype == MOZ_GTK_SCROLLBAR_TRACK_VERTICAL ||
+		    p_info->moztype == MOZ_GTK_TABPANELS ||
+		    p_info->moztype == MOZ_GTK_TAB ||
+		    p_info->moztype == MOZ_GTK_MENUITEMHIGHLIGHT ||
+		    p_info->moztype == MOZ_GTK_TOOLBAR ||
+		    p_info->moztype == MOZ_GTK_FRAME ||
+		    p_info->moztype == MOZ_GTK_TOOLTIP ||
+		    p_info->moztype == MOZ_GTK_ENTRY_FRAME ||
+		    p_info->moztype == MOZ_GTK_ENTRY ||
+		    p_info->moztype == MOZ_GTK_SPINBUTTON)
+		{
+			t_argb_image = drawtheme_gtk3_direct(*p_info);
+		}
+		else
+		{
+			t_argb_image = drawtheme_calc_alpha (*p_info) ;
+		}
         if (t_argb_image == NULL)
             return false;
         t_cached = MCimagecache -> add_to_cache (t_argb_image, *p_info) ;
@@ -1909,6 +2060,7 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 	t_raster.height = gdk_pixbuf_get_height(t_argb_image);
 	t_raster.stride = gdk_pixbuf_get_rowstride(t_argb_image);
 	t_raster.pixels = gdk_pixbuf_get_pixels(t_argb_image);
+	
 	t_raster.format = kMCGRasterFormat_ARGB;
 	
 	MCGRectangle t_dest;
@@ -1923,6 +2075,8 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 	
     if (!t_cached)
         g_object_unref(t_argb_image);
-
+    
 	return true;
 }
+
+////////////////////////////////////////////////////////////////////////////////

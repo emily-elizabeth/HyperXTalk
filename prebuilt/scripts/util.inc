@@ -16,94 +16,128 @@ function fetchUrl {
 	fi
 }
 
+DOWNLOADED=0
+
 function fetchBinary
 {
 	cd "${BUILDDIR}"
 
+	DOWNLOADED=0
+	TARFILE="${ARCHIVE_DESTINATION}".tar
+
+	#if directory $THIS does not exist then
 	if [[ ! -d "$THIS"* ]] ; then
-		if [ ! -e "$ARCHIVE_DESTINATION" ] ; then
+		# if $ARCHIVE_DESTINATION doesn't exist (file or directory) then
+		if [ ! -f "$TARFILE" ] ; then
 			echo "Fetching ${THIS} source"
-			fetchUrl "${URL_ROOT}" "${ARCHIVE_DESTINATION}.tar"
+			fetchUrl "${URL_ROOT}" "${TARFILE}"
 			if [ $? != 0 ] ; then
 				echo "downloading ${URL_ROOT} failed"
+				# we no longer need $ARCHIVE_DESTINATION
 				if [ -e "${ARCHIVE_DESTINATION}" ] ; then
 					rm ${ARCHIVE_DESTINATION}
 				fi
 				exit
 			fi
+			DOWNLOADED=1
 		fi # check for already downloaded source
 	fi # check for destination directory
 }
 
 function untarBinary
 {
-	echo "Untarring ${ARCHIVE_DESTINATION}.tar"
-	tar -xf "${ARCHIVE_DESTINATION}.tar"
+	if [ ${DOWNLOADED} == 1 ] ; then
+		if [ -f "$TARFILE" ] ; then
+			echo "Untarring ${TARFILE}"
+			tar -xf "${TARFILE}"
+		fi
+	fi
 }
 
 function unzipBinary
 {
-	echo "Unzipping ${ARCHIVE_DESTINATION}.zip"
-	unzip "${ARCHIVE_DESTINATION}.zip"
+	if [ ${DOWNLOADED} == 1 ] ; then
+		if [ -f "$ARCHIVE_DESTINATION" ] ; then
+			echo "Unzipping ${ARCHIVE_DESTINATION}.zip"
+			unzip "${ARCHIVE_DESTINATION}.zip"
+		fi
+	fi
 }
 
+# special case: file is named ".tar" but needs to be unzipped
 function unxzBinary
 {
-	echo "Unzipping ${ARCHIVE_DESTINATION}.tar"
-	unzip "${ARCHIVE_DESTINATION}.tar"
+	if [ ${DOWNLOADED} == 1 ] ; then
+		if [ -f "$ARCHIVE_DESTINATION" ] ; then
+			echo "Unzipping ${ARCHIVE_DESTINATION}.tar"
+			unzip "${ARCHIVE_DESTINATION}.tar"
+		fi
+	fi
 }
 
 function makeBinary
 {
-	if [ -e "${BUILDDIR}/${ARCHIVE_DESTINATION}/Makefile" ] ; then
-		echo "running make"
-		#mkdir -p ${BUILDDIR}/${ARCHIVE_DESTINATION}/build
-		pushd "${BUILDDIR}/${ARCHIVE_DESTINATION}"
-		make
-		popd
+	if [ ${DOWNLOADED} == 1 ] ; then
+		if [ -e "${BUILDDIR}/${ARCHIVE_DESTINATION}/Makefile" ] ; then
+			echo "running make"
+			#mkdir -p ${BUILDDIR}/${ARCHIVE_DESTINATION}/build
+			pushd "${BUILDDIR}/${ARCHIVE_DESTINATION}"
+			make
+			popd
+		fi
 	fi
 }
 
 function cmakeBinary
 {
-	if [ -e "${BUILDDIR}/${ARCHIVE_DESTINATION}/CMakeLists.txt" ] ; then
-		echo "running cmake"
-		mkdir -p ${BUILDDIR}/${ARCHIVE_DESTINATION}/build
-		pushd "${BUILDDIR}/${ARCHIVE_DESTINATION}"
-		cmake -S . -B build
-		makeBinary
-		popd
+	if [ ${DOWNLOADED} == 1 ] ; then
+		if [ -e "${BUILDDIR}/${ARCHIVE_DESTINATION}/CMakeLists.txt" ] ; then
+			echo "running cmake"
+			mkdir -p ${BUILDDIR}/${ARCHIVE_DESTINATION}/build
+			pushd "${BUILDDIR}/${ARCHIVE_DESTINATION}"
+			cmake -S . -B build
+			makeBinary
+			popd
+		fi
 	fi
 }
 
 function mesonBinary
 {
-	if [ -e "${BUILDDIR}/${ARCHIVE_DESTINATION}/meson.build" ] ; then
-		echo "running meson and ninja"
-		mkdir -p ${BUILDDIR}/${ARCHIVE_DESTINATION}/build
-		pushd "${BUILDDIR}/${ARCHIVE_DESTINATION}"
-		meson setup --wipe build
-		if [ -e "build/build.ninja" ] ; then
-			echo "launching ninja"
-			ninja -C build
+	if [ ${DOWNLOADED} == 1 ] ; then
+		if [ -e "${BUILDDIR}/${ARCHIVE_DESTINATION}/meson.build" ] ; then
+			echo "running meson and ninja"
+			mkdir -p ${BUILDDIR}/${ARCHIVE_DESTINATION}/build
+			pushd "${BUILDDIR}/${ARCHIVE_DESTINATION}"
+			meson setup --wipe build
+			if [ -e "build/build.ninja" ] ; then
+				echo "launching ninja"
+				ninja -C build
+			fi
+			popd
 		fi
-		popd
 	fi
 }
 
 # run cmake
-# run make
 # copy files if we have a newer version
 function buildLibrary {
-	cmakeBinary
-	mkdir -p ${FILE_DIRECTORY}
-	cp ${BUILDDIR}/${ARCHIVE_DESTINATION}/*.h ${FILE_DIRECTORY}
-	cp ${BUILDDIR}/${ARCHIVE_DESTINATION}/*.c ${FILE_DIRECTORY}
+	if [ ${DOWNLOADED} == 1 ] ; then
+		cmakeBinary
+		mkdir -p ${FILE_DIRECTORY}
+		cp ${BUILDDIR}/${ARCHIVE_DESTINATION}/*.h ${FILE_DIRECTORY}
+		cp ${BUILDDIR}/${ARCHIVE_DESTINATION}/*.c ${FILE_DIRECTORY}
+	fi
 }
 
+# run cmake
+# run meson
+# copy files if we have a newer version
 function buildSrcLibrary {
-	cmakeBinary
-	mesonBinary
-	cp -r ${BUILDDIR}/${ARCHIVE_DESTINATION}/src/*.h ${INCLUDE_DIRECTORY}
-	cp -r ${BUILDDIR}/${ARCHIVE_DESTINATION}/src/*.c ${FILE_DIRECTORY}
+	if [ ${DOWNLOADED} == 1 ] ; then
+		cmakeBinary
+		mesonBinary
+		cp -r ${BUILDDIR}/${ARCHIVE_DESTINATION}/src/*.h ${INCLUDE_DIRECTORY}
+		cp -r ${BUILDDIR}/${ARCHIVE_DESTINATION}/src/*.c ${FILE_DIRECTORY}
+	fi
 }

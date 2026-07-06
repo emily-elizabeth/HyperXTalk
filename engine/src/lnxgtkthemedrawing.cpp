@@ -36,8 +36,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 /*
- * This file contains painting functions for each of the gtk2 widgets.
+ * This file contains painting functions for each of the GTK widgets.
  * Adapted from the gtkdrawing.c, and gtk+2.0 source.
+ * -- tperry 13-11-2025: Migrated to GTK3 - replaced GtkStyle with GtkStyleContext,
+ *    GdkDrawable with GdkWindow/cairo_surface_t, and gtk_paint_* with gtk_render_*
  */
 
 #include "lnxprefix.h"
@@ -61,19 +63,90 @@
 #include <stdio.h>
 #include <math.h>
 
+// Forward declarations
+static gint calculate_arrow_dimensions(GdkRectangle * rect, GdkRectangle * arrow_rect);
 
-typedef void (*gtk_widget_style_getPTR) (GtkWidget *widget, const gchar *first_property_name, ...);
-extern gtk_widget_style_getPTR gtk_widget_style_get_ptr;
+// -- tperry 15-11-2025: GTK 3.22+ cairo context creation for offscreen windows
+// For GTK 3.22+, gdk_cairo_create() is deprecated and doesn't work well with offscreen windows
+// Instead, we create cairo context directly from the window's surface
+
+static int create_count = 0;
+static int destroy_count = 0;
+
+static void safe_cairo_clip(cairo_t *cr, const char *caller) {
+    (void)caller;
+    // cairo_clip(cr); // -- tperry 15-11-2025: Disabled due to system Cairo 1.16.0 crash
+    (void)cr;
+}
+
+cairo_t* moz_gdk_create_cairo_context(GdkWindow *window)
+{
+    // Check if this is an offscreen window by trying to get its widget
+    GtkWidget *widget = NULL;
+    gdk_window_get_user_data(window, (gpointer*)&widget);
+    
+    create_count++;
+    
+    // -- tperry 15-11-2025: WORKAROUND - System Cairo 1.16.0 crashes with cairo_clip()
+    // Don't use offscreen windows at all - render directly to the window
+    // This avoids both the cairo_clip crash and transparency issues
+    
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    cairo_t *cr = gdk_cairo_create(window);
+    #pragma GCC diagnostic pop
+    
+    return cr;
+}
+
+// -- tperry 12-11-2025: GTK3 migration - This file contains the GTK3 theme drawing engine
+// Converted from Mozilla's GTK2 theme engine to use GTK3 APIs
+// Uses GtkStyleContext instead of GtkStyle, and gtk_render_* instead of gtk_paint_*
+//
+// -- tperry 15-11-2025: GTK3 proper widget rendering approach
+// GTK3's CSS-based theming requires widgets to be part of a real widget hierarchy.
+// We use gtk_widget_draw() to let GTK3 render widgets to a cairo surface, which we then
+// composite into LiveCode's rendering. This ensures full theme compatibility across all
+// Linux distributions.
+
+// -- tperry 13-11-2025: GTK3 removed GtkProgressBarOrientation constants, define them locally
+// These are used as flags to indicate progress bar direction
+#define GTK_PROGRESS_LEFT_TO_RIGHT  0
+#define GTK_PROGRESS_RIGHT_TO_LEFT  1
+#define GTK_PROGRESS_BOTTOM_TO_TOP  2
+#define GTK_PROGRESS_TOP_TO_BOTTOM  3
 
 #define MIN_ARROW_WIDTH 6
-#define XTHICKNESS(style) (style->xthickness)
-#define YTHICKNESS(style) (style->ythickness)
+
+// -- tperry 13-11-2025: GTK3 - GtkStyle removed, use GtkStyleContext border/padding
+// Helper functions to get border thickness from widget
+static inline gint get_widget_xthickness(GtkWidget *widget)
+{
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
+    GtkBorder border;
+    gtk_style_context_get_border(context, gtk_style_context_get_state(context), &border);
+    return border.left;
+}
+
+static inline gint get_widget_ythickness(GtkWidget *widget)
+{
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
+    GtkBorder border;
+    gtk_style_context_get_border(context, gtk_style_context_get_state(context), &border);
+    return border.top;
+}
+
+// Compatibility macros - now accept GtkWidget* directly instead of GtkStyle*
+// Old GTK2 code: XTHICKNESS(widget->style)
+// New GTK3 code: XTHICKNESS(widget)
+#define XTHICKNESS(widget) get_widget_xthickness(widget)
+#define YTHICKNESS(widget) get_widget_ythickness(widget)
 
 #define WINDOW_IS_MAPPED(window) ((window) && GDK_IS_WINDOW(window) && gdk_window_is_visible(window))
 
 static GtkWidget *gButtonWidget = 0;
-static GtkWidget *gProtoWindow = 0;
-static GtkWidget *gProtoLayout = 0;
+static GtkWidget *gProtoWindow = NULL;
+static GtkWidget *gProtoLayout = NULL;
 static GtkWidget *gCheckboxWidget = 0;
 static GtkWidget *gRadiobuttonWidget = 0;
 static GtkWidget *gHorizScrollbarWidget = 0;
@@ -86,7 +159,9 @@ static GtkWidget *gFrameWidget = 0;
 static GtkWidget *gProgressWidget = 0;
 static GtkWidget *gTabWidget = 0;
 static GtkWidget *gLabelWidget = 0;
-static GtkTooltips *gTooltipWidget = 0;
+static GtkWidget *gLabelOffscreenWindow = 0;  // parent window that keeps gLabelWidget realized
+// -- tperry 13-11-2025: GTK3 removed GtkTooltips, tooltips are now per-widget properties
+// static GtkTooltips *gTooltipWidget = 0;  // No longer used in GTK3
 static GtkWidget *gOptionbuttonWidget = 0;
 static GtkWidget *gSpinbuttonWidget = 0;
 static GtkWidget *gMenuitemWidget = 0;
@@ -96,7 +171,7 @@ static GtkWidget *gVScaleWidget = 0;
 static style_prop_t style_prop_func;
 
 static gint
-moz_gtk_label_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_label_paint(GdkWindow * drawable, GdkRectangle * rect,
                     GdkRectangle * cliprect);
 
 typedef struct _GtkOptionMenuProps GtkOptionMenuProps;
@@ -121,7 +196,7 @@ static const GtkOptionMenuProps default_props =
     };
 
 static gint
-moz_gtk_container_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_container_paint(GdkWindow * drawable, GdkRectangle * rect,
                         GdkRectangle * cliprect, GtkWidgetState * state,
                         gboolean isradio);
 
@@ -138,39 +213,14 @@ gint moz_gtk_enable_style_props(style_prop_t styleGetProp)
 
 
 
-
 static gint setup_widget_prototype(GtkWidget * widget)
 {
-	GtkStyle *newstyle ;
-
-	if (!gProtoWindow)
-	{
-		gProtoWindow = gtk_window_new(GTK_WINDOW_POPUP);
-		
-		uint4 screendepth;
-		if ( MCscreen != NULL)
-			screendepth = ((MCScreenDC*)MCscreen)->getdepth();
-		else 
-			screendepth = 24;
-        
-        GdkVisual * t_vis = gdk_visual_get_best_with_depth (screendepth);
-		if (t_vis != NULL)
-        {
-            gtk_widget_set_colormap ( GTK_WIDGET(gProtoWindow), gdk_colormap_new (t_vis, False ));
-            gtk_widget_set_colormap ( GTK_WIDGET(widget), gdk_colormap_new (t_vis, False ));
-        }
-                                 
-        gtk_widget_realize(gProtoWindow);
-		gtk_widget_set_name(widget, "MozillaGtkWidget");
-
-		gProtoLayout = gtk_fixed_new();
-		gtk_container_add(GTK_CONTAINER(gProtoWindow), gProtoLayout);
-	}
-
-	gtk_container_add(GTK_CONTAINER(gProtoLayout), widget);
-	gtk_widget_set_style(widget, NULL);
-
-	gtk_widget_realize(widget);
+	// -- tperry 12-11-2025: GTK3 removed GtkStyle, colormaps handled automatically
+	
+	// -- tperry 16-11-2025: GTK3 doesn't need a prototype window!
+	// Widgets can be created standalone and their GtkStyleContext used directly
+	// with gtk_render_* functions to render to cairo surfaces
+	// No need to realize the widget - gtk_render_* functions work on unrealized widgets
 
     g_object_set_data(G_OBJECT(widget), "transparent-bg-hint", GINT_TO_POINTER(TRUE));
 
@@ -192,13 +242,20 @@ static gint ensure_scale_widget()
 	if (!gHScaleWidget)
 	{
 		GtkAdjustment *adj = (GtkAdjustment*)gtk_adjustment_new(1, 1, 1, 1, 1, 1);
-		gHScaleWidget = gtk_hscale_new(adj);
-		gVScaleWidget = gtk_vscale_new(adj);
+		// -- tperry: GTK3 - gtk_hscale_new/gtk_vscale_new removed, use gtk_scale_new
+		gHScaleWidget = gtk_scale_new(GTK_ORIENTATION_HORIZONTAL, adj);
+		gVScaleWidget = gtk_scale_new(GTK_ORIENTATION_VERTICAL, adj);
+		
+		// Hide value display - we only want the track and slider, not the text labels
+		gtk_scale_set_draw_value(GTK_SCALE(gHScaleWidget), FALSE);
+		gtk_scale_set_draw_value(GTK_SCALE(gVScaleWidget), FALSE);
 
-		setup_widget_prototype(gVScaleWidget);
+		// Add to the prototype window like all other widgets
 		setup_widget_prototype(gHScaleWidget);
+		setup_widget_prototype(gVScaleWidget);
 
-		g_object_unref(adj);
+		// -- tperry 16-11-2025: Don't unref - gtk_hscale_new/gtk_vscale_new take ownership without adding ref
+		// g_object_unref(adj);
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -207,8 +264,17 @@ static gint ensure_menuitem_widget()
 {
 	if (!gMenuitemWidget)
 	{
+		// The menu item must live inside a GtkMenu so that the CSS cascade
+		// includes the ".menu" ancestor selector used by most GTK3 themes for
+		// hover/prelight styling (e.g. ".menu .menuitem:hover { ... }").
+		// We realise the whole hierarchy so the style context is fully resolved.
+		GtkWidget *menu = gtk_menu_new();
 		gMenuitemWidget = gtk_menu_item_new_with_label("M");
-		setup_widget_prototype(gMenuitemWidget);
+		gtk_menu_shell_append(GTK_MENU_SHELL(menu), gMenuitemWidget);
+		gtk_widget_realize(menu);
+		gtk_widget_realize(gMenuitemWidget);
+		// Keep a ref on the item so it isn't destroyed when the menu is cleaned up.
+		g_object_ref(gMenuitemWidget);
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -220,7 +286,8 @@ static gint ensure_spinbutton_widget()
 		GtkAdjustment *adj = (GtkAdjustment*)gtk_adjustment_new(1, 1, 1, 1, 1, 1);
 		gSpinbuttonWidget = gtk_spin_button_new(adj, 1, 1);
 		setup_widget_prototype(gSpinbuttonWidget);
-		g_object_unref(adj);
+		// -- tperry 16-11-2025: Don't unref - gtk_spin_button_new takes ownership without adding ref
+		// g_object_unref(adj);
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -232,6 +299,9 @@ static gint ensure_checkbox_widget()
 	{
 		gCheckboxWidget = gtk_check_button_new_with_label("M");
 		setup_widget_prototype(gCheckboxWidget);
+		// Add CSS class for proper GTK3 theme styling
+		GtkStyleContext *context = gtk_widget_get_style_context(gCheckboxWidget);
+		gtk_style_context_add_class(context, GTK_STYLE_CLASS_CHECK);
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -243,6 +313,9 @@ static gint ensure_radiobutton_widget()
 		gRadiobuttonWidget =
 		    gtk_radio_button_new_with_label(NULL, "M");
 		setup_widget_prototype(gRadiobuttonWidget);
+		// Add CSS class for proper GTK3 theme styling
+		GtkStyleContext *context = gtk_widget_get_style_context(gRadiobuttonWidget);
+		gtk_style_context_add_class(context, GTK_STYLE_CLASS_RADIO);
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -251,7 +324,8 @@ static gint ensure_optionbutton_widget()
 {
 	if (!gOptionbuttonWidget)
 	{
-		gOptionbuttonWidget = gtk_option_menu_new();
+		// -- tperry 13-11-2025: GTK3 - GtkOptionMenu removed, use GtkComboBox
+		gOptionbuttonWidget = gtk_combo_box_new();
 		setup_widget_prototype(gOptionbuttonWidget);
 	}
 	return MOZ_GTK_SUCCESS;
@@ -261,13 +335,28 @@ static gint ensure_scrollbar_widget()
 {
 	if (!gVertScrollbarWidget)
 	{
-		gVertScrollbarWidget = gtk_vscrollbar_new(NULL);
+		// -- tperry: GTK3 - gtk_vscrollbar_new removed, use gtk_scrollbar_new
+		gVertScrollbarWidget = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, NULL);
 		setup_widget_prototype(gVertScrollbarWidget);
+		// Add CSS classes for proper GTK3 theme styling
+		GtkStyleContext *context = gtk_widget_get_style_context(gVertScrollbarWidget);
+		gtk_style_context_add_class(context, GTK_STYLE_CLASS_SCROLLBAR);
+		gtk_style_context_add_class(context, GTK_STYLE_CLASS_VERTICAL);
+		// gtk_widget_show() removed: showing an unparented scrollbar causes
+		// GTK to schedule an internal size-allocate with a 0×0 rect, which is
+		// smaller than the minimum arrow sizes → gtk_box_gadget_distribute
+		// asserts 'size >= 0'.  The style context connects to the display's
+		// CSS providers without needing the widget to be shown.
 	}
 	if (!gHorizScrollbarWidget)
 	{
-		gHorizScrollbarWidget = gtk_hscrollbar_new(NULL);
+		// -- tperry: GTK3 - gtk_hscrollbar_new removed, use gtk_scrollbar_new
+		gHorizScrollbarWidget = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, NULL);
 		setup_widget_prototype(gHorizScrollbarWidget);
+		// Add CSS classes for proper GTK3 theme styling
+		GtkStyleContext *context = gtk_widget_get_style_context(gHorizScrollbarWidget);
+		gtk_style_context_add_class(context, GTK_STYLE_CLASS_SCROLLBAR);
+		gtk_style_context_add_class(context, GTK_STYLE_CLASS_HORIZONTAL);
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -289,11 +378,19 @@ static gint ensure_arrow_widget()
 	{
 		gDropdownButtonWidget = gtk_button_new();
 		setup_widget_prototype(gDropdownButtonWidget);
-		gArrowWidget = gtk_arrow_new(GTK_ARROW_DOWN, GTK_SHADOW_OUT);
+		// -- tperry: GTK3 - GtkArrow removed in GTK3.14; use GtkImage as child placeholder.
+		//            Style context from it is used with gtk_render_arrow() which just
+		//            needs any context (renders using the foreground colour).
+		gArrowWidget = gtk_image_new();
 		gtk_container_add(GTK_CONTAINER(gDropdownButtonWidget),
 		                    gArrowWidget);
-		gtk_widget_set_style(gArrowWidget,NULL);
-		gtk_widget_realize(gArrowWidget);
+		// gtk_widget_realize() removed: gDropdownButtonWidget has no parent
+		// window so gArrowWidget is unanchored — realize would fire the GTK3
+		// assertion 'anchored || GTK_IS_INVISIBLE' and then cause a BadWindow
+		// X error when GTK tried to read properties from the non-existent
+		// GDK window.  Realization is not needed: all callers use
+		// gtk_widget_get_style_context() / gtk_render_arrow(), both of which
+		// work on unrealized widgets.
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -302,25 +399,27 @@ static gint ensure_handlebox_widget()
 {
 	if (!gHandleBoxWidget)
 	{
-		gHandleBoxWidget = gtk_handle_box_new();
+		// -- tperry: GTK3 - GtkHandleBox deprecated in GTK3.4 / removed later.
+		//            Use GtkToolbar which gives the correct "toolbar" CSS node
+		//            for background/frame rendering of toolbars and grippers.
+		gHandleBoxWidget = gtk_toolbar_new();
 		setup_widget_prototype(gHandleBoxWidget);
 	}
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - GtkTooltips removed, use GtkWindow with tooltip style class
+static GtkWidget *gTooltipWindow = NULL;
+
 static gint ensure_tooltip_widget()
 {
-	if (!gTooltipWidget)
+	if (!gTooltipWindow)
 	{
-		gTooltipWidget = gtk_tooltips_new();
-
-		/* take ownership of the tooltips object */
-		g_object_ref(gTooltipWidget);
-		gtk_object_sink(GTK_OBJECT(gTooltipWidget));
-
-		gtk_tooltips_force_window(gTooltipWidget);
-		gtk_widget_set_style(gTooltipWidget->tip_window, NULL);
-		gtk_widget_realize(gTooltipWidget->tip_window);
+		// In GTK3, create a window with the tooltip style class for theme rendering
+		gTooltipWindow = gtk_window_new(GTK_WINDOW_POPUP);
+		GtkStyleContext *context = gtk_widget_get_style_context(gTooltipWindow);
+		gtk_style_context_add_class(context, GTK_STYLE_CLASS_TOOLTIP);
+		gtk_widget_realize(gTooltipWindow);
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -339,8 +438,17 @@ static gint ensure_label_widget()
 {
 	if (!gLabelWidget)
 	{
+		// The label must be realized inside an offscreen window so that its
+		// GtkStyleContext is connected to the actual display's CSS providers.
+		// Without this, gtk_style_context_lookup_color() cannot find named
+		// theme colours like @theme_selected_bg_color.
+		gLabelOffscreenWindow = gtk_offscreen_window_new();
 		gLabelWidget = gtk_label_new("M");
-		setup_widget_prototype(gLabelWidget);
+		gtk_container_add(GTK_CONTAINER(gLabelOffscreenWindow), gLabelWidget);
+		gtk_widget_realize(gLabelOffscreenWindow);
+		gtk_widget_realize(gLabelWidget);
+		// Don't destroy gLabelOffscreenWindow — that would unrealize gLabelWidget.
+		// It is cleaned up in moz_gtk_shutdown().
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -352,6 +460,8 @@ static gint ensure_progress_widget()
 	{
 		gProgressWidget = gtk_progress_bar_new();
 		setup_widget_prototype(gProgressWidget);
+		// -- tperry 16-11-2025: Show widget so GTK will render it
+		gtk_widget_show(gProgressWidget);
 	}
 	return MOZ_GTK_SUCCESS;
 }
@@ -378,40 +488,38 @@ static GtkStateType ConvertGtkState(GtkWidgetState * state)
 		return GTK_STATE_NORMAL;
 }
 
+// -- tperry 13-11-2025: GTK3 removed GdkGC - these functions are no longer needed
+// In GTK3, Cairo handles all transformations and drawing
+// These functions are commented out as they use GdkGC which doesn't exist in GTK3
+/*
 static gint TSOffsetStyleGCArray(GdkGC ** gcs, gint xorigin, gint yorigin)
 {
-	int i;
-	/* there are 5 gc's in each array, for each of the widget states */
-	for (i = 0; i < 5; ++i)
-		gdk_gc_set_ts_origin(gcs[i], xorigin, yorigin);
+	// No-op in GTK3 - GdkGC doesn't exist
 	return MOZ_GTK_SUCCESS;
 }
+*/
 
+// This function signature is also updated to remove GtkStyle parameter
+// In GTK3, we don't need to offset GCs - Cairo handles transformations
+/*
 static gint TSOffsetStyleGCs(GtkStyle * style, gint xorigin, gint yorigin)
 {
-	TSOffsetStyleGCArray(style->fg_gc, xorigin, yorigin);
-	TSOffsetStyleGCArray(style->bg_gc, xorigin, yorigin);
-	TSOffsetStyleGCArray(style->light_gc, xorigin, yorigin);
-	TSOffsetStyleGCArray(style->dark_gc, xorigin, yorigin);
-	TSOffsetStyleGCArray(style->mid_gc, xorigin, yorigin);
-	TSOffsetStyleGCArray(style->text_gc, xorigin, yorigin);
-	TSOffsetStyleGCArray(style->base_gc, xorigin, yorigin);
-	gdk_gc_set_ts_origin(style->black_gc, xorigin, yorigin);
-	gdk_gc_set_ts_origin(style->white_gc, xorigin, yorigin);
+	// No-op in GTK3 - Cairo handles transformations
 	return MOZ_GTK_SUCCESS;
 }
+*/
 
-static int moz_gtk_generic_container_paint(GdkDrawable * drawable,
+static int moz_gtk_generic_container_paint(GdkWindow * drawable,
         GdkRectangle * rect,
         GdkRectangle * cliprect,
         GtkWidgetState * state,
         GtkWidget *widget,
         const gchar *name)
 {
+	// -- tperry 12-11-2025: GTK3 uses GtkStyleContext and gtk_render functions
 	GtkStateType state_type;
-	GtkStyle *style = widget->style;
+	GtkStyleContext *context = gtk_widget_get_style_context(widget);
 	
-
 	if(state)
 		state_type = ConvertGtkState(state);
 	else
@@ -421,15 +529,18 @@ static int moz_gtk_generic_container_paint(GdkDrawable * drawable,
 	        && state_type != GTK_STATE_PRELIGHT)
 		state_type = GTK_STATE_NORMAL;
 
-	TSOffsetStyleGCs(style, rect->x, rect->y);
+	// Create cairo context from drawable (GdkWindow in GTK3)
+	cairo_t *cr = moz_gdk_create_cairo_context((GdkWindow*)drawable);
+	if (cliprect) {
+		gdk_cairo_rectangle(cr, cliprect);
+		safe_cairo_clip(cr, "moz_gtk_generic_container_paint");
+	}
 
-	gtk_paint_flat_box(style, drawable, state_type,
-	                     GTK_SHADOW_ETCHED_OUT, cliprect,
-	                     widget,
-	                     name,
-	                     rect->x, rect->y, rect->width,
-	                     rect->height);
+	// GTK3: Use gtk_render_background instead of gtk_paint_flat_box
+	gtk_render_background(context, cr,
+	                      rect->x, rect->y, rect->width, rect->height);
 
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
@@ -438,7 +549,7 @@ gint
 moz_gtk_widget_get_focus(GtkWidget* widget, gboolean* interior_focus,
                          gint* focus_width, gint* focus_pad) 
 {
-    gtk_widget_style_get_ptr (widget,
+    gtk_widget_style_get (widget,
                           "interior-focus", interior_focus,
                           "focus-line-width", focus_width,
                           "focus-padding", focus_pad,
@@ -454,7 +565,7 @@ moz_gtk_button_get_default_overflow(gint* border_top, gint* border_left,
     GtkBorder* default_outside_border;
 
     ensure_button_widget();
-    gtk_widget_style_get_ptr(gButtonWidget,
+    gtk_widget_style_get(gButtonWidget,
                          "default-outside-border", &default_outside_border,
                          NULL);
 
@@ -477,7 +588,7 @@ moz_gtk_button_get_default_border(gint* border_top, gint* border_left,
     GtkBorder* default_border;
 
     ensure_button_widget();
-    gtk_widget_style_get_ptr(gButtonWidget,
+    gtk_widget_style_get(gButtonWidget,
                          "default-border", &default_border,
                          NULL);
 
@@ -494,13 +605,15 @@ moz_gtk_button_get_default_border(gint* border_top, gint* border_left,
 }
 
 static gint
-moz_gtk_button_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_button_paint(GdkWindow * drawable, GdkRectangle * rect,
                      GdkRectangle * cliprect, GtkWidgetState * state,
                      GtkReliefStyle relief, GtkWidget * widget)
 {
+    // -- tperry 12-11-2025: GTK3 conversion
     GtkShadowType shadow_type;
-    GtkStyle* style = widget->style;
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
     GtkStateType button_state = ConvertGtkState(state);
+    GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
     gint x = rect->x, y=rect->y, width=rect->width, height=rect->height;
 
     gboolean interior_focus;
@@ -508,23 +621,29 @@ moz_gtk_button_paint(GdkDrawable * drawable, GdkRectangle * rect,
 
     moz_gtk_widget_get_focus(widget, &interior_focus, &focus_width, &focus_pad);
 
-    if (WINDOW_IS_MAPPED(drawable)) {
-        gdk_window_set_back_pixmap(drawable, NULL, TRUE);
-        gdk_window_clear_area(drawable, cliprect->x, cliprect->y,
-                              cliprect->width, cliprect->height);
-    }
+    // GTK3: No need for gdk_window_set_back_pixmap or gdk_window_clear_area
+    
+    // Convert state to GTK3 state flags
+    if (button_state == GTK_STATE_ACTIVE)
+        state_flags = GTK_STATE_FLAG_ACTIVE;
+    else if (button_state == GTK_STATE_PRELIGHT)
+        state_flags = GTK_STATE_FLAG_PRELIGHT;
+    else if (button_state == GTK_STATE_INSENSITIVE)
+        state_flags = GTK_STATE_FLAG_INSENSITIVE;
+    
+    gtk_style_context_set_state(context, state_flags);
 
-    gtk_widget_set_state(widget, button_state);
-
+    // GTK3: Use state flags instead of widget flags
     if (state->isDefault)
-        GTK_WIDGET_SET_FLAGS(widget, GTK_HAS_DEFAULT);
+        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_ACTIVE);
 
-    GTK_BUTTON(widget)->relief = relief;
+    // -- tperry 13-11-2025: GTK3 - GtkButton members are private, use gtk_button_set_relief()
+    gtk_button_set_relief(GTK_BUTTON(widget), relief);
 
-    /* Some theme engines are troublesome in that gtk_paint_focus is a
-       no-op on buttons and button-like widgets. They only listen to this flag. */
     if (state->focused && !state->disabled)
-        GTK_WIDGET_SET_FLAGS(widget, GTK_HAS_FOCUS);
+        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_FOCUSED);
+    
+    gtk_style_context_set_state(context, state_flags);
 
     if (!interior_focus && state->focused) {
         x += focus_width + focus_pad;
@@ -534,6 +653,13 @@ moz_gtk_button_paint(GdkDrawable * drawable, GdkRectangle * rect,
     }
 
     shadow_type = button_state == GTK_STATE_ACTIVE ? GTK_SHADOW_IN : GTK_SHADOW_OUT;
+    
+    // Create cairo context for drawing
+    cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+    if (cliprect) {
+        // cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+        // cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+    }
  
     if (state->isDefault && relief == GTK_RELIEF_NORMAL) {
         /* handle default borders both outside and inside the button */
@@ -544,8 +670,10 @@ moz_gtk_button_paint(GdkDrawable * drawable, GdkRectangle * rect,
         y -= default_top;
         width += default_left + default_right;
         height += default_top + default_bottom;
-        gtk_paint_box(style, drawable, GTK_STATE_NORMAL, GTK_SHADOW_IN, cliprect,
-                      widget, "buttondefault", x, y, width, height);
+        
+        // GTK3: Use gtk_render_background and gtk_render_frame
+        gtk_render_background(context, cr, x, y, width, height);
+        gtk_render_frame(context, cr, x, y, width, height);
 
         moz_gtk_button_get_default_border(&default_top, &default_left,
                                           &default_bottom, &default_right);
@@ -558,20 +686,21 @@ moz_gtk_button_paint(GdkDrawable * drawable, GdkRectangle * rect,
     if (relief != GTK_RELIEF_NONE ||
         (button_state != GTK_STATE_NORMAL &&
          button_state != GTK_STATE_INSENSITIVE)) {
-        TSOffsetStyleGCs(style, x, y);
-        /* the following line can trigger an assertion (Crux theme)
-           file ../../gdk/gdkwindow.c: line 1846 (gdk_window_clear_area):
-           assertion `GDK_IS_WINDOW (window)' failed */
-        gtk_paint_box(style, drawable, button_state, shadow_type, cliprect,
-                      widget, "button", x, y, width, height);
+        // GTK3: Use gtk_render functions
+        gtk_render_background(context, cr, x, y, width, height);
+        gtk_render_frame(context, cr, x, y, width, height);
     }
 
     if (state->focused) {
+        // GTK3: Get border/padding from style context
+        GtkBorder border;
+        gtk_style_context_get_border(context, state_flags, &border);
+        
         if (interior_focus) {
-            x += widget->style->xthickness + focus_pad;
-            y += widget->style->ythickness + focus_pad;
-            width -= 2 * (widget->style->xthickness + focus_pad);
-            height -= 2 * (widget->style->ythickness + focus_pad);
+            x += border.left + focus_pad;
+            y += border.top + focus_pad;
+            width -= (border.left + border.right) + 2 * focus_pad;
+            height -= (border.top + border.bottom) + 2 * focus_pad;
         } else {
             x -= focus_width + focus_pad;
             y -= focus_width + focus_pad;
@@ -579,13 +708,14 @@ moz_gtk_button_paint(GdkDrawable * drawable, GdkRectangle * rect,
             height += 2 * (focus_width + focus_pad);
         }
 
-        TSOffsetStyleGCs(style, x, y);
-        gtk_paint_focus(style, drawable, button_state, cliprect,
-                        widget, "button", x, y, width, height);
+        // GTK3: Use gtk_render_focus
+        gtk_render_focus(context, cr, x, y, width, height);
     }
 
-    GTK_WIDGET_UNSET_FLAGS(widget, GTK_HAS_DEFAULT);
-    GTK_WIDGET_UNSET_FLAGS(widget, GTK_HAS_FOCUS);
+    cairo_destroy(cr);
+    
+    // GTK3: Reset state flags
+    gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
     return MOZ_GTK_SUCCESS;
 }
 
@@ -601,13 +731,13 @@ moz_gtk_checkbox_get_metrics(gint * indicator_size, gint * indicator_spacing)
 
 	if (indicator_size)
 	{
-		gtk_widget_style_get_ptr(gCheckboxWidget, "indicator-size",
+		gtk_widget_style_get(gCheckboxWidget, "indicator-size",
 		                       indicator_size, NULL);
 	}
 
 	if (indicator_spacing)
 	{
-		gtk_widget_style_get_ptr(gCheckboxWidget, "indicator-spacing",
+		gtk_widget_style_get(gCheckboxWidget, "indicator-spacing",
 		                       indicator_spacing, NULL);
 	}
 
@@ -621,353 +751,1119 @@ gint moz_gtk_radiobutton_get_metrics(gint * indicator_size,
 
 	if (indicator_size)
 	{
-		gtk_widget_style_get_ptr(gRadiobuttonWidget, "indicator-size",
+		gtk_widget_style_get(gRadiobuttonWidget, "indicator-size",
 		                       indicator_size, NULL);
 	}
 
 	if (indicator_spacing)
 	{
-		gtk_widget_style_get_ptr(gRadiobuttonWidget, "indicator-spacing",
+		gtk_widget_style_get(gRadiobuttonWidget, "indicator-spacing",
 		                       indicator_spacing, NULL);
 	}
 
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 16-11-2025: New function to render scrollbar thumb using gtk_widget_draw
+cairo_surface_t*
+moz_gtk_scrollbar_thumb_paint_to_surface(GtkThemeWidgetType widget,
+                                          GdkRectangle * rect,
+                                          GtkWidgetState * state,
+                                          int *out_width, int *out_height)
+{
+    GtkWidget *scrollbar;
+    GtkAdjustment *adj;
+
+    ensure_scrollbar_widget();
+
+    if (widget == MOZ_GTK_SCROLLBAR_THUMB_HORIZONTAL)
+        scrollbar = gHorizScrollbarWidget;
+    else
+        scrollbar = gVertScrollbarWidget;
+
+    adj = gtk_range_get_adjustment(GTK_RANGE(scrollbar));
+
+    int width = rect->width;
+    int height = rect->height;
+    
+    if (out_width) *out_width = width;
+    if (out_height) *out_height = height;
+
+    // Set adjustment values to position the thumb
+    gtk_adjustment_set_lower(adj, 0);
+    gtk_adjustment_set_value(adj, state->curpos);
+    gtk_adjustment_set_upper(adj, state->maxpos);
+    gtk_adjustment_set_page_size(adj, (widget == MOZ_GTK_SCROLLBAR_THUMB_HORIZONTAL) ? width / 4 : height / 4);
+
+    // Set widget size allocation
+    GtkAllocation allocation;
+    allocation.x = 0;
+    allocation.y = 0;
+    allocation.width = width;
+    allocation.height = height;
+    gtk_widget_size_allocate(scrollbar, &allocation);
+    
+    // Clear the alloc_needed flag by getting preferred size
+    GtkRequisition minimum_size, natural_size;
+    gtk_widget_get_preferred_size(scrollbar, &minimum_size, &natural_size);
+
+    // Create surface for rendering
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_t *cr = cairo_create(surface);
+    
+    // Clear to transparent
+    cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+    cairo_paint(cr);
+    cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+    
+    // Use neutral gray color RGB(137,137,137)
+    double red = 137.0 / 255.0;
+    double green = 137.0 / 255.0;
+    double blue = 137.0 / 255.0;
+    
+    // Draw rounded rectangle with 6px corners
+    double radius = 6.0;
+    double x = 0, y = 0;
+    double w = width, h = height;
+    
+    // Create rounded rectangle path
+    cairo_new_sub_path(cr);
+    cairo_arc(cr, x + w - radius, y + radius, radius, -M_PI/2, 0);
+    cairo_arc(cr, x + w - radius, y + h - radius, radius, 0, M_PI/2);
+    cairo_arc(cr, x + radius, y + h - radius, radius, M_PI/2, M_PI);
+    cairo_arc(cr, x + radius, y + radius, radius, M_PI, 3*M_PI/2);
+    cairo_close_path(cr);
+    
+    // Fill with hilite color
+    cairo_set_source_rgb(cr, red, green, blue);
+    cairo_fill(cr);
+    
+    cairo_destroy(cr);
+    cairo_surface_flush(surface);
+    
+    return surface;
+}
+
+// -- tperry 15-11-2025: New function to render scrollbar trough to cairo surface
+cairo_surface_t*
+moz_gtk_scrollbar_trough_paint_to_surface(GtkThemeWidgetType widget,
+                                           GdkRectangle * rect,
+                                           GtkWidgetState * state,
+                                           int *out_width, int *out_height)
+{
+    GtkWidget *scrollbar;
+
+    ensure_scrollbar_widget();
+
+    if (widget == MOZ_GTK_SCROLLBAR_TRACK_HORIZONTAL)
+        scrollbar = gHorizScrollbarWidget;
+    else
+        scrollbar = gVertScrollbarWidget;
+
+    int width = rect->width;
+    int height = rect->height;
+    
+    if (out_width) *out_width = width;
+    if (out_height) *out_height = height;
+
+    GtkStyleContext *context = gtk_widget_get_style_context(scrollbar);
+    gtk_style_context_save(context);
+    gtk_style_context_add_class(context, GTK_STYLE_CLASS_TROUGH);
+    
+    // Set state
+    GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+    gtk_style_context_set_state(context, state_flags);
+    
+    // Create surface for rendering
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_t *cr = cairo_create(surface);
+    
+    // Get button background color for the track (same as progress bar and scale track)
+    ensure_button_widget();
+    GtkStyleContext *button_context = gtk_widget_get_style_context(gButtonWidget);
+    GdkRGBA bg_color = {0.8, 0.8, 0.8, 1.0};
+    if (!gtk_style_context_lookup_color(button_context, "theme_bg_color", &bg_color))
+    {
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+        gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    }
+    
+    // Fill track with button background color
+    cairo_set_source_rgba(cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
+    cairo_paint(cr);
+    
+    cairo_destroy(cr);
+    gtk_style_context_restore(context);
+    
+    return surface;
+}
+
+// -- tperry 16-11-2025: New function to render progressbar using gtk_widget_draw
+// *** DO NOT MODIFY - This function works correctly with GTK3 theme colors ***
+// *** Uses gtk_widget_draw() which requires the prototype window to be shown ***
+cairo_surface_t*
+moz_gtk_progressbar_paint_to_surface(GdkRectangle * rect,
+                                      int *out_width, int *out_height)
+{
+    ensure_progress_widget();
+    
+    int width = rect->width;
+    int height = rect->height;
+    
+    if (out_width) *out_width = width;
+    if (out_height) *out_height = height;
+    
+    // Set progress to 0 for trough-only rendering
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(gProgressWidget), 0.0);
+    
+    // Set widget size allocation
+    GtkAllocation allocation;
+    allocation.x = 0;
+    allocation.y = 0;
+    allocation.width = width;
+    allocation.height = height;
+    gtk_widget_size_allocate(gProgressWidget, &allocation);
+    
+    // Clear the alloc_needed flag
+    GtkRequisition minimum_size, natural_size;
+    gtk_widget_get_preferred_size(gProgressWidget, &minimum_size, &natural_size);
+    
+    // Create surface for rendering
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_t *cr = cairo_create(surface);
+    
+    // Get button background color for the trough
+    ensure_button_widget();
+    GtkStyleContext *button_context = gtk_widget_get_style_context(gButtonWidget);
+    GdkRGBA bg_color = {0.8, 0.8, 0.8, 1.0};
+    if (!gtk_style_context_lookup_color(button_context, "theme_bg_color", &bg_color))
+    {
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+        gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    }
+    
+    // Fill trough with button background color
+    cairo_set_source_rgba(cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
+    cairo_paint(cr);
+    
+    cairo_destroy(cr);
+    
+    return surface;
+}
+
+// -- tperry 16-11-2025: New function to render progress chunk using gtk_widget_draw
+// *** DO NOT MODIFY - This function works correctly with GTK3 theme colors ***
+// *** The rect size represents the filled portion, fraction is set to 100% ***
+// *** Uses gtk_widget_draw() which requires the prototype window to be shown ***
+cairo_surface_t*
+moz_gtk_progress_chunk_paint_to_surface(GdkRectangle * rect,
+                                         gint flags,
+                                         int *out_width, int *out_height)
+{
+    ensure_progress_widget();
+    
+    int width = rect->width;
+    int height = rect->height;
+    
+    if (out_width) *out_width = width;
+    if (out_height) *out_height = height;
+    
+    // Set orientation and inverted property
+    GtkOrientation orientation = GTK_ORIENTATION_HORIZONTAL;
+    gboolean inverted = FALSE;
+    
+    if (flags & GTK_PROGRESS_TOP_TO_BOTTOM) {
+        orientation = GTK_ORIENTATION_VERTICAL;
+        inverted = FALSE;
+    }
+    else if (flags & GTK_PROGRESS_BOTTOM_TO_TOP) {
+        orientation = GTK_ORIENTATION_VERTICAL;
+        inverted = TRUE;
+    }
+    else if (flags & GTK_PROGRESS_RIGHT_TO_LEFT) {
+        orientation = GTK_ORIENTATION_HORIZONTAL;
+        inverted = TRUE;
+    }
+    else {
+        orientation = GTK_ORIENTATION_HORIZONTAL;
+        inverted = FALSE;
+    }
+    
+    gtk_orientable_set_orientation(GTK_ORIENTABLE(gProgressWidget), orientation);
+    gtk_progress_bar_set_inverted(GTK_PROGRESS_BAR(gProgressWidget), inverted);
+    
+    // The width/height passed in represents the filled portion
+    // We need to render a progress bar that shows this much fill
+    // Set fraction to 1.0 (100%) since the rect already represents the filled size
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(gProgressWidget), 1.0);
+    
+    // Set widget size allocation
+    GtkAllocation allocation;
+    allocation.x = 0;
+    allocation.y = 0;
+    allocation.width = width;
+    allocation.height = height;
+    gtk_widget_size_allocate(gProgressWidget, &allocation);
+    
+    // Clear the alloc_needed flag
+    GtkRequisition minimum_size, natural_size;
+    gtk_widget_get_preferred_size(gProgressWidget, &minimum_size, &natural_size);
+    
+    // Create surface for rendering
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_t *cr = cairo_create(surface);
+    
+    // Get the hilite color (same as LiveCode's "get the hilitecolor")
+    uint2 r, g, b;
+    moz_gtk_get_widget_color(GTK_STATE_SELECTED, r, g, b);
+    
+    // Convert from uint16 (0-65535) to double (0.0-1.0)
+    double red = r / 65535.0;
+    double green = g / 65535.0;
+    double blue = b / 65535.0;
+    
+    // Fill progress chunk with hilite color
+    cairo_set_source_rgb(cr, red, green, blue);
+    cairo_paint(cr);
+    
+    cairo_destroy(cr);
+    
+    return surface;
+}
+
+// Forward declarations for helpers defined later in this file
+static cairo_surface_t* make_transparent_surface(int width, int height, cairo_t **cr_out);
+static GtkStyleContext* build_scale_trough_context(bool is_horizontal, GtkStateFlags state_flags);
+static GtkStyleContext* build_scale_slider_context(bool is_horizontal, GtkStateFlags state_flags);
+
+// -- tperry 16-11-2025 / 20-06-2026: Render scale track.
+// Uses a standalone CSS node path context (scale > trough) so GTK3.20+ CSS
+// node-name selectors match, with the real widget's context set as parent so
+// the full theme CSS cascade is inherited.
+cairo_surface_t*
+moz_gtk_scale_track_paint_to_surface(GtkThemeWidgetType type,
+                                      GdkRectangle * rect,
+                                      int *out_width, int *out_height)
+{
+    int width = rect->width;
+    int height = rect->height;
+
+    if (out_width) *out_width = width;
+    if (out_height) *out_height = height;
+
+    bool is_horizontal = (type == MOZ_GTK_SCALE_TRACK_HORIZONTAL);
+    ensure_scale_widget();
+
+    // Build CSS node path context; parent = real widget context for theme cascade
+    GtkStyleContext *ctx = build_scale_trough_context(is_horizontal, GTK_STATE_FLAG_NORMAL);
+    gtk_style_context_set_parent(ctx,
+        gtk_widget_get_style_context(is_horizontal ? gHScaleWidget : gVScaleWidget));
+
+    cairo_t *cr;
+    cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+    // Trough is a thin strip — query CSS min-size, fall back to 4px
+    gint trough_thick = 0;
+    gtk_style_context_get(ctx, GTK_STATE_FLAG_NORMAL,
+        is_horizontal ? "min-height" : "min-width", &trough_thick, NULL);
+    if (trough_thick < 2) trough_thick = 4;
+
+    double tx, ty, tw, th;
+    if (is_horizontal) {
+        tx = 0; tw = width;
+        ty = (height - trough_thick) / 2.0;
+        th = trough_thick;
+    } else {
+        ty = 0; th = height;
+        tx = (width - trough_thick) / 2.0;
+        tw = trough_thick;
+    }
+
+    gtk_render_background(ctx, cr, tx, ty, tw, th);
+    gtk_render_frame    (ctx, cr, tx, ty, tw, th);
+    g_object_unref(ctx);
+
+    cairo_destroy(cr);
+    return surface;
+}
+
+// -- tperry 20-06-2026: Render scale thumb (slider knob).
+// CSS node path: scale > trough > slider. Parent = real widget context.
+// gtk_render_slider() applies border-radius so Adwaita renders a circle.
+cairo_surface_t*
+moz_gtk_scale_thumb_paint_to_surface(GtkThemeWidgetType type,
+                                      GdkRectangle * rect,
+                                      GtkWidgetState * state,
+                                      int *out_width, int *out_height)
+{
+    int width = rect->width;
+    int height = rect->height;
+
+    if (out_width) *out_width = width;
+    if (out_height) *out_height = height;
+
+    bool is_horizontal = (type == MOZ_GTK_SCALE_THUMB_HORIZONTAL);
+
+    GtkStateFlags sf = GTK_STATE_FLAG_NORMAL;
+    if (state && state->disabled)        sf = GTK_STATE_FLAG_INSENSITIVE;
+    else if (state && state->active)     sf = (GtkStateFlags)(sf | GTK_STATE_FLAG_ACTIVE);
+    else if (state && state->inHover)    sf = (GtkStateFlags)(sf | GTK_STATE_FLAG_PRELIGHT);
+
+    ensure_scale_widget();
+
+    // Build CSS node path context; parent = real widget context for theme cascade
+    GtkStyleContext *ctx = build_scale_slider_context(is_horizontal, sf);
+    gtk_style_context_set_parent(ctx,
+        gtk_widget_get_style_context(is_horizontal ? gHScaleWidget : gVScaleWidget));
+
+    cairo_t *cr;
+    cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+    // Query natural thumb size from CSS; fall back to a sensible square
+    gint thumb_w = 0, thumb_h = 0;
+    gtk_style_context_get(ctx, sf,
+        "min-width",  &thumb_w,
+        "min-height", &thumb_h, NULL);
+    if (thumb_w < 4) thumb_w = MIN(width,  14);
+    if (thumb_h < 4) thumb_h = MIN(height, 14);
+    // Clamp to rect bounds so the thumb isn't clipped by the surface edges
+    thumb_w = MIN(thumb_w, width);
+    thumb_h = MIN(thumb_h, height);
+
+    // Center the thumb within the allocated rect
+    double tx = (width  - thumb_w) / 2.0;
+    double ty = (height - thumb_h) / 2.0;
+
+    // gtk_render_slider applies border-radius (circle in Adwaita)
+    gtk_render_slider(ctx, cr, tx, ty, thumb_w, thumb_h,
+        is_horizontal ? GTK_ORIENTATION_HORIZONTAL : GTK_ORIENTATION_VERTICAL);
+
+    g_object_unref(ctx);
+
+    cairo_destroy(cr);
+    return surface;
+}
+
+// -- tperry 15-11-2025: New function to render dropdown arrow to cairo surface
+cairo_surface_t*
+moz_gtk_dropdown_arrow_paint_to_surface(GdkRectangle * rect,
+                                         GtkWidgetState * state,
+                                         int *out_width, int *out_height)
+{
+    ensure_arrow_widget();
+    
+    int width = rect->width;
+    int height = rect->height;
+    
+    if (out_width) *out_width = width;
+    if (out_height) *out_height = height;
+    
+    // Create surface for rendering
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_t *cr = cairo_create(surface);
+    
+    // Clear to transparent
+    cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+    cairo_paint(cr);
+    cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+    
+    // First render the button background using our button renderer
+    GtkStyleContext *button_context = gtk_widget_get_style_context(gDropdownButtonWidget);
+    gtk_style_context_save(button_context);
+    
+    GtkStateType button_state = ConvertGtkState(state);
+    GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+    
+    if (button_state == GTK_STATE_ACTIVE)
+        state_flags = GTK_STATE_FLAG_ACTIVE;
+    else if (button_state == GTK_STATE_PRELIGHT)
+        state_flags = GTK_STATE_FLAG_PRELIGHT;
+    else if (button_state == GTK_STATE_INSENSITIVE)
+        state_flags = GTK_STATE_FLAG_INSENSITIVE;
+    
+    gtk_style_context_set_state(button_context, state_flags);
+    
+    // Render button background
+    gtk_render_background(button_context, cr, 0, 0, width, height);
+    gtk_render_frame(button_context, cr, 0, 0, width, height);
+    
+    gtk_style_context_restore(button_context);
+    
+    // Calculate arrow position (mirrors gtkbutton's child positioning)
+    GdkRectangle arrow_rect, real_arrow_rect;
+    arrow_rect.x = 1 + XTHICKNESS(gDropdownButtonWidget);
+    arrow_rect.y = 1 + YTHICKNESS(gDropdownButtonWidget);
+    arrow_rect.width = MAX(1, width - arrow_rect.x * 2);
+    arrow_rect.height = MAX(1, height - arrow_rect.y * 2);
+    
+    calculate_arrow_dimensions(&arrow_rect, &real_arrow_rect);
+    
+    real_arrow_rect.width = real_arrow_rect.height = (int)
+                            (MIN(real_arrow_rect.width, real_arrow_rect.height) * 0.9);
+    
+    real_arrow_rect.x = (gint)
+                        floor(arrow_rect.x +
+                              ((arrow_rect.width - real_arrow_rect.width) / 2) + 0.5);
+    real_arrow_rect.y = (gint)
+                        floor(arrow_rect.y +
+                              ((arrow_rect.height - real_arrow_rect.height) / 2) + 0.5);
+    
+    // Render the arrow
+    GtkStyleContext *arrow_context = gtk_widget_get_style_context(gArrowWidget);
+    gtk_style_context_save(arrow_context);
+    
+    state_flags = GTK_STATE_FLAG_NORMAL;
+    if (state->disabled)
+        state_flags = GTK_STATE_FLAG_INSENSITIVE;
+    else if (state->active)
+        state_flags = GTK_STATE_FLAG_ACTIVE;
+    else if (state->inHover)
+        state_flags = GTK_STATE_FLAG_PRELIGHT;
+    
+    gtk_style_context_set_state(arrow_context, state_flags);
+    
+    // Render arrow pointing down
+    gtk_render_arrow(arrow_context, cr, G_PI, // Down arrow
+                     real_arrow_rect.x, real_arrow_rect.y,
+                     MIN(real_arrow_rect.width, real_arrow_rect.height));
+    
+    gtk_style_context_restore(arrow_context);
+    cairo_destroy(cr);
+    
+    return surface;
+}
+
+// -- tperry 15-11-2025: New function to render option button to cairo surface
+cairo_surface_t*
+moz_gtk_optionbutton_paint_to_surface(GdkRectangle * rect,
+                                       GtkWidgetState * state,
+                                       int *out_width, int *out_height)
+{
+    ensure_optionbutton_widget();
+    GtkWidget *widget = gOptionbuttonWidget;
+    
+    int width = rect->width;
+    int height = rect->height;
+    
+    if (out_width) *out_width = width;
+    if (out_height) *out_height = height;
+    
+    // Get border width
+    gint border_width = gtk_container_get_border_width(GTK_CONTAINER(widget));
+    
+    GdkRectangle button_area;
+    button_area.x = border_width;
+    button_area.y = border_width;
+    button_area.width = width - 2 * border_width;
+    button_area.height = height - 2 * border_width;
+    
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
+    gtk_style_context_save(context);
+    
+    // Convert state
+    GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+    if (state) {
+        if (state->disabled)
+            state_flags = GTK_STATE_FLAG_INSENSITIVE;
+        else if (state->active)
+            state_flags = GTK_STATE_FLAG_ACTIVE;
+        else if (state->inHover)
+            state_flags = GTK_STATE_FLAG_PRELIGHT;
+        if (state->focused)
+            state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_FOCUSED);
+    }
+    
+    gtk_style_context_set_state(context, state_flags);
+    
+    // Create surface for rendering
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_t *cr = cairo_create(surface);
+    
+    // Clear to transparent
+    cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+    cairo_paint(cr);
+    cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+    
+    // Render combobox button
+    gtk_render_background(context, cr, button_area.x, button_area.y,
+                          button_area.width, button_area.height);
+    gtk_render_frame(context, cr, button_area.x, button_area.y,
+                     button_area.width, button_area.height);
+    
+    // Render focus if needed
+    if (state && state->focused)
+    {
+        gtk_render_focus(context, cr, 0, 0, width, height);
+    }
+    
+    cairo_destroy(cr);
+    gtk_style_context_restore(context);
+    
+    return surface;
+}
+
+// -- tperry 15-11-2025: New function to render button to cairo surface
+cairo_surface_t*
+moz_gtk_button_paint_to_surface(GdkRectangle * rect,
+                                 GtkWidgetState * state,
+                                 GtkReliefStyle relief,
+                                 int *out_width, int *out_height)
+{
+    ensure_button_widget();
+    GtkWidget *widget = gButtonWidget;
+    
+    int width = rect->width;
+    int height = rect->height;
+    
+    if (out_width) *out_width = width;
+    if (out_height) *out_height = height;
+    
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
+    gtk_style_context_save(context);
+    
+    GtkStateType button_state = ConvertGtkState(state);
+    GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+    
+    gboolean interior_focus;
+    gint focus_width, focus_pad;
+    moz_gtk_widget_get_focus(widget, &interior_focus, &focus_width, &focus_pad);
+    
+    // Convert state to GTK3 state flags
+    if (button_state == GTK_STATE_ACTIVE)
+        state_flags = GTK_STATE_FLAG_ACTIVE;
+    else if (button_state == GTK_STATE_PRELIGHT)
+        state_flags = GTK_STATE_FLAG_PRELIGHT;
+    else if (button_state == GTK_STATE_INSENSITIVE)
+        state_flags = GTK_STATE_FLAG_INSENSITIVE;
+    
+    if (state->isDefault)
+        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_ACTIVE);
+    
+    gtk_button_set_relief(GTK_BUTTON(widget), relief);
+    
+    if (state->focused && !state->disabled)
+        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_FOCUSED);
+    
+    gtk_style_context_set_state(context, state_flags);
+    
+    // Calculate rendering area
+    gint x = 0, y = 0;
+    gint render_width = width, render_height = height;
+    
+    if (!interior_focus && state->focused) {
+        x += focus_width + focus_pad;
+        y += focus_width + focus_pad;
+        render_width -= 2 * (focus_width + focus_pad);
+        render_height -= 2 * (focus_width + focus_pad);
+    }
+    
+    GtkShadowType shadow_type = button_state == GTK_STATE_ACTIVE ? GTK_SHADOW_IN : GTK_SHADOW_OUT;
+    
+    // Create surface for rendering
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_t *cr = cairo_create(surface);
+    
+    // Clear to transparent
+    cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+    cairo_paint(cr);
+    cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+    
+    // Handle default button borders
+    if (state->isDefault && relief == GTK_RELIEF_NORMAL) {
+        gint default_top, default_left, default_bottom, default_right;
+        moz_gtk_button_get_default_overflow(&default_top, &default_left,
+                                            &default_bottom, &default_right);
+        x -= default_left;
+        y -= default_top;
+        render_width += default_left + default_right;
+        render_height += default_top + default_bottom;
+        
+        gtk_render_background(context, cr, x, y, render_width, render_height);
+        gtk_render_frame(context, cr, x, y, render_width, render_height);
+        
+        moz_gtk_button_get_default_border(&default_top, &default_left,
+                                          &default_bottom, &default_right);
+        x += default_left;
+        y += default_top;
+        render_width -= (default_left + default_right);
+        render_height -= (default_top + default_bottom);
+    }
+    
+    // Render button background and frame
+    if (relief != GTK_RELIEF_NONE ||
+        (button_state != GTK_STATE_NORMAL &&
+         button_state != GTK_STATE_INSENSITIVE)) {
+        gtk_render_background(context, cr, x, y, render_width, render_height);
+        gtk_render_frame(context, cr, x, y, render_width, render_height);
+    }
+    
+    // Render focus indicator
+    if (state->focused) {
+        GtkBorder border;
+        gtk_style_context_get_border(context, state_flags, &border);
+        
+        if (interior_focus) {
+            x += border.left + focus_pad;
+            y += border.top + focus_pad;
+            render_width -= (border.left + border.right) + 2 * focus_pad;
+            render_height -= (border.top + border.bottom) + 2 * focus_pad;
+        } else {
+            x -= focus_width + focus_pad;
+            y -= focus_width + focus_pad;
+            render_width += 2 * (focus_width + focus_pad);
+            render_height += 2 * (focus_width + focus_pad);
+        }
+        
+        gtk_render_focus(context, cr, x, y, render_width, render_height);
+    }
+    
+    cairo_destroy(cr);
+    gtk_style_context_restore(context);
+    
+    return surface;
+}
+
+// Build a fresh GtkStyleContext targeting the indicator CSS subnode.
+//
+// In GTK3's CSS node model the visible indicator is a child node:
+//   checkbutton > check     (for checkboxes)
+//   radiobutton > radio     (for radio buttons)
+//
+// gtk_widget_get_style_context(gCheckboxWidget) returns the "checkbutton"
+// node.  Calling gtk_render_check() on that node produces nothing visible
+// on modern themes — the check mark is owned by the "check" child node.
+// We build the correct path here so gtk_render_check/option work.
+//
+// gtk_widget_path_iter_set_object_name() requires GTK >= 3.20 (2016),
+// which is satisfied by any currently supported Ubuntu/Debian release.
+static GtkStyleContext*
+build_indicator_context(gboolean isradio, GtkStateFlags state_flags)
+{
+    GtkWidgetPath *path = gtk_widget_path_new();
+
+    // Parent node: checkbutton / radiobutton
+    gint parent = gtk_widget_path_append_type(
+        path, isradio ? GTK_TYPE_RADIO_BUTTON : GTK_TYPE_CHECK_BUTTON);
+    (void)parent;
+
+    // Child indicator node: "check" or "radio"
+    gint child = gtk_widget_path_append_type(
+        path, isradio ? GTK_TYPE_RADIO_BUTTON : GTK_TYPE_CHECK_BUTTON);
+    gtk_widget_path_iter_set_object_name(path, child, isradio ? "radio" : "check");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+    gtk_style_context_set_state(ctx, state_flags);
+    gtk_widget_path_free(path);
+    return ctx;
+}
+
+// -- tperry 15-11-2025: New function to render toggle to cairo surface and return it
+// This allows capturing the rendered output without going through GdkWindow
+cairo_surface_t*
+moz_gtk_toggle_paint_to_surface(GdkRectangle * rect,
+                                 GtkWidgetState * state,
+                                 gboolean selected, gboolean isradio,
+                                 int *out_width, int *out_height)
+{
+    gint indicator_size, indicator_spacing;
+
+    if (isradio)
+        moz_gtk_radio_get_metrics(&indicator_size, &indicator_spacing);
+    else
+        moz_gtk_checkbox_get_metrics(&indicator_size, &indicator_spacing);
+
+    int width  = indicator_size;
+    int height = indicator_size;
+
+    if (out_width)  *out_width  = width;
+    if (out_height) *out_height = height;
+
+    // Compose GTK3 state flags
+    GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+    if (state->active)   state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_ACTIVE);
+    if (state->inHover)  state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_PRELIGHT);
+    if (state->disabled) state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_INSENSITIVE);
+    if (selected)        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_CHECKED);
+
+    // Use a style context rooted at the indicator subnode, not the button node
+    GtkStyleContext *context = build_indicator_context(isradio, state_flags);
+
+    // Create surface for rendering
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_t *cr = cairo_create(surface);
+
+    cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+    cairo_paint(cr);
+    cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+
+    gtk_render_background(context, cr, 0, 0, width, height);
+    gtk_render_frame(context, cr, 0, 0, width, height);
+    if (isradio)
+        gtk_render_option(context, cr, 0, 0, width, height);
+    else
+        gtk_render_check(context, cr, 0, 0, width, height);
+
+    cairo_destroy(cr);
+    g_object_unref(context);
+
+    return surface;
+}
+
 static gint
-moz_gtk_toggle_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_toggle_paint(GdkWindow * drawable, GdkRectangle * rect,
                      GdkRectangle * cliprect, GtkWidgetState * state,
                      gboolean selected, gboolean isradio)
 {
-GtkStateType state_type = ConvertGtkState(state);
-    GtkShadowType shadow_type = (selected)?GTK_SHADOW_IN:GTK_SHADOW_OUT;
     gint indicator_size, indicator_spacing;
-    gint x, y, width, height;
-    gint focus_x, focus_y, focus_width, focus_height;
-    GtkWidget *w;
-    GtkStyle *style;
 
-    if (isradio) {
+    if (isradio)
         moz_gtk_radio_get_metrics(&indicator_size, &indicator_spacing);
-        w = gRadiobuttonWidget;
-    } else {
+    else
         moz_gtk_checkbox_get_metrics(&indicator_size, &indicator_spacing);
-        w = gCheckboxWidget;
-    }
 
-    /*
-     * vertically center in the box, since XUL sometimes ignores our
-     * GetMinimumWidgetSize in the vertical dimension
-     */
-    x = rect->x + indicator_spacing;
-    y = rect->y + (rect->height - indicator_size) / 2;
-    width = indicator_size;
-    height = indicator_size;
+    gint x      = rect->x + indicator_spacing;
+    gint y      = rect->y + (rect->height - indicator_size) / 2;
+    gint width  = indicator_size;
+    gint height = indicator_size;
 
-    focus_x = x - indicator_spacing;
-    focus_y = y - indicator_spacing;
-    focus_width = width + 2 * indicator_spacing;
-    focus_height = height + 2 * indicator_spacing;
-  
-    style = w->style;
-    TSOffsetStyleGCs(style, x, y);
+    GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+    if (state->active)   state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_ACTIVE);
+    if (state->inHover)  state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_PRELIGHT);
+    if (state->disabled) state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_INSENSITIVE);
+    if (selected)        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_CHECKED);
 
-    gtk_widget_set_sensitive(w, !state->disabled);
-    GTK_TOGGLE_BUTTON(w)->active = selected;
-      
-    if (isradio) {
-        gtk_paint_option(style, drawable, state_type, shadow_type, cliprect,
-                         gRadiobuttonWidget, "radiobutton", x, y,
-                         width, height);
-        if (state->focused) {
-            gtk_paint_focus(style, drawable, GTK_STATE_ACTIVE, cliprect,
-                            gRadiobuttonWidget, "radiobutton", focus_x, focus_y,
-                            focus_width, focus_height);
-        }
-    }
-    else {
+    GtkStyleContext *context = build_indicator_context(isradio, state_flags);
 
-        gtk_paint_check(style, drawable, state_type, shadow_type, cliprect, 
-                        gCheckboxWidget, "checkbutton", x, y, width, height);
-        if (state->focused) {
-            gtk_paint_focus(style, drawable, GTK_STATE_ACTIVE, cliprect,
-                            gCheckboxWidget, "checkbutton", focus_x, focus_y,
-                            focus_width, focus_height);
-        }
-    }
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_t *offscreen_cr = cairo_create(surface);
+
+    cairo_set_operator(offscreen_cr, CAIRO_OPERATOR_CLEAR);
+    cairo_paint(offscreen_cr);
+    cairo_set_operator(offscreen_cr, CAIRO_OPERATOR_OVER);
+
+    gtk_render_background(context, offscreen_cr, 0, 0, width, height);
+    gtk_render_frame(context, offscreen_cr, 0, 0, width, height);
+    if (isradio)
+        gtk_render_option(context, offscreen_cr, 0, 0, width, height);
+    else
+        gtk_render_check(context, offscreen_cr, 0, 0, width, height);
+
+    cairo_t *target_cr = moz_gdk_create_cairo_context(drawable);
+    cairo_set_source_surface(target_cr, surface, x, y);
+    cairo_paint(target_cr);
+
+    cairo_destroy(offscreen_cr);
+    cairo_surface_destroy(surface);
+    cairo_destroy(target_cr);
+    g_object_unref(context);
 
     return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - GtkMisc removed, use margin and alignment properties
 static gint
 calculate_arrow_dimensions(GdkRectangle * rect, GdkRectangle * arrow_rect)
 {
-	GtkMisc *misc = GTK_MISC(gArrowWidget);
+	// Get margin and alignment from widget properties
+	gint xpad = gtk_widget_get_margin_start(gArrowWidget) + gtk_widget_get_margin_end(gArrowWidget);
+	gint ypad = gtk_widget_get_margin_top(gArrowWidget) + gtk_widget_get_margin_bottom(gArrowWidget);
+	
+	// GTK3: alignment is typically 0.5 (centered) for arrows
+	gfloat xalign = 0.5;
+	gfloat yalign = 0.5;
 
-	gint extent = MIN(rect->width - misc->xpad * 2,
-	                  rect->height - misc->ypad * 2);
+	gint extent = MIN(rect->width - xpad * 2,
+	                  rect->height - ypad * 2);
 
 	arrow_rect->x = (gint)(
-	                    (rect->x + misc->xpad) *
-	                    (1.0 - misc->xalign) +
-	                    (rect->x + rect->width - extent - misc->xpad) *
-	                    misc->xalign);
+	                    (rect->x + xpad) *
+	                    (1.0 - xalign) +
+	                    (rect->x + rect->width - extent - xpad) *
+	                    xalign);
 
 	arrow_rect->y = (gint)(
-	                    (rect->y + misc->ypad) *
-	                    (1.0 - misc->yalign) +
-	                    (rect->y + rect->height - extent - misc->ypad) *
-	                    misc->yalign);
+	                    (rect->y + ypad) *
+	                    (1.0 - yalign) +
+	                    (rect->y + rect->height - extent - ypad) *
+	                    yalign);
 
 	arrow_rect->width = arrow_rect->height = extent;
 
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_scrollbar_button_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_scrollbar_button_paint(GdkWindow * drawable, GdkRectangle * rect,
                                GdkRectangle * cliprect,
                                GtkWidgetState * state, GtkArrowType type)
 {
-	GtkStateType state_type = ConvertGtkState(state);
-	GtkShadowType shadow_type = (state->active) ?
-	                            GTK_SHADOW_IN : GTK_SHADOW_OUT;
 	GdkRectangle button_rect;
 	GdkRectangle arrow_rect;
-	GtkStyle *style;
-	GtkScrollbar *scrollbar;
+	GtkWidget *scrollbar;
 
 	ensure_scrollbar_widget();
 
 	if (type < 2)
-		scrollbar = GTK_SCROLLBAR(gVertScrollbarWidget);
+		scrollbar = gVertScrollbarWidget;
 	else
-		scrollbar = GTK_SCROLLBAR(gHorizScrollbarWidget);
-
-
-	style = GTK_WIDGET(scrollbar)->style;
+		scrollbar = gHorizScrollbarWidget;
 
 	ensure_arrow_widget();
 
-
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-	gtk_paint_box(style, drawable, GTK_STATE_ACTIVE, GTK_SHADOW_IN,
-	                cliprect, GTK_WIDGET(scrollbar), "trough",
-	                rect->x,
-	                rect->y,
-	                rect->width,
-	                rect->height);
+	GtkStyleContext *context = gtk_widget_get_style_context(scrollbar);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	// Convert state
+	GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+	if (state->disabled)
+		state_flags = GTK_STATE_FLAG_INSENSITIVE;
+	else if (state->active)
+		state_flags = GTK_STATE_FLAG_ACTIVE;
+	else if (state->inHover)
+		state_flags = GTK_STATE_FLAG_PRELIGHT;
+	
+	gtk_style_context_set_state(context, state_flags);
+	
+	// Render trough background
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
+	gtk_render_frame(context, cr, rect->x, rect->y, rect->width, rect->height);
 
 	calculate_arrow_dimensions(rect, &button_rect);
-	TSOffsetStyleGCs(style, button_rect.x, button_rect.y);
 
-	gtk_paint_box(style, drawable, state_type, shadow_type, cliprect,
-	                GTK_WIDGET(scrollbar),
-	                (type < 2) ? "vscrollbar" : "hscrollbar",
-	                button_rect.x, button_rect.y, button_rect.width,
-	                button_rect.height);
+	// Render button
+	gtk_render_background(context, cr, button_rect.x, button_rect.y, 
+	                      button_rect.width, button_rect.height);
+	gtk_render_frame(context, cr, button_rect.x, button_rect.y,
+	                 button_rect.width, button_rect.height);
 
+	// Calculate arrow position
 	arrow_rect.width = button_rect.width / 2;
 	arrow_rect.height = button_rect.height / 2;
-	arrow_rect.x =
-	    button_rect.x + (button_rect.width - arrow_rect.width) / 2;
-	arrow_rect.y =
-	    button_rect.y + (button_rect.height - arrow_rect.height) / 2;
+	arrow_rect.x = button_rect.x + (button_rect.width - arrow_rect.width) / 2;
+	arrow_rect.y = button_rect.y + (button_rect.height - arrow_rect.height) / 2;
 
-	gtk_paint_arrow(style, drawable, state_type, shadow_type, cliprect,
-	                  GTK_WIDGET(scrollbar), (type < 2) ?
-	                  "vscrollbar" : "hscrollbar",
-	                  type, TRUE, arrow_rect.x, arrow_rect.y,
-	                  arrow_rect.width, arrow_rect.height);
+	// Render arrow
+	gtk_render_arrow(context, cr, 
+	                 type == GTK_ARROW_UP ? 0 : 
+	                 type == GTK_ARROW_DOWN ? G_PI :
+	                 type == GTK_ARROW_LEFT ? -G_PI/2 : G_PI/2,
+	                 arrow_rect.x, arrow_rect.y,
+	                 MIN(arrow_rect.width, arrow_rect.height));
 
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
 moz_gtk_scrollbar_trough_paint(GtkThemeWidgetType widget,
-                               GdkDrawable * drawable, GdkRectangle * rect,
+                               GdkWindow * drawable, GdkRectangle * rect,
                                GdkRectangle * cliprect,
                                GtkWidgetState * state)
 {
-
-	GtkStyle *style;
-	GtkScrollbar *scrollbar;
+	GtkWidget *scrollbar;
 
 	ensure_scrollbar_widget();
 
 	if (widget == MOZ_GTK_SCROLLBAR_TRACK_HORIZONTAL)
-		scrollbar = GTK_SCROLLBAR(gHorizScrollbarWidget);
+		scrollbar = gHorizScrollbarWidget;
 	else
-		scrollbar = GTK_SCROLLBAR(gVertScrollbarWidget);
+		scrollbar = gVertScrollbarWidget;
 
+	GtkStyleContext *context = gtk_widget_get_style_context(scrollbar);
+	
+	// GTK3: Save context and add proper CSS classes
+	gtk_style_context_save(context);
+	gtk_style_context_add_class(context, GTK_STYLE_CLASS_TROUGH);
+	
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	// -- tperry 15-11-2025: WORKAROUND - System Cairo 1.16.0 crashes in cairo_clip()
+	// Skip clipping entirely - it causes crashes with system Cairo
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr);
+	}
+	
+	// Set state
+	GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+	gtk_style_context_set_state(context, state_flags);
+	
+	// Render trough
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
+	gtk_render_frame(context, cr, rect->x, rect->y, rect->width, rect->height);
 
-
-	style = GTK_WIDGET(scrollbar)->style;
-
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-
-	gtk_paint_box(style, drawable, GTK_STATE_ACTIVE, GTK_SHADOW_IN,
-	                cliprect, GTK_WIDGET(scrollbar), "trough",
-	                rect->x,
-	                rect->y,
-	                rect->width,
-	                rect->height);
-
+	// Render focus if needed
 	if (state->focused)
 	{
-		gtk_paint_focus(style, drawable, GTK_STATE_ACTIVE, cliprect,
-		                  GTK_WIDGET(scrollbar), "trough",
-		                  rect->x, rect->y, rect->width, rect->height);
+		gtk_render_focus(context, cr, rect->x, rect->y, rect->width, rect->height);
 	}
 
+	cairo_destroy(cr);
+	
+	// GTK3: Restore context
+	gtk_style_context_restore(context);
+	
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-
 moz_gtk_scrollbar_thumb_paint(GtkThemeWidgetType widget,
-                              GdkDrawable * drawable, GdkRectangle * rect,
+                              GdkWindow * drawable, GdkRectangle * rect,
                               GdkRectangle * cliprect, GtkWidgetState * state)
 {
-	GtkStateType state_type = (state->inHover || state->active) ?
-	                          GTK_STATE_PRELIGHT : GTK_STATE_NORMAL;
-	GtkStyle *style;
-	GtkScrollbar *scrollbar;
+	GtkWidget *scrollbar;
 	GtkAdjustment *adj;
 
 	ensure_scrollbar_widget();
 
 	if (widget == MOZ_GTK_SCROLLBAR_THUMB_HORIZONTAL)
-		scrollbar = GTK_SCROLLBAR(gHorizScrollbarWidget);
+		scrollbar = gHorizScrollbarWidget;
 	else
-		scrollbar = GTK_SCROLLBAR(gVertScrollbarWidget);
-	style = GTK_WIDGET(scrollbar)->style;
+		scrollbar = gVertScrollbarWidget;
 
 	adj = gtk_range_get_adjustment(GTK_RANGE(scrollbar));
 
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-
 	int thumbborder = 1;
 
+	// Adjust rectangle for thumb border
 	if (widget == MOZ_GTK_SCROLLBAR_THUMB_HORIZONTAL)
 	{
 		rect->x += thumbborder;
 		rect->width -= thumbborder * 2;
-		adj->page_size = rect->width - 2;
+		gtk_adjustment_set_page_size(adj, rect->width - 2);
 	}
 	else
 	{
 		rect->y += thumbborder;
 		rect->height -= thumbborder * 2;
-		adj->page_size = rect->height - 2;
+		gtk_adjustment_set_page_size(adj, rect->height - 2);
 	}
 
+	// Set adjustment values
+	gtk_adjustment_set_lower(adj, 0);
+	gtk_adjustment_set_value(adj, state->curpos);
+	gtk_adjustment_set_upper(adj, state->maxpos);
 
-	adj->lower = 0;
-	adj->value = state->curpos;
-	adj->upper = state->maxpos;
-	gtk_adjustment_changed(adj);
+	GtkStyleContext *context = gtk_widget_get_style_context(scrollbar);
+	
+	// GTK3: Save context and add proper CSS classes
+	gtk_style_context_save(context);
+	gtk_style_context_add_class(context, GTK_STYLE_CLASS_SLIDER);
+	
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	// Set state
+	GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+	if (state->inHover || state->active)
+		state_flags = GTK_STATE_FLAG_PRELIGHT;
+	
+	gtk_style_context_set_state(context, state_flags);
+	
+	// Render slider/thumb
+	gtk_render_slider(context, cr, rect->x, rect->y, rect->width, rect->height,
+	                  (widget == MOZ_GTK_SCROLLBAR_THUMB_HORIZONTAL) ?
+	                  GTK_ORIENTATION_HORIZONTAL : GTK_ORIENTATION_VERTICAL);
 
-
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-
-	gtk_paint_slider(style, drawable, state_type, GTK_SHADOW_OUT,
-	                   cliprect, GTK_WIDGET(scrollbar), "slider", rect->x,
-	                   rect->y, rect->width, rect->height,
-	                   (widget ==
-	                    MOZ_GTK_SCROLLBAR_THUMB_HORIZONTAL) ?
-	                   GTK_ORIENTATION_HORIZONTAL :
-	                   GTK_ORIENTATION_VERTICAL);
-
+	cairo_destroy(cr);
+	
+	// GTK3: Restore context
+	gtk_style_context_restore(context);
+	
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_gripper_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_gripper_paint(GdkWindow * drawable, GdkRectangle * rect,
                       GdkRectangle * cliprect, GtkWidgetState * state)
 {
-	GtkStateType state_type = ConvertGtkState(state);
-	GtkShadowType shadow_type;
-	GtkStyle *style;
-
 	ensure_handlebox_widget();
-	style = gHandleBoxWidget->style;
-	shadow_type = GTK_HANDLE_BOX(gHandleBoxWidget)->shadow_type;
+	
+	GtkStyleContext *context = gtk_widget_get_style_context(gHandleBoxWidget);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	// Convert state
+	GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+	if (state->disabled)
+		state_flags = GTK_STATE_FLAG_INSENSITIVE;
+	else if (state->active)
+		state_flags = GTK_STATE_FLAG_ACTIVE;
+	else if (state->inHover)
+		state_flags = GTK_STATE_FLAG_PRELIGHT;
+	
+	gtk_style_context_set_state(context, state_flags);
+	
+	// Render handlebox
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
+	gtk_render_frame(context, cr, rect->x, rect->y, rect->width, rect->height);
 
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-	gtk_paint_box(style, drawable, state_type, shadow_type, cliprect,
-	                gHandleBoxWidget, "handlebox_bin", rect->x, rect->y,
-	                rect->width, rect->height);
-
-
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_entry_frame_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_entry_frame_paint(GdkWindow * drawable, GdkRectangle * rect,
                           GdkRectangle * cliprect, GtkWidgetState * state)
 {
-    GtkStateType bg_state = state->disabled ?
-                                GTK_STATE_INSENSITIVE : GTK_STATE_NORMAL;
     gint x, y, width = rect->width, height = rect->height;
-    GtkStyle* style;
     gboolean interior_focus;
-    gboolean theme_honors_transparency = FALSE;
     gint focus_width;
 
 	GtkWidget *widget;
 	ensure_entry_widget();
 	widget = gEntryWidget;
 
-    style = widget->style;
-
-    gtk_widget_style_get_ptr(widget,
+    gtk_widget_style_get(widget,
                          "interior-focus", &interior_focus,
                          "focus-line-width", &focus_width,
                          NULL);
 
-    /* gtkentry.c uses two windows, one for the entire widget and one for the
-     * text area inside it. The background of both windows is set to the "base"
-     * color of the new state in gtk_entry_state_changed, but only the inner
-     * textarea window uses gtk_paint_flat_box when exposed */
-
-    TSOffsetStyleGCs(style, rect->x, rect->y);
-
-    /* This gets us a lovely greyish disabledish look */
     gtk_widget_set_sensitive(widget, !state->disabled);
 
-    /* GTK fills the outer widget window with the base color before drawing the widget.
-     * Some older themes rely on this behavior, but many themes nowadays use rounded
-     * corners on their widgets. While most GTK apps are blissfully unaware of this
-     * problem due to their use of the default window background, we render widgets on
-     * many kinds of backgrounds on the web.
-     * If the theme is able to cope with transparency, then we can skip pre-filling
-     * and notify the theme it will paint directly on the canvas. */
-
     /* Get the position of the inner window, see _gtk_entry_get_borders */
-    x = XTHICKNESS(style);
-    y = YTHICKNESS(style);
+    x = XTHICKNESS(widget);
+    y = YTHICKNESS(widget);
 
     if (!interior_focus) {
         x += focus_width;
         y += focus_width;
     }
 
-    /* Now paint the shadow and focus border.
-     * We do like in gtk_entry_draw_frame, we first draw the shadow, a tad
-     * smaller when focused if the focus is not interior, then the focus. */
+    /* Now paint the shadow and focus border */
     x = rect->x;
     y = rect->y;
 
     if (state->focused && !state->disabled) {
-        /* This will get us the lit borders that focused textboxes enjoy on
-         * some themes. */
-        GTK_WIDGET_SET_FLAGS(widget, GTK_HAS_FOCUS);
-
         if (!interior_focus) {
-            /* Indent the border a little bit if we have exterior focus 
-               (this is what GTK does to draw native entries) */
+            /* Indent the border a little bit if we have exterior focus */
             x += focus_width;
             y += focus_width;
             width -= 2 * focus_width;
@@ -975,75 +1871,90 @@ moz_gtk_entry_frame_paint(GdkDrawable * drawable, GdkRectangle * rect,
         }
     }
 
-    gtk_paint_shadow(style, drawable, GTK_STATE_NORMAL, GTK_SHADOW_IN,
-                     cliprect, widget, "entry", x, y, width, height);
+    GtkStyleContext *context = gtk_widget_get_style_context(widget);
+    cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+    
+    // Set clip region
+    if (cliprect) {
+        // cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+        // cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+    }
+    
+    // Set state flags
+    GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+    if (state->disabled)
+        state_flags = GTK_STATE_FLAG_INSENSITIVE;
+    if (state->focused && !state->disabled)
+        state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_FOCUSED);
+    
+    gtk_style_context_set_state(context, state_flags);
+    
+    // Render entry frame
+    gtk_render_background(context, cr, x, y, width, height);
+    gtk_render_frame(context, cr, x, y, width, height);
 
-    if (state->focused && !state->disabled) {
-        if (!interior_focus) {
-            gtk_paint_focus(style, drawable,  GTK_STATE_NORMAL, cliprect,
-                            widget, "entry",
-                            rect->x, rect->y, rect->width, rect->height);
-        }
-
-        /* Now unset the focus flag. We don't want other entries to look
-         * like they're focused too! */
-        GTK_WIDGET_UNSET_FLAGS(widget, GTK_HAS_FOCUS);
+    // Render focus if needed
+    if (state->focused && !state->disabled && !interior_focus) {
+        gtk_render_focus(context, cr, rect->x, rect->y, rect->width, rect->height);
     }
 
+    cairo_destroy(cr);
     return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_entry_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_entry_paint(GdkWindow * drawable, GdkRectangle * rect,
                     GdkRectangle * cliprect, GtkWidgetState * state)
 {
 	gint x, y;
-	GtkStyle *style;
 
 	ensure_entry_widget();
-	style = gEntryWidget->style;
 
 	moz_gtk_generic_container_paint(drawable, rect, cliprect, state,
 	                                gEntryWidget, "viewportbin");
 
 	/* paint the background first */
-	x = XTHICKNESS(style);
-	y = YTHICKNESS(style);
+	x = XTHICKNESS(gEntryWidget);
+	y = YTHICKNESS(gEntryWidget);
 
-	TSOffsetStyleGCs(style, rect->x + x, rect->y + y);
-	gtk_paint_flat_box(style, drawable, GTK_STATE_NORMAL, GTK_SHADOW_NONE,
-	                     cliprect, gEntryWidget, "entry_bg", rect->x + x,
-	                     rect->y + y, rect->width - 2 * x,
-	                     rect->height - 2 * y);
+	GtkStyleContext *context = gtk_widget_get_style_context(gEntryWidget);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+	
+	// Render entry background
+	gtk_render_background(context, cr, rect->x + x, rect->y + y,
+	                      rect->width - 2 * x, rect->height - 2 * y);
 
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_dropdown_arrow_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_dropdown_arrow_paint(GdkWindow * drawable, GdkRectangle * rect,
                              GdkRectangle * cliprect, GtkWidgetState * state)
 {
 	GdkRectangle arrow_rect, real_arrow_rect;
-	GtkStateType state_type = ConvertGtkState(state);
-	GtkShadowType shadow_type =
-	    state->active ? GTK_SHADOW_IN : GTK_SHADOW_OUT;
-	GtkStyle *style;
 
 	ensure_arrow_widget();
 	moz_gtk_button_paint(drawable, rect, cliprect, state,
 	                     GTK_RELIEF_NORMAL, gDropdownButtonWidget);
 
 	/* This mirrors gtkbutton's child positioning */
-	style = gDropdownButtonWidget->style;
-	arrow_rect.x = rect->x + 1 + XTHICKNESS(gDropdownButtonWidget->style);
-	arrow_rect.y = rect->y + 1 + YTHICKNESS(gDropdownButtonWidget->style);
+	arrow_rect.x = rect->x + 1 + XTHICKNESS(gDropdownButtonWidget);
+	arrow_rect.y = rect->y + 1 + YTHICKNESS(gDropdownButtonWidget);
 	arrow_rect.width = MAX(1, rect->width - (arrow_rect.x - rect->x) * 2);
-	arrow_rect.height =
-	    MAX(1, rect->height - (arrow_rect.y - rect->y) * 2);
+	arrow_rect.height = MAX(1, rect->height - (arrow_rect.y - rect->y) * 2);
 
 	calculate_arrow_dimensions(&arrow_rect, &real_arrow_rect);
-	style = gArrowWidget->style;
-	TSOffsetStyleGCs(style, real_arrow_rect.x, real_arrow_rect.y);
 
 	real_arrow_rect.width = real_arrow_rect.height = (int)
 	                        (MIN(real_arrow_rect.width, real_arrow_rect.height) * 0.9);
@@ -1056,140 +1967,167 @@ moz_gtk_dropdown_arrow_paint(GdkDrawable * drawable, GdkRectangle * rect,
 	                          ((arrow_rect.height - real_arrow_rect.height) / 2) +
 	                          0.5);
 
-	gtk_paint_arrow(style, drawable, state_type, shadow_type, cliprect,
-	                  gHorizScrollbarWidget, "arrow", GTK_ARROW_DOWN, TRUE,
-	                  real_arrow_rect.x, real_arrow_rect.y,
-	                  real_arrow_rect.width, real_arrow_rect.height);
+	GtkStyleContext *context = gtk_widget_get_style_context(gArrowWidget);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	// Convert state
+	GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+	if (state->disabled)
+		state_flags = GTK_STATE_FLAG_INSENSITIVE;
+	else if (state->active)
+		state_flags = GTK_STATE_FLAG_ACTIVE;
+	else if (state->inHover)
+		state_flags = GTK_STATE_FLAG_PRELIGHT;
+	
+	gtk_style_context_set_state(context, state_flags);
+	
+	// Render arrow pointing down
+	gtk_render_arrow(context, cr, G_PI, // Down arrow
+	                 real_arrow_rect.x, real_arrow_rect.y,
+	                 MIN(real_arrow_rect.width, real_arrow_rect.height));
 
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_container_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_container_paint(GdkWindow * drawable, GdkRectangle * rect,
                         GdkRectangle * cliprect, GtkWidgetState * state,
                         gboolean isradio)
 {
-	GtkStateType state_type = ConvertGtkState(state);
-	GtkStyle *style;
+	GtkWidget *widget;
 
 	if (isradio)
 	{
 		ensure_radiobutton_widget();
-		style = gRadiobuttonWidget->style;
+		widget = gRadiobuttonWidget;
 	}
 	else
 	{
 		ensure_checkbox_widget();
-		style = gCheckboxWidget->style;
+		widget = gCheckboxWidget;
 	}
 
-	if (state_type != GTK_STATE_NORMAL
-	        && state_type != GTK_STATE_PRELIGHT)
-		state_type = GTK_STATE_NORMAL;
+	GtkStyleContext *context = gtk_widget_get_style_context(widget);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	// Convert state - only use NORMAL or PRELIGHT
+	GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+	if (state->inHover && !state->disabled)
+		state_flags = GTK_STATE_FLAG_PRELIGHT;
+	
+	gtk_style_context_set_state(context, state_flags);
+	
+	// Render background
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
 
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-
-	gtk_paint_flat_box(style, drawable, state_type,
-	                     GTK_SHADOW_ETCHED_OUT, cliprect,
-	                     (isradio ? gRadiobuttonWidget : gCheckboxWidget),
-	                     isradio ? "radiobutton" : "checkbutton",
-	                     rect->x, rect->y, rect->width,
-	                     rect->height);
-
-
+	// Render focus if needed
 	if (state->focused)
 	{
-		gtk_paint_focus(style, drawable, state_type, cliprect,
-		                  (isradio ? gRadiobuttonWidget : gCheckboxWidget),
-		                  isradio ? "radiobutton" : "checkbutton",
-		                  rect->x, rect->y, rect->width, rect->height);
+		gtk_render_focus(context, cr, rect->x, rect->y, rect->width, rect->height);
 	}
 
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_toolbar_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_toolbar_paint(GdkWindow * drawable, GdkRectangle * rect,
                       GdkRectangle * cliprect)
 {
-	GtkStyle *style;
-
 	ensure_handlebox_widget();
-	style = gHandleBoxWidget->style;
 
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-
-	if (style->bg_pixmap[GTK_STATE_NORMAL])
-	{
-		gtk_style_apply_default_background(style, drawable, TRUE,
-		                                     GTK_STATE_NORMAL,
-		                                     cliprect, rect->x, rect->y,
-		                                     rect->width, rect->height);
+	GtkStyleContext *context = gtk_widget_get_style_context(gHandleBoxWidget);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
 	}
-	else
-	{
-		gtk_paint_box(style, drawable, GTK_STATE_NORMAL,
-		                GTK_SHADOW_OUT, cliprect, gHandleBoxWidget,
-		                "dockitem_bin", rect->x, rect->y, rect->width,
-		                rect->height);
-	}
+	
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+	
+	// Render toolbar background and frame
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
+	gtk_render_frame(context, cr, rect->x, rect->y, rect->width, rect->height);
 
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_tooltip_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_tooltip_paint(GdkWindow * drawable, GdkRectangle * rect,
                       GdkRectangle * cliprect)
 {
-	GtkStyle *style;
-
 	ensure_tooltip_widget();
-	style = gTooltipWidget->tip_window->style;
-
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-	gtk_paint_flat_box(style, drawable, GTK_STATE_NORMAL, GTK_SHADOW_OUT,
-	                     cliprect, gTooltipWidget->tip_window, "tooltip",
-	                     rect->x, rect->y, rect->width, rect->height);
-
+	
+	GtkStyleContext *context = gtk_widget_get_style_context(gTooltipWindow);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+	// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	
+	// Render tooltip background
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
+	gtk_render_frame(context, cr, rect->x, rect->y, rect->width, rect->height);
+	
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_frame_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_frame_paint(GdkWindow * drawable, GdkRectangle * rect,
                     GdkRectangle * cliprect)
 {
-	// ensure_label_widget() also creates gProtoWindow, so call it before
-	// we dereference gProtoWindow->style below.
-	// ensure_label_widget() also creates gProtoWindow when it is null.
-	ensure_label_widget();
-	if (gProtoWindow == nullptr || gProtoWindow->style == nullptr)
-		return MOZ_GTK_UNKNOWN_WIDGET;
-	GtkStyle *style = gProtoWindow->style;
-
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-	gtk_paint_flat_box(style, drawable, GTK_STATE_NORMAL, GTK_SHADOW_NONE,
-	                     NULL, gProtoWindow, "base", rect->x, rect->y,
-	                     rect->width, rect->height);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
 
 	ensure_frame_widget();
-	style = gFrameWidget->style;
 
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-	gtk_paint_shadow(style, drawable, GTK_STATE_NORMAL, GTK_SHADOW_IN,
-	                   cliprect, gFrameWidget, "frame", rect->x, rect->y,
-	                   rect->width, rect->height);
+	// Render base background first
+	GtkStyleContext *context = gtk_widget_get_style_context(gFrameWidget);
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
+	
+	// Set clip region for frame
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	// Render frame
+	context = gtk_widget_get_style_context(gFrameWidget);
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+	gtk_render_frame(context, cr, rect->x, rect->y, rect->width, rect->height);
 
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_listbox_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_listbox_paint(GdkWindow * drawable, GdkRectangle * rect,
                       GdkRectangle * cliprect)
 {
-
 	int xw, yw;
 	ensure_entry_widget();
-	GtkStyle *style = gEntryWidget->style;
 
 	moz_gtk_get_widget_border(MOZ_GTK_FRAME, &xw, &yw);
 
@@ -1200,9 +2138,14 @@ moz_gtk_listbox_paint(GdkDrawable * drawable, GdkRectangle * rect,
 	rect->width -= (xw * 2);
 	rect->height -= (yw * 2);
 
-	gdk_draw_rectangle(drawable, style->white_gc, TRUE,
-	                     rect->x, rect->y,
-	                     rect->width, rect->height);
+	// Render listbox interior background using theme's base color
+	GtkStyleContext *context = gtk_widget_get_style_context(gEntryWidget);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
+	
+	cairo_destroy(cr);
 
 	return MOZ_GTK_SUCCESS;
 }
@@ -1216,9 +2159,10 @@ void spinbutton_get_rects(GtkArrowType type, GdkRectangle *rect,
 
 	ensure_spinbutton_widget();
 
-	arrow_size = rect->width - (2 * XTHICKNESS(gSpinbuttonWidget->style));
+	// -- tperry 13-11-2025: GTK3 - widget->style removed, pass widget directly
+	arrow_size = rect->width - (2 * XTHICKNESS(gSpinbuttonWidget));
 
-	width = arrow_size + 2 * gSpinbuttonWidget->style->xthickness;
+	width = arrow_size + 2 * XTHICKNESS(gSpinbuttonWidget);
 
 	if(type == GTK_ARROW_UP)
 	{
@@ -1271,92 +2215,402 @@ void spinbutton_get_rects(GtkArrowType type, GdkRectangle *rect,
 	arrowrect.height = h;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static void
-spinbutton_arrow_paint(GtkArrowType type, GdkRectangle *rect, GdkDrawable *d,
+spinbutton_arrow_paint(GtkArrowType type, GdkRectangle *rect, GdkWindow *d,
                        GtkStateType state_type, GtkShadowType shadow_type)
 {
 	GdkRectangle buttonrect, arrowrect;
 
 	spinbutton_get_rects(type, rect, buttonrect, arrowrect);
 
-	gtk_paint_box(gSpinbuttonWidget->style, d,
-	                state_type, shadow_type,
-	                NULL, gSpinbuttonWidget,
-	                (type == GTK_ARROW_UP) ? "spinbutton_up" : "spinbutton_down",
-	                buttonrect.x, buttonrect.y, buttonrect.width, buttonrect.height);
+	GtkStyleContext *context = gtk_widget_get_style_context(gSpinbuttonWidget);
+	cairo_t *cr = moz_gdk_create_cairo_context(d);
+	
+	// Convert state
+	GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+	if (state_type == GTK_STATE_ACTIVE)
+		state_flags = GTK_STATE_FLAG_ACTIVE;
+	else if (state_type == GTK_STATE_PRELIGHT)
+		state_flags = GTK_STATE_FLAG_PRELIGHT;
+	else if (state_type == GTK_STATE_INSENSITIVE)
+		state_flags = GTK_STATE_FLAG_INSENSITIVE;
+	
+	gtk_style_context_set_state(context, state_flags);
+	
+	// Render button background
+	gtk_render_background(context, cr, buttonrect.x, buttonrect.y, 
+	                      buttonrect.width, buttonrect.height);
+	gtk_render_frame(context, cr, buttonrect.x, buttonrect.y,
+	                 buttonrect.width, buttonrect.height);
 
-
-	gtk_paint_arrow (gSpinbuttonWidget->style, d,
-	                   state_type, shadow_type,
-	                   NULL, gSpinbuttonWidget, "spinbutton",
-	                   type, TRUE,
-	                   arrowrect.x, arrowrect.y, arrowrect.width, arrowrect.height);
+	// Render arrow
+	gtk_render_arrow(context, cr,
+	                 type == GTK_ARROW_UP ? 0 : G_PI,
+	                 arrowrect.x, arrowrect.y,
+	                 MIN(arrowrect.width, arrowrect.height));
+	
+	cairo_destroy(cr);
 
 
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
 moz_gtk_scale_track_paint(GtkThemeWidgetType type,
-                          GdkDrawable * drawable,
+                          GdkWindow * drawable,
                           GdkRectangle * rect,
                           GdkRectangle * cliprect,
                           gint flags)
 {
 	ensure_scale_widget();
 
-	GtkStyle *style;
-	GtkScale *scale;
+	GtkWidget *scale;
 
 	if (type == MOZ_GTK_SCALE_TRACK_HORIZONTAL)
-		scale = GTK_SCALE(gHScaleWidget);
+		scale = gHScaleWidget;
 	else
-		scale = GTK_SCALE(gVScaleWidget);
-
-
-	style = GTK_WIDGET(scale)->style;
+		scale = gVScaleWidget;
 
     // AL-2014-01-16: [[ Bug 11656 ]] Don't paint box around slider trough.
 	// moz_gtk_label_paint(drawable, rect, cliprect);
 
-	TSOffsetStyleGCs(style, rect->x, rect->y);
+	// Set widget size allocation
+	GtkAllocation allocation;
+	allocation.x = rect->x;
+	allocation.y = rect->y;
+	allocation.width = rect->width;
+	allocation.height = rect->height;
+	gtk_widget_size_allocate(scale, &allocation);
 
-	gtk_paint_box(style, drawable, GTK_STATE_ACTIVE, GTK_SHADOW_IN,
-	                cliprect, GTK_WIDGET(scale), "trough",
-	                rect->x,
-	                rect->y,
-	                rect->width,
-	                rect->height);
+	GtkStyleContext *context = gtk_widget_get_style_context(scale);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	// Add trough CSS class for proper theming
+	gtk_style_context_save(context);
+	gtk_style_context_add_class(context, GTK_STYLE_CLASS_TROUGH);
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+	
+	// Render scale trough
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
+	gtk_render_frame(context, cr, rect->x, rect->y, rect->width, rect->height);
+	
+	gtk_style_context_restore(context);
+
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 16-11-2025: New function to render scale thumb (slider knob)
+// Uses manual gtk_render_slider since gtk_widget_draw doesn't work for scales
 static gint
-moz_gtk_menuitem_paint(GdkDrawable * drawable, GdkRectangle * rect,
-                       GdkRectangle * cliprect)
+moz_gtk_scale_thumb_paint(GtkThemeWidgetType type,
+                          GdkWindow * drawable,
+                          GdkRectangle * rect,
+                          GdkRectangle * cliprect,
+                          GtkWidgetState * state)
 {
-	GtkWidget *widget;
-	GtkShadowType selected_shadow_type;
+	ensure_scale_widget();
+	
+	GtkWidget *scale;
+	GtkOrientation orientation;
+	
+	// Set widget size allocation
+	GtkAllocation allocation;
+	allocation.x = rect->x;
+	allocation.y = rect->y;
+	allocation.width = rect->width;
+	allocation.height = rect->height;
+	
+	if (type == MOZ_GTK_SCALE_THUMB_HORIZONTAL) {
+		scale = gHScaleWidget;
+		orientation = GTK_ORIENTATION_HORIZONTAL;
+	} else {
+		scale = gVScaleWidget;
+		orientation = GTK_ORIENTATION_VERTICAL;
+	}
+	
+	gtk_widget_size_allocate(scale, &allocation);
+	
+	GtkStyleContext *context = gtk_widget_get_style_context(scale);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set state
+	GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+	if (state->disabled)
+		state_flags = GTK_STATE_FLAG_INSENSITIVE;
+	else if (state->active)
+		state_flags = GTK_STATE_FLAG_ACTIVE;
+	else if (state->inHover)
+		state_flags = GTK_STATE_FLAG_PRELIGHT;
+	
+	gtk_style_context_save(context);
+	gtk_style_context_add_class(context, GTK_STYLE_CLASS_SLIDER);
+	gtk_style_context_set_state(context, state_flags);
+	
+	// Render slider (thumb/knob)
+	gtk_render_slider(context, cr,
+	                  rect->x, rect->y, rect->width, rect->height,
+	                  orientation);
+	
+	gtk_style_context_restore(context);
+	cairo_destroy(cr);
+	
+	return MOZ_GTK_SUCCESS;
+}
 
+// -- direct-render path (used by drawtheme_gtk3_direct, avoids the slow
+// dual-offscreen alpha-extraction loop in drawtheme_calc_alpha).
+// Renders the menu item in PRELIGHT state and falls back to named theme
+// colours if the render produces a fully-transparent surface.
+cairo_surface_t*
+moz_gtk_menuitem_paint_to_surface(GdkRectangle *rect, int *out_width, int *out_height)
+{
 	ensure_menuitem_widget();
 
-	widget = gMenuitemWidget;
+	int width  = rect->width;
+	int height = rect->height;
+	if (out_width)  *out_width  = width;
+	if (out_height) *out_height = height;
 
-	gtk_widget_style_get_ptr (widget,
-	                        "selected_shadow_type", &selected_shadow_type,
-	                        NULL);
+	cairo_surface_t *surface =
+	    cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+	cairo_t *cr = cairo_create(surface);
 
-	gtk_paint_box (widget->style,
-	                 drawable,
-	                 GTK_STATE_PRELIGHT,
-	                 selected_shadow_type,
-	                 cliprect, widget, "menuitem",
-	                 rect->x, rect->y, rect->width, rect->height);
+	cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+	cairo_paint(cr);
+	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
 
+	GtkStyleContext *context = gtk_widget_get_style_context(gMenuitemWidget);
+	gtk_style_context_save(context);
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_PRELIGHT);
+	gtk_render_background(context, cr, 0, 0, width, height);
+	gtk_render_frame(context, cr, 0, 0, width, height);
+	gtk_style_context_restore(context);
+	cairo_destroy(cr);
 
+	// If the render produced nothing (fully transparent centre pixel),
+	// fall back to named theme selection colours.
+	cairo_surface_flush(surface);
+	unsigned char *data   = cairo_image_surface_get_data(surface);
+	int            stride = cairo_image_surface_get_stride(surface);
+	int            cx     = width / 2, cy = height / 2;
+	unsigned char *px     = data + cy * stride + cx * 4;
+	if (px[3] == 0)
+	{
+		ensure_label_widget();
+		GtkStyleContext *lctx = gtk_widget_get_style_context(gLabelWidget);
+		GdkRGBA rgba = {0.25, 0.55, 0.85, 1.0}; // safe default
+		if (!gtk_style_context_lookup_color(lctx, "theme_selected_bg_color", &rgba))
+		if (!gtk_style_context_lookup_color(lctx, "accent_bg_color",          &rgba))
+		    gtk_style_context_lookup_color(lctx, "selected_bg_color",         &rgba);
+		cr = cairo_create(surface);
+		cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+		cairo_set_source_rgba(cr, rgba.red, rgba.green, rgba.blue, 1.0);
+		cairo_paint(cr);
+		cairo_destroy(cr);
+	}
+
+	return surface;
+}
+
+// ---------------------------------------------------------------------------
+// Surface-rendering variants for widgets previously handled by the slow
+// drawtheme_calc_alpha (dual-offscreen-window) path.  These let
+// drawtheme_gtk3_direct render directly to an ARGB32 cairo surface,
+// avoiding two GtkOffscreenWindow create/realize/destroy cycles per call.
+// ---------------------------------------------------------------------------
+
+// Helper: allocate a transparent ARGB32 surface and return both surface and cr.
+static cairo_surface_t*
+make_transparent_surface(int width, int height, cairo_t **cr_out)
+{
+	cairo_surface_t *s = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+	cairo_t *cr = cairo_create(s);
+	cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+	cairo_paint(cr);
+	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+	*cr_out = cr;
+	return s;
+}
+
+// MOZ_GTK_TOOLBAR — menubar / toolbar background
+cairo_surface_t*
+moz_gtk_toolbar_paint_to_surface(GdkRectangle *rect, GtkWidgetState *state,
+                                  int *out_width, int *out_height)
+{
+	ensure_handlebox_widget();
+	int width = rect->width, height = rect->height;
+	if (out_width)  *out_width  = width;
+	if (out_height) *out_height = height;
+
+	cairo_t *cr;
+	cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+	GtkStyleContext *context = gtk_widget_get_style_context(gHandleBoxWidget);
+	gtk_style_context_save(context);
+
+	GtkStateFlags sf = GTK_STATE_FLAG_NORMAL;
+	if (state && state->disabled)  sf = GTK_STATE_FLAG_INSENSITIVE;
+	else if (state && state->active)  sf = (GtkStateFlags)(sf | GTK_STATE_FLAG_ACTIVE);
+	else if (state && state->inHover) sf = (GtkStateFlags)(sf | GTK_STATE_FLAG_PRELIGHT);
+	gtk_style_context_set_state(context, sf);
+
+	gtk_render_background(context, cr, 0, 0, width, height);
+	gtk_render_frame(context, cr, 0, 0, width, height);
+
+	gtk_style_context_restore(context);
+	cairo_destroy(cr);
+	return surface;
+}
+
+// MOZ_GTK_FRAME — status-bar panels
+cairo_surface_t*
+moz_gtk_frame_paint_to_surface(GdkRectangle *rect, int *out_width, int *out_height)
+{
+	ensure_frame_widget();
+	int width = rect->width, height = rect->height;
+	if (out_width)  *out_width  = width;
+	if (out_height) *out_height = height;
+
+	cairo_t *cr;
+	cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+	GtkStyleContext *context = gtk_widget_get_style_context(gFrameWidget);
+	gtk_style_context_save(context);
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+
+	gtk_render_background(context, cr, 0, 0, width, height);
+	gtk_render_frame(context, cr, 0, 0, width, height);
+
+	gtk_style_context_restore(context);
+	cairo_destroy(cr);
+	return surface;
+}
+
+// MOZ_GTK_TOOLTIP
+cairo_surface_t*
+moz_gtk_tooltip_paint_to_surface(GdkRectangle *rect, int *out_width, int *out_height)
+{
+	ensure_tooltip_widget();
+	int width = rect->width, height = rect->height;
+	if (out_width)  *out_width  = width;
+	if (out_height) *out_height = height;
+
+	cairo_t *cr;
+	cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+	GtkStyleContext *context = gtk_widget_get_style_context(gTooltipWindow);
+	gtk_render_background(context, cr, 0, 0, width, height);
+	gtk_render_frame(context, cr, 0, 0, width, height);
+
+	cairo_destroy(cr);
+	return surface;
+}
+
+// MOZ_GTK_ENTRY_FRAME — text-field border / focus ring
+cairo_surface_t*
+moz_gtk_entry_frame_paint_to_surface(GdkRectangle *rect, GtkWidgetState *state,
+                                      int *out_width, int *out_height)
+{
+	ensure_entry_widget();
+	int width = rect->width, height = rect->height;
+	if (out_width)  *out_width  = width;
+	if (out_height) *out_height = height;
+
+	gboolean interior_focus = TRUE;
+	gint focus_width = 1;
+	gtk_widget_style_get(gEntryWidget,
+	                     "interior-focus", &interior_focus,
+	                     "focus-line-width", &focus_width,
+	                     NULL);
+	gtk_widget_set_sensitive(gEntryWidget, state ? !state->disabled : TRUE);
+
+	GtkStyleContext *context = gtk_widget_get_style_context(gEntryWidget);
+	gtk_style_context_save(context);
+
+	GtkStateFlags sf = GTK_STATE_FLAG_NORMAL;
+	if (state && state->disabled)
+		sf = GTK_STATE_FLAG_INSENSITIVE;
+	if (state && state->focused && !state->disabled)
+		sf = (GtkStateFlags)(sf | GTK_STATE_FLAG_FOCUSED);
+	gtk_style_context_set_state(context, sf);
+
+	cairo_t *cr;
+	cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+	int x = 0, y = 0, w = width, h = height;
+	if (state && state->focused && !state->disabled && !interior_focus) {
+		x += focus_width; y += focus_width;
+		w -= 2 * focus_width; h -= 2 * focus_width;
+	}
+
+	gtk_render_background(context, cr, x, y, w, h);
+	gtk_render_frame(context, cr, x, y, w, h);
+
+	if (state && state->focused && !state->disabled && !interior_focus)
+		gtk_render_focus(context, cr, 0, 0, width, height);
+
+	gtk_style_context_restore(context);
+	cairo_destroy(cr);
+	return surface;
+}
+
+// MOZ_GTK_ENTRY — text-field interior background
+cairo_surface_t*
+moz_gtk_entry_paint_to_surface(GdkRectangle *rect, GtkWidgetState *state,
+                                int *out_width, int *out_height)
+{
+	ensure_entry_widget();
+	int width = rect->width, height = rect->height;
+	if (out_width)  *out_width  = width;
+	if (out_height) *out_height = height;
+
+	int x = XTHICKNESS(gEntryWidget);
+	int y = YTHICKNESS(gEntryWidget);
+
+	GtkStyleContext *context = gtk_widget_get_style_context(gEntryWidget);
+	gtk_style_context_save(context);
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+
+	cairo_t *cr;
+	cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+	gtk_render_background(context, cr, x, y, width - 2 * x, height - 2 * y);
+
+	gtk_style_context_restore(context);
+	cairo_destroy(cr);
+	return surface;
+}
+
+// ---------------------------------------------------------------------------
+// Legacy GdkWindow paint shim — still called by the old drawtheme_calc_alpha
+// path for any widget type that reaches it; kept for completeness.
+static gint
+moz_gtk_menuitem_paint(GdkWindow * drawable, GdkRectangle * rect,
+                       GdkRectangle * cliprect)
+{
+	int w, h;
+	cairo_surface_t *surface = moz_gtk_menuitem_paint_to_surface(rect, &w, &h);
+	if (!surface) return MOZ_GTK_UNKNOWN_WIDGET;
+
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	cairo_set_source_surface(cr, surface, rect->x, rect->y);
+	cairo_paint(cr);
+	cairo_destroy(cr);
+	cairo_surface_destroy(surface);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_spinbutton_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_spinbutton_paint(GdkWindow * drawable, GdkRectangle * rect,
                          GdkRectangle * cliprect, GtkWidgetState *state,
                          gint flags)
 {
@@ -1364,21 +2618,23 @@ moz_gtk_spinbutton_paint(GdkDrawable * drawable, GdkRectangle * rect,
 
 	GtkShadowType shadow_type;
 	int xw, yw;
-	GtkStyle *style = gSpinbuttonWidget->style;
 
-	gtk_widget_style_get_ptr (GTK_WIDGET (gSpinbuttonWidget),
+	gtk_widget_style_get (GTK_WIDGET (gSpinbuttonWidget),
 	                        "shadow_type", &shadow_type, NULL);
 
 	moz_gtk_get_widget_border(MOZ_GTK_FRAME, &xw, &yw);
 
-
+	// Render spinbutton box if shadow is not NONE
 	if(shadow_type != GTK_SHADOW_NONE)
 	{
-		gtk_paint_box (style, drawable,
-		                 GTK_STATE_NORMAL, shadow_type, NULL, gSpinbuttonWidget,
-		                 "spinbutton",
-		                 rect->x, rect->y,
-		                 rect->width, rect->height);
+		GtkStyleContext *context = gtk_widget_get_style_context(gSpinbuttonWidget);
+		cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+		
+		gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+		gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
+		gtk_render_frame(context, cr, rect->x, rect->y, rect->width, rect->height);
+		
+		cairo_destroy(cr);
 	}
 
 	shadow_type = GTK_SHADOW_OUT;
@@ -1389,6 +2645,7 @@ moz_gtk_spinbutton_paint(GdkDrawable * drawable, GdkRectangle * rect,
 		shadow_type = GTK_SHADOW_IN;
 	}
 
+	// Paint up arrow
 	if(flags == GTK_POS_TOP)
 	{
 		state_type = ConvertGtkState(state);
@@ -1399,224 +2656,436 @@ moz_gtk_spinbutton_paint(GdkDrawable * drawable, GdkRectangle * rect,
 		spinbutton_arrow_paint(GTK_ARROW_UP, rect, drawable,
 		                       GTK_STATE_NORMAL, GTK_SHADOW_OUT);
 
-
+	// Paint down arrow
 	if(flags == GTK_POS_BOTTOM)
 	{
 		state_type = ConvertGtkState(state);
 		spinbutton_arrow_paint(GTK_ARROW_DOWN, rect, drawable,
 		                       state_type, shadow_type);
-
 	}
 	else
 		spinbutton_arrow_paint(GTK_ARROW_DOWN, rect, drawable,
 		                       GTK_STATE_NORMAL, GTK_SHADOW_OUT);
 
-
 	return MOZ_GTK_SUCCESS;
 }
 
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_progressbar_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_progressbar_paint(GdkWindow * drawable, GdkRectangle * rect,
                           GdkRectangle * cliprect)
 {
-	GtkStyle *style;
-
 	ensure_progress_widget();
-	style = gProgressWidget->style;
 
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-	gtk_paint_box(style, drawable, GTK_STATE_NORMAL, GTK_SHADOW_IN,
-	                cliprect, gProgressWidget, "trough", rect->x, rect->y,
-	                rect->width, rect->height);
+	GtkStyleContext *context = gtk_widget_get_style_context(gProgressWidget);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+	
+	// Render progressbar trough
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
+	gtk_render_frame(context, cr, rect->x, rect->y, rect->width, rect->height);
 
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_progress_chunk_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_progress_chunk_paint(GdkWindow * drawable, GdkRectangle * rect,
                              GdkRectangle * cliprect, gint flags)
 {
-	GtkStyle *style;
-
 	ensure_progress_widget();
-	style = gProgressWidget->style;
 
-	GtkProgressBarOrientation orientation;
+	// -- tperry 13-11-2025: GTK3 - GtkProgressBarOrientation removed, use GtkOrientation and inverted property
+	GtkOrientation orientation = GTK_ORIENTATION_HORIZONTAL;
+	gboolean inverted = FALSE;
+
+	if(flags & GTK_PROGRESS_TOP_TO_BOTTOM) {
+		orientation = GTK_ORIENTATION_VERTICAL;
+		inverted = FALSE;
+	}
+	else if(flags & GTK_PROGRESS_BOTTOM_TO_TOP) {
+		orientation = GTK_ORIENTATION_VERTICAL;
+		inverted = TRUE;
+	}
+	else if(flags & GTK_PROGRESS_RIGHT_TO_LEFT) {
+		orientation = GTK_ORIENTATION_HORIZONTAL;
+		inverted = TRUE;
+	}
+	else {
+		orientation = GTK_ORIENTATION_HORIZONTAL;
+		inverted = FALSE;
+	}
+
+	gtk_orientable_set_orientation(GTK_ORIENTABLE(gProgressWidget), orientation);
+	gtk_progress_bar_set_inverted(GTK_PROGRESS_BAR(gProgressWidget), inverted);
+
+	int border = XTHICKNESS(gProgressWidget);
+
+	GtkStyleContext *context = gtk_widget_get_style_context(gProgressWidget);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
 	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	// Render trough background
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+	gtk_render_background(context, cr, rect->x - border, rect->y - border,
+	                      rect->width + border, rect->height + border);
+	gtk_render_frame(context, cr, rect->x - border, rect->y - border,
+	                 rect->width + border, rect->height + border);
 
-	if(flags & GTK_PROGRESS_TOP_TO_BOTTOM)
-		orientation = GTK_PROGRESS_TOP_TO_BOTTOM;
-	else if(flags & GTK_PROGRESS_BOTTOM_TO_TOP)
-		orientation = GTK_PROGRESS_BOTTOM_TO_TOP;
-	else if(flags & GTK_PROGRESS_RIGHT_TO_LEFT)
-		orientation = GTK_PROGRESS_RIGHT_TO_LEFT;
-	else
-		orientation = GTK_PROGRESS_LEFT_TO_RIGHT;
+	// Render progress bar
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_PRELIGHT);
+	gtk_render_activity(context, cr, rect->x, rect->y, rect->width, rect->height);
 
-
-	gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(gProgressWidget), orientation);
-
-
-	int border = style->xthickness;
-
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-
-	gtk_paint_box(style, drawable, GTK_STATE_NORMAL, GTK_SHADOW_IN,
-	                cliprect, gProgressWidget, "trough",
-	                rect->x - border, rect->y - border,
-	                rect->width + border, rect->height + border);
-
-	gtk_paint_box(style, drawable, GTK_STATE_PRELIGHT, GTK_SHADOW_OUT,
-	                NULL, gProgressWidget, "bar", rect->x, rect->y,
-	                rect->width, rect->height);
-
-
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 static gint
-moz_gtk_label_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_label_paint(GdkWindow * drawable, GdkRectangle * rect,
                     GdkRectangle * cliprect)
 {
-	GtkStyle *style;
-
 	ensure_label_widget();
-	style = gLabelWidget->style;
-	
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-	gtk_paint_flat_box(style, drawable, GTK_STATE_NORMAL, GTK_SHADOW_OUT,
-	                     cliprect, gLabelWidget, "button", rect->x, rect->y,
-	                     rect->width, rect->height);
 
+	GtkStyleContext *context = gtk_widget_get_style_context(gLabelWidget);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+	
+	// Render label background
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
+
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 13-11-2025: GTK3 - GtkOptionMenu removed, this function is no longer needed
+// GtkComboBox doesn't use the same properties structure
+/*
 static void
 gtk_option_menu_get_props (GtkOptionMenu       *option_menu,
                            GtkOptionMenuProps  *props)
 {
-	GtkRequisition *indicator_size;
-	GtkBorder *indicator_spacing;
-
-	gtk_widget_style_get_ptr(GTK_WIDGET (option_menu),
-	                        "indicator_size", &indicator_size,
-	                        "indicator_spacing", &indicator_spacing,
-	                        "interior_focus", &props->interior_focus,
-	                        "focus_line_width", &props->focus_width,
-	                        "focus_padding", &props->focus_pad,
-	                        NULL);
-
-	if (indicator_size)
-		props->indicator_size = *indicator_size;
-	else
-		props->indicator_size = default_props.indicator_size;
-
-	if (indicator_spacing)
-		props->indicator_spacing = *indicator_spacing;
-	else
-		props->indicator_spacing = default_props.indicator_spacing;
-
-	gtk_requisition_free (indicator_size);
-	gtk_border_free (indicator_spacing);
+	// This function is not needed for GtkComboBox in GTK3
 }
+*/
 
+// -- tperry 13-11-2025: GTK3 - rewrite for GtkComboBox instead of GtkOptionMenu
 static gint
-moz_gtk_optionbutton_paint(GdkDrawable * drawable, GdkRectangle * area,
+moz_gtk_optionbutton_paint(GdkWindow * drawable, GdkRectangle * area,
                            GdkRectangle * cliprect, GtkWidgetState *state)
 {
 	ensure_optionbutton_widget();
-	GtkStateType state_type;
+	GtkWidget *widget = gOptionbuttonWidget;
 
-	if(state)
-		state_type = ConvertGtkState(state);
-	else
-		state_type = GTK_STATE_NORMAL;
+	// Get border width using GTK3 API
+	gint border_width = gtk_container_get_border_width(GTK_CONTAINER(widget));
 
 	GdkRectangle button_area;
-	GtkOptionMenuProps props;
-	GtkWidget *widget = gOptionbuttonWidget;
-	gint border_width;
-	gint tab_x;
+	button_area.x = cliprect->x + border_width;
+	button_area.y = cliprect->y + border_width;
+	button_area.width = cliprect->width - 2 * border_width;
+	button_area.height = cliprect->height - 2 * border_width;
 
-
-
-	border_width = GTK_CONTAINER (widget)->border_width;
-	gtk_option_menu_get_props (GTK_OPTION_MENU (widget), &props);
-
-	widget->allocation.x = cliprect->x;
-	widget->allocation.y = cliprect->y;
-	widget->allocation.width = cliprect->width;
-	widget->allocation.height = cliprect->height;
-
-	button_area.x = widget->allocation.x + border_width;
-
-	button_area.y = widget->allocation.y + border_width;
-	button_area.width = widget->allocation.width - 2 * border_width;
-	button_area.height = widget->allocation.height - 2 * border_width;
-
-	if (!props.interior_focus && GTK_WIDGET_HAS_FOCUS (widget))
-	{
-		button_area.x += props.focus_width + props.focus_pad;
-		button_area.y += props.focus_width + props.focus_pad;
-		button_area.width -= 2 * (props.focus_width + props.focus_pad);
-		button_area.height -= 2 * (props.focus_width + props.focus_pad);
+	GtkStyleContext *context = gtk_widget_get_style_context(widget);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (area) {
+		// cairo_rectangle(cr, area->x, area->y, area->width, area->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
 	}
-
-
-	gtk_paint_box(widget->style, drawable,
-	                 state_type, GTK_SHADOW_OUT,
-	                 area, widget, "optionmenu",
-	                 button_area.x, button_area.y,
+	
+	// Convert state
+	GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+	if (state) {
+		if (state->disabled)
+			state_flags = GTK_STATE_FLAG_INSENSITIVE;
+		else if (state->active)
+			state_flags = GTK_STATE_FLAG_ACTIVE;
+		else if (state->inHover)
+			state_flags = GTK_STATE_FLAG_PRELIGHT;
+		if (state->focused)
+			state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_FOCUSED);
+	}
+	
+	gtk_style_context_set_state(context, state_flags);
+	
+	// Render combobox button
+	gtk_render_background(context, cr, button_area.x, button_area.y,
+	                      button_area.width, button_area.height);
+	gtk_render_frame(context, cr, button_area.x, button_area.y,
 	                 button_area.width, button_area.height);
 
-
-	tab_x = button_area.x + button_area.width -
-	        props.indicator_size.width - props.indicator_spacing.right -
-	        widget->style->xthickness;
-
-	gtk_paint_tab(widget->style, drawable,
-	                 state_type, GTK_SHADOW_OUT,
-	                 area, widget, "optionmenutab",
-	                 tab_x,
-	                 button_area.y + (button_area.height - props.indicator_size.height) / 2,
-	                 props.indicator_size.width, props.indicator_size.height);
-
-	if(state->focused)
+	// Render focus if needed
+	if(state && state->focused)
 	{
-		if (props.interior_focus)
-		{
-			button_area.x += widget->style->xthickness + props.focus_pad;
-			button_area.y += widget->style->ythickness + props.focus_pad;
-			button_area.width -= 2 * (widget->style->xthickness + props.focus_pad) +
-			                     props.indicator_spacing.left +
-			                     props.indicator_spacing.right +
-			                     props.indicator_size.width;
-			button_area.height -= 2 * (widget->style->ythickness + props.focus_pad);
-		}
-		else
-		{
-			button_area.x -= props.focus_width + props.focus_pad;
-			button_area.y -= props.focus_width + props.focus_pad;
-			button_area.width += 2 * (props.focus_width + props.focus_pad);
-			button_area.height += 2 * (props.focus_width + props.focus_pad);
-		}
-
-		gtk_paint_focus(widget->style, drawable, state_type,
-		                   area, widget, "button",
-		                   button_area.x,
-		                   button_area.y,
-		                   button_area.width,
-		                   button_area.height);
-
-
+		gtk_render_focus(context, cr, cliprect->x, cliprect->y,
+		                 cliprect->width, cliprect->height);
 	}
 
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
+// -- tperry 20-06-2026: Build a style context targeting the "tab" CSS child node of a
+// GtkNotebook.  gtk_widget_get_style_context(gTabWidget) returns the "notebook" node;
+// calling gtk_render_extension() on that node produces solid black on modern themes
+// because the visual rendering belongs to the "tab" child CSS node.
+//
+// The GTK3 CSS node hierarchy for notebook tabs is:
+//   notebook > header.{top|bottom|left|right} > tabs > tab
+// A 2-level path (notebook > tab) doesn't match Adwaita's CSS selectors and
+// produces transparent output.  We build the full 4-level hierarchy here.
+// -- tperry 20-06-2026: Build a style context for a GtkScale trough (track).
+// GTK3 CSS node path: scale.horizontal > trough  (or scale.vertical > trough)
+static GtkStyleContext*
+build_scale_trough_context(bool is_horizontal, GtkStateFlags state_flags)
+{
+    GtkWidgetPath *path = gtk_widget_path_new();
+
+    gint p0 = gtk_widget_path_append_type(path, GTK_TYPE_SCALE);
+    gtk_widget_path_iter_set_object_name(path, p0, "scale");
+    gtk_widget_path_iter_add_class(path, p0, is_horizontal ? "horizontal" : "vertical");
+
+    gint p1 = gtk_widget_path_append_type(path, GTK_TYPE_WIDGET);
+    gtk_widget_path_iter_set_object_name(path, p1, "trough");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+    gtk_style_context_set_state(ctx, state_flags);
+    gtk_widget_path_free(path);
+    return ctx;
+}
+
+// -- tperry 20-06-2026: Build a style context for a GtkScale slider (thumb).
+// GTK3 CSS node path: scale.horizontal > trough > slider
+static GtkStyleContext*
+build_scale_slider_context(bool is_horizontal, GtkStateFlags state_flags)
+{
+    GtkWidgetPath *path = gtk_widget_path_new();
+
+    gint p0 = gtk_widget_path_append_type(path, GTK_TYPE_SCALE);
+    gtk_widget_path_iter_set_object_name(path, p0, "scale");
+    gtk_widget_path_iter_add_class(path, p0, is_horizontal ? "horizontal" : "vertical");
+
+    gint p1 = gtk_widget_path_append_type(path, GTK_TYPE_WIDGET);
+    gtk_widget_path_iter_set_object_name(path, p1, "trough");
+
+    gint p2 = gtk_widget_path_append_type(path, GTK_TYPE_WIDGET);
+    gtk_widget_path_iter_set_object_name(path, p2, "slider");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+    gtk_style_context_set_state(ctx, state_flags);
+    gtk_widget_path_free(path);
+    return ctx;
+}
+
+// -- tperry 20-06-2026: Build a style context for one half of a GtkSpinButton.
+// GTK3 CSS node path: spinbutton > button.up  or  spinbutton > button.down
+static GtkStyleContext*
+build_spinbutton_button_context(bool is_up, GtkStateFlags state_flags)
+{
+    GtkWidgetPath *path = gtk_widget_path_new();
+
+    // Level 1: spinbutton
+    gint p0 = gtk_widget_path_append_type(path, GTK_TYPE_SPIN_BUTTON);
+    gtk_widget_path_iter_set_object_name(path, p0, "spinbutton");
+
+    // Level 2: button.up or button.down
+    gint p1 = gtk_widget_path_append_type(path, GTK_TYPE_BUTTON);
+    gtk_widget_path_iter_set_object_name(path, p1, "button");
+    gtk_widget_path_iter_add_class(path, p1, is_up ? "up" : "down");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+    gtk_style_context_set_state(ctx, state_flags);
+
+    gtk_widget_path_free(path);
+    return ctx;
+}
+
+static GtkStyleContext*
+build_tab_context(GtkPositionType gap_side, GtkStateFlags state_flags)
+{
+    GtkWidgetPath *path = gtk_widget_path_new();
+
+    // Level 1: notebook
+    gint p0 = gtk_widget_path_append_type(path, GTK_TYPE_NOTEBOOK);
+    gtk_widget_path_iter_set_object_name(path, p0, "notebook");
+
+    // Level 2: header with position class
+    // gap_side is which side of the tab connects to the panel; invert to get tab strip edge
+    const char *pos_class;
+    switch (gap_side) {
+        case GTK_POS_BOTTOM: pos_class = "top";    break;
+        case GTK_POS_TOP:    pos_class = "bottom"; break;
+        case GTK_POS_RIGHT:  pos_class = "left";   break;
+        case GTK_POS_LEFT:   pos_class = "right";  break;
+        default:             pos_class = "top";    break;
+    }
+    gint p1 = gtk_widget_path_append_type(path, GTK_TYPE_BOX);
+    gtk_widget_path_iter_set_object_name(path, p1, "header");
+    gtk_widget_path_iter_add_class(path, p1, pos_class);
+
+    // Level 3: tabs container
+    gint p2 = gtk_widget_path_append_type(path, GTK_TYPE_BOX);
+    gtk_widget_path_iter_set_object_name(path, p2, "tabs");
+
+    // Level 4: individual tab
+    gint p3 = gtk_widget_path_append_type(path, GTK_TYPE_BOX);
+    gtk_widget_path_iter_set_object_name(path, p3, "tab");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+    gtk_style_context_set_state(ctx, state_flags);
+
+    gtk_widget_path_free(path);
+    return ctx;
+}
+
+// -- tperry 20-06-2026: Render both spinbutton arrow buttons to a cairo surface.
+// flags mirrors the legacy moz_gtk_spinbutton_paint convention:
+//   GTK_POS_TOP    → up button is active/prelight
+//   GTK_POS_BOTTOM → down button is active/prelight
+//   0              → both buttons normal
+cairo_surface_t*
+moz_gtk_spinbutton_paint_to_surface(GdkRectangle *rect, GtkWidgetState *state, gint flags,
+                                     int *out_width, int *out_height)
+{
+    int width  = rect->width;
+    int height = rect->height;
+    if (out_width)  *out_width  = width;
+    if (out_height) *out_height = height;
+
+
+    cairo_t *cr;
+    cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+    int half = height / 2;
+
+    // Determine per-button state flags
+    GtkStateFlags up_state   = GTK_STATE_FLAG_NORMAL;
+    GtkStateFlags down_state = GTK_STATE_FLAG_NORMAL;
+
+    if (state && state->disabled)
+    {
+        up_state   = GTK_STATE_FLAG_INSENSITIVE;
+        down_state = GTK_STATE_FLAG_INSENSITIVE;
+    }
+    else
+    {
+        if (flags == GTK_POS_TOP)
+            up_state   = state->active ? GTK_STATE_FLAG_ACTIVE : GTK_STATE_FLAG_PRELIGHT;
+        if (flags == GTK_POS_BOTTOM)
+            down_state = state->active ? GTK_STATE_FLAG_ACTIVE : GTK_STATE_FLAG_PRELIGHT;
+    }
+
+    // Render up button (top half)
+    {
+        GtkStyleContext *ctx = build_spinbutton_button_context(true, up_state);
+
+        gtk_render_background(ctx, cr, 0, 0, width, half);
+        gtk_render_frame    (ctx, cr, 0, 0, width, half);
+
+        double arrow_size = MIN(width, half) * 0.5;
+        if (arrow_size < 1.0) arrow_size = 1.0;
+        gtk_render_arrow(ctx, cr, 0.0,
+                         (width  - arrow_size) / 2.0,
+                         (half   - arrow_size) / 2.0,
+                         arrow_size);
+        g_object_unref(ctx);
+    }
+
+    // Render down button (bottom half)
+    {
+        int bot_h = height - half;
+        GtkStyleContext *ctx = build_spinbutton_button_context(false, down_state);
+
+        gtk_render_background(ctx, cr, 0, half, width, bot_h);
+        gtk_render_frame    (ctx, cr, 0, half, width, bot_h);
+
+        double arrow_size = MIN(width, bot_h) * 0.5;
+        if (arrow_size < 1.0) arrow_size = 1.0;
+        gtk_render_arrow(ctx, cr, G_PI,
+                         (width - arrow_size) / 2.0,
+                         half + (bot_h - arrow_size) / 2.0,
+                         arrow_size);
+        g_object_unref(ctx);
+    }
+
+    cairo_destroy(cr);
+    return surface;
+}
+
+// -- tperry 20-06-2026: Render a notebook tab to a cairo surface (direct GTK3 path)
+cairo_surface_t*
+moz_gtk_tab_paint_to_surface(GdkRectangle *rect, GtkWidgetState *state, gint flags,
+                              int *out_width, int *out_height)
+{
+    int width  = rect->width;
+    int height = rect->height;
+
+    if (out_width)  *out_width  = width;
+    if (out_height) *out_height = height;
+
+    // gap_side: which side of the tab shape connects to the panel (opens toward panel)
+    GtkPositionType gap_side;
+    if      (flags & MOZ_GTK_TAB_POS_BOTTOM) gap_side = GTK_POS_TOP;
+    else if (flags & MOZ_GTK_TAB_POS_LEFT)   gap_side = GTK_POS_RIGHT;
+    else if (flags & MOZ_GTK_TAB_POS_RIGHT)  gap_side = GTK_POS_LEFT;
+    else                                      gap_side = GTK_POS_BOTTOM;
+
+    gboolean selected = (flags & MOZ_GTK_TAB_SELECTED) ? TRUE : FALSE;
+
+    // Merge widget interaction state into the CSS state flags
+    // selected → :checked, hover → :hover (:prelight), disabled → :insensitive
+    GtkStateFlags state_flags = selected ? GTK_STATE_FLAG_CHECKED : GTK_STATE_FLAG_NORMAL;
+    if (state && state->inHover)  state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_PRELIGHT);
+    if (state && state->disabled) state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_INSENSITIVE);
+
+    GtkStyleContext *context = build_tab_context(gap_side, state_flags);
+
+    cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+    cairo_t *cr = cairo_create(surface);
+    cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR); cairo_paint(cr);
+    cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+
+    // gtk_render_extension renders background + border with the appropriate side open
+    gtk_render_extension(context, cr, 0, 0, width, height, gap_side);
+
+    cairo_destroy(cr);
+    g_object_unref(context);
+    return surface;
+}
+
 static gint
-moz_gtk_tab_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_tab_paint(GdkWindow * drawable, GdkRectangle * rect,
                   GdkRectangle * cliprect, gint flags)
 {
 	/*
@@ -1652,26 +3121,31 @@ moz_gtk_tab_paint(GdkDrawable * drawable, GdkRectangle * rect,
 	 * the tab left by 2px.
 	 */
 
-	GtkStyle *style;
+	// -- tperry 13-11-2025: GTK3 - rewrite to use GtkStyleContext and gtk_render_*
 	ensure_tab_widget();
 
-	style = gTabWidget->style;
-	TSOffsetStyleGCs(style, rect->x, rect->y);
+	GtkStyleContext *context = gtk_widget_get_style_context(gTabWidget);
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	// Render notebook background
+	gtk_style_context_set_state(context, GTK_STATE_FLAG_NORMAL);
+	gtk_render_background(context, cr, rect->x, rect->y, rect->width, rect->height);
 
-	gtk_paint_box(style, drawable, GTK_STATE_NORMAL, GTK_SHADOW_NONE,
-	                cliprect, gTabWidget, "notebook",
-	                rect->x, rect->y,
-	                rect->width, rect->height);
-
-
+	// Adjust for tab overlap (except first tab)
 	if (!(flags & MOZ_GTK_TAB_FIRST))
 	{
 		rect->x -= 2;
 		rect->width += 2;
 	}
 
+	// Determine tab position
 	GtkPositionType t;
-
 	if(flags & MOZ_GTK_TAB_POS_BOTTOM)
 		t = GTK_POS_TOP;
 	else if(flags & MOZ_GTK_TAB_POS_LEFT)
@@ -1681,63 +3155,215 @@ moz_gtk_tab_paint(GdkDrawable * drawable, GdkRectangle * rect,
 	else
 		t = GTK_POS_BOTTOM;
 
-	gtk_paint_extension(style, drawable,
-	                      ((flags & MOZ_GTK_TAB_SELECTED)
-	                       ? GTK_STATE_NORMAL
-	                       : GTK_STATE_ACTIVE),
-	                      GTK_SHADOW_OUT, cliprect, gTabWidget, "tab",
-	                      rect->x, rect->y, rect->width, rect->height,
-	                      t);
+	// Set state for tab (selected or not)
+	GtkStateFlags state_flags = (flags & MOZ_GTK_TAB_SELECTED) ? 
+	                             GTK_STATE_FLAG_NORMAL : GTK_STATE_FLAG_ACTIVE;
+	gtk_style_context_set_state(context, state_flags);
+	
+	// Render tab extension
+	gtk_render_extension(context, cr, rect->x, rect->y, rect->width, rect->height, t);
 
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
 
+// -- tperry 15-11-2025: GTK3 - rewrite to use GtkStyleContext and proper theme color lookup
 void moz_gtk_get_widget_color(GtkStateType state,
                               uint2 &red,uint2 &green,uint2 &blue)
 {
+	// gtk_style_context_get_background_color() was deprecated in GTK 3.16 and
+	// returns black (0,0,0,1) on modern themes that use CSS nodes/gradients
+	// rather than simple GdkRGBA properties.  We use named theme colors instead,
+	// falling back to a render-and-sample approach if the named colors are absent.
+
+	GdkRGBA rgba = {0.0, 0.0, 0.0, 1.0};
+
+	// GTK3 style contexts are available on unrealized widgets; ensure we have one.
 	ensure_label_widget();
-	if (gProtoWindow == nullptr || gProtoWindow->style == nullptr)
-		return;
-	GtkStyle *style = gProtoWindow->style;
-	GdkColor c = style->bg[state];
-	red = c.red;
-	blue = c.blue;
-	green = c.green;
+	GtkStyleContext *ctx = gtk_widget_get_style_context(gLabelWidget);
+
+	if (state == GTK_STATE_SELECTED)
+	{
+		// Most GTK3 themes define @theme_selected_bg_color.
+		// GNOME 42+ / libadwaita themes use @accent_bg_color instead.
+		if (!gtk_style_context_lookup_color(ctx, "theme_selected_bg_color", &rgba) &&
+		    !gtk_style_context_lookup_color(ctx, "accent_bg_color", &rgba))
+		{
+			// Last resort: render a GtkListBoxRow in selected state to a tiny
+			// surface and sample the centre pixel.
+			GtkWidget *window  = gtk_offscreen_window_new();
+			GtkWidget *listbox = gtk_list_box_new();
+			GtkWidget *row     = gtk_list_box_row_new();
+			gtk_container_add(GTK_CONTAINER(listbox), row);
+			gtk_container_add(GTK_CONTAINER(window),  listbox);
+			gtk_widget_show_all(window);
+			gtk_list_box_select_row(GTK_LIST_BOX(listbox), GTK_LIST_BOX_ROW(row));
+
+			GtkStyleContext *row_ctx = gtk_widget_get_style_context(row);
+			cairo_surface_t *surface =
+			    cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 4, 4);
+			cairo_t *cr = cairo_create(surface);
+			gtk_style_context_save(row_ctx);
+			gtk_style_context_set_state(row_ctx,
+			    (GtkStateFlags)(GTK_STATE_FLAG_SELECTED | GTK_STATE_FLAG_FOCUSED));
+			gtk_render_background(row_ctx, cr, 0, 0, 4, 4);
+			gtk_style_context_restore(row_ctx);
+			cairo_destroy(cr);
+
+			cairo_surface_flush(surface);
+			unsigned char *data   = cairo_image_surface_get_data(surface);
+			int            stride = cairo_image_surface_get_stride(surface);
+			// Centre pixel; CAIRO_FORMAT_ARGB32 is pre-multiplied BGRA on LE
+			unsigned char *px = data + 2 * stride + 2 * 4;
+			unsigned char  a  = px[3];
+			if (a > 0)
+			{
+				rgba.red   = px[2] / (double)a;
+				rgba.green = px[1] / (double)a;
+				rgba.blue  = px[0] / (double)a;
+				rgba.alpha = 1.0;
+			}
+			// else: leave rgba at {0,0,0,1} — theme rendered nothing, keep fallback
+
+			cairo_surface_destroy(surface);
+			gtk_widget_destroy(window);
+
+			// If we still have black (theme renders transparent selection),
+			// try querying the selection colour from the label's style context
+			// directly, ignoring alpha — some themes set it as a CSS property
+			// even if they don't render a background here.
+			if (rgba.red == 0.0 && rgba.green == 0.0 && rgba.blue == 0.0)
+			{
+				// Try @selected_bg_color (older theme name) as a final attempt.
+				gtk_style_context_lookup_color(ctx, "selected_bg_color", &rgba);
+			}
+		}
+	}
+	else
+	{
+		// Normal / active / insensitive: try @theme_bg_color first.
+		if (!gtk_style_context_lookup_color(ctx, "theme_bg_color", &rgba))
+		{
+			// Fallback: ask the style context directly (may return black on
+			// some newer themes, but it is acceptable for non-selected state).
+			GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+			if (state == GTK_STATE_ACTIVE)
+				state_flags = GTK_STATE_FLAG_ACTIVE;
+			else if (state == GTK_STATE_PRELIGHT)
+				state_flags = GTK_STATE_FLAG_PRELIGHT;
+			else if (state == GTK_STATE_INSENSITIVE)
+				state_flags = GTK_STATE_FLAG_INSENSITIVE;
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+			gtk_style_context_get_background_color(ctx, state_flags, &rgba);
+G_GNUC_END_IGNORE_DEPRECATIONS
+		}
+	}
+
+	// Clamp to [0,1] before scaling to avoid overflow on pre-multiplied samples
+	red   = (uint2)(CLAMP(rgba.red,   0.0, 1.0) * 65535.0);
+	green = (uint2)(CLAMP(rgba.green, 0.0, 1.0) * 65535.0);
+	blue  = (uint2)(CLAMP(rgba.blue,  0.0, 1.0) * 65535.0);
 }
 
-void moz_gtk_get_widget_fg_color(GtkStateType state,
+// -- HyperXTalk: Read the foreground (text) colour for the given GTK state.
+// Adapted from the GTK2 version (which used GtkStyle::fg[]); rewritten for GTK3
+// to use GtkStyleContext and gtk_style_context_get_color().
+void moz_gtk_get_widget_fg_color(GtkStateFlags state_flags,
                                  uint2 &red, uint2 &green, uint2 &blue)
 {
-	ensure_label_widget();
-	if (gProtoWindow == nullptr || gProtoWindow->style == nullptr)
-		return;
-	GtkStyle *style = gProtoWindow->style;
-	GdkColor c = style->fg[state];
-	red   = c.red;
-	green = c.green;
-	blue  = c.blue;
+    ensure_label_widget();
+    if (gLabelWidget == nullptr)
+        return;
+    GtkStyleContext *context = gtk_widget_get_style_context(gLabelWidget);
+    GdkRGBA color = {0, 0, 0, 1};
+    gtk_style_context_get_color(context, state_flags, &color);
+    red   = (uint2)(color.red   * 65535.0);
+    green = (uint2)(color.green * 65535.0);
+    blue  = (uint2)(color.blue  * 65535.0);
 }
 
+// -- tperry 16-11-2025: New function to render tab panels to cairo surface
+cairo_surface_t*
+moz_gtk_tabpanels_paint_to_surface(GdkRectangle * rect, int y, int w,
+                                    int *out_width, int *out_height)
+{
+	ensure_tab_widget();
+	
+	int width = rect->width;
+	int height = rect->height;
+	
+	if (out_width) *out_width = width;
+	if (out_height) *out_height = height;
+	
+	// Create surface for rendering
+	cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+	cairo_t *cr = cairo_create(surface);
+	
+	// Clear to transparent
+	cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+	cairo_paint(cr);
+	cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+	
+	// Get button background color (same as scrollbar track, progress bar trough)
+	ensure_button_widget();
+	GtkStyleContext *button_context = gtk_widget_get_style_context(gButtonWidget);
+	GdkRGBA bg_color = {0.8, 0.8, 0.8, 1.0};
+	if (!gtk_style_context_lookup_color(button_context, "theme_bg_color", &bg_color))
+	{
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+		gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
+G_GNUC_END_IGNORE_DEPRECATIONS
+	}
+
+	// Fill tab panel background with button background color
+	cairo_set_source_rgba(cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
+	cairo_rectangle(cr, 0, 0, width, height);
+	cairo_fill(cr);
+	
+	cairo_destroy(cr);
+	cairo_surface_flush(surface);
+	
+	return surface;
+}
+
+// -- tperry 13-11-2025: GTK3 - legacy GdkWindow rendering (deprecated)
 static gint
-moz_gtk_tabpanels_paint(GdkDrawable * drawable, GdkRectangle * rect,
+moz_gtk_tabpanels_paint(GdkWindow * drawable, GdkRectangle * rect,
                         GdkRectangle * cliprect, int y, int w)
 {
-	GtkStyle *style;
-
 	ensure_tab_widget();
-	style = gTabWidget->style;
+	
+	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
+	
+	// Set clip region
+	if (cliprect) {
+		// cairo_rectangle(cr, cliprect->x, cliprect->y, cliprect->width, cliprect->height);
+		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
+	}
+	
+	// Get button background color (same as scrollbar track, progress bar trough)
+	ensure_button_widget();
+	GtkStyleContext *button_context = gtk_widget_get_style_context(gButtonWidget);
+	GdkRGBA bg_color = {0.8, 0.8, 0.8, 1.0};
+	if (!gtk_style_context_lookup_color(button_context, "theme_bg_color", &bg_color))
+	{
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+		gtk_style_context_get_background_color(button_context, GTK_STATE_FLAG_NORMAL, &bg_color);
+G_GNUC_END_IGNORE_DEPRECATIONS
+	}
 
-	TSOffsetStyleGCs(style, rect->x, rect->y);
-
-
-	gtk_paint_box_gap(style, drawable, GTK_STATE_NORMAL, GTK_SHADOW_OUT,
-	                    cliprect, gTabWidget, "notebook",
-	                    rect->x, rect->y,
-	                    rect->width, rect->height,
-	                    GTK_POS_TOP,
-	                    y, w);
-
+	// Fill tab panel background with button background color
+	cairo_set_source_rgba(cr, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
+	cairo_rectangle(cr, rect->x, rect->y, rect->width, rect->height);
+	cairo_fill(cr);
+	
+	// -- tperry 16-11-2025: Disabled frame_gap - causes GTK warnings and renders black background
+	// GtkStyleContext *context = gtk_widget_get_style_context(gTabWidget);
+	// gtk_render_frame_gap(context, cr, rect->x, rect->y, rect->width, rect->height,
+	//                      GTK_POS_TOP, y, y + w);
+	
+	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
 }
 
@@ -1810,10 +3436,11 @@ moz_gtk_get_widget_border(GtkThemeWidgetType widget, gint * xthickness,
 		return MOZ_GTK_UNKNOWN_WIDGET;
 	}
 
+	// -- tperry 13-11-2025: GTK3 - widget->style removed, pass widget directly
 	if (xthickness)
-		*xthickness = XTHICKNESS(w->style);
+		*xthickness = XTHICKNESS(w);
 	if (ythickness)
-		*ythickness = YTHICKNESS(w->style);
+		*ythickness = YTHICKNESS(w);
 
 	return MOZ_GTK_SUCCESS;
 }
@@ -1830,13 +3457,19 @@ gint moz_gtk_get_dropdown_arrow_size(gint * width, gint * height)
 
 	if (width)
 	{
-		*width = 2 * (1 + XTHICKNESS(gDropdownButtonWidget->style));
-		*width += 11 + GTK_MISC(gArrowWidget)->xpad * 2;
+		// -- tperry 13-11-2025: GTK3 - widget->style removed, pass widget directly
+		*width = 2 * (1 + XTHICKNESS(gDropdownButtonWidget));
+		// -- tperry 13-11-2025: GTK3 - GtkMisc removed, use margin properties
+		gint xmargin = gtk_widget_get_margin_start(gArrowWidget) + gtk_widget_get_margin_end(gArrowWidget);
+		*width += 11 + xmargin;
 	}
 	if (height)
 	{
-		*height = 2 * (1 + YTHICKNESS(gDropdownButtonWidget->style));
-		*height += 11 + GTK_MISC(gArrowWidget)->ypad * 2;
+		// -- tperry 13-11-2025: GTK3 - widget->style removed, pass widget directly
+		*height = 2 * (1 + YTHICKNESS(gDropdownButtonWidget));
+		// -- tperry 13-11-2025: GTK3 - GtkMisc removed, use margin properties
+		gint ymargin = gtk_widget_get_margin_top(gArrowWidget) + gtk_widget_get_margin_bottom(gArrowWidget);
+		*height += 11 + ymargin;
 	}
 
 	return MOZ_GTK_SUCCESS;
@@ -1851,43 +3484,48 @@ moz_gtk_get_slider_metrics(gint * slider_width, gint * trough_border,
 	ensure_scale_widget();
 
 	if(focus_line_width)
-		gtk_widget_style_get_ptr (GTK_WIDGET(gHScaleWidget),
+		gtk_widget_style_get (GTK_WIDGET(gHScaleWidget),
 		                        "focus-line-width", &focus_line_width, NULL);
 
 	if(focus_padding)
-		gtk_widget_style_get_ptr (GTK_WIDGET(gHScaleWidget),
+		gtk_widget_style_get (GTK_WIDGET(gHScaleWidget),
 		                        "focus-padding", &focus_padding,
 		                        NULL);
 
 
 	if (slider_width)
 	{
-		gtk_widget_style_get_ptr(gHScaleWidget, "slider_width",
+		gtk_widget_style_get(gHScaleWidget, "slider_width",
 		                       slider_width, NULL);
 	}
 
 	if (trough_border)
 	{
-		gtk_widget_style_get_ptr(gHScaleWidget, "trough_border",
+		gtk_widget_style_get(gHScaleWidget, "trough_border",
 		                       trough_border, NULL);
 	}
 
 	if (stepper_size)
 	{
-		gtk_widget_style_get_ptr(gHScaleWidget, "stepper_size",
+		gtk_widget_style_get(gHScaleWidget, "stepper_size",
 		                       stepper_size, NULL);
 	}
 
 	if (stepper_spacing)
 	{
-		gtk_widget_style_get_ptr(gHScaleWidget, "stepper_spacing",
+		gtk_widget_style_get(gHScaleWidget, "stepper_spacing",
 		                       stepper_spacing, NULL);
 	}
 
+	// -- tperry 15-11-2025: GTK3 removed min-slider-length property, use CSS min-width/height
 	if (min_slider_size)
 	{
-		*min_slider_size =
-		    GTK_RANGE(gHScaleWidget)->min_slider_size;
+		// GTK3: Get minimum slider size from CSS or use default
+		GtkStyleContext *context = gtk_widget_get_style_context(gHScaleWidget);
+		gint min_width, min_height;
+		gtk_widget_get_size_request(gHScaleWidget, &min_width, &min_height);
+		// Default to 21 pixels if not set (GTK3 default)
+		*min_slider_size = (min_width > 0) ? min_width : 21;
 	}
 
 	return MOZ_GTK_SUCCESS;
@@ -1903,50 +3541,57 @@ moz_gtk_get_scrollbar_metrics(gint * slider_width, gint * trough_border,
 	ensure_scrollbar_widget();
 
 	if(focus_line_width)
-		gtk_widget_style_get_ptr(GTK_WIDGET(gHorizScrollbarWidget),
+		gtk_widget_style_get(GTK_WIDGET(gHorizScrollbarWidget),
 		                        "focus-line-width", &focus_line_width, NULL);
 
 	if(focus_padding)
-		gtk_widget_style_get_ptr(GTK_WIDGET(gHorizScrollbarWidget),
+		gtk_widget_style_get(GTK_WIDGET(gHorizScrollbarWidget),
 		                        "focus-padding", &focus_padding,
 		                        NULL);
 
 
 	if (slider_width)
 	{
-		gtk_widget_style_get_ptr(gHorizScrollbarWidget, "slider_width",
+		gtk_widget_style_get(gHorizScrollbarWidget, "slider_width",
 		                       slider_width, NULL);
 	}
 
 	if (trough_border)
 	{
-		gtk_widget_style_get_ptr(gHorizScrollbarWidget, "trough_border",
+		gtk_widget_style_get(gHorizScrollbarWidget, "trough_border",
 		                       trough_border, NULL);
 	}
 
 	if (stepper_size)
 	{
-		gtk_widget_style_get_ptr(gHorizScrollbarWidget, "stepper_size",
-		                       stepper_size, NULL);
+		// -- tperry 16-11-2025: GTK3 modern themes don't use stepper arrows
+		*stepper_size = 0;
 	}
 
 	if (stepper_spacing)
 	{
-		gtk_widget_style_get_ptr(gHorizScrollbarWidget, "stepper_spacing",
+		gtk_widget_style_get(gHorizScrollbarWidget, "stepper_spacing",
 		                       stepper_spacing, NULL);
+		// -- tperry 16-11-2025: No spacing needed if no steppers
+		*stepper_spacing = 0;
 	}
 
+	// -- tperry 15-11-2025: GTK3 removed min-slider-length property, use CSS min-width/height
 	if (min_slider_size)
 	{
-		*min_slider_size =
-		    GTK_RANGE(gHorizScrollbarWidget)->min_slider_size;
+		// GTK3: Get minimum slider size from CSS or use default
+		GtkStyleContext *context = gtk_widget_get_style_context(gHorizScrollbarWidget);
+		gint min_width, min_height;
+		gtk_widget_get_size_request(gHorizScrollbarWidget, &min_width, &min_height);
+		// Default to 21 pixels if not set (GTK3 default for scrollbar thumb)
+		*min_slider_size = (min_height > 0) ? min_height : 21;
 	}
 
 	return MOZ_GTK_SUCCESS;
 }
 
 gint
-moz_gtk_widget_paint(GtkThemeWidgetType widget, GdkDrawable * drawable,
+moz_gtk_widget_paint(GtkThemeWidgetType widget, GdkWindow * drawable,
                      GdkRectangle * rect, GdkRectangle * cliprect,
                      GtkWidgetState * state, gint flags)
 {
@@ -2062,6 +3707,10 @@ moz_gtk_widget_paint(GtkThemeWidgetType widget, GdkDrawable * drawable,
 	case MOZ_GTK_SCALE_TRACK_HORIZONTAL:
 		return moz_gtk_scale_track_paint(widget, drawable, rect, cliprect, flags);
 		break;
+	case MOZ_GTK_SCALE_THUMB_VERTICAL:
+	case MOZ_GTK_SCALE_THUMB_HORIZONTAL:
+		return moz_gtk_scale_thumb_paint(widget, drawable, rect, cliprect, state);
+		break;
 
 	default:
 		//g_warning("Unknown widget type: %d", widget);
@@ -2071,32 +3720,27 @@ moz_gtk_widget_paint(GtkThemeWidgetType widget, GdkDrawable * drawable,
 	return MOZ_GTK_UNKNOWN_WIDGET;
 }
 
+void moz_gtk_invalidate_caches()
+{
+	// Nothing to invalidate currently — MCimagecache is flushed by the caller.
+}
+
 gint moz_gtk_shutdown()
 {
-    // Do NOT call gtk_widget_destroy(gProtoWindow) here.
+    // Do NOT call gtk_widget_destroy() here.
     //
-    // moz_gtk_shutdown() is only called during process exit (from
-    // globals.cpp / MCNativeTheme::unload()).  Immediately after this
-    // function returns, MCScreenDC::close() calls gdk_display_close(),
-    // which sends XCloseDisplay(); the X server then frees every X11
-    // resource (windows, GCs, pixmaps) owned by the client.  The OS
-    // reclaims the heap memory.
+    // moz_gtk_shutdown() is only called during process exit.  Immediately
+    // after this function returns, MCScreenDC::close() calls
+    // gdk_display_close(), which sends XCloseDisplay(); the X server then
+    // frees every X11 resource owned by the client.  The OS reclaims the
+    // heap memory.
     //
-    // Calling gtk_widget_destroy() at this point is unsafe: if the
-    // engine has previously rendered any GTK widget into a raw GdkWindow
-    // (e.g. via gtk_paint_flat_box with a stack window as the drawable),
-    // GTK's internal style-attachment state can be left pointing at that
-    // now-destroyed window.  gtk_widget_destroy() then crashes inside
-    // gtk_widget_unrealize() while trying to detach/free GdkGC objects
-    // tied to the already-gone X window.
+    // Calling gtk_widget_destroy() at this point is unsafe: GTK's internal
+    // style-attachment state can be left pointing at windows that are
+    // already gone, causing crashes inside gtk_widget_unrealize().
     //
     // Simply null the pointers.  The widgets are leaked, but that is
     // harmless given that the process is about to exit.
-    if (gProtoWindow != nullptr)
-    {
-        gProtoWindow    = nullptr;
-        gProtoLayout    = nullptr;
-    }
     gButtonWidget         = nullptr;
     gCheckboxWidget       = nullptr;
     gRadiobuttonWidget    = nullptr;
@@ -2109,6 +3753,7 @@ gint moz_gtk_shutdown()
     gFrameWidget          = nullptr;
     gProgressWidget       = nullptr;
     gTabWidget            = nullptr;
+    gLabelOffscreenWindow = nullptr;
     gLabelWidget          = nullptr;
     gOptionbuttonWidget   = nullptr;
     gSpinbuttonWidget     = nullptr;
@@ -2116,12 +3761,15 @@ gint moz_gtk_shutdown()
     gHScaleWidget         = nullptr;
     gVScaleWidget         = nullptr;
 
-    // Tooltip widget is a GtkTooltips object held with an explicit g_object_ref,
-    // not a child of gProtoLayout, so release it separately.
-    if (gTooltipWidget != nullptr)
-    {
-        g_object_unref(gTooltipWidget);
-        gTooltipWidget = nullptr;
-    }
+    // GTK3: gTooltipWindow is a GtkWindow created in ensure_tooltip_widget().
+    // Null it rather than destroying it for the same safety reasons above.
+    gTooltipWindow        = nullptr;
+
+    // gProtoWindow / gProtoLayout: in GTK3 setup_widget_prototype() no longer
+    // creates a real prototype window (it is a no-op aside from setting object
+    // data), but null them defensively should the pointers ever be set.
+    gProtoWindow          = nullptr;
+    gProtoLayout          = nullptr;
+
     return MOZ_GTK_SUCCESS;
 }

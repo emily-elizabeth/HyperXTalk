@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #ifndef __MC_LINUX_THEME__
 #define __MC_LINUX_THEME__
 
@@ -8,7 +24,8 @@
 struct MCThemeDrawInfo
 {
 	GtkThemeWidgetType moztype ;
-	GdkPixmap *pm ;
+	// -- tperry 15-11-2025: GTK3 - use GdkWindow* from offscreen window
+	GdkWindow *pm ;
 	GdkRectangle drect ;
 	GdkRectangle cliprect ;
 	GtkWidgetState state ;
@@ -36,8 +53,9 @@ public:
 	virtual uint32_t getthemedrawinfosize(void);
 
 protected:
+	// -- tperry 12-11-2025: GTK3 removed GdkDrawable, use GdkWindow
 	void make_theme_info(MCThemeDrawInfo& ret, GtkThemeWidgetType widget, 
-						 GdkDrawable * drawable,
+						 GdkWindow * drawable,
 						 GdkRectangle * rect, 
 						 GdkRectangle * cliprect,
 						 GtkWidgetState state, 
@@ -45,8 +63,9 @@ protected:
 						 MCRectangle crect );
 	
 	
+	// -- tperry 15-11-2025: GTK3 - use GdkWindow* from offscreen window
 	void drawTab(MCDC* t_dc, const MCWidgetInfo &winfo, const MCRectangle &drect,
-	             GdkPixmap *pix);
+	             GdkWindow *pix);
 	void drawScrollbar(MCDC *dc, const MCWidgetInfo &winfo, const MCRectangle &drect);
 	void drawSlider(MCDC *dc, const MCWidgetInfo &winfo, const MCRectangle &drect);
 	void getscrollbarrects(const MCWidgetInfo &winfo,
@@ -62,7 +81,11 @@ protected:
 	
 private:
 	Boolean mNeedNewGC;
-	GdkPixmap *gtkpix;
+	// -- tperry 15-11-2025: GTK3 - use GtkOffscreenWindow and its GdkWindow for theme rendering
+	GtkWidget *gtkpix_offscreen;  // The offscreen window widget
+	GdkWindow *gtkpix;            // The GdkWindow from the offscreen window
+	gulong m_settings_signal_handler;
+	GtkSettings *m_settings;
 };
 
 #endif

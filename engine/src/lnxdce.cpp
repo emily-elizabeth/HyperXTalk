@@ -1,7 +1,24 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 //
 // ScreenDC event and signal handling functions
 //
 #include "lnxprefix.h"
+#include <stdio.h>
 
 #include "globdefs.h"
 #include "filedefs.h"
@@ -72,7 +89,8 @@ static bool MCExposeEventFilter(GdkEvent *e, void *)
     return e->type == GDK_EXPOSE || e->type == GDK_DAMAGE;
 }
 
-bool MCLinuxRegionToMCGRegion(GdkRegion*, MCGRegionRef&);
+// -- tperry 12-11-2025: GTK3 uses cairo_region_t instead of GdkRegion
+bool MCLinuxRegionToMCGRegion(cairo_region_t*, MCGRegionRef&);
 
 void MCScreenDC::expose()
 {
@@ -229,7 +247,9 @@ void MCScreenDC::platform_setmouse(int16_t x, int16_t y)
 
 void MCScreenDC::device_setmouse(int2 x, int2 y)
 {
-	gdk_display_warp_pointer(dpy, gdk_display_get_default_screen(dpy), x, y);
+	// GTK3: gdk_display_warp_pointer(+screen) removed; use gdk_seat_pointer_warp
+	GdkDevice *t_pointer = gdk_seat_get_pointer(gdk_display_get_default_seat(dpy));
+	gdk_device_warp(t_pointer, gdk_display_get_default_screen(dpy), x, y);
 }
 
 Boolean MCScreenDC::getmouse(uint2 button, Boolean& r_abort)
@@ -405,8 +425,21 @@ Boolean MCScreenDC::wait(real8 duration, Boolean dispatch, Boolean anyevent)
             if (HasRunloopActions())
                 t_sleep = MCMin(t_sleep, 0.01);
             
-            gdk_display_sync(dpy);
+            fprintf(stderr, "WAIT: before gdk_display_flush (sleep=%.3f)\n", t_sleep);
+            fflush(stderr);
+            // Use gdk_display_flush (non-blocking XFlush) instead of
+            // gdk_display_sync (blocking XSync round-trip). XSync blocks
+            // the main thread until the X server acknowledges all pending
+            // requests — during DnD this means blocking while Mutter
+            // composites away the RGBA drag window, which under Intel
+            // DRM/KMS can stall the GPU command queue and cause a hard
+            // kernel hang requiring a power cycle.
+            gdk_display_flush(dpy);
+            fprintf(stderr, "WAIT: before MCS_poll\n");
+            fflush(stderr);
             done = MCS_poll(donepending ? 0 : t_sleep, x11::XConnectionNumber(x11::gdk_x11_display_get_xdisplay(dpy)));
+            fprintf(stderr, "WAIT: MCS_poll done=%d\n", (int)done);
+            fflush(stderr);
         }
 		curtime = MCS_time();
 	}

@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 //
 // X ScreenDC display specific functions
 //
@@ -40,7 +56,10 @@ static Boolean dragclick;
 
 void MCScreenDC::setupcolors()
 {
-	ncolors = MCU_min(vis->colormap_size, MAX_CELLS);
+	// -- tperry 12-11-2025: GTK3 - GdkVisual is opaque, use gdk_visual_get_depth
+	// In GTK3, we use a fixed color count based on depth
+	gint depth = gdk_visual_get_depth(vis);
+	ncolors = MCU_min(1 << depth, MAX_CELLS);
 	colors = new (nothrow) MCColor[ncolors];
     colornames = new (nothrow) MCStringRef[ncolors];
 	allocs = new (nothrow) int2[ncolors];
@@ -57,10 +76,7 @@ GdkScreen* MCScreenDC::getscreen()
 	return gdk_visual_get_screen(vis);
 }
 
-GdkColormap* MCScreenDC::getcmap()
-{
-	return cmap;
-}
+// -- tperry 12-11-2025: GTK3 removed GdkColormap - function removed from header
 
 GdkVisual* MCScreenDC::getvisual()
 {
@@ -235,11 +251,81 @@ void MCScreenDC::setmods(guint state, KeySym sym,
 extern "C"
 {
 void gtk_main_do_event(GdkEvent*);
+gboolean gdk_event_is_allocated(const GdkEvent *event);
 }
 
 static bool motion_event_filter_fn(GdkEvent *p_event, void*)
 {
     return p_event->type == GDK_MOTION_NOTIFY;
+}
+
+// Safe replacement for gdk_event_free that avoids crashing on destroyed GObjects.
+// Based on the actual GDK source (gtk+-3.24.43/gdk/gdkevents.c gdk_event_free).
+// gdk_event_free calls g_object_unref on several GObject pointers inside the
+// event. If these objects have been destroyed (e.g. dialog closed), the unref
+// crashes on dangling pointers. This function nulls out every GObject pointer
+// that gdk_event_free would unref, then calls gdk_event_free which will skip
+// the unrefs (NULL checks) and just free non-GObject data and the struct.
+//
+// From GDK source, gdk_event_free unrefs these GObject pointers:
+//   - private->device and private->source_device (via g_clear_object - safe)
+//   - event->crossing.subwindow
+//   - event->dnd.context
+//   - event->owner_change.owner
+//   - event->selection.requestor
+//   - event->any.window
+void safe_gdk_event_free(GdkEvent *event)
+{
+    if (event == NULL)
+        return;
+    
+    // Null out the window (present in all event types via GdkEventAny).
+    // Also prevents crash in event_get_display -> gdk_window_get_display.
+    event->any.window = NULL;
+    
+    // Null out event-type-specific GObject pointer fields that gdk_event_free
+    // would g_object_unref. Matches the switch in gdkevents.c exactly.
+    switch (event->type)
+    {
+        case GDK_ENTER_NOTIFY:
+        case GDK_LEAVE_NOTIFY:
+            event->crossing.subwindow = NULL;
+            break;
+            
+        case GDK_DRAG_ENTER:
+        case GDK_DRAG_LEAVE:
+        case GDK_DRAG_MOTION:
+        case GDK_DRAG_STATUS:
+        case GDK_DROP_START:
+        case GDK_DROP_FINISHED:
+            event->dnd.context = NULL;
+            break;
+            
+        case GDK_OWNER_CHANGE:
+            event->owner_change.owner = NULL;
+            break;
+            
+        case GDK_SELECTION_CLEAR:
+        case GDK_SELECTION_NOTIFY:
+        case GDK_SELECTION_REQUEST:
+            event->selection.requestor = NULL;
+            break;
+            
+        case GDK_GRAB_BROKEN:
+            event->grab_broken.grab_window = NULL;
+            break;
+            
+        default:
+            break;
+    }
+    
+    // Note: private->device and private->source_device are handled by
+    // g_clear_object() in gdk_event_free, which nulls before unreffing,
+    // so they are already safe and don't need to be cleared here.
+    
+    // Now call gdk_event_free - with all GObject pointers NULL, it will only
+    // free non-GObject data (strings, axes, regions, etc.) and the struct.
+    gdk_event_free(event);
 }
 
 Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, Boolean& reset)
@@ -250,7 +336,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
     // Loop until both the pending event queue and GDK event queue are empty
     abort = reset = False;
     bool t_handled = false;
-    while (true || dispatch || g_main_context_pending(NULL) || gdk_events_pending())
+    while (dispatch || g_main_context_pending(NULL) || gdk_events_pending())
     {
         // Place all events onto the pending event queue
         EnqueueGdkEvents();
@@ -258,9 +344,11 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
         bool t_queue = false;
         if (dispatch && pendingevents != NULL)
         {
-            // Get the next event from the queue
-            t_event = gdk_event_copy(pendingevents->event);
+            // Get the next event from the queue - take ownership instead of
+            // copying to avoid double-free of the GdkWindow inside the event.
             MCEventnode *tptr = (MCEventnode *)pendingevents->remove(pendingevents);
+            t_event = tptr->event;
+            tptr->event = NULL;
             delete tptr;
         }
         
@@ -309,14 +397,29 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                     if (dispatch)
                     {
                         if (t_event->focus_change.window != MCtracewindow)
-                            MCdispatcher->wkfocus(t_event->focus_change.window);
+                        {
+                            // XFCE workaround: Limit focus event dispatching on XFCE
+                            // XFCE has severe focus management issues with all window types
+                            bool skip_focus = false;
+                            const char *desktop = getenv("XDG_CURRENT_DESKTOP");
+                            if (desktop && (strstr(desktop, "XFCE") || strstr(desktop, "xfce")))
+                            {
+                                MCStack *t_stack = MCdispatcher->findstackd(t_event->focus_change.window);
+                                // Only dispatch focus for top-level windows, skip palettes and modeless
+                                if (t_stack && t_stack->getrealmode() != WM_TOP_LEVEL && t_stack->getrealmode() != WM_TOP_LEVEL_LOCKED)
+                                    skip_focus = true;
+                            }
+                            
+                            if (!skip_focus)
+                                MCdispatcher->wkfocus(t_event->focus_change.window);
+                        }
                     }
                     else
                         t_queue = true;
                 }
                 else
                 {
-                    // Focus was lost. Was it to another HyperXTalk window or to
+                    // Focus was lost. Was it to another LiveCode window or to
                     // a different application?
                     bool t_lostfocus = false;
                     x11::Window t_return_window;
@@ -347,25 +450,29 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             hidebackdrop(true);
                             if (MCdefaultstackptr)
                                 MCdefaultstackptr->getcard()->message(MCM_suspend);
-
+                            
                             MCstacks->hidepalettes(true);
-
-                            // Dismiss any open popover — it must not float
-                            // above an unrelated application's window.
-                            if (MCpopoverstack != nullptr)
-                            {
-                                MCStack *t_closing = MCpopoverstack;
-                                MCpopoverstack = nullptr;
-                                MCpopoverparentstack = nullptr;
-                                MCdispatcher->wclose(t_closing->getwindowalways());
-                            }
                         }
                     }
                     
                     if (dispatch)
                     {
                         if (t_event->focus_change.window != MCtracewindow)
-                            MCdispatcher->wkunfocus(t_event->focus_change.window);
+                        {
+                            // XFCE workaround: Limit unfocus event dispatching on XFCE
+                            bool skip_unfocus = false;
+                            const char *desktop = getenv("XDG_CURRENT_DESKTOP");
+                            if (desktop && (strstr(desktop, "XFCE") || strstr(desktop, "xfce")))
+                            {
+                                MCStack *t_stack = MCdispatcher->findstackd(t_event->focus_change.window);
+                                // Only dispatch unfocus for top-level windows
+                                if (t_stack && t_stack->getrealmode() != WM_TOP_LEVEL && t_stack->getrealmode() != WM_TOP_LEVEL_LOCKED)
+                                    skip_unfocus = true;
+                            }
+                            
+                            if (!skip_unfocus)
+                                MCdispatcher->wkunfocus(t_event->focus_change.window);
+                        }
                     }
                     else
                         t_queue = true;
@@ -457,19 +564,33 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 {
                     if (t_event->crossing.window != MCtracewindow)
                     {
-                        if (t_event->type == GDK_ENTER_NOTIFY)
+                        // XFCE workaround: Limit mouse focus events on XFCE
+                        bool skip_mouse_focus = false;
+                        const char *desktop = getenv("XDG_CURRENT_DESKTOP");
+                        if (desktop && (strstr(desktop, "XFCE") || strstr(desktop, "xfce")))
                         {
-                            if (MCmousestackptr)
-                            {
-                                // Send a window focus event
-                                MCdispatcher->enter(t_event->crossing.window);
-                                MCdispatcher->wmfocus(t_event->crossing.window, t_event->crossing.x, t_event->crossing.y);
-                            }
+                            MCStack *t_stack = MCdispatcher->findstackd(t_event->crossing.window);
+                            // Only dispatch mouse focus for top-level windows
+                            if (t_stack && t_stack->getrealmode() != WM_TOP_LEVEL && t_stack->getrealmode() != WM_TOP_LEVEL_LOCKED)
+                                skip_mouse_focus = true;
                         }
-                        else
+                        
+                        if (!skip_mouse_focus)
                         {
-                            // Send a window unfocus event
-                            MCdispatcher->wmunfocus(t_event->crossing.window);
+                            if (t_event->type == GDK_ENTER_NOTIFY)
+                            {
+                                if (MCmousestackptr)
+                                {
+                                    // Send a window focus event
+                                    MCdispatcher->enter(t_event->crossing.window);
+                                    MCdispatcher->wmfocus(t_event->crossing.window, t_event->crossing.x, t_event->crossing.y);
+                                }
+                            }
+                            else
+                            {
+                                // Send a window unfocus event
+                                MCdispatcher->wmunfocus(t_event->crossing.window);
+                            }
                         }
                     }
                 }
@@ -488,7 +609,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 GdkEvent *t_new_event;
                 while (GetFilteredEvent(&motion_event_filter_fn, t_new_event, NULL))
                 {
-                    gdk_event_free(t_event);
+                    safe_gdk_event_free(t_event);
                     t_event = t_new_event;
                 }
                 
@@ -553,20 +674,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
             {
                 // We're not dragging
                 dragclick = false;
-
-                // Click-outside dismiss for WM_POPOVER windows.
-                // If a popover is open and the click landed on a different
-                // GdkWindow, close the popover before handling the event
-                // normally so the click is still delivered to its target.
-                if (MCpopoverstack != nullptr &&
-                    t_event->type == GDK_BUTTON_PRESS &&
-                    t_event->button.window != MCpopoverstack->getwindowalways())
-                {
-                    MCStack *t_closing = MCpopoverstack;
-                    MCpopoverstack = nullptr; // clear before wclose to prevent re-entry
-                    MCdispatcher->wclose(t_closing->getwindowalways());
-                }
-
+                
                 // Update the mouse button status
                 if (t_event->type == GDK_BUTTON_PRESS)
                     setmods(t_event->button.state, 0, t_event->button.button, False);
@@ -609,37 +717,31 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         // Is this a mouse scroll event?
                         if (MCmousestackptr && t_event->type == GDK_SCROLL)
                         {
-                            // GDK_SCROLL_UP/DOWN name the physical gesture direction under
-                            // natural scrolling. HyperXTalk's XK_WheelUp/Down name the content
-                            // movement direction, which is the opposite convention — so
-                            // GDK_SCROLL_UP (finger moves up) scrolls content DOWN (XK_WheelDown).
-                            // The scrollWheel message receives deltas in the same sign convention
-                            // as the XK_Wheel keysyms: positive dy = content moves down.
-                            int t_dx = 0, t_dy = 0;
-                            switch (t_event->scroll.direction)
-                            {
-                                case GDK_SCROLL_UP:    t_dy =  1; break;
-                                case GDK_SCROLL_DOWN:  t_dy = -1; break;
-                                case GDK_SCROLL_LEFT:  t_dx =  1; break;
-                                case GDK_SCROLL_RIGHT: t_dx = -1; break;
-                                default: break;
-                            }
-
+                            // Find the object that should receive the scroll
                             MCObject *mfocused = MCmousestackptr->getcard()->getmfocused();
                             if (mfocused == NULL)
-                                mfocused = MCmousestackptr->getcard()->findGroupUnderPoint(MCmousex, MCmousey);
-                            if (mfocused == NULL)
                                 mfocused = MCmousestackptr->getcard();
-
-                            if (mfocused != NULL && (t_dx != 0 || t_dy != 0))
+                            
+                            if (mfocused != NULL)
                             {
-                                Exec_stat t_stat = mfocused->message_with_args(MCM_scroll_wheel, t_dx, t_dy);
-                                if (t_stat == ES_PASS || t_stat == ES_NOT_HANDLED)
+                                switch (t_event->scroll.direction)
                                 {
-                                    if (t_dy != 0)
-                                        mfocused->kdown(kMCEmptyString, t_dy > 0 ? XK_WheelDown : XK_WheelUp);
-                                    if (t_dx != 0)
-                                        mfocused->kdown(kMCEmptyString, t_dx > 0 ? XK_WheelRight : XK_WheelLeft);
+                                    // GDK events are named for the 'natural scrolling' version and interpreted according to system settings
+                                    case GDK_SCROLL_UP:
+                                        mfocused->kdown(kMCEmptyString, XK_WheelDown);
+                                        break;
+                                        
+                                    case GDK_SCROLL_DOWN:
+                                        mfocused->kdown(kMCEmptyString, XK_WheelUp);
+                                        break;
+                                        
+                                    case GDK_SCROLL_LEFT:
+                                        mfocused->kdown(kMCEmptyString, XK_WheelRight);
+                                        break;
+                                        
+                                    case GDK_SCROLL_RIGHT:
+                                        mfocused->kdown(kMCEmptyString, XK_WheelLeft);
+                                        break;
                                 }
                             }
                         }
@@ -685,7 +787,21 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                 else
                                 {
                                     doubleclick = tripleclick = false;
-                                    MCdispatcher->wmfocus(t_event->button.window, t_clickloc.x, t_clickloc.y);
+                                    
+                                    // XFCE workaround: Limit wmfocus on button press on XFCE
+                                    bool skip_click_focus = false;
+                                    const char *desktop = getenv("XDG_CURRENT_DESKTOP");
+                                    if (desktop && (strstr(desktop, "XFCE") || strstr(desktop, "xfce")))
+                                    {
+                                        MCStack *t_stack = MCdispatcher->findstackd(t_event->button.window);
+                                        // Only send wmfocus for top-level windows
+                                        if (t_stack && t_stack->getrealmode() != WM_TOP_LEVEL && t_stack->getrealmode() != WM_TOP_LEVEL_LOCKED)
+                                            skip_click_focus = true;
+                                    }
+                                    
+                                    if (!skip_click_focus)
+                                        MCdispatcher->wmfocus(t_event->button.window, t_clickloc.x, t_clickloc.y);
+                                    
                                     MCdispatcher->wmdown(t_event->button.window, t_event->button.button);
                                 }
                             }
@@ -774,20 +890,11 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 MCStack *t_stack = MCdispatcher->findstackd(t_event->configure.window);
                 if (t_stack == nil)
                     break;
-
-                // If the anchor stack has moved, dismiss the popover.
-                // This matches macOS behaviour where popovers hide on parent move.
-                if (MCpopoverstack != nullptr && t_stack == MCpopoverparentstack)
-                {
-                    MCStack *t_closing = MCpopoverstack;
-                    MCpopoverstack = nullptr;
-                    MCpopoverparentstack = nullptr;
-                    MCdispatcher->wclose(t_closing->getwindowalways());
-                }
                 
                 GdkGeometry t_geom;
                 gint t_new_width, t_new_height;
-                guint t_flags = GDK_HINT_MIN_SIZE|GDK_HINT_MAX_SIZE;
+                // -- tperry 13-11-2025: GTK3 - cast flags to GdkWindowHints
+                GdkWindowHints t_flags = (GdkWindowHints)(GDK_HINT_MIN_SIZE|GDK_HINT_MAX_SIZE);
  
                 t_geom.min_width = t_stack->getminwidth();
                 t_geom.max_width = t_stack->getmaxwidth();
@@ -858,9 +965,17 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 // Note: we don't use a secondary selection
                 if (t_clipboard != NULL)
                 {
-                    // Convert the requestor window XID into a GdkWindow
+                    // -- tperry 13-11-2025: GTK3 - requestor is already a GdkWindow*, not an XID
+                    // Get the requestor window
                     GdkWindow *t_requestor;
-                    t_requestor = x11::gdk_x11_window_foreign_new_for_display(dpy, t_event->selection.requestor);
+                    t_requestor = t_event->selection.requestor;
+                    
+                    // -- tperry 16-11-2025: Check if requestor is valid (can be NULL or destroyed)
+                    if (t_requestor == NULL || !GDK_IS_WINDOW(t_requestor))
+                    {
+                        // Requestor window is invalid, ignore this selection request
+                        break;
+                    }
                     
                     // There is a backwards-compatibility issue with the way the
                     // ICCCM deals with selections: older clients can request a
@@ -1003,7 +1118,8 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
         }
         else if (t_event != NULL)
         {
-            gdk_event_free(t_event);
+            // Use safe_gdk_event_free to avoid crash on destroyed GObjects
+            safe_gdk_event_free(t_event);
             t_event = NULL;
         }
     }
@@ -1226,7 +1342,7 @@ void MCScreenDC::DnDClientEvent(GdkEvent* p_event)
             t_dragboard->SetDragContext(p_event->dnd.context);
             
             // We use the destination window as the clipboard window for drag-
-            // and-drop operations from outside HyperXTalk as some sources get
+            // and-drop operations from outside LiveCode as some sources get
             // confused when the window requesting the data != the drag target
             // window.
             if (!MCdispatcher->isdragsource())
@@ -1293,10 +1409,24 @@ void MCScreenDC::DnDClientEvent(GdkEvent* p_event)
         case GDK_DROP_START:
         {
             //fprintf(stderr, "DND: drop start\n");
+            // GDK fires a synthetic GDK_DRAG_LEAVE immediately before
+            // GDK_DROP_START, which wipes the dragboard (ReleaseData clears
+            // m_item; SetDragContext(NULL) clears the context). Re-initialise
+            // both so that dragData["files"] etc. can be read from inside the
+            // dragDrop handler. The X11 selection data remains available from
+            // the drop source until we call gdk_drop_finish below.
+            if (!MCdispatcher->isdragsource())
+            {
+                MCLinuxRawClipboard* t_dragboard =
+                    static_cast<MCLinuxRawClipboard*>(MCdragboard->GetRawClipboard());
+                t_dragboard->SetDragContext(p_event->dnd.context);
+                MCdragboard->PullUpdates();
+            }
+
             // Temporarily adopt the asynchronous modifier state
             uint16_t t_old_modstate = MCmodifierstate;
             MCmodifierstate = MCscreen->querymods();
-            
+
             // Something was dropped on us
             MCdispatcher->wmdragdrop(p_event->dnd.window);
             
