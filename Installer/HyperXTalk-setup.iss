@@ -79,6 +79,9 @@ Name: "fileassoc"; \
 
 ; ============================================================
 [Files]
+; ---- Visual C++ redistributable ----
+Source: "redist\VC_redist.x64.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
+
 ; ---- Main executables ----
 Source: "{#SourceDir}\HyperXTalk.exe";           DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\standalone-community.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -365,8 +368,67 @@ Root: HKA; Subkey: "Software\Classes\HyperXTalk.Script\shell\open\command"; \
     ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; \
     Tasks: fileassoc
 
+; ---- File association: .livecode ----
+Root: HKA; Subkey: "Software\Classes\.livecode"; \
+    ValueType: string; ValueName: ""; ValueData: "HyperXTalk.LiveCodeStack"; \
+    Flags: uninsdeletevalue; Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\HyperXTalk.LiveCodeStack"; \
+    ValueType: string; ValueName: ""; ValueData: "LiveCode Stack"; \
+    Flags: uninsdeletekey; Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\HyperXTalk.LiveCodeStack\DefaultIcon"; \
+    ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName},0"; \
+    Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\HyperXTalk.LiveCodeStack\shell\open\command"; \
+    ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; \
+    Tasks: fileassoc
+
+; ---- File association: .livecodescript ----
+Root: HKA; Subkey: "Software\Classes\.livecodescript"; \
+    ValueType: string; ValueName: ""; ValueData: "HyperXTalk.LiveCodeScript"; \
+    Flags: uninsdeletevalue; Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\HyperXTalk.LiveCodeScript"; \
+    ValueType: string; ValueName: ""; ValueData: "LiveCode Script-only Stack"; \
+    Flags: uninsdeletekey; Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\HyperXTalk.LiveCodeScript\DefaultIcon"; \
+    ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName},0"; \
+    Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\HyperXTalk.LiveCodeScript\shell\open\command"; \
+    ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; \
+    Tasks: fileassoc
+
+; ---- File association: .rev ----
+Root: HKA; Subkey: "Software\Classes\.rev"; \
+    ValueType: string; ValueName: ""; ValueData: "HyperXTalk.RevStack"; \
+    Flags: uninsdeletevalue; Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\HyperXTalk.RevStack"; \
+    ValueType: string; ValueName: ""; ValueData: "Runtime Revolution Stack"; \
+    Flags: uninsdeletekey; Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\HyperXTalk.RevStack\DefaultIcon"; \
+    ValueType: string; ValueName: ""; ValueData: "{app}\{#MyAppExeName},0"; \
+    Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\HyperXTalk.RevStack\shell\open\command"; \
+    ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; \
+    Tasks: fileassoc
+
 ; ============================================================
 [Run]
+Filename: "{tmp}\VC_redist.x64.exe"; \
+    Parameters: "/install /quiet /norestart"; \
+    StatusMsg: "Installing Visual C++ Runtime..."; \
+    Check: VCRedistNeedsInstall
 Filename: "{app}\{#MyAppExeName}"; \
     Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; \
     Flags: nowait postinstall skipifsilent
+
+[Code]
+function VCRedistNeedsInstall: Boolean;
+var
+  Installed: Cardinal;
+begin
+  // Check for VS 2015-2022 x64 redistributable
+  Result := not RegQueryDWordValue(
+    HKLM,
+    'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64',
+    'Installed',
+    Installed) or (Installed <> 1);
+end;
