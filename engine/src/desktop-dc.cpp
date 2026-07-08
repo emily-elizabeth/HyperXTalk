@@ -567,21 +567,29 @@ void MCScreenDC::enablebackdrop(bool p_hard)
 	backdrop_enabled = true;
 
 	// Build the union rect of all screens so the backdrop spans multiple monitors.
-	MCRectangle t_rect;
-	MCPlatformGetScreenViewport(0, t_rect);
+	// Use getdisplays() rather than MCPlatformGetScreen* so this works on all
+	// platforms (macOS, Windows, Linux).
+	MCDisplay const *t_displays;
+	uint32_t t_display_count = getdisplays(t_displays, false);
 
-	uint32_t t_screen_count;
-	MCPlatformGetScreenCount(t_screen_count);
-	for (uint32_t i = 1; i < t_screen_count; i++)
+	MCRectangle t_rect;
+	if (t_display_count > 0)
 	{
-		MCRectangle t_screen;
-		MCPlatformGetScreenViewport(i, t_screen);
-		int32_t t_right  = MCMax(t_rect.x + (int32_t)t_rect.width,  t_screen.x + (int32_t)t_screen.width);
-		int32_t t_bottom = MCMax(t_rect.y + (int32_t)t_rect.height, t_screen.y + (int32_t)t_screen.height);
-		t_rect.x = MCMin(t_rect.x, t_screen.x);
-		t_rect.y = MCMin(t_rect.y, t_screen.y);
-		t_rect.width  = (uint32_t)(t_right  - t_rect.x);
-		t_rect.height = (uint32_t)(t_bottom - t_rect.y);
+		t_rect = t_displays[0].viewport;
+		for (uint32_t i = 1; i < t_display_count; i++)
+		{
+			MCRectangle t_screen = t_displays[i].viewport;
+			int32_t t_right  = MCMax(t_rect.x + (int32_t)t_rect.width,  t_screen.x + (int32_t)t_screen.width);
+			int32_t t_bottom = MCMax(t_rect.y + (int32_t)t_rect.height, t_screen.y + (int32_t)t_screen.height);
+			t_rect.x = MCMin(t_rect.x, t_screen.x);
+			t_rect.y = MCMin(t_rect.y, t_screen.y);
+			t_rect.width  = (uint32_t)(t_right  - t_rect.x);
+			t_rect.height = (uint32_t)(t_bottom - t_rect.y);
+		}
+	}
+	else
+	{
+		MCPlatformGetScreenViewport(0, t_rect);
 	}
 
 	MCPlatformSetWindowProperty(backdrop_window, kMCPlatformWindowPropertyContentRect, kMCPlatformPropertyTypeRectangle, &t_rect);
