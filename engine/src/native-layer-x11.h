@@ -52,24 +52,17 @@ private:
     GtkWidget* m_browser_widget;
 	MCRectangle m_intersect_rect;
 
-    // GDK window filters for position tracking.
-    // Stack filter: HXT window moved → reposition popup.
-    // Child filter: WM moved popup unexpectedly → snap back.
-    // Both defer to a shared GLib idle (onPendingUpdate) so the X11 query for
-    // gdk_window_get_origin() runs outside the filter's event context.
-    // Loop safety: X11 only generates ConfigureNotify when position actually
-    // changes, so a snap-back to the already-correct position produces no event.
-    GdkWindow* m_stack_gdk_window;  // non-owning; NULL when filter not installed
-    GdkWindow* m_child_gdk_window;  // non-owning; NULL when filter not installed
-    guint      m_pending_update_id; // idle source id, 0 when none pending
+    // 60 Hz position timer: enforces the browser window's absolute screen
+    // position every ~16 ms.  Replaces the ConfigureNotify filter approach,
+    // which had a timing race when the browser held X11 focus: Mutter's
+    // focused-transient repositioning fired after our snap-back idle, leaving
+    // the window persistently detached.  The timer corrects any WM-induced
+    // drift within one display frame regardless of focus state.
+    // Loop safety: gdk_window_move_resize with the already-correct coordinates
+    // produces no visual change and no ConfigureNotify.
+    guint m_position_timer_id;  // g_timeout source id, 0 when not running
 
-    static GdkFilterReturn onStackWindowFilter(GdkXEvent *xevent,
-                                               GdkEvent  *event,
-                                               gpointer   user_data);
-    static GdkFilterReturn onChildWindowFilter(GdkXEvent *xevent,
-                                               GdkEvent  *event,
-                                               gpointer   user_data);
-    static gboolean        onPendingUpdate(gpointer user_data);
+    static gboolean onPositionTimer(gpointer user_data);
 
 
     // Returns the handle for the stack containing this widget

@@ -94,9 +94,7 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_child_window(NULL),
   m_input_shape(NULL),
   m_browser_widget(p_view),
-  m_stack_gdk_window(NULL),
-  m_child_gdk_window(NULL),
-  m_pending_update_id(0)
+  m_position_timer_id(0)
 {
 	m_object = p_object;
 	m_intersect_rect = MCRectangleMake(0,0,0,0);
@@ -104,20 +102,10 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
 
 MCNativeLayerX11::~MCNativeLayerX11()
 {
-    if (m_pending_update_id != 0)
+    if (m_position_timer_id != 0)
     {
-        g_source_remove(m_pending_update_id);
-        m_pending_update_id = 0;
-    }
-    if (m_child_gdk_window != NULL)
-    {
-        gdk_window_remove_filter(m_child_gdk_window, onChildWindowFilter, this);
-        m_child_gdk_window = NULL;
-    }
-    if (m_stack_gdk_window != NULL)
-    {
-        gdk_window_remove_filter(m_stack_gdk_window, onStackWindowFilter, this);
-        m_stack_gdk_window = NULL;
+        g_source_remove(m_position_timer_id);
+        m_position_timer_id = 0;
     }
     if (m_child_window != NULL)
     {
@@ -148,53 +136,19 @@ void MCNativeLayerX11::updateInputShape()
 }
 
 // static
-GdkFilterReturn MCNativeLayerX11::onStackWindowFilter(GdkXEvent *xevent,
-                                                       GdkEvent  * /*event*/,
-                                                       gpointer   user_data)
-{
-    // Watch for X11 ConfigureNotify (window moved or resized).
-    // Defer the geometry update to a GLib idle: the filter fires while GDK is
-    // still processing the event, so gdk_window_get_origin() would return a
-    // stale cached value.  The idle fires after the current dispatch round,
-    // by which time GDK's position cache is consistent.
-    x11::XEvent *xe = static_cast<x11::XEvent*>(xevent);
-    if (xe->type == 22 /* ConfigureNotify */)
-    {
-        MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
-        if (t_layer->m_pending_update_id == 0)
-            t_layer->m_pending_update_id =
-                g_idle_add_full(G_PRIORITY_HIGH_IDLE, onPendingUpdate, t_layer, NULL);
-    }
-    return GDK_FILTER_CONTINUE;
-}
-
-// static
-gboolean MCNativeLayerX11::onPendingUpdate(gpointer user_data)
+// Runs at ~60 Hz while the browser widget is attached.  Enforces the correct
+// absolute screen position by recomputing it from the stack's live origin on
+// every tick.  This supersedes the old ConfigureNotify filter + idle approach,
+// which had a timing race when the browser held X11 focus: Mutter's
+// focused-transient repositioning could fire *after* the snap-back idle,
+// leaving the window persistently detached.  The timer catches any WM-induced
+// drift within one display frame (~16 ms) regardless of focus state or
+// stacking changes.
+gboolean MCNativeLayerX11::onPositionTimer(gpointer user_data)
 {
     MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
-    t_layer->m_pending_update_id = 0;
     t_layer->updateContainerGeometry();
-    return G_SOURCE_REMOVE;
-}
-
-// static — detects when the WM moves m_child_window and queues a snap-back.
-// gdk_window_get_origin() calls XTranslateCoordinates (live X11 query, no
-// stale cache), so the snap-back always computes the correct position.
-// Loop safety: X11 only generates ConfigureNotify when position actually
-// changes, so a correction to the already-correct position produces no event.
-GdkFilterReturn MCNativeLayerX11::onChildWindowFilter(GdkXEvent *xevent,
-                                                       GdkEvent  * /*event*/,
-                                                       gpointer   user_data)
-{
-    x11::XEvent *xe = static_cast<x11::XEvent*>(xevent);
-    if (xe->type == 22 /* ConfigureNotify */)
-    {
-        MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
-        if (t_layer->m_pending_update_id == 0)
-            t_layer->m_pending_update_id =
-                g_idle_add_full(G_PRIORITY_HIGH_IDLE, onPendingUpdate, t_layer, NULL);
-    }
-    return GDK_FILTER_CONTINUE;
+    return G_SOURCE_CONTINUE;
 }
 
 
@@ -289,20 +243,12 @@ void MCNativeLayerX11::doAttach()
         // Create an empty region to act as an input mask while in edit mode.
         m_input_shape = cairo_region_create();
 
-        // Stack filter: reposition popup whenever HXT moves.
-        if (m_stack_gdk_window == NULL)
-        {
-            m_stack_gdk_window = getStackGdkWindow();
-            gdk_window_add_filter(m_stack_gdk_window, onStackWindowFilter, this);
-        }
-
-        // Child filter: snap back if the WM moves m_child_window unexpectedly
-        // (e.g. Mutter repositioning a transient when palette stacking changes).
-        if (m_child_gdk_window == NULL)
-        {
-            m_child_gdk_window = gtk_widget_get_window(GTK_WIDGET(m_child_window));
-            gdk_window_add_filter(m_child_gdk_window, onChildWindowFilter, this);
-        }
+        // 60 Hz position timer: enforces correct absolute screen coordinates.
+        // Handles all sources of drift — stack moves, palette restacking, and
+        // Mutter repositioning the focused transient — without relying on
+        // ConfigureNotify timing.
+        if (m_position_timer_id == 0)
+            m_position_timer_id = g_timeout_add(16, onPositionTimer, this);
     }
 
     // Position and size everything correctly.
@@ -314,22 +260,11 @@ void MCNativeLayerX11::doAttach()
 
 void MCNativeLayerX11::doDetach()
 {
-    // Cancel any pending deferred geometry update.
-    if (m_pending_update_id != 0)
+    // Stop the position timer before hiding so it doesn't fire on a hidden window.
+    if (m_position_timer_id != 0)
     {
-        g_source_remove(m_pending_update_id);
-        m_pending_update_id = 0;
-    }
-
-    if (m_child_gdk_window != NULL)
-    {
-        gdk_window_remove_filter(m_child_gdk_window, onChildWindowFilter, this);
-        m_child_gdk_window = NULL;
-    }
-    if (m_stack_gdk_window != NULL)
-    {
-        gdk_window_remove_filter(m_stack_gdk_window, onStackWindowFilter, this);
-        m_stack_gdk_window = NULL;
+        g_source_remove(m_position_timer_id);
+        m_position_timer_id = 0;
     }
 
     // Just hide the container; leave the widget hierarchy intact for re-attach.
