@@ -141,15 +141,23 @@ void MCNativeLayerX11::doAttach()
         // GtkWindow before they can be realized.
         gtk_widget_realize(GTK_WIDGET(m_child_window));
 
-        // Show the window and child so the frame clock starts and WebKit's
-        // rendering pipeline initialises.
-        gtk_widget_show_all(GTK_WIDGET(m_child_window));
-
-        // Reparent the popup's X11 window into the stack window.  GDK still
-        // thinks m_child_window is a root-level popup; that is intentional —
-        // GTK's frame clock keeps ticking, driving WebKit's draw cycle.
+        // Reparent the popup's X11 window into the stack window BEFORE
+        // mapping it.  If we show first, the window briefly appears at root
+        // coordinates (0,0) while any active pointer grab (e.g. from a
+        // tools-palette drag) is in effect.  GTK may try to redirect grab
+        // state to the newly-mapped root-level window, causing a crash.
+        // Reparenting first means the first XMapWindow call places the window
+        // directly inside the stack — it is never visible at root level.
+        // GDK still thinks m_child_window is a root-level popup; that is
+        // intentional — GTK's frame clock keeps ticking, driving WebKit's
+        // draw cycle.
         gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
                             getStackGdkWindow(), t_rect.x, t_rect.y);
+
+        // Show the window and child so the frame clock starts and WebKit's
+        // rendering pipeline initialises.  The window maps inside the stack
+        // (after the reparent above), so no root-level flash occurs.
+        gtk_widget_show_all(GTK_WIDGET(m_child_window));
 
         // Create an empty region to act as an input mask while in edit mode.
         m_input_shape = cairo_region_create();
