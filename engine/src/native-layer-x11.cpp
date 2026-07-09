@@ -95,9 +95,7 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_input_shape(NULL),
   m_browser_widget(p_view),
   m_stack_gdk_window(NULL),
-  m_pending_update_id(0),
-  m_expected_x(0),
-  m_expected_y(0)
+  m_pending_update_id(0)
 {
 	m_object = p_object;
 	m_intersect_rect = MCRectangleMake(0,0,0,0);
@@ -328,20 +326,9 @@ void MCNativeLayerX11::updateContainerGeometry()
         gint t_sx = 0, t_sy = 0;
         gdk_window_get_origin(getStackGdkWindow(), &t_sx, &t_sy);
 
-        gint t_new_x = t_sx + m_intersect_rect.x;
-        gint t_new_y = t_sy + m_intersect_rect.y;
-        // Guard: only call gdk_window_move_resize when position or size actually
-        // changed.  Avoids unnecessary X11 round-trips.
-        if (t_new_x != m_expected_x || t_new_y != m_expected_y ||
-            m_intersect_rect.width  != gtk_widget_get_allocated_width (GTK_WIDGET(m_child_window)) ||
-            m_intersect_rect.height != gtk_widget_get_allocated_height(GTK_WIDGET(m_child_window)))
-        {
-            m_expected_x = t_new_x;
-            m_expected_y = t_new_y;
-            gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
-                m_expected_x, m_expected_y,
-                m_intersect_rect.width, m_intersect_rect.height);
-        }
+        gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
+            t_sx + m_intersect_rect.x, t_sy + m_intersect_rect.y,
+            m_intersect_rect.width,    m_intersect_rect.height);
 
         // gtk_window_resize tells GTK the new logical size so the layout
         // cascade allocates m_browser_widget to fill the window.

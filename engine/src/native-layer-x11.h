@@ -63,8 +63,6 @@ private:
                                                gpointer   user_data);
     static gboolean        onPendingUpdate(gpointer user_data);
 
-    gint       m_expected_x;        // absolute position we last requested
-    gint       m_expected_y;
     
     // Returns the handle for the stack containing this widget
     x11::Window getStackX11Window();
