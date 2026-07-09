@@ -179,7 +179,15 @@ gboolean MCNativeLayerX11::onPendingUpdate(gpointer user_data)
     return G_SOURCE_REMOVE;
 }
 
-// static — fired when the WM moves m_child_window to a position we didn't request.
+// static — fired when m_child_window receives any X11 event.
+// Under XWayland, a reparenting WM keeps the client at (0,0) relative to its
+// frame, so XConfigureEvent.x/y are NOT root-relative and cannot be compared
+// with m_expected_x/y directly.  Instead we unconditionally queue an idle
+// whenever we see a ConfigureNotify.  The idle calls updateContainerGeometry()
+// which guards itself with an m_expected comparison so it only calls
+// gdk_window_move_resize() when the root-relative position actually changed —
+// preventing the feedback loop (our own moves would otherwise re-trigger the
+// filter endlessly).
 GdkFilterReturn MCNativeLayerX11::onChildWindowFilter(GdkXEvent *xevent,
                                                        GdkEvent  * /*event*/,
                                                        gpointer   user_data)
@@ -188,16 +196,9 @@ GdkFilterReturn MCNativeLayerX11::onChildWindowFilter(GdkXEvent *xevent,
     if (xe->type == 22 /* ConfigureNotify */)
     {
         MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
-        // GTK's configure-event gives root-relative coordinates for toplevels.
-        // If the window is no longer where we put it, snap back via an idle
-        // (avoids re-entering GDK move logic from inside a filter).
-        if (xe->xconfigure.x != t_layer->m_expected_x ||
-            xe->xconfigure.y != t_layer->m_expected_y)
-        {
-            if (t_layer->m_pending_update_id == 0)
-                t_layer->m_pending_update_id =
-                    g_idle_add_full(G_PRIORITY_HIGH_IDLE, onPendingUpdate, t_layer, NULL);
-        }
+        if (t_layer->m_pending_update_id == 0)
+            t_layer->m_pending_update_id =
+                g_idle_add_full(G_PRIORITY_HIGH_IDLE, onPendingUpdate, t_layer, NULL);
     }
     return GDK_FILTER_CONTINUE;
 }
@@ -369,11 +370,22 @@ void MCNativeLayerX11::updateContainerGeometry()
         gint t_sx = 0, t_sy = 0;
         gdk_window_get_origin(getStackGdkWindow(), &t_sx, &t_sy);
 
-        m_expected_x = t_sx + m_intersect_rect.x;
-        m_expected_y = t_sy + m_intersect_rect.y;
-        gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
-            m_expected_x, m_expected_y,
-            m_intersect_rect.width, m_intersect_rect.height);
+        gint t_new_x = t_sx + m_intersect_rect.x;
+        gint t_new_y = t_sy + m_intersect_rect.y;
+        // Guard: only call gdk_window_move_resize when position actually changed.
+        // This breaks the feedback loop where our own move generates a
+        // ConfigureNotify on m_child_window → child filter → idle → here → move
+        // → ConfigureNotify → … The first re-entry finds nothing to do and stops.
+        if (t_new_x != m_expected_x || t_new_y != m_expected_y ||
+            m_intersect_rect.width  != gtk_widget_get_allocated_width (GTK_WIDGET(m_child_window)) ||
+            m_intersect_rect.height != gtk_widget_get_allocated_height(GTK_WIDGET(m_child_window)))
+        {
+            m_expected_x = t_new_x;
+            m_expected_y = t_new_y;
+            gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
+                m_expected_x, m_expected_y,
+                m_intersect_rect.width, m_intersect_rect.height);
+        }
 
         // gtk_window_resize tells GTK the new logical size so the layout
         // cascade allocates m_browser_widget to fill the window.
