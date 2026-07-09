@@ -136,25 +136,39 @@ void MCNativeLayerX11::doAttach()
             gtk_container_add(GTK_CONTAINER(m_child_window), m_browser_widget);
         }
 
+        // Pre-position the window at the correct absolute screen coordinates
+        // BEFORE realize/show so it never flashes at (0,0).  For unmapped
+        // windows gtk_window_move() stores the position; it is applied when
+        // the window is first mapped by gtk_widget_show().
+        {
+            gint t_sx = 0, t_sy = 0;
+            gdk_window_get_origin(getStackGdkWindow(), &t_sx, &t_sy);
+            gtk_window_move(m_child_window, t_sx + t_rect.x, t_sy + t_rect.y);
+            gtk_window_resize(m_child_window,
+                              MAX(1, t_rect.width), MAX(1, t_rect.height));
+        }
+
         // Realize m_child_window (and its child) while it is still an
         // unparented toplevel — GTK3 requires widgets to be anchored to a
         // GtkWindow before they can be realized.
         gtk_widget_realize(GTK_WIDGET(m_child_window));
 
-        // Reparent the popup's X11 window into the stack window BEFORE
-        // mapping it.  If we show first, the window briefly appears at root
-        // coordinates (0,0) while any active pointer grab (e.g. from a
-        // tools-palette drag) is in effect.  GTK may try to redirect grab
-        // state to the newly-mapped root-level window, causing a crash.
-        // Reparenting first means the first XMapWindow call places the window
-        // directly inside the stack — it is never visible at root level.
-        // GDK still thinks m_child_window is a root-level popup; that is
-        // intentional — GTK's frame clock keeps ticking, driving WebKit's
-        // draw cycle.
-        gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
-                            getStackGdkWindow(), t_rect.x, t_rect.y);
+        // Do NOT reparent into the stack window.
+        //
+        // We previously called gdk_window_reparent() to embed the popup into
+        // the stack's X11 window tree.  Under XWayland this is fatal for scroll
+        // (and other pointer axis) events: XWayland gives a Wayland surface only
+        // to root-level X11 windows; a reparented child has no surface of its
+        // own, so Wayland's pointer/axis routing never reaches it.  WebKit2GTK
+        // then never receives GDK_SCROLL events regardless of how we dispatch
+        // them through GTK.
+        //
+        // Keeping m_child_window as a root-level override-redirect popup lets
+        // XWayland treat it as a proper Wayland sub-surface.  We position it
+        // manually at the correct absolute screen coordinates (see
+        // updateContainerGeometry) so it visually overlaps the widget area.
 
-        // Show the container window now (maps inside the stack, no root flash).
+        // Show the container window (maps at the pre-set position, no flash).
         // The browser widget (WebKitWebView) is shown via a GLib idle so that
         // WebKit's subprocess fork/exec happens outside any active pointer grab.
         // A grab is held throughout the DnD tools-palette drag; forking inside
@@ -210,13 +224,18 @@ void MCNativeLayerX11::updateContainerGeometry()
     // Clear any minimum size hint so the resize below is authoritative.
     gtk_widget_set_size_request(GTK_WIDGET(m_child_window), -1, -1);
 
-    // Move and resize the X11 window within the stack window.
+    // m_child_window is a root-level override-redirect popup (not reparented
+    // into the stack).  We position it at absolute screen coordinates by
+    // adding the stack window's screen origin to the intersect rect.
     // Guard against zero size — X11 requires w > 0, h > 0.
     if (m_intersect_rect.width > 0 && m_intersect_rect.height > 0)
     {
+        gint t_sx = 0, t_sy = 0;
+        gdk_window_get_origin(getStackGdkWindow(), &t_sx, &t_sy);
+
         gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
-            m_intersect_rect.x, m_intersect_rect.y,
-            m_intersect_rect.width, m_intersect_rect.height);
+            t_sx + m_intersect_rect.x, t_sy + m_intersect_rect.y,
+            m_intersect_rect.width,    m_intersect_rect.height);
 
         // gtk_window_resize tells GTK the new logical size so the layout
         // cascade allocates m_browser_widget to fill the window.
