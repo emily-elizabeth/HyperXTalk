@@ -153,6 +153,16 @@ void MCNativeLayerX11::doAttach()
         // GtkWindow before they can be realized.
         gtk_widget_realize(GTK_WIDGET(m_child_window));
 
+        // Tell XWayland (and any compositing WM) that this popup belongs to
+        // the stack window.  Setting WM_TRANSIENT_FOR before the first map
+        // causes XWayland to assign the popup a Wayland surface that is kept
+        // above the stack window but below other applications — exactly the
+        // z-order we need.  Without this the popup is a free-floating surface
+        // that appears above every other window on screen.
+        gdk_window_set_transient_for(
+            gtk_widget_get_window(GTK_WIDGET(m_child_window)),
+            getStackGdkWindow());
+
         // Do NOT reparent into the stack window.
         //
         // We previously called gdk_window_reparent() to embed the popup into
