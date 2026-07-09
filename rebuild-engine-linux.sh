@@ -68,20 +68,31 @@ INCS=(
     -I"$OUT/obj/gen/include"
 )
 
-g++ -std=c++11 -fno-exceptions -fno-rtti -fPIC \
-    -fstrict-aliasing -fvisibility=hidden \
-    -Wall -Wextra -Wno-unused-parameter \
-    -O2 \
-    "${DEFS[@]}" \
-    "${INCS[@]}" \
-    -c "$REPO/engine/src/native-layer-x11.cpp" \
-    -o "$OBJ/kernel/engine/src/native-layer-x11.o"
+COMPILE_SRCS=(
+    "engine/src/native-layer-x11.cpp"
+    "engine/src/lnxdclnx.cpp"
+)
 
-echo "  Compiled OK"
+COMPILE_OBJS=()
+for SRC_REL in "${COMPILE_SRCS[@]}"; do
+    OBJ_FILE="$OBJ/kernel/${SRC_REL%.cpp}.o"
+    mkdir -p "$(dirname "$OBJ_FILE")"
+    g++ -std=c++11 -fno-exceptions -fno-rtti -fPIC \
+        -fstrict-aliasing -fvisibility=hidden \
+        -Wall -Wextra -Wno-unused-parameter \
+        -O2 \
+        "${DEFS[@]}" \
+        "${INCS[@]}" \
+        -c "$REPO/$SRC_REL" \
+        -o "$OBJ_FILE"
+    COMPILE_OBJS+=("$OBJ_FILE")
+    echo "  Compiled $SRC_REL"
+done
+
+echo "  All compiled OK"
 
 echo "=== Updating libkernel.a ==="
-ar r "$OBJ/engine/libkernel.a" \
-       "$OBJ/kernel/engine/src/native-layer-x11.o"
+ar r "$OBJ/engine/libkernel.a" "${COMPILE_OBJS[@]}"
 echo "  Updated OK"
 
 echo "=== Relinking HyperXTalk ==="
