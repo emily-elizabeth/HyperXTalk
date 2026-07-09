@@ -767,14 +767,31 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         MCeventtime = t_event->button.time;
                         
                         // Is this a mouse scroll event?
-                        if (MCmousestackptr && t_event->type == GDK_SCROLL)
+                        if (t_event->type == GDK_SCROLL)
                         {
-                            // Find the object that should receive the scroll
-                            MCObject *mfocused = MCmousestackptr->getcard()->getmfocused();
-                            if (mfocused == NULL)
-                                mfocused = MCmousestackptr->getcard();
-                            
-                            if (mfocused != NULL)
+                            // If the scroll event's window is not one of the
+                            // engine's stack windows, it belongs to a native GTK
+                            // widget (e.g. WebKitWebView inside m_child_window).
+                            // Forward via the normal GTK dispatch path so the
+                            // native widget handles it — the engine must not
+                            // intercept and convert it to key events.
+                            if (!t_mousestack)
+                            {
+                                gtk_main_do_event(t_event);
+                                t_handled = true;
+                                break;
+                            }
+
+                            // Find the engine object that should receive the scroll
+                            MCObject *mfocused = nullptr;
+                            if (MCmousestackptr)
+                            {
+                                mfocused = MCmousestackptr->getcard()->getmfocused();
+                                if (mfocused == nullptr)
+                                    mfocused = MCmousestackptr->getcard();
+                            }
+
+                            if (mfocused != nullptr)
                             {
                                 switch (t_event->scroll.direction)
                                 {
@@ -782,17 +799,23 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                     case GDK_SCROLL_UP:
                                         mfocused->kdown(kMCEmptyString, XK_WheelDown);
                                         break;
-                                        
+
                                     case GDK_SCROLL_DOWN:
                                         mfocused->kdown(kMCEmptyString, XK_WheelUp);
                                         break;
-                                        
+
                                     case GDK_SCROLL_LEFT:
                                         mfocused->kdown(kMCEmptyString, XK_WheelRight);
                                         break;
-                                        
+
                                     case GDK_SCROLL_RIGHT:
                                         mfocused->kdown(kMCEmptyString, XK_WheelLeft);
+                                        break;
+
+                                    case GDK_SCROLL_SMOOTH:
+                                        // Smooth scroll from trackpad: forward directly to GTK
+                                        // so any native widget or WebKit under the pointer handles it.
+                                        gtk_main_do_event(t_event);
                                         break;
                                 }
                             }
