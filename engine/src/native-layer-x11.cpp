@@ -94,8 +94,7 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_child_window(NULL),
   m_input_shape(NULL),
   m_browser_widget(p_view),
-  m_stack_widget(NULL),
-  m_configure_handler(0)
+  m_stack_gdk_window(NULL)
 {
 	m_object = p_object;
 	m_intersect_rect = MCRectangleMake(0,0,0,0);
@@ -103,10 +102,10 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
 
 MCNativeLayerX11::~MCNativeLayerX11()
 {
-    if (m_configure_handler != 0 && m_stack_widget != NULL)
+    if (m_stack_gdk_window != NULL)
     {
-        g_signal_handler_disconnect(m_stack_widget, m_configure_handler);
-        m_configure_handler = 0;
+        gdk_window_remove_filter(m_stack_gdk_window, onStackWindowFilter, this);
+        m_stack_gdk_window = NULL;
     }
     if (m_child_window != NULL)
     {
@@ -137,13 +136,16 @@ void MCNativeLayerX11::updateInputShape()
 }
 
 // static
-gboolean MCNativeLayerX11::onStackConfigure(GtkWidget* /*widget*/,
-                                             GdkEventConfigure* /*event*/,
-                                             gpointer user_data)
+GdkFilterReturn MCNativeLayerX11::onStackWindowFilter(GdkXEvent *xevent,
+                                                       GdkEvent  * /*event*/,
+                                                       gpointer   user_data)
 {
-    // The stack window moved or resized — recompute our absolute position.
-    static_cast<MCNativeLayerX11*>(user_data)->updateContainerGeometry();
-    return FALSE; // don't consume the event
+    // Watch for X11 ConfigureNotify (window moved or resized) and keep the
+    // browser popup's absolute position in sync with the stack window.
+    x11::XEvent *xe = static_cast<x11::XEvent*>(xevent);
+    if (xe->type == 22 /* ConfigureNotify */)
+        static_cast<MCNativeLayerX11*>(user_data)->updateContainerGeometry();
+    return GDK_FILTER_CONTINUE;
 }
 
 void MCNativeLayerX11::doAttach()
@@ -233,18 +235,12 @@ void MCNativeLayerX11::doAttach()
         // Create an empty region to act as an input mask while in edit mode.
         m_input_shape = cairo_region_create();
 
-        // Track stack window moves so we can keep our absolute position in sync.
-        if (m_configure_handler == 0)
+        // Install a GDK window filter on the stack window so we receive X11
+        // ConfigureNotify events and can reposition the popup when HXT moves.
+        if (m_stack_gdk_window == NULL)
         {
-            gpointer t_wd = NULL;
-            gdk_window_get_user_data(getStackGdkWindow(), &t_wd);
-            if (t_wd != NULL && GTK_IS_WIDGET(t_wd))
-            {
-                m_stack_widget = GTK_WIDGET(t_wd);
-                m_configure_handler = g_signal_connect(m_stack_widget,
-                    "configure-event",
-                    G_CALLBACK(onStackConfigure), this);
-            }
+            m_stack_gdk_window = getStackGdkWindow();
+            gdk_window_add_filter(m_stack_gdk_window, onStackWindowFilter, this);
         }
     }
 
@@ -257,12 +253,11 @@ void MCNativeLayerX11::doAttach()
 
 void MCNativeLayerX11::doDetach()
 {
-    // Disconnect the stack-move tracker so we don't fire on a dead object.
-    if (m_configure_handler != 0 && m_stack_widget != NULL)
+    // Remove the GDK window filter so we stop tracking stack moves.
+    if (m_stack_gdk_window != NULL)
     {
-        g_signal_handler_disconnect(m_stack_widget, m_configure_handler);
-        m_configure_handler = 0;
-        m_stack_widget = NULL;
+        gdk_window_remove_filter(m_stack_gdk_window, onStackWindowFilter, this);
+        m_stack_gdk_window = NULL;
     }
 
     // Just hide the container; leave the widget hierarchy intact for re-attach.

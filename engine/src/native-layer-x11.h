@@ -52,14 +52,14 @@ private:
     GtkWidget* m_browser_widget;
 	MCRectangle m_intersect_rect;
 
-    // Signal connection for tracking stack window moves.
-    // When the stack window is repositioned we recompute absolute coordinates.
-    GtkWidget* m_stack_widget;     // the GtkWidget wrapping getStackGdkWindow()
-    gulong     m_configure_handler; // g_signal_connect id, 0 when unconnected
+    // GDK window filter for tracking stack window moves.
+    // We store the GdkWindow pointer so we can remove the filter on detach
+    // even if the stack object has already been partially torn down.
+    GdkWindow* m_stack_gdk_window; // non-owning; NULL when filter not installed
 
-    static gboolean onStackConfigure(GtkWidget *widget,
-                                     GdkEventConfigure *event,
-                                     gpointer user_data);
+    static GdkFilterReturn onStackWindowFilter(GdkXEvent *xevent,
+                                               GdkEvent  *event,
+                                               gpointer   user_data);
     
     // Returns the handle for the stack containing this widget
     x11::Window getStackX11Window();
