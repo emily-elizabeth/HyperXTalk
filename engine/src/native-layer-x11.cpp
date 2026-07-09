@@ -94,7 +94,11 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_child_window(NULL),
   m_input_shape(NULL),
   m_browser_widget(p_view),
-  m_stack_gdk_window(NULL)
+  m_stack_gdk_window(NULL),
+  m_pending_update_id(0),
+  m_child_gdk_window(NULL),
+  m_expected_x(0),
+  m_expected_y(0)
 {
 	m_object = p_object;
 	m_intersect_rect = MCRectangleMake(0,0,0,0);
@@ -102,6 +106,16 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
 
 MCNativeLayerX11::~MCNativeLayerX11()
 {
+    if (m_pending_update_id != 0)
+    {
+        g_source_remove(m_pending_update_id);
+        m_pending_update_id = 0;
+    }
+    if (m_child_gdk_window != NULL)
+    {
+        gdk_window_remove_filter(m_child_gdk_window, onChildWindowFilter, this);
+        m_child_gdk_window = NULL;
+    }
     if (m_stack_gdk_window != NULL)
     {
         gdk_window_remove_filter(m_stack_gdk_window, onStackWindowFilter, this);
@@ -140,11 +154,51 @@ GdkFilterReturn MCNativeLayerX11::onStackWindowFilter(GdkXEvent *xevent,
                                                        GdkEvent  * /*event*/,
                                                        gpointer   user_data)
 {
-    // Watch for X11 ConfigureNotify (window moved or resized) and keep the
-    // browser popup's absolute position in sync with the stack window.
+    // Watch for X11 ConfigureNotify (window moved or resized).
+    // Defer the geometry update to a GLib idle: the filter fires while GDK is
+    // still processing the event, so gdk_window_get_origin() would return a
+    // stale cached value.  The idle fires after the current dispatch round,
+    // by which time GDK's position cache is consistent.
     x11::XEvent *xe = static_cast<x11::XEvent*>(xevent);
     if (xe->type == 22 /* ConfigureNotify */)
-        static_cast<MCNativeLayerX11*>(user_data)->updateContainerGeometry();
+    {
+        MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
+        if (t_layer->m_pending_update_id == 0)
+            t_layer->m_pending_update_id =
+                g_idle_add_full(G_PRIORITY_HIGH_IDLE, onPendingUpdate, t_layer, NULL);
+    }
+    return GDK_FILTER_CONTINUE;
+}
+
+// static
+gboolean MCNativeLayerX11::onPendingUpdate(gpointer user_data)
+{
+    MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
+    t_layer->m_pending_update_id = 0;
+    t_layer->updateContainerGeometry();
+    return G_SOURCE_REMOVE;
+}
+
+// static — fired when the WM moves m_child_window to a position we didn't request.
+GdkFilterReturn MCNativeLayerX11::onChildWindowFilter(GdkXEvent *xevent,
+                                                       GdkEvent  * /*event*/,
+                                                       gpointer   user_data)
+{
+    x11::XEvent *xe = static_cast<x11::XEvent*>(xevent);
+    if (xe->type == 22 /* ConfigureNotify */)
+    {
+        MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
+        // GTK's configure-event gives root-relative coordinates for toplevels.
+        // If the window is no longer where we put it, snap back via an idle
+        // (avoids re-entering GDK move logic from inside a filter).
+        if (xe->xconfigure.x != t_layer->m_expected_x ||
+            xe->xconfigure.y != t_layer->m_expected_y)
+        {
+            if (t_layer->m_pending_update_id == 0)
+                t_layer->m_pending_update_id =
+                    g_idle_add_full(G_PRIORITY_HIGH_IDLE, onPendingUpdate, t_layer, NULL);
+        }
+    }
     return GDK_FILTER_CONTINUE;
 }
 
@@ -242,6 +296,14 @@ void MCNativeLayerX11::doAttach()
             m_stack_gdk_window = getStackGdkWindow();
             gdk_window_add_filter(m_stack_gdk_window, onStackWindowFilter, this);
         }
+
+        // Install a GDK window filter on m_child_window to detect if the WM
+        // moves it to an unexpected position and snap it back.
+        if (m_child_gdk_window == NULL)
+        {
+            m_child_gdk_window = gtk_widget_get_window(GTK_WIDGET(m_child_window));
+            gdk_window_add_filter(m_child_gdk_window, onChildWindowFilter, this);
+        }
     }
 
     // Position and size everything correctly.
@@ -253,7 +315,19 @@ void MCNativeLayerX11::doAttach()
 
 void MCNativeLayerX11::doDetach()
 {
-    // Remove the GDK window filter so we stop tracking stack moves.
+    // Cancel any pending deferred geometry update.
+    if (m_pending_update_id != 0)
+    {
+        g_source_remove(m_pending_update_id);
+        m_pending_update_id = 0;
+    }
+
+    // Remove GDK filters.
+    if (m_child_gdk_window != NULL)
+    {
+        gdk_window_remove_filter(m_child_gdk_window, onChildWindowFilter, this);
+        m_child_gdk_window = NULL;
+    }
     if (m_stack_gdk_window != NULL)
     {
         gdk_window_remove_filter(m_stack_gdk_window, onStackWindowFilter, this);
@@ -295,9 +369,11 @@ void MCNativeLayerX11::updateContainerGeometry()
         gint t_sx = 0, t_sy = 0;
         gdk_window_get_origin(getStackGdkWindow(), &t_sx, &t_sy);
 
+        m_expected_x = t_sx + m_intersect_rect.x;
+        m_expected_y = t_sy + m_intersect_rect.y;
         gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
-            t_sx + m_intersect_rect.x, t_sy + m_intersect_rect.y,
-            m_intersect_rect.width,    m_intersect_rect.height);
+            m_expected_x, m_expected_y,
+            m_intersect_rect.width, m_intersect_rect.height);
 
         // gtk_window_resize tells GTK the new logical size so the layout
         // cascade allocates m_browser_widget to fill the window.

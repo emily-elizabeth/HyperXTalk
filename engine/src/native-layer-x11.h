@@ -52,12 +52,23 @@ private:
     GtkWidget* m_browser_widget;
 	MCRectangle m_intersect_rect;
 
-    // GDK window filter for tracking stack window moves.
-    // We store the GdkWindow pointer so we can remove the filter on detach
-    // even if the stack object has already been partially torn down.
-    GdkWindow* m_stack_gdk_window; // non-owning; NULL when filter not installed
+    // GDK window filter on the stack window — tracks stack moves so we can
+    // reposition the browser popup.  We defer the update to a GLib idle so
+    // GDK's origin cache is consistent before we read it.
+    GdkWindow* m_stack_gdk_window;  // non-owning; NULL when filter not installed
+    guint      m_pending_update_id; // idle source id, 0 when none pending
 
     static GdkFilterReturn onStackWindowFilter(GdkXEvent *xevent,
+                                               GdkEvent  *event,
+                                               gpointer   user_data);
+    static gboolean        onPendingUpdate(gpointer user_data);
+
+    // GDK window filter on m_child_window — snaps back if the WM moves us.
+    GdkWindow* m_child_gdk_window;  // non-owning; NULL when filter not installed
+    gint       m_expected_x;        // absolute position we last requested
+    gint       m_expected_y;
+
+    static GdkFilterReturn onChildWindowFilter(GdkXEvent *xevent,
                                                GdkEvent  *event,
                                                gpointer   user_data);
     
