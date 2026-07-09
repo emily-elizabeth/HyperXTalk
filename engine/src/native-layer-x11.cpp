@@ -148,6 +148,21 @@ gboolean MCNativeLayerX11::onPositionTimer(gpointer user_data)
 {
     MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
     t_layer->updateContainerGeometry();
+
+    // Maintain Z-order: keep the browser window immediately above the HXT
+    // stack.  We do not use WM_TRANSIENT_FOR (which caused Mutter's
+    // focused-transient repositioning), so Z-order relative to the stack
+    // is enforced here instead.  XConfigureWindow(Above, sibling=stack)
+    // places the browser just above the stack; windows already above the
+    // stack (palette, other apps) remain above it.
+    if (t_layer->m_child_window != NULL)
+    {
+        GdkWindow *t_browser_gdk = gtk_widget_get_window(GTK_WIDGET(t_layer->m_child_window));
+        GdkWindow *t_stack_gdk   = t_layer->getStackGdkWindow();
+        if (t_browser_gdk != NULL && t_stack_gdk != NULL)
+            gdk_window_restack(t_browser_gdk, t_stack_gdk, TRUE /* above */);
+    }
+
     return G_SOURCE_CONTINUE;
 }
 
@@ -169,14 +184,11 @@ void MCNativeLayerX11::doAttach()
         gtk_window_set_accept_focus(m_child_window, FALSE);
         gtk_window_set_skip_taskbar_hint(m_child_window, TRUE);
         gtk_window_set_skip_pager_hint(m_child_window, TRUE);
-        // POPUP_MENU tells the WM this is a transient popup whose position is
-        // entirely client-controlled.  Under XWayland/Mutter this maps to a
-        // client-positioned surface type: the compositor respects our position
-        // request and does NOT apply focused-transient repositioning when the
-        // browser widget holds X11 focus.  UTILITY does not suppress that
-        // repositioning and causes the browser to drift when the stack moves
-        // while the browser is focused.
-        gtk_window_set_type_hint(m_child_window, GDK_WINDOW_TYPE_HINT_POPUP_MENU);
+        // UTILITY tells the WM this is a tool panel, not a normal window.
+        // Combined with no WM_TRANSIENT_FOR (see below), this prevents Mutter
+        // from treating it as a managed transient and applying automatic
+        // placement or focused-transient repositioning.
+        gtk_window_set_type_hint(m_child_window, GDK_WINDOW_TYPE_HINT_UTILITY);
 
         if (m_browser_widget != NULL)
         {
@@ -202,17 +214,18 @@ void MCNativeLayerX11::doAttach()
         // GtkWindow before they can be realized.
         gtk_widget_realize(GTK_WIDGET(m_child_window));
 
-        // Tell XWayland (and any compositing WM) that this popup belongs to
-        // the stack window.  Setting WM_TRANSIENT_FOR before the first map
-        // causes XWayland to assign the popup a Wayland surface that is kept
-        // above the stack window but below other applications — exactly the
-        // z-order we need.  Without this the popup is a free-floating surface
-        // that appears above every other window on screen.
-        gdk_window_set_transient_for(
-            gtk_widget_get_window(GTK_WIDGET(m_child_window)),
-            getStackGdkWindow());
-
-        // Do NOT reparent into the stack window.
+        // Do NOT set WM_TRANSIENT_FOR.
+        //
+        // When WM_TRANSIENT_FOR is set, Mutter applies "focused-transient
+        // repositioning": whenever the browser window holds X11 focus and the
+        // parent stack moves, Mutter repositions the browser every compositor
+        // frame to a WM-computed position, overriding our gdk_window_move_resize
+        // calls even when a 60 Hz timer fights it.  Without WM_TRANSIENT_FOR,
+        // Mutter has no knowledge of the parent relationship and does not apply
+        // that logic.  Z-order relative to the stack is maintained manually via
+        // gdk_window_restack() in the position timer instead.
+        //
+        // Do NOT reparent into the stack window either.
         //
         // We previously called gdk_window_reparent() to embed the popup into
         // the stack's X11 window tree.  Under XWayland this is fatal for scroll
@@ -222,8 +235,8 @@ void MCNativeLayerX11::doAttach()
         // then never receives GDK_SCROLL events regardless of how we dispatch
         // them through GTK.
         //
-        // Keeping m_child_window as a root-level override-redirect popup lets
-        // XWayland treat it as a proper Wayland sub-surface.  We position it
+        // Keeping m_child_window as a root-level window with no parent lets
+        // XWayland treat it as a proper Wayland surface.  We position it
         // manually at the correct absolute screen coordinates (see
         // updateContainerGeometry) so it visually overlaps the widget area.
 
