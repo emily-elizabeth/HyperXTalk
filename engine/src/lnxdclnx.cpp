@@ -769,20 +769,77 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         // Is this a mouse scroll event?
                         if (t_event->type == GDK_SCROLL)
                         {
-                            // If the scroll event's window is not one of the
-                            // engine's stack windows, it belongs to a native GTK
-                            // widget (e.g. WebKitWebView inside m_child_window).
-                            // Forward via the normal GTK dispatch path so the
-                            // native widget handles it — the engine must not
-                            // intercept and convert it to key events.
+                            // Determine if a native GTK widget (e.g. WebKitWebView)
+                            // should receive this scroll event.
+                            //
+                            // Scroll events from the trackpad arrive at the engine's
+                            // stack window (t_mousestack != NULL) because the stack
+                            // window holds GDK_ALL_EVENTS_MASK.  We must detect that
+                            // the focused object is a native-layer widget and redirect
+                            // the event to its own GdkWindow so GTK/WebKit handles it.
+                            //
+                            // If somehow the event arrived at a non-stack window
+                            // (t_mousestack == NULL) we still forward via GTK.
+                            GtkWidget *t_native_widget = nullptr;
+
                             if (!t_mousestack)
                             {
-                                gtk_main_do_event(t_event);
+                                // Event window is not an engine stack — find the
+                                // GTK widget that owns the GdkWindow directly.
+                                gpointer t_wdata = nullptr;
+                                gdk_window_get_user_data(t_event->scroll.window, &t_wdata);
+                                if (t_wdata != nullptr && GTK_IS_WIDGET(t_wdata))
+                                    t_native_widget = GTK_WIDGET(t_wdata);
+                            }
+                            else if (MCmousestackptr)
+                            {
+                                // Event arrived at the stack window.  Check if the
+                                // focused object is a native-layer widget.
+                                MCObject *t_focused = MCmousestackptr->getcard()->getmfocused();
+                                if (t_focused != nullptr)
+                                {
+                                    MCNativeLayer *t_layer = t_focused->getNativeLayer();
+                                    if (t_layer != nullptr)
+                                    {
+                                        void *t_view = nullptr;
+                                        t_layer->GetNativeView(t_view);
+                                        if (t_view != nullptr && GTK_IS_WIDGET(t_view))
+                                            t_native_widget = GTK_WIDGET(t_view);
+                                    }
+                                }
+                            }
+
+                            if (t_native_widget != nullptr)
+                            {
+                                // Forward the event to the native widget.  We must:
+                                //   1. Retarget the event's window to the native widget's
+                                //      GdkWindow (gtk_main_do_event routes by window).
+                                //   2. Translate coordinates from the original window's
+                                //      space to the native widget's window space using
+                                //      their absolute screen origins.
+                                GdkWindow *t_native_win = gtk_widget_get_window(t_native_widget);
+                                if (t_native_win != nullptr && t_event->scroll.window != nullptr)
+                                {
+                                    gint t_orig_sx = 0, t_orig_sy = 0;
+                                    gint t_dest_sx = 0, t_dest_sy = 0;
+                                    gdk_window_get_origin(t_event->scroll.window, &t_orig_sx, &t_orig_sy);
+                                    gdk_window_get_origin(t_native_win,            &t_dest_sx, &t_dest_sy);
+
+                                    GdkEvent *t_fwd = gdk_event_copy(t_event);
+                                    t_fwd->scroll.x += t_orig_sx - t_dest_sx;
+                                    t_fwd->scroll.y += t_orig_sy - t_dest_sy;
+                                    g_object_ref(t_native_win);
+                                    g_object_unref(t_fwd->scroll.window);
+                                    t_fwd->scroll.window = t_native_win;
+                                    gtk_main_do_event(t_fwd);
+                                    safe_gdk_event_free(t_fwd);
+                                }
                                 t_handled = true;
                                 break;
                             }
 
-                            // Find the engine object that should receive the scroll
+                            // No native widget — dispatch as key events for LiveCode
+                            // objects (existing behaviour).
                             MCObject *mfocused = nullptr;
                             if (MCmousestackptr)
                             {
@@ -795,7 +852,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             {
                                 switch (t_event->scroll.direction)
                                 {
-                                    // GDK events are named for the 'natural scrolling' version and interpreted according to system settings
+                                    // GDK events are named for the 'natural scrolling' version
                                     case GDK_SCROLL_UP:
                                         mfocused->kdown(kMCEmptyString, XK_WheelDown);
                                         break;
@@ -812,10 +869,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                         mfocused->kdown(kMCEmptyString, XK_WheelLeft);
                                         break;
 
-                                    case GDK_SCROLL_SMOOTH:
-                                        // Smooth scroll from trackpad: forward directly to GTK
-                                        // so any native widget or WebKit under the pointer handles it.
-                                        gtk_main_do_event(t_event);
+                                    default:
                                         break;
                                 }
                             }
