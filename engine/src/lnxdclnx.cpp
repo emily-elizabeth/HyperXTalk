@@ -827,18 +827,62 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                             t_native_widget = GTK_WIDGET(t_view);
                                     }
                                 }
+
+                                // Fallback: getmfocused() may return NULL when the
+                                // mouse is over a reparented native window (motion
+                                // events from m_child_window's GdkWindow don't go
+                                // through wmfocus).  Scan GDK children of the stack
+                                // window to find a native container at the scroll point.
+                                if (t_native_widget == nullptr)
+                                {
+                                    GList *t_win_kids = gdk_window_get_children(t_event->scroll.window);
+                                    for (GList *l = t_win_kids;
+                                         l != nullptr && t_native_widget == nullptr;
+                                         l = l->next)
+                                    {
+                                        GdkWindow *t_child_gdk = (GdkWindow *)l->data;
+                                        gint t_cx = 0, t_cy = 0;
+                                        gdk_window_get_position(t_child_gdk, &t_cx, &t_cy);
+                                        gint t_cw = gdk_window_get_width(t_child_gdk);
+                                        gint t_ch = gdk_window_get_height(t_child_gdk);
+                                        if ((gint)t_event->scroll.x >= t_cx &&
+                                            (gint)t_event->scroll.x <  t_cx + t_cw &&
+                                            (gint)t_event->scroll.y >= t_cy &&
+                                            (gint)t_event->scroll.y <  t_cy + t_ch)
+                                        {
+                                            gpointer t_wd2 = nullptr;
+                                            gdk_window_get_user_data(t_child_gdk, &t_wd2);
+                                            if (t_wd2 != nullptr && GTK_IS_WINDOW(t_wd2))
+                                            {
+                                                // Our popup GtkWindow — browser widget is inside.
+                                                GList *t_grand = gtk_container_get_children(GTK_CONTAINER(t_wd2));
+                                                if (t_grand != nullptr)
+                                                {
+                                                    t_native_widget = GTK_WIDGET(t_grand->data);
+                                                    g_list_free(t_grand);
+                                                }
+                                            }
+                                            else if (t_wd2 != nullptr && GTK_IS_WIDGET(t_wd2))
+                                            {
+                                                t_native_widget = GTK_WIDGET(t_wd2);
+                                            }
+                                        }
+                                    }
+                                    g_list_free(t_win_kids);
+                                }
                             }
 
                             if (t_native_widget != nullptr)
                             {
-                                // Forward the event to the native widget.  We must:
-                                //   1. Retarget the event's window to the native widget's
-                                //      GdkWindow (gtk_main_do_event routes by window).
-                                //   2. Translate coordinates from the original window's
-                                //      space to the native widget's window space using
-                                //      their absolute screen origins.
+                                // Forward the event directly to the native widget.
+                                // We use gtk_widget_event() rather than gtk_main_do_event()
+                                // so that GTK's grab-based routing is bypassed — under
+                                // XWayland an active grab can redirect gtk_main_do_event
+                                // away from the intended target.
                                 GdkWindow *t_native_win = gtk_widget_get_window(t_native_widget);
-                                if (t_native_win != nullptr && t_event->scroll.window != nullptr)
+                                if (t_native_win != nullptr &&
+                                    t_event->scroll.window != nullptr &&
+                                    gtk_widget_get_realized(t_native_widget))
                                 {
                                     gint t_orig_sx = 0, t_orig_sy = 0;
                                     gint t_dest_sx = 0, t_dest_sy = 0;
@@ -851,8 +895,8 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                     g_object_ref(t_native_win);
                                     g_object_unref(t_fwd->scroll.window);
                                     t_fwd->scroll.window = t_native_win;
-                                    gtk_main_do_event(t_fwd);
-                                    safe_gdk_event_free(t_fwd);
+                                    gtk_widget_event(t_native_widget, t_fwd);
+                                    gdk_event_free(t_fwd);
                                 }
                                 t_handled = true;
                                 break;
@@ -1307,16 +1351,65 @@ void MCScreenDC::EnqueueGdkEvents(bool p_block)
         //gtk_main_do_event(t_event);
 
         // GDK_SCROLL events from embedded native widgets (e.g. WebKitWebView)
-        // arrive at the widget's own GdkWindow, which is NOT an engine stack
-        // window.  If we enqueue them, the engine's handle() tries to re-dispatch
-        // them via gtk_main_do_event — but by then any GDK grab state has
-        // changed and the dispatch silently misfires.  Instead, let GTK
-        // dispatch these events natively right here, before the event ever
-        // enters the engine's processing path.
+        // arrive at a GdkWindow that is NOT an engine stack window.  Dispatch
+        // them directly through GTK rather than enqueueing for the engine.
+        //
+        // Important: the event window may be:
+        //   (a) WebKit's own sub-GdkWindow  → dispatch directly to that widget
+        //   (b) m_child_window (our popup GtkWindow) → GtkWindow does NOT
+        //       propagate scroll downward to children, so we must drill into
+        //       the first child (the browser widget) and target it explicitly.
         if (t_event->type == GDK_SCROLL &&
             MCdispatcher->findstackd(t_event->any.window) == NULL)
         {
-            gtk_main_do_event(t_event);
+            gpointer t_wd = nullptr;
+            gdk_window_get_user_data(t_event->any.window, &t_wd);
+
+            if (t_wd != nullptr && GTK_IS_WINDOW(t_wd))
+            {
+                // Case (b): event at a GtkWindow container.
+                // Target its first child (the browser widget) directly.
+                GList *t_kids = gtk_container_get_children(GTK_CONTAINER(t_wd));
+                if (t_kids != nullptr)
+                {
+                    GtkWidget  *t_child     = GTK_WIDGET(t_kids->data);
+                    GdkWindow  *t_child_win = gtk_widget_get_window(t_child);
+                    if (t_child_win != nullptr && gtk_widget_get_realized(t_child))
+                    {
+                        gint t_ox = 0, t_oy = 0, t_dx = 0, t_dy = 0;
+                        gdk_window_get_origin(t_event->any.window, &t_ox, &t_oy);
+                        gdk_window_get_origin(t_child_win,          &t_dx, &t_dy);
+                        GdkEvent *t_fwd = gdk_event_copy(t_event);
+                        t_fwd->scroll.x += t_ox - t_dx;
+                        t_fwd->scroll.y += t_oy - t_dy;
+                        g_object_ref(t_child_win);
+                        g_object_unref(t_fwd->any.window);
+                        t_fwd->any.window = t_child_win;
+                        gtk_widget_event(t_child, t_fwd);
+                        gdk_event_free(t_fwd);
+                    }
+                    else
+                    {
+                        // Child not yet realized; best-effort via GTK routing.
+                        gtk_main_do_event(t_event);
+                    }
+                    g_list_free(t_kids);
+                }
+                else
+                {
+                    gtk_main_do_event(t_event);
+                }
+            }
+            else if (t_wd != nullptr && GTK_IS_WIDGET(t_wd))
+            {
+                // Case (a): event window has its own GTK widget — dispatch directly.
+                gtk_widget_event(GTK_WIDGET(t_wd), t_event);
+            }
+            else
+            {
+                gtk_main_do_event(t_event);
+            }
+
             gdk_event_free(t_event);
             continue;
         }
