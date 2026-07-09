@@ -56,24 +56,35 @@
 
 // Design notes
 // ------------
-// m_child_window is a GTK_WINDOW_POPUP (override_redirect=TRUE) whose
-// underlying X11 window is reparented into the engine's stack window via
-// gdk_window_reparent.  This makes it appear at the correct on-screen
-// position while the WM never manages it.
+// m_child_window is an undecorated GTK_WINDOW_TOPLEVEL whose underlying
+// X11 window is positioned at absolute screen coordinates to overlap the
+// widget's visible area in the engine's stack window.
 //
 // m_browser_widget (WebKitWebView) is added directly as a GTK child of
 // m_child_window.  This keeps the full GTK widget hierarchy intact:
 //
-//   m_child_window (GtkWindow/popup) → m_browser_widget (WebKitWebView)
+//   m_child_window (GtkWindow/toplevel, undecorated) → m_browser_widget (WebKitWebView)
 //
 // m_child_window's GTK frame clock drives all rendering.  When WebKit
 // queues a redraw (gtk_widget_queue_draw), the frame clock fires, GTK
 // calls the draw signal on m_browser_widget, and WebKit composites its
-// content.  Because m_child_window's X11 window is mapped inside the
-// stack window, the content appears at the correct position on screen.
+// content.
 //
 // Sizing: gtk_window_resize(m_child_window, w, h) triggers GTK's layout
 // cascade which allocates m_browser_widget to fill the window.
+//
+// Z-ordering: Because m_child_window is GTK_WINDOW_TOPLEVEL (not POPUP),
+// the WM/compositor manages it as an xdg_toplevel.  gdk_window_set_transient_for
+// then correctly keeps it above the stack window but below other applications.
+// GTK_WINDOW_POPUP (override_redirect) would make the compositor ignore all
+// stacking hints, causing the popup to float above every other window.
+//
+// XWayland scroll events: We do NOT reparent m_child_window into the stack
+// window's X11 hierarchy.  XWayland only assigns Wayland surfaces to
+// root-level X11 windows; a reparented child has no surface, so Wayland's
+// pointer/axis routing (trackpad scroll) never reaches it.  Keeping
+// m_child_window as a root-level window and positioning it at absolute
+// screen coordinates solves both the scroll and z-order problems.
 //
 // No GtkSocket, no GtkPlug, no XEMBED — those approaches broke the GTK3
 // frame clock for the embedded widget.
@@ -125,9 +136,16 @@ void MCNativeLayerX11::doAttach()
         MCRectangle t_rect;
         t_rect = m_object->getrect();
 
-        // Create a popup window to hold the browser widget.  GTK_WINDOW_POPUP
-        // sets override_redirect=TRUE so the WM never manages it.
-        m_child_window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_POPUP));
+        // Create an undecorated toplevel window to hold the browser widget.
+        // GTK_WINDOW_TOPLEVEL (not POPUP) is WM/compositor-managed, so
+        // WM_TRANSIENT_FOR actually controls z-ordering relative to the stack
+        // window.  POPUP (override_redirect) is invisible to the compositor
+        // and floats above every other application window.
+        m_child_window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
+        gtk_window_set_decorated(m_child_window, FALSE);
+        gtk_window_set_accept_focus(m_child_window, FALSE);
+        gtk_window_set_skip_taskbar_hint(m_child_window, TRUE);
+        gtk_window_set_skip_pager_hint(m_child_window, TRUE);
 
         if (m_browser_widget != NULL)
         {
