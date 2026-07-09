@@ -169,10 +169,14 @@ void MCNativeLayerX11::doAttach()
         gtk_window_set_accept_focus(m_child_window, FALSE);
         gtk_window_set_skip_taskbar_hint(m_child_window, TRUE);
         gtk_window_set_skip_pager_hint(m_child_window, TRUE);
-        // UTILITY tells the WM this is a tool panel, not a normal window.
-        // This prevents Mutter from applying automatic placement when other
-        // windows are raised or restacked (the cause of palette-interaction drift).
-        gtk_window_set_type_hint(m_child_window, GDK_WINDOW_TYPE_HINT_UTILITY);
+        // POPUP_MENU tells the WM this is a transient popup whose position is
+        // entirely client-controlled.  Under XWayland/Mutter this maps to a
+        // client-positioned surface type: the compositor respects our position
+        // request and does NOT apply focused-transient repositioning when the
+        // browser widget holds X11 focus.  UTILITY does not suppress that
+        // repositioning and causes the browser to drift when the stack moves
+        // while the browser is focused.
+        gtk_window_set_type_hint(m_child_window, GDK_WINDOW_TYPE_HINT_POPUP_MENU);
 
         if (m_browser_widget != NULL)
         {
@@ -243,13 +247,13 @@ void MCNativeLayerX11::doAttach()
         // Create an empty region to act as an input mask while in edit mode.
         m_input_shape = cairo_region_create();
 
-        // 60 Hz position timer: enforces correct absolute screen coordinates.
-        // Handles all sources of drift — stack moves, palette restacking, and
-        // Mutter repositioning the focused transient — without relying on
-        // ConfigureNotify timing.
-        if (m_position_timer_id == 0)
-            m_position_timer_id = g_timeout_add(16, onPositionTimer, this);
     }
+
+    // 60 Hz position timer: enforces correct absolute screen coordinates.
+    // Started here (outside the m_child_window == NULL guard) so that a
+    // doDetach() + doAttach() re-attach cycle always restarts the timer.
+    if (m_position_timer_id == 0)
+        m_position_timer_id = g_timeout_add(16, onPositionTimer, this);
 
     // Position and size everything correctly.
     doRelayer();
