@@ -154,10 +154,22 @@ void MCNativeLayerX11::doAttach()
         gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
                             getStackGdkWindow(), t_rect.x, t_rect.y);
 
-        // Show the window and child so the frame clock starts and WebKit's
-        // rendering pipeline initialises.  The window maps inside the stack
-        // (after the reparent above), so no root-level flash occurs.
-        gtk_widget_show_all(GTK_WIDGET(m_child_window));
+        // Show the container window now (maps inside the stack, no root flash).
+        // The browser widget (WebKitWebView) is shown via a GLib idle so that
+        // WebKit's subprocess fork/exec happens outside any active pointer grab.
+        // A grab is held throughout the DnD tools-palette drag; forking inside
+        // it corrupts GDK's grab state and crashes.  The idle fires on the
+        // first main-loop iteration after the DnD loop exits and the grab is
+        // released.
+        gtk_widget_show(GTK_WIDGET(m_child_window));
+
+        if (m_browser_widget != NULL)
+        {
+            g_idle_add([](gpointer data) -> gboolean {
+                gtk_widget_show(GTK_WIDGET(data));
+                return G_SOURCE_REMOVE;
+            }, m_browser_widget);
+        }
 
         // Create an empty region to act as an input mask while in edit mode.
         m_input_shape = cairo_region_create();
