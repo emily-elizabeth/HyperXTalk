@@ -95,6 +95,7 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_input_shape(NULL),
   m_browser_widget(p_view),
   m_stack_gdk_window(NULL),
+  m_child_gdk_window(NULL),
   m_pending_update_id(0)
 {
 	m_object = p_object;
@@ -107,6 +108,11 @@ MCNativeLayerX11::~MCNativeLayerX11()
     {
         g_source_remove(m_pending_update_id);
         m_pending_update_id = 0;
+    }
+    if (m_child_gdk_window != NULL)
+    {
+        gdk_window_remove_filter(m_child_gdk_window, onChildWindowFilter, this);
+        m_child_gdk_window = NULL;
     }
     if (m_stack_gdk_window != NULL)
     {
@@ -171,6 +177,26 @@ gboolean MCNativeLayerX11::onPendingUpdate(gpointer user_data)
     return G_SOURCE_REMOVE;
 }
 
+// static — detects when the WM moves m_child_window and queues a snap-back.
+// gdk_window_get_origin() calls XTranslateCoordinates (live X11 query, no
+// stale cache), so the snap-back always computes the correct position.
+// Loop safety: X11 only generates ConfigureNotify when position actually
+// changes, so a correction to the already-correct position produces no event.
+GdkFilterReturn MCNativeLayerX11::onChildWindowFilter(GdkXEvent *xevent,
+                                                       GdkEvent  * /*event*/,
+                                                       gpointer   user_data)
+{
+    x11::XEvent *xe = static_cast<x11::XEvent*>(xevent);
+    if (xe->type == 22 /* ConfigureNotify */)
+    {
+        MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
+        if (t_layer->m_pending_update_id == 0)
+            t_layer->m_pending_update_id =
+                g_idle_add_full(G_PRIORITY_HIGH_IDLE, onPendingUpdate, t_layer, NULL);
+    }
+    return GDK_FILTER_CONTINUE;
+}
+
 
 void MCNativeLayerX11::doAttach()
 {
@@ -189,6 +215,10 @@ void MCNativeLayerX11::doAttach()
         gtk_window_set_accept_focus(m_child_window, FALSE);
         gtk_window_set_skip_taskbar_hint(m_child_window, TRUE);
         gtk_window_set_skip_pager_hint(m_child_window, TRUE);
+        // UTILITY tells the WM this is a tool panel, not a normal window.
+        // This prevents Mutter from applying automatic placement when other
+        // windows are raised or restacked (the cause of palette-interaction drift).
+        gtk_window_set_type_hint(m_child_window, GDK_WINDOW_TYPE_HINT_UTILITY);
 
         if (m_browser_widget != NULL)
         {
@@ -259,14 +289,20 @@ void MCNativeLayerX11::doAttach()
         // Create an empty region to act as an input mask while in edit mode.
         m_input_shape = cairo_region_create();
 
-        // Install a GDK window filter on the stack window so we receive X11
-        // ConfigureNotify events and can reposition the popup when HXT moves.
+        // Stack filter: reposition popup whenever HXT moves.
         if (m_stack_gdk_window == NULL)
         {
             m_stack_gdk_window = getStackGdkWindow();
             gdk_window_add_filter(m_stack_gdk_window, onStackWindowFilter, this);
         }
 
+        // Child filter: snap back if the WM moves m_child_window unexpectedly
+        // (e.g. Mutter repositioning a transient when palette stacking changes).
+        if (m_child_gdk_window == NULL)
+        {
+            m_child_gdk_window = gtk_widget_get_window(GTK_WIDGET(m_child_window));
+            gdk_window_add_filter(m_child_gdk_window, onChildWindowFilter, this);
+        }
     }
 
     // Position and size everything correctly.
@@ -285,6 +321,11 @@ void MCNativeLayerX11::doDetach()
         m_pending_update_id = 0;
     }
 
+    if (m_child_gdk_window != NULL)
+    {
+        gdk_window_remove_filter(m_child_gdk_window, onChildWindowFilter, this);
+        m_child_gdk_window = NULL;
+    }
     if (m_stack_gdk_window != NULL)
     {
         gdk_window_remove_filter(m_stack_gdk_window, onStackWindowFilter, this);
