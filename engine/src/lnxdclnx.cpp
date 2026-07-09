@@ -785,11 +785,31 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             if (!t_mousestack)
                             {
                                 // Event window is not an engine stack — find the
-                                // GTK widget that owns the GdkWindow directly.
+                                // GTK widget that owns the GdkWindow.
+                                // This path should normally be handled earlier in
+                                // EnqueueGdkEvents, but acts as a safety net.
                                 gpointer t_wdata = nullptr;
                                 gdk_window_get_user_data(t_event->scroll.window, &t_wdata);
                                 if (t_wdata != nullptr && GTK_IS_WIDGET(t_wdata))
-                                    t_native_widget = GTK_WIDGET(t_wdata);
+                                {
+                                    GtkWidget *t_w = GTK_WIDGET(t_wdata);
+                                    // If the owning widget is a container (e.g. our popup
+                                    // GtkWindow), the real scroll target is the first child
+                                    // (the WebKitWebView).  GTK event propagation goes UP the
+                                    // widget hierarchy, not down, so targeting the container
+                                    // never reaches the browser widget.
+                                    if (GTK_IS_CONTAINER(t_w))
+                                    {
+                                        GList *t_kids = gtk_container_get_children(GTK_CONTAINER(t_w));
+                                        if (t_kids != nullptr)
+                                        {
+                                            t_native_widget = GTK_WIDGET(t_kids->data);
+                                            g_list_free(t_kids);
+                                        }
+                                    }
+                                    if (t_native_widget == nullptr)
+                                        t_native_widget = t_w;
+                                }
                             }
                             else if (MCmousestackptr)
                             {
@@ -1277,15 +1297,30 @@ void MCScreenDC::EnqueueGdkEvents(bool p_block)
         while (g_main_context_iteration(NULL, p_block))
             p_block = false;
         //gdk_threads_enter();
-        
+
         // Enqueue any further GDK events
         GdkEvent *t_event = gdk_event_get();
         if (t_event == NULL)
             break;
-        
+
         // GTK hasn't had a chance at this event yet
         //gtk_main_do_event(t_event);
-        
+
+        // GDK_SCROLL events from embedded native widgets (e.g. WebKitWebView)
+        // arrive at the widget's own GdkWindow, which is NOT an engine stack
+        // window.  If we enqueue them, the engine's handle() tries to re-dispatch
+        // them via gtk_main_do_event — but by then any GDK grab state has
+        // changed and the dispatch silently misfires.  Instead, let GTK
+        // dispatch these events natively right here, before the event ever
+        // enters the engine's processing path.
+        if (t_event->type == GDK_SCROLL &&
+            MCdispatcher->findstackd(t_event->any.window) == NULL)
+        {
+            gtk_main_do_event(t_event);
+            gdk_event_free(t_event);
+            continue;
+        }
+
         MCEventnode *t_eventnode = new (nothrow) MCEventnode(t_event);
         t_eventnode->appendto(pendingevents);
     }
