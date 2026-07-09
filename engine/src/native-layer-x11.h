@@ -51,6 +51,15 @@ private:
     // of m_child_window.  Received as a GtkWidget* from GetNativeLayer().
     GtkWidget* m_browser_widget;
 	MCRectangle m_intersect_rect;
+
+    // Signal connection for tracking stack window moves.
+    // When the stack window is repositioned we recompute absolute coordinates.
+    GtkWidget* m_stack_widget;     // the GtkWidget wrapping getStackGdkWindow()
+    gulong     m_configure_handler; // g_signal_connect id, 0 when unconnected
+
+    static gboolean onStackConfigure(GtkWidget *widget,
+                                     GdkEventConfigure *event,
+                                     gpointer user_data);
     
     // Returns the handle for the stack containing this widget
     x11::Window getStackX11Window();

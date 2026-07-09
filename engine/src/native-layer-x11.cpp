@@ -93,7 +93,9 @@
 MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_child_window(NULL),
   m_input_shape(NULL),
-  m_browser_widget(p_view)
+  m_browser_widget(p_view),
+  m_stack_widget(NULL),
+  m_configure_handler(0)
 {
 	m_object = p_object;
 	m_intersect_rect = MCRectangleMake(0,0,0,0);
@@ -101,6 +103,11 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
 
 MCNativeLayerX11::~MCNativeLayerX11()
 {
+    if (m_configure_handler != 0 && m_stack_widget != NULL)
+    {
+        g_signal_handler_disconnect(m_stack_widget, m_configure_handler);
+        m_configure_handler = 0;
+    }
     if (m_child_window != NULL)
     {
         gtk_widget_destroy(GTK_WIDGET(m_child_window));
@@ -127,6 +134,16 @@ void MCNativeLayerX11::updateInputShape()
     else
         // In run mode. Unset the input event mask
         gdk_window_input_shape_combine_region(gtk_widget_get_window(GTK_WIDGET(m_child_window)), NULL, 0, 0);
+}
+
+// static
+gboolean MCNativeLayerX11::onStackConfigure(GtkWidget* /*widget*/,
+                                             GdkEventConfigure* /*event*/,
+                                             gpointer user_data)
+{
+    // The stack window moved or resized — recompute our absolute position.
+    static_cast<MCNativeLayerX11*>(user_data)->updateContainerGeometry();
+    return FALSE; // don't consume the event
 }
 
 void MCNativeLayerX11::doAttach()
@@ -215,6 +232,20 @@ void MCNativeLayerX11::doAttach()
 
         // Create an empty region to act as an input mask while in edit mode.
         m_input_shape = cairo_region_create();
+
+        // Track stack window moves so we can keep our absolute position in sync.
+        if (m_configure_handler == 0)
+        {
+            gpointer t_wd = NULL;
+            gdk_window_get_user_data(getStackGdkWindow(), &t_wd);
+            if (t_wd != NULL && GTK_IS_WIDGET(t_wd))
+            {
+                m_stack_widget = GTK_WIDGET(t_wd);
+                m_configure_handler = g_signal_connect(m_stack_widget,
+                    "configure-event",
+                    G_CALLBACK(onStackConfigure), this);
+            }
+        }
     }
 
     // Position and size everything correctly.
@@ -226,6 +257,14 @@ void MCNativeLayerX11::doAttach()
 
 void MCNativeLayerX11::doDetach()
 {
+    // Disconnect the stack-move tracker so we don't fire on a dead object.
+    if (m_configure_handler != 0 && m_stack_widget != NULL)
+    {
+        g_signal_handler_disconnect(m_stack_widget, m_configure_handler);
+        m_configure_handler = 0;
+        m_stack_widget = NULL;
+    }
+
     // Just hide the container; leave the widget hierarchy intact for re-attach.
     if (m_child_window != NULL)
         gtk_widget_hide(GTK_WIDGET(m_child_window));
