@@ -63,14 +63,8 @@ private:
                                                gpointer   user_data);
     static gboolean        onPendingUpdate(gpointer user_data);
 
-    // GDK window filter on m_child_window — snaps back if the WM moves us.
-    GdkWindow* m_child_gdk_window;  // non-owning; NULL when filter not installed
     gint       m_expected_x;        // absolute position we last requested
     gint       m_expected_y;
-
-    static GdkFilterReturn onChildWindowFilter(GdkXEvent *xevent,
-                                               GdkEvent  *event,
-                                               gpointer   user_data);
     
     // Returns the handle for the stack containing this widget
     x11::Window getStackX11Window();
