@@ -158,56 +158,55 @@ gboolean MCNativeLayerX11::onPositionTimer(gpointer user_data)
 }
 
 // static
-// Fires when m_child_window (the browser popup) receives a ConfigureNotify,
-// which happens when Mutter repositions it via "focused-transient" logic —
-// moving the transient to a WM-computed position when it holds X11 focus and
-// the parent stack moves.
+// Watches m_child_window for X11 FocusIn / FocusOut events and adjusts the
+// position-correction timer frequency accordingly.
 //
-// Rather than deferring to a GLib idle (which fires after Mutter has already
-// committed the move and may fight back again on the next frame), this handler
-// responds SYNCHRONOUSLY using raw X11:
-//   XTranslateCoordinates — live round-trip for the stack's current origin,
-//                           bypassing GDK's cached position.
-//   XMoveResizeWindow     — submits the correction before the next Wayland
-//                           compositor frame so Mutter sees it in-place.
+// Problem: Mutter's "focused-transient repositioning" moves the browser window
+// to a WM-computed position whenever it holds X11 focus and the parent stack
+// moves.  At 60 Hz (16 ms), the timer corrects the drift within one display
+// frame, but if Mutter fires in the same compositor frame the timer loses the
+// race and the window is visibly displaced for a full frame.
 //
-// Loop safety: XMoveResizeWindow with the already-correct coordinates is a
-// server-side no-op, producing no ConfigureNotify, so the handler terminates.
+// Solution: while the browser is focused, run the timer at ~250 Hz (4 ms).
+// Mutter's repositioning happens at 60 Hz; a 4 ms correction fires several
+// times per Mutter frame, guaranteeing the drift is corrected well within a
+// single display frame and is imperceptible.  When focus leaves, drop back to
+// 60 Hz to avoid unnecessary CPU wake-ups.
+//
+// We deliberately do NOT handle ConfigureNotify here.  Intercepting
+// ConfigureNotify synchronously fights WebKit's internal layout cascade,
+// preventing content from loading and blocking window resizing.
+//
+// Focus-event filtering:
+//   Only NotifyNormal (mode=0) and NotifyWhileGrabbed (mode=3) represent real
+//   focus transitions.  NotifyGrab (1) and NotifyUngrab (2) are synthetic
+//   events generated when a pointer/keyboard grab starts or ends — acting on
+//   them causes spurious timer churn during DnD or menu interactions.
 GdkFilterReturn MCNativeLayerX11::onChildWindowFilter(GdkXEvent *xevent,
                                                        GdkEvent  * /*event*/,
                                                        gpointer   user_data)
 {
     x11::XEvent *xe = static_cast<x11::XEvent*>(xevent);
-    if (xe->type != 22 /* ConfigureNotify */)
+
+    // Only handle FocusIn (9) and FocusOut (10).
+    if (xe->type != 9 && xe->type != 10)
+        return GDK_FILTER_CONTINUE;
+
+    // Skip grab/ungrab synthetic focus transitions.
+    int t_mode = xe->xfocus.mode;
+    if (t_mode != 0 /* NotifyNormal */ && t_mode != 3 /* NotifyWhileGrabbed */)
         return GDK_FILTER_CONTINUE;
 
     MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
-    if (t_layer->m_child_window == NULL ||
-        t_layer->m_intersect_rect.width <= 0 ||
-        t_layer->m_intersect_rect.height <= 0)
+    if (t_layer->m_position_timer_id == 0)
         return GDK_FILTER_CONTINUE;
 
-    x11::Display *t_dpy       = x11::gdk_x11_get_default_xdisplay();
-    x11::Window   t_stack_xid = x11::gdk_x11_window_get_xid(t_layer->getStackGdkWindow());
-    x11::Window   t_root_xid  = x11::XDefaultRootWindow(t_dpy);
-    x11::Window   t_browser_xid =
-        x11::gdk_x11_window_get_xid(gtk_widget_get_window(GTK_WIDGET(t_layer->m_child_window)));
+    // FocusIn → 4 ms (~250 Hz) to outpace Mutter's focused-transient drift.
+    // FocusOut → 16 ms (60 Hz) baseline.
+    guint t_interval = (xe->type == 9 /* FocusIn */) ? 4 : 16;
 
-    // Live round-trip: get the stack's current root-relative origin.
-    int t_sx = 0, t_sy = 0;
-    x11::Window t_child_ret;
-    x11::XTranslateCoordinates(t_dpy, t_stack_xid, t_root_xid, 0, 0,
-                                &t_sx, &t_sy, &t_child_ret);
-
-    int t_target_x = t_sx + t_layer->m_intersect_rect.x;
-    int t_target_y = t_sy + t_layer->m_intersect_rect.y;
-
-    // Submit correction synchronously.  XMoveResizeWindow with unchanged
-    // coordinates is a server no-op (no ConfigureNotify → no loop).
-    x11::XMoveResizeWindow(t_dpy, t_browser_xid,
-                            t_target_x, t_target_y,
-                            t_layer->m_intersect_rect.width,
-                            t_layer->m_intersect_rect.height);
+    g_source_remove(t_layer->m_position_timer_id);
+    t_layer->m_position_timer_id = g_timeout_add(t_interval, onPositionTimer, t_layer);
 
     return GDK_FILTER_CONTINUE;
 }
@@ -301,8 +300,9 @@ void MCNativeLayerX11::doAttach()
         // Create an empty region to act as an input mask while in edit mode.
         m_input_shape = cairo_region_create();
 
-        // Child-window ConfigureNotify filter: synchronous snap-back for
-        // Mutter's focused-transient repositioning (see onChildWindowFilter).
+        // Focus filter: adjusts timer frequency on FocusIn/FocusOut so
+        // Mutter's focused-transient repositioning is corrected within 4 ms
+        // while the browser is focused (see onChildWindowFilter).
         if (m_child_gdk_window == NULL)
         {
             m_child_gdk_window = gtk_widget_get_window(GTK_WIDGET(m_child_window));

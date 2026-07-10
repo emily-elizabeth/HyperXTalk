@@ -58,19 +58,17 @@ private:
 
     static gboolean onPositionTimer(gpointer user_data);
 
-    // Child-window ConfigureNotify filter: synchronous snap-back.
+    // Focus filter: watches m_child_window for X11 FocusIn/FocusOut and
+    // adjusts the position-correction timer frequency.
     //
-    // When Mutter applies "focused-transient repositioning" (moving the browser
-    // to a WM-computed position because it holds X11 focus and the parent stack
-    // moved), the browser receives a ConfigureNotify.  Rather than deferring to
-    // a GLib idle (which fires after Mutter has already committed its move and
-    // may fire again), the filter responds synchronously with raw X11 calls:
-    //   XTranslateCoordinates — live round-trip for the stack's current origin
-    //   XMoveResizeWindow     — corrects the browser position immediately
-    // This submits the correction before the next Wayland compositor frame, so
-    // Mutter sees the browser at the correct position and stops repositioning.
-    // Loop safety: XMoveResizeWindow with the already-correct coordinates is a
-    // no-op at the X server, producing no ConfigureNotify.
+    // While the browser holds X11 focus, Mutter's "focused-transient
+    // repositioning" moves the browser window up to once per compositor frame
+    // (~60 Hz).  Running the correction timer at 4 ms (~250 Hz) while focused
+    // ensures drift is corrected several times per Mutter frame and is
+    // imperceptible.  On FocusOut the timer reverts to 16 ms (60 Hz).
+    //
+    // We do NOT handle ConfigureNotify in the filter — doing so synchronously
+    // fights WebKit's internal layout cascade and prevents content loading.
     GdkWindow* m_child_gdk_window;  // non-owning; NULL when filter not installed
 
     static GdkFilterReturn onChildWindowFilter(GdkXEvent *xevent,
