@@ -91,6 +91,17 @@
 // frame clock for the embedded widget.
 
 
+// The GdkWindow of the most recently attached browser window, or NULL when no
+// browser is attached.  Used by openwindow() in lnxdcs.cpp to set WM_PALETTE
+// windows transient for the browser, creating the palette→browser→stack
+// transient chain that Mutter uses to enforce the correct stacking order.
+static GdkWindow *s_active_browser_gdk_window = NULL;
+
+GdkWindow *MCNativeLayerX11GetActiveBrowserGdkWindow()
+{
+    return s_active_browser_gdk_window;
+}
+
 MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_child_window(NULL),
   m_input_shape(NULL),
@@ -144,22 +155,20 @@ void MCNativeLayerX11::updateInputShape()
 
 // static
 // Runs at 60 Hz (16 ms) normally, or 250 Hz (4 ms) while the browser holds
-// X11 focus.  Each tick:
-//   1. updateContainerGeometry() — corrects absolute screen position.
-//   2. updateContainerStacking() — sends _NET_RESTACK_WINDOW to keep the
-//      browser just above the stack window, below any ABOVE-layer windows
-//      (e.g. WM_PALETTE stacks that have _NET_WM_STATE_ABOVE).
+// X11 focus.  Corrects the browser's absolute screen position every tick.
 //
-// Without WM_TRANSIENT_FOR, Mutter may raise the browser on click even
-// though accept_focus=FALSE suppresses focus.  Running the stacking
-// correction at 250 Hz when focused means any Mutter-induced raise is
-// corrected within 4 ms — well under one compositor frame — so it is
-// never rendered as a visible flash.
+// Z-ordering is handled by the WM_TRANSIENT_FOR chain (palette→browser→stack)
+// set up in doAttach() and openwindow(): Mutter enforces the correct layer
+// order structurally, so no per-tick stacking correction is needed.
+//
+// While the browser holds X11 focus Mutter's "focused-transient repositioning"
+// may displace the browser window (since it is transient for the stack).
+// Running the position correction at 250 Hz while focused ensures any drift is
+// corrected several times per compositor frame and is imperceptible.
 gboolean MCNativeLayerX11::onPositionTimer(gpointer user_data)
 {
     MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
     t_layer->updateContainerGeometry();
-    t_layer->updateContainerStacking();
     return G_SOURCE_CONTINUE;
 }
 
@@ -169,9 +178,10 @@ gboolean MCNativeLayerX11::onPositionTimer(gpointer user_data)
 //
 // Problem: Mutter's "focused-transient repositioning" moves the browser window
 // to a WM-computed position whenever it holds X11 focus and the parent stack
-// moves.  At 60 Hz (16 ms), the timer corrects the drift within one display
-// frame, but if Mutter fires in the same compositor frame the timer loses the
-// race and the window is visibly displaced for a full frame.
+// moves (the browser is WM_TRANSIENT_FOR the stack).  At 60 Hz (16 ms), the
+// timer corrects the drift within one display frame, but if Mutter fires in
+// the same compositor frame the timer loses the race and the window is visibly
+// displaced for a full frame.
 //
 // Solution: while the browser is focused, run the timer at ~250 Hz (4 ms).
 // Mutter's repositioning happens at 60 Hz; a 4 ms correction fires several
@@ -182,6 +192,10 @@ gboolean MCNativeLayerX11::onPositionTimer(gpointer user_data)
 // We deliberately do NOT handle ConfigureNotify here.  Intercepting
 // ConfigureNotify synchronously fights WebKit's internal layout cascade,
 // preventing content from loading and blocking window resizing.
+//
+// Z-ordering is handled structurally by the WM_TRANSIENT_FOR chain
+// (palette→browser→stack) set up in doAttach() — no focus-event stacking
+// correction is needed.
 //
 // Focus-event filtering:
 //   Only NotifyNormal (mode=0) and NotifyWhileGrabbed (mode=3) represent real
@@ -207,39 +221,13 @@ GdkFilterReturn MCNativeLayerX11::onChildWindowFilter(GdkXEvent *xevent,
     if (t_layer->m_position_timer_id == 0)
         return GDK_FILTER_CONTINUE;
 
-    // FocusIn → 4 ms (~250 Hz) to keep position correction sub-frame.
+    // FocusIn → 4 ms (~250 Hz) to keep position correction sub-frame while
+    // Mutter's focused-transient repositioning is active.
     // FocusOut → 16 ms (60 Hz) baseline.
     guint t_interval = (xe->type == 9 /* FocusIn */) ? 4 : 16;
 
     g_source_remove(t_layer->m_position_timer_id);
     t_layer->m_position_timer_id = g_timeout_add(t_interval, onPositionTimer, t_layer);
-
-    // On FocusIn: raise all WM_PALETTE windows above the browser.
-    //
-    // Under XWayland + GNOME Shell, _NET_WM_STATE_ABOVE may only affect
-    // ordering relative to native Wayland surfaces (e.g. the GNOME panel),
-    // not relative to other XWayland windows.  Within XWayland's X11 stacking
-    // domain, gdk_window_raise() sends XRaiseWindow() which XWayland DOES
-    // process internally — so this reliably re-raises palette windows above
-    // the browser after any WM-induced raise.
-    if (xe->type == 9 /* FocusIn */)
-    {
-        MCStacknode *t_node = MCstacks->topnode();
-        if (t_node != NULL)
-        {
-            MCStacknode *t_first = t_node;
-            do {
-                MCStack *t_stack = t_node->getstack();
-                if (t_stack != NULL &&
-                    t_stack->getwindow() != DNULL &&
-                    t_stack->getrealmode() == WM_PALETTE)
-                {
-                    gdk_window_raise(t_stack->getwindow());
-                }
-                t_node = t_node->next();
-            } while (t_node != t_first);
-        }
-    }
 
     return GDK_FILTER_CONTINUE;
 }
@@ -300,20 +288,22 @@ void MCNativeLayerX11::doAttach()
         // GtkWindow before they can be realized.
         gtk_widget_realize(GTK_WIDGET(m_child_window));
 
-        // Do NOT set WM_TRANSIENT_FOR.
+        // Set browser transient for stack.
         //
-        // WM_TRANSIENT_FOR causes Mutter to group the browser with the stack
-        // and enforce "browser always above parent" with a constraint that
-        // overrides even _NET_WM_STATE_ABOVE on other windows.  This makes it
-        // impossible to keep WM_PALETTE stacks above the browser regardless of
-        // what hints or layer states are applied to them.
+        // WM_TRANSIENT_FOR tells Mutter to keep the browser window above the
+        // stack window in the compositor's stacking order.  On its own this
+        // would also put the browser above WM_PALETTE windows (palette has no
+        // transient relationship → normal layer; browser is transient of stack
+        // → above-stack layer).
         //
-        // Instead, updateContainerStacking() sends _NET_RESTACK_WINDOW every
-        // timer tick to keep the browser just above the stack window.  Mutter
-        // honours this pager-sourced EWMH restack without imposing transient
-        // group constraints, and palette stacks (which have _NET_WM_STATE_ABOVE
-        // set in MCStack::sethints()) naturally remain above the browser in
-        // Mutter's TOP layer.
+        // The fix is to extend the transient chain: palette → browser → stack.
+        // Mutter then enforces palette > browser > stack by construction,
+        // regardless of focus or click events.  Palettes are made transient for
+        // this browser window in the palette-propagation block below (and in
+        // openwindow() for palettes that are mapped after the browser attaches).
+        gdk_window_set_transient_for(
+            gtk_widget_get_window(GTK_WIDGET(m_child_window)),
+            getStackGdkWindow());
 
         // Do NOT reparent into the stack window.
         //
@@ -359,6 +349,36 @@ void MCNativeLayerX11::doAttach()
 
     }
 
+    // Register the active browser and propagate the transient chain to all
+    // existing WM_PALETTE windows.  Done outside the m_child_window == NULL
+    // guard so that a doDetach() + doAttach() re-attach cycle correctly
+    // re-establishes the palette→browser transient relationships (doDetach
+    // clears them via XDeleteProperty).
+    {
+        GdkWindow *t_browser_gdk = gtk_widget_get_window(GTK_WIDGET(m_child_window));
+        if (t_browser_gdk != NULL)
+        {
+            s_active_browser_gdk_window = t_browser_gdk;
+
+            MCStacknode *t_node = MCstacks->topnode();
+            if (t_node != NULL)
+            {
+                MCStacknode *t_first = t_node;
+                do {
+                    MCStack *t_stack = t_node->getstack();
+                    if (t_stack != NULL &&
+                        t_stack->getwindow() != DNULL &&
+                        t_stack->getrealmode() == WM_PALETTE)
+                    {
+                        gdk_window_set_transient_for(t_stack->getwindow(),
+                                                     t_browser_gdk);
+                    }
+                    t_node = t_node->next();
+                } while (t_node != t_first);
+            }
+        }
+    }
+
     // 60 Hz position timer: enforces correct absolute screen coordinates.
     // Started here (outside the m_child_window == NULL guard) so that a
     // doDetach() + doAttach() re-attach cycle always restarts the timer.
@@ -381,12 +401,45 @@ void MCNativeLayerX11::doDetach()
         m_position_timer_id = 0;
     }
 
-    // Remove the focus filter and restore transient_for if the browser was
-    // focused when we detach (so the next attach starts in a clean state).
+    // Remove the focus filter.
     if (m_child_gdk_window != NULL)
     {
         gdk_window_remove_filter(m_child_gdk_window, onChildWindowFilter, this);
         m_child_gdk_window = NULL;
+    }
+
+    // Clear the active browser reference and undo the palette→browser transient
+    // chain so that when the browser is re-attached the chain is rebuilt cleanly.
+    if (m_child_window != NULL)
+    {
+        GdkWindow *t_browser_gdk = gtk_widget_get_window(GTK_WIDGET(m_child_window));
+        if (t_browser_gdk != NULL && s_active_browser_gdk_window == t_browser_gdk)
+        {
+            s_active_browser_gdk_window = NULL;
+
+            x11::Display *t_dpy = x11::gdk_x11_get_default_xdisplay();
+            static x11::Atom s_wm_transient_for = 0;
+            if (s_wm_transient_for == 0)
+                s_wm_transient_for = x11::XInternAtom(t_dpy, "WM_TRANSIENT_FOR", False);
+
+            MCStacknode *t_node = MCstacks->topnode();
+            if (t_node != NULL)
+            {
+                MCStacknode *t_first = t_node;
+                do {
+                    MCStack *t_stack = t_node->getstack();
+                    if (t_stack != NULL &&
+                        t_stack->getwindow() != DNULL &&
+                        t_stack->getrealmode() == WM_PALETTE)
+                    {
+                        x11::Window t_xwin =
+                            x11::gdk_x11_window_get_xid(t_stack->getwindow());
+                        x11::XDeleteProperty(t_dpy, t_xwin, s_wm_transient_for);
+                    }
+                    t_node = t_node->next();
+                } while (t_node != t_first);
+            }
+        }
     }
 
     // Just hide the container; leave the widget hierarchy intact for re-attach.

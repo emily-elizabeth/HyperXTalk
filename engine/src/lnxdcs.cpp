@@ -58,6 +58,12 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 // MCpopoverstack must be nulled before calling so on_popover_closed() is a no-op.
 extern void MCLinuxPopoverClose(void);
 
+// Returns the GdkWindow of the currently attached browser widget, or NULL.
+// Used to wire WM_PALETTE windows into the palette→browser→stack transient
+// chain so Mutter enforces the correct stacking order at the compositor level.
+// Defined in native-layer-x11.cpp.
+GdkWindow *MCNativeLayerX11GetActiveBrowserGdkWindow();
+
 #include <langinfo.h>
 #include <fcntl.h>
 #include <sys/shm.h>
@@ -853,12 +859,23 @@ void MCScreenDC::openwindow(Window window, Boolean override)
 		else
 			gdk_window_show(window);
 
-        // Post-map: (re-)apply _NET_WM_STATE_ABOVE for palette windows.
-        // sethints() sets it pre-map, but Mutter/XWayland may reset
-        // _NET_WM_STATE properties at first-map time.  Sending the client
-        // message here, after the window is mapped, is always honoured.
+        // Post-map palette setup.
         if (target && target->getrealmode() == WM_PALETTE)
+        {
+            // (Re-)apply _NET_WM_STATE_ABOVE: sethints() sets it pre-map but
+            // Mutter/XWayland may reset _NET_WM_STATE at first-map time.
             gdk_window_set_keep_above(window, TRUE);
+
+            // Wire palette into the transient chain: palette→browser→stack.
+            // If a browser widget is currently attached, make this palette
+            // window transient for it.  Mutter then enforces palette > browser
+            // > stack by construction, regardless of focus or click events.
+            // If no browser is attached this is a no-op; doAttach() propagates
+            // the chain to all existing palettes when a browser is later added.
+            GdkWindow *t_browser = MCNativeLayerX11GetActiveBrowserGdkWindow();
+            if (t_browser != NULL)
+                gdk_window_set_transient_for(window, t_browser);
+        }
 	}
 
 	MCstacks->enableformodal(window, False);
