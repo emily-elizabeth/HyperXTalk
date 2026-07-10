@@ -229,13 +229,19 @@ void MCNativeLayerX11::doAttach()
         gtk_window_set_accept_focus(m_child_window, FALSE);
         gtk_window_set_skip_taskbar_hint(m_child_window, TRUE);
         gtk_window_set_skip_pager_hint(m_child_window, TRUE);
-        // UTILITY tells the WM this is a tool panel: suppresses cascade/tile
-        // placement and WM decorations, without requiring override-redirect.
-        // Palette windows are kept above this via _NET_WM_STATE_ABOVE (set in
-        // MCStack::sethints() for WM_PALETTE mode), which places them in
-        // Mutter's TOP layer above all NORMAL/UTILITY windows regardless of
-        // focus or raise events on the browser window.
-        gtk_window_set_type_hint(m_child_window, GDK_WINDOW_TYPE_HINT_UTILITY);
+        // NORMAL type deliberately avoids Mutter's potential auto-elevation of
+        // UTILITY windows.  Some Mutter versions place _NET_WM_WINDOW_TYPE_UTILITY
+        // windows in the same layer as _NET_WM_STATE_ABOVE windows, which would
+        // put the browser in the same layer as the palette (set to ABOVE in
+        // MCStack::sethints()) and allow focus/raise to promote the browser above
+        // the palette.  NORMAL + WM_TRANSIENT_FOR keeps the browser in the NORMAL
+        // layer; the palette's explicit ABOVE state then places it in Mutter's TOP
+        // layer (above NORMAL), regardless of click or focus events on the browser.
+        //
+        // No cascade-placement concern: gtk_window_set_decorated(FALSE) +
+        // gtk_window_move() before show + the 60/250 Hz position timer ensure
+        // the window appears at the correct coordinates.
+        gtk_window_set_type_hint(m_child_window, GDK_WINDOW_TYPE_HINT_NORMAL);
 
         if (m_browser_widget != NULL)
         {
