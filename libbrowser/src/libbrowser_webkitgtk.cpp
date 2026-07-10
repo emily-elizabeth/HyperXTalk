@@ -148,6 +148,10 @@ static struct WKSymbols
     void (*webkit_settings_set_user_agent)(WebKitSettings*, const gchar*);
     void (*webkit_settings_set_enable_javascript)(WebKitSettings*, gboolean);
     void (*webkit_settings_set_javascript_can_open_windows_automatically)(WebKitSettings*, gboolean);
+    // Added in WebKit 2.16.  Guarded by NULL-check at call site.
+    // We use value 2 = WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER directly
+    // (numeric value is stable across WebKit versions).
+    void (*webkit_settings_set_hardware_acceleration_policy)(WebKitSettings*, guint);
 
     // ---- UserContentManager ----
     WebKitUserContentManager* (*webkit_user_content_manager_new)(void);
@@ -388,6 +392,7 @@ static bool LoadWebKit(void)
     LOAD_SYM(t_wk, webkit_settings_set_user_agent);
     LOAD_SYM(t_wk, webkit_settings_set_enable_javascript);
     LOAD_SYM(t_wk, webkit_settings_set_javascript_can_open_windows_automatically);
+    LOAD_SYM(t_wk, webkit_settings_set_hardware_acceleration_policy);
 
     // UserContentManager
     LOAD_SYM(t_wk, webkit_user_content_manager_new);
@@ -604,20 +609,38 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     if (m_web_view == nil)
         return false;
 
-    // Disable new-window navigation by default (controlled by property)
-    if (wk.webkit_settings_set_javascript_can_open_windows_automatically)
     {
         WebKitSettings *t_settings = wk.webkit_web_view_get_settings(m_web_view);
         if (t_settings)
-            wk.webkit_settings_set_javascript_can_open_windows_automatically(t_settings, FALSE);
+        {
+            // Disable new-window navigation by default (controlled by property).
+            if (wk.webkit_settings_set_javascript_can_open_windows_automatically)
+                wk.webkit_settings_set_javascript_can_open_windows_automatically(t_settings, FALSE);
+
+            // Force software compositing (WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER = 2).
+            //
+            // native-layer-x11 now uses GtkOffscreenWindow: the browser renders
+            // into an internal cairo_surface_t, which doPaint() reads and blits
+            // into HXT's MCGContext.  GtkOffscreenWindow captures widget drawing
+            // via Cairo; if WebKit uses GL/EGL compositing the result bypasses
+            // Cairo entirely and the offscreen surface stays blank.
+            //
+            // With POLICY_NEVER, WebKit falls back to fully software-based Cairo
+            // rendering, which GtkOffscreenWindow captures correctly.
+            //
+            // Added in WebKit 2.16; guarded by NULL-check so older versions
+            // gracefully skip this (offscreen rendering may show blank content
+            // on those versions, but that's better than a hard link failure).
+            if (wk.webkit_settings_set_hardware_acceleration_policy)
+                wk.webkit_settings_set_hardware_acceleration_policy(t_settings, 2 /* NEVER */);
+        }
     }
 
     // --- Container window ---
     // We do NOT create a container here.  native-layer-x11::doAttach() adds
-    // m_web_view directly as a GTK child of its GTK_WINDOW_POPUP (m_child_window)
-    // and calls gtk_widget_show_all.  That window's frame clock drives all
-    // WebKit rendering.  GetNativeLayer() returns (void*)m_web_view so
-    // native-layer-x11 can receive the widget pointer.
+    // m_web_view directly as a GTK child of its GtkOffscreenWindow (m_child_window).
+    // GetNativeLayer() returns (void*)m_web_view so native-layer-x11 can receive
+    // the widget pointer.
 
     // --- Connect signals ---
     m_load_changed_id = wk.g_signal_connect_data(m_web_view, "load-changed",

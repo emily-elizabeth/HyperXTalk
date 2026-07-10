@@ -1,16 +1,16 @@
 /* Copyright (C) 2015 LiveCode Ltd.
- 
+
  This file is part of LiveCode.
- 
+
  LiveCode is free software; you can redistribute it and/or modify it under
  the terms of the GNU General Public License v3 as published by the Free
  Software Foundation.
- 
+
  LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
  WARRANTY; without even the implied warranty of MERCHANTABILITY or
  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
  for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
@@ -34,74 +34,76 @@ class MCNativeLayerX11 : public MCNativeLayer
 {
 public:
     virtual void OnToolChanged(Tool p_new_tool);
-	
-	virtual bool GetCanRenderToContext();
-    
+
+    // Returns true: with offscreen rendering we can composite the browser
+    // content directly into HXT's paint context via doPaint().
+    virtual bool GetCanRenderToContext();
+
     virtual bool GetNativeView(void *&r_view);
-    
+
     MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view);
     ~MCNativeLayerX11();
 
 private:
 
+    // Offscreen GTK window that hosts m_browser_widget.  Has no X11 window /
+    // compositor surface: it never appears on screen and has no Z-order
+    // interaction with any other window (palette, stack, etc.).
+    // This eliminates the browser-above-palette Z-order problem permanently.
     GtkWindow* m_child_window;
-    // -- tperry 12-11-2025: GTK3 uses cairo_region_t instead of GdkRegion
-    cairo_region_t* m_input_shape;
-    // The native browser widget (WebKitWebView) added directly as a GTK child
-    // of m_child_window.  Received as a GtkWidget* from GetNativeLayer().
+
+    // The native browser widget (WebKitWebView) added as a GTK child of
+    // m_child_window.  WebKit renders its content into m_child_window's
+    // internal cairo_surface_t via software compositing (hardware acceleration
+    // disabled in libbrowser_webkitgtk.cpp so Cairo is always used).
     GtkWidget* m_browser_widget;
-	MCRectangle m_intersect_rect;
 
-    // 60 Hz position timer: enforces the browser window's absolute screen
-    // position every ~16 ms.  Handles any residual WM-induced position drift.
-    guint m_position_timer_id;  // g_timeout source id, 0 when not running
+    // Cached intersection rect (informational; HXT's rendering pipeline handles
+    // the actual viewport clipping through the MCGContext passed to doPaint()).
+    MCRectangle m_intersect_rect;
 
-    static gboolean onPositionTimer(gpointer user_data);
+    // GLib signal ID for "damage-event" on m_child_window.  Fires when WebKit
+    // has composited new content into the offscreen surface; used to schedule
+    // an HXT repaint of the widget area.
+    gulong m_damage_signal_id;
 
-    // Focus filter: watches m_child_window for X11 FocusIn/FocusOut and
-    // adjusts the position-correction timer frequency.
-    //
-    // While the browser holds X11 focus, Mutter's "focused-transient
-    // repositioning" moves the browser window up to once per compositor frame
-    // (~60 Hz).  Running the correction timer at 4 ms (~250 Hz) while focused
-    // ensures drift is corrected several times per Mutter frame and is
-    // imperceptible.  On FocusOut the timer reverts to 16 ms (60 Hz).
-    //
-    // We do NOT handle ConfigureNotify in the filter — doing so synchronously
-    // fights WebKit's internal layout cascade and prevents content loading.
-    GdkWindow* m_child_gdk_window;  // non-owning; NULL when filter not installed
+    // Prevents queuing multiple idle redraws when damage events arrive faster
+    // than HXT's redraw cycle.
+    bool m_redraw_pending;
 
-    static GdkFilterReturn onChildWindowFilter(GdkXEvent *xevent,
+    // Whether the browser currently has logical focus for keyboard forwarding.
+    // Set on button-press inside m_rect; cleared on button-press outside.
+    bool m_browser_focused;
+
+    // Fired by GtkOffscreenWindow when WebKit has new content.  Schedules an
+    // HXT Redraw() via a GLib idle so we don't re-enter the draw pipeline.
+    static gboolean onDamage(GtkWidget *widget, GdkEvent *event,
+                             gpointer user_data);
+
+    // Idle callback: calls m_object->Redraw() and clears m_redraw_pending.
+    static gboolean onRedrawIdle(gpointer user_data);
+
+    // GDK event filter on the stack window.  Intercepts pointer and keyboard
+    // events that fall within m_rect and forwards them to the offscreen browser
+    // via gtk_main_do_event(), keeping the browser interactive.
+    static GdkFilterReturn onStackWindowFilter(GdkXEvent *xevent,
                                                GdkEvent  *event,
                                                gpointer   user_data);
 
-
-    // Returns the handle for the stack containing this widget
-    x11::Window getStackX11Window();
+    // Returns the GdkWindow of the stack that owns this widget.
     GdkWindow* getStackGdkWindow();
-    
-    // Returns the GtkFixed used for layouts within the stack
-    GtkFixed* getStackLayout();
-    
-    // Performs the attach/detach operations
+
+    // Platform-specific implementations
     virtual void doAttach();
     virtual void doDetach();
-	
-	virtual bool doPaint(MCGContextRef p_context);
-	virtual void doSetGeometry(const MCRectangle &p_rect);
-	virtual void doSetViewportGeometry(const MCRectangle &p_rect);
-	virtual void doSetVisible(bool p_visible);
-    
-    // Performs a relayering operation
+    virtual bool doPaint(MCGContextRef p_context);
+    virtual void doSetGeometry(const MCRectangle &p_rect);
+    virtual void doSetViewportGeometry(const MCRectangle &p_rect);
+    virtual void doSetVisible(bool p_visible);
     virtual void doRelayer();
-    
-    // Updates the input mask for the widget (used to implement edit mode)
-    void updateInputShape();
 
-	void updateContainerGeometry();
-    // Sends _NET_RESTACK_WINDOW to keep the browser just above the stack window.
-    // Called from the position timer alongside updateContainerGeometry().
-    void updateContainerStacking();
+    // Resizes the offscreen window to match the current m_rect dimensions.
+    void updateContainerGeometry();
 };
 
 #endif // ifndef __MC_NATIVE_LAYER_X11__
