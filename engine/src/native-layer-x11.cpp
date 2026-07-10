@@ -142,18 +142,23 @@ void MCNativeLayerX11::updateInputShape()
 }
 
 // static
-// Runs at ~60 Hz while the browser widget is attached.  Enforces the correct
-// absolute screen position by recomputing it from the stack's live origin on
-// every tick.  This supersedes the old ConfigureNotify filter + idle approach,
-// which had a timing race when the browser held X11 focus: Mutter's
-// focused-transient repositioning could fire *after* the snap-back idle,
-// leaving the window persistently detached.  The timer catches any WM-induced
-// drift within one display frame (~16 ms) regardless of focus state or
-// stacking changes.
+// Runs at 60 Hz (16 ms) normally, or 250 Hz (4 ms) while the browser holds
+// X11 focus.  Each tick:
+//   1. updateContainerGeometry() — corrects absolute screen position.
+//   2. updateContainerStacking() — sends _NET_RESTACK_WINDOW to keep the
+//      browser just above the stack window, below any ABOVE-layer windows
+//      (e.g. WM_PALETTE stacks that have _NET_WM_STATE_ABOVE).
+//
+// Without WM_TRANSIENT_FOR, Mutter may raise the browser on click even
+// though accept_focus=FALSE suppresses focus.  Running the stacking
+// correction at 250 Hz when focused means any Mutter-induced raise is
+// corrected within 4 ms — well under one compositor frame — so it is
+// never rendered as a visible flash.
 gboolean MCNativeLayerX11::onPositionTimer(gpointer user_data)
 {
     MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
     t_layer->updateContainerGeometry();
+    t_layer->updateContainerStacking();
     return G_SOURCE_CONTINUE;
 }
 
@@ -267,13 +272,20 @@ void MCNativeLayerX11::doAttach()
         // GtkWindow before they can be realized.
         gtk_widget_realize(GTK_WIDGET(m_child_window));
 
-        // Set WM_TRANSIENT_FOR so the WM keeps the browser above the stack
-        // and below other applications.  This is removed dynamically when the
-        // browser gets X11 focus (see onChildFocusFilter) to prevent Mutter's
-        // "focused-transient repositioning", and restored on focus-out.
-        gdk_window_set_transient_for(
-            gtk_widget_get_window(GTK_WIDGET(m_child_window)),
-            getStackGdkWindow());
+        // Do NOT set WM_TRANSIENT_FOR.
+        //
+        // WM_TRANSIENT_FOR causes Mutter to group the browser with the stack
+        // and enforce "browser always above parent" with a constraint that
+        // overrides even _NET_WM_STATE_ABOVE on other windows.  This makes it
+        // impossible to keep WM_PALETTE stacks above the browser regardless of
+        // what hints or layer states are applied to them.
+        //
+        // Instead, updateContainerStacking() sends _NET_RESTACK_WINDOW every
+        // timer tick to keep the browser just above the stack window.  Mutter
+        // honours this pager-sourced EWMH restack without imposing transient
+        // group constraints, and palette stacks (which have _NET_WM_STATE_ABOVE
+        // set in MCStack::sethints()) naturally remain above the browser in
+        // Mutter's TOP layer.
 
         // Do NOT reparent into the stack window.
         //
@@ -396,6 +408,52 @@ void MCNativeLayerX11::updateContainerGeometry()
 
     gtk_widget_set_size_request(GTK_WIDGET(m_child_window),
         m_intersect_rect.width, m_intersect_rect.height);
+}
+
+// Sends a _NET_RESTACK_WINDOW client message to the root window asking Mutter
+// to place the browser window just above the stack window.
+//
+// Unlike raw XConfigureWindow(CWStackMode) — which Mutter ignores for managed
+// windows under XWayland — _NET_RESTACK_WINDOW is an EWMH pager protocol that
+// Mutter explicitly handles (meta_window_handle_net_restack_window).  With
+// source=2 (pager) and detail=Above with sibling=stack, Mutter places the
+// browser immediately above the stack without activating it and without the
+// transient-group constraint that WM_TRANSIENT_FOR would impose.
+//
+// WM_PALETTE stacks have _NET_WM_STATE_ABOVE (META_LAYER_TOP) and therefore
+// always appear above this browser window (META_LAYER_NORMAL), regardless of
+// the browser's stacking position within the NORMAL layer.
+void MCNativeLayerX11::updateContainerStacking()
+{
+    if (m_child_window == NULL)
+        return;
+
+    GdkWindow *t_browser_gdk = gtk_widget_get_window(GTK_WIDGET(m_child_window));
+    if (t_browser_gdk == NULL)
+        return;
+
+    x11::Display *t_dpy      = x11::gdk_x11_get_default_xdisplay();
+    x11::Window   t_browser  = x11::gdk_x11_window_get_xid(t_browser_gdk);
+    x11::Window   t_stack    = x11::gdk_x11_window_get_xid(getStackGdkWindow());
+    x11::Window   t_root     = x11::XDefaultRootWindow(t_dpy);
+
+    // Cache the atom across calls.
+    static x11::Atom s_net_restack = x11::None;
+    if (s_net_restack == x11::None)
+        s_net_restack = x11::XInternAtom(t_dpy, "_NET_RESTACK_WINDOW", False);
+
+    x11::XEvent ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.xclient.type         = ClientMessage;
+    ev.xclient.window       = t_browser;
+    ev.xclient.message_type = s_net_restack;
+    ev.xclient.format       = 32;
+    ev.xclient.data.l[0]    = 2;              // source: pager (no activation)
+    ev.xclient.data.l[1]    = (long)t_stack;  // sibling
+    ev.xclient.data.l[2]    = 0;              // detail: Above
+
+    x11::XSendEvent(t_dpy, t_root, False,
+                    SubstructureRedirectMask | SubstructureNotifyMask, &ev);
 }
 
 void MCNativeLayerX11::doSetViewportGeometry(const MCRectangle &p_rect)

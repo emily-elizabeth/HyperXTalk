@@ -99,6 +99,9 @@ private:
     void updateInputShape();
 
 	void updateContainerGeometry();
+    // Sends _NET_RESTACK_WINDOW to keep the browser just above the stack window.
+    // Called from the position timer alongside updateContainerGeometry().
+    void updateContainerStacking();
 };
 
 #endif // ifndef __MC_NATIVE_LAYER_X11__
