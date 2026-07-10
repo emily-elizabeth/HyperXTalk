@@ -852,6 +852,13 @@ void MCScreenDC::openwindow(Window window, Boolean override)
 			gdk_window_show_unraised(window);
 		else
 			gdk_window_show(window);
+
+        // Post-map: (re-)apply _NET_WM_STATE_ABOVE for palette windows.
+        // sethints() sets it pre-map, but Mutter/XWayland may reset
+        // _NET_WM_STATE properties at first-map time.  Sending the client
+        // message here, after the window is mapped, is always honoured.
+        if (target && target->getrealmode() == WM_PALETTE)
+            gdk_window_set_keep_above(window, TRUE);
 	}
 
 	MCstacks->enableformodal(window, False);

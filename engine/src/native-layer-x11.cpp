@@ -43,6 +43,7 @@
 
 #include "globals.h"
 #include "context.h"
+#include "stacklst.h"
 
 #include "lnxdc.h"
 #include "graphicscontext.h"
@@ -206,12 +207,39 @@ GdkFilterReturn MCNativeLayerX11::onChildWindowFilter(GdkXEvent *xevent,
     if (t_layer->m_position_timer_id == 0)
         return GDK_FILTER_CONTINUE;
 
-    // FocusIn → 4 ms (~250 Hz) to outpace Mutter's focused-transient drift.
+    // FocusIn → 4 ms (~250 Hz) to keep position correction sub-frame.
     // FocusOut → 16 ms (60 Hz) baseline.
     guint t_interval = (xe->type == 9 /* FocusIn */) ? 4 : 16;
 
     g_source_remove(t_layer->m_position_timer_id);
     t_layer->m_position_timer_id = g_timeout_add(t_interval, onPositionTimer, t_layer);
+
+    // On FocusIn: raise all WM_PALETTE windows above the browser.
+    //
+    // Under XWayland + GNOME Shell, _NET_WM_STATE_ABOVE may only affect
+    // ordering relative to native Wayland surfaces (e.g. the GNOME panel),
+    // not relative to other XWayland windows.  Within XWayland's X11 stacking
+    // domain, gdk_window_raise() sends XRaiseWindow() which XWayland DOES
+    // process internally — so this reliably re-raises palette windows above
+    // the browser after any WM-induced raise.
+    if (xe->type == 9 /* FocusIn */)
+    {
+        MCStacknode *t_node = MCstacks->topnode();
+        if (t_node != NULL)
+        {
+            MCStacknode *t_first = t_node;
+            do {
+                MCStack *t_stack = t_node->getstack();
+                if (t_stack != NULL &&
+                    t_stack->getwindow() != DNULL &&
+                    t_stack->getrealmode() == WM_PALETTE)
+                {
+                    gdk_window_raise(t_stack->getwindow());
+                }
+                t_node = t_node->next();
+            } while (t_node != t_first);
+        }
+    }
 
     return GDK_FILTER_CONTINUE;
 }
