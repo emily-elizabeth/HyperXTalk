@@ -437,9 +437,10 @@ void MCNativeLayerX11::updateContainerStacking()
     x11::Window   t_stack    = x11::gdk_x11_window_get_xid(getStackGdkWindow());
     x11::Window   t_root     = x11::XDefaultRootWindow(t_dpy);
 
-    // Cache the atom across calls.
-    static x11::Atom s_net_restack = x11::None;
-    if (s_net_restack == x11::None)
+    // Cache the atom across calls.  Use 0 directly — None is a preprocessor
+    // macro (#define None 0) and cannot be qualified with x11::.
+    static x11::Atom s_net_restack = 0;
+    if (s_net_restack == 0)
         s_net_restack = x11::XInternAtom(t_dpy, "_NET_RESTACK_WINDOW", False);
 
     x11::XEvent ev;
