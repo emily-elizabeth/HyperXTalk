@@ -94,7 +94,9 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_child_window(NULL),
   m_input_shape(NULL),
   m_browser_widget(p_view),
-  m_position_timer_id(0)
+  m_position_timer_id(0),
+  m_child_gdk_window(NULL),
+  m_browser_has_focus(false)
 {
 	m_object = p_object;
 	m_intersect_rect = MCRectangleMake(0,0,0,0);
@@ -106,6 +108,11 @@ MCNativeLayerX11::~MCNativeLayerX11()
     {
         g_source_remove(m_position_timer_id);
         m_position_timer_id = 0;
+    }
+    if (m_child_gdk_window != NULL)
+    {
+        gdk_window_remove_filter(m_child_gdk_window, onChildFocusFilter, this);
+        m_child_gdk_window = NULL;
     }
     if (m_child_window != NULL)
     {
@@ -148,22 +155,67 @@ gboolean MCNativeLayerX11::onPositionTimer(gpointer user_data)
 {
     MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
     t_layer->updateContainerGeometry();
+    return G_SOURCE_CONTINUE;
+}
 
-    // Maintain Z-order: keep the browser window immediately above the HXT
-    // stack.  We do not use WM_TRANSIENT_FOR (which caused Mutter's
-    // focused-transient repositioning), so Z-order relative to the stack
-    // is enforced here instead.  XConfigureWindow(Above, sibling=stack)
-    // places the browser just above the stack; windows already above the
-    // stack (palette, other apps) remain above it.
-    if (t_layer->m_child_window != NULL)
+// static
+// Watches raw X11 FocusIn / FocusOut events on m_child_window and
+// dynamically toggles WM_TRANSIENT_FOR:
+//
+//   FocusIn  → delete WM_TRANSIENT_FOR
+//              Mutter no longer sees a transient relationship and stops
+//              applying "focused-transient repositioning" when the parent
+//              stack moves.  The 60 Hz timer handles position instead.
+//
+//   FocusOut → restore WM_TRANSIENT_FOR
+//              Mutter resumes Z-order management (browser stays above stack).
+//              If Mutter repositions the browser on restore, the timer
+//              corrects it within ~16 ms.
+//
+// Pointer and grab focus events (detail=Pointer/PointerRoot, mode=Grab/Ungrab)
+// are ignored — only real keyboard focus transfers toggle the property.
+GdkFilterReturn MCNativeLayerX11::onChildFocusFilter(GdkXEvent *xevent,
+                                                      GdkEvent  * /*event*/,
+                                                      gpointer   user_data)
+{
+    x11::XEvent *xe = static_cast<x11::XEvent*>(xevent);
+    // X11 FocusIn = 9, FocusOut = 10
+    if (xe->type != 9 && xe->type != 10)
+        return GDK_FILTER_CONTINUE;
+
+    // Skip pointer-only focus changes and grab/ungrab transitions.
+    int t_mode   = xe->xfocus.mode;
+    int t_detail = xe->xfocus.detail;
+    if (t_mode == 1 /* NotifyGrab */ || t_mode == 3 /* NotifyUngrab */)
+        return GDK_FILTER_CONTINUE;
+    if (t_detail == 5 /* NotifyPointer */ || t_detail == 6 /* NotifyPointerRoot */ ||
+        t_detail == 7 /* NotifyDetailNone */)
+        return GDK_FILTER_CONTINUE;
+
+    MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
+
+    if (xe->type == 9 /* FocusIn */ && !t_layer->m_browser_has_focus)
     {
-        GdkWindow *t_browser_gdk = gtk_widget_get_window(GTK_WIDGET(t_layer->m_child_window));
-        GdkWindow *t_stack_gdk   = t_layer->getStackGdkWindow();
-        if (t_browser_gdk != NULL && t_stack_gdk != NULL)
-            gdk_window_restack(t_browser_gdk, t_stack_gdk, TRUE /* above */);
+        t_layer->m_browser_has_focus = true;
+        // Remove WM_TRANSIENT_FOR so Mutter stops applying
+        // focused-transient repositioning while the browser has focus.
+        x11::XDeleteProperty(
+            x11::gdk_x11_get_default_xdisplay(),
+            x11::gdk_x11_window_get_xid(
+                gtk_widget_get_window(GTK_WIDGET(t_layer->m_child_window))),
+            x11::XInternAtom(x11::gdk_x11_get_default_xdisplay(),
+                             "WM_TRANSIENT_FOR", False));
+    }
+    else if (xe->type == 10 /* FocusOut */ && t_layer->m_browser_has_focus)
+    {
+        t_layer->m_browser_has_focus = false;
+        // Restore WM_TRANSIENT_FOR so Mutter resumes Z-order management.
+        gdk_window_set_transient_for(
+            gtk_widget_get_window(GTK_WIDGET(t_layer->m_child_window)),
+            t_layer->getStackGdkWindow());
     }
 
-    return G_SOURCE_CONTINUE;
+    return GDK_FILTER_CONTINUE;
 }
 
 
@@ -214,18 +266,15 @@ void MCNativeLayerX11::doAttach()
         // GtkWindow before they can be realized.
         gtk_widget_realize(GTK_WIDGET(m_child_window));
 
-        // Do NOT set WM_TRANSIENT_FOR.
-        //
-        // When WM_TRANSIENT_FOR is set, Mutter applies "focused-transient
-        // repositioning": whenever the browser window holds X11 focus and the
-        // parent stack moves, Mutter repositions the browser every compositor
-        // frame to a WM-computed position, overriding our gdk_window_move_resize
-        // calls even when a 60 Hz timer fights it.  Without WM_TRANSIENT_FOR,
-        // Mutter has no knowledge of the parent relationship and does not apply
-        // that logic.  Z-order relative to the stack is maintained manually via
-        // gdk_window_restack() in the position timer instead.
-        //
-        // Do NOT reparent into the stack window either.
+        // Set WM_TRANSIENT_FOR so the WM keeps the browser above the stack
+        // and below other applications.  This is removed dynamically when the
+        // browser gets X11 focus (see onChildFocusFilter) to prevent Mutter's
+        // "focused-transient repositioning", and restored on focus-out.
+        gdk_window_set_transient_for(
+            gtk_widget_get_window(GTK_WIDGET(m_child_window)),
+            getStackGdkWindow());
+
+        // Do NOT reparent into the stack window.
         //
         // We previously called gdk_window_reparent() to embed the popup into
         // the stack's X11 window tree.  Under XWayland this is fatal for scroll
@@ -235,10 +284,8 @@ void MCNativeLayerX11::doAttach()
         // then never receives GDK_SCROLL events regardless of how we dispatch
         // them through GTK.
         //
-        // Keeping m_child_window as a root-level window with no parent lets
-        // XWayland treat it as a proper Wayland surface.  We position it
-        // manually at the correct absolute screen coordinates (see
-        // updateContainerGeometry) so it visually overlaps the widget area.
+        // Keeping m_child_window as a root-level window and positioning it at
+        // absolute screen coordinates solves both the scroll and z-order problems.
 
         // Show the container window (maps at the pre-set position, no flash).
         // The browser widget (WebKitWebView) is shown via a GLib idle so that
@@ -259,6 +306,14 @@ void MCNativeLayerX11::doAttach()
 
         // Create an empty region to act as an input mask while in edit mode.
         m_input_shape = cairo_region_create();
+
+        // Focus filter: watches X11 FocusIn/FocusOut on m_child_window to
+        // dynamically remove/restore WM_TRANSIENT_FOR (see onChildFocusFilter).
+        if (m_child_gdk_window == NULL)
+        {
+            m_child_gdk_window = gtk_widget_get_window(GTK_WIDGET(m_child_window));
+            gdk_window_add_filter(m_child_gdk_window, onChildFocusFilter, this);
+        }
 
     }
 
@@ -282,6 +337,21 @@ void MCNativeLayerX11::doDetach()
     {
         g_source_remove(m_position_timer_id);
         m_position_timer_id = 0;
+    }
+
+    // Remove the focus filter and restore transient_for if the browser was
+    // focused when we detach (so the next attach starts in a clean state).
+    if (m_child_gdk_window != NULL)
+    {
+        gdk_window_remove_filter(m_child_gdk_window, onChildFocusFilter, this);
+        m_child_gdk_window = NULL;
+    }
+    if (m_browser_has_focus && m_child_window != NULL)
+    {
+        gdk_window_set_transient_for(
+            gtk_widget_get_window(GTK_WIDGET(m_child_window)),
+            getStackGdkWindow());
+        m_browser_has_focus = false;
     }
 
     // Just hide the container; leave the widget hierarchy intact for re-attach.

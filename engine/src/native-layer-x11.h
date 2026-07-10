@@ -53,16 +53,32 @@ private:
 	MCRectangle m_intersect_rect;
 
     // 60 Hz position timer: enforces the browser window's absolute screen
-    // position every ~16 ms.  Replaces the ConfigureNotify filter approach,
-    // which had a timing race when the browser held X11 focus: Mutter's
-    // focused-transient repositioning fired after our snap-back idle, leaving
-    // the window persistently detached.  The timer corrects any WM-induced
-    // drift within one display frame regardless of focus state.
-    // Loop safety: gdk_window_move_resize with the already-correct coordinates
-    // produces no visual change and no ConfigureNotify.
+    // position every ~16 ms.  Handles any residual WM-induced position drift.
     guint m_position_timer_id;  // g_timeout source id, 0 when not running
 
     static gboolean onPositionTimer(gpointer user_data);
+
+    // Dynamic WM_TRANSIENT_FOR management.
+    //
+    // WM_TRANSIENT_FOR is needed for Z-order (Mutter keeps the browser above
+    // the stack without it), but when the browser holds X11 focus Mutter
+    // applies "focused-transient repositioning" — moving the browser to a
+    // WM-computed position every compositor frame, overriding our timer.
+    //
+    // Fix: remove WM_TRANSIENT_FOR the moment the browser gets X11 focus (so
+    // Mutter has no transient relationship to manage), and restore it when
+    // focus leaves (so Mutter resumes Z-order management).  The 60 Hz timer
+    // covers any position drift during the focus window.
+    //
+    // Uses a raw X11 FocusIn/FocusOut filter rather than GTK signals because
+    // gtk_window_set_accept_focus(FALSE) suppresses GTK-level focus routing
+    // while WebKit may still obtain focus via XSetInputFocus.
+    GdkWindow* m_child_gdk_window;   // non-owning; NULL when filter not installed
+    bool       m_browser_has_focus;  // true while WM_TRANSIENT_FOR is removed
+
+    static GdkFilterReturn onChildFocusFilter(GdkXEvent *xevent,
+                                              GdkEvent  *event,
+                                              gpointer   user_data);
 
 
     // Returns the handle for the stack containing this widget
