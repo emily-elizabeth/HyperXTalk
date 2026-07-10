@@ -229,16 +229,13 @@ void MCNativeLayerX11::doAttach()
         gtk_window_set_accept_focus(m_child_window, FALSE);
         gtk_window_set_skip_taskbar_hint(m_child_window, TRUE);
         gtk_window_set_skip_pager_hint(m_child_window, TRUE);
-        // NORMAL type keeps the browser window in Mutter's "normal" stacking
-        // layer.  Under GNOME/Mutter the layer order is (high → low):
-        //   _NET_WM_STATE_ABOVE  >  UTILITY/TOOLBAR  >  NORMAL
-        // The HXT palette stacks use GDK_WINDOW_TYPE_HINT_UTILITY, so by
-        // keeping the browser as NORMAL + WM_TRANSIENT_FOR(stack), Mutter
-        // naturally places it: palette (UTILITY) > browser (NORMAL/transient)
-        // > stack (NORMAL).  Using UTILITY here put the browser in the same
-        // layer as the palette, and Mutter's raise-on-focus promoted it above
-        // the palette whenever the user clicked on web content.
-        gtk_window_set_type_hint(m_child_window, GDK_WINDOW_TYPE_HINT_NORMAL);
+        // UTILITY tells the WM this is a tool panel: suppresses cascade/tile
+        // placement and WM decorations, without requiring override-redirect.
+        // Palette windows are kept above this via _NET_WM_STATE_ABOVE (set in
+        // MCStack::sethints() for WM_PALETTE mode), which places them in
+        // Mutter's TOP layer above all NORMAL/UTILITY windows regardless of
+        // focus or raise events on the browser window.
+        gtk_window_set_type_hint(m_child_window, GDK_WINDOW_TYPE_HINT_UTILITY);
 
         if (m_browser_widget != NULL)
         {
