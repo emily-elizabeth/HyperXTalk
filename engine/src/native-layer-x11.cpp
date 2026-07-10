@@ -95,8 +95,7 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_input_shape(NULL),
   m_browser_widget(p_view),
   m_position_timer_id(0),
-  m_child_gdk_window(NULL),
-  m_browser_has_focus(false)
+  m_child_gdk_window(NULL)
 {
 	m_object = p_object;
 	m_intersect_rect = MCRectangleMake(0,0,0,0);
@@ -111,7 +110,7 @@ MCNativeLayerX11::~MCNativeLayerX11()
     }
     if (m_child_gdk_window != NULL)
     {
-        gdk_window_remove_filter(m_child_gdk_window, onChildFocusFilter, this);
+        gdk_window_remove_filter(m_child_gdk_window, onChildWindowFilter, this);
         m_child_gdk_window = NULL;
     }
     if (m_child_window != NULL)
@@ -159,61 +158,56 @@ gboolean MCNativeLayerX11::onPositionTimer(gpointer user_data)
 }
 
 // static
-// Watches raw X11 FocusIn / FocusOut events on m_child_window and
-// dynamically toggles WM_TRANSIENT_FOR:
+// Fires when m_child_window (the browser popup) receives a ConfigureNotify,
+// which happens when Mutter repositions it via "focused-transient" logic —
+// moving the transient to a WM-computed position when it holds X11 focus and
+// the parent stack moves.
 //
-//   FocusIn  → delete WM_TRANSIENT_FOR
-//              Mutter no longer sees a transient relationship and stops
-//              applying "focused-transient repositioning" when the parent
-//              stack moves.  The 60 Hz timer handles position instead.
+// Rather than deferring to a GLib idle (which fires after Mutter has already
+// committed the move and may fight back again on the next frame), this handler
+// responds SYNCHRONOUSLY using raw X11:
+//   XTranslateCoordinates — live round-trip for the stack's current origin,
+//                           bypassing GDK's cached position.
+//   XMoveResizeWindow     — submits the correction before the next Wayland
+//                           compositor frame so Mutter sees it in-place.
 //
-//   FocusOut → restore WM_TRANSIENT_FOR
-//              Mutter resumes Z-order management (browser stays above stack).
-//              If Mutter repositions the browser on restore, the timer
-//              corrects it within ~16 ms.
-//
-// Pointer and grab focus events (detail=Pointer/PointerRoot, mode=Grab/Ungrab)
-// are ignored — only real keyboard focus transfers toggle the property.
-GdkFilterReturn MCNativeLayerX11::onChildFocusFilter(GdkXEvent *xevent,
-                                                      GdkEvent  * /*event*/,
-                                                      gpointer   user_data)
+// Loop safety: XMoveResizeWindow with the already-correct coordinates is a
+// server-side no-op, producing no ConfigureNotify, so the handler terminates.
+GdkFilterReturn MCNativeLayerX11::onChildWindowFilter(GdkXEvent *xevent,
+                                                       GdkEvent  * /*event*/,
+                                                       gpointer   user_data)
 {
     x11::XEvent *xe = static_cast<x11::XEvent*>(xevent);
-    // X11 FocusIn = 9, FocusOut = 10
-    if (xe->type != 9 && xe->type != 10)
-        return GDK_FILTER_CONTINUE;
-
-    // Skip pointer-only focus changes and grab/ungrab transitions.
-    int t_mode   = xe->xfocus.mode;
-    int t_detail = xe->xfocus.detail;
-    if (t_mode == 1 /* NotifyGrab */ || t_mode == 3 /* NotifyUngrab */)
-        return GDK_FILTER_CONTINUE;
-    if (t_detail == 5 /* NotifyPointer */ || t_detail == 6 /* NotifyPointerRoot */ ||
-        t_detail == 7 /* NotifyDetailNone */)
+    if (xe->type != 22 /* ConfigureNotify */)
         return GDK_FILTER_CONTINUE;
 
     MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
+    if (t_layer->m_child_window == NULL ||
+        t_layer->m_intersect_rect.width <= 0 ||
+        t_layer->m_intersect_rect.height <= 0)
+        return GDK_FILTER_CONTINUE;
 
-    if (xe->type == 9 /* FocusIn */ && !t_layer->m_browser_has_focus)
-    {
-        t_layer->m_browser_has_focus = true;
-        // Remove WM_TRANSIENT_FOR so Mutter stops applying
-        // focused-transient repositioning while the browser has focus.
-        x11::XDeleteProperty(
-            x11::gdk_x11_get_default_xdisplay(),
-            x11::gdk_x11_window_get_xid(
-                gtk_widget_get_window(GTK_WIDGET(t_layer->m_child_window))),
-            x11::XInternAtom(x11::gdk_x11_get_default_xdisplay(),
-                             "WM_TRANSIENT_FOR", False));
-    }
-    else if (xe->type == 10 /* FocusOut */ && t_layer->m_browser_has_focus)
-    {
-        t_layer->m_browser_has_focus = false;
-        // Restore WM_TRANSIENT_FOR so Mutter resumes Z-order management.
-        gdk_window_set_transient_for(
-            gtk_widget_get_window(GTK_WIDGET(t_layer->m_child_window)),
-            t_layer->getStackGdkWindow());
-    }
+    x11::Display *t_dpy       = x11::gdk_x11_get_default_xdisplay();
+    x11::Window   t_stack_xid = x11::gdk_x11_window_get_xid(t_layer->getStackGdkWindow());
+    x11::Window   t_root_xid  = x11::XDefaultRootWindow(t_dpy);
+    x11::Window   t_browser_xid =
+        x11::gdk_x11_window_get_xid(gtk_widget_get_window(GTK_WIDGET(t_layer->m_child_window)));
+
+    // Live round-trip: get the stack's current root-relative origin.
+    int t_sx = 0, t_sy = 0;
+    x11::Window t_child_ret;
+    x11::XTranslateCoordinates(t_dpy, t_stack_xid, t_root_xid, 0, 0,
+                                &t_sx, &t_sy, &t_child_ret);
+
+    int t_target_x = t_sx + t_layer->m_intersect_rect.x;
+    int t_target_y = t_sy + t_layer->m_intersect_rect.y;
+
+    // Submit correction synchronously.  XMoveResizeWindow with unchanged
+    // coordinates is a server no-op (no ConfigureNotify → no loop).
+    x11::XMoveResizeWindow(t_dpy, t_browser_xid,
+                            t_target_x, t_target_y,
+                            t_layer->m_intersect_rect.width,
+                            t_layer->m_intersect_rect.height);
 
     return GDK_FILTER_CONTINUE;
 }
@@ -307,12 +301,12 @@ void MCNativeLayerX11::doAttach()
         // Create an empty region to act as an input mask while in edit mode.
         m_input_shape = cairo_region_create();
 
-        // Focus filter: watches X11 FocusIn/FocusOut on m_child_window to
-        // dynamically remove/restore WM_TRANSIENT_FOR (see onChildFocusFilter).
+        // Child-window ConfigureNotify filter: synchronous snap-back for
+        // Mutter's focused-transient repositioning (see onChildWindowFilter).
         if (m_child_gdk_window == NULL)
         {
             m_child_gdk_window = gtk_widget_get_window(GTK_WIDGET(m_child_window));
-            gdk_window_add_filter(m_child_gdk_window, onChildFocusFilter, this);
+            gdk_window_add_filter(m_child_gdk_window, onChildWindowFilter, this);
         }
 
     }
@@ -343,15 +337,8 @@ void MCNativeLayerX11::doDetach()
     // focused when we detach (so the next attach starts in a clean state).
     if (m_child_gdk_window != NULL)
     {
-        gdk_window_remove_filter(m_child_gdk_window, onChildFocusFilter, this);
+        gdk_window_remove_filter(m_child_gdk_window, onChildWindowFilter, this);
         m_child_gdk_window = NULL;
-    }
-    if (m_browser_has_focus && m_child_window != NULL)
-    {
-        gdk_window_set_transient_for(
-            gtk_widget_get_window(GTK_WIDGET(m_child_window)),
-            getStackGdkWindow());
-        m_browser_has_focus = false;
     }
 
     // Just hide the container; leave the widget hierarchy intact for re-attach.

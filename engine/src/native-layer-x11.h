@@ -58,27 +58,24 @@ private:
 
     static gboolean onPositionTimer(gpointer user_data);
 
-    // Dynamic WM_TRANSIENT_FOR management.
+    // Child-window ConfigureNotify filter: synchronous snap-back.
     //
-    // WM_TRANSIENT_FOR is needed for Z-order (Mutter keeps the browser above
-    // the stack without it), but when the browser holds X11 focus Mutter
-    // applies "focused-transient repositioning" — moving the browser to a
-    // WM-computed position every compositor frame, overriding our timer.
-    //
-    // Fix: remove WM_TRANSIENT_FOR the moment the browser gets X11 focus (so
-    // Mutter has no transient relationship to manage), and restore it when
-    // focus leaves (so Mutter resumes Z-order management).  The 60 Hz timer
-    // covers any position drift during the focus window.
-    //
-    // Uses a raw X11 FocusIn/FocusOut filter rather than GTK signals because
-    // gtk_window_set_accept_focus(FALSE) suppresses GTK-level focus routing
-    // while WebKit may still obtain focus via XSetInputFocus.
-    GdkWindow* m_child_gdk_window;   // non-owning; NULL when filter not installed
-    bool       m_browser_has_focus;  // true while WM_TRANSIENT_FOR is removed
+    // When Mutter applies "focused-transient repositioning" (moving the browser
+    // to a WM-computed position because it holds X11 focus and the parent stack
+    // moved), the browser receives a ConfigureNotify.  Rather than deferring to
+    // a GLib idle (which fires after Mutter has already committed its move and
+    // may fire again), the filter responds synchronously with raw X11 calls:
+    //   XTranslateCoordinates — live round-trip for the stack's current origin
+    //   XMoveResizeWindow     — corrects the browser position immediately
+    // This submits the correction before the next Wayland compositor frame, so
+    // Mutter sees the browser at the correct position and stops repositioning.
+    // Loop safety: XMoveResizeWindow with the already-correct coordinates is a
+    // no-op at the X server, producing no ConfigureNotify.
+    GdkWindow* m_child_gdk_window;  // non-owning; NULL when filter not installed
 
-    static GdkFilterReturn onChildFocusFilter(GdkXEvent *xevent,
-                                              GdkEvent  *event,
-                                              gpointer   user_data);
+    static GdkFilterReturn onChildWindowFilter(GdkXEvent *xevent,
+                                               GdkEvent  *event,
+                                               gpointer   user_data);
 
 
     // Returns the handle for the stack containing this widget

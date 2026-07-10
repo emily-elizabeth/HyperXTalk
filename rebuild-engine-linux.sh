@@ -99,7 +99,8 @@ echo "=== Relinking HyperXTalk ==="
 # development.target.mk OBJS (just the two standalone-ish .o files)
 DEV_OBJS=(
     "$OBJ/development/gen/engine_lcb_modules.o"
-    "$OBJ/development/engine/src/dummy.o"
+    "$OBJ/development/gen/src/startupstack.o"
+    "$OBJ/development/engine/src/main.o"
 )
 
 LDFLAGS=(
