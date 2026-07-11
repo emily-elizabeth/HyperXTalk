@@ -1351,6 +1351,8 @@ void MCWebKitGTKBrowser::on_option_menu_item_activate(GtkMenuItem *p_item, gpoin
 
 // Called when our custom GtkMenu is hidden (user picked an item or dismissed).
 // Tells WebKit we're done with the option menu and destroys the GtkMenu.
+// NOTE: only used as a fallback.  The primary path calls webkit_option_menu_close
+// and gtk_widget_destroy directly after gtk_main() returns.
 void MCWebKitGTKBrowser::on_option_menu_hidden(GtkWidget *p_widget, gpointer p_data)
 {
     WebKitOptionMenu *t_menu = (WebKitOptionMenu*)p_data;
@@ -1358,6 +1360,15 @@ void MCWebKitGTKBrowser::on_option_menu_hidden(GtkWidget *p_widget, gpointer p_d
     if (t_menu && wk.webkit_option_menu_close)
         wk.webkit_option_menu_close(t_menu);
     wk.gtk_widget_destroy(p_widget);
+}
+
+// Called when the GtkMenu shell deactivates (user picked an item or dismissed).
+// Quits the nested gtk_main() loop started by on_show_option_menu so that
+// HXT's event loop can resume.
+static void hxt_option_menu_deactivate(GtkMenuShell * /*shell*/, gpointer /*data*/)
+{
+    fprintf(stderr, "[HXT] option menu deactivated, calling gtk_main_quit\n");
+    gtk_main_quit();
 }
 
 // static
@@ -1445,15 +1456,13 @@ gboolean MCWebKitGTKBrowser::on_show_option_menu(WebKitWebView *p_view,
         }
     }
 
-    // When the menu hides, notify WebKit and destroy the GtkMenu widget.
-    wk.g_signal_connect_data(t_gtk_menu, "hide",
-        G_CALLBACK(on_option_menu_hidden), p_menu, NULL, (GConnectFlags)0);
+    // Connect "deactivate" to quit the nested main loop when the menu closes.
+    // "deactivate" fires before "hide" so gtk_main_quit() is called while the
+    // menu widget is still valid.
+    wk.g_signal_connect_data(t_gtk_menu, "deactivate",
+        G_CALLBACK(hxt_option_menu_deactivate), NULL, NULL, (GConnectFlags)0);
 
     // Compute the anchor rectangle in the coordinate space of t_stack_win.
-    // p_rect is in WebView widget coords (0,0 = top-left of the WebView).
-    // t_screen_x/y is the absolute screen position of the WebView.
-    // gdk_window_get_origin gives the screen position of the stack window,
-    // so: anchor in stack coords = (t_screen_x - stack_origin_x) + p_rect->x.
     GdkRectangle t_anchor = {
         t_screen_x + (p_rect ? p_rect->x : 0),
         t_screen_y + (p_rect ? p_rect->y : 0),
@@ -1475,14 +1484,9 @@ gboolean MCWebKitGTKBrowser::on_show_option_menu(WebKitWebView *p_view,
     }
     else
     {
-        // No stack window: fall back to root window with absolute screen coords.
         t_anchor_win = gdk_get_default_root_window();
     }
 
-    // Pass p_event so GTK knows which button triggered the popup and can
-    // correctly track button-release to un-highlight items.  Passing NULL
-    // causes GTK to use GDK_CURRENT_TIME and lose button-state tracking,
-    // which leaves all items highlighted simultaneously.
     wk.gtk_menu_popup_at_rect(
         (GtkMenu*)t_gtk_menu,
         t_anchor_win,
@@ -1490,6 +1494,25 @@ gboolean MCWebKitGTKBrowser::on_show_option_menu(WebKitWebView *p_view,
         GDK_GRAVITY_SOUTH_WEST,
         GDK_GRAVITY_NORTH_WEST,
         p_event);
+
+    // Run a nested GTK main loop for the duration of the popup.
+    //
+    // GtkMenu's hover tracking, pointer grab, and CSS state (prelight/active)
+    // all depend on GTK's own event dispatch, not HXT's custom event loop.
+    // Calling gtk_main() here hands full event control to GTK until the menu
+    // is dismissed.  hxt_option_menu_deactivate (above) calls gtk_main_quit()
+    // when the "deactivate" signal fires, returning control here.
+    //
+    // Nested gtk_main() calls are explicitly supported by GTK and are the
+    // standard mechanism for modal popups and combo-box dropdowns.
+    gtk_main();
+
+    fprintf(stderr, "[HXT] gtk_main() returned, menu done\n");
+
+    // Notify WebKit the option menu is closed and destroy the GtkMenu widget.
+    if (wk.webkit_option_menu_close)
+        wk.webkit_option_menu_close(p_menu);
+    wk.gtk_widget_destroy(t_gtk_menu);
 
     return TRUE; // we handled it; suppress WebKit's default popup
 }
