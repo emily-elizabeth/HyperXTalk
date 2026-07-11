@@ -1302,10 +1302,11 @@ void MCWebKitGTKBrowser::SimulateClick(void *ctx, int x, int y)
             "}catch(e2){}"
           "}"
           "if(f){"
-            "var mo={bubbles:true,cancelable:true,view:window};"
-            "f.dispatchEvent(new MouseEvent('mousedown',mo));"
-            "f.dispatchEvent(new MouseEvent('mouseup',mo));"
-            "f.dispatchEvent(new MouseEvent('click',mo));"
+            // For form fields we only call .focus() — no synthetic mouse events.
+            // Dispatching a JS click on an INPUT moves WebKit's sequential focus
+            // navigation starting point (SFNSP) to the NEXT element, so the first
+            // TAB keypress would land two elements ahead instead of one.  Calling
+            // .focus() alone focuses the element and resets the SFNSP to f itself.
             "f.focus();"
             "return'HXT:field:'+f.nodeName+':'+f.id;"
           "}"

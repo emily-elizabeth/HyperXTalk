@@ -52,6 +52,7 @@ extern GdkWindow *MCLinuxPopoverGetGdkWindow(void);
 // offscreen WebKitWebView that currently owns browser keyboard focus.
 // Called immediately after the normal HXT wkdown/wkup dispatch so the browser
 // receives keys even though HXT's own kfocus mechanism is not involved.
+extern bool hxt_browser_has_focus();
 extern void hxt_browser_key_down(unsigned int keyval, unsigned int state,
                                   unsigned short hwcode, unsigned char group);
 extern void hxt_browser_key_up(unsigned int keyval, unsigned int state,
@@ -549,21 +550,36 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         MCeventtime = t_event->key.time;
                         if (t_event->type == GDK_KEY_PRESS)
                         {
-                            MCdispatcher->wkdown(t_event->key.window, *t_text, t_keysym);
-                            // Forward raw GDK keyval (not HXT-translated keysym) to
-                            // any offscreen browser widget that holds keyboard focus.
-                            hxt_browser_key_down(t_event->key.keyval,
-                                                 (unsigned int)t_event->key.state,
-                                                 t_event->key.hardware_keycode,
-                                                 t_event->key.group);
+                            // When a browser widget owns keyboard focus, send ALL
+                            // keys directly to WebKit and skip wkdown entirely.
+                            // wkdown → MCObject::kdown calls kfocusnext for XK_Tab
+                            // which conflicts with WebKit's own focus traversal,
+                            // causing TAB to advance two elements instead of one.
+                            if (hxt_browser_has_focus())
+                            {
+                                hxt_browser_key_down(t_event->key.keyval,
+                                                     (unsigned int)t_event->key.state,
+                                                     t_event->key.hardware_keycode,
+                                                     t_event->key.group);
+                            }
+                            else
+                            {
+                                MCdispatcher->wkdown(t_event->key.window, *t_text, t_keysym);
+                            }
                         }
                         else
                         {
-                            MCdispatcher->wkup(t_event->key.window, *t_text, t_keysym);
-                            hxt_browser_key_up(t_event->key.keyval,
-                                               (unsigned int)t_event->key.state,
-                                               t_event->key.hardware_keycode,
-                                               t_event->key.group);
+                            if (hxt_browser_has_focus())
+                            {
+                                hxt_browser_key_up(t_event->key.keyval,
+                                                   (unsigned int)t_event->key.state,
+                                                   t_event->key.hardware_keycode,
+                                                   t_event->key.group);
+                            }
+                            else
+                            {
+                                MCdispatcher->wkup(t_event->key.window, *t_text, t_keysym);
+                            }
                         }
                     }
                 }
@@ -1450,6 +1466,24 @@ void MCScreenDC::EnqueueGdkEvents(bool p_block)
                     continue;
                 }
             }
+        }
+
+        // Skip synthetic key events that leaked back from our own dispatch.
+        // dispatchKeyEvent() in native-layer-x11.cpp creates GdkEventKey
+        // structs with send_event=TRUE and dispatches them via
+        // g_signal_emit_by_name().  GDK's offscreen-window event-routing
+        // machinery can re-inject these into the GDK queue with the event
+        // window set to the HXT stack window.  Without this guard they would
+        // be processed a second time, causing Tab to advance two DOM elements
+        // instead of one.  Real X11 keyboard events always have send_event=FALSE.
+        if ((t_event->type == GDK_KEY_PRESS || t_event->type == GDK_KEY_RELEASE)
+            && t_event->any.send_event)
+        {
+            fprintf(stderr, "[HXT] EnqueueGdkEvents: discarding leaked synthetic "
+                "key event type=%d keyval=0x%04x\n",
+                (int)t_event->type, t_event->key.keyval);
+            gdk_event_free(t_event);
+            continue;
         }
 
         MCEventnode *t_eventnode = new (nothrow) MCEventnode(t_event);

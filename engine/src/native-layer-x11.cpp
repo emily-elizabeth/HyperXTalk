@@ -105,45 +105,98 @@ namespace x11 {
 // the destructor.  Read by hxt_browser_key_down/up called from lnxdclnx.cpp.
 MCNativeLayerX11 *MCNativeLayerX11::s_focused_browser_layer = NULL;
 
+// Tracks the keyval of the key currently held down by the browser widget.
+// 0 = no key currently pressed.
+//
+// WebKit2GTK (IPC architecture) asynchronously processes key events: after
+// we emit GDK_KEY_PRESS via g_signal_emit_by_name(), the web process handles
+// it and the UI process injects a follow-up synthetic GDK_KEY_PRESS (~28 ms
+// later) via gdk_event_put() with send_event=FALSE.  This lands on the HXT
+// stack window and re-enters our key dispatch, causing Tab to jump two DOM
+// elements instead of one.  By tracking "key is down", any PRESS for a keyval
+// already in flight is immediately discarded as a duplicate.
+//
+// X11 auto-repeat generates RELEASE+PRESS pairs (not bare PRESS), so the
+// RELEASE clears the flag before the repeat PRESS arrives — correct repeat
+// behaviour is preserved.
+static unsigned int s_browser_key_down_keyval = 0;
+
 // Called from lnxdclnx.cpp's GDK_KEY_PRESS/RELEASE handler immediately after
 // the normal HXT wkdown/wkup dispatch.  Forwards the raw GDK key event to the
 // focused offscreen WebKitWebView by synthesising a new GdkEventKey and
 // dispatching it via gtk_main_do_event() to the GtkOffscreenWindow.  GTK
 // routes it to the internally focused child (the WebKitWebView).
+bool hxt_browser_has_focus()
+{
+    MCNativeLayerX11 *t_layer = MCNativeLayerX11::s_focused_browser_layer;
+    return t_layer != NULL && t_layer->m_browser_focused;
+}
+
 void hxt_browser_key_down(unsigned int p_keyval, unsigned int p_state,
                            unsigned short p_hwcode, unsigned char p_group)
 {
     MCNativeLayerX11 *t_layer = MCNativeLayerX11::s_focused_browser_layer;
     if (t_layer == NULL || !t_layer->m_browser_focused)
         return;
+
+    // Suppress duplicate key-press events for a key already in the down state.
+    // WebKit2GTK's async IPC processing injects an extra GDK_KEY_PRESS ~28 ms
+    // after the first dispatch; this guard drops it.
+    if (s_browser_key_down_keyval == p_keyval)
+    {
+        fprintf(stderr, "[HXT] hxt_browser_key_down: suppressing duplicate "
+            "keyval=0x%04x (already down)\n", p_keyval);
+        return;
+    }
+    s_browser_key_down_keyval = p_keyval;
+
     t_layer->dispatchKeyEvent(GDK_KEY_PRESS, p_keyval, p_state, p_hwcode, p_group);
 }
 
 void hxt_browser_key_up(unsigned int p_keyval, unsigned int p_state,
                          unsigned short p_hwcode, unsigned char p_group)
 {
-    MCNativeLayerX11 *t_layer = MCNativeLayerX11::s_focused_browser_layer;
-    if (t_layer == NULL || !t_layer->m_browser_focused)
-        return;
-    t_layer->dispatchKeyEvent(GDK_KEY_RELEASE, p_keyval, p_state, p_hwcode, p_group);
+    // Clear the key-down tracker so the next PRESS for this keyval
+    // (whether a new press or auto-repeat) is dispatched normally.
+    if (s_browser_key_down_keyval == p_keyval)
+        s_browser_key_down_keyval = 0;
+
+    // Key-release is intentionally not forwarded to WebKit.
+    //
+    // Some WebKit GTK builds advance Tab/Shift+Tab focus on GDK_KEY_RELEASE
+    // in addition to GDK_KEY_PRESS, which would produce double-advancement.
+    // Text input and Tab traversal only require GDK_KEY_PRESS delivery.
+    // Modifier key state (Shift, Ctrl, Alt) is already encoded in the state
+    // field of the subsequent GDK_KEY_PRESS event so WebKit sees it correctly
+    // without needing an explicit modifier-release event.
+    (void)p_state; (void)p_hwcode; (void)p_group;
 }
 
-// Synthesises a GdkEventKey and dispatches it to the GtkOffscreenWindow so
-// GTK routes it to the focused WebKitWebView child.
+// Synthesises a GdkEventKey and delivers it directly to the WebKitWebView
+// via g_signal_emit_by_name, bypassing GtkWindow's key_press_event handler.
+//
+// Why not gtk_main_do_event(GtkOffscreenWindow)?
+// GtkWindow::key_press_event first calls gtk_window_propagate_key_event
+// (which delivers the key to WebKit — 1 TAB advance) and then may also
+// run gtk_window_move_focus / gtk_window_activate_key for Tab, resulting
+// in a second traversal step.  Emitting directly on the browser widget
+// skips all GtkWindow wrapping and gives WebKit exactly one delivery.
 void MCNativeLayerX11::dispatchKeyEvent(GdkEventType p_type,
                                          unsigned int  p_keyval,
                                          unsigned int  p_state,
                                          unsigned short p_hwcode,
                                          unsigned char  p_group)
 {
-    if (m_child_window == NULL || m_browser_widget == NULL)
-        return;
-    GdkWindow *t_win = gtk_widget_get_window(GTK_WIDGET(m_child_window));
-    if (t_win == NULL)
+    if (m_browser_widget == NULL)
         return;
 
-    fprintf(stderr, "[HXT] dispatchKeyEvent type=%s keyval=0x%04x\n",
-        p_type == GDK_KEY_PRESS ? "PRESS" : "RELEASE", p_keyval);
+    // Use the GtkOffscreenWindow's GdkWindow as the event window; WebKit reads
+    // the window only to derive screen coordinates, not for dispatch.
+    GdkWindow *t_win = (m_child_window != NULL)
+        ? gtk_widget_get_window(GTK_WIDGET(m_child_window))
+        : gtk_widget_get_window(m_browser_widget);
+    if (t_win == NULL)
+        return;
 
     GdkEvent *evt = gdk_event_new(p_type);
     evt->key.window          = t_win;
@@ -157,7 +210,17 @@ void MCNativeLayerX11::dispatchKeyEvent(GdkEventType p_type,
     evt->key.is_modifier     = 0;
     evt->key.length          = 0;
     evt->key.string          = NULL;
-    gtk_main_do_event(evt);
+
+    fprintf(stderr, "[HXT] dispatchKeyEvent %s keyval=0x%04x\n",
+        p_type == GDK_KEY_PRESS ? "PRESS" : "RELEASE", p_keyval);
+
+    // Emit directly on the WebKitWebView widget — one delivery, no GtkWindow wrapping.
+    const char *t_signal = (p_type == GDK_KEY_PRESS) ? "key-press-event" : "key-release-event";
+    gboolean t_handled = FALSE;
+    g_signal_emit_by_name(m_browser_widget, t_signal, evt, &t_handled);
+    fprintf(stderr, "[HXT] dispatchKeyEvent %s handled=%d\n",
+        p_type == GDK_KEY_PRESS ? "PRESS" : "RELEASE", (int)t_handled);
+
     gdk_event_free(evt);
 }
 
