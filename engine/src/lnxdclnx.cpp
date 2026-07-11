@@ -58,6 +58,12 @@ extern void hxt_browser_key_down(unsigned int keyval, unsigned int state,
 extern void hxt_browser_key_up(unsigned int keyval, unsigned int state,
                                 unsigned short hwcode, unsigned char group);
 
+// Declared in native-layer-x11.cpp — forward GDK_MOTION_NOTIFY to the
+// focused offscreen WebKitWebView while a mouse button is held (drag).
+// p_x/p_y are in HXT's scaled stack-window coordinate space.  The function
+// is a no-op if no browser has a button currently pressed (m_pointer_button_down).
+extern void hxt_browser_forward_motion(int p_x, int p_y);
+
 #define XK_Window_L 0xFF6C
 #define XK_Window_R 0xFF6D
 
@@ -688,7 +694,13 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 
                 // IM-2013-10-09: [[ FullscreenMode ]] Update mouseloc with MCscreen getters & setters
                 MCscreen->setmouseloc(t_mousestack, t_mouseloc);
-                
+
+                // Forward motion to WebKit during a browser button-drag so
+                // text selection can be extended.  hxt_browser_forward_motion
+                // is a no-op unless m_pointer_button_down is set (i.e. a
+                // button was pressed inside the browser rect).
+                hxt_browser_forward_motion((int)t_mouseloc.x, (int)t_mouseloc.y);
+
                 // If this is a motion hint event, request the rest
                 if (t_event->motion.is_hint)
                     gdk_event_request_motions(&t_event->motion);

@@ -122,6 +122,11 @@ private:
     friend void hxt_browser_key_up(unsigned int, unsigned int,
                                    unsigned short, unsigned char);
 
+    // Called from lnxdclnx.cpp's GDK_MOTION_NOTIFY handler to forward drag
+    // motion to WebKit so text selection can be extended while the pointer
+    // moves across the browser rect with a button held down.
+    friend void hxt_browser_forward_motion(int, int);
+
     // Returns the GdkWindow of the stack that owns this widget.
     GdkWindow* getStackGdkWindow();
 
@@ -136,6 +141,16 @@ private:
 
     // Resizes the offscreen window to match the current m_rect dimensions.
     void updateContainerGeometry();
+
+    // Synthesises a GdkEvent of the given pointer type (GDK_BUTTON_PRESS,
+    // GDK_BUTTON_RELEASE, or GDK_MOTION_NOTIFY) and delivers it to the
+    // GtkOffscreenWindow via gtk_main_do_event().  Coordinates p_bx/p_by are
+    // relative to the browser widget (0,0 = top-left of the browser rect).
+    // GTK routes the event to the correct child widget (WebKitWebView) and
+    // maintains its internal implicit-grab state so that motion events during
+    // a button drag are routed to WebKit for text-selection extension.
+    void forwardPointerEvent(GdkEventType p_type, int p_bx, int p_by,
+                             guint p_button, guint p_state);
 };
 
 #endif // ifndef __MC_NATIVE_LAYER_X11__
