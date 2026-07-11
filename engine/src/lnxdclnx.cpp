@@ -1437,6 +1437,20 @@ void MCScreenDC::EnqueueGdkEvents(bool p_block)
             continue;
         }
 
+        // Route ALL other events for non-HXT windows (e.g. GtkMenu popup,
+        // GtkOffscreenWindow) via gtk_main_do_event so GTK can deliver them
+        // to the correct widget.  Without this, GDK_ENTER_NOTIFY /
+        // GDK_LEAVE_NOTIFY / GDK_MOTION_NOTIFY for the <select> popup menu
+        // are consumed by HXT's event processor (which finds no matching stack
+        // and drops them), leaving menu item hover highlights permanently stuck.
+        if (t_event->any.window != NULL &&
+            MCdispatcher->findstackd(t_event->any.window) == NULL)
+        {
+            gtk_main_do_event(t_event);
+            gdk_event_free(t_event);
+            continue;
+        }
+
         MCEventnode *t_eventnode = new (nothrow) MCEventnode(t_event);
         t_eventnode->appendto(pendingevents);
     }
