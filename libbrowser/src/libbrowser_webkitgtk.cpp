@@ -1208,23 +1208,38 @@ void MCWebKitGTKBrowser::SimulateClick(void *ctx, int x, int y)
     // devicePixelRatio so HiDPI displays are handled correctly.
     // The callback (hxt_nav_done_41/40) receives the string and calls
     // webkit_web_view_load_uri() directly — no message-handler round-trip.
-    char js[512];
+    // Buffer sized for the JS below (~700 chars + two ints).
+    char js[1024];
     snprintf(js, sizeof(js),
         "(function(x,y){"
           "var dpr=window.devicePixelRatio||1;"
           "var el=document.elementFromPoint(x/dpr,y/dpr);"
           "if(!el)return'';"
-          // Form fields: focus them so keyboard input works after the click.
-          "var tag=el.nodeName;"
-          "if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'){"
-            "el.focus();"
+          // Walk up from the hit element to find a focusable field.
+          // Handles: plain inputs, textareas, selects, and contenteditable
+          // divs (including captcha wrappers that overlay the real <input>).
+          "function isField(e){"
+            "var t=e.nodeName;"
+            "return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||e.isContentEditable;"
+          "}"
+          "var f=el;"
+          "while(f&&!isField(f))f=f.parentElement;"
+          "if(f){"
+            // Dispatch a full synthetic click sequence so the browser's
+            // native focus + selection handling fires (focus() alone is
+            // suppressed by some captcha / anti-bot libraries).
+            "var mo={bubbles:true,cancelable:true,view:window};"
+            "f.dispatchEvent(new MouseEvent('mousedown',mo));"
+            "f.dispatchEvent(new MouseEvent('mouseup',mo));"
+            "f.dispatchEvent(new MouseEvent('click',mo));"
+            "f.focus();"
             "return'';"
           "}"
           // Walk up for an anchor.
           "var a=el;"
           "while(a&&a.nodeName!=='A')a=a.parentElement;"
           "if(a&&a.href&&a.href.indexOf('javascript:')!==0)return a.href;"
-          // Not an anchor — dispatch a real click so JS navigation handlers fire.
+          // Not an anchor — dispatch a click so JS navigation handlers fire.
           "el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));"
           "return'';"
         "})(%d,%d)", x, y);
