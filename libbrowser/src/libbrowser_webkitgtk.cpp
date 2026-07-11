@@ -1369,7 +1369,7 @@ void MCWebKitGTKBrowser::on_option_menu_hidden(GtkWidget *p_widget, gpointer p_d
 // GtkOffscreenWindow has no real screen position).
 gboolean MCWebKitGTKBrowser::on_show_option_menu(WebKitWebView *p_view,
                                                    WebKitOptionMenu *p_menu,
-                                                   GdkEvent * /*p_event*/,
+                                                   GdkEvent *p_event,
                                                    GdkRectangle *p_rect,
                                                    gpointer /*p_data*/)
 {
@@ -1479,13 +1479,17 @@ gboolean MCWebKitGTKBrowser::on_show_option_menu(WebKitWebView *p_view,
         t_anchor_win = gdk_get_default_root_window();
     }
 
+    // Pass p_event so GTK knows which button triggered the popup and can
+    // correctly track button-release to un-highlight items.  Passing NULL
+    // causes GTK to use GDK_CURRENT_TIME and lose button-state tracking,
+    // which leaves all items highlighted simultaneously.
     wk.gtk_menu_popup_at_rect(
         (GtkMenu*)t_gtk_menu,
         t_anchor_win,
         &t_anchor,
         GDK_GRAVITY_SOUTH_WEST,
         GDK_GRAVITY_NORTH_WEST,
-        NULL);
+        p_event);
 
     return TRUE; // we handled it; suppress WebKit's default popup
 }
