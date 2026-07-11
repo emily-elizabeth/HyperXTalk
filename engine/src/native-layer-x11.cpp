@@ -355,6 +355,47 @@ GdkFilterReturn MCNativeLayerX11::onStackWindowFilter(GdkXEvent *p_xevent,
     int t_bx = ex - r.x;
     int t_by = ey - r.y;
 
+    // Scroll wheel: X11 delivers scroll as ButtonPress with button 4 (up),
+    // 5 (down), 6 (left), 7 (right).  Synthesize a GDK_SCROLL event targeted
+    // at the browser widget and return GDK_FILTER_REMOVE so GDK never queues
+    // the event for HXT — without this, HXT would scroll its own view instead.
+    if (t_is_press && tb >= 4 && tb <= 7)
+    {
+        GdkScrollDirection t_dir;
+        switch (tb)
+        {
+            case 4:  t_dir = GDK_SCROLL_UP;    break;
+            case 5:  t_dir = GDK_SCROLL_DOWN;  break;
+            case 6:  t_dir = GDK_SCROLL_LEFT;  break;
+            default: t_dir = GDK_SCROLL_RIGHT; break; // 7
+        }
+
+        GdkWindow *t_bwin = gtk_widget_get_window(t_layer->m_browser_widget);
+        if (t_bwin)
+        {
+            GdkEvent *t_scroll = gdk_event_new(GDK_SCROLL);
+            t_scroll->scroll.window     = t_bwin;
+            g_object_ref(t_bwin);
+            t_scroll->scroll.send_event = TRUE;
+            t_scroll->scroll.time       = xev->xbutton.time;
+            t_scroll->scroll.x          = t_bx;
+            t_scroll->scroll.y          = t_by;
+            t_scroll->scroll.x_root     = xev->xbutton.x_root;
+            t_scroll->scroll.y_root     = xev->xbutton.y_root;
+            t_scroll->scroll.state      = (GdkModifierType)xev->xbutton.state;
+            t_scroll->scroll.direction  = t_dir;
+            t_scroll->scroll.delta_x    = 0.0;
+            t_scroll->scroll.delta_y    = 0.0;
+            fprintf(stderr, "[HXT] scroll btn=%d dir=%d → browser\n", tb, (int)t_dir);
+            gtk_main_do_event(t_scroll);
+            gdk_event_free(t_scroll);
+        }
+        return GDK_FILTER_REMOVE; // suppress from HXT
+    }
+    // ButtonRelease for scroll buttons: suppress the corresponding release too.
+    if (t_is_release && tb >= 4 && tb <= 7)
+        return GDK_FILTER_REMOVE;
+
     // On left-button release: invoke SimulateClick which runs JS to find the
     // anchor under (t_bx, t_by) and calls webkit_web_view_load_uri directly.
     if (t_is_release && tb == Button1)
