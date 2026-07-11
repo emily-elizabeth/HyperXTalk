@@ -74,6 +74,8 @@ typedef struct _WebKitNavigationAction   WebKitNavigationAction;
 typedef struct _WebKitURIRequest         WebKitURIRequest;
 typedef struct _WebKitJavascriptResult   WebKitJavascriptResult; // 4.0 only
 typedef struct _JSCValue                 JSCValue;
+typedef struct _WebKitOptionMenu         WebKitOptionMenu;
+typedef struct _WebKitOptionMenuItem     WebKitOptionMenuItem;
 
 // WebKitLoadEvent
 enum {
@@ -176,6 +178,16 @@ static struct WKSymbols
     // ---- JavascriptResult (4.0 only — null on 4.1) ----
     JSCValue* (*webkit_javascript_result_get_js_value)(WebKitJavascriptResult*);
 
+    // ---- OptionMenu (show-option-menu signal, WebKit 2.18+, optional) ----
+    guint                 (*webkit_option_menu_get_n_items)(WebKitOptionMenu*);
+    WebKitOptionMenuItem* (*webkit_option_menu_get_item)(WebKitOptionMenu*, guint);
+    const gchar*          (*webkit_option_menu_item_get_label)(WebKitOptionMenuItem*);
+    gboolean              (*webkit_option_menu_item_is_enabled)(WebKitOptionMenuItem*);
+    gboolean              (*webkit_option_menu_item_is_group_label)(WebKitOptionMenuItem*);
+    gboolean              (*webkit_option_menu_item_is_selected)(WebKitOptionMenuItem*);
+    void                  (*webkit_option_menu_activate_item)(WebKitOptionMenu*, guint);
+    void                  (*webkit_option_menu_close)(WebKitOptionMenu*);
+
     // ---- JSCValue ----
     gboolean (*jsc_value_is_string)(JSCValue*);
     gboolean (*jsc_value_is_null)(JSCValue*);
@@ -208,6 +220,13 @@ static struct WKSymbols
 
     // ---- GTK window management ----
     void (*gtk_window_move)(GtkWindow*, gint, gint);
+
+    // ---- GtkMenu (custom <select> popup) ----
+    GtkWidget* (*gtk_menu_new)(void);
+    GtkWidget* (*gtk_menu_item_new_with_label)(const gchar*);
+    void       (*gtk_menu_shell_append)(GtkMenuShell*, GtkWidget*);
+    GtkWidget* (*gtk_separator_menu_item_new)(void);
+    void       (*gtk_menu_popup_at_rect)(GtkMenu*, GdkWindow*, const GdkRectangle*, GdkGravity, GdkGravity, const GdkEvent*);
 
     // ---- GtkPlug (XEMBED client) ----
     GtkWidget* (*gtk_plug_new)(Window);
@@ -425,6 +444,16 @@ static bool LoadWebKit(void)
     // 4.0 JavascriptResult → JSCValue unwrap (not present in 4.1)
     LOAD_SYM(t_wk, webkit_javascript_result_get_js_value);
 
+    // OptionMenu (WebKit 2.18+, optional — NULL-checked at call site)
+    LOAD_SYM(t_wk, webkit_option_menu_get_n_items);
+    LOAD_SYM(t_wk, webkit_option_menu_get_item);
+    LOAD_SYM(t_wk, webkit_option_menu_item_get_label);
+    LOAD_SYM(t_wk, webkit_option_menu_item_is_enabled);
+    LOAD_SYM(t_wk, webkit_option_menu_item_is_group_label);
+    LOAD_SYM(t_wk, webkit_option_menu_item_is_selected);
+    LOAD_SYM(t_wk, webkit_option_menu_activate_item);
+    LOAD_SYM(t_wk, webkit_option_menu_close);
+
     // JSCValue (may be in libwebkit or libjavascriptcore depending on version)
     LOAD_SYM(t_jsc, jsc_value_is_string);
     LOAD_SYM(t_jsc, jsc_value_is_null);
@@ -467,6 +496,13 @@ static bool LoadWebKit(void)
     LOAD_SYM(t_gtk, gtk_widget_set_sensitive);
     LOAD_SYM(t_gtk, gtk_widget_is_sensitive);
     LOAD_SYM(t_gtk, gtk_window_move);
+
+    // GtkMenu — for custom <select> popup positioning
+    LOAD_SYM(t_gtk, gtk_menu_new);
+    LOAD_SYM(t_gtk, gtk_menu_item_new_with_label);
+    LOAD_SYM(t_gtk, gtk_menu_shell_append);
+    LOAD_SYM(t_gtk, gtk_separator_menu_item_new);
+    LOAD_SYM(t_gtk, gtk_menu_popup_at_rect);
 
     // gtk_plug_new is in libgdk-3 / libgtk-3 as part of the XEMBED support.
     // It lives in libgtk-3 on GTK3 systems (same handle as t_gtk).
@@ -533,6 +569,17 @@ public:
     static void     on_js_finished_40(GObject*, GAsyncResult*, gpointer);
     static void     on_js_finished_41(GObject*, GAsyncResult*, gpointer);
 
+    // show-option-menu: intercept native <select> popup so we can position it
+    // correctly (GtkOffscreenWindow has no real screen position → GTK places the
+    // native menu at (0,0)).  We build a GtkMenu from the WebKitOptionMenu items
+    // using screen coordinates stored on the WebView via g_object_set_data by
+    // native-layer-x11::doSetGeometry.
+    static gboolean on_show_option_menu(WebKitWebView*, WebKitOptionMenu*,
+                                         GdkEvent*, GdkRectangle*, gpointer);
+    // Helpers for on_show_option_menu
+    static void on_option_menu_item_activate(GtkMenuItem*, gpointer);
+    static void on_option_menu_hidden(GtkWidget*, gpointer);
+
     // Click simulation — called by native-layer-x11 via g_object_get_data
     // when a left-button release is detected over the browser rect.
     // Uses JavaScript hit-testing to navigate to whatever link or element is
@@ -557,6 +604,7 @@ private:
     gulong m_progress_id;
     gulong m_script_message_id;
     gulong m_nav_message_id;
+    gulong m_show_option_menu_id;
 
     // Async JS evaluation state
     bool   m_js_finished;
@@ -587,6 +635,7 @@ MCWebKitGTKBrowser::MCWebKitGTKBrowser()
       m_progress_id(0),
       m_script_message_id(0),
       m_nav_message_id(0),
+      m_show_option_menu_id(0),
       m_js_finished(false),
       m_js_result(nil)
 {
@@ -609,12 +658,13 @@ MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
 
     if (m_web_view != nil)
     {
-        if (m_load_changed_id)  wk.g_signal_handler_disconnect(m_web_view, m_load_changed_id);
-        if (m_load_failed_id)   wk.g_signal_handler_disconnect(m_web_view, m_load_failed_id);
-        if (m_decide_policy_id) wk.g_signal_handler_disconnect(m_web_view, m_decide_policy_id);
-        if (m_create_id)        wk.g_signal_handler_disconnect(m_web_view, m_create_id);
-        if (m_context_menu_id)  wk.g_signal_handler_disconnect(m_web_view, m_context_menu_id);
-        if (m_progress_id)      wk.g_signal_handler_disconnect(m_web_view, m_progress_id);
+        if (m_load_changed_id)       wk.g_signal_handler_disconnect(m_web_view, m_load_changed_id);
+        if (m_load_failed_id)        wk.g_signal_handler_disconnect(m_web_view, m_load_failed_id);
+        if (m_decide_policy_id)      wk.g_signal_handler_disconnect(m_web_view, m_decide_policy_id);
+        if (m_create_id)             wk.g_signal_handler_disconnect(m_web_view, m_create_id);
+        if (m_context_menu_id)       wk.g_signal_handler_disconnect(m_web_view, m_context_menu_id);
+        if (m_progress_id)           wk.g_signal_handler_disconnect(m_web_view, m_progress_id);
+        if (m_show_option_menu_id)   wk.g_signal_handler_disconnect(m_web_view, m_show_option_menu_id);
     }
 
     // m_web_view is owned by m_child_window in native-layer-x11; no destroy here.
@@ -742,6 +792,12 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     m_nav_message_id = wk.g_signal_connect_data(m_content_manager,
         "script-message-received::hxtNav",
         G_CALLBACK(on_nav_message), this, nil, (GConnectFlags)0);
+
+    // Intercept native <select> popup.  The signal is optional (WebKit 2.18+);
+    // if the symbol wasn't loaded the connect is a no-op (g_signal_connect_data
+    // returns 0 for unknown signals, which we safely ignore).
+    m_show_option_menu_id = wk.g_signal_connect_data(m_web_view, "show-option-menu",
+        G_CALLBACK(on_show_option_menu), this, nil, (GConnectFlags)0);
 
     return true;
 }
@@ -1276,6 +1332,165 @@ void MCWebKitGTKBrowser::SimulateClick(void *ctx, int x, int y)
     else
         delete nav_ctx;
 }
+
+// ---- show-option-menu callbacks ------------------------------------------
+
+// Called when the user activates a menu item in our custom <select> popup.
+// The item's option index and WebKitOptionMenu pointer are stored as GObject
+// data so we don't need heap-allocated per-item context structs.
+void MCWebKitGTKBrowser::on_option_menu_item_activate(GtkMenuItem *p_item, gpointer /*p_data*/)
+{
+    WebKitOptionMenu *t_menu =
+        (WebKitOptionMenu*)g_object_get_data(G_OBJECT(p_item), "hxt-opt-menu");
+    guint t_idx =
+        (guint)GPOINTER_TO_INT(g_object_get_data(G_OBJECT(p_item), "hxt-opt-idx"));
+    fprintf(stderr, "[HXT] option menu item activated idx=%u menu=%p\n", t_idx, (void*)t_menu);
+    if (t_menu && wk.webkit_option_menu_activate_item)
+        wk.webkit_option_menu_activate_item(t_menu, t_idx);
+}
+
+// Called when our custom GtkMenu is hidden (user picked an item or dismissed).
+// Tells WebKit we're done with the option menu and destroys the GtkMenu.
+void MCWebKitGTKBrowser::on_option_menu_hidden(GtkWidget *p_widget, gpointer p_data)
+{
+    WebKitOptionMenu *t_menu = (WebKitOptionMenu*)p_data;
+    fprintf(stderr, "[HXT] option menu hidden, closing WebKitOptionMenu\n");
+    if (t_menu && wk.webkit_option_menu_close)
+        wk.webkit_option_menu_close(t_menu);
+    wk.gtk_widget_destroy(p_widget);
+}
+
+// static
+// Signal: "show-option-menu" on the WebKitWebView.
+// Fired when WebKit wants to display a native <select> dropdown.
+// p_rect is the bounding rect of the <select> element in WebView widget coords.
+// Returns TRUE to tell WebKit we handled the popup (suppresses the default
+// native GTK menu that would appear at screen position 0,0 because the
+// GtkOffscreenWindow has no real screen position).
+gboolean MCWebKitGTKBrowser::on_show_option_menu(WebKitWebView *p_view,
+                                                   WebKitOptionMenu *p_menu,
+                                                   GdkEvent * /*p_event*/,
+                                                   GdkRectangle *p_rect,
+                                                   gpointer /*p_data*/)
+{
+    fprintf(stderr, "[HXT] on_show_option_menu rect=(%d,%d %dx%d)\n",
+        p_rect ? p_rect->x : -1, p_rect ? p_rect->y : -1,
+        p_rect ? p_rect->width  : -1, p_rect ? p_rect->height : -1);
+
+    if (!wk.webkit_option_menu_get_n_items || !wk.gtk_menu_new ||
+        !wk.gtk_menu_item_new_with_label || !wk.gtk_menu_shell_append ||
+        !wk.gtk_menu_popup_at_rect)
+    {
+        fprintf(stderr, "[HXT] show-option-menu: missing symbols, falling back\n");
+        return FALSE;
+    }
+
+    // Retrieve the widget's absolute screen position stored by
+    // native-layer-x11::doSetGeometry via g_object_set_data.
+    int t_screen_x = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(p_view), "hxt-screen-x"));
+    int t_screen_y = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(p_view), "hxt-screen-y"));
+    GdkWindow *t_stack_win = (GdkWindow*)g_object_get_data(G_OBJECT(p_view), "hxt-stack-win");
+
+    fprintf(stderr, "[HXT] widget screen=(%d,%d) stack_win=%p\n",
+        t_screen_x, t_screen_y, (void*)t_stack_win);
+
+    // Build GtkMenu from WebKitOptionMenu items.
+    GtkWidget *t_gtk_menu = wk.gtk_menu_new();
+    if (!t_gtk_menu)
+        return FALSE;
+
+    guint t_n = wk.webkit_option_menu_get_n_items(p_menu);
+    for (guint i = 0; i < t_n; i++)
+    {
+        WebKitOptionMenuItem *t_item = wk.webkit_option_menu_get_item(p_menu, i);
+        if (!t_item) continue;
+
+        GtkWidget *t_menu_item = NULL;
+        bool t_is_group = wk.webkit_option_menu_item_is_group_label &&
+                          wk.webkit_option_menu_item_is_group_label(t_item);
+
+        if (t_is_group)
+        {
+            t_menu_item = wk.gtk_separator_menu_item_new
+                        ? wk.gtk_separator_menu_item_new() : NULL;
+        }
+        else
+        {
+            const gchar *t_label = wk.webkit_option_menu_item_get_label
+                                 ? wk.webkit_option_menu_item_get_label(t_item) : "";
+            t_menu_item = wk.gtk_menu_item_new_with_label(t_label ? t_label : "");
+            if (t_menu_item)
+            {
+                // Grey out disabled items.
+                if (wk.webkit_option_menu_item_is_enabled &&
+                    !wk.webkit_option_menu_item_is_enabled(t_item))
+                    wk.gtk_widget_set_sensitive(t_menu_item, FALSE);
+
+                // Store index + menu on the item so the activate callback can
+                // find them without a separate heap allocation.
+                g_object_set_data(G_OBJECT(t_menu_item), "hxt-opt-idx",
+                    GINT_TO_POINTER((gint)i));
+                g_object_set_data(G_OBJECT(t_menu_item), "hxt-opt-menu",
+                    (gpointer)p_menu);
+                wk.g_signal_connect_data(t_menu_item, "activate",
+                    G_CALLBACK(on_option_menu_item_activate),
+                    NULL, NULL, (GConnectFlags)0);
+            }
+        }
+
+        if (t_menu_item)
+        {
+            wk.gtk_menu_shell_append((GtkMenuShell*)t_gtk_menu, t_menu_item);
+            wk.gtk_widget_show(t_menu_item);
+        }
+    }
+
+    // When the menu hides, notify WebKit and destroy the GtkMenu widget.
+    wk.g_signal_connect_data(t_gtk_menu, "hide",
+        G_CALLBACK(on_option_menu_hidden), p_menu, NULL, (GConnectFlags)0);
+
+    // Compute the anchor rectangle in the coordinate space of t_stack_win.
+    // p_rect is in WebView widget coords (0,0 = top-left of the WebView).
+    // t_screen_x/y is the absolute screen position of the WebView.
+    // gdk_window_get_origin gives the screen position of the stack window,
+    // so: anchor in stack coords = (t_screen_x - stack_origin_x) + p_rect->x.
+    GdkRectangle t_anchor = {
+        t_screen_x + (p_rect ? p_rect->x : 0),
+        t_screen_y + (p_rect ? p_rect->y : 0),
+        p_rect ? p_rect->width  : 1,
+        p_rect ? p_rect->height : 1
+    };
+
+    GdkWindow *t_anchor_win = t_stack_win;
+    if (t_anchor_win)
+    {
+        int t_origin_x = 0, t_origin_y = 0;
+        gdk_window_get_origin(t_anchor_win, &t_origin_x, &t_origin_y);
+        t_anchor.x = (t_screen_x - t_origin_x) + (p_rect ? p_rect->x : 0);
+        t_anchor.y = (t_screen_y - t_origin_y) + (p_rect ? p_rect->y : 0);
+        t_anchor.width  = p_rect ? p_rect->width  : 1;
+        t_anchor.height = p_rect ? p_rect->height : 1;
+        fprintf(stderr, "[HXT] anchor in stack coords=(%d,%d %dx%d)\n",
+            t_anchor.x, t_anchor.y, t_anchor.width, t_anchor.height);
+    }
+    else
+    {
+        // No stack window: fall back to root window with absolute screen coords.
+        t_anchor_win = gdk_get_default_root_window();
+    }
+
+    wk.gtk_menu_popup_at_rect(
+        (GtkMenu*)t_gtk_menu,
+        t_anchor_win,
+        &t_anchor,
+        GDK_GRAVITY_SOUTH_WEST,
+        GDK_GRAVITY_NORTH_WEST,
+        NULL);
+
+    return TRUE; // we handled it; suppress WebKit's default popup
+}
+
+// --------------------------------------------------------------------------
 
 int MCWebKitGTKBrowser::on_context_menu(WebKitWebView * /*p_view*/, gpointer /*p_menu*/,
                                           gpointer /*p_event*/, gpointer /*p_hit_test*/,

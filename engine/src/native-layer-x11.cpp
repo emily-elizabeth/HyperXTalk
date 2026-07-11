@@ -629,6 +629,23 @@ void MCNativeLayerX11::doSetGeometry(const MCRectangle &p_rect)
         t_alloc.height = m_rect.height;
         gtk_widget_size_allocate(m_browser_widget, &t_alloc);
     }
+
+    // Store the widget's absolute screen position so libbrowser's
+    // show-option-menu handler can position the <select> popup correctly.
+    // GtkOffscreenWindow has no real screen origin, so we compute the
+    // absolute position from the stack window's screen origin + m_rect offset.
+    {
+        GdkWindow *t_stack_win = getStackGdkWindow();
+        int t_origin_x = 0, t_origin_y = 0;
+        if (t_stack_win)
+            gdk_window_get_origin(t_stack_win, &t_origin_x, &t_origin_y);
+        g_object_set_data(G_OBJECT(m_browser_widget), "hxt-screen-x",
+            GINT_TO_POINTER(t_origin_x + m_rect.x));
+        g_object_set_data(G_OBJECT(m_browser_widget), "hxt-screen-y",
+            GINT_TO_POINTER(t_origin_y + m_rect.y));
+        g_object_set_data(G_OBJECT(m_browser_widget), "hxt-stack-win",
+            (gpointer)t_stack_win);
+    }
 }
 
 void MCNativeLayerX11::doSetVisible(bool p_visible)
