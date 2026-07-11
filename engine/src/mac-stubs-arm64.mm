@@ -1764,4 +1764,19 @@ void MCStack::release_window_buffer() {}
 // the data-fork content (cards, fields, buttons, bitmaps) still loads fine.
 IO_stat MCHcstak::macreadresources(void) { return IO_NORMAL; }
 
+// ── revbrowser CEF stubs ─────────────────────────────────────────────────────
+// revbrowser.bundle imports these symbols from its CEF backend, which is not
+// shipped with HyperXTalk. Without these definitions dyld resolves them to
+// _dyld_missing_symbol_abort (DYLD Code 9). shutdownXtable in revbrowser
+// unconditionally tail-calls MCCefFinalise() on quit regardless of whether a
+// browser was ever created, so the crash fires on every clean exit on macOS 14
+// Sonoma (dyld4 enforces missing-symbol stubs more aggressively than dyld3).
+//
+// Plain C++ (not extern "C") so the compiler emits the correct mangled names
+// that revbrowser expects: _Z13MCCefFinalisev, _Z23MCCefBrowserInstantiatei,
+// _Z18InstantiateBrowseri.
+void MCCefFinalise()                  {}   // no-op: CEF not present in this build
+bool MCCefBrowserInstantiate(int)     { return false; }
+bool InstantiateBrowser(int)          { return false; }
+
 #endif // __arm64__

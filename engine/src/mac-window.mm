@@ -1936,7 +1936,6 @@ static void map_key_event(NSEvent *event, MCPlatformKeyCode& r_key_code, codepoi
 		NSView *t_subview;
 		t_subview = [t_subviews objectAtIndex:i];
 		
-        // Adjust any layers added by externals (revbrowser).
         if ([t_subview respondsToSelector:@selector(com_hyperxtalk_hyperxtalk_nativeViewId)])
         {
 			NSPoint t_origin;
