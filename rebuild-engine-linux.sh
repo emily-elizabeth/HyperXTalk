@@ -70,6 +70,9 @@ INCS=(
 
 COMPILE_SRCS=(
     "engine/src/native-layer-x11.cpp"
+    "engine/src/native-layer.cpp"
+    "engine/src/widget.cpp"
+    "engine/src/widget-ref.cpp"
     "engine/src/lnxdclnx.cpp"
 )
 
@@ -90,6 +93,25 @@ for SRC_REL in "${COMPILE_SRCS[@]}"; do
 done
 
 echo "  All compiled OK"
+
+echo "=== Compiling libbrowser_webkitgtk.cpp ==="
+LB_INCS=(
+    $(pkg-config --cflags gtk+-3.0 2>/dev/null || echo "-I/usr/include/gtk-3.0 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/cairo -I/usr/include/gdk-pixbuf-2.0")
+    -I"$REPO/libbrowser/include"
+    -I"$REPO/thirdparty/headers/linux/include"
+    -I"$REPO/libcore/include"
+)
+LB_OBJ="$OBJ/libbrowser/libbrowser/src/libbrowser_webkitgtk.o"
+mkdir -p "$(dirname "$LB_OBJ")"
+g++ -std=c++11 -fno-exceptions -fno-rtti -fPIC \
+    -fstrict-aliasing -fvisibility=hidden \
+    -Wall -Wextra -Wno-unused-parameter \
+    -O2 \
+    "${LB_INCS[@]}" \
+    -c "$REPO/libbrowser/src/libbrowser_webkitgtk.cpp" \
+    -o "$LB_OBJ"
+ar r "$OBJ/libbrowser/libbrowser.a" "$LB_OBJ"
+echo "  Updated libbrowser.a OK"
 
 echo "=== Updating libkernel.a ==="
 ar r "$OBJ/engine/libkernel.a" "${COMPILE_OBJS[@]}"

@@ -48,6 +48,15 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 // widget so the dismiss check can walk the GdkWindow parent chain.
 extern GdkWindow *MCLinuxPopoverGetGdkWindow(void);
 
+// Declared in native-layer-x11.cpp — forward raw GDK key events to any
+// offscreen WebKitWebView that currently owns browser keyboard focus.
+// Called immediately after the normal HXT wkdown/wkup dispatch so the browser
+// receives keys even though HXT's own kfocus mechanism is not involved.
+extern void hxt_browser_key_down(unsigned int keyval, unsigned int state,
+                                  unsigned short hwcode, unsigned char group);
+extern void hxt_browser_key_up(unsigned int keyval, unsigned int state,
+                                unsigned short hwcode, unsigned char group);
+
 #define XK_Window_L 0xFF6C
 #define XK_Window_R 0xFF6D
 
@@ -539,9 +548,23 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         
                         MCeventtime = t_event->key.time;
                         if (t_event->type == GDK_KEY_PRESS)
+                        {
                             MCdispatcher->wkdown(t_event->key.window, *t_text, t_keysym);
+                            // Forward raw GDK keyval (not HXT-translated keysym) to
+                            // any offscreen browser widget that holds keyboard focus.
+                            hxt_browser_key_down(t_event->key.keyval,
+                                                 (unsigned int)t_event->key.state,
+                                                 t_event->key.hardware_keycode,
+                                                 t_event->key.group);
+                        }
                         else
+                        {
                             MCdispatcher->wkup(t_event->key.window, *t_text, t_keysym);
+                            hxt_browser_key_up(t_event->key.keyval,
+                                               (unsigned int)t_event->key.state,
+                                               t_event->key.hardware_keycode,
+                                               t_event->key.group);
+                        }
                     }
                 }
                 else

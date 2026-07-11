@@ -51,8 +51,14 @@
 
 #include "native-layer-x11.h"
 
+#include <stdio.h>
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
+// X11 symbols wrapped in namespace x11 to avoid clashes with Window/Pixmap/Drawable
+// typedefs used elsewhere in the engine (same pattern as lnxprefix.h).
+namespace x11 {
+#include <gdk/gdkx.h>
+}
 
 #include <string.h>   // memcpy
 
@@ -69,22 +75,24 @@
 // when the user clicked on the browser.
 //
 // Current approach: GtkOffscreenWindow.
-// m_child_window is now a GtkOffscreenWindow.  It has no X11 window and no
-// Wayland surface — it is invisible by definition.  WebKit renders via software
-// compositing (hardware acceleration disabled in libbrowser_webkitgtk.cpp) into
-// the offscreen window's internal cairo_surface_t.  doPaint() reads that
-// surface and blits it into HXT's own MCGContext, so the browser content
-// appears as part of the stack's normal rendering hierarchy.
+// m_child_window is a GtkOffscreenWindow — it renders children into an
+// off-screen surface with no visible X11 window.  GTK routes pointer events
+// dispatched via gtk_main_do_event() to children by coordinate, preserving
+// all internal WebKit state (focus, hit-test context, pointer tracking) that
+// direct sub-widget targeting bypasses.  The event filter translates HXT
+// stack-window coordinates to the offscreen window's coordinate space before
+// dispatching.
 //
-// Z-order: since there is no separate browser window, there is no Z-order
-// conflict with palette windows.  Palettes are always above the stack window
-// (which now contains all browser content as pixels), and no special WM hints,
-// transient chains or stacking timers are required.
+// Z-order: the hidden window is off-screen, so it never overlaps any visible
+// window, including palette windows.  Browser content is composited into HXT's
+// own MCGContext by doPaint(), so it appears as part of the stack's normal
+// rendering hierarchy with no separate on-screen browser window.
 //
 // Interactivity: a GDK event filter installed on the stack window intercepts
 // pointer and keyboard events whose coordinates fall within m_rect and forwards
-// them to the offscreen WebKit widget via gtk_main_do_event().  This keeps the
-// browser fully interactive for clicks, scrolling, text input, etc.
+// them to the WebKit widget via gtk_main_do_event() with coordinates translated
+// to be browser-widget-relative.  With a real X11 GdkWindow, GTK's normal event
+// dispatch machinery works correctly for clicks, navigation, scrolling, etc.
 //
 // Performance: software rendering is slower for JS-heavy pages and media, but
 // is acceptable for the typical HXT browser use case (forms, documentation,
@@ -92,11 +100,73 @@
 // could be re-enabled in future once a clean Z-order solution exists.
 
 
+// Module-global: the X11 native layer that currently owns keyboard focus for
+// its embedded browser widget.  Set in OnMouseDown, cleared in doDetach and
+// the destructor.  Read by hxt_browser_key_down/up called from lnxdclnx.cpp.
+MCNativeLayerX11 *MCNativeLayerX11::s_focused_browser_layer = NULL;
+
+// Called from lnxdclnx.cpp's GDK_KEY_PRESS/RELEASE handler immediately after
+// the normal HXT wkdown/wkup dispatch.  Forwards the raw GDK key event to the
+// focused offscreen WebKitWebView by synthesising a new GdkEventKey and
+// dispatching it via gtk_main_do_event() to the GtkOffscreenWindow.  GTK
+// routes it to the internally focused child (the WebKitWebView).
+void hxt_browser_key_down(unsigned int p_keyval, unsigned int p_state,
+                           unsigned short p_hwcode, unsigned char p_group)
+{
+    MCNativeLayerX11 *t_layer = MCNativeLayerX11::s_focused_browser_layer;
+    if (t_layer == NULL || !t_layer->m_browser_focused)
+        return;
+    t_layer->dispatchKeyEvent(GDK_KEY_PRESS, p_keyval, p_state, p_hwcode, p_group);
+}
+
+void hxt_browser_key_up(unsigned int p_keyval, unsigned int p_state,
+                         unsigned short p_hwcode, unsigned char p_group)
+{
+    MCNativeLayerX11 *t_layer = MCNativeLayerX11::s_focused_browser_layer;
+    if (t_layer == NULL || !t_layer->m_browser_focused)
+        return;
+    t_layer->dispatchKeyEvent(GDK_KEY_RELEASE, p_keyval, p_state, p_hwcode, p_group);
+}
+
+// Synthesises a GdkEventKey and dispatches it to the GtkOffscreenWindow so
+// GTK routes it to the focused WebKitWebView child.
+void MCNativeLayerX11::dispatchKeyEvent(GdkEventType p_type,
+                                         unsigned int  p_keyval,
+                                         unsigned int  p_state,
+                                         unsigned short p_hwcode,
+                                         unsigned char  p_group)
+{
+    if (m_child_window == NULL || m_browser_widget == NULL)
+        return;
+    GdkWindow *t_win = gtk_widget_get_window(GTK_WIDGET(m_child_window));
+    if (t_win == NULL)
+        return;
+
+    fprintf(stderr, "[HXT] dispatchKeyEvent type=%s keyval=0x%04x\n",
+        p_type == GDK_KEY_PRESS ? "PRESS" : "RELEASE", p_keyval);
+
+    GdkEvent *evt = gdk_event_new(p_type);
+    evt->key.window          = t_win;
+    g_object_ref(t_win);
+    evt->key.send_event      = TRUE;
+    evt->key.time            = GDK_CURRENT_TIME;
+    evt->key.state           = (GdkModifierType)p_state;
+    evt->key.keyval          = p_keyval;
+    evt->key.hardware_keycode = p_hwcode;
+    evt->key.group           = p_group;
+    evt->key.is_modifier     = 0;
+    evt->key.length          = 0;
+    evt->key.string          = NULL;
+    gtk_main_do_event(evt);
+    gdk_event_free(evt);
+}
+
 MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_child_window(NULL),
   m_browser_widget(p_view),
   m_damage_signal_id(0),
   m_redraw_pending(false),
+  m_paint_timer_id(0),
   m_browser_focused(false)
 {
     m_object = p_object;
@@ -105,6 +175,13 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
 
 MCNativeLayerX11::~MCNativeLayerX11()
 {
+    if (s_focused_browser_layer == this)
+        s_focused_browser_layer = NULL;
+    if (m_paint_timer_id != 0)
+    {
+        g_source_remove(m_paint_timer_id);
+        m_paint_timer_id = 0;
+    }
     if (m_damage_signal_id != 0 && m_child_window != NULL)
     {
         g_signal_handler_disconnect(m_child_window, m_damage_signal_id);
@@ -122,6 +199,59 @@ void MCNativeLayerX11::OnToolChanged(Tool p_new_tool)
 {
     // No input-shape management needed for offscreen rendering.
     MCNativeLayer::OnToolChanged(p_new_tool);
+    fprintf(stderr, "[HXT] OnToolChanged: p_new_tool=%d T_BROWSE=%d show_for_tool=%d\n",
+        (int)p_new_tool, (int)T_BROWSE, (int)m_show_for_tool);
+}
+
+// Called by MCWidget::mdown — coordinates are widget-relative.
+void MCNativeLayerX11::OnMouseDown(int p_x, int p_y)
+{
+    fprintf(stderr, "[HXT] OnMouseDown(%d,%d) visible=%d child=%p widget=%p\n",
+        p_x, p_y, (int)m_visible, (void*)m_child_window, (void*)m_browser_widget);
+    if (!m_visible || m_child_window == NULL || m_browser_widget == NULL)
+        return;
+    // Record that this layer owns keyboard focus so hxt_browser_key_down/up
+    // route subsequent key events here.
+    m_browser_focused = true;
+    s_focused_browser_layer = this;
+    gtk_widget_grab_focus(m_browser_widget);
+
+    // GtkOffscreenWindow never receives a real X11 focus event, so GTK's
+    // "has-toplevel-focus" stays false and WebKit suppresses the text caret.
+    // Synthesise a GDK_FOCUS_CHANGE(in=TRUE) so GTK sets that flag and
+    // WebKit draws the insertion cursor in focused form fields.
+    GdkWindow *t_win = gtk_widget_get_window(GTK_WIDGET(m_child_window));
+    if (t_win)
+    {
+        GdkEvent *t_focus = gdk_event_new(GDK_FOCUS_CHANGE);
+        t_focus->focus_change.window    = t_win;
+        g_object_ref(t_win);
+        t_focus->focus_change.send_event = TRUE;
+        t_focus->focus_change.in         = TRUE;
+        gtk_main_do_event(t_focus);
+        gdk_event_free(t_focus);
+        fprintf(stderr, "[HXT] synthetic GDK_FOCUS_CHANGE(in) sent to offscreen win\n");
+    }
+}
+
+// Called by MCWidget::mup — coordinates are widget-relative.
+// Invokes the SimulateClick bridge to find the anchor at (p_x, p_y) via JS
+// and navigate to it.
+void MCNativeLayerX11::OnMouseUp(int p_x, int p_y)
+{
+    fprintf(stderr, "[HXT] OnMouseUp(%d,%d) visible=%d child=%p widget=%p\n",
+        p_x, p_y, (int)m_visible, (void*)m_child_window, (void*)m_browser_widget);
+    if (!m_visible || m_child_window == NULL || m_browser_widget == NULL)
+        return;
+
+    typedef void (*HXTSimFn)(void*, int, int);
+    HXTSimFn fn = (HXTSimFn)g_object_get_data(
+        G_OBJECT(m_browser_widget), "hxt-sim-fn");
+    void *ctx = g_object_get_data(
+        G_OBJECT(m_browser_widget), "hxt-sim-ctx");
+    fprintf(stderr, "[HXT] OnMouseUp bridge fn=%p ctx=%p\n", (void*)fn, ctx);
+    if (fn && ctx)
+        fn(ctx, p_x, p_y);
 }
 
 // The browser content can be composited directly into HXT's context via
@@ -167,149 +297,80 @@ gboolean MCNativeLayerX11::onRedrawIdle(gpointer user_data)
 // GDK event filter installed on the stack's GdkWindow while the browser is
 // attached.  Intercepts pointer events whose (x,y) falls within m_rect and
 // keyboard events when the browser has logical focus, then forwards them to
-// the offscreen browser widget via gtk_main_do_event() with coordinates
-// translated to be browser-widget-relative.
-GdkFilterReturn MCNativeLayerX11::onStackWindowFilter(GdkXEvent * /*xevent*/,
-                                                       GdkEvent   *event,
+// the WebKit widget via gtk_main_do_event() (pointer) / gtk_widget_event()
+// (keyboard) with coordinates translated to be browser-widget-relative.
+GdkFilterReturn MCNativeLayerX11::onStackWindowFilter(GdkXEvent *p_xevent,
+                                                       GdkEvent   * /*event*/,
                                                        gpointer    user_data)
 {
-    if (event == NULL)
+    // The HXT stack GdkWindow is a foreign X11 window (created by raw X11, not
+    // GTK).  GDK wraps it but translates all events to GDK_NOTHING (-1).
+    // We must read the raw XEvent (first argument) directly.
+    x11::XEvent *xev = (x11::XEvent*)p_xevent;
+    if (xev == NULL)
         return GDK_FILTER_CONTINUE;
+
+    // Only handle pointer events.
+    bool t_is_press   = (xev->type == ButtonPress);
+    bool t_is_release = (xev->type == ButtonRelease);
+    bool t_is_motion  = (xev->type == MotionNotify);
+    if (!t_is_press && !t_is_release && !t_is_motion)
+        return GDK_FILTER_CONTINUE;
+
+    fprintf(stderr, "[HXT] raw xev type=%d (Bp=%d Br=%d Mn=%d)\n",
+        xev->type, ButtonPress, ButtonRelease, MotionNotify);
 
     MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(user_data);
 
-    // Only forward while the browser widget is visible in run mode.
-    if (!t_layer->m_visible || !t_layer->m_show_for_tool ||
-        t_layer->m_child_window == NULL)
+    // Log gate state always; skip only if truly unusable (no window).
+    fprintf(stderr, "[HXT] filter gate: visible=%d show_for_tool=%d child=%p\n",
+        (int)t_layer->m_visible, (int)t_layer->m_show_for_tool,
+        (void*)t_layer->m_child_window);
+    if (!t_layer->m_visible || t_layer->m_child_window == NULL)
         return GDK_FILTER_CONTINUE;
+    // NOTE: show_for_tool gate bypassed for debugging — proceed regardless.
 
     const MCRectangle &r = t_layer->m_rect;
 
-    // --- Keyboard events ---
-    // No coordinates: forward if the browser holds logical focus.
-    if (event->type == GDK_KEY_PRESS || event->type == GDK_KEY_RELEASE)
-    {
-        if (!t_layer->m_browser_focused)
-            return GDK_FILTER_CONTINUE;
-
-        GdkWindow *t_off_win =
-            gtk_widget_get_window(GTK_WIDGET(t_layer->m_child_window));
-        if (t_off_win == NULL)
-            return GDK_FILTER_CONTINUE;
-
-        GdkEvent *t_copy = gdk_event_copy(event);
-        // Point the event at the offscreen window so GTK routes it there.
-        g_object_ref(t_off_win);
-        if (t_copy->type == GDK_KEY_PRESS)
-        {
-            g_object_unref(t_copy->key.window);
-            t_copy->key.window = t_off_win;
-        }
-        else
-        {
-            g_object_unref(t_copy->key.window);
-            t_copy->key.window = t_off_win;
-        }
-        gtk_main_do_event(t_copy);
-        gdk_event_free(t_copy);
-        return GDK_FILTER_REMOVE;
-    }
-
-    // --- Pointer events: check if in browser rect ---
-    gdouble ex = 0, ey = 0;
-    switch (event->type)
-    {
-    case GDK_BUTTON_PRESS:
-    case GDK_BUTTON_RELEASE:
-        ex = event->button.x;
-        ey = event->button.y;
-        break;
-    case GDK_MOTION_NOTIFY:
-        ex = event->motion.x;
-        ey = event->motion.y;
-        break;
-    case GDK_SCROLL:
-        ex = event->scroll.x;
-        ey = event->scroll.y;
-        break;
-    case GDK_ENTER_NOTIFY:
-    case GDK_LEAVE_NOTIFY:
-        ex = event->crossing.x;
-        ey = event->crossing.y;
-        break;
-    default:
-        return GDK_FILTER_CONTINUE;
-    }
+    int ex = t_is_motion ? xev->xmotion.x  : xev->xbutton.x;
+    int ey = t_is_motion ? xev->xmotion.y  : xev->xbutton.y;
+    int tb = t_is_motion ? 0                : xev->xbutton.button;
 
     bool t_in_rect = (ex >= r.x && ex < r.x + r.width &&
                       ey >= r.y && ey < r.y + r.height);
 
-    // Track logical focus state on button press.
-    if (event->type == GDK_BUTTON_PRESS)
+    fprintf(stderr, "[HXT] ptr at (%d,%d) rect(%d,%d,%d,%d) in=%d\n",
+        ex, ey, r.x, r.y, r.width, r.height, (int)t_in_rect);
+
+    if (t_is_press)
     {
-        if (t_in_rect)
-        {
-            t_layer->m_browser_focused = true;
-            // Give WebKit GTK focus within the offscreen widget tree.
-            if (t_layer->m_browser_widget != NULL)
-                gtk_widget_grab_focus(t_layer->m_browser_widget);
-        }
-        else
-        {
-            t_layer->m_browser_focused = false;
-        }
+        t_layer->m_browser_focused = t_in_rect;
+        if (t_in_rect && t_layer->m_browser_widget != NULL)
+            gtk_widget_grab_focus(t_layer->m_browser_widget);
     }
 
     if (!t_in_rect)
         return GDK_FILTER_CONTINUE;
 
-    // Translate coordinates to browser-widget-relative and forward.
-    GdkWindow *t_off_win =
-        gtk_widget_get_window(GTK_WIDGET(t_layer->m_child_window));
-    if (t_off_win == NULL)
-        return GDK_FILTER_CONTINUE;
+    int t_bx = ex - r.x;
+    int t_by = ey - r.y;
 
-    GdkEvent *t_copy = gdk_event_copy(event);
-
-    switch (t_copy->type)
+    // On left-button release: invoke SimulateClick which runs JS to find the
+    // anchor under (t_bx, t_by) and calls webkit_web_view_load_uri directly.
+    if (t_is_release && tb == Button1)
     {
-    case GDK_BUTTON_PRESS:
-    case GDK_BUTTON_RELEASE:
-        g_object_ref(t_off_win);
-        g_object_unref(t_copy->button.window);
-        t_copy->button.window = t_off_win;
-        t_copy->button.x -= r.x;
-        t_copy->button.y -= r.y;
-        break;
-    case GDK_MOTION_NOTIFY:
-        g_object_ref(t_off_win);
-        g_object_unref(t_copy->motion.window);
-        t_copy->motion.window = t_off_win;
-        t_copy->motion.x -= r.x;
-        t_copy->motion.y -= r.y;
-        break;
-    case GDK_SCROLL:
-        g_object_ref(t_off_win);
-        g_object_unref(t_copy->scroll.window);
-        t_copy->scroll.window = t_off_win;
-        t_copy->scroll.x -= r.x;
-        t_copy->scroll.y -= r.y;
-        break;
-    case GDK_ENTER_NOTIFY:
-    case GDK_LEAVE_NOTIFY:
-        g_object_ref(t_off_win);
-        g_object_unref(t_copy->crossing.window);
-        t_copy->crossing.window = t_off_win;
-        t_copy->crossing.x -= r.x;
-        t_copy->crossing.y -= r.y;
-        break;
-    default:
-        break;
+        typedef void (*HXTSimFn)(void*, int, int);
+        HXTSimFn fn = (HXTSimFn)g_object_get_data(
+            G_OBJECT(t_layer->m_browser_widget), "hxt-sim-fn");
+        void *ctx = g_object_get_data(
+            G_OBJECT(t_layer->m_browser_widget), "hxt-sim-ctx");
+        fprintf(stderr, "[HXT] SimulateClick bridge fn=%p ctx=%p bx=%d by=%d\n",
+            (void*)fn, ctx, t_bx, t_by);
+        if (fn && ctx)
+            fn(ctx, t_bx, t_by);
     }
 
-    gtk_main_do_event(t_copy);
-    gdk_event_free(t_copy);
-    return GDK_FILTER_REMOVE; // consumed — WebKit handles it, not HXT
+    return GDK_FILTER_CONTINUE; // let HXT process it too
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -321,17 +382,16 @@ void MCNativeLayerX11::doAttach()
     {
         MCRectangle t_rect = m_object->getrect();
 
-        // Create an offscreen GTK window to host the browser widget.
+        // Create a GtkOffscreenWindow to host the browser widget.
         //
-        // GtkOffscreenWindow renders its children into an internal
-        // cairo_surface_t (software rendering) and has no on-screen presence:
-        // no X11 window is created, no Wayland surface exists, and it never
-        // participates in the compositor's Z-order.
+        // GtkOffscreenWindow renders its children into an off-screen surface
+        // (no visible X11 window).  GTK synthesizes GDK events dispatched to
+        // it via gtk_main_do_event() and routes them to children by coordinate,
+        // preserving all internal WebKit state (focus, hit-test context, pointer
+        // tracking) that direct sub-widget targeting bypasses.
         //
-        // This is the key architectural change that permanently solves the
-        // browser-above-palette problem: because the browser is no longer a
-        // separate visible window, Z-order with palette (or any other) windows
-        // is simply not a concern.
+        // Browser content is composited into HXT's MCGContext by doPaint() via
+        // gtk_widget_draw(), so nothing appears on-screen as a separate window.
         m_child_window = GTK_WINDOW(gtk_offscreen_window_new());
 
         if (m_browser_widget != NULL)
@@ -346,7 +406,7 @@ void MCNativeLayerX11::doAttach()
                                     MAX(1, t_rect.width),
                                     MAX(1, t_rect.height));
 
-        // Realize creates the offscreen GdkWindow (GDK-internal, no X11 XID).
+        // Realize creates the offscreen GdkWindow.
         gtk_widget_realize(GTK_WIDGET(m_child_window));
 
         // Show the offscreen container first.
@@ -369,7 +429,27 @@ void MCNativeLayerX11::doAttach()
 
         // Event filter on the stack window: makes the (invisible) browser
         // respond to pointer and keyboard input.
-        gdk_window_add_filter(getStackGdkWindow(), onStackWindowFilter, this);
+        {
+            GdkWindow *t_sw = getStackGdkWindow();
+            fprintf(stderr, "[HXT] doAttach: installing filter on stack_win=%p child_win=%p\n",
+                (void*)t_sw, (void*)m_child_window);
+            gdk_window_add_filter(t_sw, onStackWindowFilter, this);
+        }
+    }
+
+    // 60 Hz repaint timer — drives continuous HXT Redraw() calls so WebKit
+    // animations, auto-refreshing pages, and async tile deliveries always
+    // appear within one frame.  Started here (not inside the m_child_window==NULL
+    // guard) so it also runs on re-attach.
+    if (m_paint_timer_id == 0)
+    {
+        m_paint_timer_id = g_timeout_add(16, [](gpointer data) -> gboolean {
+            MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(data);
+            if (t_layer->m_visible && t_layer->m_show_for_tool &&
+                t_layer->m_object != NULL)
+                t_layer->m_object->Redraw();
+            return G_SOURCE_CONTINUE;
+        }, this);
     }
 
     // Size / visibility sync (runs on both first-attach and re-attach).
@@ -380,9 +460,18 @@ void MCNativeLayerX11::doAttach()
 
 void MCNativeLayerX11::doDetach()
 {
+    // Stop the 60 Hz repaint timer.
+    if (m_paint_timer_id != 0)
+    {
+        g_source_remove(m_paint_timer_id);
+        m_paint_timer_id = 0;
+    }
+
     // Remove the stack event filter and the damage signal.
     gdk_window_remove_filter(getStackGdkWindow(), onStackWindowFilter, this);
     m_browser_focused = false;
+    if (s_focused_browser_layer == this)
+        s_focused_browser_layer = NULL;
 
     if (m_damage_signal_id != 0 && m_child_window != NULL)
     {
@@ -401,78 +490,92 @@ void MCNativeLayerX11::doDetach()
 
 // doPaint() is the heart of the offscreen approach.
 //
-// WebKit has rendered its content into GtkOffscreenWindow's internal
-// cairo_surface_t (an ARGB32 image surface when software compositing is used).
-// We read that surface's pixel data and blit it into the MCGContext that HXT
-// provides for this widget's bounding rectangle.  HXT's rendering pipeline
-// clips the result to the visible card area automatically.
+// We ask WebKit to draw directly into a temporary cairo_image_surface via
+// gtk_widget_draw(m_browser_widget, t_cr).  With software compositing enabled
+// (WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER), WebKit's draw signal handler
+// copies its software-rendered tile cache into whatever cairo_t it is given.
+// This is more reliable than reading back gtk_offscreen_window_get_surface()
+// (which returns an XLIB surface on X11/XWayland and thus has no directly
+// accessible pixel data) or gtk_offscreen_window_get_pixbuf() (which requires
+// the GTK draw cycle to have already run and populated the offscreen surface).
 //
-// The pixel copy (memcpy) is necessary because MCGImageCreateWithRasterNoCopy
-// keeps a pointer to the buffer rather than taking ownership; the offscreen
-// surface buffer may be updated by WebKit at any time on the GTK main loop,
-// so we need a snapshot copy to ensure the draw is coherent.
+// The widget is shown via the GtkOffscreenWindow so it is realized and mapped
+// (required for WebKit to render).  The GtkOffscreenWindow remains invisible —
+// we never read its backing surface.  It exists solely to give WebKit a GDK
+// window context and a draw cycle.
+//
+// Returns false in edit mode (m_show_for_tool == false) so the HXT widget
+// framework falls back to the LCB widget's own OnPaint handler, which draws
+// the globe placeholder via paintPlaceholderImage.
 bool MCNativeLayerX11::doPaint(MCGContextRef p_context)
 {
-    // In edit mode (m_show_for_tool == false) let HXT draw its own placeholder.
-    if (!m_show_for_tool || m_child_window == NULL)
+    // In edit mode let the LCB widget's OnPaint draw the globe placeholder.
+    if (!m_show_for_tool || m_child_window == NULL || m_browser_widget == NULL)
         return false;
 
-    // Retrieve the offscreen cairo surface.  NULL until WebKit has drawn at
-    // least once (typically one GTK main-loop iteration after show).
-    cairo_surface_t *t_surface =
-        gtk_offscreen_window_get_surface(GTK_OFFSCREEN_WINDOW(m_child_window));
-    if (t_surface == NULL)
+    int t_w = m_rect.width;
+    int t_h = m_rect.height;
+    if (t_w <= 0 || t_h <= 0)
         return false;
 
-    // Only image surfaces give us direct pixel access.
-    if (cairo_surface_get_type(t_surface) != CAIRO_SURFACE_TYPE_IMAGE)
-        return false;
-
-    // Ensure pending GPU→CPU pixel transfers are complete.
-    cairo_surface_flush(t_surface);
-
-    int t_width  = cairo_image_surface_get_width(t_surface);
-    int t_height = cairo_image_surface_get_height(t_surface);
-    if (t_width <= 0 || t_height <= 0)
-        return false;
-
-    unsigned char *t_data   = cairo_image_surface_get_data(t_surface);
-    int            t_stride = cairo_image_surface_get_stride(t_surface);
-
-    // Snapshot the pixel data.
-    void *t_pixels = NULL;
-    if (!MCMemoryAllocate((size_t)t_height * t_stride, t_pixels))
-        return false;
-    memcpy(t_pixels, t_data, (size_t)t_height * t_stride);
-
-    // Build an MCGRaster from the snapshot.
-    // Cairo ARGB32 = premultiplied 32-bit ARGB in native byte order,
-    // identical to kMCGRasterFormat_ARGB.
-    MCGRaster t_raster;
-    t_raster.format = kMCGRasterFormat_ARGB;
-    t_raster.width  = (uint32_t)t_width;
-    t_raster.height = (uint32_t)t_height;
-    t_raster.stride = (uint32_t)t_stride;
-    t_raster.pixels = t_pixels;
-
-    MCGImageRef t_image = NULL;
-    bool t_success = MCGImageCreateWithRasterNoCopy(t_raster, t_image);
-
-    if (t_success)
+    // Allocate a software-backed ARGB32 image surface.
+    cairo_surface_t *t_surf =
+        cairo_image_surface_create(CAIRO_FORMAT_ARGB32, t_w, t_h);
+    if (cairo_surface_status(t_surf) != CAIRO_STATUS_SUCCESS)
     {
-        MCGRectangle t_r;
-        t_r.origin.x    = 0;
-        t_r.origin.y    = 0;
-        t_r.size.width  = MCGFloat(t_width);
-        t_r.size.height = MCGFloat(t_height);
-        MCGContextDrawImage(p_context, t_image, t_r, kMCGImageFilterNone);
-        MCGImageRelease(t_image);
+        cairo_surface_destroy(t_surf);
+        return false;
     }
 
-    // Always free the pixel snapshot; MCGImageCreateWithRasterNoCopy does NOT
-    // take ownership (see also native-layer-win32-wv2.cpp::doPaint).
-    MCMemoryDeallocate(t_pixels);
+    // Paint the WebKit widget into the surface.
+    //
+    // • Fill white first so that the "loading" state looks like a blank browser
+    //   page rather than transparent / garbage pixels.
+    // • gtk_widget_draw() fires the "draw" signal on WebKitWebView; in
+    //   WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER mode the draw handler blits
+    //   WebKit's software-rendered tiles into our cairo_t.
+    cairo_t *t_cr = cairo_create(t_surf);
+    cairo_rectangle(t_cr, 0, 0, t_w, t_h);
+    cairo_clip(t_cr);
+    cairo_set_source_rgb(t_cr, 1.0, 1.0, 1.0);
+    cairo_paint(t_cr);
+    gtk_widget_draw(m_browser_widget, t_cr);
+    cairo_destroy(t_cr);
+    cairo_surface_flush(t_surf);
 
+    unsigned char *t_data   = cairo_image_surface_get_data(t_surf);
+    int            t_stride = cairo_image_surface_get_stride(t_surf);
+
+    // MCGImageCreateWithRasterNoCopy does NOT take ownership of the buffer, so
+    // snapshot the pixels into a separately allocated block.
+    void *t_pixels = NULL;
+    bool t_success = MCMemoryAllocate((size_t)t_h * t_stride, t_pixels);
+    if (t_success)
+    {
+        memcpy(t_pixels, t_data, (size_t)t_h * t_stride);
+
+        MCGRaster t_raster;
+        t_raster.format = kMCGRasterFormat_ARGB;
+        t_raster.width  = (uint32_t)t_w;
+        t_raster.height = (uint32_t)t_h;
+        t_raster.stride = (uint32_t)t_stride;
+        t_raster.pixels = t_pixels;
+
+        MCGImageRef t_image = NULL;
+        t_success = MCGImageCreateWithRasterNoCopy(t_raster, t_image);
+        if (t_success)
+        {
+            MCGRectangle t_r;
+            t_r.origin.x    = 0;
+            t_r.origin.y    = 0;
+            t_r.size.width  = MCGFloat(t_w);
+            t_r.size.height = MCGFloat(t_h);
+            MCGContextDrawImage(p_context, t_image, t_r, kMCGImageFilterNone);
+            MCGImageRelease(t_image);
+        }
+        MCMemoryDeallocate(t_pixels);
+    }
+    cairo_surface_destroy(t_surf);
     return t_success;
 }
 

@@ -119,6 +119,7 @@ static struct WKSymbols
     // ---- WebKitWebView ----
     WebKitWebView* (*webkit_web_view_new_with_user_content_manager)(WebKitUserContentManager*);
     WebKitWebView* (*webkit_web_view_new_with_settings)(WebKitSettings*);
+    WebKitWebView* (*webkit_web_view_new_with_related_view)(WebKitWebView*);
     void     (*webkit_web_view_load_uri)(WebKitWebView*, const gchar*);
     void     (*webkit_web_view_load_html)(WebKitWebView*, const gchar*, const gchar*);
     gboolean (*webkit_web_view_can_go_back)(WebKitWebView*);
@@ -264,6 +265,15 @@ static bool LoadWebKit(void)
     // leaving the view permanently blank.
     setenv("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS", "1", 0);
 
+    // Disable DMA-BUF renderer.  WebKit2GTK ≥ 2.40 uses DMA-BUF for tile IPC
+    // between the web process and the UI process.  DMA-BUF tiles are GPU textures
+    // and are not accessible as plain cairo surfaces, so gtk_widget_draw() would
+    // produce a blank result even with WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER.
+    // Disabling the DMA-BUF renderer forces WebKit to use shared-memory (SHM)
+    // tiles, which are plain cairo image surfaces and are correctly blitted by
+    // WebKit's "draw" signal handler into our cairo_t in doPaint().
+    setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", 0);
+
     // Suppress noisy GIO volume monitor / file monitor that aren't needed.
     setenv("GIO_USE_FILE_MONITOR",   "none",  1);
     setenv("GIO_USE_VOLUME_MONITOR", "none",  1);
@@ -364,6 +374,7 @@ static bool LoadWebKit(void)
     // WebKitWebView
     LOAD_SYM(t_wk, webkit_web_view_new_with_user_content_manager);
     LOAD_SYM(t_wk, webkit_web_view_new_with_settings);
+    LOAD_SYM(t_wk, webkit_web_view_new_with_related_view);
     LOAD_SYM(t_wk, webkit_web_view_load_uri);
     LOAD_SYM(t_wk, webkit_web_view_load_html);
     LOAD_SYM(t_wk, webkit_web_view_can_go_back);
@@ -512,12 +523,22 @@ public:
     static void     on_load_changed(WebKitWebView*, int, gpointer);
     static int      on_load_failed(WebKitWebView*, int, char*, GError*, gpointer);
     static int      on_decide_policy(WebKitWebView*, WebKitPolicyDecision*, int, gpointer);
+    static GtkWidget* on_create(WebKitWebView*, WebKitNavigationAction*, gpointer);
     static int      on_context_menu(WebKitWebView*, gpointer, gpointer, gpointer, gpointer);
     static void     on_progress_changed(GObject*, GParamSpec*, gpointer);
     static void     on_script_message(WebKitUserContentManager*, gpointer, gpointer);
+    // Navigation via injected click-interceptor script → hxtNav message handler
+    static void     on_nav_message(WebKitUserContentManager*, gpointer, gpointer);
     // JS eval callbacks
     static void     on_js_finished_40(GObject*, GAsyncResult*, gpointer);
     static void     on_js_finished_41(GObject*, GAsyncResult*, gpointer);
+
+    // Click simulation — called by native-layer-x11 via g_object_get_data
+    // when a left-button release is detected over the browser rect.
+    // Uses JavaScript hit-testing to navigate to whatever link or element is
+    // under the cursor, bypassing GDK event routing which doesn't work
+    // reliably for off-screen / popup-hosted WebKitWebView instances.
+    static void SimulateClick(void *ctx, int x, int y);
 
 private:
     GtkWidget                *m_plug;
@@ -531,9 +552,11 @@ private:
     gulong m_load_changed_id;
     gulong m_load_failed_id;
     gulong m_decide_policy_id;
+    gulong m_create_id;
     gulong m_context_menu_id;
     gulong m_progress_id;
     gulong m_script_message_id;
+    gulong m_nav_message_id;
 
     // Async JS evaluation state
     bool   m_js_finished;
@@ -559,9 +582,11 @@ MCWebKitGTKBrowser::MCWebKitGTKBrowser()
       m_load_changed_id(0),
       m_load_failed_id(0),
       m_decide_policy_id(0),
+      m_create_id(0),
       m_context_menu_id(0),
       m_progress_id(0),
       m_script_message_id(0),
+      m_nav_message_id(0),
       m_js_finished(false),
       m_js_result(nil)
 {
@@ -573,8 +598,13 @@ MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
     {
         if (m_script_message_id)
             wk.g_signal_handler_disconnect(m_content_manager, m_script_message_id);
+        if (m_nav_message_id)
+            wk.g_signal_handler_disconnect(m_content_manager, m_nav_message_id);
         if (wk.webkit_user_content_manager_unregister_script_message_handler)
+        {
             wk.webkit_user_content_manager_unregister_script_message_handler(m_content_manager, "liveCode");
+            wk.webkit_user_content_manager_unregister_script_message_handler(m_content_manager, "hxtNav");
+        }
     }
 
     if (m_web_view != nil)
@@ -582,6 +612,7 @@ MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
         if (m_load_changed_id)  wk.g_signal_handler_disconnect(m_web_view, m_load_changed_id);
         if (m_load_failed_id)   wk.g_signal_handler_disconnect(m_web_view, m_load_failed_id);
         if (m_decide_policy_id) wk.g_signal_handler_disconnect(m_web_view, m_decide_policy_id);
+        if (m_create_id)        wk.g_signal_handler_disconnect(m_web_view, m_create_id);
         if (m_context_menu_id)  wk.g_signal_handler_disconnect(m_web_view, m_context_menu_id);
         if (m_progress_id)      wk.g_signal_handler_disconnect(m_web_view, m_progress_id);
     }
@@ -603,6 +634,44 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
         return false;
 
     wk.webkit_user_content_manager_register_script_message_handler(m_content_manager, "liveCode");
+
+    // Register a separate handler for click-to-navigate.  A UserScript
+    // injected into every page intercepts anchor clicks in the capture phase
+    // and posts the href here; we call webkit_web_view_load_uri() directly.
+    // This bypasses the GDK event → decide-policy chain entirely and is
+    // reliable even when the WebKitWebView is in a GTK_WINDOW_POPUP.
+    wk.webkit_user_content_manager_register_script_message_handler(m_content_manager, "hxtNav");
+
+    // Inject the click-interceptor at document start so it runs before any
+    // page script.  Capture phase (true) means we see the event before the
+    // page's own handlers; preventDefault() stops the page from doing its own
+    // navigation (which may fail in the off-screen context).
+    {
+        const char *t_nav_js =
+            "(function(){"
+              "document.addEventListener('click',function(e){"
+                "var n=e.target;"
+                "while(n&&n.nodeName!=='A')n=n.parentElement;"
+                "if(n&&n.href&&n.href.indexOf('javascript:')!==0){"
+                  "try{"
+                    "e.preventDefault();"
+                    "e.stopPropagation();"
+                    "window.webkit.messageHandlers.hxtNav.postMessage(n.href);"
+                  "}catch(ex){}"
+                "}"
+              "},true);"
+            "})();";
+        WebKitUserScript *t_uscript = wk.webkit_user_script_new(
+            t_nav_js,
+            WEBKIT_USER_CONTENT_INJECT_ALL_FRAMES,
+            WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START,
+            NULL, NULL);
+        if (t_uscript)
+        {
+            wk.webkit_user_content_manager_add_script(m_content_manager, t_uscript);
+            wk.webkit_user_script_unref(t_uscript);
+        }
+    }
 
     // --- WebKitWebView ---
     m_web_view = (WebKitWebView*)wk.webkit_web_view_new_with_user_content_manager(m_content_manager);
@@ -642,6 +711,13 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     // GetNativeLayer() returns (void*)m_web_view so native-layer-x11 can receive
     // the widget pointer.
 
+    // Publish click-simulation trampoline so native-layer-x11 can call it.
+    // WebKit is loaded RTLD_LOCAL so its symbols aren't findable via dlsym from
+    // engine code; we bridge via g_object_data instead.
+    g_object_set_data(G_OBJECT(m_web_view), "hxt-sim-fn",
+        (gpointer)(void(*)(void*, int, int))&MCWebKitGTKBrowser::SimulateClick);
+    g_object_set_data(G_OBJECT(m_web_view), "hxt-sim-ctx", (gpointer)this);
+
     // --- Connect signals ---
     m_load_changed_id = wk.g_signal_connect_data(m_web_view, "load-changed",
         G_CALLBACK(on_load_changed), this, nil, (GConnectFlags)0);
@@ -649,6 +725,11 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
         G_CALLBACK(on_load_failed), this, nil, (GConnectFlags)0);
     m_decide_policy_id = wk.g_signal_connect_data(m_web_view, "decide-policy",
         G_CALLBACK(on_decide_policy), this, nil, (GConnectFlags)0);
+    // The "create" signal fires when WebKit wants to open a new window (including
+    // when off-screen click events arrive as NEW_WINDOW_ACTION in decide-policy).
+    // We intercept it to navigate in the current view instead.
+    m_create_id = wk.g_signal_connect_data(m_web_view, "create",
+        G_CALLBACK(on_create), this, nil, (GConnectFlags)0);
     m_context_menu_id = wk.g_signal_connect_data(m_web_view, "context-menu",
         G_CALLBACK(on_context_menu), this, nil, (GConnectFlags)0);
     m_progress_id = wk.g_signal_connect_data(m_web_view, "notify::estimated-load-progress",
@@ -657,6 +738,10 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     m_script_message_id = wk.g_signal_connect_data(m_content_manager,
         "script-message-received::liveCode",
         G_CALLBACK(on_script_message), this, nil, (GConnectFlags)0);
+
+    m_nav_message_id = wk.g_signal_connect_data(m_content_manager,
+        "script-message-received::hxtNav",
+        G_CALLBACK(on_nav_message), this, nil, (GConnectFlags)0);
 
     return true;
 }
@@ -972,15 +1057,19 @@ int MCWebKitGTKBrowser::on_decide_policy(WebKitWebView * /*p_view*/,
                                            WebKitPolicyDecision *p_decision,
                                            int p_type, gpointer p_data)
 {
+    fprintf(stderr, "[HXT] decide_policy type=%d\n", p_type);
     MCWebKitGTKBrowser *t_browser = (MCWebKitGTKBrowser*)p_data;
 
     if (p_type == WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION)
     {
-        if (!t_browser->m_allow_new_windows)
-        {
-            wk.webkit_policy_decision_ignore(p_decision);
-            return 1; // TRUE — handled
-        }
+        // Off-screen WebKitWebView instances often dispatch link clicks as
+        // NEW_WINDOW_ACTION rather than NAVIGATION_ACTION.  Calling
+        // webkit_policy_decision_use() tells WebKit to proceed with the
+        // new-window request, which causes it to emit the "create" signal.
+        // Our on_create handler intercepts that signal, loads the URL in the
+        // current view, and returns NULL to prevent an actual new window.
+        wk.webkit_policy_decision_use(p_decision);
+        return 1; // TRUE — handled
     }
 
     if (p_type == WEBKIT_POLICY_DECISION_TYPE_NAVIGATION_ACTION)
@@ -997,9 +1086,162 @@ int MCWebKitGTKBrowser::on_decide_policy(WebKitWebView * /*p_view*/,
             wk.webkit_policy_decision_ignore(p_decision);
             return 1; // TRUE — handled
         }
+
+        // Explicitly allow the navigation.  Do not rely on WebKit's default
+        // class handler calling webkit_policy_decision_use() — in some builds
+        // it is not called when the view has no visible on-screen context.
+        wk.webkit_policy_decision_use(p_decision);
+        return 1; // TRUE — handled
     }
 
-    return 0; // FALSE — use default handling
+    // Any other decision type (e.g. RESPONSE_POLICY): allow by default.
+    wk.webkit_policy_decision_use(p_decision);
+    return 1;
+}
+
+// static
+GtkWidget* MCWebKitGTKBrowser::on_create(WebKitWebView * /*p_view*/,
+                                           WebKitNavigationAction *p_action,
+                                           gpointer p_data)
+{
+    MCWebKitGTKBrowser *t_browser = (MCWebKitGTKBrowser*)p_data;
+
+    // WebKit emits "create" when it wants to open a new window.  For off-screen
+    // WebKitWebView instances (hosted in GTK_WINDOW_POPUP at an off-screen
+    // position), link clicks frequently arrive as NEW_WINDOW_ACTION in
+    // decide-policy, which then triggers this signal.
+    //
+    // Strategy: redirect the navigation into the current view by calling
+    // webkit_web_view_load_uri(), then return NULL to suppress the actual
+    // new window.  Returning NULL is safe — WebKit treats it as "new window
+    // creation declined" and does not crash.
+    if (p_action && wk.webkit_navigation_action_get_request)
+    {
+        WebKitURIRequest *t_req = wk.webkit_navigation_action_get_request(p_action);
+        if (t_req && wk.webkit_uri_request_get_uri)
+        {
+            const char *t_uri = wk.webkit_uri_request_get_uri(t_req);
+            if (t_uri && t_uri[0] && wk.webkit_web_view_load_uri)
+                wk.webkit_web_view_load_uri(t_browser->m_web_view, t_uri);
+        }
+    }
+
+    // Return NULL — no actual new window.
+    return NULL;
+}
+
+// ---- SimulateClick helpers -----------------------------------------------
+// HXTNavCtx bridges the JS-evaluation callback back to the WebView pointer.
+struct HXTNavCtx { WebKitWebView *view; };
+
+// WebKit 4.1 callback: evaluate_javascript_finish → load_uri
+static void hxt_nav_done_41(GObject *source, GAsyncResult *result, gpointer user_data)
+{
+    HXTNavCtx *ctx = (HXTNavCtx*)user_data;
+    GError *err = NULL;
+    JSCValue *val = (JSCValue*)wk.webkit_web_view_evaluate_javascript_finish(
+        (WebKitWebView*)source, result, &err);
+    fprintf(stderr, "[HXT] hxt_nav_done_41: val=%p err=%s\n",
+        (void*)val, err ? err->message : "none");
+    if (val)
+    {
+        if (wk.jsc_value_is_string && wk.jsc_value_to_string &&
+            wk.jsc_value_is_string(val))
+        {
+            gchar *url = wk.jsc_value_to_string(val);
+            fprintf(stderr, "[HXT] JS returned url='%s'\n", url ? url : "(null)");
+            if (url && url[0] && wk.webkit_web_view_load_uri)
+                wk.webkit_web_view_load_uri(ctx->view, url);
+            if (url) wk.g_free(url);
+        }
+        else
+        {
+            fprintf(stderr, "[HXT] JS val not a string (is_string=%p)\n",
+                (void*)wk.jsc_value_is_string);
+        }
+        wk.g_object_unref(val);
+    }
+    if (err) wk.g_error_free(err);
+    delete ctx;
+}
+
+// WebKit 4.0 callback: run_javascript_finish → load_uri
+static void hxt_nav_done_40(GObject *source, GAsyncResult *result, gpointer user_data)
+{
+    HXTNavCtx *ctx = (HXTNavCtx*)user_data;
+    GError *err = NULL;
+    WebKitJavascriptResult *res = wk.webkit_web_view_run_javascript_finish(
+        (WebKitWebView*)source, result, &err);
+    fprintf(stderr, "[HXT] hxt_nav_done_40: res=%p err=%s\n",
+        (void*)res, err ? err->message : "none");
+    if (res && wk.webkit_javascript_result_get_js_value)
+    {
+        JSCValue *val = wk.webkit_javascript_result_get_js_value(res);
+        if (val && wk.jsc_value_is_string && wk.jsc_value_to_string &&
+            wk.jsc_value_is_string(val))
+        {
+            gchar *url = wk.jsc_value_to_string(val);
+            fprintf(stderr, "[HXT] JS returned url='%s'\n", url ? url : "(null)");
+            if (url && url[0] && wk.webkit_web_view_load_uri)
+                wk.webkit_web_view_load_uri(ctx->view, url);
+            if (url) wk.g_free(url);
+        }
+        // WebKitJavascriptResult is not a GObject; no unref in 4.0.
+    }
+    if (err) wk.g_error_free(err);
+    delete ctx;
+}
+// --------------------------------------------------------------------------
+
+// static
+void MCWebKitGTKBrowser::SimulateClick(void *ctx, int x, int y)
+{
+    MCWebKitGTKBrowser *b = static_cast<MCWebKitGTKBrowser*>(ctx);
+    fprintf(stderr, "[HXT] SimulateClick(%d,%d) b=%p view=%p eval=%p run=%p\n",
+        x, y, (void*)b, b ? (void*)b->m_web_view : NULL,
+        (void*)wk.webkit_web_view_evaluate_javascript,
+        (void*)wk.webkit_web_view_run_javascript);
+    if (!b || !b->m_web_view) return;
+
+    // Run JS that finds the nearest anchor to (x,y) and returns its absolute
+    // href as a string.  We convert device pixels → CSS pixels via
+    // devicePixelRatio so HiDPI displays are handled correctly.
+    // The callback (hxt_nav_done_41/40) receives the string and calls
+    // webkit_web_view_load_uri() directly — no message-handler round-trip.
+    char js[512];
+    snprintf(js, sizeof(js),
+        "(function(x,y){"
+          "var dpr=window.devicePixelRatio||1;"
+          "var el=document.elementFromPoint(x/dpr,y/dpr);"
+          "if(!el)return'';"
+          // Form fields: focus them so keyboard input works after the click.
+          "var tag=el.nodeName;"
+          "if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'){"
+            "el.focus();"
+            "return'';"
+          "}"
+          // Walk up for an anchor.
+          "var a=el;"
+          "while(a&&a.nodeName!=='A')a=a.parentElement;"
+          "if(a&&a.href&&a.href.indexOf('javascript:')!==0)return a.href;"
+          // Not an anchor — dispatch a real click so JS navigation handlers fire.
+          "el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));"
+          "return'';"
+        "})(%d,%d)", x, y);
+
+    HXTNavCtx *nav_ctx = new HXTNavCtx;
+    nav_ctx->view = b->m_web_view;
+
+    if (wk.webkit_web_view_evaluate_javascript)
+        wk.webkit_web_view_evaluate_javascript(
+            b->m_web_view, js, (gssize)-1, NULL, NULL, NULL,
+            (GAsyncReadyCallback)hxt_nav_done_41, nav_ctx);
+    else if (wk.webkit_web_view_run_javascript)
+        wk.webkit_web_view_run_javascript(
+            b->m_web_view, js, NULL,
+            (GAsyncReadyCallback)hxt_nav_done_40, nav_ctx);
+    else
+        delete nav_ctx;
 }
 
 int MCWebKitGTKBrowser::on_context_menu(WebKitWebView * /*p_view*/, gpointer /*p_menu*/,
@@ -1016,6 +1258,35 @@ void MCWebKitGTKBrowser::on_progress_changed(GObject *p_obj, GParamSpec * /*p_ps
     double t_progress = wk.webkit_web_view_get_estimated_load_progress((WebKitWebView*)p_obj);
     const char *t_uri = wk.webkit_web_view_get_uri((WebKitWebView*)p_obj);
     t_browser->OnProgressChanged(t_uri ? t_uri : "", (uint32_t)(t_progress * 100));
+}
+
+// static
+// Called when the injected click-interceptor script posts an anchor's href
+// via window.webkit.messageHandlers.hxtNav.postMessage(url).
+// We navigate the current view directly with webkit_web_view_load_uri(),
+// bypassing decide-policy and all GDK event routing.
+void MCWebKitGTKBrowser::on_nav_message(WebKitUserContentManager * /*p_mgr*/,
+                                          gpointer p_js_result, gpointer p_data)
+{
+    fprintf(stderr, "[HXT] on_nav_message fired p_js_result=%p\n", p_js_result);
+    MCWebKitGTKBrowser *t_browser = (MCWebKitGTKBrowser*)p_data;
+
+    JSCValue *t_value = nil;
+    if (wk.is4_1)
+        t_value = (JSCValue*)p_js_result;
+    else if (wk.webkit_javascript_result_get_js_value)
+        t_value = wk.webkit_javascript_result_get_js_value((WebKitJavascriptResult*)p_js_result);
+
+    if (t_value == nil || !wk.jsc_value_is_string || !wk.jsc_value_to_string)
+        return;
+    if (!wk.jsc_value_is_string(t_value))
+        return;
+
+    gchar *t_url = wk.jsc_value_to_string(t_value);
+    if (t_url && t_url[0] && wk.webkit_web_view_load_uri)
+        wk.webkit_web_view_load_uri(t_browser->m_web_view, t_url);
+    if (t_url)
+        wk.g_free(t_url);
 }
 
 void MCWebKitGTKBrowser::on_script_message(WebKitUserContentManager * /*p_mgr*/,

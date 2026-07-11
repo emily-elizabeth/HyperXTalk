@@ -34,6 +34,8 @@ class MCNativeLayerX11 : public MCNativeLayer
 {
 public:
     virtual void OnToolChanged(Tool p_new_tool);
+    virtual void OnMouseDown(int p_x, int p_y);
+    virtual void OnMouseUp(int p_x, int p_y);
 
     // Returns true: with offscreen rendering we can composite the browser
     // content directly into HXT's paint context via doPaint().
@@ -71,6 +73,12 @@ private:
     // than HXT's redraw cycle.
     bool m_redraw_pending;
 
+    // 60 Hz repaint timer: drives continuous HXT Redraw() calls so WebKit
+    // animations, auto-refreshing pages, and async tile deliveries always
+    // show up within one frame.  doPaint() uses gtk_widget_draw() which
+    // composites WebKit's current tile buffer synchronously each call.
+    guint m_paint_timer_id;
+
     // Whether the browser currently has logical focus for keyboard forwarding.
     // Set on button-press inside m_rect; cleared on button-press outside.
     bool m_browser_focused;
@@ -89,6 +97,23 @@ private:
     static GdkFilterReturn onStackWindowFilter(GdkXEvent *xevent,
                                                GdkEvent  *event,
                                                gpointer   user_data);
+
+    // Module-global keyboard focus: whichever X11 layer last received
+    // OnMouseDown.  Set here so the free functions below can access it.
+    static MCNativeLayerX11 *s_focused_browser_layer;
+
+    // Helper called by hxt_browser_key_down/up (friend free functions defined
+    // in native-layer-x11.cpp).
+    void dispatchKeyEvent(GdkEventType p_type, unsigned int p_keyval,
+                          unsigned int p_state, unsigned short p_hwcode,
+                          unsigned char p_group);
+
+    // Free functions in native-layer-x11.cpp that receive raw GDK key data
+    // from lnxdclnx.cpp and forward it to the focused browser widget.
+    friend void hxt_browser_key_down(unsigned int, unsigned int,
+                                     unsigned short, unsigned char);
+    friend void hxt_browser_key_up(unsigned int, unsigned int,
+                                   unsigned short, unsigned char);
 
     // Returns the GdkWindow of the stack that owns this widget.
     GdkWindow* getStackGdkWindow();
