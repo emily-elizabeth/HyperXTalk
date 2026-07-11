@@ -230,7 +230,8 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_damage_signal_id(0),
   m_redraw_pending(false),
   m_paint_timer_id(0),
-  m_browser_focused(false)
+  m_browser_focused(false),
+  m_pointer_button_down(false)
 {
     m_object = p_object;
     m_intersect_rect = MCRectangleMake(0,0,0,0);
@@ -412,14 +413,91 @@ GdkFilterReturn MCNativeLayerX11::onStackWindowFilter(GdkXEvent *p_xevent,
             gtk_widget_grab_focus(t_layer->m_browser_widget);
     }
 
-    if (!t_in_rect)
+    // During a button drag, keep forwarding motion to WebKit even when the
+    // pointer has left m_rect — this is required for text-selection extension
+    // to the edge/corner of the browser area.
+    bool t_forward = t_in_rect || (t_is_motion && t_layer->m_pointer_button_down);
+    if (!t_forward)
         return GDK_FILTER_CONTINUE;
 
     int t_bx = ex - r.x;
     int t_by = ey - r.y;
 
-    // On left-button release: invoke SimulateClick which runs JS to find the
-    // anchor under (t_bx, t_by) and calls webkit_web_view_load_uri directly.
+    // Forward the pointer event to the WebKitWebView so WebKit sees clicks,
+    // drag-selection, hover, and all other pointer interactions natively.
+    //
+    // We use g_signal_emit_by_name() rather than gtk_widget_event() /
+    // gtk_main_do_event() to avoid the "drawable is not a native X11 window"
+    // GDK warning: the WebKit widget lives inside a GtkOffscreenWindow whose
+    // GdkWindow has no X11 backing, and gtk_widget_event() tries to obtain
+    // an XID for cursor-change operations.  Emitting the signal directly
+    // bypasses that path while still delivering the event to WebKit's handler.
+    if (t_layer->m_browser_widget != NULL &&
+        gtk_widget_get_realized(t_layer->m_browser_widget))
+    {
+        GdkWindow *t_win = gtk_widget_get_window(t_layer->m_browser_widget);
+        if (t_win != NULL)
+        {
+            // Obtain the default seat pointer so GDK doesn't warn
+            // "Event without a GdkDevice".
+            GdkDisplay *t_dpy  = gdk_display_get_default();
+            GdkSeat    *t_seat = gdk_display_get_default_seat(t_dpy);
+            GdkDevice  *t_dev  = gdk_seat_get_pointer(t_seat);
+
+            if (t_is_motion)
+            {
+                GdkEvent *evt        = gdk_event_new(GDK_MOTION_NOTIFY);
+                evt->motion.window   = t_win;
+                g_object_ref(t_win);
+                evt->motion.send_event = TRUE;
+                evt->motion.time     = xev->xmotion.time;
+                evt->motion.x        = t_bx;
+                evt->motion.y        = t_by;
+                evt->motion.x_root   = xev->xmotion.x_root;
+                evt->motion.y_root   = xev->xmotion.y_root;
+                evt->motion.state    = (GdkModifierType)xev->xmotion.state;
+                evt->motion.is_hint  = 0;
+                gdk_event_set_device(evt, t_dev);
+                gboolean t_handled = FALSE;
+                g_signal_emit_by_name(t_layer->m_browser_widget,
+                                      "motion-notify-event", evt, &t_handled);
+                gdk_event_free(evt);
+            }
+            else
+            {
+                GdkEventType t_type = t_is_press ? GDK_BUTTON_PRESS
+                                                  : GDK_BUTTON_RELEASE;
+                GdkEvent *evt        = gdk_event_new(t_type);
+                evt->button.window   = t_win;
+                g_object_ref(t_win);
+                evt->button.send_event = TRUE;
+                evt->button.time     = xev->xbutton.time;
+                evt->button.x        = t_bx;
+                evt->button.y        = t_by;
+                evt->button.x_root   = xev->xbutton.x_root;
+                evt->button.y_root   = xev->xbutton.y_root;
+                evt->button.state    = (GdkModifierType)xev->xbutton.state;
+                evt->button.button   = xev->xbutton.button;
+                gdk_event_set_device(evt, t_dev);
+                gboolean t_handled = FALSE;
+                const char *t_sig = t_is_press ? "button-press-event"
+                                               : "button-release-event";
+                g_signal_emit_by_name(t_layer->m_browser_widget,
+                                      t_sig, evt, &t_handled);
+                gdk_event_free(evt);
+            }
+        }
+    }
+
+    // Track drag state for out-of-rect motion forwarding above.
+    if (t_is_press)
+        t_layer->m_pointer_button_down = true;
+    else if (t_is_release)
+        t_layer->m_pointer_button_down = false;
+
+    // On left-button release: invoke SimulateClick which runs JS to call
+    // .focus() on the element under the cursor, setting the correct SFNSP
+    // for subsequent Tab navigation.
     if (t_is_release && tb == Button1)
     {
         typedef void (*HXTSimFn)(void*, int, int);
@@ -427,8 +505,6 @@ GdkFilterReturn MCNativeLayerX11::onStackWindowFilter(GdkXEvent *p_xevent,
             G_OBJECT(t_layer->m_browser_widget), "hxt-sim-fn");
         void *ctx = g_object_get_data(
             G_OBJECT(t_layer->m_browser_widget), "hxt-sim-ctx");
-        fprintf(stderr, "[HXT] SimulateClick bridge fn=%p ctx=%p bx=%d by=%d\n",
-            (void*)fn, ctx, t_bx, t_by);
         if (fn && ctx)
             fn(ctx, t_bx, t_by);
     }
@@ -541,6 +617,7 @@ void MCNativeLayerX11::doDetach()
     // Remove the stack event filter and the damage signal.
     gdk_window_remove_filter(getStackGdkWindow(), onStackWindowFilter, this);
     m_browser_focused = false;
+    m_pointer_button_down = false;
     if (s_focused_browser_layer == this)
         s_focused_browser_layer = NULL;
 

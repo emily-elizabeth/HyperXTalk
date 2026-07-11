@@ -83,6 +83,12 @@ private:
     // Set on button-press inside m_rect; cleared on button-press outside.
     bool m_browser_focused;
 
+    // True while a mouse button is held down inside the browser rect.
+    // Used to keep forwarding MotionNotify events to WebKit during a drag
+    // even when the pointer strays outside m_rect (for text-selection
+    // extension to the edge of the browser area).
+    bool m_pointer_button_down;
+
     // Fired by GtkOffscreenWindow when WebKit has new content.  Schedules an
     // HXT Redraw() via a GLib idle so we don't re-enter the draw pipeline.
     static gboolean onDamage(GtkWidget *widget, GdkEvent *event,
