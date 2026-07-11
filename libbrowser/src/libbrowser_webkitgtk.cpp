@@ -1149,8 +1149,11 @@ static void hxt_nav_done_41(GObject *source, GAsyncResult *result, gpointer user
             wk.jsc_value_is_string(val))
         {
             gchar *url = wk.jsc_value_to_string(val);
-            fprintf(stderr, "[HXT] JS returned url='%s'\n", url ? url : "(null)");
-            if (url && url[0] && wk.webkit_web_view_load_uri)
+            fprintf(stderr, "[HXT] JS returned '%s'\n", url ? url : "(null)");
+            // "HXT:..." strings are debug info from SimulateClick JS — log
+            // them but do not treat as a URL to navigate to.
+            if (url && url[0] && strncmp(url, "HXT:", 4) != 0 &&
+                wk.webkit_web_view_load_uri)
                 wk.webkit_web_view_load_uri(ctx->view, url);
             if (url) wk.g_free(url);
         }
@@ -1181,8 +1184,9 @@ static void hxt_nav_done_40(GObject *source, GAsyncResult *result, gpointer user
             wk.jsc_value_is_string(val))
         {
             gchar *url = wk.jsc_value_to_string(val);
-            fprintf(stderr, "[HXT] JS returned url='%s'\n", url ? url : "(null)");
-            if (url && url[0] && wk.webkit_web_view_load_uri)
+            fprintf(stderr, "[HXT] JS returned '%s'\n", url ? url : "(null)");
+            if (url && url[0] && strncmp(url, "HXT:", 4) != 0 &&
+                wk.webkit_web_view_load_uri)
                 wk.webkit_web_view_load_uri(ctx->view, url);
             if (url) wk.g_free(url);
         }
@@ -1208,40 +1212,54 @@ void MCWebKitGTKBrowser::SimulateClick(void *ctx, int x, int y)
     // devicePixelRatio so HiDPI displays are handled correctly.
     // The callback (hxt_nav_done_41/40) receives the string and calls
     // webkit_web_view_load_uri() directly — no message-handler round-trip.
-    // Buffer sized for the JS below (~700 chars + two ints).
-    char js[1024];
+    // Buffer sized for the JS below (~1300 chars + two ints).
+    char js[2048];
     snprintf(js, sizeof(js),
         "(function(x,y){"
-          "var dpr=window.devicePixelRatio||1;"
-          "var el=document.elementFromPoint(x/dpr,y/dpr);"
-          "if(!el)return'';"
-          // Walk up from the hit element to find a focusable field.
-          // Handles: plain inputs, textareas, selects, and contenteditable
-          // divs (including captcha wrappers that overlay the real <input>).
-          "function isField(e){"
-            "var t=e.nodeName;"
-            "return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||e.isContentEditable;"
+          "var dpr=window.devicePixelRatio||1,cx=x/dpr,cy=y/dpr;"
+          "var el=document.elementFromPoint(cx,cy);"
+          "if(!el)return'HXT:null';"
+          // isField: INPUT/TEXTAREA/SELECT or any contenteditable element.
+          // Check the attribute directly as a fallback for old WebKit where
+          // isContentEditable may not recognise plaintext-only.
+          "function F(e){"
+            "var t=e.nodeName,ce=e.getAttribute?e.getAttribute('contenteditable'):null;"
+            "return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'"
+              "||e.isContentEditable||(ce&&ce!=='false');"
           "}"
-          "var f=el;"
-          "while(f&&!isField(f))f=f.parentElement;"
+          // Walk up from e until a focusable element is found.
+          "function W(e){while(e&&!F(e))e=e.parentElement;return e;}"
+          "var f=null;"
+          // elementsFromPoint (plural) returns ALL elements at (cx,cy) in
+          // z-order — lets us find an INPUT that lies underneath an IFRAME
+          // or other overlay without needing to pierce iframes.
+          "var cs=document.elementsFromPoint"
+            "?document.elementsFromPoint(cx,cy):[el];"
+          "for(var i=0;!f&&i<cs.length;i++)"
+            "f=F(cs[i])?cs[i]:W(cs[i].parentElement);"
+          // If the topmost element is a same-origin IFRAME and we still
+          // haven't found a field, recurse into the iframe document.
+          "if(!f&&el.nodeName==='IFRAME'){"
+            "try{"
+              "var r=el.getBoundingClientRect(),id=el.contentDocument;"
+              "if(id)f=W(id.elementFromPoint(cx-r.left,cy-r.top));"
+            "}catch(e2){}"
+          "}"
           "if(f){"
-            // Dispatch a full synthetic click sequence so the browser's
-            // native focus + selection handling fires (focus() alone is
-            // suppressed by some captcha / anti-bot libraries).
             "var mo={bubbles:true,cancelable:true,view:window};"
             "f.dispatchEvent(new MouseEvent('mousedown',mo));"
             "f.dispatchEvent(new MouseEvent('mouseup',mo));"
             "f.dispatchEvent(new MouseEvent('click',mo));"
             "f.focus();"
-            "return'';"
+            "return'HXT:field:'+f.nodeName+':'+f.id;"
           "}"
           // Walk up for an anchor.
           "var a=el;"
           "while(a&&a.nodeName!=='A')a=a.parentElement;"
           "if(a&&a.href&&a.href.indexOf('javascript:')!==0)return a.href;"
-          // Not an anchor — dispatch a click so JS navigation handlers fire.
+          // JS navigation handler fallback.
           "el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));"
-          "return'';"
+          "return'HXT:click:'+el.nodeName;"
         "})(%d,%d)", x, y);
 
     HXTNavCtx *nav_ctx = new HXTNavCtx;
