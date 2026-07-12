@@ -1733,6 +1733,8 @@ void MCStack::setgeom()
         return;
     }
 
+    applyscroll();
+
     MCRectangle t_old_rect;
     t_old_rect = view_getstackviewport();
 
