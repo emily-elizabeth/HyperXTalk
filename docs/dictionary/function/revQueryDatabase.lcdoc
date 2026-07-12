@@ -1,6 +1,6 @@
 Name: revQueryDatabase
 
-Synonyms: revdb_query, revquerydatabaseblob
+Synonyms: revquerydatabaseblob
 
 Type: function
 

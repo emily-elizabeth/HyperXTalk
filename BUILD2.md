@@ -64,7 +64,7 @@ REPO=/Users/emily-elizabethhoward/Developer/HyperXTalk
 for LIB in libskia libsqlite libxml libzip libcairo libxslt libiodbc; do
   echo "=== Building $LIB ==="
   xcodebuild \
-    -project "$REPO/build-mac/livecode/thirdparty/$LIB/$LIB.xcodeproj" \
+    -project "$REPO/build-mac/hyperxtalk/thirdparty/$LIB/$LIB.xcodeproj" \
     -configuration Debug \
     -arch arm64 \
     SOLUTION_DIR="$REPO" 2>&1 | grep -E "BUILD (SUCCEEDED|FAILED)|error:"

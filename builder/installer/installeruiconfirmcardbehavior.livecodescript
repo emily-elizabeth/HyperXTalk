@@ -1,11 +1,11 @@
 ﻿script "InstallerInstallerUIConfirmCardBehavior"
 on preOpenCard
-   setTitleField the long id of field "Page Title", "Ready to Install", "LiveCode Installer"
+   setTitleField the long id of field "Page Title", "Ready to Install", "HyperXTalk Installer"
    
    local tDetails
    put "THIS INSTALLATION WILL:" & return after tDetails
    put return after tDetails
-   put "Install LiveCode to:" && settingsLocation() & return after tDetails
+   put "Install HyperXTalk to:" && settingsLocation() & return after tDetails
    put return after tDetails
    
    local tScope
@@ -30,7 +30,7 @@ on preOpenCard
    end if
    
    if locationIsExistingInstall(settingsLocation()) then
-      put "The previous installation of LiveCode at this location will be removed before continuing." & return after tDetails
+      put "The previous installation of HyperXTalk at this location will be removed before continuing." & return after tDetails
       put return after tDetails
    end if
    

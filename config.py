@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 # Copyright (C) 2017 LiveCode Ltd.
+# Copyright (C) 2026 HyperXTalk
 #
-# This file is part of LiveCode.
+# This file is part of HyperXTalk.
 #
-# LiveCode is free software; you can redistribute it and/or modify it under
+# HyperXTalk is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License v3 as published by the Free
 # Software Foundation.
 #
-# LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+# HyperXTalk is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with LiveCode.  If not see <http://www.gnu.org/licenses/>.
+# along with HyperXTalk.  If not see <http://www.gnu.org/licenses/>.
 
 import sys
 import platform
@@ -58,7 +59,7 @@ KNOWN_PLATFORMS = (
 
 def usage(exit_status):
     print(
-"""Use gyp to generate project files when compiling LiveCode.
+"""Use gyp to generate project files when compiling HyperXTalk.
 
 Usage:
   config.py [--platform PLATFORM] [OPTION...] [GYP_OPTION ...]
@@ -100,9 +101,9 @@ gyp options:
                     Version of Android Native Development Kit to use
   -DOS=OS           Target operating system
   -Dtarget_arch=TARGET_ARCH
-                    Target LiveCode to run on ARCH processors
+                    Target HyperXTalk to run on ARCH processors
   -Dtarget_sdk=XCODE_TARGET_SDK
-                    Compile LiveCode using the specified SDK in Xcode
+                    Compile HyperXTalk using the specified SDK in Xcode
   -Dhost_sdk=XCODE_HOST_SDK
                     Compile build tools using the specified SDK in Xcode
 
@@ -171,16 +172,30 @@ def process_arg_options(opts, args):
     offset = 0
     while offset < len(args):
         key = args[offset]
+
+        # Normalise --key=value into separate key and inline_value so that both
+        # "--depth=." and "--depth ." are handled identically for known options.
+        # We only split on the first '=' and only for long options (--...).
+        inline_value = None
+        if key.startswith('--') and '=' in key:
+            key, inline_value = key.split('=', 1)
+
+        # Peek at the next positional argument for options that take a value.
         if offset + 1 < len(args):
-            value = args[offset + 1]
+            next_value = args[offset + 1]
         else:
-            value = None
+            next_value = None
+
+        # Prefer an inline (=) value; fall back to the next positional argument.
+        value = inline_value if inline_value is not None else next_value
+        # How many extra positional slots the current option consumed.
+        consumed = 0 if inline_value is not None else 1
 
         if key in ('-h', '--help'):
             usage(0)
         if key in ('-p', '--platform'):
             opts['PLATFORM'] = value
-            offset += 2
+            offset += 1 + consumed
             continue
         if key in ('--use-lto'):
              opts['LTO'] = True
@@ -192,31 +207,41 @@ def process_arg_options(opts, args):
              continue
         if key in ('--sysroot'):
             opts['SYSROOT'] = value
-            offset += 2
+            offset += 1 + consumed
             continue
         if key in ('--aux-sysroot'):
             opts['AUX_SYSROOT'] = value
-            offset += 2
+            offset += 1 + consumed
             continue
         if key in ('--triple'):
             opts['TRIPLE'] = value
-            offset += 2
+            offset += 1 + consumed
             continue
         if key in ('--cc-prefix'):
             opts['CC_PREFIX'] = value
-            offset += 2
+            offset += 1 + consumed
             continue
         if key in ('--generator-output'):
             opts['GENERATOR_OUTPUT'] = value
-            offset += 2
+            offset += 1 + consumed
             continue
         if key in ('--depth'):
             opts['DEPTH'] = value
-            offset += 2
+            offset += 1 + consumed
             continue
         if key in ('-f', '--format'):
             opts['FORMATS'].insert(0, value)
-            offset += 2
+            offset += 1 + consumed
+            continue
+        # Handle compact form: -fmake  (gyp emits this in Makefile regen commands)
+        if key.startswith('-f') and len(key) > 2 and not key.startswith('--'):
+            opts['FORMATS'].insert(0, key[2:])
+            offset += 1
+            continue
+        # Handle compact form: -fmake  (gyp emits this in Makefile regen commands)
+        if key.startswith('-f') and len(key) > 2 and not key.startswith('--'):
+            opts['FORMATS'].insert(0, key[2:])
+            offset += 1
             continue
 
         # Intercept -D & -G options that config.py tries to generate
@@ -240,8 +265,15 @@ def process_arg_options(opts, args):
             offset += 1
             continue
 
-        # Unrecognised option
-        error("Unrecognised option '{}'".format(key))
+        # As documented, all unrecognised options are passed directly to gyp.
+        # This covers gyp-own flags like --ignore-environment and --toplevel-dir
+        # that appear in Makefile self-regeneration commands.
+        if inline_value is not None:
+            # Reconstruct the original --key=value form for gyp.
+            gyp_options.append('{}={}'.format(key, inline_value))
+        else:
+            gyp_options.append(args[offset])
+        offset += 1
 
     opts['GYP_OPTIONS'] = gyp_options
 
@@ -329,7 +361,7 @@ def validate_gyp_settings(opts):
         validate_platform(opts)
 
         opts['GENERATOR_OUTPUT'] = \
-            os.path.join('build-' + opts['PLATFORM'], 'livecode')
+            os.path.join('build-' + opts['PLATFORM'], 'hyperxtalk')
 
     if len(opts['FORMATS']) < 1:
         validate_os(opts)
@@ -738,9 +770,6 @@ def core_gyp_args(opts):
     if opts['PERL'] is not None:
         args.append('-Dperl=' + opts['PERL'])
 
-    if opts['BUILD_EDITION'] == 'commercial':
-        args.append(os.path.join('..', 'livecode-commercial.gyp'))
-
     if opts['CROSS'] is not None:
         args.append('-Dcross_compile=1')
 
@@ -865,10 +894,7 @@ def configure(args):
 
 def copy_workspace_settings(opts):
     validate_gyp_settings(opts)
-    if opts['BUILD_EDITION'] == 'commercial':
-        project = os.path.join(opts['GENERATOR_OUTPUT'], '..', 'livecode-commercial.xcodeproj')
-    else:
-        project = os.path.join(opts['GENERATOR_OUTPUT'], 'livecode.xcodeproj')
+    project = os.path.join(opts['GENERATOR_OUTPUT'], 'hyperxtalk.xcodeproj')
 
     xcshareddata = os.path.join(project, 'project.xcworkspace', 'xcshareddata')
 

@@ -71,11 +71,6 @@ The <import snapshot> <command> creates a new <image> in the center of
 the <current card> and places the snapshot in the <image> and sets 
 the <it> variable to long id of the created <image>.
 
-iOS supports both the object and screen snapshot variants of the 
-<import snapshot> command. In the screen snapshot case, coordinates 
-are given relative to the top-left of the screen, including the 
-area where status bar is, but not including the status bar itself.
-
 If you do not specify the rect[angle] <token> or an <objectRef>, HyperXTalk 
 displays a crosshairs <cursor>. Click at one corner of the rectangular
 area to be imported and drag to the opposite corner to <select> the area.
@@ -130,22 +125,6 @@ graphic effects, use the `with effects` form:
 
 Where <objectRef> is any control <object reference>, or any 
 <expression> evaluating to a control <object reference>.
-
-To import a snapshot of an object in iOS use the form:
-
-    import snapshot from objectRef
-
-To import a snapshot of the screen in iOS use the form:
-
-    import snapshot from rectangle rectDescription
-
->*Note:*  There is no way to render the status bar without using private
-> features of the iOS API. Therefore, if your snapshot rectangle
-> includes part of the screen where the status bar is, it will be
-> clipped out.
-
-Changes: The `at size` variant, which allows resizing of the imported 
-snapshot to specified dimensions, was added in version 6.0.
 
 References: export snapshot (command), expression (glossary), 
 import (command), current stack (glossary), current card (glossary),

@@ -95,7 +95,7 @@ goto :copy_begin
 :: 4.  Copy libpq.lib -> Debug\lib\
 ::     This is where development.vcxproj searches for it.
 :: ----------------------------------------------------------
-set "DEBUG_LIB=build-win-x86_64\livecode\Debug\lib"
+set "DEBUG_LIB=build-win-x86_64\hyperxtalk\Debug\lib"
 if not exist "%DEBUG_LIB%\" mkdir "%DEBUG_LIB%"
 echo Copying libpq.lib to Debug\lib...
 call :copy_file "%PG_LIBDIR%" "%DEBUG_LIB%" "libpq.lib"
@@ -106,7 +106,7 @@ if errorlevel 1 exit /b 1
 :: ----------------------------------------------------------
 if not defined PG_DLL goto :skip_dll
 
-set "DEBUG_OUT=build-win-x86_64\livecode\Debug"
+set "DEBUG_OUT=build-win-x86_64\hyperxtalk\Debug"
 if not exist "%DEBUG_OUT%\" mkdir "%DEBUG_OUT%"
 echo Copying libpq.dll to Debug...
 call :copy_file "%PG_DLLDIR%" "%DEBUG_OUT%" "libpq.dll"
@@ -118,7 +118,7 @@ if errorlevel 1 exit /b 1
 :: 6.  Delete HyperXTalk.exe so the linker is forced to rerun
 ::     on the next build even if no source files changed.
 :: ----------------------------------------------------------
-set "EXE_OUT=build-win-x86_64\livecode\Debug\HyperXTalk.exe"
+set "EXE_OUT=build-win-x86_64\hyperxtalk\Debug\HyperXTalk.exe"
 if exist "%EXE_OUT%" (
     attrib -R "%EXE_OUT%" 2>nul
     del /F /Q "%EXE_OUT%"

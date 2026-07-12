@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -328,7 +344,7 @@ IO_stat MCDispatch::startup(void)
 #if defined(_MAC_DESKTOP)
             // ARM64-DEBUG: Log before startUp message
             {
-                FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
                 if (f) { fprintf(f, "mode_development: sending MCM_start_up\n"); fclose(f); }
             }
 #endif
@@ -337,7 +353,7 @@ IO_stat MCDispatch::startup(void)
             MCdefaultstackptr -> setextendedstate(false, ECS_DURING_STARTUP);
 #if defined(_MAC_DESKTOP)
             {
-                FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
                 if (f) { fprintf(f, "mode_development: MCM_start_up returned MCquit=%d\n", (int)MCquit); fclose(f); }
             }
 #endif
@@ -358,7 +374,7 @@ IO_stat MCDispatch::startup(void)
                 MCStringFormat(&t_result_str, "%@", t_valueref != nil ? t_valueref : (MCValueRef)kMCEmptyString);
                 MCAutoStringRefAsUTF8String t_utf8;
                 t_utf8.Lock(*t_result_str);
-                FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
                 if (f) { fprintf(f, "mode_development: MCresult after startup='%s' (empty=%d)\n", *t_utf8, MCValueIsEmpty(t_valueref)); fclose(f); }
             }
 #endif
@@ -369,14 +385,14 @@ IO_stat MCDispatch::startup(void)
 
 #if defined(_MAC_DESKTOP)
                 {
-                    FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+                    FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
                     if (f) { fprintf(f, "mode_development: entering X_main_loop\n"); fclose(f); }
                 }
 #endif
                 X_main_loop();
 #if defined(_MAC_DESKTOP)
                 {
-                    FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+                    FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
                     if (f) { fprintf(f, "mode_development: X_main_loop returned MCquit=%d\n", (int)MCquit); fclose(f); }
                 }
 #endif
@@ -398,7 +414,7 @@ IO_stat MCDispatch::startup(void)
 
 #if defined(_MAC_DESKTOP)
             {
-                FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
                 if (f) { fprintf(f, "mode_development: non-empty path, calling destroystack\n"); fclose(f); }
             }
 #endif
@@ -409,7 +425,7 @@ IO_stat MCDispatch::startup(void)
 
 #if defined(_MAC_DESKTOP)
             {
-                FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
                 if (f) { fprintf(f, "mode_development: destroystack done, calling send_relaunch\n"); fclose(f); }
             }
 #endif
@@ -429,21 +445,21 @@ IO_stat MCDispatch::startup(void)
 
 #if defined(_MAC_DESKTOP)
             {
-                FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
                 if (f) { fprintf(f, "mode_development: calling loadfile for home stack (sptr_found=%d)\n", (int)(sptr != NULL)); fclose(f); }
             }
 #endif
             if (sptr == NULL && (stat = loadfile(MCNameGetString(*t_name), sptr)) != IO_NORMAL)
             {
 #if defined(_MAC_DESKTOP)
-                FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
                 if (f) { fprintf(f, "mode_development: loadfile FAILED stat=%d\n", (int)stat); fclose(f); }
 #endif
                 return stat;
             }
 #if defined(_MAC_DESKTOP)
             {
-                FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
                 if (f) { fprintf(f, "mode_development: loadfile succeeded, sptr=%p\n", (void*)sptr); fclose(f); }
             }
 #endif
@@ -459,14 +475,14 @@ IO_stat MCDispatch::startup(void)
 		MCdefaultstackptr = MCstaticdefaultstackptr = stacks;
 #if defined(_MAC_DESKTOP)
         {
-            FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+            FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
             if (f) { fprintf(f, "mode_development: calling send_startup_message\n"); fclose(f); }
         }
 #endif
 		send_startup_message(false);
 #if defined(_MAC_DESKTOP)
         {
-            FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+            FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
             if (f) { fprintf(f, "mode_development: send_startup_message returned MCquit=%d\n", (int)MCquit); fclose(f); }
         }
 #endif
@@ -474,14 +490,14 @@ IO_stat MCDispatch::startup(void)
 		{
 #if defined(_MAC_DESKTOP)
             {
-                FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
                 if (f) { fprintf(f, "mode_development: calling sptr->open()\n"); fclose(f); }
             }
 #endif
 			sptr -> open();
 #if defined(_MAC_DESKTOP)
             {
-                FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
                 if (f) { fprintf(f, "mode_development: sptr->open() returned, MCquit=%d\n", (int)MCquit); fclose(f); }
             }
 #endif
@@ -908,7 +924,7 @@ bool MCModeGetPixelScalingEnabled()
 {
     MCAutoStringRef t_type, t_error;
     MCAutoValueRef t_value;
-	MCS_query_registry(MCSTR("HKEY_CURRENT_USER\\Software\\LiveCode\\IDE\\usePixelScaling"), &t_value, &t_type, &t_error);
+	MCS_query_registry(MCSTR("HKEY_CURRENT_USER\\Software\\HyperXTalk\\IDE\\usePixelScaling"), &t_value, &t_type, &t_error);
 
 	if (!MCresult->isempty())
 	{

@@ -1,6 +1,6 @@
 setup
 
-local tTestKey = "HKEY_CURRENT_USER\Software\LiveCode\Tests\SetRegistry\"
+local tTestKey = "HKEY_CURRENT_USER\Software\HyperXTalk\Tests\SetRegistry\"
 
 // test setting default value
 test setRegistry(tTestKey, "setRegistryTest", "string")
@@ -20,7 +20,7 @@ teardown
 
 setup "setting types"
 
-local tTestKey = "HKEY_CURRENT_USER\Software\LiveCode\Tests\SetRegistry\"
+local tTestKey = "HKEY_CURRENT_USER\Software\HyperXTalk\Tests\SetRegistry\"
 local tTypeTestKey
 put tTestKey & "typeTest" into tTypeTestKey
 

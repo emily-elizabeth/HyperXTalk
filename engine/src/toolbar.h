@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 //
 // MCToolbar and MCToolbarItem class declarations
 //
@@ -130,6 +146,10 @@ private:
     // Platform backend (null until open())
     MCToolbarBackend    *m_backend;
 
+    // Intrusive linked list of all currently-open MCToolbar objects, used to
+    // notify them of platform theme changes without walking the object tree.
+    MCToolbar           *m_theme_next;
+
     static MCPropertyInfo        kProperties[];
     static MCObjectPropertyTable kPropertyTable;
 
@@ -239,6 +259,13 @@ public:
 
     void itemClicked(MCNameRef p_item_name);
 
+    //--------------------------------------------------------------------------
+    // Theme change notification — called by MCToolbarNotifyThemeChanged()
+
+    void onThemeChanged();
+
+    friend void MCToolbarNotifyThemeChanged();
+
     // Returns the y pixel offset (in client-area coordinates) at which the
     // platform toolbar should appear.  If the stack has an in-window menu bar
     // group this is the group's bottom edge; otherwise it is 0.
@@ -259,5 +286,9 @@ private:
 // lnx-toolbar.cpp
 
 MCToolbarBackend *MCToolbarCreatePlatformBackend(MCToolbar *p_owner);
+
+// Notify all currently-open MCToolbar objects that the platform theme has
+// changed so they can reload dark-/light-mode icon variants.
+void MCToolbarNotifyThemeChanged();
 
 #endif // TOOLBAR_H

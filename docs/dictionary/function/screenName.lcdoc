@@ -35,7 +35,7 @@ the <process> to appear on the same screen as HyperXTalk, use the <value>
 <return|returned> by the <screenName> as the <argument> to the -d
 option. 
 
-This function does not return a useful value on Mac OS and Windows
+This function does not return a useful value on macOS and Windows
 systems. 
 
 References: open process (command), function (control structure),

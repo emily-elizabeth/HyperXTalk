@@ -1612,7 +1612,7 @@ private function __RegexPatternForSource pType
          return "^.*\.lcb$"
          break
       case "lcs"
-         return "^.*\.livecode(script)?$"
+         return "^.*\.(hyperxtalk|livecode)(script)?$"
          break
    end switch
 end __RegexPatternForSource

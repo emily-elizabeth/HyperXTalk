@@ -36,11 +36,6 @@ On Unix systems, the computer's name is its <domain name>. On <Mac
 OS|Mac OS systems>, the name is the one set in the File Sharing control
 panel. 
 
-Changes:
-Support for AppleTalk zone addresses on Mac OS systems was removed in
-version 1.1. In previous versions, the address property reported the
-application's AppleTalk address, including its zone.
-
 References: send to program (command), property (glossary),
 application (glossary), domain name (glossary), Mac OS (glossary),
 file path (glossary), read-only (glossary)

@@ -228,14 +228,8 @@ command update
    set the textSize of field "Handlers" of me to sePrefGet("editor,fontsize")
    set the textFont of field "Handlers" of me to sePrefGet("editor,font")
    
-   if (the systemAppearance = "dark") then
-      set the backgroundColor of field "Handlers" of me to "black"
-      set the foregroundColor of field "Handlers" of me to "white"
-   else
-      set the backgroundColor of field "Handlers" of me to "white"
-      set the foregroundColor of field "Handlers" of me to "black"
-   end if
-   
+   set the foregroundColor of field "Handlers" of me to contrastingTextColor(the backgroundColor of field "Handlers" of me)
+      
    set the htmlText of field "Handlers" of me to tText
    set the cHandlers of field "Handlers" of me to tHandlers
    
@@ -268,6 +262,23 @@ command update
    set the topRight of me to tOldTopRight
    unlock screen
 end update
+
+
+private function contrastingTextColor pBackgroundColor
+   set the itemDelimiter to comma
+   put item 1 of pBackgroundColor into tR
+   put item 2 of pBackgroundColor into tG
+   put item 3 of pBackgroundColor into tB
+   
+   -- Perceived luminance (fast approximation)
+   put (0.299 * tR + 0.587 * tG + 0.114 * tB) into tLuminance
+   
+   if tLuminance > 128 then
+      return "0,0,0"       -- dark background gets black text
+   else
+      return "255,255,255" -- light background gets white text
+   end if
+end contrastingTextColor
 
 # Description
 #   Called when the group is being resized after already being initialized

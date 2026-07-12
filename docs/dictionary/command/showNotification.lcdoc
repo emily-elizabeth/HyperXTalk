@@ -50,7 +50,7 @@ application window. The notification appears in the system notification
 center or tray area and remains visible until the user dismisses it or
 the engine cancels it.
 
-On macOS and iOS, the application must have previously received
+On macOS the application must have previously received
 permission via <requestNotificationPermission>. On Windows and Linux,
 permission is implicitly granted and no separate step is required.
 

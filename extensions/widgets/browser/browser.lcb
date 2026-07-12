@@ -245,7 +245,7 @@ Example:
 	-- keeping a copy of the previous URL
 	local tOldUrl
 	put the URL of widget "myBrowser" into tOldUrl
-	set the URL of widget "myBrowser" to "https://livecode.com"
+	set the URL of widget "myBrowser" to "https://hyperxtalk.com"
 
 Description:
 The <URL> is the URL of the content be displayed in the browser.

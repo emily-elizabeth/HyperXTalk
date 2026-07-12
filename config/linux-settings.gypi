@@ -17,9 +17,15 @@
 		'_FILE_OFFSET_BITS=64',			
 	],
 	
-	# We supply some pre-packaged headers for Linux libraries
+	# GTK3 system headers must come before the bundled GTK2 headers so that
+	# #include <gtk/gtk.h> resolves to GTK3, not the legacy GTK2 copies.
 	'include_dirs':
 	[
+		# Filter out libpng16: GTK3 transitively pulls in /usr/include/libpng16
+		# whose pnglibconf.h was built against system zlib 1.3.1, but our bundled
+		# libz is 1.3.2 — causing a version-check #error in pngpriv.h.  The
+		# bundled thirdparty/libpng/include (PNG_ZLIB_VERNUM=0, no check) must win.
+		'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I[^ ]*libpng[^ ]*//g" | sed "s/-I//g")',
 		'../thirdparty/headers/linux/include',
 		'../thirdparty/libcairo/src',			# Required by the GDK headers
 		'../thirdparty/libfreetype/include',	# Required by the Pango headers

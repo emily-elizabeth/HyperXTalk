@@ -1,7 +1,5 @@
 Name: revQueryIsAtEnd
 
-Synonyms: revdb_iseof
-
 Type: function
 
 Syntax: revQueryIsAtEnd(<recordSetID>)

@@ -110,7 +110,7 @@ if errorlevel 1 exit /b 1
 :: 5.  Copy libmysql.lib -> Debug\lib\
 ::     Used by development.vcxproj (searched before prebuilt).
 :: ----------------------------------------------------------
-set "DEBUG_LIB=build-win-x86_64\livecode\Debug\lib"
+set "DEBUG_LIB=build-win-x86_64\hyperxtalk\Debug\lib"
 if not exist "%DEBUG_LIB%\" mkdir "%DEBUG_LIB%"
 echo Copying libmysql.lib to Debug\lib...
 call :copy_file "%MYSQL_LIBDIR%" "%DEBUG_LIB%" "libmysql.lib"
@@ -123,7 +123,7 @@ if errorlevel 1 exit /b 1
 :: ----------------------------------------------------------
 if not defined MYSQL_DLL goto :skip_dll
 
-set "DEBUG_OUT=build-win-x86_64\livecode\Debug"
+set "DEBUG_OUT=build-win-x86_64\hyperxtalk\Debug"
 if not exist "%DEBUG_OUT%\" mkdir "%DEBUG_OUT%"
 echo Copying libmysql.dll to Debug...
 call :copy_file "%MYSQL_DLLDIR%" "%DEBUG_OUT%" "libmysql.dll"
@@ -137,7 +137,7 @@ if errorlevel 1 exit /b 1
 ::     libcrypto-3-x64.dll; Windows needs them in the same
 ::     directory as libmysql.dll (or on PATH) or LoadLibrary fails.
 :: ----------------------------------------------------------
-set "DEBUG_OUT=build-win-x86_64\livecode\Debug"
+set "DEBUG_OUT=build-win-x86_64\hyperxtalk\Debug"
 if not exist "%DEBUG_OUT%\" mkdir "%DEBUG_OUT%"
 
 set "OPENSSL_SEARCH=%MYSQL_DIR%\bin"
@@ -165,7 +165,7 @@ if exist "%OPENSSL_SEARCH%\libcrypto-3-x64.dll" (
 ::     MSBuild's incremental build skips the link step when
 ::     only a .lib changed; removing the output breaks that.
 :: ----------------------------------------------------------
-set "EXE_OUT=build-win-x86_64\livecode\Debug\HyperXTalk.exe"
+set "EXE_OUT=build-win-x86_64\hyperxtalk\Debug\HyperXTalk.exe"
 if exist "%EXE_OUT%" (
     attrib -R "%EXE_OUT%" 2>nul
     del /F /Q "%EXE_OUT%"

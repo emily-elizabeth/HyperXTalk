@@ -97,12 +97,6 @@ recreation of the object.
 > pattern properties of the same type, the color property will take
 > precedence. 
 
-Changes:
-As of version 6.1 the <properties> property has been revised. On
-fetching it returns the minimal set of properties of an object to allow
-it to be recreated exactly, it also returns unicode variants of
-properties if, and only if, they are needed.
-
 References: combine (command), setProp (control structure), 
 keys (function), propertyNames (function), value (glossary), 
 object (glossary), properties (property), customProperties (property)

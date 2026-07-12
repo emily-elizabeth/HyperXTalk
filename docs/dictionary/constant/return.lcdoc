@@ -64,13 +64,10 @@ carriage return (<ASCII> 13), and the end-of-line <delimiter> for
 > from it, end-of-line translation is performed, but not if you put data 
 > into or get data from a <binfile> <URL>.
 
->*Note:* Starting with HyperXTalk v. 7, all text is stored as <Unicode>.
+>*Note:* In HyperXTalk, all text is stored as <Unicode>.
 > If you send text outside HyperXTalk you should convert it to the desired 
 > encoding using <textEncode>. If you receive text into HyperXTalk you 
 > should convert it to Unicode using <textDecode>.
-
-Changes:
-The LF synonym was added in version 2.0.
 
 References: constant (command), open driver (command),
 open file (command), open process (command), CRLF (constant),

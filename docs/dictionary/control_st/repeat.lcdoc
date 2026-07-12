@@ -311,19 +311,6 @@ will not affect what is being <iterate|iterated> over.
 >*Note:*  The repeat control structure is implemented internally as a
 command and appears in the commandNames.
 
-Changes:
-The ability to specify an increment for the repeat with form was added
-in version 2.0. In previous versions, this form of the repeat control
-structure is always incremented or decremented the counter by 1 each
-time through the loop.
-
-The ability to iterate through the keys of an array using repeat for
-each key was added in version 2.7.2. 
-
-Starting in version 7.0 it is possible to modify the container
-variable inside a for each loop without affecting the
-iterations of the loop.
-
 References: wait (command), next repeat (control structure),
 exit repeat (control structure), round (function), 
 iteration (glossary), array (glossary), chunk (glossary), 

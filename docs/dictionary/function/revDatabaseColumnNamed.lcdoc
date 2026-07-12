@@ -75,10 +75,6 @@ with the <string> "revdberr".
 
     "tArray[" & i & "]"
 
-Changes:
-The ability to specify array elements as holder variables was added in
-version 2.9
-
 References: function (control structure),
 revDatabaseColumnNames (function), revDatabaseColumnLengths (function),
 revDatabaseColumnNumbered (function), HyperXTalk custom library (glossary),

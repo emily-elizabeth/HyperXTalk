@@ -83,11 +83,6 @@ HyperXTalk does it for you.
 > finished starting up, the <library> is available and the
 > <revUnixFromMacPath> <function> can be used in any <handler>.
 
-Changes:
-The convertOSX parameter was introduced in version 2.1.1. In previous
-versions, the revUnixFromMacPath function did not attempt to convert
-between the Mac OS and OS X conventions described above.
-
 References: answer file (command), function (control structure),
 application (glossary), standalone application (glossary),
 file path (glossary), main stack (glossary), OS X (glossary),

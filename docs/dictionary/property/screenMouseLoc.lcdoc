@@ -40,10 +40,6 @@ Use the <screenMouseLoc> <property> to find out where the
 > expects a consistent <user interface> without such surprises. You must
 > use this power only for good.
 
-Changes:
-Support for using the screenMouseLoc with OS X systems was added in
-version 2.0.
-
 References: function (control structure), mouseLoc (function),
 mouseV (function), property (glossary), integer (glossary),
 mouse pointer (glossary), user interface (glossary),

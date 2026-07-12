@@ -45,9 +45,6 @@ about what a control does.
 
 Tool tips appear only when the Browse tool is selected.
 
->*Note:* As of version 2.7.4 toolTips can be multiline strings.
-> Previous version restrict tooltips to single lines.
-
 References: show (command), popup (command), object (glossary),
 property (glossary), tool tip (glossary), control (keyword),
 help (message), points (property), toolTipDelay (property)

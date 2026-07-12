@@ -35,12 +35,6 @@ HyperXTalk writes data to the <standard output>.
 >*Note:* On <OS X|OS X systems>, the <standard output> is the Console
 > window, not the Terminal window.
 
-Support for using <stdout> on Server was added in version 4.6.3.
-
-Changes:
-Support for using <stdout> on <OS X|OS X systems> was added in version
-2.0. 
-
 References: write to process (command), write to file (command),
 standard output (glossary), keyword (glossary),
 command (glossary), OS X (glossary), stdin (keyword), stderr (keyword)

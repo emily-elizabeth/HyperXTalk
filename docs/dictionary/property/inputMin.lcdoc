@@ -1,0 +1,48 @@
+Name: inputMin
+
+Type: property
+
+Syntax: set the inputMin of <field> to <value>
+
+Summary:
+Specifies the minimum acceptable value for a field with inputType "number".
+
+Introduced: 1.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Value:
+The <inputMin> of a field is a string. For numeric fields it should be a
+number. The default value is empty (no lower bound enforced).
+
+Example:
+set the inputType of field "Age" to "number"
+set the inputMin of field "Age" to 18
+set the inputMax of field "Age" to 120
+
+Example:
+set the inputType of field "Price" to "number"
+set the inputMin of field "Price" to 0
+set the inputStep of field "Price" to 0.01
+
+Description:
+When <inputType> is "number" and <inputMin> is non-empty, validation
+checks that the field's numeric value is greater than or equal to
+<inputMin>. If the value is too small, <fieldValidationFailed> is sent
+with an error describing the minimum.
+
+<inputMin> also serves as the base value for <inputStep> alignment checks.
+If <inputStep> is set, the field's value must be reachable by stepping
+from <inputMin> (or 0 if <inputMin> is empty) by multiples of <inputStep>.
+
+<inputMin> is stored as a string so it can accommodate future date-range
+support alongside numeric ranges.
+
+References: inputType (property), inputMax (property),
+inputStep (property), inputRequired (property), inputPattern (property),
+validateField (command), fieldValidationFailed (message)
+
+Tags: ui, validation
+

@@ -90,29 +90,11 @@ systems. On other systems, the as sheet form has no effect and the
 dialog box appears normally. Attempting to open a sheet from within
 another sheet displays the second stack as a <modal dialog box> instead.
 
->*Cross-platform note:* On <OS X|OS X systems>, there is no image for
-> the question icon. Therefore, the information icon appears instead. In
-> addition, the image specified by the <gRevAppIcon keyword> appears if
-> you don't specify an <iconType>. If you specify an iconType, the image
-> specified by the <gRevSmallAppIcon keyword> appears instead, along
-> with the standard icon specified by the <iconType>. Android and iOS do
-> not support <iconType> and 'as sheet'.
-
 >*Cross-platform note:* The order in which the buttons on the answer
 > dialog appear is platform-dependent. On Windows and Unix systems, the
-> default button is on the left. On Mac OS and OS X systems, to confirm
+> default button is on the left. On macOS systems, to confirm
 > with Apple human interaction guidelines, the default button is always
-> on the right. On iOS and Android, the buttons usually appear from top
-> to bottom.
-
->*Cross-platform note:* Mobile does not support <iconType> and 'as
-> sheet'. 
-
-The ability to provide formatted text for the <prompt> was introduced in
-version 2.0.
-
-Changes:
-The answer...as sheet form was introduced in version 2.0.
+> on the right. 
 
 References: breakpoint (command), answer effect (command),
 answer page setup (command), answer color (command),

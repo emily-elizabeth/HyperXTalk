@@ -32,11 +32,11 @@ CUSTOM_LDFLAGS_LTO=-export-dynamic -Wl,-x
 
 include ../rules/application.linux.makefile
 
-INSTALL_DIR?=/opt/livecode/server
+INSTALL_DIR?=/opt/hyperxtalk/server
 .PHONY: server-install
 server-install:
 	# Executables
-	install -D $(BUILD_DIR)/server-community $(INSTALL_DIR)/livecode-server
+	install -D $(BUILD_DIR)/server-community $(INSTALL_DIR)/hyperxtalk-server
 	install -D $(BUILD_DIR)/lc-compile $(INSTALL_DIR)/lc-compile
 	install -D $(BUILD_DIR)/lc-run $(INSTALL_DIR)/lc-run
 	# Externals

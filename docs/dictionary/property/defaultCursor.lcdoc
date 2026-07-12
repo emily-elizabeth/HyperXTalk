@@ -47,11 +47,6 @@ over an editable <field>, and so on.) The <defaultCursor> is the shape
 used automatically when the <mouse pointer> is in a stack window, but
 not in an editable <field>.
 
-Changes:
-The order in which HyperXTalk searches for cursors was changed in version
-3.5. Previously, the current stack was searched first, followed by the
-list of open stacks.
-
 References: property (glossary), Browse tool (glossary),
 mouse pointer (glossary), cursor (glossary), default (keyword),
 image (keyword), field (keyword), menu (keyword), cursor (property),

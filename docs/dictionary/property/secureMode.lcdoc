@@ -48,10 +48,6 @@ from a file or data.
 > cannot be set back to false. To change it back to true, you must quit
 > and restart the <application>.
 
-Changes:
-In version 9.5 the loading of extensions was added to the secureMode
-restrictions.
-
 References: write to file (command), open file (command), put (command),
 launch (command), open process (command), read from file (command),
 get (command), function (control structure), shell (function),

@@ -48,7 +48,7 @@ Usage:
   buildbot.py TARGET
 
 Environment variables:
-  BUILD_EDITION      LiveCode edition name ("commercial" or "community")
+  BUILD_EDITION      HyperXTalk edition name ("commercial" or "community")
   BUILD_PLATFORM     The target platform for build (e.g. "ios")
   BUILD_SUBPLATFORM  The target subplatform (e.g. "iphoneos10.2")
 

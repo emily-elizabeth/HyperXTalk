@@ -3,7 +3,7 @@ top_srcdir ?= ..
 
 include $(top_srcdir)/Makefile.common
 
-########## LiveCode Script benchmark parameters
+########## HyperXTalk Script benchmark parameters
 
 LCS_ENGINE ?= $(guess_engine)
 LCS_ENGINE_FLAGS ?= $(guess_engine_flags)

@@ -35,10 +35,6 @@ If a group on the <card> contains <group|groups>, only the top-level
 To find out which groups are in a stack, use the backgroundNames
 <property>. 
 
-Changes:
-In versions before 1.1, groupNames and backgroundNames were synonyms and
-could be used interchangeably.
-
 References: place (command), property (glossary), group (glossary),
 card (keyword), line (keyword), nameChanged (message),
 groupIDs (property)

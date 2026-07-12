@@ -44,7 +44,7 @@ before sending the message, and the message is not sent automatically:
 the user must explicitly send it (for example by clicking the "Send"
 button in the email program).
 
-On Mac OS X systems, the email message is opened in the application the
+On macOS systems, the email message is opened in the application the
 user has set for the "mailto:" protocol in the system preferences.
 
 For some older email programs, it may not be possible to specify a

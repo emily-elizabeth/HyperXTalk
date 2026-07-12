@@ -45,16 +45,6 @@ If the <numberOfTimes> is less than 1, the <beep> command has no effect
 >*Note:* Overuse of the <beep> command has been known to cause user
 > stress. 
 
->*Note:* The iPhone has no default system alert sound so if a sound is
-> required one must be specified using the <beepSound> property. The
-> action of <beep> is controlled by the system and depends on the user's
-> preference settings. In particular a beep will only cause a vibration
-> if the user has enabled that feature. Similarly, a beep will only
-> cause a sound if the phone is not in silent mode.
-
->*Note:* Android tries to use the default NOTIFICATION sound or uses the
-> RINGTONE sound, if the NOTIFICATION sound is not available.
-
 References: wait (command), play (command), Windows (glossary),
 loop (glossary), error (glossary), execute (glossary), OS X (glossary),
 beepSound (property), beepDuration (property), beepLoudness (property),

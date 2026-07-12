@@ -188,8 +188,8 @@ private:
     
     // Information about the data on the clipboard
     bool m_dirty;               // Data has been modified
-    bool m_external_data;       // Data is from outside LiveCode
-    bool m_owned;               // Clipboard is owned by LiveCode
+    bool m_external_data;       // Data is from outside HyperXTalk
+    bool m_owned;               // Clipboard is owned by HyperXTalk
     
     // Destructor
     ~MCLinuxRawClipboard();

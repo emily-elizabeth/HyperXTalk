@@ -12,15 +12,15 @@ Associations: card
 
 Introduced: 1.0.0
 
-OS: mac
+OS: mac, windows, linux
 
 Platforms: desktop
 
 Example:
-on systemAppearanceChanged
+on systemAppearanceChanged pMode, pWindowColor, pTextColor
     if the systemAppearance is "dark" then
-        set the backColor of me to "black"
-        set the foreColor of me to "white"
+        set the backColor of me to pWindowColor
+        set the foreColor of me to pTextColor
     else
         set the backColor of me to "white"
         set the foreColor of me to "black"

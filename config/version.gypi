@@ -12,10 +12,10 @@
 			[
 				'build_edition == "commercial"',
 				{
-					'git_revision': '<!(git -C <(DEPTH)/.. rev-parse HEAD)',
+					'git_revision': '<!(python3 <(DEPTH)/config/git_revision.py <(DEPTH)/..)',
 				},
 				{
-					'git_revision': '<!(git -C <(DEPTH) rev-parse HEAD)',
+					'git_revision': '<!(python3 <(DEPTH)/config/git_revision.py <(DEPTH))',
 				},
 			],
 		],

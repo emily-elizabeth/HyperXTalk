@@ -36,8 +36,7 @@ Use the <naturalScrolling> function to adapt <scrollWheel> handlers to the
 user's system scrolling preference.
 
 On macOS, natural scrolling is controlled via System Settings → Trackpad →
-Scroll & Zoom → Natural Scrolling (or System Preferences on older versions of
-macOS). When natural scrolling is enabled, the `pDeltaY` parameter passed to a
+Scroll & Zoom → Natural Scrolling. When natural scrolling is enabled, the `pDeltaY` parameter passed to a
 <scrollWheel> handler is positive when the user swipes down, and negative when
 the user swipes up. When natural scrolling is disabled, the sign is reversed.
 

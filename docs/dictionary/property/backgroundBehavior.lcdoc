@@ -66,11 +66,6 @@ true (if it is not already).
 >*Note:* Only groups whose <backgroundBehavior> is true appear in the
 > list reported by the <backgroundNames> and <backgroundIDs> properties.
 
->*Note:* If a stack created in a version of HyperXTalk earlier than 1.1 is
-> opened in 1.1 or later, the <backgroundBehavior> of all its groups is
-> set to true by default. This also applies to imported HyperCard
-> stacks. 
-
 References: place (command), send (command), pass (control structure),
 preOpenBackground (message), openControl (message),
 openBackground (message), closeBackground (message),

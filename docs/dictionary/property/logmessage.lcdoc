@@ -9,7 +9,7 @@ The name of the handler that is called by the <log> command.
 
 Introduced: 1.0.0
 
-OS: mac, windows, linux, html5
+OS: mac, windows, linux
 
 Platforms: desktop, server
 

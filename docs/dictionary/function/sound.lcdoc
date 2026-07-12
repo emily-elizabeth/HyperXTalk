@@ -32,9 +32,6 @@ On desktop the sound function returns 'done' if no audio clip is
 playing. If an audio clip is playing the name of the audio clip is
 returned. 
 
-On iOS the sound function returns 'done' if there is no sound currently
-playing. If a sound is currently being played its filename is returned.
-
 Sounds played with the <beep> command do not affect the value returned
 by the sound function.
 

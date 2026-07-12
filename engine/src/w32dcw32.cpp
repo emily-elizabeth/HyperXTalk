@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 #include "w32dsk-legacy.h"
 
@@ -30,6 +46,7 @@
 #include "socket.h"
 
 #include "resolution.h"
+#include "hotkey.h"
 
 #define VK_LAST 0xDE   //last is 222
 #define LEAVE_CHECK_INTERVAL 500
@@ -413,7 +430,16 @@ Boolean MCScreenDC::handle(real8 sleep, Boolean dispatch, Boolean anyevent,
 			}
 		}
 
-		if (t_os_dispatch)
+		// WM_HOTKEY is registered with hwnd = NULL and is posted as a thread
+		// message (msg.hwnd = NULL).  DispatchMessageW silently drops thread
+		// messages — it does NOT call any WndProc for NULL-hwnd messages — so
+		// we must handle WM_HOTKEY explicitly here before the dispatch branch.
+		if (msg.message == WM_HOTKEY)
+		{
+			MCHotkeyDispatchFired((int32_t)msg.wParam);
+			curinfo->handled = True;
+		}
+		else if (t_os_dispatch)
 			DispatchMessageW(&msg);
 		else
 			MCWindowProc(msg.hwnd, msg.message, msg.wParam, msg.lParam);
@@ -1630,6 +1656,14 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 //			return IsWindowUnicode(hwnd) ? DefWindowProcW(hwnd, msg, wParam, lParam) : DefWindowProcA(hwnd, msg, wParam, lParam);
 	}
 	break;
+	case WM_HOTKEY:
+		// Dispatched when a global hotkey registered via RegisterHotKey() is pressed.
+		// wParam is the engine ID we passed to RegisterHotKey() in w32-hotkey.cpp.
+		// WM_HOTKEY is always delivered on the main thread, so no extra
+		// synchronisation is needed before calling into the engine.
+		MCHotkeyDispatchFired((int32_t)wParam);
+		curinfo->handled = True;
+		break;
 	case WM_POWERBROADCAST:
 		MCS_reset_time();
 		return TRUE;
@@ -1767,23 +1801,18 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 	break;
 	case WM_COMMAND:
 	{
-		// Route toolbar button clicks to the MCToolbarWin32Backend.
-		// When a toolbar button is clicked, comctl32 sends WM_COMMAND to the
-		// parent window synchronously (via SendMessage) with:
+		// Route toolbar button clicks to MCToolbarWin32Backend.
+		// comctl32 sends WM_COMMAND to the parent window with:
 		//   LOWORD(wParam) = button command ID
-		//   HIWORD(wParam) = 0 (BN_CLICKED / control notification)
-		//   lParam         = toolbar HWND (non-zero for control notifications)
-		if (lParam != 0 && HIWORD(wParam) == 0)
-		{
-			extern void MCWin32ToolbarHandleParentCommand(HWND, HWND, WPARAM);
-			MCWin32ToolbarHandleParentCommand(hwnd, (HWND)lParam, wParam);
-		}
+		//   HIWORD(wParam) = 0 (BN_CLICKED)
+		//   lParam         = toolbar HWND
+		extern void MCWin32ToolbarHandleParentCommand(HWND, HWND, WPARAM);
+		MCWin32ToolbarHandleParentCommand(hwnd, (HWND)lParam, wParam);
 	}
 	break;
 
-	default:
-		return IsWindowUnicode(hwnd) ? DefWindowProcW(hwnd, msg, wParam, lParam) : DefWindowProcA(hwnd, msg, wParam, lParam);
-	}
+	} // end switch (msg)
 
-	return 0;
+	return IsWindowUnicode(hwnd) ? DefWindowProcW(hwnd, msg, wParam, lParam)
+	                             : DefWindowProcA(hwnd, msg, wParam, lParam);
 }

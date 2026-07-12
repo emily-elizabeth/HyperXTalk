@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -2306,11 +2322,11 @@ Exec_stat MCStack::openrect(const MCRectangle &rel, Window_mode wm, MCStack *par
 	MCstacks->add(this);
 	
 #if defined(_MAC_DESKTOP)
-    { FILE *f=fopen("/tmp/livecode-arm64-startup.log","a"); if(f){fprintf(f,"openrect: calling curcard->open()\n");fclose(f);} }
+    { FILE *f=fopen("/tmp/hyperxtalk-arm64-startup.log","a"); if(f){fprintf(f,"openrect: calling curcard->open()\n");fclose(f);} }
 #endif
 	curcard->open();
 #if defined(_MAC_DESKTOP)
-    { FILE *f=fopen("/tmp/livecode-arm64-startup.log","a"); if(f){fprintf(f,"openrect: curcard->open() done\n");fclose(f);} }
+    { FILE *f=fopen("/tmp/hyperxtalk-arm64-startup.log","a"); if(f){fprintf(f,"openrect: curcard->open() done\n");fclose(f);} }
 #endif
 	if (MCuseprivatecmap)
 		MCscreen->setcmap(this);
@@ -2356,7 +2372,7 @@ Exec_stat MCStack::openrect(const MCRectangle &rel, Window_mode wm, MCStack *par
 #endif
 		
 #if defined(_MAC_DESKTOP)
-    { FILE *f=fopen("/tmp/livecode-arm64-startup.log","a"); if(f){fprintf(f,"openrect: sending preOpenStack\n");fclose(f);} }
+    { FILE *f=fopen("/tmp/hyperxtalk-arm64-startup.log","a"); if(f){fprintf(f,"openrect: sending preOpenStack\n");fclose(f);} }
 #endif
 	// MW-2008-10-31: [[ ParentScripts ]] Send preOpenControl appropriately
 	if (curcard->message(MCM_preopen_stack) == ES_ERROR
@@ -2371,7 +2387,7 @@ Exec_stat MCStack::openrect(const MCRectangle &rel, Window_mode wm, MCStack *par
 		{
 			// MW-2011-08-17: [[ Redraw ]] Now using global screen lock and tell the stack to dirty all of itself.
 #if defined(_MAC_DESKTOP)
-            { FILE *f=fopen("/tmp/livecode-arm64-startup.log","a"); if(f){fprintf(f,"openrect: preOpenStack ES_ERROR path\n");fclose(f);} }
+            { FILE *f=fopen("/tmp/hyperxtalk-arm64-startup.log","a"); if(f){fprintf(f,"openrect: preOpenStack ES_ERROR path\n");fclose(f);} }
 #endif
 			setgeom();
 			state &= ~(CS_LOCK_SCREEN | CS_KFOCUSED | CS_NO_FOCUS);
@@ -2379,7 +2395,7 @@ Exec_stat MCStack::openrect(const MCRectangle &rel, Window_mode wm, MCStack *par
 			MCRedrawUnlockScreen();
 			openwindow(mode >= WM_PULLDOWN);
 #if defined(_MAC_DESKTOP)
-            { FILE *f=fopen("/tmp/livecode-arm64-startup.log","a"); if(f){fprintf(f,"openrect: returning ES_ERROR after preOpen fail\n");fclose(f);} }
+            { FILE *f=fopen("/tmp/hyperxtalk-arm64-startup.log","a"); if(f){fprintf(f,"openrect: returning ES_ERROR after preOpen fail\n");fclose(f);} }
 #endif
 			return ES_ERROR;
 		}

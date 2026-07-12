@@ -27,13 +27,8 @@ EMMAKE ?= emmake
 MODE ?= release
 
 # Where to run the build command depends on community vs commercial
-ifeq ($(BUILD_EDITION),commercial)
-  BUILD_SUBDIR :=
-  BUILD_PROJECT := livecode-commercial
-else
-  BUILD_SUBDIR := /livecode
-  BUILD_PROJECT := livecode
-endif
+BUILD_SUBDIR := /hyperxtalk
+BUILD_PROJECT := hyperxtalk
 
 # Prettifying output for CI builds
 XCODEBUILD_FILTER ?=
@@ -91,22 +86,10 @@ endif
 include Makefile.linux
 
 ################################################################
-# Android rules
-################################################################
-
-include Makefile.Android
-
-################################################################
 # Mac rules
 ################################################################
 
 include Makefile.Mac
-
-################################################################
-# iOS rules
-################################################################
-
-include Makefile.iOS
 
 ################################################################
 # Windows rules

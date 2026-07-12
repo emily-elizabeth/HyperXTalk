@@ -41,14 +41,14 @@ operating correctly.
 If the application is started from a Unix command line, this property
 can be set to true on startup by using the -pointerfocus option.
 
->*Cross-platform note:*  On <Mac OS>, <OS X>, and 
+>*Cross-platform note:*  On <OS X> and 
 > <Windows|Windows systems>, setting the <pointerFocus> <property> 
 > to false changes  window activation in minor ways which are not 
 > particularly useful, and has no other effect.
 
 References: property (glossary), OS X (glossary),
 explicit focus (glossary), active window (glossary), Windows (glossary),
-Motif (glossary), Mac OS (glossary), Unix (glossary),
+Motif (glossary), Unix (glossary),
 mouse pointer (glossary), raiseMenus (property)
 
 Tags: ui

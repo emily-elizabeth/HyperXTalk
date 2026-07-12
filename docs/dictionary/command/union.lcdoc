@@ -113,9 +113,6 @@ the non-into form except that <targetArray> does not have to be a
 variable, and the result of the operation is placed into
 <destinationArray> rather than mutating <targetArray>.
 
-Changes:
-The `into` clause was added in version 9.
-
 References: add (command), intersect (command), keys (function),
 element (glossary), key (glossary), command (glossary), array (glossary),
 execute (glossary), element (keyword), + (operator),

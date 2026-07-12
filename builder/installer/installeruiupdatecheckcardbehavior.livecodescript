@@ -1,7 +1,7 @@
 ﻿script "InstallerInstallerUIUpdateCheckCardBehavior"
 ########################################################################################
 
-constant kUpdateURL = "http://livecode.com/livecode/update/livecode"
+constant kUpdateURL = "http://hyperxtalk.com/hyperxtalk/update/hyperxtalk"
 constant kUpdateInterval = 86400
 constant kAnnoyInterval = 600
 
@@ -279,9 +279,9 @@ private command checkForUpdates @rUpdateData
    -- MM-2013-06-13: Since community no longer requires activation, don't
    -- fail if no user details found.
    --
-   get getLicensesFolderLocation() & "/livecode.lcld"
+   get getLicensesFolderLocation() & "/hyperxtalk.lcld"
    if there is no file it then
-      get getLicensesFolderLocation() & "/livecode-community.lcld"
+      get getLicensesFolderLocation() & "/hyperxtalk-community.lcld"
    end if
    if there is no file it then
       --return "no lcld file"
@@ -673,9 +673,9 @@ private function getVersionInstalled pVersion, pBuildNumber
       set the itemDel to comma
    end if
    if getInstallerType() is "community" then
-      return there is a file (getLicensesFolderLocation()  & "/livecode-community-" & pVersion & "-" & pBuildNumber & ".lclk")
+      return there is a file (getLicensesFolderLocation()  & "/hyperxtalk-community-" & pVersion & "-" & pBuildNumber & ".lclk")
    else
-      return there is a file (getLicensesFolderLocation()  & "/livecode-" & pVersion & "-" & pBuildNumber & ".lclk")
+      return there is a file (getLicensesFolderLocation()  & "/hyperxtalk-" & pVersion & "-" & pBuildNumber & ".lclk")
    end if
 end getVersionInstalled
 
@@ -781,7 +781,7 @@ private function getPreferencesStackLocation
          break
    end switch
    
-   put tLiveCodePrefsRoot & "/livecode.rev" into tLiveCodePre7Prefs
+   put tLiveCodePrefsRoot & "/hyperxtalk.rev" into tLiveCodePre7Prefs
    put tLiveCodePrefsRoot & "/livecode7.rev" into tLiveCodePost7Prefs
    
    if the char 1 of the version < 7 then

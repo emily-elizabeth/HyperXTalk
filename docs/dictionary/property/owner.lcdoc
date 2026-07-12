@@ -48,11 +48,6 @@ The <owner> of a <card control> is the <card> it resides on.
 The <owner> of an <audio clip> or <video clip> is the <stack> it resides
 in. 
 
-Changes:
-The ability to specify the long owner, short owner, and abbreviated
-owner forms was introduced in version 2.0. In previous versions, the
-abbreviated owner form was always used.
-
 References: group (command), exists (function), object (glossary),
 property (glossary), audio clip (glossary), main stack (glossary),
 object hierarchy (glossary), substack (glossary), card control (glossary),

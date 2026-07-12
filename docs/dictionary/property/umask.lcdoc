@@ -10,7 +10,7 @@ by the <application>.
 
 Introduced: 1.0.0
 
-OS: linux, mac
+OS: mac, linux
 
 Platforms: desktop, server
 
@@ -58,7 +58,7 @@ creates a file, the file owner has all the normal permissions, but the
 group and all other users do not have write permission (even if it
 would normally create the file so as to give them write permission).
 
-On Mac OS Classic and Windows systems, the <umask> <property> has no
+On Windows systems, the <umask> <property> has no
 effect and always reports zero.
 
 >*Tip:* You will almost always want to set the <convertOctals> to true

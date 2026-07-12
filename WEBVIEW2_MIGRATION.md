@@ -35,7 +35,7 @@ The package provides:
 
 ## Step 2 — Update `libbrowser` vcxproj
 
-File: `build-win-x86_64\livecode\libbrowser\libbrowser.vcxproj` (or equivalent)
+File: `build-win-x86_64\hyperxtalk\libbrowser\libbrowser.vcxproj` (or equivalent)
 
 **Add to `AdditionalIncludeDirectories`:**
 ```
@@ -73,7 +73,7 @@ $(SolutionDir)packages\Microsoft.Web.WebView2.1.0.3240.44\build\native\x64
 
 ## Step 3 — Update `engine` vcxproj
 
-File: `build-win-x86_64\livecode\engine\development.vcxproj` (or kernel.vcxproj)
+File: `build-win-x86_64\hyperxtalk\engine\development.vcxproj` (or kernel.vcxproj)
 
 **Replace the CEF native layer with the WebView2 one:**
 

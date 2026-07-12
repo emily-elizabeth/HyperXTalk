@@ -18,19 +18,19 @@ private function engineBuilderLinuxVMPath
 end engineBuilderLinuxVMPath
 
 private function engineBuilderLinuxVMRepoPath
-   return "/host/Workspace/livecode/builds/livecode"
+   return "/host/Workspace/hyperxtalk/builds/hyperxtalk"
 end engineBuilderLinuxVMRepoPath
 
 private function engineBuilderLinuxVMCommercialPath
-   return "/host/Workspace/livecode/builds/livecode-commercial"
+   return "/host/Workspace/hyperxtalk/builds/hyperxtalk-commercial"
 end engineBuilderLinuxVMCommercialPath
 
 private function engineBuilderWindowsVMCommercialPath
-   return "C:/Workspace/livecode"
+   return "C:/Workspace/hyperxtalk"
 end engineBuilderWindowsVMCommercialPath
 
 private function engineBuilderWindowsVMRepoPath
-   return "C:/Workspace/livecode-commercial"
+   return "C:/Workspace/hyperxtalk-commercial"
 end engineBuilderWindowsVMRepoPath
 
 private function engineBuilderLogFolder

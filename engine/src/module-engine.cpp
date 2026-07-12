@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+ 
+ This file is part of LiveCode.
+ 
+ LiveCode is free software; you can redistribute it and/or modify it under
+ the terms of the GNU General Public License v3 as published by the Free
+ Software Foundation.
+ 
+ LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "prefix.h"
@@ -1129,47 +1145,41 @@ __MCEngineDescribeScriptOfScriptObject_HandlerCallback(void *p_context,
     if (p_include_all)
     {
         MCAutoProperListRef t_global_names;
-        if (!p_handler->getglobalnames_as_properlist(&t_global_names))
+        if (p_handler->getglobalnames_as_properlist(&t_global_names))
         {
-            return false;
+            if (!MCArrayStoreValue(*t_entry,
+                                   false,
+                                   MCNAME("globals"),
+                                   *t_global_names))
+            {
+                return false;
+            }
         }
-        
-        if (!MCArrayStoreValue(*t_entry,
-                               false,
-                               MCNAME("globals"),
-                               *t_global_names))
-        {
-            return false;
-        }
-        
+
         MCAutoProperListRef t_variable_names;
-        if (!p_handler->getvariablenames_as_properlist(&t_variable_names))
+        if (p_handler->getvariablenames_as_properlist(&t_variable_names))
         {
-            return false;
+            if (!MCArrayStoreValue(*t_entry,
+                                   false,
+                                   MCNAME("locals"),
+                                   *t_variable_names))
+            {
+                return false;
+            }
         }
-        
-        if (!MCArrayStoreValue(*t_entry,
-                               false,
-                               MCNAME("locals"),
-                               *t_variable_names))
-        {
-            return false;
-        }
-        
+
         MCAutoProperListRef t_constant_names;
-        if (!p_handler->getconstantnames_as_properlist(&t_constant_names))
+        if (p_handler->getconstantnames_as_properlist(&t_constant_names))
         {
-            return false;
+            if (!MCArrayStoreValue(*t_entry,
+                                   false,
+                                   MCNAME("constants"),
+                                   *t_constant_names))
+            {
+                return false;
+            }
         }
-        
-        if (!MCArrayStoreValue(*t_entry,
-                               false,
-                               MCNAME("constants"),
-                               *t_constant_names))
-        {
-            return false;
-        }
-        
+
     }
     
     if (!MCArrayStoreValue(t_array,

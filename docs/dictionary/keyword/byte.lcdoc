@@ -35,12 +35,6 @@ The hierarchy of the new and altered chunk types is as follows:
 
 byte w of codeunit x of codepoint y of char z of word ...
 
->*Note:*  In versions prior to 7.0 the byte chunk was identical in
-> functionality to the character chunk. For backwards compatibility the
-> byte chunk returns the corresponding native character from Unicode
-> text, or a "?" if nor reperesentable, but this behavior is deprecated
-> and should not be used in new code.
-
 References: chunk expression (glossary), keyword (glossary),
 container (glossary), characters (keyword), codepoint (keyword),
 codeunits (keyword), character (keyword), codepoints (keyword),

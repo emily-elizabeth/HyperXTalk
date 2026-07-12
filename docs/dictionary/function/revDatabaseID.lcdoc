@@ -1,7 +1,5 @@
 Name: revDatabaseID
 
-Synonyms: revdb_cursorconnection
-
 Type: function
 
 Syntax: revDatabaseID(<recordSetID>)
@@ -54,9 +52,6 @@ finished with it.
 > <Standalone Application Settings> window, make sure both the 
 > "Database" library checkbox and those of the database drivers you are 
 > using are checked.
-
-Changes:
-The revDatabaseID synonym was added in version 2.0.
 
 References: revCloseDatabase (command), function (control structure),
 revOpenDatabase (function), Standalone Application Settings (glossary),

@@ -39,11 +39,6 @@ To show which text in a field is grouped, it is underlined and displayed
 in the color specified by the <linkColor> <property>. Use the <hide
 groups> <command> to hide the underline.
 
-Changes:
-The link keyword was introduced in version 1.1. In previous versions,
-the group synonym was used, and grouped text could be optionally
-displayed with a heavy gray underline.
-
 References: show groups (command), hide groups (command),
 clickChunk (function), mouseChunk (function), clickText (function),
 mouseText (function), property (glossary), keyword (glossary),

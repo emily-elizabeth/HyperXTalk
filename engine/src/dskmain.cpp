@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -282,7 +298,7 @@ bool X_init(const X_init_options& p_options)
 		{
             MCAutoPointer<char> t_MCN_version;
             /* UNCHECKED */ MCStringConvertToCString(MCNameGetString(MCN_version_string), &t_MCN_version);
-			fprintf(stderr, "LiveCode %s Copyright 2003-2015 LiveCode Ltd\n\
+			fprintf(stderr, "HyperXTalk %s Copyright 2026 HyperXTalk\n\
 			        Usage: %s [-d[isplay] displayname] \n\
 			        [-f[iles] (disable access to files and processes)\n\
 			        [-g[eometry] ={+-}<xoffset>{+-}<yoffset>]\n\
@@ -341,7 +357,7 @@ bool X_main_loop_iteration()
 	{
 #if defined(_MAC_DESKTOP)
         {
-            FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+            FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
             if (f) {
                 fprintf(f, "X_main_loop_iteration: quit condition met (iconic=%d hasmsg=%d stacksempty=%d sockets=%d)\n",
                         (int)MCiconicstacks, (int)MCscreen->hasmessages(),

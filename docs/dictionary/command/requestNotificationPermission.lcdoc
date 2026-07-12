@@ -34,7 +34,7 @@ end notificationPermissionDenied
 
 Description:
 On platforms that require explicit user consent before displaying
-notifications (macOS 10.14+, iOS 10+, Android 13+), call
+notifications (macOS 10.14+), call
 <requestNotificationPermission> to trigger the system permission dialog.
 
 The request is handled asynchronously. When the user responds to the

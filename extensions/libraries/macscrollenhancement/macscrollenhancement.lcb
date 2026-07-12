@@ -1,0 +1,142 @@
+/**
+Title: macOS Scroll Enhancement
+Type: library
+OS: mac
+Platforms: desktop
+Summary: Adds smooth per-pixel trackpad scrolling to LiveCode stack windows.
+
+Description:
+The LiveCode engine quantises trackpad scroll events into whole lines, causing
+even small swipes to jump dozens of lines. This library installs a Cocoa
+NSEvent local monitor that intercepts all trackpad scroll events (both the
+active-touch phase and the inertial momentum phase) before the engine sees
+them, accumulates the raw pixel delta (scrollingDeltaY), and makes it available
+for LiveCode Script to apply directly to the target field's vScroll on a 16 ms
+timer. Physical scroll wheels are passed through unchanged.
+
+Setup (call once when the script editor opens):
+   macScrollEnhancementInstall the windowId of stack "revscripteditor"
+
+Teardown (call when the editor closes):
+   macScrollEnhancementRemove
+
+Poll (called every 16 ms by a LiveCode Script timer — see the companion
+livecodescript library):
+   put macScrollEnhancementGetDelta() into tDelta
+   -- tDelta is pixels to add to vScroll (positive = scroll down)
+
+*/
+
+library com.hyperxtalk.library.macscrollenhancement
+
+metadata version  is "1.0.0"
+metadata author   is "HyperXTalk"
+metadata title    is "macOS Scroll Enhancement"
+metadata platform is "mac"
+
+use com.livecode.foreign
+use com.livecode.objc
+
+-- ---------------------------------------------------------------------------
+-- C glue bindings
+-- ---------------------------------------------------------------------------
+
+private foreign handler SEInstallMonitor(in pWindowId as CLong) \
+    returns nothing \
+    binds to "c:scrollenhancement_glue>SEInstallMonitor"
+
+private foreign handler SEGetAndClearMomentumDelta() \
+    returns CDouble \
+    binds to "c:scrollenhancement_glue>SEGetAndClearMomentumDelta"
+
+private foreign handler SEGetAndClearDeltaX() \
+    returns CDouble \
+    binds to "c:scrollenhancement_glue>SEGetAndClearDeltaX"
+
+private foreign handler SERemoveMonitor() \
+    returns nothing \
+    binds to "c:scrollenhancement_glue>SERemoveMonitor"
+
+-- SESetScrollRectStr takes a LiveCode rect string "left,top,right,bottom" and
+-- parses it in C using sscanf. Single ZStringNative parameter — no multi-param
+-- or type-coercion issues on the LiveCode Script→LCB boundary.
+private foreign handler SESetScrollRectStr(in pStr as ZStringNative) \
+    returns nothing \
+    binds to "c:scrollenhancement_glue>SESetScrollRectStr"
+
+-- ---------------------------------------------------------------------------
+-- Public API
+-- ---------------------------------------------------------------------------
+
+/**
+Summary: Start intercepting trackpad scroll events.
+
+Parameters:
+pWindowId: The windowId of the stack to enhance. Currently accepted for API
+compatibility — the monitor intercepts all precise trackpad scroll events
+application-wide while installed.
+
+Example:
+   macScrollEnhancementInstall the windowId of stack "revscripteditor"
+*/
+public unsafe handler macScrollEnhancementInstall(in pWindowId as Integer) returns nothing
+    SEInstallMonitor(pWindowId)
+end handler
+
+/**
+Summary: Return the accumulated vertical scroll delta and reset the accumulator.
+
+Returns:
+A real number — the pixel distance to add to vScroll since the last call.
+Positive = scroll down, negative = scroll up. Returns 0.0 when idle.
+*/
+public unsafe handler macScrollEnhancementGetDelta() returns Real
+    return SEGetAndClearMomentumDelta()
+end handler
+
+/**
+Summary: Return the accumulated horizontal scroll delta and reset the accumulator.
+
+Returns:
+A real number — the pixel distance to add to hScroll since the last call.
+Positive = scroll right, negative = scroll left. Returns 0.0 when idle.
+*/
+public unsafe handler macScrollEnhancementGetDeltaX() returns Real
+    return SEGetAndClearDeltaX()
+end handler
+
+/**
+Summary: Restrict scroll interception to the Script field's area.
+
+Parameters:
+pRect: The rect of the Script field as a LiveCode rect string "left,top,right,bottom".
+       Pass the result of `the rect of field "Script"` directly — no conversion needed.
+
+Description:
+Parsed in C via sscanf. The monitor converts [NSEvent mouseLocation] to
+LiveCode screen coordinates internally and only consumes events within this rect.
+Events outside (handler list etc.) are passed through to the engine unchanged.
+Returns true so it can be called as a function: get macScrollEnhancementSetScrollRect(tRect)
+
+Example:
+   get macScrollEnhancementSetScrollRect(the rect of field "Script" of stack "editor")
+*/
+public unsafe handler macScrollEnhancementSetScrollRect(in pRect as String) returns Boolean
+    SESetScrollRectStr(pRect)
+    return true
+end handler
+
+/**
+Summary: Stop intercepting scroll events.
+
+Description:
+Removes the NSEvent monitor and resets the delta accumulator and scroll rect.
+
+Example:
+   macScrollEnhancementRemove
+*/
+public unsafe handler macScrollEnhancementRemove() returns nothing
+    SERemoveMonitor()
+end handler
+
+end library

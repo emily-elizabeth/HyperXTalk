@@ -1,6 +1,6 @@
 {
 	'variables':
 	{
-		'python%': [ 'python' ],
+		'python%': [ 'python3' ],
 	},
 }

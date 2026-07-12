@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -551,9 +567,25 @@ static int MCA_do_file_dialog(MCStringRef p_title, MCStringRef p_prompt, MCStrin
 			t_hresult = s_shcreateitemfromparsingname(*t_initial_folder_wstr, NULL, __uuidof(IShellItem), (LPVOID *)&t_initial_folder_shellitem);
 			if (SUCCEEDED(t_hresult))
 				t_file_dialog -> SetFolder(t_initial_folder_shellitem);
+			else
+			{
+				// The persisted folder path is no longer accessible (e.g. a
+				// removed USB drive or deleted folder).  Delete the stale registry
+				// entry so the next dialog falls back to Documents instead of
+				// failing silently again.
+				HKEY t_stale_key;
+				if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\HyperXTalk\\FileDialog",
+				                  0, KEY_WRITE, &t_stale_key) == ERROR_SUCCESS)
+				{
+					RegDeleteValueW(t_stale_key, L"LastFolder");
+					RegCloseKey(t_stale_key);
+				}
+			}
 			if (t_initial_folder_shellitem != NULL)
 				t_initial_folder_shellitem -> Release();
-			t_succeeded = SUCCEEDED(t_hresult);
+			// Setting the initial folder is best-effort: do NOT propagate failure
+			// to t_succeeded.  The dialog must still be shown even if the saved
+			// folder path is gone.
 		}
 
 		if (t_succeeded && *t_initial_file != NULL)

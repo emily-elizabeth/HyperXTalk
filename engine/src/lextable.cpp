@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -391,6 +407,7 @@ const LT command_table[] =
         {"read", TT_STATEMENT, S_READ},
         {"record", TT_STATEMENT, S_RECORD},
         {"redo", TT_STATEMENT, S_REDO},
+        {"registerhotkey", TT_STATEMENT, S_REGISTER_HOTKEY},
 		{"relayer", TT_STATEMENT, S_RELAYER},
         {"release", TT_STATEMENT, S_STOP},
         {"remove", TT_STATEMENT, S_REMOVE},
@@ -441,6 +458,9 @@ const LT command_table[] =
         {"unload", TT_STATEMENT, S_UNLOAD},
         {"unlock", TT_STATEMENT, S_UNLOCK},
         {"unmark", TT_STATEMENT, S_UNMARK},
+        {"unregisterallhotkeys", TT_STATEMENT, S_UNREGISTER_ALL_HOTKEYS},
+        {"unregisterhotkey", TT_STATEMENT, S_UNREGISTER_HOTKEY},
+        {"validateField", TT_STATEMENT, S_VALIDATE_FIELD},
         {"visual", TT_STATEMENT, S_VISUAL},
         {"wait", TT_STATEMENT, S_WAIT},
         {"write", TT_STATEMENT, S_WRITE}
@@ -1079,6 +1099,8 @@ const LT factor_table[] =
 		{"httpproxyforurl", TT_FUNCTION, F_HTTP_PROXY_FOR_URL},
         {"icon", TT_PROPERTY, P_ICON},
         // MW-2014-06-19: [[ IconGravity ]] Button 'iconGravity' property.
+        {"icondataforextension", TT_FUNCTION, F_ICON_DATA_FOR_EXTENSION},
+        {"icondataforfile", TT_FUNCTION, F_ICON_DATA_FOR_FILE},
         {"icongravity", TT_PROPERTY, P_ICON_GRAVITY},
         {"iconic", TT_PROPERTY, P_ICONIC},
 		{"iconmenu", TT_PROPERTY, P_ICON_MENU},
@@ -1101,6 +1123,12 @@ const LT factor_table[] =
         {"ink", TT_PROPERTY, P_INK},
 		{"innerglow", TT_PROPERTY, P_BITMAP_EFFECT_INNER_GLOW},
 		{"innershadow", TT_PROPERTY, P_BITMAP_EFFECT_INNER_SHADOW},
+        {"inputMax", TT_PROPERTY, P_INPUT_MAX},
+        {"inputMin", TT_PROPERTY, P_INPUT_MIN},
+        {"inputPattern", TT_PROPERTY, P_INPUT_PATTERN},
+        {"inputRequired", TT_PROPERTY, P_INPUT_REQUIRED},
+        {"inputStep", TT_PROPERTY, P_INPUT_STEP},
+        {"inputType", TT_PROPERTY, P_INPUT_TYPE},
         {"internet", TT_PROPERTY, P_INTERNET},
         {"interrupt", TT_FUNCTION, F_INTERRUPT},
         {"intersect", TT_FUNCTION, F_INTERSECT},

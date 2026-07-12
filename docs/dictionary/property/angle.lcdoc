@@ -67,10 +67,6 @@ graphic's rectangle, 12 o'clock.
 >*Note:* For an oval, the <angle> is the same as the <startAngle>.
 > Changing one changes the other.
 
-Changes:
-The ability to set the angle of an image was introduced in version 2.0.
-In previous versions, the angle property applied only to graphics.
-
 References: rotate (command), revRotatePoly (command),
 property (glossary), referenced control (glossary), image (glossary),
 command (glossary), regular polygon (glossary), image (keyword),

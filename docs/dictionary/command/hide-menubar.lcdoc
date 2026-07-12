@@ -24,8 +24,7 @@ Use the <hide menubar> <command> to use the full screen. For example, in
 a kiosk or multimedia application, the <menu bar> is a distraction for
 users and in this case you may prefer to hide it.
 
-The menu bar can be hidden only on Mac OS and OS X systems. On OS X
-systems, the <hide menubar> <command> also hides the Dock. This
+The menu bar can be hidden only on macOS systems. The <hide menubar> <command> also hides the Dock. This
 <command> has no effect on <Windows> or <Unix|Unix systems>.
 
 Hiding the menu bar does not affect its appearance in other

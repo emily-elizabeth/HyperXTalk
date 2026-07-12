@@ -1,0 +1,70 @@
+Name: fieldValidationFailed
+
+Type: message
+
+Syntax: fieldValidationFailed <fieldName>, <errorMessage>
+
+Summary:
+Sent to a field when the user attempts to leave it and the field's content
+fails its input validation constraints.
+
+Associations: field
+
+Introduced: 1.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+on fieldValidationFailed pFieldName, pError
+    set the borderColor of field pFieldName to "red"
+    put pError into field "ErrorLabel"
+end fieldValidationFailed
+
+Example:
+-- Show an inline error and keep the field focused
+on fieldValidationFailed pFieldName, pError
+    set the borderColor of field pFieldName to "red"
+    show field (pFieldName & "Error")
+    put pError into field (pFieldName & "Error")
+end fieldValidationFailed
+
+Parameters:
+fieldName (string):
+The name of the field that failed validation.
+
+errorMessage (string):
+A human-readable description of why the value is invalid (for example,
+"Please enter a valid email address." or "Value must be at least 18.").
+
+Description:
+The <fieldValidationFailed> message is sent to a field instead of
+<closeField> when the field's content does not satisfy one or more of its
+input constraints (<inputRequired>, <inputType>, <inputMin>, <inputMax>,
+<inputStep>, or <inputPattern>).
+
+When <fieldValidationFailed> is sent, the field retains focus so the user
+can correct the value without having to click back into the field. The
+<closeField> message is suppressed for this edit cycle.
+
+Handle <fieldValidationFailed> to provide visual feedback — for example,
+highlighting the field border in red, showing an error label, or playing
+a beep.
+
+>*Note:* <fieldValidationFailed> is only sent for user-initiated edits,
+> matching the same conditions under which <closeField> would fire. It is
+> not sent when a field's value is changed programmatically via <put>.
+
+>*Note:* To validate a field's value without waiting for the user to leave
+> it, use the <validateField> command, which sets <the result> to the error
+> message rather than sending a message.
+
+References: inputType (property), inputRequired (property),
+inputMin (property), inputMax (property), inputStep (property),
+inputPattern (property), validateField (command),
+closeField (message), exitField (message), put (command),
+the result (function)
+
+Tags: ui, validation
+

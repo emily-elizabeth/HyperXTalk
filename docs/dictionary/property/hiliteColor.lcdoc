@@ -112,12 +112,6 @@ The global <hiliteColor> <property> specifies the background color of
 empty, but does not affect other <highlight|highlighted>
 <object|objects>. 
 
-Changes:
-The ability of an object to inherit its hiliteColor from the object's
-owner was introduced in version 1.1. In previous versions, if an
-object's hiliteColor was empty, the setting of the global hiliteColor
-property was used instead.
-
 References: global (command), group (command), object (glossary),
 selection (glossary), property (glossary), select (glossary), 
 tabbed button (glossary), highlight (glossary), object type (glossary), 

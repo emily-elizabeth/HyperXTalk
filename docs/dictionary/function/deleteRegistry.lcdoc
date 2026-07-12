@@ -38,7 +38,7 @@ application has previously installed.
 >*Tip:*  To delete a subkey, use the <setRegistry> <function> to set the
 > subkey's value to empty.
 
-On Mac OS and Unix systems, the <deleteRegistry> <function>
+On macOS and Unix systems, the <deleteRegistry> <function>
 <return|returns> "not supported".
 
 >*Warning:*  Be careful to use only carefully debugged entries with the

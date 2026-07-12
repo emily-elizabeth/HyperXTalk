@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
 
-<dictionary title="LiveCode Terminology" xmlns:xi="http://www.w3.org/2003/XInclude">
+<dictionary title="HyperXTalk Terminology" xmlns:xi="http://www.w3.org/2003/XInclude">
   <xi:include href="file:///System/Library/ScriptingDefinitions/CocoaStandard.sdef" xpointer="xpointer(/dictionary/suite)"/>
-  <suite name="LiveCode Miscellaneous Commands" code="REVO" description="Miscellaneous commands">
-    <command name="do script" code="miscdosc" description="Execute LiveCode script">
+  <suite name="HyperXTalk Miscellaneous Commands" code="REVO" description="Miscellaneous commands">
+    <command name="do script" code="miscdosc" description="Execute HyperXTalk script">
       <direct-parameter type="string" description="Script to execute" />
       <result type="string" description="Return value" />
     </command>
-    <command name="evaluate" code="misceval" description="Evaluate LiveCode expression">
+    <command name="evaluate" code="misceval" description="Evaluate HyperXTalk expression">
       <direct-parameter type="string" description="Exprerssion to evaluate" />
       <result type="string" description="Value of expression" />
     </command>

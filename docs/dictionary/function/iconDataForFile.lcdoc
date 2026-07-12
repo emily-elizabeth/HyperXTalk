@@ -1,0 +1,60 @@
+Name: iconDataForFile
+
+Type: function
+
+Syntax: iconDataForFile(<filePath> [, <size>])
+
+Summary:
+Returns the system icon for a file as PNG image data.
+
+Introduced: 0.9
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Security: disk
+
+Example:
+-- Display the icon of a file in an image control
+put iconDataForFile("/Users/alice/Documents/report.pdf") into image "fileIcon"
+
+Example:
+-- Retrieve a larger icon
+put iconDataForFile(tPath, 128) into tIconData
+if the result is not empty then
+   answer "Could not get icon:" && the result
+end if
+
+Parameters:
+filePath (String):
+The full path to the file whose icon you want to retrieve.
+
+size (Integer):
+The width and height in pixels of the icon to retrieve. Defaults to 32.
+Common values are 16, 32, 64, 128, and 256, though available sizes
+depend on the platform and file type.
+
+Returns (Data):
+The raw PNG-encoded bytes of the file's icon at the requested size,
+suitable for placing directly into an image control.
+
+Description:
+<iconDataForFile> asks the operating system for the icon associated with
+the file at <filePath> and returns it as raw PNG data.
+
+The returned data can be placed directly into an image object:
+
+    put iconDataForFile(tPath) into image "myIcon"
+
+If the icon cannot be retrieved — for example, because the file does not
+exist or the platform cannot resolve an icon — the function returns empty
+and sets <the result> to an error string.
+
+The <size> parameter requests a specific pixel dimension. The OS will
+supply the closest available size; the returned image is always square.
+
+References: iconDataForExtension (function), the result (function),
+files (function)
+
+Tags: file system, images

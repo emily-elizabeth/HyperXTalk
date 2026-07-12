@@ -101,7 +101,7 @@ of the <file(keyword)> without replacing its current contents.
 
 If you do not specify a form, the file is opened for update.
 
-On Mac OS and OS X systems, if the file does not already exist (so that
+On macOS systems, if the file does not already exist (so that
 the <open file> <command> creates it), the new <file(glossary)|file's>
 <creator signature> and <type signature|file type> are set to the values
 in the <fileType> <property>.
@@ -130,29 +130,6 @@ settings.
 > <write to file commands(command)>, you can also use the <URL> <keyword>
 > with <get>, <put>, and other <command|commands> to access the contents
 > of a <file(keyword)>.
-
->*Note:* iOS imposes strict controls over what you can and cannot
-> access. Each application in iOS is stored in its own 'sandbox' folder
-> (referred to as the home folder). An application is free to read and
-> write files within this folder and its descendants, but it is not
-> allowed to access anything outside of the 'sandbox'.
-
->*Note:* An Android application is installed on the phone in the form of
-> its zip package. This means that any assets that are included are not
-> available as discrete files in the native filesystem. In order to
-> manage this the engine essentially 'virtualizes' the asset files you
-> include, allowing (read-only) manipulation with all the standard
-> HyperXTalk file and folder handling syntax.
-
-Changes:
-From 7.0, it's possible to specify an encoding for the file being
-opened. By doing so, you can straight read or write to a file without
-having to call <textEncode> or <textDecode>; the encoding supported by
-open file are the same as these text encoding functions. If no encoding
-is provided, then <open file> tries to read a Byte Order Mark (BOM) exists 
-at the beginning of the file. In success, the encoding is adapted and the
-BOM is ignored.
-
 
 References: write to file (command), open file (command), put (command),
 constant (command), read from file (command), get (command),

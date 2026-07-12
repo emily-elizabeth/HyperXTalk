@@ -59,10 +59,6 @@ triggered by the <currentTimeChanged> <message>, so <trap|trapping> the
 <message> and not allowing it to <pass> does not prevent the user from
 changing the <player(object)|player's> current time manually.
 
-Changes:
-The <pNewTime> parameter was introduced in version 2.0. In previous
-versions, the <currentTimeChanged> message did not have a parameter.
-
 References: pass (control structure), property (glossary),
 player (glossary), message (glossary), frame (glossary), trap (glossary),
 player (keyword), playStarted (message), playPaused (message),

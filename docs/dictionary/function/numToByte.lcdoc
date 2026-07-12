@@ -37,7 +37,7 @@ can't be displayed.
 The <numToByte> function is the inverse of the <byteToNum> function.
 
 References: uniEncode (function), binaryEncode (function),
-byteToNum (function), charToNum (function), base64Encode (function),
+byteToNum (function), base64Encode (function),
 macToISO (function), toUpper (function), ISOToMac (function),
 toLower (function), binaryDecode (function), extendKey (property),
 charSet (property), HTMLText (property), useUnicode (property)

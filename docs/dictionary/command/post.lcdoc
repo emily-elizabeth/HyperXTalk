@@ -92,18 +92,6 @@ password "pass", use the following <statement> :
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
 
->*Cross-platform note:* On iOS and Android, the <post> <command>
-> is implemented in the engine. Therefore the <Internet library> is not 
-> needed to ensure the <command> works in a mobile 
-> <standalone application>. If included, the <Internet library> 
-> implementation will be used instead of the engine implementation.
-> *Note:* The Android and iOS engines do not support 'libUrl' but do
-> allow you to use <post> in the background. When specifying URLs for
-> Android or iOS, you must use the appropriate form that conforms to
-> [RFC 1738](https://tools.ietf.org/html/rfc1738). Ensure that you
-> <URLEncode> any username and password fields appropriately for FTP
-> URLs.
-
 References: post (command), write to socket (command),
 delete URL (command), read from socket (command), put (command),
 libURLSetExpect100 (command), libURLSetLogField (command),

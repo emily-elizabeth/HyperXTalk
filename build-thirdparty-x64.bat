@@ -2,7 +2,7 @@
 setlocal
 
 cd /d "%~dp0"
-set BASE=build-win-x86_64\livecode\thirdparty
+set BASE=build-win-x86_64\hyperxtalk\thirdparty
 set FLAGS=/t:Rebuild /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo
 set LOGFILE=%~dp0build-thirdparty-x64.log
 set FAILED=0
@@ -32,8 +32,8 @@ if %FAILED%==0 (
     echo All thirdparty libs built successfully. Building HyperXTalk.exe...
     echo. >> "%LOGFILE%"
     echo === development.vcxproj === >> "%LOGFILE%"
-    msbuild build-win-x86_64\livecode\engine\development.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
-    msbuild build-win-x86_64\livecode\engine\development.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo
+    msbuild build-win-x86_64\hyperxtalk\engine\development.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+    msbuild build-win-x86_64\hyperxtalk\engine\development.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo
 ) else (
     echo.
     echo One or more thirdparty builds failed.

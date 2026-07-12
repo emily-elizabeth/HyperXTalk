@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 // TODO: replace the old external calls with LCB foreign interface functions
 
 #include <map>
@@ -74,7 +90,7 @@ const char* kErrNoCurrentOperation = "ziperr,no current operation";
  *
  * The old Windows prebuilt path (36-byte struct with offset remapping) has
  * been removed because Windows now also builds libzip from source via
- * build-win-x86_64/livecode/thirdparty/libzip/libzip.vcxproj.  Using the
+ * build-win-x86_64/hyperxtalk/thirdparty/libzip/libzip.vcxproj.  Using the
  * old offset remapping with the new struct caused field reads at completely
  * wrong offsets, leading to SIGSEGV when the corrupted name/size values
  * were dereferenced.

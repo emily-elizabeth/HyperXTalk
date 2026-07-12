@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+ 
+ This file is part of LiveCode.
+ 
+ LiveCode is free software; you can redistribute it and/or modify it under
+ the terms of the GNU General Public License v3 as published by the Free
+ Software Foundation.
+ 
+ LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "platform.h"
 #include "globdefs.h"
 #include "filedefs.h"
@@ -49,8 +65,13 @@ extern "C" __attribute__((weak)) void MCplatformGetLabelColor(char *, size_t) {}
 extern "C" bool MCplatformIsDarkMode(void);
 extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen);
 extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen);
+#elif defined(TARGET_PLATFORM_LINUX)
+// Real implementations provided by lnxgtktheme.cpp (GTK-based).
+extern "C" bool MCplatformIsDarkMode(void);
+extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen);
+extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen);
 #else
-// Stub fallbacks for Linux and other non-Mac, non-Windows platforms.
+// Stub fallbacks for all other platforms.
 extern "C" bool MCplatformIsDarkMode(void) { return false; }
 extern "C" void MCplatformGetWindowBackgroundColor(char *, size_t) {}
 extern "C" void MCplatformGetLabelColor(char *, size_t) {}
@@ -113,7 +134,7 @@ void MCPlatformHandleApplicationShutdownRequest(bool& r_terminate)
 {
 #if defined(_MAC_DESKTOP)
     {
-        FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+        FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
         if (f) { fprintf(f, "MCPlatformHandleApplicationShutdownRequest called\n"); fclose(f); }
     }
 #endif

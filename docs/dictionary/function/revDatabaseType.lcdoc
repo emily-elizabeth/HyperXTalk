@@ -1,7 +1,5 @@
 Name: revDatabaseType
 
-Synonyms: revdb_dbtype
-
 Type: function
 
 Syntax: revDatabaseType(<databaseID>)
@@ -40,8 +38,7 @@ was opened.
 Returns:
 The <revDatabaseType> <function> returns a string containing up to two
 items (separated by a comma) Item 1 of the string is one of the
-following values: "MySQL", "ODBC", "Oracle", "PostgresSQL", "SQLite",
-"Valentina". 
+following values: "MySQL", "ODBC", "PostgresSQL", "SQLite".
 
 Item 2 of the string is empty for all database types except ODBC. If the
 database type is ODBC then item 2 of the string contains the name of the

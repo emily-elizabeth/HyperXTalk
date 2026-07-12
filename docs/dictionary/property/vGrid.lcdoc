@@ -46,11 +46,6 @@ If the field's <tabStops> <property> is set to empty, the <vGrid> lines
 are drawn every 32 <pixels>, but the text is not truncated to individual
 cells. 
 
-Changes:
-The use of the <borderColor> to draw grid lines was introduced in
-version 2.0. In previous versions, the grid lines were drawn in the
-<hiliteColor>. 
-
 References: property (glossary), tab stop (glossary), field (keyword),
 field (object), leftIndent (property), borderWidth (property),
 textAlign (property), dontWrap (property), formattedText (property),

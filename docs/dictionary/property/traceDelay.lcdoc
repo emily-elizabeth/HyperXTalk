@@ -36,9 +36,6 @@ which can be useful when <debug|debugging> long <handler|handlers>.
 
 If the debugger is not active, this property has no effect.
 
->*Important:*  This <property> may change or be removed in future
-> releases. 
-
 References: debugDo (command), property (glossary), variable (glossary),
 handler (glossary), error (glossary), execute (glossary),
 debugger (glossary), debug (glossary), integer (keyword)

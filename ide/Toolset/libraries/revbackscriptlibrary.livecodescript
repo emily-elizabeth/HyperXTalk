@@ -1418,6 +1418,7 @@ command revEditScriptInNewWindow pObject, pSpecial
    # editor window has been opened otherwise doing the select command will throw an error and result
    # in char 1 to 0 being selected instead of what the user wants.
    send "revSESetCurrentObject pObject" to tEditor in 0 milliseconds
+   send "ApplySystemAppearanceChanged the systemAppearance, the systemWindowColor, the systemTextColor" to card "Main" of tEditor in 1 millisecond
    unlock cursor
    
    set the allowInterrupts to tOldAllowInterrupts
@@ -3343,3 +3344,4 @@ on msgChanged pHandler, pLine
       pass msgChanged
    end if
 end msgChanged
+

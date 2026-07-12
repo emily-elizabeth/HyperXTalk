@@ -21,7 +21,7 @@ Use the <reset cursors> <command> to change the set of
 <cursor(glossary)|cursors> used by HyperXTalk without restarting the
 <application>. 
 
-xTalk's built-in cursors are used whenever the <cursor> <property>
+HyperXTalk's built-in cursors are used whenever the <cursor> <property>
 has not been set to a custom <cursor(property)>. If you change the set
 of built-in <cursor(glossary)|cursors>, you must either quit and restart
 the <application> or use the <reset cursors> <command> to begin using

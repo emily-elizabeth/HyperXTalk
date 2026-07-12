@@ -199,7 +199,7 @@ function defaultAllUserLocation
       case "win32"
          return specialFolderPath("0x0026") & slash & "RunRev/" & thisProductFolder()
       case "linux"
-         return "/opt/livecode/" & thisProductFolder()
+         return "/opt/hyperxtalk/" & thisProductFolder()
       case "macos"
          return specialFolderPath("apps") & slash & thisProductFolder()
    end switch
@@ -252,11 +252,11 @@ end thisProductFolder
 function getUpdateFolderLocation
    switch the platform
       case "MacOS"
-         return specialFolderPath("home") & "/Library/Application Support/RunRev/Updates/LiveCode"
+         return specialFolderPath("home") & "/Library/Application Support/RunRev/Updates/hyperxtalk"
       case "Win32"
-         return specialFolderPath(0x001c) & "/RunRev/Updates/LiveCode"
+         return specialFolderPath(0x001c) & "/RunRev/Updates/hyperxtalk"
       case "Linux"
-         return specialFolderPath("home") & "/.runrev/updates/livecode"
+         return specialFolderPath("home") & "/.runrev/updates/hyperxtalk"
    end switch
 end getUpdateFolderLocation
 

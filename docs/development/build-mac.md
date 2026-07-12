@@ -45,16 +45,16 @@ Where `Xcode_V_V_V.app` is the latest version of Xcode that you have installed o
 
 Before proceeding to the next step, make sure to run Xcode at least once and get to the starting screen. Not doing this might break your Xcode installation and result in an error complaining that it ***could not find the default platform***
 
-After checking out the OXT git repository, you need to run a tool to finalize the Xcode setup and to make sure all of the necessary SDKs are installed.  If OXT is checked out to `~/git/livecode`, run:
+After checking out the HyperXTalk git repository, you need to run a tool to finalize the Xcode setup and to make sure all of the necessary SDKs are installed.  If OXT is checked out to `~/git/hyperxtalk`, run:
 ```
     cd /Applications/Xcode-Dev/
-    sh ~/git/livecode/tools/setup_xcode_sdks.sh
+    sh ~/git/hyperxtalk/tools/setup_xcode_sdks.sh
 ```
 If you want the setup tool to copy the required SDKs out of the Xcode
 app bundles (so that you can safely delete all but the latest Xcode to
 save disk space), you can run:
 ```
-    sh ~/git/livecode/tools/setup_xcode_sdks.sh --cache
+    sh ~/git/hyperxtalk/tools/setup_xcode_sdks.sh --cache
 ```
 ## Configuring
 

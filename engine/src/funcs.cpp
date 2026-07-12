@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -43,6 +59,7 @@
 #include "font.h"
 
 #include "exec.h"
+#include "exec-fileicon.h"
 
 #include "resolution.h"
 
@@ -845,6 +862,86 @@ void MCInsertScripts::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
     r_value . type = kMCExecValueTypeStringRef;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// MCIconDataForFile - iconDataForFile(pPath [, pSize])
+// Returns the icon for the given file as raw PNG bytes (MCDataRef).
+// pSize defaults to 32. On failure returns empty and sets the result.
+
+MCIconDataForFile::~MCIconDataForFile()
+{
+    delete path;
+    delete size;
+}
+
+Parse_stat MCIconDataForFile::parse(MCScriptPoint &sp, Boolean the)
+{
+    if (get1or2params(sp, &path, &size, the) != PS_NORMAL)
+    {
+        MCperror->add(PE_ICONDATAFORFILE_BADPARAM, sp);
+        return PS_ERROR;
+    }
+    return PS_NORMAL;
+}
+
+void MCIconDataForFile::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
+{
+    MCAutoStringRef t_path;
+    if (!ctxt.EvalExprAsStringRef(path, EE_ICONDATAFORFILE_BADPATH, &t_path))
+        return;
+
+    uinteger_t t_size;
+    if (!ctxt.EvalOptionalExprAsUInt(size, 32, EE_ICONDATAFORFILE_BADSIZE, t_size))
+        return;
+
+    MCDataRef t_data = nil;
+    MCFilesEvalIconDataForFile(ctxt, *t_path, t_size, t_data);
+    if (t_data == nil)
+        return;
+
+    r_value.dataref_value = t_data;
+    r_value.type = kMCExecValueTypeDataRef;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// MCIconDataForExtension - iconDataForExtension(pExt [, pSize])
+// Returns the icon for the given file extension as raw PNG bytes (MCDataRef).
+// pExt may include or omit the leading dot. pSize defaults to 32.
+
+MCIconDataForExtension::~MCIconDataForExtension()
+{
+    delete extension;
+    delete size;
+}
+
+Parse_stat MCIconDataForExtension::parse(MCScriptPoint &sp, Boolean the)
+{
+    if (get1or2params(sp, &extension, &size, the) != PS_NORMAL)
+    {
+        MCperror->add(PE_ICONDATAFOREXTENSION_BADPARAM, sp);
+        return PS_ERROR;
+    }
+    return PS_NORMAL;
+}
+
+void MCIconDataForExtension::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
+{
+    MCAutoStringRef t_extension;
+    if (!ctxt.EvalExprAsStringRef(extension, EE_ICONDATAFOREXTENSION_BADEXT, &t_extension))
+        return;
+
+    uinteger_t t_size;
+    if (!ctxt.EvalOptionalExprAsUInt(size, 32, EE_ICONDATAFOREXTENSION_BADSIZE, t_size))
+        return;
+
+    MCDataRef t_data = nil;
+    MCFilesEvalIconDataForExtension(ctxt, *t_extension, t_size, t_data);
+    if (t_data == nil)
+        return;
+
+    r_value.dataref_value = t_data;
+    r_value.type = kMCExecValueTypeDataRef;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // MCIff - iff(condition, trueResult, falseResult)

@@ -82,18 +82,13 @@ the <object(glossary)> is false, or the <object(glossary)> is not
 currently <focus|focused>, the effective rectangle is the same as the 
 rectangle.
 
->*Note:*As of version 6.0 the effective rect property of stacks returns 
+>*Note:* The effective rect property of stacks returns 
 > the rect of the given stack with its decorations and frame taken into 
 > account. The effective rect of a stack can also be set. Here, the
 > rect of the frame of the stack will be set appropriately before setting
 > the rect of the stack. The effective rect of a stack only returns valid
 > values if the stack is open (visible or invisible) so that a window frame
 > applicable to the OS has been created for it.
-
-Changes:
-The use of the effective keyword with the rectangle property was 
-introduced in version 1.1. In previous versions, the rectangle of the 
-defaultButton included the heavy outline.
 
 References: revChangeWindowSize (command), export snapshot (command),
 crop (command), object (glossary), property (glossary),

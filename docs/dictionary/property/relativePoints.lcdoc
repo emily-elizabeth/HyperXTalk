@@ -44,7 +44,7 @@ curve is broken into two (or more) pieces.
 If the style property of the graphic is not polygon or curve, the
 setting of its relativePoints property has no effect.
 
-6.7: The effective points and effective relativePoints of a graphic
+The effective points and effective relativePoints of a graphic
 return a polygonal representation of the shape even for shapes not
 defined by points. In particular, you can get the effective points of
 rectangle, round-rectangle and regular polygon graphics. (ovals are not

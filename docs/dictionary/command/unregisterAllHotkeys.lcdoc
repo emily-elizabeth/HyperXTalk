@@ -1,0 +1,36 @@
+Name: unregisterAllHotkeys
+
+Type: command
+
+Syntax: unregisterAllHotkeys
+
+Summary:
+Removes every system-wide keyboard shortcut registered in the current session.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- Release all hotkeys at once
+unregisterAllHotkeys
+
+Example:
+-- Typical cleanup on application exit
+on shutdownApp
+    unregisterAllHotkeys
+end shutdownApp
+
+Description:
+Use <unregisterAllHotkeys> to release every global keyboard shortcut that
+was registered with <registerHotkey> during the current engine session.
+All registered combinations become available to other applications
+immediately after this call.
+
+If no hotkeys are currently registered, the command is a no-op.
+
+References: registerHotkey (command), unregisterHotkey (command)
+
+Tags: hotkeys, keyboard

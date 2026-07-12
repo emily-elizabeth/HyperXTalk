@@ -113,13 +113,6 @@ The above <setProp> <handler> responds to changes in the
 > <handler> <trap|traps> the <call> to set the <property>, and its
 > <value> is not changed.
 
-Changes:
-In version 2.0 and later, setting a custom property (other than the one
-that the current setProp handler applies to) inside a setProp handler
-sends a setProp trigger. In previous versions, setting a custom property
-within a setProp handler never sent a setProp trigger, regardless of
-which custom property you set.
-
 References: call (command), set (command), pass (control structure),
 exit (control structure), setProp (control structure),
 propertyNames (function), paramCount (function), value (function),

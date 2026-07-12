@@ -1,7 +1,5 @@
 Name: revOpenDatabase
 
-Synonyms: revdb_connect
-
 Type: function
 
 Syntax: revOpenDatabase("mysql", <hostAddress>, <databaseName>, [<userName>],[<passWord>],[<useSSL>], [<socketAddr>], [<rwTimeout>], [<autoReconnect>])
@@ -209,8 +207,6 @@ Use the <revOpenDatabase> function to start working with a database.
 > 'SSL Encryption' from among the available 'script libraries' in the
 > standalone application settings panel.
 
-The version of SQLite has been updated to 3.34.0.
-
 The SQLite RTREE and FTS5 modules are now available.
 
 SQLite loadable extensions are now supported. To utilize loadable
@@ -247,11 +243,6 @@ only requires a minimum of 2.
     sudo add-apt-repository ppa:ubuntu-toolchain-r/test
     sudo apt-get-update
     sudo apt-get install gcc-.4.9 g++-4.9
-
-The version of the PostgreSQL library has been updated to 9.4.5.
-
-Changes:
-HyperXTalk 6.6
 
 References: revSetDatabaseDriverPath (command), revExecuteSQL (command),
 revLicenseType (function), revDatabaseID (function),

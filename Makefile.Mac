@@ -66,7 +66,7 @@ endif
 	@# Building kernel-server first and ad-hoc signing it ensures the binary
 	@# is valid before any extension script phase tries to invoke it.
 	@echo "Pre-building server-community for extension script phases..."
-	@$(XCODEBUILD) -project "build-mac/livecode/engine/kernel-server.xcodeproj" \
+	@$(XCODEBUILD) -project "build-mac$(BUILD_SUBDIR)/engine/kernel-server.xcodeproj" \
 	  -configuration $(BUILDTYPE) -target "kernel-server" \
 	  $(XCODEBUILD_FILTER) 2>/dev/null || true
 	@if [ -f "_build/mac/$(BUILDTYPE)/server-community" ]; then \
@@ -429,6 +429,7 @@ bump-revision:
 	@REV=$$(perl -ne 'print $$1 if /BUILD_REVISION\s*=\s*(\d+)/' version) && \
 	  PREV=$$REV perl -i -pe 's/(BUILD_LONG_VERSION\s*=\s*\d+\.\d+\.\d+\.)\d+/$$1.$$ENV{PREV}/e' version
 	@echo "Build revision is now $$(perl -ne 'print $$1 if /BUILD_REVISION\s*=\s*(\d+)/' version)"
+
 
 package-mac-bin:
 	@echo "=== Packaging $(MACBIN_BUNDLE) ==="

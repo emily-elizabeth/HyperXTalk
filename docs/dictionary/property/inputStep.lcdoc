@@ -1,0 +1,48 @@
+Name: inputStep
+
+Type: property
+
+Syntax: set the inputStep of <field> to <value>
+
+Summary:
+Specifies the required step interval for a field with inputType "number".
+
+Introduced: 1.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Value:
+The <inputStep> of a field is a string representing a positive number.
+The default value is empty (no step constraint enforced).
+
+Example:
+-- Whole numbers only
+set the inputType of field "Quantity" to "number"
+set the inputMin of field "Quantity" to 1
+set the inputStep of field "Quantity" to 1
+
+Example:
+-- Currency: two decimal places, starting from 0
+set the inputType of field "Price" to "number"
+set the inputMin of field "Price" to 0
+set the inputStep of field "Price" to 0.01
+
+Description:
+When <inputType> is "number" and <inputStep> is non-empty, validation
+checks that the field's value is reachable by stepping from <inputMin>
+(or 0 if <inputMin> is empty) in increments of <inputStep>.
+
+For example, with <inputMin> of 0 and <inputStep> of 5, the values 0, 5,
+10, 15, … are valid. A value of 3 would fail validation.
+
+A small floating-point tolerance (1e-9) is applied when checking
+alignment, so values like 0.1 + 0.2 do not fail spuriously.
+
+References: inputType (property), inputMin (property),
+inputMax (property), inputRequired (property), inputPattern (property),
+validateField (command), fieldValidationFailed (message)
+
+Tags: ui, validation
+

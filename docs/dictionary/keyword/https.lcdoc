@@ -140,14 +140,6 @@ scheme, see [RFC 1630](https://tools.ietf.org/html/rfc1630).
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
 
->*Cross-platform note:* On iOS and Android, you can use the <https> 
-> <keyword> without the need for the <Internet library>. When
-> specifying 
-> <URL(glossary)|URLs> for iOS and Android, you must use the
-> appropriate 
-> form that conforms to [RFC
-> 1630](https://tools.ietf.org/html/rfc1630). 
-
 References: post (command), put (command), load (command),
 group (command), delete URL (command), get (command),
 libURLSetCustomHTTPHeaders (command), function (control structure),

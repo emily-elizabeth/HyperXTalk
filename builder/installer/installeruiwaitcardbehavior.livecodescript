@@ -98,7 +98,7 @@ end fetchConflictingMac
 --
 private function fetchConflictingWindows pInstallPath
    if the environment is "installer" then
-      put "/LiveCode.exe" after pInstallPath
+      put "/HyperXTalk.exe" after pInstallPath
       replace slash with backslash in pInstallPath
       do "_internal listTasksWithModule pInstallPath"
       return item 1 of the result

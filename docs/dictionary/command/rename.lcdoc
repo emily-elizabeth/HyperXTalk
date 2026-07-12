@@ -52,7 +52,7 @@ on the same volume.
 > check the result afterwards.
 
 Changes:
-The ability to move a file or folder on Mac OS and Windows systems with
+The ability to move a file or folder on macOS and Windows systems with
 the rename command was introduced in version 1.1.1. In previous
 versions, the rename command could be used only to change the name, not
 the location.

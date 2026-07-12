@@ -162,12 +162,7 @@ titled "Well Known Port Numbers".
 > "SSL & Encryption" 
 > library checkbox is checked.
 
->*Important:* 
-On Android, when using remote sockets, internet permissions must be
-enabled. Do this by selecting the "Internet" checkbox of the
-"Application Permissions" section of the Android screen.
-
-(4.5) The open socket command no longer blocks on DNS resolution.
+The open socket command does not block on DNS resolution.
 Instead, if resolution is required the command will return immediately
 and the DNS lookup will happen in the background. If resolution fails,
 then a socketError message is sent in the same was as if connection
@@ -181,11 +176,6 @@ augmented:
 If the callback parameter is specified then the call will return
 immediately and upon completion of the lookup, the callback will be
 invoked with the resolved address as a parameter.
-
-Changes:
-(6.7) Added the "with verification for host" variant.
-
-(9.0) Added the ability to specify the local host and port.
 
 References: accept (command), post (command), wait (command),
 TCP (glossary), UDP (glossary), command (glossary), socket (glossary),

@@ -12,7 +12,7 @@ on.
 
 Introduced: 1.0.0
 
-OS: mac, windows, linux, html5
+OS: mac, windows, linux
 
 Platforms: desktop, server
 
@@ -23,7 +23,7 @@ Example:
 if the platform is "MacOS" then set the activatePalettes to true
 
 Returns (string):
-"Win32", "MacOS", "Linux", "iphone", "android", or "HTML5"
+"Win32", "MacOS", "Linux"
 
 Description:
 Use the <platform> <function> to change a <stack|stack's> <behavior> or
@@ -39,14 +39,7 @@ The possible values returned by the <platform> function are:
 
 * "Win32" on any version of Windows
 * "Linux" on all Linux distributions
-* "MacOS" on any version of Mac OS X
-* "iphone" on iPhones, iPads and other iOS devices
-* "android" on smartphones, tablets and other Android devices
-* "HTML5" when running in a web browser
-
-
-Changes:
-Support for HTML5 was added in version 8.0.0.
+* "MacOS" on any version of macOS
 
 References: function (control structure), systemVersion (function),
 buildNumber (function), deleteRegistry (function), processor (function),

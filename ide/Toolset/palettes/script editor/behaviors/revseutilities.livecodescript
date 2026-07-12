@@ -573,6 +573,10 @@ command sePrefGetDefaults
    put 500 into tPrefs["editor,paneupdatedelay"]
    put "false" into tPrefs["editor,findvisible"]
    put "0,200,0" into tPrefs["editor,findcolor"]
+   -- HXT: Separate default for dark mode where bright green makes text hard to read.
+   -- Uses a muted steel blue (à la VS Code dark) so light-coloured syntax tokens
+   -- remain legible against the highlight background.
+   put "38,79,120" into tPrefs["editor,darkFindColor"]
    put empty into tPrefs["editor,font"]
    put 12 into tPrefs["editor,fontsize"]
    put true into tPrefs["editor,autoformat"]

@@ -47,19 +47,6 @@ effect.
 Showing a group shows all the controls in the group whose visible
 <property> is true.
 
-Changes:
-The ability to use QuickTime special effects was introduced in version
-1.1. In previous versions, only the built-in visual effects listed under
-the visual effect command were available.
-
-The use of <QuickTime> was deprecated in version 8.1 with
-new defaults for <dontUseQT> and <dontUseQTEffects> as true on all
-systems apart from pre OS X 10.8. The Windows build no
-longer supports any <QuickTime> features and setting the <dontUseQT> and
-<dontUseQTEffects> will have no effect. Additionally <QuickTime> does 
-not include 64 bit support and therefore can not be supported on OS X 64
-bit builds.
-
 References: hide (command), answer effect (command),
 show groups (command), show cards (command), show taskbar (command),
 visual effect (command), object (glossary), command (glossary), 

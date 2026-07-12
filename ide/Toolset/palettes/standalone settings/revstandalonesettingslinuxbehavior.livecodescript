@@ -3,11 +3,12 @@ on preOpenCard
    local tStandaloneSettingsA
    put getSettings() into tStandaloneSettingsA
    
-   -- MW-2013-11-06: [[ LinuxX64 ]] For now, only show the x64 button if we have
-   --    and engine to build for (this is only until we integrate 64-bit linux builds
-   --    into production builds).
+   -- Only show a Linux target button if we actually have an engine for it.
+   -- In dev mode revEngineCheck() always returns true; in installed/AppImage
+   -- mode it checks for the engine binary in Runtime/Linux/<arch>/Standalone.
+   set the visible of button "Linux" to revEngineCheck("Linux")
    set the visible of button "Linux x64" to revEngineCheck("Linux x64")
-   
+
    -- FG-2014-08-19: [[ RPi ]] Don't show the ARMv6 checkbox if the engine isn't present
    set the visible of button "Linux ARMv6-HF" to revEngineCheck("Linux armv6-hf")
    

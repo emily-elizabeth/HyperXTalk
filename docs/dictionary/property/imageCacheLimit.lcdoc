@@ -24,9 +24,8 @@ get the imageCacheLimit
 
 Description:
 Use the <imageCacheLimit> to specify how much memory should be used to
-cache all decompressed image data. The default limit for mobile devices
-is 67108864 byte (64 MB) and 268435456 byte (256 MB) for all other
-platforms. 
+cache all decompressed image data. The default limit for all platforms
+is 268435456 byte (256 MB).
 
 In the event of running out or memory, the image cache operates a
 least-recently-used policy. This means that if an image needs to be

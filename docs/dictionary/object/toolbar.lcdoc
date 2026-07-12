@@ -76,7 +76,7 @@ The message bubbles up the message path in the normal way.
 Toolbars are first-class objects in the HyperXTalk object hierarchy. They
 are saved with the stack file, including all item names, labels, tooltips,
 icon name strings, enabled states, and styles. Icon images that reference
-stack MCImage objects are resolved by name each time the stack is opened,
+stack image objects are resolved by name each time the stack is opened,
 so the image data does not need to be stored separately.
 
 References: toolbarVisible (property), displayMode (property),

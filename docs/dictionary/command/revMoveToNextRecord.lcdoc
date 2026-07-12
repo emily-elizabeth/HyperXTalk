@@ -53,12 +53,11 @@ selected set of <record|records>.
 
 References: revMoveToFirstRecord (command), revMoveToRecord (command),
 revMoveToPreviousRecord (command), revMoveToLastRecord (command),
-function (control structure), revdb_movefirst (function),
-revdb_movelast (function), revCurrentRecordIsFirst (function),
-revQueryIsAtEnd (function), revdb_moveprev (function),
+function (control structure), revCurrentRecordIsFirst (function),
+revQueryIsAtEnd (function), 
 revCurrentRecord (function), revCurrentRecordIsLast (function),
 revNumberOfRecords (function), revDatabaseColumnNumbered (function),
-revdb_movenext (function), Standalone Application Settings (glossary),
+Standalone Application Settings (glossary),
 record (glossary), command (glossary), record set (glossary),
 standalone application (glossary), database (glossary),
 HyperXTalk custom library (glossary), Database library (library)

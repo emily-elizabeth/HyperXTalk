@@ -1,7 +1,5 @@
 Name: revDatabaseCursors
 
-Synonyms: revdb_cursors
-
 Type: function
 
 Syntax: revDatabaseCursors(<databaseID>)
@@ -54,9 +52,6 @@ The record set IDs returned are those opened by the specified
 > <Standalone Application Settings> window, make sure both the 
 > "Database" library checkbox and those of the database drivers you are 
 > using are checked.
-
-Changes:
-The revDatabaseCursors synonym was added in version 2.0.
 
 References: revCloseCursor (command), function (control structure),
 Standalone Application Settings (glossary), database (glossary),

@@ -1,7 +1,5 @@
 Name: revNumberOfRecords
 
-Synonyms: revdb_recordcount
-
 Type: function
 
 Syntax: revNumberOfRecords(<recordSetID>)

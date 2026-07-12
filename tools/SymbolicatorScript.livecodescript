@@ -419,9 +419,11 @@ end doDumpArray
 
 -- Returns the path to the symbol file for the given version tag and edition
 private function pathToSymbolFileForVersion pSymbolDir, pEdition
-   local tEditionCanonical
-   put toUpper(char 1 of pEdition) & toLower(char 2 to -1 of pEdition) into tEditionCanonical
-   return pSymbolDir & "/LiveCode-" & tEditionCanonical & ".app"
+   -- HXT
+   --local tEditionCanonical
+   --put toUpper(char 1 of pEdition) & toLower(char 2 to -1 of pEdition) into tEditionCanonical
+   --return pSymbolDir & "/HyperXTalk-" & tEditionCanonical & ".app"
+   return pSymbolDir & "/HyperXTalk.app"
 end pathToSymbolFileForVersion
 
 -- Returns the path to the symbol directory for the given version tag
@@ -461,7 +463,7 @@ private function fullVersionForTag pRepoPath, pTag
       get shell ("git --git-dir" && escapeArg(pRepoPath & "/.git") && "rev-parse" && pTag & "^{commit}:livecode")
       if the result is not zero then throw "unable to get main repo submodule pointer:" && it
       put line 1 of it into tMainRepoHash
-      put pRepoPath & "/livecode" into tMainRepoPath
+      put pRepoPath & "/hyperxtalk" into tMainRepoPath
    else
       put pRepoPath into tMainRepoPath
       put commitHashForTag(pRepoPath, pTag) into tMainRepoHash
@@ -570,7 +572,7 @@ private command fetchSymbolsForRevision pOutputDir, pServerPath, pFullVersion, p
    end if
    
    -- Unpack the symbols
-   if there is not a folder (pOutputDir & "/LiveCode-Community.app") then
+   if there is not a folder (pOutputDir & "/HyperXTalk.app") then
       -- Unpack the archived symbols
       local tDefaultFolder
       verbosePrint "Unpacking symbols"

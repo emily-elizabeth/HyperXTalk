@@ -43,10 +43,10 @@ Description:
 application. 
 
 The document will be opened using the standard shell association on
-Windows and Launch Services on Mac OS X.
+Windows and Launch Services on macOS.
 
 This means that launch document will have the same result as double
-clicking the file in Windows Explorer and Mac OS X Finder.
+clicking the file in Windows Explorer and macOS Finder.
 
 If you want to launch a document with a specific application, use the
 <launch> <command> instead, which allows an optional documentName

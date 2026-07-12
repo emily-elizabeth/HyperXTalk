@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -649,21 +665,59 @@ void MCField::drawcursor(MCContext *p_context, const MCRectangle &dirty)
 	}
 }
 
+MCStringRef MCField::_makeBulletString(MCParagraph *p_para) const
+{
+    MCStringRef t_result = nil;
+    uint32_t t_len = p_para->gettextlength();
+    if (t_len > 0)
+    {
+        unichar_t *t_chars;
+        if (MCMemoryAllocate(t_len * sizeof(unichar_t), t_chars))
+        {
+            for (uint32_t i = 0; i < t_len; i++)
+                t_chars[i] = 0x25CF; // U+25CF BLACK CIRCLE ●
+            /* UNCHECKED */ MCStringCreateWithChars(t_chars, t_len, t_result);
+            MCMemoryDeallocate(t_chars);
+        }
+    }
+    if (t_result == nil)
+        t_result = MCValueRetain(kMCEmptyString);
+    return t_result;
+}
+
 void MCField::replacecursor(Boolean force, Boolean goal)
 {
 	if (!opened)
 		return;
 
 	MCRectangle drectp, drects;
+
+    // If password mode is active, set up the bullet display on the focused paragraph
+    // before calling getcursorrect so that caret x positions are measured against
+    // the bullet string (matching the drawn display) rather than the actual text.
+    // Without this, the caret drifts because real characters are typically wider
+    // than the bullet character used for masking.
+    MCStringRef t_cursor_bullet = nil;
+    if (m_password_field && focusedparagraph != nil)
+    {
+        t_cursor_bullet = _makeBulletString(focusedparagraph);
+        focusedparagraph->SetPasswordDisplay(t_cursor_bullet);
+    }
+
     // AL-2014-03-21: [[ Bug 11963 ]] If the field has list behavior, don't split
     //  the cursor rect.
     if (flags & F_LIST_BEHAVIOR)
 	{
 		drectp = focusedparagraph->getcursorrect(-1, fixedheight, true);
+        if (t_cursor_bullet != nil)
+        {
+            focusedparagraph->ClearPasswordDisplay();
+            MCValueRelease(t_cursor_bullet);
+        }
 		positioncursor(force, goal, drectp, focusedy, true);
 		return;
 	}
-    
+
 	if (composing && composelength)
 	{
 		findex_t compsi, compei;
@@ -682,6 +736,13 @@ void MCField::replacecursor(Boolean force, Boolean goal)
 		drectp = focusedparagraph->getcursorrect(-1, fixedheight, false, kMCParagraphCursorTypePrimary);
         drects = focusedparagraph->getcursorrect(-1, fixedheight, false, kMCParagraphCursorTypeSecondary);
 	}
+
+    if (t_cursor_bullet != nil)
+    {
+        focusedparagraph->ClearPasswordDisplay();
+        MCValueRelease(t_cursor_bullet);
+    }
+
 	positioncursor(force, goal, drects, focusedy, false);
     positioncursor(force, goal, drectp, focusedy, true);
 }
@@ -1158,7 +1219,7 @@ void MCField::drawrect(MCDC *dc, const MCRectangle &dirty)
 						if (MCMemoryAllocate(t_len * sizeof(unichar_t), t_chars))
 						{
 							for (uint32_t i = 0; i < t_len; i++)
-								t_chars[i] = 0x2022; // U+2022 BULLET •
+								t_chars[i] = 0x25CF; // U+25CF BLACK CIRCLE ●
 							/* UNCHECKED */ MCStringCreateWithChars(t_chars, t_len, t_bullet_str);
 							MCMemoryDeallocate(t_chars);
 						}
@@ -2722,16 +2783,45 @@ Boolean MCField::getcompositionrect(MCRectangle &r, findex_t offset)
 		si = composeoffset+offset;
 		ei = composeoffset+composelength;
 		pgptr = indextoparagraph(paragraphs,si,ei);
+
+        // In password mode measure against the bullet string so the IME
+        // candidate window appears at the correct x position (matching the
+        // displayed dots) rather than the actual character positions.
+        MCStringRef t_bullet = nil;
+        if (m_password_field)
+            t_bullet = _makeBulletString(pgptr);
+        if (t_bullet != nil)
+            pgptr->SetPasswordDisplay(t_bullet);
+
 		// MW-2012-01-25: [[ ParaStyles ]] Fetch the cursor rect ignoring any space.
 		r = pgptr->getcursorrect(si, fixedheight, false);
+
+        if (t_bullet != nil)
+        {
+            pgptr->ClearPasswordDisplay();
+            MCValueRelease(t_bullet);
+        }
 	}
 	else
 	{
 		if (!focusedparagraph)
 			return False;
 		pgptr = focusedparagraph;
+
+        MCStringRef t_bullet = nil;
+        if (m_password_field)
+            t_bullet = _makeBulletString(pgptr);
+        if (t_bullet != nil)
+            pgptr->SetPasswordDisplay(t_bullet);
+
 		// MW-2012-01-25: [[ ParaStyles ]] Fetch the cursor rect ignoring any space.
 		r = pgptr->getcursorrect(-1, fixedheight, false);
+
+        if (t_bullet != nil)
+        {
+            pgptr->ClearPasswordDisplay();
+            MCValueRelease(t_bullet);
+        }
 	}
 
 	// MW-2012-01-25: [[ FieldMetrics ]] Conver the rect to card coords.

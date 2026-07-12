@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 //
 // ScreenDC virtual functions
 //
@@ -34,6 +50,8 @@
 #include "graphics_util.h"
 #include <fontconfig/fontconfig.h>
 #include "font.h"
+#include "redraw.h"
+#include "resolution.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -138,8 +156,9 @@ bool MCX11GetWindowWorkarea(GdkDisplay *p_display, Window p_window, MCRectangle 
 
     x11::Atom XA_CARDINAL = x11::gdk_x11_atom_to_xatom_for_display(p_display, gdk_atom_intern_static_string("CARDINAL"));
     
+    // -- tperry 12-11-2025: GTK3 removed gdk_x11_drawable_get_xid, use gdk_x11_window_get_xid
     t_status = x11::XGetWindowProperty(x11::gdk_x11_display_get_xdisplay(p_display),
-                                       x11::gdk_x11_drawable_get_xid(p_window),
+                                       x11::gdk_x11_window_get_xid(p_window),
                                        x11::gdk_x11_atom_to_xatom_for_display(p_display, MCworkareaatom),
                                        0, 4, False, XA_CARDINAL, &t_ret, &t_format, &t_count, &t_after,
                                        (unsigned char**)&t_workarea);
@@ -191,7 +210,8 @@ bool MCScreenDC::apply_partial_struts(MCDisplay *p_displays, uint32_t p_display_
     x11::Atom XA_CARDINAL = x11::gdk_x11_atom_to_xatom_for_display(dpy, gdk_atom_intern_static_string("CARDINAL"));
     
     t_status = x11::XGetWindowProperty(x11::gdk_x11_display_get_xdisplay(dpy),
-                                       x11::gdk_x11_drawable_get_xid(getroot()),
+                                       // -- tperry 12-11-2025: GTK3 removed gdk_x11_drawable_get_xid
+                                       x11::gdk_x11_window_get_xid(getroot()),
                                        x11::gdk_x11_atom_to_xatom_for_display(dpy, MCclientlistatom),
                                        0, -1, False,XA_WINDOW, &t_ret, &t_format, &t_client_count, &t_after,
                                        (unsigned char **)&t_clients);
@@ -203,16 +223,28 @@ bool MCScreenDC::apply_partial_struts(MCDisplay *p_displays, uint32_t p_display_
 		int32_t t_screenwidth, t_screenheight;
 		t_screenwidth = device_getwidth();
 		t_screenheight = device_getheight();
-		for (uindex_t i = 0; t_success && i < t_client_count; i++)
+		for (uindex_t i = 0; i < t_client_count; i++)
 		{
 			unsigned long t_strut_count;
 			unsigned long *t_struts = nil;
-			
+
+            // A client window may be destroyed between the _NET_CLIENT_LIST
+            // fetch above and this per-window property query.  Without an
+            // error trap the default GDK handler calls exit() on BadWindow.
+            // XGetWindowProperty is a synchronous round-trip, so any error
+            // reply is already queued when it returns — no XSync needed.
+            gdk_error_trap_push();
             t_status = x11::XGetWindowProperty(x11::gdk_x11_display_get_xdisplay(dpy),
                                                t_clients[i],
                                                x11::gdk_x11_atom_to_xatom_for_display(dpy, MCstrutpartialatom),
                                                0, 12, False, XA_CARDINAL, &t_ret, &t_format, &t_strut_count, &t_after,
                                                (unsigned char **)&t_struts);
+            if (gdk_error_trap_pop() != 0)
+            {
+                // Window destroyed — t_struts may be uninitialised; skip it.
+                if (t_struts != nil) { x11::XFree(t_struts); t_struts = nil; }
+                continue;
+            }
 
 			if (t_status == Success && t_ret == XA_CARDINAL && t_format == 32 && t_strut_count == 12)
 			{
@@ -290,40 +322,53 @@ bool MCScreenDC::apply_partial_struts(MCDisplay *p_displays, uint32_t p_display_
 	return t_success;
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
 bool MCScreenDC::platform_getdisplays(bool p_effective, MCDisplay *&r_displays, uint32_t &r_display_count)
 {
 	return device_getdisplays(p_effective, r_displays, r_display_count);
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Refactored to handle display info caching in MCUIDC superclass
-bool MCScreenDC::device_getdisplays(bool p_effective, MCDisplay * &r_displays, uint32_t &r_display_count)
+// p_effective is not used here: both MCDisplay::viewport (full geometry) and
+// MCDisplay::workarea (taskbar-excluded) are always populated.  The superclass
+// (MCUIDC::getdisplays) uses p_effective solely for cache invalidation and
+// callers read whichever field they need.  This matches all other platform
+// implementations (Windows, Android, etc.).
+bool MCScreenDC::device_getdisplays(bool /*p_effective*/, MCDisplay * &r_displays, uint32_t &r_display_count)
 {
-	// NOTE: this code assumes that there is only one GdkScreen!
-    GdkScreen *t_screen;
-    t_screen = gdk_display_get_default_screen(dpy);
-    
-    // Get the number of monitors attached to this screen
+    // GTK3: enumerate monitors via the display, not via a GdkScreen
     gint t_monitor_count;
-    t_monitor_count = gdk_screen_get_n_monitors(t_screen);
-    
+    t_monitor_count = gdk_display_get_n_monitors(dpy);
+
     // Allocate the list of monitors
     MCDisplay *t_displays;
     if (!MCMemoryNewArray(t_monitor_count, t_displays))
-		{
-			  return false;
-		}
-    
-    // Get the geometry of each monitor
+        return false;
+
+    // Get the geometry of each monitor.
+    // gdk_monitor_get_geometry() returns logical (application) pixels.
     for (gint i = 0; i < t_monitor_count; i++)
     {
         GdkRectangle t_rect;
-        gdk_screen_get_monitor_geometry(t_screen, i, &t_rect);
-        
+        GdkMonitor *t_monitor = gdk_display_get_monitor(dpy, i);
+        gdk_monitor_get_geometry(t_monitor, &t_rect);
+
         MCRectangle t_mc_rect;
         t_mc_rect = MCRectangleMake(t_rect.x, t_rect.y, t_rect.width, t_rect.height);
-        
+
         t_displays[i].index = i;
+        // MCDisplay::pixel_scale is read by the 'screenpixelscale(s)' property
+        // and by getmaxdisplayscale().  While pixel scaling is disabled on
+        // Linux (MCResPlatformSupportsPixelScaling() returns false), IDE scripts
+        // that use 'the screenpixelscale' to position windows expect 1.0 here.
+        // Setting it to gdk_monitor_get_scale_factor() breaks multi-monitor
+        // placement because the script computes logical-pixel rects that no
+        // longer match the GDK coordinate space.
+        //
+        // The signal handlers and MCLinuxGetLogicalToScreenScale() query GDK
+        // directly and do not rely on this field, so they remain correct.
+        //
+        // TODO [[ HiDPI ]]: set pixel_scale = gdk_monitor_get_scale_factor(t_monitor)
+        // once MCLinuxStackSurface renders at physical pixel dimensions and
+        // MCResPlatformSupportsPixelScaling() returns true.
         t_displays[i].pixel_scale = 1.0;
         t_displays[i].viewport = t_displays[i].workarea = t_mc_rect;
     }
@@ -371,28 +416,56 @@ MCPrinter *MCScreenDC::createprinter(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
+// Return the HiDPI scale factor of the primary (or first) monitor.
+// Mirrors MCWin32GetLogicalToScreenScale() on Windows.
+// Returns 1.0 when pixel scaling is disabled so callers need no special case.
+MCGFloat MCLinuxGetLogicalToScreenScale(void)
+{
+    if (!MCResGetUsePixelScaling())
+        return 1.0;
+
+    // MCResInitPixelScaling() is called twice in globals.cpp: once before
+    // MCScreenDC::open() and once after.  The first call arrives before GTK
+    // has been initialised, so gdk_display_get_default() returns NULL —
+    // 1.0 is the correct safe default for that phase.  A spin-wait would
+    // deadlock: gdk_display_get_default() only becomes non-NULL after
+    // gdk_display_open() runs and there is no event loop to pump while
+    // waiting.  The second call, made after open(), picks up the real monitor
+    // scale.  We use the default display rather than MCScreenDC::dpy so this
+    // free function works correctly in both phases.
+    GdkDisplay *t_display = gdk_display_get_default();
+    if (t_display == NULL)
+        return 1.0;
+
+    GdkMonitor *t_monitor = gdk_display_get_primary_monitor(t_display);
+    if (t_monitor == NULL)
+        t_monitor = gdk_display_get_monitor(t_display, 0);
+    if (t_monitor == NULL)
+        return 1.0;
+
+    return (MCGFloat)gdk_monitor_get_scale_factor(t_monitor);
+}
+
 MCPoint MCScreenDC::logicaltoscreenpoint(const MCPoint &p_point)
 {
-	return p_point;
+    MCGFloat t_scale = MCLinuxGetLogicalToScreenScale();
+    return MCPointTransform(p_point, MCGAffineTransformMakeScale(t_scale, t_scale));
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
 MCPoint MCScreenDC::screentologicalpoint(const MCPoint &p_point)
 {
-	return p_point;
+    MCGFloat t_scale = 1.0 / MCLinuxGetLogicalToScreenScale();
+    return MCPointTransform(p_point, MCGAffineTransformMakeScale(t_scale, t_scale));
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
 MCRectangle MCScreenDC::logicaltoscreenrect(const MCRectangle &p_rect)
 {
-	return p_rect;
+    return MCRectangleGetScaledFloorRect(p_rect, MCLinuxGetLogicalToScreenScale());
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Placeholder method for Linux HiDPI support
 MCRectangle MCScreenDC::screentologicalrect(const MCRectangle &p_rect)
 {
-	return p_rect;
+    return MCRectangleGetScaledCeilingRect(p_rect, 1.0 / MCLinuxGetLogicalToScreenScale());
 }
 
 bool MCScreenDC::platform_get_display_handle(void *&r_display)
@@ -404,49 +477,80 @@ bool MCScreenDC::platform_get_display_handle(void *&r_display)
 
 void *MCScreenDC::GetNativeWindowHandle(Window p_window)
 {
-	// x11 window handle - dtouint returns the X11 Window id.
-	return (void*)dtouint(p_window);
+	// -- tperry 13-11-2025: GTK3 - Window is now GdkWindow*, get X11 XID directly
+	// x11 window handle - return the X11 Window id
+	if (p_window == NULL)
+		return NULL;
+	return (void*)(uintptr_t)x11::gdk_x11_window_get_xid(p_window);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 void MCResPlatformInitPixelScaling(void)
 {
+    // GDK handles HiDPI awareness automatically on GTK3 — no explicit
+    // process-level DPI awareness call is needed (unlike Windows where
+    // SetProcessDPIAware() must be called at startup).
+    // Runtime scale-change notifications are handled via GDK monitor
+    // signals connected in lnxdcs.cpp.
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Pixel scaling not supported on Linux
+// GTK3 (GDK 3.22+) exposes per-monitor scale factors via
+// gdk_monitor_get_scale_factor(), so HiDPI detection infrastructure is
+// in place.  However, MCLinuxStackSurface currently creates its pixbuf
+// at *logical* pixel dimensions and blits via MCX11PutImage, bypassing
+// GDK's scaling layer.  XWayland already handles logical→physical scaling
+// at the compositor level, so enabling pixel scaling here causes the
+// tilecache to render at Nx into a 1× raster, garbling the display.
+//
+// TODO [[ HiDPI ]]: return true once MCLinuxStackSurface creates surfaces
+// at physical pixel dimensions (and coordinate math is updated accordingly).
 bool MCResPlatformSupportsPixelScaling(void)
 {
-	return false;
+    return false;
 }
 
-// IM-2014-01-29: [[ HiDPI ]] Pixel scaling not supported on Linux
+// Scale factor is read from GDK at runtime; it cannot be set by the user
+// from within the app (controlled by GNOME display settings / GDK_SCALE).
 bool MCResPlatformCanChangePixelScaling(void)
 {
-	return false;
+    return false;
 }
 
-// IM-2014-01-30: [[ HiDPI ]] Pixel scaling not supported on Linux
 bool MCResPlatformCanSetPixelScale(void)
 {
-	return false;
+    return false;
 }
 
-// IM-2014-01-30: [[ HiDPI ]] Pixel scale is 1.0 on Linux
+// Return the primary monitor's GDK scale factor as the default.
 MCGFloat MCResPlatformGetDefaultPixelScale(void)
 {
-	return 1.0;
+    return MCLinuxGetLogicalToScreenScale();
 }
 
-// IM-2014-03-14: [[ HiDPI ]] UI scale is 1.0 on Linux
+// UI and device coordinates are the same on Linux (no separate UIKit-style
+// layer), matching the Windows and desktop macOS behaviour.
 MCGFloat MCResPlatformGetUIDeviceScale(void)
 {
-	return 1.0;
+    return 1.0;
 }
 
-// IM-2014-01-30: [[ HiDPI ]] Pixel scaling not supported on Linux
+// Called by MCResSetPixelScale() when the global pixel scale changes.
+// Iterates all open stacks, updates their backing scale, marks content
+// dirty, and schedules a redraw — mirroring the WM_DPICHANGED handler
+// on Windows (w32dcw32.cpp).
 void MCResPlatformHandleScaleChange(void)
 {
+    MCGFloat t_new_scale = MCLinuxGetLogicalToScreenScale();
+
+    MCdispatcher->foreachstack([](MCStack *p_stack, void *p_context) -> bool
+    {
+        MCGFloat t_scale = *(MCGFloat *)p_context;
+        p_stack->view_setbackingscale(t_scale);
+        p_stack->dirtyall();
+        MCRedrawScheduleUpdateForStack(p_stack);
+        return true; // continue iteration
+    }, &t_new_scale);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

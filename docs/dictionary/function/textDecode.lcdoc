@@ -53,7 +53,7 @@ and returns the given string as text.
 It is highly recommended that any time you interface with things outside
 HyperXTalk (files, network sockets, processes, etc) that you explicitly
 <textEncode> any text you send outside HyperXTalk and textDecode all text
-received into HyperXTalk. If this doesnt happen, a platform-dependent
+received into HyperXTalk. If this doesn't happen, a platform-dependent
 encoding will be used (which normally does not support Unicode text).
 
 It is not, in general, possible to reliably auto-detect text encodings

@@ -32,7 +32,7 @@ fi
 echo ""
 echo "=== Building dbpostgresql.bundle ==="
 xcodebuild \
-  -project build-mac/livecode/revdb/revdb.xcodeproj \
+  -project build-mac/hyperxtalk/revdb/revdb.xcodeproj \
   -target dbpostgresql \
   -configuration Release \
   2>&1 | tail -20

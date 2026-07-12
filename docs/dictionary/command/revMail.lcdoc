@@ -66,20 +66,14 @@ settings before sending the message, and the message is not
 sent automatically: the user must explicitly send it (for example, by
 clicking a 'Mail' button in the email program).
 
-On Mac OS systems, the mail message is opened in the application the
+On macOS systems, the mail message is opened in the application the
 user has set for the 'mailto:' protocol in the Internet control panel
 (or, for older system versions, Internet Config).
 
-On iOS, <revMail> hooks into the iOS MessageUI framework.
 
 >*Important:*  On <Mac OS|Mac OS systems>, the <revMail> <command>
 > requires that AppleScript be installed and that the GURL <Apple Event>
-> be supported. GURL support is included in <Mac OS> 8.5 or later, and
-> is available for <Mac OS> 8.0 and 8.1 if the Internet Scripting file
-> is installed in the Scripting Additions folder inside the Extensions
-> folder. (This <file> is installed by the Internet Access installer on
-> the 8.0 installation CD.) The <revMail> <command> is not supported for
-> <Mac OS> versions before 8.0.
+> be supported.
 
 For some older email programs, it may not be possible to specify a
 <ccAddress>, <mailSubject>, or <messageBody>. Generally, the <revMail>
@@ -101,9 +95,9 @@ set.
 > over what the user does with the message. They are free to modify the
 > message and the addresses as they see fit.
 
-References: mobileComposeUnicodeMail (command), revGoURL (command),
-revMailUnicode (command), mobileComposeMail (command),
-mobileComposeHtmlMail (command), parameter (glossary),
+References: evGoURL (command),
+revMailUnicode (command), 
+parameter (glossary),
 main stack (glossary), handler (glossary), message (glossary),
 group (glossary), Mac OS (glossary), standalone application (glossary),
 Apple Event (glossary), command (glossary), application (glossary),

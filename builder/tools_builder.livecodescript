@@ -1,7 +1,7 @@
 ﻿script "ToolsBuilder"
 ////////////////////////////////////////////////////////////////////////////////
 
--- Building the LiveCode Tools consists of several stages.
+-- Building the HyperXTalk Tools consists of several stages.
 --   1) Fetch native code components for each platform
 --   2) Fetch the latest IDE
 --   3) Fetch the latest documentation
@@ -799,7 +799,7 @@ command toolsBuilderMakeAppBundle pVersion, pEdition, pPlatform
             " | while read b; do /usr/bin/codesign --force --sign - \"$b\" 2>/dev/null; done")
 
       -- Step 3: sign the outer bundle last, no --deep, --no-strict because .setup.txt
-      -- and LiveCode Setup.app in the bundle root are legitimate installer artifacts
+      -- and HyperXTalk Setup.app in the bundle root are legitimate installer artifacts
       -- that codesign strict-mode rejects but AMFI does not care about.
       builderLog "message", "Ad-hoc signing macosx app bundle" && "'" & tAppBundle & "'"
       wait 1 second

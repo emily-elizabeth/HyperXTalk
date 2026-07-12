@@ -26,9 +26,6 @@ Use the <traceStack> <property> to set the <stack> being
 
 You can set the stack to be debugged in the Script Debug window.
 
->*Important:*  This <property> may change or be removed in future
-> releases. 
-
 References: debugDo (command), debug (glossary), property (glossary),
 stack (object)
 

@@ -28,16 +28,13 @@ automatically scaling your stack.
 
 If the <usePixelScaling> property is set to false, pixel scaling will be
 disabled and HyperXTalk will draw at a 1:1 scale, allowing the operating
-system to perform any default scaling. For example, by default, iOS will
-upscale stacks running on retina devices.
+system to perform any default scaling. 
 
 When the <usePixelScaling> property is false, the <pixelScale> <property>
 is set to 1 and is not modifiable.
 
 Due to limitations of the platform, applications on Windows will not be
-able to enable or disable pixel scaling. On Android there is no
-equivalent OS-level scaling provided, so pixel scaling will always be
-used and attempting to set this property on Android will throw an error. 
+able to enable or disable pixel scaling.
 
 Handling multiple displays
 Desktop systems may have multiple displays attached, each with their own

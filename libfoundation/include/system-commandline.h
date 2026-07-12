@@ -1,19 +1,19 @@
 /*                                                                     -*-c++-*-
-Copyright (C) 2015 LiveCode Ltd.
+Copyright (C) 2026 HyperXTalk
 
-This file is part of LiveCode.
+This file is part of HyperXTalk.
 
-LiveCode is free software; you can redistribute it and/or modify it under
+HyperXTalk is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License v3 as published by the Free
 Software Foundation.
 
-LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+HyperXTalk is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 for more details.
 
 You should have received a copy of the GNU General Public License
-along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+along with HyperXTalk.  If not see <http://www.gnu.org/licenses/>.  */
 
 #if !defined(__MCS_SYSTEM_H_INSIDE__)
 #	error "Only <foundation-system.h> can be included directly"
@@ -32,16 +32,16 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
  * 1. The command line arguments.  These are the arguments passed to
  *    the command line program, and correspond roughly to elements 1+
  *    of the standard C argv[] array.  Normally, wrappers (e.g. the
- *    engine or LiveCode builder VM) should consume and remove any
+ *    engine or HyperXTalk builder VM) should consume and remove any
  *    wrapper-specific arguments.
  *
  * 2. The command name.  This corresponds to element 0 of the standard
  *    C argv[] array.  This should normally be set to the name of the
- *    LiveCode program being run, as it appears on the command line.
+ *    HyperXTalk program being run, as it appears on the command line.
  *
  * 3. The executable file.  This is the canonical filename of the
  *    program being run, and should normally set to the canonical
- *    filename of the LiveCode program (in LiveCode filename format).
+ *    filename of the HyperXTalk program (in HyperXTalk filename format).
  *
  * Calling MCSCommandLineCapture() will attempt to initialize each of
  * the three values.  There are getters and setters to modify each to
@@ -59,17 +59,17 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
  *                Name: foo.lcm.native
  *          Executable: /path/to/foo.lcm.native
  *
- * 3. Running the LiveCode IDE:
- *       $ LiveCode-Community bar baz
+ * 3. Running the HyperXTalk IDE:
+ *       $ HyperXTalk bar baz
  *           Arguments: <always empty>
- *                Name: LiveCode-Community
- *          Executable: /path/to/LiveCode-Community
+ *                Name: HyperXTalk
+ *          Executable: /path/to/HyperXTalk
  *
  * 4. Running a standalone:
- *       $ LiveCode-Community bar baz
+ *       $ HyperXTalk bar baz
  *           Arguments: <always empty>
- *                Name: LiveCode-Community
- *          Executable: /path/to/LiveCode-Community
+ *                Name: HyperXTalk
+ *          Executable: /path/to/HyperXTalk
  *
  * 5. Running a shebang (!#) script:
  *       $ foo.lc bar baz

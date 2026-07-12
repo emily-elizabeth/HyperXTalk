@@ -263,31 +263,6 @@ HyperXTalk. Specifically:
   129 and 159. These correspond to characters in the <Windows>
   <character set> (Code Page 1252) that are not legal <HTML> entities.
 
-
-Changes:
-The lang attribute, and the ability to encode Unicode characters, was
-added in version 2.0.
-
-The following enhancements were added in version 5.5: 
-
-* Support for fully representing paragraph formatting by means of
-  &lt;p&gt; tag attributes;
-* Support for representing ordered and unordered lists and list styles
-  by means of &lt;ul&gt; and &lt;ol&gt; tags, and list items by means of
-  &lt;li&gt; tag attributes;
-* Support for representing metadata in text runs by means of a
-  &lt;span&gt; tag and metadata attribute;
-* Complete support for HTML entities;
-* Complete support for representing all HyperXTalk text styles in HTML
-  tags; 
-* Improved representation of linkText and imageSource by means of
-  &lt;a&gt; tag attributes and &lt;img&gt; tag attributes respectively.
-
-
-Support was added for &lt;strong&gt; and &lt;em&gt; tags in version 6.0.
-
-Support for the <tabAlign> property was added in version 8.1.2
-
 References: get (command), set (command), charToNum (function),
 colorNames (function), format (function), numToChar (function),
 fontLanguage (function)

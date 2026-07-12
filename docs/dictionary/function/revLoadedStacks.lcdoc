@@ -38,16 +38,16 @@ Description:
 Use the <revLoadedStacks> <function> if you need to perform some
 operation on all <stacks> that are <loaded into memory>.
 
-If the <whichStacks> <parameter> is all, the <revLoadedStacks>
+If the <whichStacks> <parameter> is "all", the <revLoadedStacks>
 <function> returns all <stacks> that are <loaded into memory>, including
 <stacks> that are part of the HyperXTalk <development environment> (such
 as the <message box>, <property inspector>, and so on).
 
-If the <whichStacks> <parameter> is application, the <revLoadedStacks>
+If the <whichStacks> <parameter> is "application", the <revLoadedStacks>
 <function> returns all loaded <stacks> that are not part of the
 <development environment>.
 
-If the <whichStacks> <parameter> is preference, the <revLoadedStacks>
+If the <whichStacks> <parameter> is "preference", the <revLoadedStacks>
 <function> checks the setting of the "HyperXTalk UI Elements in Lists"
 item in the View menu, and returns either all <stacks>, or only <stacks>
 that are not part of the <development environment>, depending on the

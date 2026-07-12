@@ -48,9 +48,8 @@ selected set of <record|records>.
 > using are checked.
 
 References: revMoveToNextRecord (command), function (control structure),
-revdb_movefirst (function), revdb_moveprev (function),
-revdb_movelast (function), revDatabaseColumnNumbered (function),
-revdb_movenext (function), HyperXTalk custom library (glossary),
+revDatabaseColumnNumbered (function),
+HyperXTalk custom library (glossary),
 Standalone Application Settings (glossary), record (glossary),
 command (glossary), record set (glossary), 
 standalone application (glossary), database (glossary), string (keyword),

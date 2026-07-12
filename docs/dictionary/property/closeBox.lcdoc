@@ -33,16 +33,11 @@ styles that normally include a close box). Conversely, setting a stack's
 <decorations> property sets its <closeBox> to true or false depending on
 whether the <decorations> includes "close" (or is "default" ).
 
->*Note:* On OS X systems, if the <closeBox> property is false, the close
+>*Note:* On macOS systems, if the <closeBox> property is false, the close
 > box is disabled rather than hidden.
 
 Setting the <closeBox> <property> causes the <stack window> to flash
 briefly. 
-
-Changes:
-The closeBox property was fully implemented in version 2.1. In previous
-versions, it was included in HyperXTalk for compatibility with imported
-SuperCard projects, but setting it had no effect.
 
 References: property (glossary), stack window (glossary),
 close box (glossary), default (keyword), closeStack (message),

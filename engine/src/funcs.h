@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 //
 // MCFunction class declarations
 //
@@ -893,6 +909,31 @@ public:
 class MCInterrupt : public MCConstantFunctionCtxt<bool, MCEngineEvalInterrupt>
 {
 public:
+};
+
+// iconDataForFile(pPath [, pSize]) — returns raw PNG bytes for the file's icon.
+class MCIconDataForFile : public MCFunction
+{
+    MCExpression *path;
+    MCExpression *size;
+public:
+    MCIconDataForFile() : path(NULL), size(NULL) {}
+    virtual ~MCIconDataForFile();
+    virtual Parse_stat parse(MCScriptPoint &, Boolean the);
+    virtual void eval_ctxt(MCExecContext &, MCExecValue &);
+};
+
+// iconDataForExtension(pExt [, pSize]) — returns raw PNG bytes for the icon
+// associated with the given file extension.
+class MCIconDataForExtension : public MCFunction
+{
+    MCExpression *extension;
+    MCExpression *size;
+public:
+    MCIconDataForExtension() : extension(NULL), size(NULL) {}
+    virtual ~MCIconDataForExtension();
+    virtual Parse_stat parse(MCScriptPoint &, Boolean the);
+    virtual void eval_ctxt(MCExecContext &, MCExecValue &);
 };
 
 // iff(condition, trueResult, falseResult) — lazy conditional function.

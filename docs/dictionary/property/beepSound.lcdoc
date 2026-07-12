@@ -26,10 +26,9 @@ Example:
 set the beepSound to "vibrate"
 
 Example:
--- on iOS there is no default beep sound, so you have to set one.
 on preopencard
     local tBeepPath
-    put specialFolderPath("resources") & "/myBeepSound.m4a" into tBeepPath
+    put specialFolderPath("resources") & "/myBeepSound.wav" into tBeepPath
     set the beepsound to tBeepPath
 end preopencard
 
@@ -38,8 +37,6 @@ Value:
 
 - system: The system standard alert sound is played (default).
 - internal: The computer's motherboard speaker is used (if present).
-- vibrate: The device vibrates rather than play a sound (iOS only).
-
 
 Description:
 Use the <beepSound> property to change the sound made when the beep
@@ -52,18 +49,10 @@ method specified by the <beepSound> property.
 > Windows desktop platform. On other desktop platforms the "system"
 > method is used regardless of its setting.
 
->*Note:* The iPhone does not have a default system alert sound so if a
-> sound is required one must be specified using the <beepSound>
-> property. 
-> On iOS, there is no default beep sound, so you have to set one.
-> The sound file has to be included in the 'Copy Files' section of the
-> standalone application settings.
->The audio file type must be m4a; other file types such as mp3 are not supported.
-
 >*Important:* If you use beep with <beepSound> set to "internal" be sure
 > to test your program on the machines you will be running it on. Some
 > Windows machines have faulty drivers for the motherboard speaker which
 > can cause applications using it to crash.
 
-References: mobileVibrate (command), beep (command)
+References: beep (command)
 

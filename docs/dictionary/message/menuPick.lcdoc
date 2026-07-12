@@ -90,9 +90,6 @@ to enable them to be controlled by the system dialogs on Mac OS X
 - select all
 - preferences
 
-Changes:
-In version 3.5 menu tags were added to the menu item specification.
-
 References: pulldown (command), property (glossary),
 tabbed button (glossary), menu item (glossary), handler (glossary),
 message (glossary), menu (glossary), button menu (glossary),

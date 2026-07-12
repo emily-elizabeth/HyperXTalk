@@ -1,7 +1,5 @@
 Name: revQueryResult
 
-Synonyms: revdb_cursorerr
-
 Type: function
 
 Syntax: revQueryResult(<recordSetID>)
@@ -53,7 +51,7 @@ Changes:
 The revQueryResult synonym was added in version 2.0.
 
 References: revCommitDatabase (command), function (control structure),
-revdb_commit (function), revDatabaseConnectResult (function),
+revDatabaseConnectResult (function),
 Standalone Application Settings (glossary),
 standalone application (glossary),
 record set (glossary), return (glossary),

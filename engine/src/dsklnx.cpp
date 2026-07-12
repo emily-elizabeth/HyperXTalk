@@ -1,4 +1,22 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "lnxprefix.h"
+
+#include <stdio.h>
 
 #include "osspec.h"
 #include "globdefs.h"
@@ -1959,7 +1977,6 @@ virtual real64_t GetCurrentMicroseconds(void)
     {
         Boolean readinput = False;
         int4 n;
-        uint2 i;
         Boolean wasalarm = alarmpending;
         Boolean handled = False;
         if (alarmpending)
@@ -1967,45 +1984,15 @@ virtual real64_t GetCurrentMicroseconds(void)
 
         extern int g_notify_pipe[2];
 
-        fd_set rmaskfd, wmaskfd, emaskfd;
-        FD_ZERO(&rmaskfd);
-        FD_ZERO(&wmaskfd);
-        FD_ZERO(&emaskfd);
-        int4 maxfd = 0;
-        if (!MCnoui)
-        {
-            FD_SET(p_fd, &rmaskfd);
-            maxfd = p_fd;
-        }
-        if (MCshellfd != -1)
-        {
-            FD_SET(MCshellfd, &rmaskfd);
-            if (MCshellfd > maxfd)
-                maxfd = MCshellfd;
-        }
-        if (MCinputfd != -1)
-        {
-            FD_SET(MCinputfd, &rmaskfd);
-            if (MCinputfd > maxfd)
-                maxfd = MCinputfd;
-        }
-
-        if (g_notify_pipe[0] != -1)
-        {
-            FD_SET(g_notify_pipe[0], &rmaskfd);
-            if (g_notify_pipe[0] > maxfd)
-                maxfd = g_notify_pipe[0];
-        }
-
         // Prepare GLib for the poll we are about to do
         gint t_glib_ready_priority;
         if (g_main_context_prepare(NULL, &t_glib_ready_priority))
             handled = true;
-        
+
         // If things are already ready, ensure the timeout is zero
         if (handled)
             p_delay = 0.0;
-            
+
         // Get the list of file descriptors that the GLib main loop needs to
         // add to the poll operation.
         GMainContext* t_glib_main_context = g_main_context_default();
@@ -2013,59 +2000,115 @@ virtual real64_t GetCurrentMicroseconds(void)
         gint t_glib_timeout;
         t_glib_fds.Extend(g_main_context_query(t_glib_main_context, G_MAXINT, &t_glib_timeout, NULL, 0));
         g_main_context_query(t_glib_main_context, G_MAXINT, &t_glib_timeout, t_glib_fds.Ptr(), t_glib_fds.Size());
-        
-        // Add the GLib descriptors to the list
+
+        // Build a pollfd array for poll() — avoids FD_SETSIZE limitation.
+        // Track indices of our own fds so we can inspect results afterwards.
+        MCAutoArray<struct pollfd> t_poll_fds;
+        int t_p_fd_idx = -1, t_shellfd_idx = -1, t_inputfd_idx = -1, t_notify_idx = -1;
+
+        // NOTE: MCAutoArray::Extend(n) takes an ABSOLUTE new size, not an
+        // increment. Use Extend(Size() + 1) to append one slot, and
+        // Extend(Size() + N) to append N slots. Using Extend(1) when the
+        // array is already ≥ 1 elements is a silent no-op that leaves
+        // t_notify_idx pointing into space that the GLib-fd block later
+        // overwrites — causing a blocking read() on the wrong fd.
+        if (!MCnoui)
+        {
+            t_p_fd_idx = (int)t_poll_fds.Size();
+            t_poll_fds.Extend(t_poll_fds.Size() + 1);
+            t_poll_fds.Ptr()[t_p_fd_idx] = { p_fd, POLLIN, 0 };
+        }
+        if (MCshellfd != -1)
+        {
+            t_shellfd_idx = (int)t_poll_fds.Size();
+            t_poll_fds.Extend(t_poll_fds.Size() + 1);
+            t_poll_fds.Ptr()[t_shellfd_idx] = { MCshellfd, POLLIN, 0 };
+        }
+        if (MCinputfd != -1)
+        {
+            t_inputfd_idx = (int)t_poll_fds.Size();
+            t_poll_fds.Extend(t_poll_fds.Size() + 1);
+            t_poll_fds.Ptr()[t_inputfd_idx] = { MCinputfd, POLLIN, 0 };
+        }
+        if (g_notify_pipe[0] != -1)
+        {
+            t_notify_idx = (int)t_poll_fds.Size();
+            t_poll_fds.Extend(t_poll_fds.Size() + 1);
+            t_poll_fds.Ptr()[t_notify_idx] = { g_notify_pipe[0], POLLIN, 0 };
+        }
+
+        // Add GLib descriptors
+        int t_glib_start_idx = (int)t_poll_fds.Size();
+        t_poll_fds.Extend(t_poll_fds.Size() + t_glib_fds.Size());
         for (uindex_t i = 0; i < t_glib_fds.Size(); i++)
         {
-            // Are we polling this FD for reading?
-            if (t_glib_fds[i].events & (G_IO_IN|G_IO_PRI))
-                FD_SET(t_glib_fds[i].fd, &rmaskfd);
-            if (t_glib_fds[i].events & (G_IO_OUT))
-                FD_SET(t_glib_fds[i].fd, &wmaskfd);
-            if (t_glib_fds[i].events & (G_IO_ERR|G_IO_HUP))
-                FD_SET(t_glib_fds[i].fd, &emaskfd);
-            
-            if (t_glib_fds[i].events != 0 && t_glib_fds[i].fd > maxfd)
-                maxfd = t_glib_fds[i].fd;
+            struct pollfd& pfd = t_poll_fds.Ptr()[t_glib_start_idx + i];
+            pfd.fd = t_glib_fds[i].fd;
+            pfd.events = 0;
+            pfd.revents = 0;
+            if (t_glib_fds[i].events & (G_IO_IN|G_IO_PRI)) pfd.events |= POLLIN;
+            if (t_glib_fds[i].events & G_IO_OUT)            pfd.events |= POLLOUT;
+            if (t_glib_fds[i].events & (G_IO_ERR|G_IO_HUP)) pfd.events |= POLLERR|POLLHUP;
         }
-        
-        MCModePreSelectHook(maxfd, rmaskfd, wmaskfd, emaskfd);
 
-        struct timeval timeoutval;
-        timeoutval.tv_sec = (long)p_delay;
-        timeoutval.tv_usec = (long)((p_delay - floor(p_delay)) * 1000000.0);
+        // MCModePreSelectHook is empty in all modes; call with dummy fd_sets for API compat.
+        {
+            fd_set dummy_rfds, dummy_wfds, dummy_efds;
+            FD_ZERO(&dummy_rfds); FD_ZERO(&dummy_wfds); FD_ZERO(&dummy_efds);
+            int dummy_maxfd = 0;
+            MCModePreSelectHook(dummy_maxfd, dummy_rfds, dummy_wfds, dummy_efds);
+        }
 
-        n = select(maxfd + 1, &rmaskfd, &wmaskfd, &emaskfd, &timeoutval);
-        
+        // poll() has no FD_SETSIZE limitation; timeout in milliseconds.
+        int t_poll_timeout_ms = (p_delay <= 0.0) ? 0 : (int)(p_delay * 1000.0 + 0.5);
+
+        n = poll(t_poll_fds.Ptr(), (nfds_t)t_poll_fds.Size(), t_poll_timeout_ms);
+
         if (n <= 0)
             return handled;
-        if (MCshellfd != -1 && FD_ISSET(MCshellfd, &rmaskfd))
+        if (t_shellfd_idx >= 0 && (t_poll_fds.Ptr()[t_shellfd_idx].revents & POLLIN))
             return True;
-        if (MCinputfd != -1 && FD_ISSET(MCinputfd, &rmaskfd))
+        if (t_inputfd_idx >= 0 && (t_poll_fds.Ptr()[t_inputfd_idx].revents & POLLIN))
             readinput = True;
 
-        // Check whether any of the GLib file descriptors were signalled
+        // Map GLib fd results back into GPollFD revents
         for (uindex_t i = 0; i < t_glib_fds.Size(); i++)
         {
-            if (FD_ISSET(t_glib_fds[i].fd, &rmaskfd))
-                t_glib_fds[i].revents |= G_IO_IN;
-            if (FD_ISSET(t_glib_fds[i].fd, &wmaskfd))
-                t_glib_fds[i].revents |= G_IO_OUT;
-            if (FD_ISSET(t_glib_fds[i].fd, &emaskfd))
-                t_glib_fds[i].revents |= G_IO_ERR;
-        }
-        
-        // Let GLib know which file descriptors were signalled. We don't
-        // dispatch these now as that will happen later.
-        g_main_context_check(t_glib_main_context, G_MAXINT, t_glib_fds.Ptr(), t_glib_fds.Size());
-        
-        if (g_notify_pipe[0] != -1 && FD_ISSET(g_notify_pipe[0], &rmaskfd))
-        {
-            char t_notify_char;
-            read(g_notify_pipe[0], &t_notify_char, 1);
+            struct pollfd& pfd = t_poll_fds.Ptr()[t_glib_start_idx + i];
+            if (pfd.revents & POLLIN)           t_glib_fds[i].revents |= G_IO_IN;
+            if (pfd.revents & POLLOUT)          t_glib_fds[i].revents |= G_IO_OUT;
+            if (pfd.revents & (POLLERR|POLLHUP)) t_glib_fds[i].revents |= G_IO_ERR;
         }
 
-        MCModePostSelectHook(rmaskfd, wmaskfd, emaskfd);
+        g_main_context_check(t_glib_main_context, G_MAXINT, t_glib_fds.Ptr(), t_glib_fds.Size());
+
+        if (t_notify_idx >= 0 && (t_poll_fds.Ptr()[t_notify_idx].revents & POLLIN))
+        {
+            // Sanity check: the fd we polled must actually be our notify pipe.
+            // If not, something went wrong in poll setup (e.g. GLib's internal
+            // wake-up fd ended up at the same poll index as t_notify_idx, or
+            // g_notify_pipe was re-created after the poll array was built).
+            // Reading from g_notify_pipe[0] when it has no data would block
+            // forever — skip the drain and let the next iteration re-check.
+            if (t_poll_fds.Ptr()[t_notify_idx].fd != g_notify_pipe[0])
+            {
+                // Sanity check failed: fd mismatch, skip drain.
+            }
+            else
+            {
+                char t_notify_char;
+                // O_NONBLOCK is set at pipe creation; EAGAIN here means data
+                // was already consumed, which is fine.
+                (void)read(g_notify_pipe[0], &t_notify_char, 1);
+            }
+        }
+
+        // MCModePostSelectHook is empty in all modes; call with dummy fd_sets for API compat.
+        {
+            fd_set dummy_rfds, dummy_wfds, dummy_efds;
+            FD_ZERO(&dummy_rfds); FD_ZERO(&dummy_wfds); FD_ZERO(&dummy_efds);
+            MCModePostSelectHook(dummy_rfds, dummy_wfds, dummy_efds);
+        }
 
         if (readinput)
         {
@@ -2155,29 +2198,17 @@ virtual real64_t GetCurrentMicroseconds(void)
         if (!t_message_utf8 . Lock(p_message))
             return;
         
-        typedef GtkMessageDialog *(*gtk_message_dialog_newPTR)(GtkWindow *parent,
-                                                               GtkDialogFlags flags,
-                                                               GtkMessageType type,
-                                                               GtkButtonsType buttons,
-                                                               const gchar *message_format,
-                                                               ...);
-        extern gtk_message_dialog_newPTR gtk_message_dialog_new_ptr;
-        
-        GtkMessageDialog *t_dialog;
-        t_dialog = gtk_message_dialog_new_ptr(NULL,
-                                              GTK_DIALOG_MODAL,
-                                              GTK_MESSAGE_INFO,
-                                              GTK_BUTTONS_CLOSE,
-                                              "%s",
-                                              *t_title_utf8);
-        
-        typedef void (*gtk_message_dialog_format_secondary_textPTR)(GtkMessageDialog *message_dialog,
-                                                                    const gchar *message_format,
-                                                                    ...);
-        extern gtk_message_dialog_format_secondary_textPTR gtk_message_dialog_format_secondary_text_ptr;
-        gtk_message_dialog_format_secondary_text_ptr(t_dialog,
-                                                     "%s",
-                                                     *t_message_utf8);
+        // GTK3: call GTK directly (removed weak-stub _ptr indirection)
+        GtkWidget *t_dialog;
+        t_dialog = gtk_message_dialog_new(NULL,
+                                          GTK_DIALOG_MODAL,
+                                          GTK_MESSAGE_INFO,
+                                          GTK_BUTTONS_CLOSE,
+                                          "%s",
+                                          *t_title_utf8);
+        gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(t_dialog),
+                                                 "%s",
+                                                 *t_message_utf8);
         gtk_dialog_run(GTK_DIALOG(t_dialog));
         gtk_widget_destroy(GTK_WIDGET(t_dialog));
     }

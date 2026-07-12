@@ -1,0 +1,44 @@
+Name: unregisterHotkey
+
+Type: command
+
+Syntax: unregisterHotkey <keyString>
+
+Summary:
+Removes a previously registered system-wide keyboard shortcut.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- Remove a specific hotkey
+unregisterHotkey "Ctrl+Shift+P"
+
+Example:
+-- Clean up on stack close
+on closeStack
+    unregisterHotkey "Ctrl+Shift+P"
+    unregisterHotkey "Alt+F9"
+end closeStack
+
+Parameters:
+keyString (string): The key combination to unregister, in the same
+format as passed to <registerHotkey>. If this combination is not
+currently registered, the command is a no-op (no error is raised).
+
+Description:
+Use <unregisterHotkey> to release a global keyboard shortcut that was
+previously registered with <registerHotkey>. The combination becomes
+available to other applications immediately after this call.
+
+If the specified <keyString> was not registered, the command does nothing.
+
+Use <unregisterAllHotkeys> to release every hotkey registered in the
+current session in a single call.
+
+References: registerHotkey (command), unregisterAllHotkeys (command)
+
+Tags: hotkeys, keyboard

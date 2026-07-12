@@ -1,4 +1,4 @@
-﻿script "revfileassociations.livecodescript"
+﻿script "revfileassociations"
 
 -- create a Yes and No button
 -- create a checkbox "Do not show this dialog again"
@@ -93,7 +93,7 @@ end answerQuestion
 --button "Yes" or "No"
 on mouseUp
    if "button" is word 1 of the name of the target then
-      if "Show" is word 2 of the name of the target then
+      if "Show" is trueWord 2 of the name of the target then
          # We need this done as soon as the user clicks the button. In case they close the window for example.
          set the cDontShowFileAssociationsDialog of stack "revPreferences" to the hilite of me
       else

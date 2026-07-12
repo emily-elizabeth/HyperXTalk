@@ -132,12 +132,6 @@ depending on the <object type>:
 If an object's <backgroundPattern> is set, the pattern is shown instead
 of the color specified by <backgroundColor>.
 
-Changes:
-The ability to use the system background pattern was introduced in
-version 1.1. In previous versions, if the backgroundColor and
-backgroundPattern of all objects in the object hierarchy was empty, a
-light gray color was used.
-
 References: group (command), stacks (function), object (glossary),
 tabbed button (glossary), property (glossary), stack window (glossary),
 button menu (glossary), Windows (glossary), video clip (glossary),

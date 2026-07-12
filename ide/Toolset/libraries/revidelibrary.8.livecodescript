@@ -2346,10 +2346,6 @@ end revIDEGetPreferenceOfSet
 command __DevPreference pPreferenceName, @rValue
    if not revEnvironmentIsInstalled() then
       switch pPreferenceName
-         case "cScriptEditor,explicitVariables"
-         case "cScriptEditor,preserveVariables"
-            put true into rValue
-            break
          case "cScriptEditor,editor,commentchar"
             put "--" into rValue
             break
@@ -2357,7 +2353,7 @@ command __DevPreference pPreferenceName, @rValue
             put 3 into rValue
             break
       end switch
-      
+
    end if
 end __DevPreference
 
@@ -4123,6 +4119,21 @@ function revIDESpecialFolderPath pKey, pParam
          revIDEEnsurePath tPath
          return tPath
          break
+      case "user libraries"
+         put revEnvironmentUserLibraries() into tPath
+         revIDEEnsurePath tPath
+         return tPath
+         break
+      case "user plugins"
+         put revEnvironmentUserPluginsPath() into tPath
+         revIDEEnsurePath tPath
+         return tPath
+         break
+      case "user schemes"
+         put revEnvironmentUserColorSchemesPath() into tPath
+         revIDEEnsurePath tPath
+         return tPath
+         break
       case "temp extensions"
          put revEnvironmentUserExtensionsPath() & "/temp" into tPath
          revIDEEnsurePath tPath
@@ -4138,10 +4149,10 @@ function revIDESpecialFolderPath pKey, pParam
          revIDEEnsurePath tPath
          return tPath
          break
-       case "documentation"
-          put item 1 to -3 of the filename of stack "home" & "/Documentation" into tPath
-          return tPath
-          break
+      case "documentation"
+         put item 1 to -3 of the filename of stack "home" & "/Documentation" into tPath
+         return tPath
+         break
       case "documentation cache"
          put revEnvironmentUserDocsPath() & slash & "IDE" into tPath
          revIDEEnsurePath tPath
@@ -4717,7 +4728,6 @@ command revIDEOpenPalette pPaletteName
             end if
             
             revIDEGenerateDictionaryHTML tWhich
-            answer "file:" & revIDEGetDictionaryUrl(tWhich)
             launch url ("file:" & revIDEGetDictionaryUrl(tWhich))
          else
             toplevel stack tStackName
@@ -5452,7 +5462,11 @@ end revIDELastModifiedTimeOfFilesInFolder
 function revIDEExtensionFolders
    local tFoldersA
    put revIDESpecialFolderPath("user extensions") into tFoldersA["user"]
-
+   
+   // HXT
+   get revIDESpecialFolderPath("user plugins")
+   get revIDESpecialFolderPath("user schemes")
+   
    local tCount = 0
    repeat for each line tFolder in revEnvironmentExtensionsPaths()
       -- In an installed build revEnvironmentExtensionsPaths() returns
@@ -12107,13 +12121,27 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
 
    local tDocsBase
    put revIDESpecialFolderPath("documentation") & slash & "html_viewer" into tDocsBase
-   
+
+   -- Copy html_viewer/ into the user docs cache so the browser can load
+   -- CSS/JS/fonts via relative file:// paths.  The squashfs mount path changes
+   -- every launch (/tmp/.mount_XXXXXX), so absolute paths into the AppImage
+   -- are dead links in any cached HTML from a previous session.
+   -- We only copy when the destination is absent to keep subsequent launches fast.
+   local tHtmlViewerDest
+   put revEnvironmentUserDocsPath() & slash & "html_viewer" into tHtmlViewerDest
+   if there is not a folder tHtmlViewerDest then
+      -- Use the function form of shell() so any non-zero exit is captured in
+      -- the return value rather than thrown as a LiveCode runtime error.
+      -- The command form "shell cmd" can abort the caller on failure.
+      local tCpResult
+      put shell("cp -a " & quote & tDocsBase & quote & " " & quote & tHtmlViewerDest & quote) into tCpResult
+   end if
+
    local tDocsCSSFolder, tDocsJSFolder, tDataPath
-   put tDocsBase & slash & "css" into tDocsCSSFolder
-   put tDocsBase & slash & "js" into tDocsJSFolder
-   -- Use a relative path (IDE/built_<pWhich>.js) so WKWebView resolves it relative
-   -- to api.html's own directory inside the docs cache. This avoids any cross-directory
-   -- file-access trust issues and eliminates space-encoding problems entirely.
+   -- Relative paths — resolved by the browser relative to api.html's location
+   -- in the docs cache, so they always work regardless of the AppImage mount point.
+   put "html_viewer/css" into tDocsCSSFolder
+   put "html_viewer/js" into tDocsJSFolder
    put "IDE/built_" & pWhich & ".js" into tDataPath
 
    local tIDEGuidesFolder, tRepoGuidesFolder

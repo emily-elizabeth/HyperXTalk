@@ -36,10 +36,6 @@ they appear on the <current card> or not. If a <group(command)> in the
 To find out which groups are placed on a card, use the <groupIDs>
 <property>. 
 
-Changes:
-In versions before 1.1, groupIDs and backgroundIDs were synonyms and
-could be used interchangeably.
-
 References: group (command), property (glossary), current card (glossary),
 background (glossary), group (glossary), line (keyword), stack (object),
 properties (property), groupIDs (property), backgroundBehavior (property),

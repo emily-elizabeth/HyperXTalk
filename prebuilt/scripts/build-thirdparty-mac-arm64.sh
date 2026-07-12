@@ -40,7 +40,7 @@ for LIB in ${LIBS}; do
     # ever exits 0 spuriously.
     BUILD_LOG="$(mktemp /tmp/hxt-thirdparty-build.XXXXXX)"
     if xcodebuild \
-        -project "${REPO_ROOT}/build-mac/livecode/thirdparty/${LIB}/${LIB}.xcodeproj" \
+        -project "${REPO_ROOT}/build-mac/hyperxtalk/thirdparty/${LIB}/${LIB}.xcodeproj" \
         -configuration Debug \
         -arch arm64 \
         SOLUTION_DIR="${REPO_ROOT}" \

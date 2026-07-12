@@ -63,10 +63,6 @@ executed, set the <hideConsoleWindows> property to true.
 > work at the <shell> prompt, it won't work with the <shell> <function>
 > either, so trying this can be useful when <debug|debugging>.
 
-Changes:
-Support for using the shell command on OS X systems was added in version
-2.0. 
-
 References: launch (command), function (control structure),
 screenName (function), shell (function), property (glossary),
 error message (glossary), return value (glossary), handler (glossary),

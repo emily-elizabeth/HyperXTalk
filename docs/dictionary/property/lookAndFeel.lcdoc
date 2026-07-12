@@ -22,7 +22,7 @@ set the lookAndFeel to the selectedLine of field "Appearance"
 
 Value (enum):
 
--   Appearance Manager: standard Windows XP, Mac OS and OS X look and
+-   Appearance Manager: standard Windows, macOS look and
     feel 
 -   Macintosh: emulated Mac OS Platinum appearance, used regardless of
     current theme
@@ -50,25 +50,12 @@ By default, the <lookAndFeel> is set to the <platform> the <stack> is
 being used on. On Windows XP, <Mac OS> and <OS X|OS X systems>, the
 <lookAndFeel> is set to "Appearance Manager" by <default>.
 
-The "Appearance Manager" option can be used only on Windows XP, Mac OS
-and OS X systems. If you set the <lookAndFeel> to "Appearance Manager"
-on a <Unix> <system>, it is reset to "Motif". Similarly, if you set the
-<lookAndFeel> to "Appearance Manager" on a pre-Windows XP <system>, it
-is reset to "Windows 95".
-
-On Mac OS systems, the native Appearance Manager drawing routines are
-much slower than the emulated Platinum routines. Setting the
-<lookAndFeel> to "Macintosh" rather than "Appearance Manager" will speed
-up drawing of <control|controls>.
+The "Appearance Manager" option can be used only on Windows and macOS systems.
+If you set the <lookAndFeel> to "Appearance Manager"
+on a <Unix> <system>, it is reset to "Motif". 
 
 >*Note:* The phrases "Appearance Manager" and "Windows 95" must be
 > enclosed in quotes because they consist of more than one <word>.
-
-Changes:
-The "Appearance Manager" option was introduced in version 1.1. In
-previous versions, HyperXTalk applications always used the Platinum
-appearance on Mac OS systems, regardless of which theme was selected on
-the user's system.
 
 References: focus (command), stacks (function), platform (function),
 property (glossary), checkbox (glossary), behavior (glossary),

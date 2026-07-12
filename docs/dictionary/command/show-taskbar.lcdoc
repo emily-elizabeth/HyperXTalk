@@ -30,7 +30,7 @@ in conjunction with <backdrop> operations. See the
 
 
 The task bar can be hidden only on Windows systems. This command has no
-effect on Mac OS, OS X, or Unix systems.
+effect on macOS, or Unix systems.
 
 References: show (command), hide taskbar (command),
 show menubar (command), task bar (glossary), Windows (glossary),

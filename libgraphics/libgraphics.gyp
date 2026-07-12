@@ -151,6 +151,16 @@
 							],
 						},
 					],
+					[
+						# pangoft2 was previously loaded via weak stubs; now linked directly
+						'OS == "linux"',
+						{
+							'libraries':
+							[
+								'<!@(pkg-config --libs pangoft2 2>/dev/null)',
+							],
+						},
+					],
 				],
 			},
 		},
