@@ -10,33 +10,36 @@ def generate_errors_list(source_file, name):
     with open(source_file, 'r') as f:
         lines = f.readlines()
 
-    errorStrings = 'const char * %s = \n\n\"' % name
-
+    # Collect all error strings first
+    entries = []
     found = False
     for line in lines:
-        # If the first word of the line is "enum" we have found the error list
         if re.match(r'^{', line):
             found = True
             continue
-
-        # Continue reading lines until we get to the enum
         if not found:
             continue
-
-        # End of the enum
         if '};' in line:
             break
-
-        # only use lines with quoted strings
-        # extract the string, add it to the result
         line_match = re.search('\".*\"', line)
         if line_match:
-           noquotes = line_match.group().replace('"', '')
-           noslash = noquotes.replace('\\', '\\\\')
-           errorStrings += '%s\\n' % noslash
+            noquotes = line_match.group().replace('"', '')
+            noslash = noquotes.replace('\\', '\\\\')
+            entries.append('%s\\n' % noslash)
 
-    errorStrings += '\";\n'
-    return errorStrings
+    # MSVC limits a single string literal to 16380 characters.  Split the
+    # output into adjacent string literals so the compiler concatenates them
+    # at compile time without hitting that limit.
+    CHUNK = 200  # entries per literal chunk — well within the size limit
+    chunks = []
+    for i in range(0, max(len(entries), 1), CHUNK):
+        chunk_entries = entries[i:i + CHUNK]
+        chunks.append('\"' + ''.join(chunk_entries) + '\"')
+
+    result = 'const char * %s =\n' % name
+    result += '\n'.join(chunks)
+    result += ';\n'
+    return result
 
 # Need to generate the error lists for both the parse and execution errors
 path = sys.argv[1]
