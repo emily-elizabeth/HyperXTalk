@@ -24,7 +24,6 @@ end if
 
 Description:
 The <systemAppearance> property returns either "dark" or "light" depending on
-whether the application is running in a dark mode context or not. On windows
-and linux the property will return "light".
+whether the application is running in a dark mode context or not.
 
 References: systemAppearanceChanged (message)

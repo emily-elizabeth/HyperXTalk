@@ -1,7 +1,7 @@
 Files in this folder use the PostgreSQL C client library (libpq) from Homebrew.
 
   Formula : libpq
-  Version : PostgreSQL 18.4
+  Version : PostgreSQL 18.3
   Prefix  : /opt/homebrew/opt/libpq
 
 To rebuild prebuilt/lib/mac/libpq.a:

@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 //
 // MCField class declarations
 //
@@ -190,7 +206,13 @@ public:
     using MCMixinObjectHandle<MCField>::GetHandle;
     
 private:
-    
+    // Build a string of U+25CF BLACK CIRCLE characters the same length as
+    // p_para's text.  Used by replacecursor and getcompositionrect to measure
+    // caret/IME positions against the displayed bullet characters rather than
+    // the actual (variably-wide) text.  Returns a retained MCStringRef;
+    // caller must MCValueRelease it.  Never returns nil.
+    MCStringRef _makeBulletString(MCParagraph *p_para) const;
+
 	friend class MCHcfield;
 	MCCdata *fdata;
 	MCCdata *oldfdata;
@@ -223,6 +245,13 @@ private:
 	MCScrollbar *hscrollbar;
 	MCStringRef label;
     MCStringRef m_hint_text;
+    // Field input validation properties
+    MCStringRef m_input_type;    // "text", "email", "url", "tel", "number", "date"
+    MCStringRef m_input_min;     // lower bound (string; parsed per type at validation time)
+    MCStringRef m_input_max;     // upper bound
+    MCStringRef m_input_step;    // step (numeric types)
+    MCStringRef m_input_pattern; // custom regex pattern
+    bool m_input_required : 1;   // value must be non-empty
     MCTextDirection text_direction;
     MCInterfaceFieldCursorMovement cursor_movement;
     MCInterfaceKeyboardType keyboard_type : 4;
@@ -714,6 +743,21 @@ public:
 	void SetCancelButton(MCExecContext& ctxt, bool setting);
 	void GetHintText(MCExecContext& ctxt, MCStringRef& r_string);
 	void SetHintText(MCExecContext& ctxt, MCStringRef p_string);
+    // Input validation properties
+    void GetInputType(MCExecContext& ctxt, MCStringRef& r_string);
+    void SetInputType(MCExecContext& ctxt, MCStringRef p_string);
+    void GetInputRequired(MCExecContext& ctxt, bool& r_flag);
+    void SetInputRequired(MCExecContext& ctxt, bool p_flag);
+    void GetInputMin(MCExecContext& ctxt, MCStringRef& r_string);
+    void SetInputMin(MCExecContext& ctxt, MCStringRef p_string);
+    void GetInputMax(MCExecContext& ctxt, MCStringRef& r_string);
+    void SetInputMax(MCExecContext& ctxt, MCStringRef p_string);
+    void GetInputStep(MCExecContext& ctxt, MCStringRef& r_string);
+    void SetInputStep(MCExecContext& ctxt, MCStringRef p_string);
+    void GetInputPattern(MCExecContext& ctxt, MCStringRef& r_string);
+    void SetInputPattern(MCExecContext& ctxt, MCStringRef p_string);
+    // Returns nullptr if valid, or a retained error string if not.
+    MCStringRef ValidateInput() const;
 
     // Returns the bounding rect of the password-toggle eye icon in card coords.
     // Used for both drawing (fieldf.cpp) and hit-testing (mdown).

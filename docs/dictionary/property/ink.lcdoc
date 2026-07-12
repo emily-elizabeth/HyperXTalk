@@ -81,8 +81,6 @@ Image Processing Blends (SVG/PDF operators):
 * blendExclusion
 
 
-Bitwise - This ink has been deprecated from version 5.0
-
 * srcCopy
 
 The rendered pixels of an object are combined with the corresponding

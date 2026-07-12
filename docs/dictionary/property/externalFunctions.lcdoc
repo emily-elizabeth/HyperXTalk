@@ -35,10 +35,6 @@ or to list all the available <external|external functions>.
 You use an external function in a handler the same way you use one of
 xTalk's built-in functions.
 
-Changes:
-Support for using the externalFunctions property on OS X systems was
-added in version 2.0.
-
 References: external (glossary), property (glossary), handler (glossary),
 line (keyword), stack (object), externalPackages (property)
 

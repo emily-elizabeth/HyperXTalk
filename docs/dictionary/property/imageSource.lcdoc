@@ -71,11 +71,6 @@ To correct this problem, set the <field(object)|field's>
 > <keyword>, the <imageSource> <property> is set to the contents of the
 > <URL>, not the <URL> itself, and this is usually not what's wanted.
 
-Changes:
-The order in which the engine searches for imageSource IDs was changed in
-version 3.5. Previously, the current stack was searched first, followed
-by the list of open stacks.
-
 References: show (command), hide (command), format (function),
 stacks (function), property (glossary), keyword (glossary),
 current stack (glossary), character (keyword), URL (keyword),

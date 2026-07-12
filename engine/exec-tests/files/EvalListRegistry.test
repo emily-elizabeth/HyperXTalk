@@ -1,7 +1,7 @@
 setup
 
 // set up test keys & values
-local tTestKey = "HKEY_CURRENT_USER\Software\LiveCode\Tests\ListRegistry\"
+local tTestKey = "HKEY_CURRENT_USER\Software\HyperXTalk\Tests\ListRegistry\"
 repeat for each item tKey in "Key1,Key2,Key1\Key1"
 	test setRegistry(tTestKey & tKey & "\value", "value of" && tKey)
 end repeat

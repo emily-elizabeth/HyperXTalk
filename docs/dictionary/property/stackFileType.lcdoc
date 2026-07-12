@@ -21,7 +21,7 @@ Value:
 The <stackFileType> is an eight- <character> string. The first four
 <characters> are the <creator signature>, and the last four are the
 <type signature|file type>. By default, the <stackFileType> is set to
-"RevoRSTK".
+"HXTkRSTK".
 
 Description:
 Use the <stackFileType> <property> to ensure that <stacks> that a
@@ -34,7 +34,7 @@ specifies which application owns the file, and the file type is used to
 determine which applications (other than the owner) can work with the
 file.
 
->*Note:* xTalk's <creator signature> is 'OXTk'. The file type for a
+>*Note:* HyperXTalk's <creator signature> is 'HXTk'. The file type for a
 > <stack file> created by HyperXTalk is 'STAK'.
 
 The <stackFileType> <property> is used to set the <type signature|file

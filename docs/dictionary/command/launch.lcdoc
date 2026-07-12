@@ -37,7 +37,7 @@ specified, the launch command assumes that the application is in the
 defaultFolder. 
 
 The result:
->*Note:*  On Mac OS systems, if the application is already running, the
+>*Note:*  On macOS systems, if the application is already running, the
 > <launch> command does nothing, and "Process is already open." is
 > placed in the result function. On Windows and Linux, an additional
 > instance of the application will start.
@@ -55,7 +55,7 @@ equivalent:
     launch application
     open process application for neither
 
->*Note:*  On OS X systems, you can use the <launch> command to start up
+>*Note:*  On macOS systems, you can use the <launch> command to start up
 > an application, but not a Unix process. To work with a Unix process,
 > use the shell function instead.
 

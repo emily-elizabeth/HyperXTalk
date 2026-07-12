@@ -1,5 +1,22 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+ 
+ This file is part of LiveCode.
+ 
+ LiveCode is free software; you can redistribute it and/or modify it under
+ the terms of the GNU General Public License v3 as published by the Free
+ Software Foundation.
+ 
+ LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include <Cocoa/Cocoa.h>
 #include <Carbon/Carbon.h>
+#include <QuartzCore/QuartzCore.h>
 
 #include "typedefs.h"
 #include "platform.h"
@@ -272,7 +289,7 @@ static OSErr preDispatchAppleEvent(const AppleEvent *p_event, AppleEvent *p_repl
     if (aeclass == kCoreEventClass && aeid == kAEQuitApplication)
     {
         {
-            FILE *f = fopen("/tmp/livecode-arm64-startup.log", "a");
+            FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
             if (f) { fprintf(f, "mac-core: kAEQuitApplication Apple Event received -> [NSApp terminate:]\n"); fclose(f); }
         }
         [NSApp terminate: self];
@@ -1530,46 +1547,81 @@ void MCMacPlatformSyncBackdrop(void)
     
     NSWindow *t_backdrop;
     t_backdrop = ((MCMacPlatformWindow *)s_backdrop_window) -> GetHandle();
-    
-    NSDisableScreenUpdates();
-    [t_backdrop orderOut: nil];
-    
-    // Loop from front to back on our windows, making sure the backdrop window is
-    // at the back.
+
+    // Use a CATransaction to batch all window-order changes into a single
+    // composited frame with no animation.  NSDisableScreenUpdates /
+    // NSEnableScreenUpdates were the historic approach but are deprecated
+    // since macOS 14 and are now effectively no-ops, causing a visible
+    // flash when the backdrop was ordered out and back in.
+    [CATransaction begin];
+    [CATransaction setDisableActions: YES];
+
+    // Loop from front to back over our own windows and preserve their
+    // relative order, then slot the backdrop in below all of them.
+    // We no longer call orderOut: first — repositioning via
+    // orderWindow:relativeTo: is sufficient and avoids the flicker caused
+    // by the backdrop briefly disappearing from the screen.
     NSInteger t_window_above_id;
     t_window_above_id = -1;
     for(NSNumber *t_window_id in [NSWindow windowNumbersWithOptions: 0])
     {
         NSWindow *t_window;
         t_window = [NSApp windowWithWindowNumber: [t_window_id longValue]];
-        
+
+        // Skip windows belonging to other applications — [NSApp windowWithWindowNumber:]
+        // returns nil for foreign windows.  Passing a foreign window ID to
+        // orderWindow:relativeTo: activates that foreign app, which is what caused
+        // other apps' windows to come to the foreground when Background mode was toggled.
+        if (t_window == nil)
+            continue;
+
         if (t_window == t_backdrop)
             continue;
-        
+
         if (t_window_above_id != -1)
             [t_window orderWindow: NSWindowBelow relativeTo: t_window_above_id];
-        
+
         t_window_above_id = [t_window_id longValue];
     }
-    
-    [t_backdrop orderWindow: NSWindowBelow relativeTo: t_window_above_id];
-    
-    NSEnableScreenUpdates();
+
+    // Place the backdrop below the lowest own-app window, or send it to the
+    // back entirely if no own windows are currently on screen.
+    if (t_window_above_id != -1)
+        [t_backdrop orderWindow: NSWindowBelow relativeTo: t_window_above_id];
+    else
+        [t_backdrop orderBack: nil];
+
+    [CATransaction commit];
 }
 
 void MCPlatformConfigureBackdrop(MCPlatformWindowRef p_backdrop_window)
 {
 	if (s_backdrop_window != nil)
 	{
+        // Restore key-eligibility on the outgoing backdrop window so it
+        // behaves normally if it is ever repurposed.
+        NSWindow *t_old = ((MCMacPlatformWindow *)s_backdrop_window) -> GetHandle();
+        [t_old setCanBecomeKeyWindow: YES];
+
 		MCPlatformReleaseWindow(s_backdrop_window);
 		s_backdrop_window = nil;
 	}
-	
+
 	s_backdrop_window = p_backdrop_window;
-	
+
 	if (s_backdrop_window != nil)
+    {
 		MCPlatformRetainWindow(s_backdrop_window);
-	
+
+        // The backdrop must never become the key window — if it does, menu
+        // actions route through its responder chain and find no handler,
+        // so menu items like "New Stack" silently do nothing.
+        // This must be set before MCPlatformShowWindow is called so that
+        // makeKeyAndOrderFront: brings the window to front without making it key.
+        NSWindow *t_new = ((MCMacPlatformWindow *)s_backdrop_window) -> GetHandle();
+        [t_new setCanBecomeKeyWindow: NO];
+    }
+
 	MCMacPlatformSyncBackdrop();
 }
 

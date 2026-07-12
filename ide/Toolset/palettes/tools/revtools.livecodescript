@@ -1304,33 +1304,3 @@ function toolIconColor pMode
       return "100,100,100"
    end if
 end toolIconColor
-
-on systemAppearanceChanged pMode, pWindowColor, pTextColor
-   local tBgColor
-   put revIDEColor("palette_background") into tBgColor
-   set the backgroundColor of this stack to pWindowColor
-   --   set the backgroundColor of this card to tBgColor
-   set the foregroundColor of this stack to pTextColor
-   
-   -- LCB widgets sit outside the LiveCode Script message hierarchy and cannot
-   -- receive SystemAppearanceChanged themselves.  Drive the appearance change
-   -- by updating the foregroundColor of every SVG path widget in the palette;
-   -- their OnPaint handler uses "my foreground paint", so they repaint
-   -- automatically when the property changes.
-   if there is a group "contents" of me then
-      local tIconColor
-      put toolIconColor(pMode) into tIconColor
-      repeat for each item tView in "widget,classic,graphic,graphictools,paint"
-         if there is a group tView of group "contents" of me then
-            repeat with i = 1 to the number of controls of group tView of group "contents" of me
-               local tCtl
-               put the long id of control i of group tView of group "contents" of me into tCtl
-               if word 1 of tCtl is "widget" and \
-                     the cDisabled of tCtl is not true then
-                  set the foregroundColor of tCtl to tIconColor
-               end if
-            end repeat
-         end if
-      end repeat
-   end if
-end systemAppearanceChanged

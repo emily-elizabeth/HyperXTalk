@@ -40,11 +40,6 @@ The lines shown by the <hGrid> and <vGrid> are drawn in the
 If the field's <fixedLineHeight> <property> is set to false, the <hGrid>
 <property> has no effect.
 
-Changes:
-The use of the <borderColor> to draw grid lines was introduced in
-version 2.0. In previous versions, the grid lines were drawn in the
-<hiliteColor>. 
-
 References: property (glossary), field (keyword), character (keyword),
 field (object), leftIndent (property), borderWidth (property),
 vgrid (property), textAlign (property), dontWrap (property),

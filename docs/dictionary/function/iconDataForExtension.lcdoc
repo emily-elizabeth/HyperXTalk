@@ -1,0 +1,61 @@
+Name: iconDataForExtension
+
+Type: function
+
+Syntax: iconDataForExtension(<extension> [, <size>])
+
+Summary:
+Returns the system icon for a file type extension as PNG image data.
+
+Introduced: 0.9
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- Display the icon for PDF files
+put iconDataForExtension("pdf") into image "fileIcon"
+
+Example:
+-- Extension may include the leading dot
+put iconDataForExtension(".docx", 64) into tIconData
+if the result is not empty then
+   answer "Could not get icon:" && the result
+end if
+
+Parameters:
+extension (String):
+The file extension to look up, with or without a leading dot.
+For example, both "pdf" and ".pdf" are accepted.
+
+size (Integer):
+The width and height in pixels of the icon to retrieve. Defaults to 32.
+Common values are 16, 32, 64, 128, and 256, though available sizes
+depend on the platform and file type.
+
+Returns (Data):
+The raw PNG-encoded bytes of the icon associated with the given extension
+at the requested size, suitable for placing directly into an image control.
+
+Description:
+<iconDataForExtension> asks the operating system for the icon associated
+with the given file type <extension> and returns it as raw PNG data.
+
+Unlike <iconDataForFile>, no actual file needs to exist — the icon is
+resolved purely from the extension. The returned data can be placed
+directly into an image object:
+
+    put iconDataForExtension("mp3") into image "myIcon"
+
+If the icon cannot be retrieved — for example, because no application is
+registered for the extension — the function returns empty and sets
+<the result> to an error string.
+
+The <size> parameter requests a specific pixel dimension. The OS will
+supply the closest available size; the returned image is always square.
+
+References: iconDataForFile (function), the result (function),
+files (function)
+
+Tags: file system, images

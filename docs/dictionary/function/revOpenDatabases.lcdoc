@@ -1,7 +1,5 @@
 Name: revOpenDatabases
 
-Synonyms: revdb_connections
-
 Type: function
 
 Syntax: revOpenDatabases()

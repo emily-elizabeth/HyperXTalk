@@ -1,14 +1,14 @@
 ﻿script "ServerBuilder"
 ////////////////////////////////////////////////////////////////////////////////
 
--- Building the LiveCode Server consists of
+-- Building the HyperXTalk Server consists of
 --   1) Fetch native code components for the target platform
 --   2) Build the output zip
 
 -- The layout of the zip is as follows:
 --   <zip>/externals/<externals>
 --   <zip>/drivers/<db drivers>
---   <zip>/livecode-server
+--   <zip>/hyperxtalk-server
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -112,13 +112,13 @@ command serverBuilderRun pPlatform, pEdition
       local tServerPath, tServerZipPath
       put tEngineFolder & slash & "server-" & toLower(pEdition) & tExeExtension into tServerPath
       if pEdition is "Community" then
-         put "livecode-community-server" & tOutExeExtension into tServerZipPath
+         put "hyperxtalk-community-server" & tOutExeExtension into tServerZipPath
       else
-         put "livecode-server" & tOutExeExtension into tServerZipPath
+         put "hyperxtalk-server" & tOutExeExtension into tServerZipPath
       end if
       
       if there is a file tServerPath then
-         builderLog "message", "Adding livecode-server engine"
+         builderLog "message", "Adding hyperxtalk-server engine"
          revZipAddItemWithFile tOutputFile, tServerZipPath, tServerPath
          if the result is not empty then
             throw the result
@@ -138,11 +138,11 @@ command serverBuilderRun pPlatform, pEdition
       replace "-" with "_" in tVersion
       replace "." with "_" in tVersionClean
       replace "-" with "_" in tVersionClean      
-      get builderBuiltNotesFolder() & "/LiveCodeNotes-" & tVersionClean & ".pdf"
+      get builderBuiltNotesFolder() & "/HyperXTalkNotes-" & tVersionClean & ".pdf"
 
       if there is a file it then
          builderLog "message", "Adding server release notes"
-         revZipAddItemWithFile tOutputFile, "LiveCodeNotes-" & tVersionClean & "-Server.pdf", it
+         revZipAddItemWithFile tOutputFile, "HyperXTalkNotes-" & tVersionClean & "-Server.pdf", it
          if the result is not empty then
             throw the result
          end if
@@ -192,5 +192,5 @@ function getZipFilenameStub pVersion, pPlatform, pEdition
 			put "Linux-arm6hf" into pPlatform
 			break
 	end switch
-   return "LiveCode" & editionTitleCase(pEdition) & "Server-" & pVersion & "-" & pPlatform & ".zip"
+   return "HyperXTalk" & editionTitleCase(pEdition) & "Server-" & pVersion & "-" & pPlatform & ".zip"
 end getZipFilenameStub

@@ -55,10 +55,6 @@ error. The <lockErrorDialogs> can be set to true either by setting the
 > is turned off. To toggle Script Debug mode, click on the Development
 > menu of xTalk's menubar.
 
-Changes:
-The <pExecutionError> parameter was introduced in version 1.1. In previous
-versions, this information was stored in the executionError property.
-
 References: lock error dialogs (command), unlock error dialogs (command),
 interrupt (function), format (function), errorObject (function),
 object (glossary), property (glossary), handle (glossary),

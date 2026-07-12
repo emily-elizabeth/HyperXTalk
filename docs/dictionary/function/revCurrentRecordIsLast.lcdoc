@@ -50,12 +50,7 @@ If the operation is not successful, the <revCurrentRecordIsLast>
 > "Database" library checkbox and those of the database drivers you are 
 > using are checked.
 
-Changes:
-The revCurrentRecordIsLast synonym was added in version 2.0.
-
 References: revMoveToNextRecord (command), function (control structure),
-revdb_movefirst (function), revdb_moveprev (function),
-revdb_movelast (function), revdb_movenext (function),
 HyperXTalk custom library (glossary), record (glossary),
 Standalone Application Settings (glossary),
 standalone application (glossary),

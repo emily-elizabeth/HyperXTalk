@@ -42,7 +42,7 @@ the <rectangle>). It affects only user actions. If you set the
 If the stack's <resizable> <property> is false, the setting of this
 <property> has no effect.
 
->*Cross-platform note:*  On <Mac OS> and <OS X|OS X systems>, if the
+>*Cross-platform note:*  On <OS X|OS X systems>, if the
 > <current card> has a <menu bar> and the <editMenus> <property> is
 > false (that is, if the <stack window> is scrolled up so the menubar
 > buttons are not visible in the window), the <minHeight> does not

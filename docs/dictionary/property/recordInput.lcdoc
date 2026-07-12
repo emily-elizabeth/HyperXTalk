@@ -53,16 +53,6 @@ later supports the following:
 - zvpc - records from zoom video input
 - none - does not record.
 
-
-Changes:
-The use of <QuickTime> was deprecated in version 8.1 with
-new defaults for <dontUseQT> and <dontUseQTEffects> as true on all
-systems apart from pre OS X 10.8. The Windows build no
-longer supports any <QuickTime> features and setting the <dontUseQT> and
-<dontUseQTEffects> will have no effect. Additionally <QuickTime> does 
-not include 64 bit support and therefore can not be supported on OS X 64
-bit builds.
-
 References: open driver (command), record sound (command),
 command (glossary), property (glossary), string (keyword),
 dontUseQT (property), dontUseQTEffects (property), 

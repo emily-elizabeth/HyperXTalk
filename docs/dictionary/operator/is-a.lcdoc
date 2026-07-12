@@ -84,9 +84,6 @@ date operator will return false for dates before 1/1/1970 on Windows.
 The <is a> <operator> is the <logical> <inverse> of the <is not a>
 <operator>. When one is true, the other is false.
 
-Changes:
-The <is an> <array(keyword)> form was added in version 2.9
-
 References: convert (command), colorNames (function), date (function),
 isNumber (function), keys (function), time (function), array (glossary),
 ASCII (glossary), boolean (glossary), color reference (glossary),

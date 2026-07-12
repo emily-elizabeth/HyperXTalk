@@ -43,12 +43,7 @@ and bottom edges are not included in the screen's area.
 Adding the working adjective to either form returns the virtual
 co-ordinates of each screen's working-area. The working-area of a screen
 is defined to be the area not covered by OS furniture (such as the task
-bar on Windows, and the Dock and Menubar on Mac OS X).
-
-Adding the effective adjective to either form returns the area of the
-screen the application has to itself. In particular, if the keyboard is
-activated, it take into account if the keyboard is taking up space on
-the screen. (Android and iOS only)
+bar on Windows, and the Dock and Menubar on macOS).
 
 >*Note:* The co-ordinates returned by the screenRect family of functions
 > can be anywhere in the virtual desktop defined by the OS - their

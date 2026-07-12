@@ -19,9 +19,9 @@ ifneq ($(TRAVIS),undefined)
 	@echo "travis_fold:start:compile"
 	@echo "COMPILE"
 endif
-	@mkdir -p build-linux-$*/livecode/out/Debug/Externals build-linux-$*/livecode/out/Debug/packaged_extensions build-linux-$*/livecode/out/Debug/modules \
-	           build-linux-$*/livecode/out/Release/Externals build-linux-$*/livecode/out/Release/packaged_extensions build-linux-$*/livecode/out/Release/modules
-	$(MAKE) -C build-linux-$*/livecode default
+	@mkdir -p build-linux-$*/hyperxtalk/out/Debug/Externals build-linux-$*/hyperxtalk/out/Debug/packaged_extensions build-linux-$*/hyperxtalk/out/Debug/modules \
+	           build-linux-$*/hyperxtalk/out/Release/Externals build-linux-$*/hyperxtalk/out/Release/packaged_extensions build-linux-$*/hyperxtalk/out/Release/modules
+	$(MAKE) -C build-linux-$*/hyperxtalk default
 ifneq ($(TRAVIS),undefined)
 	@echo "travis_fold:end:compile"
 endif
@@ -31,7 +31,7 @@ ifneq ($(TRAVIS),undefined)
 	@echo "travis_fold:start:testcpp"
 	@echo "TEST C++"
 endif
-	$(MAKE) -C build-linux-$*/livecode check
+	$(MAKE) -C build-linux-$*/hyperxtalk check
 ifneq ($(TRAVIS),undefined)
 	@echo "travis_fold:end:testcpp"
 endif
@@ -41,4 +41,7 @@ all-linux-%:
 	$(MAKE) config-linux-$*
 	$(MAKE) compile-linux-$*
 
-$(addsuffix -linux,all config compile check): %: %-$(guess_linux_arch)
+package-linux-%:
+	bash packaging/linux/build-appimage.sh build-linux-$*/hyperxtalk $(BUILDTYPE)
+
+$(addsuffix -linux,all config compile check package): %: %-$(guess_linux_arch)

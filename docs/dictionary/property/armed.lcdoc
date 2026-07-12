@@ -38,10 +38,6 @@ it. You can automate this behavior by setting the
 The appearance of an armed button is determined by its armBorder and
 <armFill> <properties>.
 
-Changes:
-The armed keyword was introduced in version 1.1. In previous versions,
-the arm synonym was used.
-
 References: hilite (command), appearance (glossary),
 mouse pointer (glossary), property (glossary), menu (keyword),
 button (keyword), button (object), armed (property), armFill (property),

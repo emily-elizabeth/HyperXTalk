@@ -1,0 +1,69 @@
+Name: validateField
+
+Type: command
+
+Syntax: validateField <field>
+
+Summary:
+Validates the content of a field against its input constraints and sets
+<the result> to an error message if validation fails.
+
+Introduced: 1.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+validateField field "EmailAddress"
+if the result is not empty then
+    answer the result
+end if
+
+Example:
+-- Validate all fields before submitting a form
+on submitForm
+    repeat with i = 1 to the number of fields of this card
+        validateField field i
+        if the result is not empty then
+            answer "Please correct: " & the result
+            focus on field i
+            exit submitForm
+        end if
+    end repeat
+    -- All fields valid; proceed
+    saveFormData
+end submitForm
+
+Parameters:
+field:
+A reference to a field object.
+
+Description:
+Use the <validateField> command to check a field's current content
+against its <inputType>, <inputRequired>, <inputMin>, <inputMax>,
+<inputStep>, and <inputPattern> properties.
+
+If the field's content satisfies all active constraints, <the result> is
+set to empty. If any constraint is violated, <the result> is set to a
+human-readable error message describing the problem, and no message is
+sent to the field.
+
+The <validateField> command is useful when you need to check a field's
+value programmatically — for example, when a Submit button needs to
+validate several fields at once, or when you want to validate on
+<returnInField> rather than waiting for the user to leave the field.
+
+>*Note:* Validation also fires automatically when the user edits a field
+> and moves focus elsewhere (on <closeField>). If validation fails at that
+> point, a <fieldValidationFailed> message is sent instead of <closeField>,
+> and the field remains focused so the user can make a correction.
+
+References: inputType (property), inputRequired (property),
+inputMin (property), inputMax (property), inputStep (property),
+inputPattern (property), closeField (message),
+fieldValidationFailed (message), returnInField (message),
+focus (command), the result (function)
+
+Tags: ui, validation
+

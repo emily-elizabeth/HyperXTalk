@@ -1,7 +1,5 @@
 Name: revDatabaseColumnCount
 
-Synonyms: revdb_columncount
-
 Type: function
 
 Syntax: revDatabaseColumnCount(<recordSetID>)
@@ -58,9 +56,6 @@ If the operation is not successful, the <revDatabaseColumnCount>
 > <Standalone Application Settings> window, make sure both the 
 > "Database" library checkbox and those of the database drivers you are 
 > using are checked.
-
-Changes:
-The revDatabaseColumnCount synonym was added in version 2.0.
 
 References: function (control structure),
 revDatabaseColumnNames (function), revDatabaseColumnNumbered (function),

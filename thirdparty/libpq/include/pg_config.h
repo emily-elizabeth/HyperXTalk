@@ -32,7 +32,7 @@
 #define BLCKSZ 8192
 
 /* Saved arguments from configure */
-#define CONFIGURE_ARGS " '--disable-debug' '--prefix=/opt/homebrew/Cellar/libpq/18.4' '--with-gssapi' '--with-libcurl' '--with-openssl' '--libdir=/opt/homebrew/opt/libpq/lib' '--includedir=/opt/homebrew/opt/libpq/include' 'CC=clang' 'CXX=clang++' 'PKG_CONFIG_PATH=/opt/homebrew/opt/pkgconf/lib/pkgconfig:/opt/homebrew/opt/icu4c@78/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig:/opt/homebrew/opt/krb5/lib/pkgconfig' 'PKG_CONFIG_LIBDIR=/usr/lib/pkgconfig:/opt/homebrew/Library/Homebrew/os/mac/pkgconfig/26'"
+#define CONFIGURE_ARGS " '--disable-debug' '--prefix=/opt/homebrew/Cellar/libpq/18.3' '--with-gssapi' '--with-libcurl' '--with-openssl' '--libdir=/opt/homebrew/opt/libpq/lib' '--includedir=/opt/homebrew/opt/libpq/include' 'CC=clang' 'CXX=clang++' 'PKG_CONFIG_PATH=/opt/homebrew/opt/pkgconf/lib/pkgconfig:/opt/homebrew/opt/icu4c@78/lib/pkgconfig:/opt/homebrew/opt/openssl@3/lib/pkgconfig:/opt/homebrew/opt/krb5/lib/pkgconfig' 'PKG_CONFIG_LIBDIR=/usr/lib/pkgconfig:/opt/homebrew/Library/Homebrew/os/mac/pkgconfig/26'"
 
 /* Define to the default TCP port number on which the server listens and to
    which clients will try to connect. This can be overridden at run-time, but
@@ -583,7 +583,7 @@
 #define PACKAGE_NAME "PostgreSQL"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "PostgreSQL 18.4"
+#define PACKAGE_STRING "PostgreSQL 18.3"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "postgresql"
@@ -592,15 +592,7 @@
 #define PACKAGE_URL "https://www.postgresql.org/"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "18.4"
-
-/* Define to best C++ printf format archetype, usually gnu_printf if
-   available. */
-#define PG_CXX_PRINTF_ATTRIBUTE __syslog__
-
-/* Define to best C printf format archetype, usually gnu_printf if available.
-   */
-#define PG_C_PRINTF_ATTRIBUTE __syslog__
+#define PACKAGE_VERSION "18.3"
 
 /* Define to the name of a signed 128-bit integer type. */
 #define PG_INT128_TYPE __int128
@@ -616,16 +608,19 @@
 #define PG_MAJORVERSION_NUM 18
 
 /* PostgreSQL minor version number */
-#define PG_MINORVERSION_NUM 4
+#define PG_MINORVERSION_NUM 3
+
+/* Define to best printf format archetype, usually gnu_printf if available. */
+#define PG_PRINTF_ATTRIBUTE printf
 
 /* PostgreSQL version as a string */
-#define PG_VERSION "18.4"
+#define PG_VERSION "18.3"
 
 /* PostgreSQL version as a number */
-#define PG_VERSION_NUM 180004
+#define PG_VERSION_NUM 180003
 
 /* A string containing the version number, platform, and C compiler */
-#define PG_VERSION_STR "PostgreSQL 18.4 on aarch64-apple-darwin25.4.0, compiled by Apple clang version 21.0.0 (clang-2100.0.123.102), 64-bit"
+#define PG_VERSION_STR "PostgreSQL 18.3 on aarch64-apple-darwin25.2.0, compiled by Apple clang version 17.0.0 (clang-1700.6.3.2), 64-bit"
 
 /* Define to 1 to allow profiling output to be saved separately for each
    process. */

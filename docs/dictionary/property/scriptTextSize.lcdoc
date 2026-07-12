@@ -19,14 +19,7 @@ Platforms: desktop, server
 
 Description:
 The <scriptTextSize> property is present in the xTalk engine for compatibility
-with scripts imported from HyperCard. In the LiveCode Community Edition the
-the property was marked as deprecated and to be removed.
-The value is initializes to reflect the current IDE Script Editor text size
+with scripts imported from HyperCard. 
+The value is initialized to reflect the current IDE Script Editor text size
 preference, but setting/getting this property thereafter has no relationship
-to the preference setting. This behavior may altered in a future build.
-Additionally in HyperXTalk scriptTextSize may be used in a command form within
-the IDE. This acts like a shortcut to setting the Script Editor's
-font size preference and changes the font size of any currently editing scripts.
-You can use this command from the message box to quickly change sizes of text
-in open script windows to an arbitrary number (not constrained to the specific
-numbers that are in the IDE Preferences panel ).
+to the preference setting.

@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "notify.h"
@@ -20,6 +36,7 @@
 #elif defined(_LINUX_DESKTOP) || defined(_LINUX_SERVER)
 #include <pthread.h>
 #include <unistd.h>
+#include <fcntl.h>
 #define USE_PTHREADS
 #define USE_PIPE
 #elif defined(_WINDOWS_DESKTOP) || defined(_WINDOWS_SERVER)
@@ -253,6 +270,14 @@ bool MCNotifyInitialize(void)
 	s_main_thread = pthread_self();
 #if defined(USE_PIPE)
 	pipe(g_notify_pipe);
+    // Make the read end non-blocking so that a read() call on it never
+    // hangs even if called in error (e.g. via a stale poll-array index).
+    if (g_notify_pipe[0] != -1)
+    {
+        int t_flags = fcntl(g_notify_pipe[0], F_GETFL, 0);
+        if (t_flags != -1)
+            fcntl(g_notify_pipe[0], F_SETFL, t_flags | O_NONBLOCK);
+    }
 #elif defined(USE_PINGORPIPE)
     if (MCnoui)
         pipe(g_notify_pipe);

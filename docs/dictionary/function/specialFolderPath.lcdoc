@@ -11,7 +11,7 @@ Returns the names and locations of system-related <folders>.
 
 Introduced: 1.0.0
 
-OS: mac, windows, linux, html5
+OS: mac, windows, linux
 
 Platforms: desktop, server
 
@@ -123,76 +123,6 @@ are supported:
  or folders specified in the Standalone Builder are located. Note: a 
  valid resources path is only returned after a stack has been saved.
 
-
-**On iOS systems**, only create files in the "documents", "cache" and
-"temporary" folders.  Be careful not to change or add any files within
-the <application bundle>. The <application bundle> is digitally signed
-when it is built, and any changes after this point will invalidate the
-signature and prevent it from launching.
-
-iOS imposes strict controls over what you can and cannot access.  Each
-application in iOS is stored in its own "sandbox" <folder>
-(`specialFolderPath("home")`). An <application> is free to read and
-write files anywhere beneath this <folder>, but it is not allowed to
-access anything outside of the "sandbox".
-
-> *Note:* iOS devices have <case-sensitive> file systems, but the iOS
-> simulator's file system has the same <case-sensitive|case-sensitivity>
-> as the host system (i.e. usually <case-insensitive>).
-
-The following <folderIdentifier> values are supported:
-
-* "home": The (unique) folder containing the <application bundle> and
-  its associated data and folders
-* "documents": The folder in which document data should be stored 
-(backed up by iTunes on sync)
-* "library": The folder in which to store data of various types (backed 
-up by iTunes on sync). In particular, data private to the
-application should be stored in a folder named with the 
-<application bundle|app's bundle> identifier inside the "library" folder
-* "cache": The folder where transient data that needs to be preserved
-  between launches should be stored (*not* backed up by iTunes)
-* "temporary": The folder where temporary data that is *not* preserved
-  between launches should be stored (*not* backed up by iTunes)
-* "engine": The folder containing the built 
-  <standalone application|standalone> <engine> (i.e. the 
-  <application bundle|bundle>). This is useful for constructing paths to 
-  resources that have been copied into the <application bundle|bundle> 
-  at build time 
-* "resources": Same as "engine".
-
-
-**On Android systems**, note that the file system is <case-sensitive>.
-
-An Android application is installed on the device as a ZIP package.  
-This means that any assets that are included are not available as
-separate files in the device's native file system.  In order to manage
-this, HyperXTalk "virtualizes" the asset files you include, allowing
-read-only access with all the standard HyperXTalk file and folder handling
-commands and functions. To access the assets you have included with your
-application, use file names relative to `specialFolderPath("engine")`.
-
-The following <folderIdentifier> values are supported:
-
-* "documents": The folder where application-specific data can be placed
-  (typically valuable)
-* "cache": The folder where transient application-specific data can be 
-  placed (typically not valuable)
-* "temporary": Same as "cache"
-* "engine": The (virtual) folder containing the
-  <application|application's> HyperXTalk <engine>  and other resources
-  that were copied into the <application> at build time
-* "resources": Same as "engine".
-* "external documents": The folder on the primary shared/external 
-  storage device where application-specific data can be placed
-* "external cache": The folder on the primary shared/external 
-  storage device where transient application-specific data can be placed
-* "external temporary": same as "external cache"
-
->*Note:* If using any external <folderIdentifier> values, ensure you 
-> have the 'Write External Storage' permission checked in the
-> application standalone settings
-
 **On Linux systems**, the following <folderIdentifier> values 
 are supported: 
 
@@ -205,35 +135,6 @@ are supported:
   standalone, the resources folder where files or folders specified
   in the Standalone Builder are located. Note: A valid resources path 
   is only returned after a stack has been saved.
-
-
-
-**In HTML5 standalones**, you can read and write files from anywhere,
-since the whole file system is virtual and temporary. For compatibility
-purposes, the following <folderIdentifier> values are supported:
-
-* "home": Always `/HyperXTalk`
-* "fonts": The folder that contains fonts
-* "temporary": A folder where temporary files can be placed
-* "engine": The folder where the standalone initial file system is
-  extracted 
-* "resources": The resources folder where files or folders specified in
-  the Standalone Builder are located.
-
-
-Changes:
-- Support for special folder <constant|constants> (on Mac OS and OS X)
-  and CSIDL numbers (on Windows) was added in version 2.0.
-- Support for using the <specialFolderPath> function on Unix systems was
-  added in version 2.9.
-- Support for using the <specialFolderPath> function on iOS systems was
-  added in version 4.5.2.
-- Support for using the <specialFolderPath> function on Android systems
-  was added in version 4.6.2.
-- The "resources" <folderIdentifier> was added in version 6.7.5.
-- Support for using the <specialFolderPath> function on HTML5 systems
-  was added in version 8.0.0.
-
 
 References: revSetDatabaseDriverPath (command), files (function),
 folders (function), tempName (function), result (function),

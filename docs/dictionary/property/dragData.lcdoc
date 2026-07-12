@@ -84,9 +84,6 @@ sets the dragData["text"].
 > is a good practice anyway, but in the case of this property, it's
 > necessary to avoid script errors.
 
->*Note:*  From 7.0, the string in <dragData> ["text"] can also contain
-> the Unicode characters
-
 References: arrayDecode (function), arrayEncode (function),
 textDecode (function), textEncode (function),
 property (glossary), handler (glossary), array (glossary),

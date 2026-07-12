@@ -121,8 +121,8 @@ to appear in, but not both.
 > opens as a palette rather than a modeless dialog box, ignoring the
 > mode you specified.
 
-The <go>... as sheet form can be used only on OS X systems. If you use
-this form on Mac OS, Unix, or Windows, the stack is displayed as a modal
+The <go>... as sheet form can be used only on macOS systems. If you use
+this form on Linux or Windows, the stack is displayed as a modal
 dialog box instead. If you don't specify a mode, the stack is opened
 with the mode specified by its style property.
 

@@ -9,7 +9,7 @@ Invokes the <logMessage> if it is not empty.
 
 Introduced: 1.0.0
 
-OS: mac, windows, linux, html5
+OS: mac, windows, linux
 
 Platforms: desktop, server
 

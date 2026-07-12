@@ -50,13 +50,10 @@ If the operation is not successful, the <revCurrentRecordIsFirst>
 > "Database" library checkbox and those of the database drivers you are 
 > using are checked.
 
-Changes:
-The revCurrentRecordIsFirst synonym was added in version 2.0.
 
 References: revMoveToNextRecord (command), function (control structure),
-revdb_movefirst (function), revdb_moveprev (function),
-revdb_movelast (function), revQueryIsAtStart (function),
-revdb_movenext (function), HyperXTalk custom library (glossary),
+revQueryIsAtStart (function),
+HyperXTalk custom library (glossary),
 record (glossary), Standalone Application Settings (glossary),
 standalone application (glossary),
 record set (glossary), return (glossary),

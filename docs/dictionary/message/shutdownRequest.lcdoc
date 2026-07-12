@@ -45,11 +45,6 @@ ignored.
 >*Note:* Applications will not receive this message when running in the
 > IDE. 
 
-Changes:
-Handling of the SIGTERM signal was introduced in version 2.0. In
-previous versions, the SIGTERM signal did not cause a message to be
-sent. 
-
 References: quit (command), pass (control structure),
 application (glossary), current card (glossary), current stack (glossary),
 handler (glossary), message path (glossary), pass (glossary),

@@ -36,8 +36,7 @@ native character equivalents.
 The <numToNativeChar> function is the inverse of the <nativeCharToNum>
 function. 
 
-These functions convert between text and native characters and are
-replacements for the deprecated <numToChar> and <charToNum> functions.
+These functions convert between text and native characters.
 
 As the &ldquo;native&rdquo; character sets for each platform have a
 limited and different repertoire, these functions should not be used

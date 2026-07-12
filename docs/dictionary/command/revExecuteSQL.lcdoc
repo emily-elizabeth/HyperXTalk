@@ -118,7 +118,7 @@ in 2.9
 References: function (control structure),
 revDatabaseTableNames (function), revOpenDatabase (function),
 result (function), revQueryDatabase (function),
-revDataFromQuery (function), revdb_execute (function),
+revDataFromQuery (function),
 HyperXTalk custom library (glossary), prepend (glossary),
 binary file (glossary), variable (glossary), database (glossary),
 SQL (glossary), Standalone Application Settings (glossary),

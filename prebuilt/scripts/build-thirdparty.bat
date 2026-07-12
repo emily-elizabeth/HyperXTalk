@@ -54,7 +54,7 @@ python config.py --platform %BUILD_PLATFORM% >>%THIRDPARTY_BUILD_LOG% 2>>&1
 IF %ERRORLEVEL% NEQ 0 EXIT /B %ERRORLEVEL%
 
 REM Set build project
-set BUILD_PROJECT=build-%BUILD_PLATFORM%\livecode\livecode.sln
+set BUILD_PROJECT=build-%BUILD_PLATFORM%\hyperxtalk\hyperxtalk.sln
 
 REM Set MSBUILD Platform
 if /I "%ARCH%"=="x86_64" (
@@ -76,7 +76,7 @@ ECHO ========== PACKAGING ==========  >>%THIRDPARTY_BUILD_LOG%
 IF NOT EXIST "%THIRDPARTY_BIN%" MKDIR "%THIRDPARTY_BIN%"
 IF NOT EXIST "%THIRDPARTY_BIN%\lib"     MKDIR "%THIRDPARTY_BIN%\lib"
 
-SET THIRDPARTY_LIB_DIR=build-%BUILD_PLATFORM%\livecode\%MODE%\lib
+SET THIRDPARTY_LIB_DIR=build-%BUILD_PLATFORM%\hyperxtalk\%MODE%\lib
 
 SET SKIA_LIBS=skia skia_opt_arm skia_opt_avx skia_opt_hsw skia_opt_none skia_opt_sse2 skia_opt_sse3 skia_opt_sse41 skia_opt_sse42
 SET THIRDPARTY_LIBS=cairo ffi gif jpeg mysql pcre png pq sqlite xml xslt z zip %SKIA_LIBS%

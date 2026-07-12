@@ -41,12 +41,6 @@ The <longFilePath> function transforms the <filePath> without looking
 for the file, so it returns a value even if the <filePath> does not
 exist- namely the <filePath> prefixed with the current <defaultFolder>.
 
->*Warning:* 
-In pre 7.x versions on Mac and Linux the <longFilePath> function
-returned the <filePath> without changing it, post 7.x the <longFilePath>
-function returns the full path to the file. This change may affect
-existing code.
-
 References: shortFilePath (function), file path (glossary),
 return (glossary), defaultFolder (property)
 

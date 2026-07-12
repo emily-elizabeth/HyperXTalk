@@ -26,9 +26,6 @@ Description:
 Use the <loadedTime> <property> to find out up to which time a movie or
 sound can be played.
 
-Changes:
-Support for this property on Windows was added in version 8.1.0.
-
 References: property (glossary), player (keyword), looping (property),
 endTime (property), showSelection (property), callbacks (property),
 startTime (property)

@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -28,6 +44,8 @@
 #include "paragraf.h"
 
 #include "exec-interface.h"
+#include "regex.h"
+#include <cmath>
 ////////////////////////////////////////////////////////////////////////////////
 
 enum MCInterfaceFieldStyle
@@ -965,6 +983,13 @@ void MCField::SetPasswordField(MCExecContext& ctxt, bool p_setting)
 {
 	m_password_field = p_setting;
 	Redraw();
+    // Reposition the caret immediately so it appears at the correct x offset
+    // relative to the (now-changed) displayed characters.  Without this the
+    // caret stays at its old pixel position until the next keystroke, which
+    // can place it inside or past the bullet dots on Windows (where the
+    // redraw cycle does not implicitly trigger replacecursor as it does on
+    // other platforms).
+    replacecursor(True, False);
 }
 
 void MCField::GetPasswordToggle(MCExecContext& ctxt, bool& r_setting)
@@ -1000,6 +1025,238 @@ void MCField::SetHintText(MCExecContext& ctxt, MCStringRef p_string)
 	// Redraw the field so the hint text appears/disappears immediately
 	Redraw();
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Input validation properties
+
+void MCField::GetInputType(MCExecContext& ctxt, MCStringRef& r_string)
+{
+    r_string = MCValueRetain(m_input_type);
+}
+
+void MCField::SetInputType(MCExecContext& ctxt, MCStringRef p_string)
+{
+    MCValueAssign(m_input_type, p_string);
+}
+
+void MCField::GetInputRequired(MCExecContext& ctxt, bool& r_flag)
+{
+    r_flag = m_input_required;
+}
+
+void MCField::SetInputRequired(MCExecContext& ctxt, bool p_flag)
+{
+    m_input_required = p_flag;
+}
+
+void MCField::GetInputMin(MCExecContext& ctxt, MCStringRef& r_string)
+{
+    r_string = MCValueRetain(m_input_min);
+}
+
+void MCField::SetInputMin(MCExecContext& ctxt, MCStringRef p_string)
+{
+    MCValueAssign(m_input_min, p_string);
+}
+
+void MCField::GetInputMax(MCExecContext& ctxt, MCStringRef& r_string)
+{
+    r_string = MCValueRetain(m_input_max);
+}
+
+void MCField::SetInputMax(MCExecContext& ctxt, MCStringRef p_string)
+{
+    MCValueAssign(m_input_max, p_string);
+}
+
+void MCField::GetInputStep(MCExecContext& ctxt, MCStringRef& r_string)
+{
+    r_string = MCValueRetain(m_input_step);
+}
+
+void MCField::SetInputStep(MCExecContext& ctxt, MCStringRef p_string)
+{
+    MCValueAssign(m_input_step, p_string);
+}
+
+void MCField::GetInputPattern(MCExecContext& ctxt, MCStringRef& r_string)
+{
+    r_string = MCValueRetain(m_input_pattern);
+}
+
+void MCField::SetInputPattern(MCExecContext& ctxt, MCStringRef p_string)
+{
+    MCValueAssign(m_input_pattern, p_string);
+}
+
+// Run a full-match regex test against p_text using a C-string pattern.
+// p_text MUST be a Unicode (16-bit) MCStringRef — MCR_exec is compiled with
+// 16-bit PCRE support and will produce incorrect results on native strings.
+// Returns true if the entire text matches, false otherwise or if the
+// pattern fails to compile.
+static bool s_regex_match(MCStringRef p_text, const char *p_pattern)
+{
+    MCAutoStringRef t_pat;
+    MCStringCreateWithCString(p_pattern, &t_pat);
+    // MCR_compile caches the result — do NOT call MCR_free on the returned
+    // pointer; the cache owns it and freeing it here causes a dangling pointer.
+    regexp *t_re = MCR_compile(*t_pat, false);
+    if (t_re == nullptr)
+        return false;
+    return MCR_exec(t_re, p_text,
+                    MCRangeMake(0, MCStringGetLength(p_text))) != 0;
+}
+
+// Validate the current field content against the active input constraints.
+// Returns nullptr if valid, or a newly-retained MCStringRef error message if not.
+MCStringRef MCField::ValidateInput() const
+{
+    // Get the current plain-text value of the field.
+    MCAutoStringRef t_field_text;
+    if (!const_cast<MCField *>(this)->exportastext(0, 0, INT32_MAX, &t_field_text))
+        return nullptr; // can't validate without text
+    MCStringRef t_text = *t_field_text;
+
+    bool t_empty = MCStringIsEmpty(t_text);
+
+    // MCR_exec requires a Unicode (16-bit) string — convert once up front so
+    // every regex call below gets the right encoding.  We keep t_text around
+    // for non-regex checks (isEmpty, ToDouble, etc.) which work on either form.
+    MCAutoStringRef t_unicode_buf;
+    if (!t_empty && !MCStringUnicodeCopy(t_text, &t_unicode_buf))
+        return nullptr;
+    MCStringRef t_utext = t_empty ? t_text : *t_unicode_buf;
+
+    // --- required ---
+    if (m_input_required && t_empty)
+    {
+        MCStringRef t_err;
+        MCStringCreateWithCString("This field is required.", t_err);
+        return t_err;
+    }
+
+    // No further checks needed for an empty non-required field.
+    if (t_empty)
+        return nullptr;
+
+    // --- custom pattern ---
+    if (!MCStringIsEmpty(m_input_pattern))
+    {
+        MCAutoStringRef t_anchored;
+        MCStringFormat(&t_anchored, "^(?:%@)$", m_input_pattern);
+        regexp *t_re = MCR_compile(*t_anchored, false);
+        if (t_re != nullptr)
+        {
+            bool t_matched = MCR_exec(t_re, t_utext,
+                                      MCRangeMake(0, MCStringGetLength(t_utext))) != 0;
+            if (!t_matched)
+            {
+                MCStringRef t_err;
+                MCStringCreateWithCString("Value does not match the required pattern.", t_err);
+                return t_err;
+            }
+        }
+        // If compile fails, skip rather than crash.
+    }
+
+    if (MCStringIsEmpty(m_input_type))
+        return nullptr;
+
+    // --- type-specific validation ---
+    if (MCStringIsEqualToCString(m_input_type, "email", kMCStringOptionCompareCaseless))
+    {
+        // Local part: RFC 5321 allowed unquoted characters.
+        // Domain: one or more labels separated by dots, ending with an
+        // alphabetic TLD of at least two characters.  This rejects strings
+        // like "qwerty:://@www...com" whose local part contains : or /.
+        if (!s_regex_match(t_utext, "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~\\-]+@[a-zA-Z0-9\\-]+(?:\\.[a-zA-Z0-9\\-]+)*\\.[a-zA-Z]{2,}$"))
+        {
+            MCStringRef t_err;
+            MCStringCreateWithCString("Please enter a valid email address.", t_err);
+            return t_err;
+        }
+        return nullptr;
+    }
+
+    if (MCStringIsEqualToCString(m_input_type, "url", kMCStringOptionCompareCaseless))
+    {
+        // Host must contain a dot with at least 2 characters after it (TLD),
+        // and at least 1 character before it. Path/query/fragment are optional.
+        if (!s_regex_match(t_utext, "^(https?|ftp)://[^\\s/?#]+\\.[^\\s/?#]{2,}([/?#]\\S*)?$"))
+        {
+            MCStringRef t_err;
+            MCStringCreateWithCString("Please enter a valid URL (starting with http://, https://, or ftp://).", t_err);
+            return t_err;
+        }
+        return nullptr;
+    }
+
+    if (MCStringIsEqualToCString(m_input_type, "tel", kMCStringOptionCompareCaseless))
+    {
+        // Digits, spaces, and the symbols +  -  (  )  .
+        if (!s_regex_match(t_utext, "^[+0-9()\\-.\\s]+$"))
+        {
+            MCStringRef t_err;
+            MCStringCreateWithCString("Please enter a valid telephone number.", t_err);
+            return t_err;
+        }
+        return nullptr;
+    }
+
+    if (MCStringIsEqualToCString(m_input_type, "number", kMCStringOptionCompareCaseless))
+    {
+        double t_num;
+        if (!MCStringToDouble(t_text, t_num))
+        {
+            MCStringRef t_err;
+            MCStringCreateWithCString("Please enter a valid number.", t_err);
+            return t_err;
+        }
+        if (!MCStringIsEmpty(m_input_min))
+        {
+            double t_min;
+            if (MCStringToDouble(m_input_min, t_min) && t_num < t_min)
+            {
+                MCStringRef t_err;
+                MCStringFormat(t_err, "Value must be at least %@.", m_input_min);
+                return t_err;
+            }
+        }
+        if (!MCStringIsEmpty(m_input_max))
+        {
+            double t_max;
+            if (MCStringToDouble(m_input_max, t_max) && t_num > t_max)
+            {
+                MCStringRef t_err;
+                MCStringFormat(t_err, "Value must be no more than %@.", m_input_max);
+                return t_err;
+            }
+        }
+        if (!MCStringIsEmpty(m_input_step))
+        {
+            double t_step;
+            double t_base = 0.0;
+            if (!MCStringIsEmpty(m_input_min))
+                MCStringToDouble(m_input_min, t_base);
+            if (MCStringToDouble(m_input_step, t_step) && t_step > 0.0)
+            {
+                double t_rem = fmod(t_num - t_base, t_step);
+                if (t_rem > 1e-9 && (t_step - t_rem) > 1e-9)
+                {
+                    MCStringRef t_err;
+                    MCStringFormat(t_err, "Value must be a multiple of %@ from the minimum.", m_input_step);
+                    return t_err;
+                }
+            }
+        }
+        return nullptr;
+    }
+
+    // "date", "text", and unrecognised types: no engine-side check beyond required/pattern.
+    return nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 void MCField::GetToggleHilite(MCExecContext& ctxt, bool& r_setting)
 {

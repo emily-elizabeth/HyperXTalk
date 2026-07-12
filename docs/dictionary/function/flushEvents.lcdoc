@@ -30,7 +30,7 @@ eventType (enum):
 -  "autoKey": ignore key repeats
 -  "disk": ignore disk-related events
 -  "activate": ignore windows being brought to the front
--  "highLevel": ignore Apple Events (on Mac OS and OS X systems)
+-  "highLevel": ignore Apple Events (on macOS systems)
 -  "system": ignore operating system events
 
 Returns:

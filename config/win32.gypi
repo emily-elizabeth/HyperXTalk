@@ -29,7 +29,7 @@
 			'debug_info_suffix': '',
 
 			'silence_warnings': 0,
-			'msvs_compiler_version': "143",
+			'msvs_compiler_version': "142",
 		},
 		
 		# Don't assume a Cygwin environment when invoking actions

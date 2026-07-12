@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #ifndef __MC_PARSE_ERRORS__
 #define __MC_PARSE_ERRORS__
 enum Parse_errors
@@ -598,6 +614,11 @@ PE_IFF_BADPARAM, // "iff: requires exactly 3 parameters"
 PE_STORECREDENTIAL_BADPARAM, // "storeCredential: bad parameter expression"
 PE_RETRIEVECREDENTIAL_BADPARAM, // "retrieveCredential: bad parameter expression"
 PE_DELETECREDENTIAL_BADPARAM, // "deleteCredential: bad parameter expression"
+PE_REGISTERHOTKEY_BADKEY, // "registerHotkey: bad key expression"
+PE_REGISTERHOTKEY_BADHANDLER, // "registerHotkey: bad handler name expression"
+PE_UNREGISTERHOTKEY_BADKEY, // "unregisterHotkey: bad key expression"
+PE_ICONDATAFORFILE_BADPARAM, // "iconDataForFile: bad parameter"
+PE_ICONDATAFOREXTENSION_BADPARAM, // "iconDataForExtension: bad parameter"
 };
 
 extern const char *MCparsingerrors;

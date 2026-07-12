@@ -30,8 +30,6 @@ The <environment> function returns one of:
 -   "helper application": HyperXTalk is running as a standalone with the secureMode property set to true.
 -   "command line": The stack is running as a standalone application with the "-ui" command line option.
 -   "server": The stack is running in HyperXTalk server.
--   "browser": The stack is running as a HyperXTalk applet.
--   "mobile": The stack is running on a mobile device.
 
 Description:
 Use the <environment> function to change a stack's behavior depending on

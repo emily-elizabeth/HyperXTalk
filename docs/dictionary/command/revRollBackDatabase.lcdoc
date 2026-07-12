@@ -36,7 +36,7 @@ Use the <revRollBackDatabase> <command> to discard changes to a
 
 >*Note:* Not all <database|databases> support the <revRollBackDatabase>
 > <command>. The <revRollbackDatabase> command is currently supported by
-> Oracle, PostgreSQL and SQLite databases only, on other databases, the
+> PostgreSQL and SQLite databases only, on other databases, the
 > command will have no affect.
 
 >*Important:*  The <revRollBackDatabase> <command> is part of the 
@@ -49,8 +49,7 @@ Use the <revRollBackDatabase> <command> to discard changes to a
 > using are checked.
 
 References: revert (command), revCommitDatabase (command),
-revCloseDatabase (command), function (control structure),
-revdb_rollback (function), revdb_commit (function),
+revCloseDatabase (command), function (control structure), 
 HyperXTalk custom library (glossary),
 Standalone Application Settings (glossary), database (glossary),
 standalone application (glossary), return (glossary), command (glossary),

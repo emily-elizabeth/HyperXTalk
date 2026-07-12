@@ -51,7 +51,7 @@ opened by the <database>, as well as closing the <database> itself.
 
 References: revCloseCursor (command), revRollBackDatabase (command),
 function (control structure), revDatabaseConnectResult (function),
-revdb_rollback (function), revDatabaseID (function),
+revDatabaseID (function),
 HyperXTalk custom library (glossary),
 Standalone Application Settings (glossary), database (glossary),
 standalone application (glossary),

@@ -53,13 +53,6 @@ Text with its textStyle set to "link" is treated specially by the
 single <word>. This makes <grouped text> handy to use for <hypertext> or
 "clickable text" features.
 
-Changes:
-The underlineLinks synonym and the ability to apply this property to
-individual stacks was introduced in version 1.1. In previous versions,
-the synonym showGroups was used, grouped text was displayed with a heavy
-gray underline instead of an ordinary underline when the showGroups was
-true, and the showGroups was set to false by default.
-
 References: show groups (command), global (command),
 clickChunk (function), mouseChunk (function), clickText (function),
 mouseText (function), property (glossary), grouped text (glossary),

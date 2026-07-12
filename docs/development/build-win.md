@@ -99,14 +99,14 @@ cmd /C configure.bat
 
 (Or just run `configure.bat` by double-clicking on it from Windows Explorer)
 
-This will generate a set of Visual Studio project files in the `build-win-x86/livecode` directory.
+This will generate a set of Visual Studio project files in the `build-win-x86/hyperxtalk` directory.
 
-### Set the LiveCode-all Debugging Command
+### Set the HyperXTalk-all Debugging Command
 
-In order to debug the IDE you need to configure the Debugging Command for LiveCode-all.
+In order to debug the IDE you need to configure the Debugging Command for HyperXTalk-all.
 
 ```
-$(TargetDir)\LiveCode-Community.exe
+$(TargetDir)\HyperXTalk-Community.exe
 ```
 
 ![Debug](./images/set-the-livecode-all-debugging-command.png)
@@ -114,7 +114,7 @@ $(TargetDir)\LiveCode-Community.exe
 ## Compiling
 
 If you installed the Visual Studio IDE, you can open the
-`build-win-x86/livecode/livecode.sln` solution file in Visual Studio,
+`build-win-x86/hyperxtalk/hyperxtalk.sln` solution file in Visual Studio,
 and build from there.
 
 If you installed the Visual Studio build tools, you can run:
@@ -125,8 +125,8 @@ set BUILD_PLATFORM=win-x86
 cmd /C ..\make.cmd
 ````
 
-## Build LiveCode-all
+## Build HyperXTalk-all
 
-Build the LiveCode-all project to compile the engine and run the IDE.
+Build the HyperXTalk-all project to compile the engine and run the IDE.
 
 ![Debug](./images/build-livecode-all.png)

@@ -92,11 +92,6 @@ contents as zero.
 
 The <unary> minus cannot be used with an array.
 
-Changes:
-The option to subtract arrays was introduced in version 1.1. 
-In previous versions, only single numbers could be used with the -
-operator. 
-
 References: subtract (command), split (command), combine (command),
 operand (glossary), operator (glossary), element (glossary),
 negative (glossary), binary (glossary), array (glossary),

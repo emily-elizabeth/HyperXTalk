@@ -846,7 +846,9 @@ constant kCursors                    = "false"
 -- revEngineCheck("Windows") looks for Runtime/Windows/x86-32/Standalone which
 -- does not exist in the HyperXTalk release, leaving the Windows settings group
 -- permanently disabled.  Switching to the x86-64 entry matches what we install.
-constant kInitialTargets = "Windows x86-64,MacOSX arm64,MacOSX x86-64,Linux"
+-- Similarly, "Linux" checks for x86-32/Standalone which doesn't exist; use
+-- "Linux x64" which matches the x86-64 engine we bundle in the AppImage.
+constant kInitialTargets = "Windows x86-64,MacOSX arm64,MacOSX x86-64,Linux x64"
 
 on revSBDefaultStandaloneSettings pStack, @xSettingsA
    local tPlatform,tName
@@ -1187,10 +1189,67 @@ function revSBStackNameFromScriptLibraryName pLib
                return tLibrary["id"]
             end if
          end repeat
-         
+
+         -- Check whether this is an hxtpm-installed package (reverse-DNS name).
+         -- By convention the package folder name matches the script's declared
+         -- name (e.g. folder "com.hyperxtalk.library.test" contains a stack that
+         -- declares `script "com.hyperxtalk.library.test"`).  Returning the name
+         -- directly lets __LoadStackOnStartup use `the effective filename of stack
+         -- pLib` to locate the file for bundling, while the generated startup
+         -- script uses the name — not a machine-local absolute path — so the
+         -- library loads correctly inside the built standalone via stackFiles.
+         -- Fallback: if the stack is not currently in IDE memory, return the
+         -- file path so `there is a stack <path>` can still resolve it.
+         local tLibsFolder
+         put revEnvironmentUserLibraries() into tLibsFolder
+         if tLibsFolder is not empty and there is a folder (tLibsFolder & slash & pLib) then
+            if there is a stack pLib then
+               return pLib
+            end if
+            local tPackagePath, tFile
+            put tLibsFolder & slash & pLib into tPackagePath
+            repeat for each line tFile in files(tPackagePath)
+               if tFile ends with ".livecodescript" then
+                  return tPackagePath & slash & tFile
+               end if
+            end repeat
+         end if
+
          return "rev" & pLib & "Library"
    end switch
 end revSBStackNameFromScriptLibraryName
+
+-- Return an array of inclusion entries for hxtpm-installed script libraries.
+-- Called fresh each time revSBAvailableInclusions runs so newly-installed
+-- packages appear without an IDE restart.
+private function __HxtpmScriptLibraries
+   local tLibsFolder
+   put revEnvironmentUserLibraries() into tLibsFolder
+   if tLibsFolder is empty then return empty
+
+   local tInclusions
+   repeat for each line tPackageFolder in folders(tLibsFolder)
+      if tPackageFolder begins with "." then next repeat
+
+      local tPackagePath
+      put tLibsFolder & slash & tPackageFolder into tPackagePath
+
+      repeat for each line tFile in files(tPackagePath)
+         if tFile ends with ".livecodescript" then
+            local tLibPath, tEntry
+            put tPackagePath & slash & tFile into tLibPath
+            put tPackageFolder into tEntry["title"]
+            put tLibPath into tEntry["id"]
+            put "script library" into tEntry["type"]
+            put revSBAllDesktopPlatforms() into tEntry["platforms"]
+            addToList tEntry, tInclusions
+            exit repeat -- one library per package folder
+         end if
+      end repeat
+   end repeat
+
+   return tInclusions
+end __HxtpmScriptLibraries
 
 constant kScriptLibraries = "Animation,DataGrid,Geometry,Internet,Printing,Table,XMLRPC"
 private function __ScriptLibraries
@@ -1878,7 +1937,13 @@ function revSBAvailableInclusions
    repeat for each element tInclusion in __AvailableScriptLibraries()
       addToList tInclusion, tInclusions
    end repeat
-   
+
+   -- hxtpm user libraries: scanned fresh each call so newly-installed packages
+   -- appear without restarting the IDE
+   repeat for each element tInclusion in __HxtpmScriptLibraries()
+      addToList tInclusion, tInclusions
+   end repeat
+
    repeat for each element tInclusion in revSBAvailableDatabaseDrivers()
       addToList tInclusion, tInclusions
    end repeat
@@ -2006,7 +2071,7 @@ end inclusionKeyAndIdentifier
 
 command revSBUpdateInclusions pInclusions, pExclusions, pStackName
    local tSettingsKey, tIdentifier, tNewSettings
-   
+
    -- first remove all exclusions
    repeat for each element tElement in pExclusions
       inclusionKeyAndIdentifier tElement, tSettingsKey, tIdentifier
@@ -2873,8 +2938,93 @@ on initialiseSearchForInclusions
       put "databaseDrivers" into sPatternsA[tDBName]["Key"]
    end repeat
    
+   -- HXT: Register auto-detection patterns for hxtpm user libraries.
+   -- Each library's public handlers become Script patterns so that revCheckObject
+   -- will include the library whenever one of those names appears in project code.
+   __InitialiseUserLibraryPatterns
+
    put true into sSearchInitialised
 end initialiseSearchForInclusions
+
+-- Scan every installed hxtpm user library and register its public handler names
+-- as Script patterns in sPatternsA.  Called once per IDE session from
+-- initialiseSearchForInclusions.
+private command __InitialiseUserLibraryPatterns
+   local tLibsFolder
+   put revEnvironmentUserLibraries() into tLibsFolder
+   if tLibsFolder is empty then exit __InitialiseUserLibraryPatterns
+
+   repeat for each line tPackageFolder in folders(tLibsFolder)
+      if tPackageFolder begins with "." then next repeat
+
+      local tPackagePath
+      put tLibsFolder & slash & tPackageFolder into tPackagePath
+
+      -- Find the .livecodescript file inside the package folder
+      local tStackName
+      repeat for each line tFile in files(tPackagePath)
+         if tFile ends with ".livecodescript" then
+            -- The library is loaded at IDE startup under its declared script name,
+            -- which by hxtpm convention matches the package folder name.
+            if there is a stack tPackageFolder then
+               put tPackageFolder into tStackName
+            else if there is a stack (tPackagePath & slash & tFile) then
+               put the short name of stack (tPackagePath & slash & tFile) into tStackName
+            end if
+            exit repeat -- one library per package folder
+         end if
+      end repeat
+
+      if tStackName is empty then next repeat
+
+      -- Parse the library's script for public handler declarations.
+      -- We collect handler names and use them as substring search targets:
+      -- if any name appears in a project object's script, the library is included.
+      local tLibScript
+      try
+         put the script of stack tStackName into tLibScript
+      catch tErr
+         next repeat -- locked or unreadable; skip
+      end try
+
+      local tPatterns, tLine, tHandlerName
+      repeat for each line tLine in tLibScript
+         -- Skip blank lines and private handlers
+         if tLine is empty then next repeat
+         if word 1 of tLine is "private" then next repeat
+
+         -- Match: on/function/command/getprop/setprop <name>
+         if word 1 of tLine is among the items of "on,function,command,getprop,setprop" then
+            put word 2 of tLine into tHandlerName
+            -- Strip any trailing parenthesis (e.g. "myHandler(")
+            if the last char of tHandlerName is "(" then
+               delete the last char of tHandlerName
+            end if
+            -- Skip internal lifecycle handlers and empty names
+            if tHandlerName is empty then next repeat
+            if tHandlerName is among the items of \
+                  "extensionInitialize,extensionFinalize,revLoadLibrary,revUnloadLibrary" then
+               next repeat
+            end if
+            if tPatterns is empty then
+               put tHandlerName into tPatterns
+            else
+               put comma & tHandlerName after tPatterns
+            end if
+         end if
+      end repeat
+
+      if tPatterns is not empty then
+         put tPatterns into sPatternsA[tPackageFolder]["Script"]
+         put "scriptLibraries" into sPatternsA[tPackageFolder]["Key"]
+      end if
+
+      -- Reset locals for next iteration
+      put empty into tStackName
+      put empty into tLibScript
+      put empty into tPatterns
+   end repeat
+end __InitialiseUserLibraryPatterns
 
 command revSBSearchForInclusions pStack, @xSettings
    -- Ensure all properties and patterns are initialised
@@ -2894,9 +3044,9 @@ private command revSmartChecking pStackFilesList, @xSettings
    lock messages
    
    if tNewSettings["inclusions"] is "search" then
-      
+
       revStandaloneProgress "Auto detecting library inclusions..."
-      
+
       put empty into tNewSettings["scriptLibraries"]
       put true into tNewSettings["cursors"]
       put false into tNewSettings["answerDialog"]
@@ -3404,14 +3554,73 @@ command revSBCopyVLCToStandalone pPlatform, pStandaloneDir, pEnginePath, pCopyPl
       end if
       revStandaloneProgress "VLC runtime bundled."
    else if pPlatform begins with "Linux" then
-      -- Use 'get shell(...)' so a non-zero exit (e.g. no matching .so) is a warning, not a fatal throw.
-      put pStandaloneDir & "/vlc-plugins/plugins" into tDest
-      create folder tDest
-      put pStandaloneDir & "/" into tDest
-      get shell("cp -f /usr/lib/x86_64-linux-gnu/libvlc.so* " & QUOTE & tDest & QUOTE)
-      get shell("cp -f /usr/lib/x86_64-linux-gnu/libvlccore.so* " & QUOTE & tDest & QUOTE)
-      put pStandaloneDir & "/vlc-plugins/plugins/" into tDest
-      get shell("cp -rn /usr/lib/vlc/plugins/. " & QUOTE & tDest & QUOTE)
+      -- The standalone binary links libvlc.so.5 at load time (ELF NEEDED entry).
+      -- Since there is no $ORIGIN RPATH in the binary, the dynamic linker cannot
+      -- find libs copied alongside it.  We therefore bundle libs into a lib/
+      -- subdirectory and wrap the real binary in a shell launcher that sets
+      -- LD_LIBRARY_PATH before exec-ing it — the same pattern AppImages use.
+      --
+      -- Prefer the VLC tree pre-staged in the Runtime folder by build-appimage.sh
+      -- (contains libvlc, libvlccore, all VLC support libs, FFmpeg libs and their
+      -- transitive deps).  Fall back to system paths in dev builds.
+
+      local tLinuxVLC
+      put revEnvironmentRuntimePath() & "/Linux/x86-64/vlc" into tLinuxVLC
+
+      local tLibDest
+      put pStandaloneDir & "/lib" into tLibDest
+      create folder tLibDest
+
+      if there is a folder (tLinuxVLC & "/lib") then
+         -- AppImage path: always copy the entire pre-staged lib tree — the binary
+         -- has libvlc.so.5 as a DT_NEEDED entry and will not start without it, and
+         -- libvlc in turn needs libvlccore + all bundled FFmpeg/codec libs at load
+         -- time.  Copy the plugin tree only when the project uses a player control.
+         get shell("cp -a " & QUOTE & tLinuxVLC & "/lib/." & QUOTE & " " & QUOTE & tLibDest & "/" & QUOTE)
+         if pCopyPlugins then
+            -- create folder only creates the final component; create the parent first.
+            create folder (pStandaloneDir & "/vlc-plugins")
+            create folder (pStandaloneDir & "/vlc-plugins/plugins")
+            get shell("cp -a " & QUOTE & tLinuxVLC & "/plugins/." & QUOTE & " " & QUOTE & pStandaloneDir & "/vlc-plugins/plugins/" & QUOTE)
+            delete file (pStandaloneDir & "/vlc-plugins/plugins/plugins.dat")
+         end if
+      else
+         -- Dev build: copy the two core libs (minimum needed to load libvlc at startup).
+         local tSysLib
+         repeat for each item tDir in "/usr/lib/x86_64-linux-gnu,/usr/lib,/usr/local/lib"
+            if there is a file (tDir & "/libvlc.so.5") then
+               put tDir into tSysLib
+               exit repeat
+            end if
+         end repeat
+         if tSysLib is empty then
+            revStandaloneProgress "VLC not found — skipping VLC bundle."
+            exit revSBCopyVLCToStandalone
+         end if
+         get shell("cp -fL " & QUOTE & tSysLib & "/libvlc.so.5" & QUOTE & " " & QUOTE & tLibDest & "/" & QUOTE)
+         get shell("cp -fL " & QUOTE & tSysLib & "/libvlccore.so.9" & QUOTE & " " & QUOTE & tLibDest & "/" & QUOTE)
+         -- Copy plugins only when the project uses a player control.
+         if pCopyPlugins then
+            local tSysPlugins
+            repeat for each item tDir in "/usr/lib/x86_64-linux-gnu/vlc,/usr/lib/vlc,/usr/local/lib/vlc"
+               if there is a folder (tDir & "/plugins") then
+                  put tDir & "/plugins" into tSysPlugins
+                  exit repeat
+               end if
+            end repeat
+            if tSysPlugins is not empty then
+               create folder (pStandaloneDir & "/vlc-plugins")
+               create folder (pStandaloneDir & "/vlc-plugins/plugins")
+               get shell("cp -rn " & QUOTE & tSysPlugins & "/." & QUOTE & " " & QUOTE & pStandaloneDir & "/vlc-plugins/plugins/" & QUOTE)
+               delete file (pStandaloneDir & "/vlc-plugins/plugins/plugins.dat")
+            end if
+         end if
+      end if
+
+      -- RPATH ($ORIGIN/lib) is set on the deployed output binary by
+      -- revSaveAsLinuxStandalone after the deploy step, using the patchelf
+      -- binary bundled in the AppImage at usr/bin/patchelf.
+
       revStandaloneProgress "VLC runtime bundled."
    end if
 end revSBCopyVLCToStandalone

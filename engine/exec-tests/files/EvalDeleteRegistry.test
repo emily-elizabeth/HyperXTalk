@@ -1,6 +1,6 @@
 setup
 
-local tTestKey = "HKEY_CURRENT_USER\Software\LiveCode\Tests\DeleteRegistry\"
+local tTestKey = "HKEY_CURRENT_USER\Software\HyperXTalk\Tests\DeleteRegistry\"
 
 // set test reg entry
 test setRegistry(tTestKey, "deleteRegistryTest", "string")

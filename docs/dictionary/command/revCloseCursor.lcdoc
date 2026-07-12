@@ -49,8 +49,8 @@ explicitly close record sets when your stack is finished with them.
 > using are checked.
 
 References: revCloseDatabase (command), revDatabaseCursors (function),
-revdb_disconnect (function), revQueryDatabase (function),
-revDataFromQuery (function), revdb_closecursor (function),
+revQueryDatabase (function),
+revDataFromQuery (function), 
 Standalone Application Settings (glossary), database (glossary),
 standalone application (glossary),
 record set (glossary), command (glossary),

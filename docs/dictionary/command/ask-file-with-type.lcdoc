@@ -87,9 +87,6 @@ If the systemFileSelector <property> is set to false, the engine's
 built-in <dialog box> is used instead of the operating system's
 <file dialog box|standard file dialog>.
 
-Changes:
-The ask file ... with type ... form was introduced in version 2.6.
-
 References: modal (command), answer file (command), ask (command),
 property (glossary), modal dialog box (glossary), variable (glossary),
 application (glossary), Windows (glossary), file dialog box (glossary),

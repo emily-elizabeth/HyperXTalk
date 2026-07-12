@@ -1,0 +1,37 @@
+Library: com.hyperxtalk.library.macscrollenhancement
+
+Type: library
+
+Title: macOS Scroll Enhancement
+
+OS: mac
+
+Platforms: desktop
+
+Summary: Adds smooth per-pixel trackpad scrolling to LiveCode stack windows.
+
+Description:
+The LiveCode engine quantises trackpad scroll events into whole lines, causing
+even small swipes to jump dozens of lines. This library installs a Cocoa
+NSEvent local monitor that intercepts all trackpad scroll events (both the
+active-touch phase and the inertial momentum phase) before the engine sees
+them, accumulates the raw pixel delta (scrollingDeltaY), and makes it available
+for LiveCode Script to apply directly to the target field's vScroll on a 16 ms
+timer. Physical scroll wheels are passed through unchanged.
+
+Setup (call once when the script editor opens):
+   macScrollEnhancementInstall the windowId of stack "revscripteditor"
+
+Teardown (call when the editor closes):
+   macScrollEnhancementRemove
+
+Poll (called every 16 ms by a LiveCode Script timer — see the companion
+livecodescript library):
+   put macScrollEnhancementGetDelta() into tDelta
+   -- tDelta is pixels to add to vScroll (positive = scroll down)
+
+version: 1.0.0
+
+author: HyperXTalk
+
+

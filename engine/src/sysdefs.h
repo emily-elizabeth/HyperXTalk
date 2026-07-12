@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #ifndef __MC_SYSDEFS__
 #define __MC_SYSDEFS__
 
@@ -753,8 +769,11 @@ typedef MCSysWindowHandle Drawable;
 #include <gdk/gdk.h>
 
 typedef GdkWindow*      Window;
-typedef GdkPixmap*      Pixmap;
-typedef GdkDrawable*    Drawable;
+// GTK3: GdkPixmap and GdkDrawable were removed.  Use the underlying X11 types
+// (XIDs = unsigned long) directly, matching how gdk_x11_window_get_xid() etc.
+// return them.
+typedef unsigned long   Pixmap;    // X11 Pixmap (XID)
+typedef unsigned long   Drawable;  // X11 Drawable (XID)
 
 #else
 

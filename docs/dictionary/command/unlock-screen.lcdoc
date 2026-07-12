@@ -51,14 +51,6 @@ The <unlock screen> <command> sets the <lockScreen> <property> to false.
 When all pending <handler|handlers> are finished <execute|executing>,
 the <lockScreen> <property> is automatically set to false.
 
-Changes:
-From version 8.1 for Mac, the use of <QuickTime> is deprecated with
-new defaults for <dontUseQT> and <dontUseQTEffects> being set to true on all
-systems from macOS 10.8. Additionally <QuickTime> does not include 64 bit
-support and therefore can not be supported on macOS 64-bit builds.
-Also, the Windows build version 8.1 deprecates all <QuickTime>
-features, so setting <dontUseQT> and <dontUseQTEffects> will have no effect.
-
 References: allowFieldRedraw (property), command (glossary),
 dontUseQT (property), dontUseQTEffects (property), execute (glossary),
 handler (glossary), lock (glossary), lock screen (command),

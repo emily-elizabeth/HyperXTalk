@@ -44,11 +44,6 @@ A short object <ID> looks like this: 2238
 > <functionNames>. However, it cannot be used as a <property> in an
 > <expression>, nor with the <set> <command>.
 
-Changes:
-The form the short owner was introduced in version 2.0. In previous
-versions, the form of the owner property could not be specified and
-reported only the abbreviated owner.
-
 References: convert (command), set (command),
 function (control structure), time (function), functionNames (function),
 dateFormat (function), format (function), date (function),

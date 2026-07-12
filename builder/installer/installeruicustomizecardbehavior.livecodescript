@@ -1,8 +1,8 @@
 ﻿script "InstallerInstallerUICustomizeCardBehavior"
 on preOpenCard
-   setTitleField the long id of field "Page Title", "Customize", "LiveCode Installer"
+   setTitleField the long id of field "Page Title", "Customize", "HyperXTalk Installer"
    
-   put "Please customize your installation of LiveCode." into field "Page Description"
+   put "Please customize your installation of HyperXTalk." into field "Page Description"
    
    set the uLabel of control "All Users" to "Install for all users"
    set the uLabel of control "This User" to "Install for you only"

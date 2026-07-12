@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -1958,16 +1974,31 @@ MCRectangle MCField::firstRectForCharacterRange(int32_t& si, int32_t& ei)
 	si = si + t_si;
 	ei = si + t_ei;
 	
+	// In password mode, measure against the bullet display so the rect returned
+	// to macOS (via firstRectForCharacterRange: / MCPlatformHandleTextInputQueryTextRect)
+	// reflects the displayed dot positions rather than the actual character positions.
+	MCStringRef t_bullet = nil;
+	if (m_password_field)
+		t_bullet = _makeBulletString(sptr);
+	if (t_bullet != nil)
+		sptr->SetPasswordDisplay(t_bullet);
+
 	// Get the x, y of the initial index.
 	coord_t x, y;
 	sptr->indextoloc(t_si, fixedheight, x, y);
-	
+
 	// Get the offset for computing card coords.
 	int4 yoffset = getcontenty() + paragraphtoy(sptr);
-	
+
 	// Get the extent of the range.
 	coord_t minx, maxx;
 	sptr -> getxextents(t_si, t_ei, minx, maxx);
+
+	if (t_bullet != nil)
+	{
+		sptr->ClearPasswordDisplay();
+		MCValueRelease(t_bullet);
+	}
 	
 	MCRectangle t_rect;
 	t_rect . x = minx + getcontentx();

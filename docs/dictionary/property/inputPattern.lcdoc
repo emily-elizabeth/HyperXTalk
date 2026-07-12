@@ -1,0 +1,51 @@
+Name: inputPattern
+
+Type: property
+
+Syntax: set the inputPattern of <field> to <pattern>
+
+Summary:
+Specifies a regular expression that the field's value must match when validated.
+
+Introduced: 1.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Value:
+The <inputPattern> of a field is a string containing a regular expression
+(without anchors — the engine automatically anchors the pattern to match
+the entire field value). The default value is empty (no pattern check).
+
+Example:
+-- US ZIP code: five digits, optionally followed by a dash and four more
+set the inputPattern of field "ZipCode" to "[0-9]{5}(-[0-9]{4})?"
+
+Example:
+-- Uppercase letters only
+set the inputPattern of field "Code" to "[A-Z]+"
+
+Example:
+-- Simple date in YYYY-MM-DD format
+set the inputType of field "Date" to "date"
+set the inputPattern of field "Date" to "[0-9]{4}-[0-9]{2}-[0-9]{2}"
+
+Description:
+Use <inputPattern> to enforce a custom format on a field's value. The
+regular expression is automatically anchored so that the entire field
+content must match — a pattern of "[0-9]+" will not accept "42abc".
+
+<inputPattern> is checked after <inputRequired> and before the type-
+specific checks. If both <inputType> and <inputPattern> are set, the
+value must satisfy both.
+
+If the pattern is not a valid regular expression, the pattern check is
+silently skipped rather than causing a script error.
+
+References: inputType (property), inputRequired (property),
+inputMin (property), inputMax (property), inputStep (property),
+validateField (command), fieldValidationFailed (message)
+
+Tags: ui, validation
+

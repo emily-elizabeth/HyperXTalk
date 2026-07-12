@@ -11,7 +11,7 @@ currently explained? Please consider submitting your proposed changes
 directly to the LiveCode repo on GitHub.
 
 Please consult the [documentation style guide](development/docs_style_guide.md)
-and the [documentation format specification](guides/LiveCode%20Documentation%20Format%20Reference.md)
+and the [documentation format specification](guides/HyperXTalk%20Documentation%20Format%20Reference.md)
 for information on the standards and structure we aim to maintain in our
 documentation.
 
@@ -29,7 +29,7 @@ documentation of all LiveCode syntax. The most basic form of
 incompleteness is a completely missing dictionary entry. If you intend 
 to write a missing dictionary entry, please bear these documentation 
 objectives in mind and consult the 
-[documentation format specification](guides/LiveCode%20Documentation%20Format%20Reference.md).
+[documentation format specification](guides/HyperXTalk%20Documentation%20Format%20Reference.md).
 
 The dictionary ought to contain *all* the relevant information about a
 particular piece of LiveCode syntax. Every syntax variant should be 
@@ -50,7 +50,7 @@ prior to major developments in both our software and the hardware it
 runs on.
 
 Secondly, dictionary Syntax elements must be correct. The
-[documentation format specification](guides/LiveCode%20Documentation%20Format%20Reference.md)
+[documentation format specification](guides/HyperXTalk%20Documentation%20Format%20Reference.md)
 contains a description of the Syntax element.
 
 Thirdly, the dictionary files must be formatted correctly. This means 
@@ -155,19 +155,19 @@ website, without having to download any software or use the command line.
 
 ### Making your dictionary change
 
-**Navigate to the file you want to modify in the [dictionary folder of the develop-9.0 branch](https://github.com/livecode/livecode/blob/develop-9.0/docs/dictionary).**
+**Navigate to the file you want to modify in the [dictionary folder of the main branch](https://github.com/emily-elizabeth/HyperXTalk/blob/main/docs/dictionary).**
 
 For example, the accept command is at:
-https://github.com/livecode/livecode/blob/develop-9.0/docs/dictionary/command/accept.lcdoc
+https://github.com/emily-elizabeth/HyperXTalk/blob/main/docs/dictionary/command/accept.lcdoc
 
 Either go directly to the community docs branch URL
-(https://github.com/livecode/livecode/tree/develop-9.0) or if you are 
-on the main LiveCode repository page, select 'develop-9.0' from the 
+(https://github.com/emily-elizabeth/HyperXTalk/tree/main) or if you are 
+on the main LiveCode repository page, select 'main' from the 
 branch dropdown menu:
 
 ![](images/branch-dropdown.png)
 
-You should see that the develop-9.0 branch is selected both in the 
+You should see that the main branch is selected both in the 
 label of the dropdown and the url of your browser.
 
 ![](images/develop-branch.png)
@@ -175,7 +175,7 @@ label of the dropdown and the url of your browser.
 Now use the file system browser to find the file you want to modify, and
 click on it.
 
-![](images/livecode-repo-filesystem.png)
+![](images/hyperxtalk-repo-filesystem.png)
 
 **Click the pencil icon to the right of Raw|Blame|History buttons**
 
@@ -239,9 +239,9 @@ and description
 **Click the Propose File Change button.**
 
 >*Note:* Please ensure the pull request has the correct base branch and 
-comparison branch. The base fork should be `livecode/livecode`, with
-base branch `develop-9.0`, and the head fork should be 
-`<your user name>/livecode` with compare branch something like `patch-1`
+comparison branch. The base fork should be `livecode/hyperxtalk`, with
+base branch `main`, and the head fork should be 
+`<your user name>/hyperxtalk` with compare branch something like `patch-1`
 (unless you have renamed it).
 
 ![](images/pull-request-target.png)
@@ -258,7 +258,7 @@ Now is a good time to check the changes you are proposing.
 **Click Create Pull Request again.**
 
 You should now be able to see your pull request here
-https://github.com/livecode/livecode/pulls, or by clicking the 'Pull
+https://github.com/emily-elizabeth/HyperXTalk/pulls, or by clicking the 'Pull
 Requests' menu item at the top of the GitHub website.
 
 ![](images/github-top-menu.png)
@@ -313,7 +313,7 @@ or something similar.
 
 **Click the "Commit new file" button.**
 
-Check the pull request again in https://github.com/livecode/livecode/pulls
+Check the pull request again in https://github.com/emily-elizabeth/HyperXTalk/pulls
 You should see the "Add release note" commit added to the pull request.
 
 **Post a link to the pull request on the bug report.**
@@ -331,7 +331,7 @@ should be in the LiveCode Dictionary in the next release!
 If you need to make further changes to your pull request, first make 
 sure you are looking at the pull request you want to change (you can 
 find your pull request either in the list of pull requests to the 
-livecode repo at https://github.com/livecode/livecode/pulls, or by 
+livecode repo at https://github.com/emily-elizabeth/HyperXTalk/pulls, or by 
 clicking the 'Pull Requests' menu item at the top of the GitHub website 
 which shows all your outstanding pull requests).
 
@@ -355,7 +355,7 @@ Download a Git GUI Client from
 http://git-scm.com/downloads/guis
 
 Once you have familiarised yourself with the client, go to the livecode repo
-https://github.com/livecode/livecode
+https://github.com/emily-elizabeth/HyperXTalk
 and click Fork, and then "Clone in Desktop" button at the top right.
 clone to a suitable location.
 
@@ -408,28 +408,28 @@ Click commit to <branch>
 
 Then click "Submit pull request"
 
-Make sure the target branch is livecode/develop-9.0
+Make sure the target branch is livecode/main
 
 Check the pull request has appeared in
-https://github.com/livecode/livecode/pulls
+https://github.com/emily-elizabeth/HyperXTalk/pulls
 
 ## Command Line
 
 go to the livecode repo
-https://github.com/livecode/livecode
+https://github.com/emily-elizabeth/HyperXTalk
 and click Fork
 
 then in a terminal window, in a suitable directory, run
 
-`git clone --recursive https://github.com/<your user name>/livecode.git`
+`git clone --recursive https://github.com/<your user name>/hyperxtalk.git`
 
 once this is done, change directory into the newly created directory
 
-`cd livecode`
+`cd hyperxtalk`
 
-and add the livecode repo as upstream
+and add the hyperxtalk repo as upstream
 
-`git remote add upstream https://github.com/livecode/livecode.git`
+`git remote add upstream https://github.com/emily-elizabeth/HyperXTalk.git`
 
 make sure your name and email address are set up
 
@@ -437,13 +437,13 @@ make sure your name and email address are set up
 
 `git config --global user.email "<your email address>"`
 
-checkout the `develop-9.0` branch
+checkout the `main` branch
 
-`git checkout develop-9.0`
+`git checkout main`
 
 ensure it is up to date
 
-`git pull upstream develop-9.0`
+`git pull upstream main`
 
 create a new branch for your docs changes, for example
 
@@ -476,14 +476,14 @@ Push the changes to your fork of the repo
 
 `git push`
 
-Navigate to your fork on the Git website, `https://github.com/<your user name>/livecode/`
+Navigate to your fork on the Git website, `https://github.com/<your user name>/hyperxtalk/`
 
 You should see a link to the recently pushed branch, and an invitation to submit a pull request.
 Click this. 
 
-Ensure the base fork is livecode/livecode, and the base is develop-9.0.
+Ensure the base fork is livecode/hyperxtalk, and the base is main.
 
 Click create pull request.
 
 Check the pull request has appeared in
-https://github.com/livecode/livecode/pulls
+https://github.com/emily-elizabeth/HyperXTalk/pulls

@@ -1,0 +1,54 @@
+Name: inputRequired
+
+Type: property
+
+Syntax: set the inputRequired of <field> to {true | false}
+
+Summary:
+Specifies whether a field must contain a non-empty value when validated.
+
+Introduced: 1.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Value (boolean):
+The <inputRequired> of a field is true or false.
+
+Default value: false
+
+Example:
+set the inputRequired of field "Name" to true
+
+Example:
+-- Prevent form submission if any required field is empty
+on submitForm
+    repeat with i = 1 to the number of fields of this card
+        if the inputRequired of field i then
+            validateField field i
+            if the result is not empty then
+                answer the result
+                focus on field i
+                exit submitForm
+            end if
+        end if
+    end repeat
+end submitForm
+
+Description:
+When <inputRequired> is true, the field must contain at least one
+character when it is validated. If the field is empty, validation fails
+with the message "This field is required." and <fieldValidationFailed>
+is sent instead of <closeField>.
+
+<inputRequired> is checked before all other constraints, so an empty
+field will never trigger type-, range-, or pattern-specific error messages.
+
+References: inputType (property), inputMin (property),
+inputMax (property), inputStep (property), inputPattern (property),
+validateField (command), closeField (message),
+fieldValidationFailed (message)
+
+Tags: ui, validation
+

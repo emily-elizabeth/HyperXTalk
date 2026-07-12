@@ -81,10 +81,6 @@ themselves.
 > <function(control structure)>, see the PCRE pattern documentation at
 > http://www.pcre.org/original/doc/html/pcrepattern.html.
 
-Changes:
-The regular expression format changed in version 2.0 to use PCRE
-compatible syntax.
-
 References: put (command), filter (command), return (constant),
 function (control structure), matchText (function), value (function),
 property (glossary), return (glossary), variable (glossary),

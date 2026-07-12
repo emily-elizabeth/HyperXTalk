@@ -27,9 +27,8 @@ A <string> containing the type of compositor to use, or <empty>.
 
 -   none: Do not use <acceleratedRendering|accelerated rendering> (the default when empty).
 -   software: Use the built-in rendering engine to composite (all platforms).
--   coregraphics: Use CoreGraphics to composite (Mac / iOS only)
+-   coregraphics: Use CoreGraphics to composite (Mac only)
     (Recommended).
--   opengl: Use OpenGL to composite (iOS and Android only).
 
 
 Description:

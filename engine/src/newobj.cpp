@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -210,6 +226,8 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCRecord;
 	case S_REDO:
 		return new MCRedo;
+	case S_REGISTER_HOTKEY:
+		return new MCRegisterHotkey;
 	case S_RELAYER:
 		return new MCRelayer;
 	case S_REMOVE:
@@ -299,6 +317,12 @@ MCStatement *MCN_new_statement(int2 which)
 		return new MCUnlock;
 	case S_UNMARK:
 		return new MCUnmark;
+	case S_UNREGISTER_ALL_HOTKEYS:
+		return new MCUnregisterAllHotkeys;
+	case S_UNREGISTER_HOTKEY:
+		return new MCUnregisterHotkey;
+	case S_VALIDATE_FIELD:
+		return new MCValidateField;
 	case S_VISUAL:
 		return new MCVisualEffect;
 	case S_WAIT:
@@ -537,6 +561,10 @@ MCExpression *MCN_new_function(int2 which)
 		t_new_function = new MCHeapSpace; break;
 	case F_HTTP_PROXY_FOR_URL:
 		t_new_function = new MCHTTPProxyForURL; break;
+	case F_ICON_DATA_FOR_EXTENSION:
+		t_new_function = new MCIconDataForExtension; break;
+	case F_ICON_DATA_FOR_FILE:
+		t_new_function = new MCIconDataForFile; break;
 	case F_IFF:
 		t_new_function = new MCIff; break;
 	case F_INTERRUPT:

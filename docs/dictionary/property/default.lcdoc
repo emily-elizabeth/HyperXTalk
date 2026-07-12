@@ -49,14 +49,6 @@ changes its <rectangle> (and related <properties>). Changing the
 <default> <property> does not change the <button(object)|button's>
 <location>. 
 
->*Cross-platform note:*  On <OS X|OS X systems>, the default button
-> throbs rhythmically instead of having a border. Because the throbbing
-> <button(keyword)> is drawn by the operating system, its apppearance
-> may not be correct if the <button(keyword)> is placed on top of
-> another <control>. To avoid minor cosmetic problems, place default
-> <button(object)|buttons> directly on the <card(keyword)> rather than
-> on top of other <object|objects>.
-
 References: object (glossary), property (glossary), rectangle (glossary),
 handle (glossary), OS X (glossary), focus (glossary),
 insertion point (glossary), message (glossary), appearance (glossary),

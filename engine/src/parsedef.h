@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 //
 // global parsing definitions for MetaCard
 //
@@ -397,6 +413,8 @@ enum Functions {
     F_HN,
     F_HNTOA,
     F_INTERRUPT,
+    F_ICON_DATA_FOR_EXTENSION,
+    F_ICON_DATA_FOR_FILE,
     F_IFF,
     F_INTERSECT,
     F_IS_NUMBER,
@@ -1438,6 +1456,13 @@ enum Properties {
     P_LABEL,
     P_LABEL_WIDTH,
     P_HINT_TEXT,
+    // field input validation properties
+    P_INPUT_TYPE,
+    P_INPUT_REQUIRED,
+    P_INPUT_MIN,
+    P_INPUT_MAX,
+    P_INPUT_STEP,
+    P_INPUT_PATTERN,
     // toolbar properties
     P_TOOLBAR_DISPLAY_MODE,
     P_TOOLBAR_VISIBLE,
@@ -2118,6 +2143,7 @@ enum Statements {
     S_READ,
     S_RECORD,
     S_REDO,
+    S_REGISTER_HOTKEY,
 	S_RELAYER,
     S_RELEASE,
     S_REMOVE,
@@ -2167,7 +2193,10 @@ enum Statements {
     S_UNLOAD,
     S_UNLOCK,
     S_UNMARK,
+    S_UNREGISTER_ALL_HOTKEYS,
+    S_UNREGISTER_HOTKEY,
     S_VISUAL,
+    S_VALIDATE_FIELD,
     S_WAIT,
     S_WRITE
 };

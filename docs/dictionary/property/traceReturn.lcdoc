@@ -32,9 +32,6 @@ handler.
 
 If the debugger is not active, setting this property has no effect.
 
->*Important:*  This <property> may change or be removed in future
-> releases. 
-
 References: debugDo (command), property (glossary), handler (glossary),
 debugger (glossary), debug (glossary)
 

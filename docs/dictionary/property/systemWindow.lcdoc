@@ -37,8 +37,6 @@ applications, no matter which application is active.
 A stack whose <systemWindow> <property> is true has the same appearance
 as a <palette>.
 
-On Mac OS systems, the <systemWindow> <property> has no effect.
-
 >*Note:* The setting of this property determines whether the
 > <stack|stack's> <decorations> <property> includes "system".
 

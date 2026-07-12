@@ -116,11 +116,6 @@ depending on the <object type>:
 If an object's <borderPattern> is set, the pattern is shown instead of
 the color specified by <borderColor>.
 
-Changes:
-The <borderColor> 's effect on grid lines in <field|fields> was
-introduced in version 2.0. In previous versions, the color of the grid
-lines was determined by the <field|field's> <hiliteColor> <property>.
-
 References: group (command), object (glossary), property (glossary),
 EPS (glossary), audio clip (glossary), owner (glossary),
 vertex (glossary), object type (glossary), keyword (glossary),

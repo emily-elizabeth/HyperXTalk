@@ -38,15 +38,6 @@ connection is accepted.
 > <Standalone Application Settings> window, make sure the "Internet"
 > script library is selected.
 
->*Cross-platform note:* On iOS and Android, <libURLSetSSLVerification>
-> is implemented in the engine. Therefore the <Internet library> is not
-> needed to ensure the <command> works in a mobile
-> <standalone application>. If included, the <Internet library>
-> implementation will be used instead of the engine implementation.
-
-> *Cross-platform note:* The HTML5 engine will always verify server
-> credentials.
-
 References: main stack (glossary), handler (glossary),
 Standalone Application Settings (glossary), message (glossary),
 group (glossary), standalone application (glossary), keyword (glossary),

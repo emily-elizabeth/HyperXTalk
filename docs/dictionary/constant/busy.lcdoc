@@ -48,10 +48,6 @@ However, the first is easier to read and understand in HyperXTalk.
 > General screen of the <Standalone Application Settings> window is
 > checked.
 
->*Note:*  This does not bring up the busy symbol on mobile devices.
-> To bring up the busy indicator on Android or iOS use
-> the <mobileBusyIndicatorStart> command.
-
 References: constant (command), mobileBusyIndicatorStart (command),
 watch (constant), six (constant),
 repeat (control structure), Standalone Application Settings (glossary),

@@ -1,7 +1,5 @@
 Name: revDataFromQuery
 
-Synonyms: revdb_querylist
-
 Type: function
 
 Syntax: revDataFromQuery([<columnDelim>],[<rowDelim>], <databaseID>, <SQLQuery> [, <varsList>])
@@ -135,9 +133,6 @@ of the returned value is "revdberr".
 > <Standalone Application Settings> window, make sure both the 
 > "Database" library checkbox and those of the database drivers you are 
 > using are checked.
-
-Changes:
-The ability to specify array elements in the varsList was added in 2.9.
 
 References: revCloseCursor (command), revExecuteSQL (command),
 function (control structure), base64Encode (function), function (glossary),

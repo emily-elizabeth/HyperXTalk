@@ -33,10 +33,6 @@ If a group on the <card> contains <group|groups>, only the top-level
 To find out which groups are in a stack, use the <backgroundIDs>
 <property>. 
 
-Changes:
-In versions before 1.1, groupIDs and backgroundIDs were synonyms and
-could be used interchangeably.
-
 References: property (glossary), group (glossary), card (keyword),
 line (keyword), cardIDs (property), groupNames (property),
 properties (property), backgroundIDs (property),

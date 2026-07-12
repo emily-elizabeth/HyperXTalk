@@ -51,7 +51,7 @@ Usage:
   buildbot.py TARGET
 
 Environment variables:
-  BUILD_EDITION      LiveCode edition name ("commercial" or "community")
+  BUILD_EDITION      HyperXTalk edition name ("commercial" or "community")
   BUILD_PLATFORM     The target platform for build (e.g. "ios")
   BUILD_SUBPLATFORM  The target subplatform (e.g. "iphoneos10.2")
 
@@ -127,7 +127,7 @@ def do_configure():
             error('You must set $BUILD_SUBPLATFORM for iOS builds')
         exec_configure(['--platform', 'ios',
                         '--generator-output',
-                        'build-{}-{}/livecode'.format(platform, subplatform),
+                        'build-{}-{}/hyperxtalk'.format(platform, subplatform),
                         '-Dtarget_sdk=' + subplatform])
     else:
         exec_configure(['--platform', platform])

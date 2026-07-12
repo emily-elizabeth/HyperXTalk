@@ -41,10 +41,6 @@ them available to handlers in the stack.
 > <stack> (after setting its <destroyWindow> <property> to true) and
 > then reopen it.
 
-Changes:
-Support for using the externals property on OS X systems was added in
-version 2.0.
-
 References: deleteResource (function), files (function),
 property (glossary), external (glossary), file path (glossary),
 loaded into memory (glossary), file (keyword), stack (object),

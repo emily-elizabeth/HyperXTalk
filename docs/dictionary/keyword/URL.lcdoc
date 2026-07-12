@@ -84,27 +84,11 @@ schemes>, see [RFC 1630](https://tools.ietf.org/html/rfc1630).
 > pane of the <Standalone Application Settings> window, make sure the 
 > "Internet" script library is selected.
 
->*Cross-platform note:* On iOS and Android, you can use the <http>,
-> <ftp> and <https> <keyword|keywords> without the need for the 
-> <Internet library>. When specifying <URL(glossary)|URLs> for iOS and 
-> Android, you must use the appropriate form that conforms to 
-> [RFC 1630](https://tools.ietf.org/html/rfc1630). 
-
 >*Important:*  The space character is not valid in <URL(glossary)|URLs>,
 > however the <Internet library> (Desktop platforms) replaces
 this character with the required '%20'. This is something that the
 mobile and server platforms do not do. Be careful to construct valid
 URLs when working on fully cross platform applications.
-
-Changes:
-As of version 7.0.0, the <URL> <keyword> has been upgraded to
-understand <Unicode> files when using URL ("<file(keyword)>:"). If the
-<file(glossary)> located at the path has a Byte Order Mark at its
-beginning, then <URL(keyword)> will decode the <file(glossary)>
-according to that Byte Order Mark (UTF-8, UTF-16BE, UTF-16LE, UTF-32BE
-and UTF-32LE are compatible). If no Byte Order Mark is found, then the
-<file(glossary)> will be decoded as if it were using Native encoding
-(MacRoman on Mac OS X, ISO-8859-1 on Linux, CP-1252 on Windows).
 
 References: launch url (command), libURLSetAuthCallback (command),
 libURLSetExpect100 (command), load (command), urlEncode (function),

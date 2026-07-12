@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #ifndef __MC_EXEC__
 #define __MC_EXEC__
 
@@ -3172,6 +3188,8 @@ void MCFilesEvalSpecialFolderPath(MCExecContext& ctxt, MCStringRef p_folder, MCS
 void MCFilesEvalLongFilePath(MCExecContext& ctxt, MCStringRef p_path, MCStringRef& r_long_path);
 void MCFilesEvalShortFilePath(MCExecContext& ctxt, MCStringRef p_path, MCStringRef& r_short_path);
 void MCFilesEvalOpenProcesses(MCExecContext& ctxt, MCStringRef& r_string);
+void MCFilesEvalIconDataForFile(MCExecContext& ctxt, MCStringRef p_path, uinteger_t p_size, MCDataRef& r_data);
+void MCFilesEvalIconDataForExtension(MCExecContext& ctxt, MCStringRef p_extension, uinteger_t p_size, MCDataRef& r_data);
 void MCFilesEvalOpenProcessesIds(MCExecContext& ctxt, MCStringRef& r_string);
 void MCFilesEvalProcessId(MCExecContext& ctxt, integer_t& r_pid);
 void MCFilesEvalDeleteRegistry(MCExecContext& ctxt, MCStringRef p_key, bool& r_deleted);

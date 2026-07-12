@@ -30,9 +30,6 @@ On Mac OS X, Windows and Linux systems the home folder property returns
 the path to the current user's home directory, e.g. "/Users/Fred" or
 "C:/Documents and Settings/Fred". 
 
-On iOS the home folder property returns the path to the (unique) folder
-containing the application bundle and its associated data and folders.
-
 This property is read only and is equivalent to the
 specialFolderPath("home") function.
 

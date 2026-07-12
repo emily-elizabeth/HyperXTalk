@@ -108,8 +108,8 @@ command updateInclusions
          addToList sExtensionData[tIndex], tExclusions
       end if
    end repeat
-   sort lines of tInclusions
-   sort lines of tExclusions
+   -- NOTE: tInclusions and tExclusions are arrays (addToList uses numeric keys);
+   -- do NOT sort them with 'sort lines of' — that destroys the array structure.
    revSBUpdateInclusions tInclusions, tExclusions, getTargetStackName()
 end updateInclusions
 

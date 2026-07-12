@@ -14,22 +14,24 @@ on extensionInitialize
          local tDriverPath
          put revEnvironmentBinariesPath() into tDriverPath
          revSetDatabaseDriverPath tDriverPath
-         -- HTX diagnostic: verify dbsqlite.dll exists and can be loaded
-         local tTestConn, tExpectedDLL
-         put tDriverPath & slash & "dbsqlite.dll" into tExpectedDLL
-         if there is not a file tExpectedDLL then
-            put return & "HTX-DBDIAG: dbsqlite.dll NOT FOUND at: " & tExpectedDLL after msg
-         else
-            -- try an in-memory SQLite open to verify the driver loads at all
-            put revOpenDatabase("sqlite", ":memory:", "", "", "") into tTestConn
-            if tTestConn is a number then
-               revCloseDatabase tTestConn
-               -- driver loaded OK; the startup error must be coming from the docs DB open
-            else
-               put return & "HTX-DBDIAG: sqlite driver load FAILED: " & tTestConn after msg
-               put return & "  driverpath=" & tDriverPath after msg
-               put return & "  dll exists=" & (there is a file tExpectedDLL) after msg
-            end if
+         if the platform is "Win32" then
+          -- HTX diagnostic: verify dbsqlite.dll exists and can be loaded
+          local tTestConn, tExpectedDLL
+          put tDriverPath & slash & "dbsqlite.dll" into tExpectedDLL
+          if there is not a file tExpectedDLL then
+              put return & "HTX-DBDIAG: dbsqlite.dll NOT FOUND at: " & tExpectedDLL after msg
+          else
+              -- try an in-memory SQLite open to verify the driver loads at all
+              put revOpenDatabase("sqlite", ":memory:", "", "", "") into tTestConn
+              if tTestConn is a number then
+                revCloseDatabase tTestConn
+                -- driver loaded OK; the startup error must be coming from the docs DB open
+              else
+                put return & "HTX-DBDIAG: sqlite driver load FAILED: " & tTestConn after msg
+                put return & "  driverpath=" & tDriverPath after msg
+                put return & "  dll exists=" & (there is a file tExpectedDLL) after msg
+              end if
+          end if
          end if
       end if
    end if

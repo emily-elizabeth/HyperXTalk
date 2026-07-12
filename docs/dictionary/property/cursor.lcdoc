@@ -79,7 +79,7 @@ transparent color.
 
 >*Cross-platform note:* 
 
-* Windows XP and above support full alpha-blended cursors up to 64x64
+* Windows 10 and above support full alpha-blended cursors up to 64x64
 * More recent Linux distributions support alpha-blended cursors up to a
   size of 64x64
 * Mac OS X supports alpha-blended cursors up to 256x256

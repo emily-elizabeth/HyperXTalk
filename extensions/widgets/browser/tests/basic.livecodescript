@@ -42,7 +42,7 @@ end TestSetHTMLText
 
 on TestSetUrlToEmpty
 	create widget "testBrowser" as "com.livecode.widget.browser"
-	set the url of widget "testBrowser" to "http://livecode.com"
+	set the url of widget "testBrowser" to "https://hyperxtalk.com"
 	
 	// Now unset the url - this should clear the contents of the browser
 	set the url of widget "testBrowser" to empty

@@ -1,7 +1,5 @@
 Name: revDatabaseColumnNames
 
-Synonyms: revdb_columnnames
-
 Type: function
 
 Syntax: revDatabaseColumnNames(<recordSetOrConnectionId> [, <tableName>])
@@ -50,8 +48,7 @@ Use the <revDatabaseColumnNames> <function> to find out what
 within a certain table.
 
 There are two forms of the revDatabaseColumnNames function. It can
-either be used to return the list of column names in a record set, or as
-of version 2.9, the list of columns in a given table.
+either be used to return the list of column names in a record set or the list of columns in a given table.
 
 To get the list of columns in a record set use a form like this:
 
@@ -73,10 +70,6 @@ If the operation is not successful, the <revDatabaseColumnNames>
 > <Standalone Application Settings> window, make sure both the 
 > "Database" library checkbox and those of the database drivers you are 
 > using are checked.
-
-Changes:
-The ability to obtain the list of fields for a table without obtaining a
-record set first was added in version 2.9
 
 References: function (control structure),
 revDatabaseColumnCount (function), revDatabaseColumnNamed (function),

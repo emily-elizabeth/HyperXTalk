@@ -46,11 +46,6 @@ Bindings Reference.)
 > reason, some of the Emacs key bindings do not function as expected in
 > the <development environment>.)
 
-Changes:
-In versions before 1.1, the emacsKeyBindings property affected
-Command-key combinations, not Control-key combinations, on Mac OS
-systems. 
-
 References: property (glossary), keyboard equivalent (glossary),
 development environment (glossary), key binding (glossary),
 Emacs (glossary), keyDown (message), lookAndFeel (property)

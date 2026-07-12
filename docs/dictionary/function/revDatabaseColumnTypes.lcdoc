@@ -1,7 +1,5 @@
 Name: revDatabaseColumnTypes
 
-Synonyms: revdb_columntypes
-
 Type: function
 
 Syntax: revDatabaseColumnTypes(<recordSetID>)
@@ -73,9 +71,6 @@ should not attempt to display it in a <field>.
 > <Standalone Application Settings> window, make sure both the 
 > "Database" library checkbox and those of the database drivers you are 
 > using are checked.
-
-Changes:
-The revDatabaseColumnTypes synonym was added in version 2.0.
 
 References: function (control structure),
 revDatabaseColumnNames (function), revDatabaseColumnLengths (function),

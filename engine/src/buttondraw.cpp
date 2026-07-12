@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -882,7 +898,9 @@ void MCButton::drawcheck(MCDC *dc, MCRectangle &srect, Boolean white)
 			if (white && state & CS_ARMED)
 				dc->setforeground(dc->getwhite());
 			else
-				dc->setforeground(dc->getblack());
+				// Use the theme text colour so the checkmark is visible in dark
+				// mode (where getblack() would be invisible on a dark background).
+				setforeground(dc, DI_FORE, False);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
 			dc->fillpolygon(p, 6);
 		}
@@ -1067,7 +1085,8 @@ void MCButton::drawradio(MCDC *dc, MCRectangle &srect, Boolean white)
 					if (white && state & CS_ARMED)
 						dc->setforeground(dc->getwhite());
 					else
-						dc->setforeground(dc->getblack());
+						// Use theme text colour for dark mode visibility.
+						setforeground(dc, DI_FORE, False);
 					dc->setfillstyle(FillSolid, nil, 0, 0);
 				}
 			trect.x = lx + 4;

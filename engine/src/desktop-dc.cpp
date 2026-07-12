@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+ 
+ This file is part of LiveCode.
+ 
+ LiveCode is free software; you can redistribute it and/or modify it under
+ the terms of the GNU General Public License v3 as published by the Free
+ Software Foundation.
+ 
+ LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "platform.h"
 
 #include <cstdio>   // sscanf (used by MCParseHexColor)
@@ -436,6 +452,18 @@ void MCScreenDC::destroywindow(Window &window)
 
 void MCScreenDC::raisewindow(Window window)
 {
+	// For popover stacks, raising the raw platform window would bring up the
+	// blank backing NSPanel (which has had its content view transferred to the
+	// NSPopover).  Re-show via the popover path instead so the NSPopover is
+	// properly repositioned at the current anchor.  MCpopoveranchor and
+	// MCpopoveredge are set by the caller before openrect is invoked, so they
+	// are current here.
+	MCStack *t_stack = MCdispatcher->findstackd(window);
+	if (t_stack != nil && t_stack->getmode() == WM_POPOVER)
+	{
+		MCPlatformShowWindowAsPopover(window, MCpopoveranchor, (MCPlatformWindowEdge)MCpopoveredge);
+		return;
+	}
 	MCPlatformRaiseWindow(window);
 }
 
@@ -521,8 +549,8 @@ void MCScreenDC::enactraisewindows(void)
 		MCRectangle t_rect;
 		t_rect = MCRectangleMake(0, 0, 0, 0);
 		MCPlatformSetWindowProperty(backdrop_window, kMCPlatformWindowPropertyFrameRect, kMCPlatformPropertyTypeRectangle, &t_rect);
-		MCPlatformShowWindow(backdrop_window);
         MCPlatformConfigureBackdrop(backdrop_window);
+		MCPlatformShowWindow(backdrop_window);
 	}
 	else
 	{
@@ -541,8 +569,8 @@ void MCScreenDC::enablebackdrop(bool p_hard)
 	MCRectangle t_rect;
 	MCPlatformGetScreenViewport(0, t_rect);
 	MCPlatformSetWindowProperty(backdrop_window, kMCPlatformWindowPropertyContentRect, kMCPlatformPropertyTypeRectangle, &t_rect);
-	MCPlatformShowWindow(backdrop_window);
 	MCPlatformConfigureBackdrop(backdrop_window);
+	MCPlatformShowWindow(backdrop_window);
 }
 
 void MCScreenDC::disablebackdrop(bool p_hard)

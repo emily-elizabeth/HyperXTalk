@@ -113,9 +113,6 @@ the non-into form except that <targetArray> does not have to be a
 variable, and the result of the operation is placed into
 <destinationArray> rather than mutating <targetArray>.
 
-Changes:
-The `into` clause was added in version 9.
-
 References: split (command), union (command), element (glossary),
 array (glossary), command (glossary), key (glossary), element (keyword),
 difference (command), symmetric difference (command)

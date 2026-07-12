@@ -50,7 +50,7 @@ again each time the stack is opened.
 
 **macOS icon resolution (tried in order)**
 
-1. Stack MCImage object — if the name matches an image object in the
+1. Stack image object — if the name matches an image object in the
    stack (looked up with the same rules as `resolveimagename`), the
    image's raw data is extracted via its `text` property (PNG bytes) and
    used directly. This is the recommended approach for custom icons stored
@@ -81,14 +81,14 @@ display in label-only mode.
 On Windows, the icon name is used to locate an image in the toolbar's
 HIMAGELIST. On Linux, the name is passed to
 `gtk_image_new_from_icon_name` at GTK_ICON_SIZE_LARGE_TOOLBAR size,
-resolving from the active icon theme. Stack MCImage lookup is macOS-only
+resolving from the active icon theme. Stack image lookup is macOS-only
 at this time.
 
 **Persistence**
 
 Only the icon name string is saved to the stack file; image pixel data is
 not duplicated. When the stack is opened, each icon name that matches a
-stack MCImage object is re-resolved automatically so images appear
+stack image object is re-resolved automatically so images appear
 correctly without any extra scripting.
 
 References: toolbar (object), itemLabel (property),

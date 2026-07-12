@@ -44,16 +44,6 @@ that the fonts you're using are available on the printer.
 If you do not specify 'printer', the fonts installed on the system and
 available to the application for screen display are listed.
 
-In Android, iOS 3.2 and later it is possible to bundle custom fonts with
-an application, that only that application can use. To take advantage of
-this feature, you need to reference the files of any fonts you wish to
-include in the 'Copy Files' pane. These files can either be a direct
-file references, or contained in one of the folder references. The
-'Standalone Builder' treats any files that end with the extension '.ttf'
-or '.ttc' as font files to use in this way. Any fonts included in this
-way appear in the <fontNames> and can be used in the same way as any
-other font on the system.
-
 The list of font names includes a set of special-purpose names which
 automatically select the matching font for the platform. You can use
 these to request "the font used for buttons" without having to hard-code
@@ -72,13 +62,8 @@ platform-specific font names. These fonts are:
 
 
 >*Important:* Make sure you have an appropriate license for the fonts
-> you choose to bundle with your iOS app like you would any other media
+> you choose to bundle with your app like you would any other media
 > such as sounds, images and videos.
-
-The fontNames (printer) form was introduced in version 2.0.
-
-Changes:
-The fontNames () form was introduced to iOS in version 4.5.3.
 
 References: function (control structure),
 fontStyles (function), font (glossary), return (glossary), line (keyword)

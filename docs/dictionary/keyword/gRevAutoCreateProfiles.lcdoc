@@ -38,7 +38,7 @@ The <gRevAutoCreateProfiles> <global|global variable> can also be
 changed in the Preferences dialog box:
 
 1. Choose HyperXTalk → Preferences from the menubar.
-2. Choose "Property Profiles" from the menu at the top.
+2. Choose "Profiles" from the tabs at the top.
 3. Click "Create profiles automatically".
 
 

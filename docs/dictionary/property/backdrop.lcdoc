@@ -80,10 +80,6 @@ Pattern images can be color or black-and-white.
 If the system has multiple screens connected, the <backdrop> <property>
 affects only the main screen.
 
-Changes:
-The backdrop pattern option was introduced in version 1.1. In previous
-versions, the backdrop could be a solid color, but not a pattern.
-
 References: launch (command), open process (command),
 clickStack (function), stacks (function), property (glossary),
 command (glossary), hexadecimal (glossary), current stack (glossary),

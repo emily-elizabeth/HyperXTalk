@@ -36,7 +36,7 @@ mkdir -p "${PREBUILT_LIB}"
 echo "=== Building libgif libjpeg libpng libpcre ==="
 for LIB in libgif libjpeg libpng libpcre; do
     xcodebuild \
-        -project "${REPO_ROOT}/build-mac/livecode/thirdparty/${LIB}/${LIB}.xcodeproj" \
+        -project "${REPO_ROOT}/build-mac/hyperxtalk/thirdparty/${LIB}/${LIB}.xcodeproj" \
         -configuration Debug \
         -arch arm64 \
         SOLUTION_DIR="${REPO_ROOT}" \

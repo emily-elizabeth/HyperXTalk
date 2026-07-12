@@ -1,7 +1,5 @@
 Name: revDatabaseConnectResult
 
-Synonyms: revdb_connectionerr
-
 Type: function
 
 Syntax: revDatabaseConnectResult(<databaseID>)
@@ -50,9 +48,6 @@ error message for the most recent database operation that failed.
 > <Standalone Application Settings> window, make sure both the 
 > "Database" library checkbox and those of the database drivers you are 
 > using are checked.
-
-Changes:
-The revDatabaseConnectResult synonym was added in version 2.0.
 
 References: revCloseDatabase (command), function (control structure),
 revQueryResult (function), revOpenDatabase (function),

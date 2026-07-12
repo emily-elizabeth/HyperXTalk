@@ -1,7 +1,5 @@
 Name: revCurrentRecord
 
-Synonyms: revdb_currentrecord
-
 Type: function
 
 Syntax: revCurrentRecord(<recordSetID>)
@@ -62,13 +60,9 @@ Fetching data will retrieve the last record.
 > "Database" library checkbox and those of the database drivers you are 
 > using are checked.
 
-Changes:
-The revCurrentRecord synonym was added in version 2.0.
-
 References: revMoveToNextRecord (command), function (control structure),
-revQueryIsAtStart (function), revdb_movefirst (function),
-revdb_moveprev (function), revdb_movelast (function),
-revDatabaseColumnNumbered (function), revdb_movenext (function),
+revQueryIsAtStart (function),
+revDatabaseColumnNumbered (function),
 HyperXTalk custom library (glossary),
 Standalone Application Settings (glossary), record (glossary),
 standalone application (glossary),

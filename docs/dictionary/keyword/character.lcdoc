@@ -33,12 +33,6 @@ The hierarchy of the new and altered chunk types is as follows:
 
 byte w of codeunit x of codepoint y of char z of word ...
 
->*Note:*  In versions prior to 7.0 the byte chunk was identical in
-> functionality to the character chunk. In 7.0 and later a character is
-> not an 8-bit unit and it is therefore not appropriate to use this type
-> of chunk expression on binary data, to refer to 8-bit units in binary
-> data use the <byte> keyword.
-
 References: chunk expression (glossary), characters (keyword),
 codepoint (keyword), codeunits (keyword), character (keyword),
 line (keyword), word (keyword), codepoints (keyword), bytes (keyword),

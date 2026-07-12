@@ -1,7 +1,5 @@
 Name: revDatabaseColumnLengths
 
-Synonyms: revdb_columnlengths
-
 Type: function
 
 Syntax: revDatabaseColumnLengths(<recordSetID>)
@@ -50,9 +48,6 @@ If the operation is not successful, the <revDatabaseColumnLengths>
 > <Standalone Application Settings> window, make sure both the 
 > "Database" library checkbox and those of the database drivers you are 
 > using are checked.
-
-Changes:
-The revDatabaseColumnLengths synonym was added in version 2.0.
 
 References: function (control structure),
 revDatabaseColumnNamed (function), revDatabaseColumnTypes (function),

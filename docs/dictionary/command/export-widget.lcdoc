@@ -35,8 +35,5 @@ an array representing the widget as it is at that point in time. This is
 typically the values of all the widget's persistent properties, although
 its exact structure is defined by the widget.
 
->*Note:* The <export widget> command is subject to change throughout the
-> 8.0 development cycle.
-
 References: import widget (command), create widget (command)
 

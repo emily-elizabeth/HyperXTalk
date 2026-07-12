@@ -80,10 +80,6 @@ On Mac OS and Unix systems, the <setRegistry> <function>
 > registry> to invalid values can cause the system to behave
 > unexpectedly or stop functioning altogether.
 
-Changes:
-The type parameter was added in version 2.0. In previous versions, the
-type information could not be set.
-
 References: function (control structure), binaryEncode (function),
 deleteRegistry (function), MCISendString (function), file (glossary), 
 error message (glossary), return (glossary), Windows (glossary),

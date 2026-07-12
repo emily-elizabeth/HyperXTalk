@@ -17,7 +17,7 @@ Software Foundation. */
 //   4. Scale if necessary, then copy the GdkPixbuf pixel data (which is
 //      always non-premultiplied RGBA) into an MCImageBitmap.
 //
-// Compile-time requirements: glib-2.0, gio-2.0, gtk+-3.0 (or gtk4).
+// Compile-time requirements: glib-2.0, gio-2.0, gtk+-2.0 (2.10+).
 // These are already linked for the Linux engine build.
 
 #include "prefix.h"
@@ -25,9 +25,41 @@ Software Foundation. */
 #include "exec-fileicon.h"
 #include "imagebitmap.h"
 
-#include <gio/gio.h>
+extern "C" int initialise_weak_link_gio(void);
+extern "C" int initialise_weak_link_gtk(void);
+
+// We cannot include any GIO headers: every GIO header transitively includes
+// giotypes.h / gioenums.h which require a modern GLib (goffset, GVariant,
+// GLIB_SYSDEF_AF_UNIX, etc.) that is incompatible with the bundled GTK 2.10 /
+// GLib headers used by the rest of the engine.
+//
+// Instead, forward-declare just the GIO types and functions we need.
+// The bundled glib headers (already included via gtk/gtk.h → glib.h) supply
+// the GType machinery (G_TYPE_CHECK_INSTANCE_TYPE, etc.) that the macros below
+// rely on.
 #include <gtk/gtk.h>
 #include <string.h>  // strrchr
+
+typedef struct _GIcon       GIcon;
+typedef struct _GThemedIcon GThemedIcon;
+
+extern "C"
+{
+    // g_content_type_*: map a filename / extension to a MIME type and its icon.
+    gchar *g_content_type_guess(const gchar *filename,
+                                const guchar *data, gsize data_size,
+                                gboolean *result_uncertain);
+    GIcon *g_content_type_get_icon(const gchar *type);
+
+    // GThemedIcon: icon identified by a list of theme-name strings.
+    GType                g_themed_icon_get_type(void) G_GNUC_CONST;
+    const gchar * const *g_themed_icon_get_names(GThemedIcon *icon);
+}
+
+#define G_TYPE_THEMED_ICON    (g_themed_icon_get_type())
+#define G_IS_THEMED_ICON(obj) \
+    (G_TYPE_CHECK_INSTANCE_TYPE((obj), G_TYPE_THEMED_ICON))
+#define G_THEMED_ICON(obj)    ((GThemedIcon *)(obj))
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -102,6 +134,11 @@ static bool s_pixbuf_to_bitmap(GdkPixbuf   *p_pixbuf,
 
 // Look up an icon by GIcon in the current GtkIconTheme.
 // Returns a new GdkPixbuf reference; caller must g_object_unref().
+//
+// We use gtk_icon_theme_lookup_icon (available since GTK 2.4) rather than
+// gtk_icon_theme_lookup_by_gicon (GTK 2.14+) and GTK_ICON_LOOKUP_GENERIC_FALLBACK
+// (GTK 2.12+), as the bundled headers are GTK 2.10.
+// For GThemedIcon we iterate the names list ourselves for the same effect.
 static GdkPixbuf *s_load_gicon(GIcon *p_gicon, uinteger_t p_size)
 {
     if (p_gicon == NULL)
@@ -111,19 +148,30 @@ static GdkPixbuf *s_load_gicon(GIcon *p_gicon, uinteger_t p_size)
     if (t_theme == NULL)
         return NULL;
 
-    // gtk_icon_theme_lookup_by_gicon returns a GtkIconInfo (Gtk3) or
-    // GtkIconPaintable (Gtk4).  We target Gtk3 since the engine already links
-    // it; Gtk4 provides the same lookup under a different type name.
-    GtkIconInfo *t_info = gtk_icon_theme_lookup_by_gicon(
-        t_theme, p_gicon, (gint)p_size,
-        (GtkIconLookupFlags)(GTK_ICON_LOOKUP_USE_BUILTIN |
-                             GTK_ICON_LOOKUP_GENERIC_FALLBACK));
+    GtkIconInfo *t_info = NULL;
+
+    if (G_IS_THEMED_ICON(p_gicon))
+    {
+        // g_themed_icon_get_names returns names in fallback order; try each
+        // until we find one the theme knows about.
+        const gchar * const *t_names =
+            g_themed_icon_get_names(G_THEMED_ICON(p_gicon));
+        for (const gchar * const *t_name = t_names;
+             *t_name != NULL && t_info == NULL;
+             t_name++)
+        {
+            t_info = gtk_icon_theme_lookup_icon(
+                t_theme, *t_name, (gint)p_size,
+                GTK_ICON_LOOKUP_USE_BUILTIN);
+        }
+    }
+
     if (t_info == NULL)
         return NULL;
 
     GError *t_error = NULL;
     GdkPixbuf *t_pixbuf = gtk_icon_info_load_icon(t_info, &t_error);
-    g_object_unref(t_info);
+    gtk_icon_info_free(t_info);
 
     if (t_error)
     {
@@ -140,6 +188,9 @@ bool MCFileIconGetForFile(MCStringRef p_path,
                           uinteger_t p_size,
                           MCImageBitmap *&r_bitmap)
 {
+    if (!initialise_weak_link_gio() || !initialise_weak_link_gtk())
+        return false;
+
     MCAutoStringRefAsCString t_cpath;
     if (!t_cpath.Lock(p_path))
         return false;
@@ -174,6 +225,9 @@ bool MCFileIconGetForExtension(MCStringRef p_extension,
                                uinteger_t p_size,
                                MCImageBitmap *&r_bitmap)
 {
+    if (!initialise_weak_link_gio() || !initialise_weak_link_gtk())
+        return false;
+
     MCAutoStringRefAsCString t_cext;
     if (!t_cext.Lock(p_extension))
         return false;
@@ -184,14 +238,12 @@ bool MCFileIconGetForExtension(MCStringRef p_extension,
     if (t_ext_str[0] == '.')
         t_ext_str++;   // strip leading dot
 
-    gchar *t_fake_name = g_strdup_printf("dummy.%s", t_ext_str);
-    if (t_fake_name == NULL)
-        return false;
+    char t_fake_name[256];
+    snprintf(t_fake_name, sizeof(t_fake_name), "dummy.%s", t_ext_str);
 
     gboolean t_uncertain = FALSE;
     gchar *t_content_type =
         g_content_type_guess(t_fake_name, NULL, 0, &t_uncertain);
-    g_free(t_fake_name);
 
     if (t_content_type == NULL)
         return false;

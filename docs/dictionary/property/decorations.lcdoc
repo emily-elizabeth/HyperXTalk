@@ -27,7 +27,7 @@ set the decorations of stack myStack to 127 -- a WDEF resource
 The result:
 >*Important:*  The <decorations> are set all at once, and if you don't
 > include a decoration, it is removed from the stack window. For
-> example, if you set the decorations to "metal", the resulting window
+> example, if you set the decorations to "noShadow", the resulting window
 > won't include a title bar, even if it had one initially. To set a
 > stack to metal appearance while showing a title bar with close,
 > minimize, and maximize box, you need to set all the decorations at
@@ -39,7 +39,7 @@ The <decorations> of a <stack> is one of the following:
 - "default"
 - empty
 - one or more of "title", "minimize", "maximize", "close", "menu",
-  "system", "noShadow", and "metal", separated by commas
+  "system", "noShadow", separated by commas
 - a WDEF identifier (on Mac OS or OS X systems)
 
 
@@ -59,12 +59,6 @@ You can specify one or more of the following decorations:
 * system: Shows the window as a system window (OS X, Unix, and
   Windows only)
 * noShadow: Remove the window's drop shadow (OS X only)
-* metal: Shows the window with a textured appearance (OS X only)
-
-
->*Note:* The "metal" and "system" options are not compatible. If you set
-> a <stack|stack's> <decorations> to a <string> that includes both, its
-> window becomes a non- <metal> <system window>.
 
 >*Cross-platform note:*  On <Mac OS|Mac OS systems>, the "system" option
 > has no effect.
@@ -116,10 +110,6 @@ written in a programming language and compiled.
 >*Cross-platform note:*  <WDEF|WDEF resources> can be used only on 
 > <Mac OS> and <OS X|OS X systems>. For a <cross-platform> method of 
 > changing a window's shape, use the <windowShape> <property>.
-
-Changes:
-The "close", "system", "noShadow", and "metal" options were introduced
-in version 2.1.
 
 References: stacks (function), property (glossary), menu bar (glossary),
 WDEF (glossary), stack window (glossary), cross-platform (glossary),

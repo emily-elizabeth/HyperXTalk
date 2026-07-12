@@ -288,8 +288,22 @@ static DWORD WINAPI vlc_new_thread_proc(LPVOID lp)
 #include <stdarg.h>
 static void vlc_log(const char *fmt, ...)
 {
+    static FILE *s_log = nullptr;
+    if (s_log == nullptr)
+    {
+        s_log = fopen("/tmp/vlc-debug.log", "w");
+        if (s_log)
+            fprintf(s_log, "=== VLC debug log ===\n");
+    }
     va_list ap;
     va_start(ap, fmt);
+    if (s_log)
+    {
+        vfprintf(s_log, fmt, ap);
+        fflush(s_log);
+        va_end(ap);
+        va_start(ap, fmt);
+    }
     vfprintf(stderr, fmt, ap);
     va_end(ap);
     fflush(stderr);
@@ -317,9 +331,9 @@ extern "C" bool  MCVLCViewHasWindow(void *p_view);
 #endif
 
 // ---------------------------------------------------------------------------
-// VLC internal log relay (macOS only — helps diagnose vout failures)
+// VLC internal log relay (macOS + Linux — helps diagnose vout failures)
 // ---------------------------------------------------------------------------
-#if defined(TARGET_PLATFORM_MACOS_X)
+#if defined(TARGET_PLATFORM_MACOS_X) || defined(TARGET_PLATFORM_LINUX)
 static void vlc_internal_log_cb(void * /*data*/, int level,
                                  const libvlc_log_t * /*ctx*/,
                                  const char *fmt, va_list args)
@@ -1281,37 +1295,58 @@ bool MCVLCPlayer::EnsureVLCInstance()
     {
         char t_exe[PATH_MAX];
         ssize_t t_len = readlink("/proc/self/exe", t_exe, sizeof(t_exe) - 1);
+        vlc_log("[VLC] readlink(/proc/self/exe) -> len=%zd\n", t_len);
         if (t_len > 0)
         {
             t_exe[t_len] = '\0';
+            vlc_log("[VLC] exe path: %s\n", t_exe);
             char *t_sep = strrchr(t_exe, '/');
             if (t_sep != nullptr)
                 *t_sep = '\0';
+            vlc_log("[VLC] exe dir: %s\n", t_exe);
 
             char t_probe[PATH_MAX];
             snprintf(t_probe, sizeof(t_probe),
                      "%s/vlc-plugins/plugins", t_exe);
+            vlc_log("[VLC] probing: %s (exists=%d)\n",
+                    t_probe, access(t_probe, F_OK) == 0 ? 1 : 0);
             if (access(t_probe, F_OK) == 0)
             {
                 setenv("VLC_PLUGIN_PATH", t_probe, 1);
+                vlc_log("[VLC] VLC_PLUGIN_PATH -> %s\n", t_probe);
             }
             else
             {
                 snprintf(t_probe, sizeof(t_probe),
                          "%s/vlc-plugins", t_exe);
+                vlc_log("[VLC] probing flat: %s (exists=%d)\n",
+                        t_probe, access(t_probe, F_OK) == 0 ? 1 : 0);
                 if (access(t_probe, F_OK) == 0)
+                {
                     setenv("VLC_PLUGIN_PATH", t_probe, 1);
+                    vlc_log("[VLC] VLC_PLUGIN_PATH -> %s\n", t_probe);
+                }
             }
         }
+        else
+        {
+            vlc_log("[VLC] WARNING: readlink /proc/self/exe failed\n");
+        }
+        const char *t_env_path = getenv("VLC_PLUGIN_PATH");
+        vlc_log("[VLC] VLC_PLUGIN_PATH (env) = %s\n",
+                t_env_path ? t_env_path : "(not set)");
     }
 
+    vlc_log("[VLC] calling libvlc_new...\n");
     const char *t_args[] = {
-        "--quiet",
         "--no-osd",
         "--no-stats",
-        "--vout=xcb_x11",
     };
-    s_vlc_instance = libvlc_new(4, t_args);
+    s_vlc_instance = libvlc_new(2, t_args);
+    vlc_log("[VLC] libvlc_new -> %s\n",
+            s_vlc_instance ? "OK" : "FAILED (null)");
+    if (s_vlc_instance != nullptr)
+        libvlc_log_set(s_vlc_instance, vlc_internal_log_cb, nullptr);
 #endif
 
     if (s_vlc_instance == nullptr)
@@ -1967,8 +2002,8 @@ bool MCVLCPlayer::SetNativeParentView(void *p_parent_view)
     // Use raw X11 child window instead of GDK — VLC's xcb video output
     // does not render into GDK-managed windows.
     GdkWindow *t_gdk_parent = (GdkWindow *)p_parent_view;
-    x11::Window t_parent_xid = x11::gdk_x11_drawable_get_xid(
-        (GdkDrawable *)t_gdk_parent);
+    // GTK3: gdk_x11_drawable_get_xid removed; use gdk_x11_window_get_xid
+    x11::Window t_parent_xid = x11::gdk_x11_window_get_xid(t_gdk_parent);
     x11::Display *t_dpy = x11::gdk_x11_display_get_xdisplay(
         gdk_display_get_default());
 
@@ -2401,11 +2436,42 @@ void MCVLCPlayer::Start(double rate)
 
     if (!m_offscreen && m_view != nullptr)
     {
+        // Audio-only media (e.g. MP3) has no video track, so the render HWND
+        // always has zero client height.  The D3D vout size guard below would
+        // arm the WM_TIMER loop forever and never play.  Audio output doesn't
+        // need an HWND, so detect this case and play immediately.
+        bool t_has_video = false;
+        if (m_media != nullptr)
+        {
+            libvlc_media_track_t **t_tracks = nullptr;
+            unsigned t_count = libvlc_media_tracks_get(m_media, &t_tracks);
+            for (unsigned i = 0; i < t_count; i++)
+            {
+                if (t_tracks[i]->i_type == libvlc_track_video)
+                {
+                    t_has_video = true;
+                    break;
+                }
+            }
+            if (t_tracks != nullptr)
+                libvlc_media_tracks_release(t_tracks, t_count);
+        }
+
         HWND t_hw = (HWND)m_view;
         RECT t_cr = {0};
         GetClientRect(t_hw, &t_cr);
-        if (t_cr.right == 0 && t_cr.bottom == 0)
+        if (!t_has_video || (t_cr.right == 0 && t_cr.bottom == 0))
         {
+            if (!t_has_video)
+            {
+                // Audio-only: no D3D surface needed, play immediately.
+                vlc_log("[VLC] Start: audio-only media — playing directly\n");
+                libvlc_media_player_play(m_player);
+                libvlc_media_player_set_rate(m_player, (float)rate);
+                m_playing = true;
+                return;
+            }
+            // Video with zero-size HWND: defer until WM_SIZE delivers valid dims.
             m_play_pending = true;
             // m_rate was already stored above; the WndProc will use it.
             UINT_PTR t_timer = SetTimer(t_hw, 1001, 50, nullptr);
@@ -2446,12 +2512,47 @@ void MCVLCPlayer::Start(double rate)
     // applies the deferred rect and calls [view setFrame: actualRect], the
     // callback fires (async, to avoid re-entering AppKit's layout pass) and
     // starts VLC at that safe moment.
+    //
+    // Audio-only exception: for media with no video tracks (e.g. MP3), the
+    // player's video area has zero height — doSetGeometry is always called with
+    // a zero-height rect, so the NSView frame is perpetually zero and the
+    // frame-ready callback never fires.  Audio output in VLC uses a completely
+    // separate pipeline that doesn't need an NSObject view, so we can skip the
+    // deferral and play directly.
     if (!m_offscreen && m_view != nullptr)
     {
+        // Detect audio-only media: check parsed track list for any video track.
+        bool t_has_video = false;
+        if (m_media != nullptr)
+        {
+            libvlc_media_track_t **t_tracks = nullptr;
+            unsigned t_count = libvlc_media_tracks_get(m_media, &t_tracks);
+            for (unsigned i = 0; i < t_count; i++)
+            {
+                if (t_tracks[i]->i_type == libvlc_track_video)
+                {
+                    t_has_video = true;
+                    break;
+                }
+            }
+            if (t_tracks != nullptr)
+                libvlc_media_tracks_release(t_tracks, t_count);
+        }
+
         bool t_has_frame  = MCVLCViewHasNonZeroFrame(m_view);
         bool t_has_window = MCVLCViewHasWindow(m_view);
-        vlc_log("[VLC] Start: NSView %p inWindow=%d hasFrame=%d\n",
-                m_view, (int)t_has_window, (int)t_has_frame);
+        vlc_log("[VLC] Start: NSView %p inWindow=%d hasFrame=%d hasVideo=%d\n",
+                m_view, (int)t_has_window, (int)t_has_frame, (int)t_has_video);
+
+        if (!t_has_video)
+        {
+            // Audio-only: no view needed, play immediately.
+            vlc_log("[VLC] Start: audio-only media — playing directly\n");
+            libvlc_media_player_play(m_player);
+            libvlc_media_player_set_rate(m_player, (float)rate);
+            m_playing = true;
+            return;
+        }
 
         // Always defer play to the next run-loop turn via the frame-ready
         // mechanism, regardless of whether the frame is already non-zero.

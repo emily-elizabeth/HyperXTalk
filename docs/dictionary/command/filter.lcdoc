@@ -157,22 +157,6 @@ the <container> contents will be replaced by the filtered result.
 When using the where form of the <filter> command the <each> keyword may
 be used in the <whereExpression> for the value to be filtered.
 
-Changes:
-The <filter>...without form was added in version 2.1.1. In previous
-versions, the <filter> command could be used only to retrieve lines that
-matched a wildcard expression. The <filter> items... form was added in
-version 6.1. In previous versions, the <filter> command could be used
-only to retrieve lines. The ability to filter using a regular expression
-was added in version 6.1. In previous versions, the <filter> command
-only supported wildcard expressions. The ability to filter an expression
-was added in version 6.1. In previous versions, the <filter> command
-could be used only for a container. The <filter>...[not] matching form
-was added in version 6.1 to clarify the pattern handling. The
-<filter>...into form was added in version 6.1. In previous versions, the
-filter command always replaced the contents of the original container.
-Filtering of array keys and elements was added in version 8.1. The where
-form of the filter command was added in version 9.5.
-
 References: replace (command), sort (command), matchChunk (function),
 matchText (function), replaceText (function), it (keyword),
 caseSensitive (property), container (glossary), expression (glossary),

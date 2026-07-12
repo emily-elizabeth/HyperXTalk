@@ -3,65 +3,65 @@ setlocal
 
 cd /d "%~dp0"
 set LOGFILE=%~dp0build-release-x64.log
-set VCXPROJ_ENGINE=build-win-x86_64\livecode\engine\development.vcxproj
-set VCXPROJ_BROWSER=build-win-x86_64\livecode\libbrowser\libbrowser.vcxproj
-set VCXPROJ_DBMYSQL=build-win-x86_64\livecode\revdb\dbmysql.vcxproj
-set VCXPROJ_DBODBC=build-win-x86_64\livecode\revdb\dbodbc.vcxproj
-set VCXPROJ_DBPOSTGRESQL=build-win-x86_64\livecode\revdb\dbpostgresql.vcxproj
-set VCXPROJ_DBSQLITE=build-win-x86_64\livecode\revdb\dbsqlite.vcxproj
-set VCXPROJ_OPENSSL_STUBS=build-win-x86_64\livecode\thirdparty\libopenssl\libopenssl_stubs.vcxproj
-set VCXPROJ_LIBSQLITE=build-win-x86_64\livecode\thirdparty\libsqlite\libsqlite.vcxproj
-set VCXPROJ_LCB_MODULES=build-win-x86_64\livecode\engine\engine_lcb_modules.vcxproj
-set VCXPROJ_LIBFFI=build-win-x86_64\livecode\thirdparty\libffi\libffi.vcxproj
-set VCXPROJ_LIBFOUNDATION=build-win-x86_64\livecode\libfoundation\libFoundation.vcxproj
-set VCXPROJ_LIBSCRIPT=build-win-x86_64\livecode\libscript\libScript.vcxproj
-set VCXPROJ_STANDALONE=build-win-x86_64\livecode\engine\standalone.vcxproj
-set VCXPROJ_KERNEL=build-win-x86_64\livecode\engine\kernel.vcxproj
-set VCXPROJ_KERNEL_STANDALONE=build-win-x86_64\livecode\engine\kernel-standalone.vcxproj
-set VCXPROJ_PERFECT=build-win-x86_64\livecode\util\perfect\perfect.vcxproj
-set VCXPROJ_KERNEL_DEVELOPMENT=build-win-x86_64\livecode\engine\kernel-development.vcxproj
-set VCXPROJ_SECURITY_COMMUNITY=build-win-x86_64\livecode\engine\security-community.vcxproj
-set VCXPROJ_LIBXML=build-win-x86_64\livecode\thirdparty\libxml\libxml.vcxproj
-set VCXPROJ_LIBXSLT=build-win-x86_64\livecode\thirdparty\libxslt\libxslt.vcxproj
-set VCXPROJ_REVXML=build-win-x86_64\livecode\revxml\external-revxml.vcxproj
-set VCXPROJ_REVXML_SERVER=build-win-x86_64\livecode\revxml\external-revxml-server.vcxproj
-set VCXPROJ_REVZIP_SERVER=build-win-x86_64\livecode\revzip\external-revzip-server.vcxproj
-set VCXPROJ_REVBROWSER=build-win-x86_64\livecode\revbrowser\external-revbrowser.vcxproj
-set VCXPROJ_REVDB=build-win-x86_64\livecode\revdb\external-revdb.vcxproj
-set VCXPROJ_OPENSSL_SYMLIST=build-win-x86_64\livecode\thirdparty\libopenssl\libopenssl_symbol_list_win.vcxproj
-set VCXPROJ_REVSECURITY=build-win-x86_64\livecode\thirdparty\libopenssl\revsecurity.vcxproj
-set VCXPROJ_REVZIP=build-win-x86_64\livecode\revzip\external-revzip.vcxproj
-set VCXPROJ_REVSPEECH=build-win-x86_64\livecode\revspeech\external-revspeech.vcxproj
-set VCXPROJ_REVPDFPRINTER=build-win-x86_64\livecode\revpdfprinter\external-revpdfprinter.vcxproj
-set VCXPROJ_LIBEXTERNAL=build-win-x86_64\livecode\libexternal\libExternal.vcxproj
-set VCXPROJ_LIBZ=build-win-x86_64\livecode\thirdparty\libz\libz.vcxproj
-set VCXPROJ_LIBGIF=build-win-x86_64\livecode\thirdparty\libgif\libgif.vcxproj
-set VCXPROJ_LIBPNG=build-win-x86_64\livecode\thirdparty\libpng\libpng.vcxproj
-set VCXPROJ_LIBJPEG=build-win-x86_64\livecode\thirdparty\libjpeg\libjpeg.vcxproj
-set VCXPROJ_LIBPCRE=build-win-x86_64\livecode\thirdparty\libpcre\libpcre.vcxproj
-set VCXPROJ_LIBCAIRO=build-win-x86_64\livecode\thirdparty\libcairo\libcairo.vcxproj
-set VCXPROJ_LIBZIP=build-win-x86_64\livecode\thirdparty\libzip\libzip.vcxproj
-set VCXPROJ_LIBSKIA=build-win-x86_64\livecode\thirdparty\libskia\libskia.vcxproj
-set VCXPROJ_LIBSKIA_NONE=build-win-x86_64\livecode\thirdparty\libskia\libskia_opt_none.vcxproj
-set VCXPROJ_LIBSKIA_ARM=build-win-x86_64\livecode\thirdparty\libskia\libskia_opt_arm.vcxproj
-set VCXPROJ_LIBSKIA_SSE2=build-win-x86_64\livecode\thirdparty\libskia\libskia_opt_sse2.vcxproj
-set VCXPROJ_LIBSKIA_SSE3=build-win-x86_64\livecode\thirdparty\libskia\libskia_opt_sse3.vcxproj
-set VCXPROJ_LIBSKIA_SSE41=build-win-x86_64\livecode\thirdparty\libskia\libskia_opt_sse41.vcxproj
-set VCXPROJ_LIBSKIA_SSE42=build-win-x86_64\livecode\thirdparty\libskia\libskia_opt_sse42.vcxproj
-set VCXPROJ_LIBSKIA_AVX=build-win-x86_64\livecode\thirdparty\libskia\libskia_opt_avx.vcxproj
-set VCXPROJ_LIBSKIA_HSW=build-win-x86_64\livecode\thirdparty\libskia\libskia_opt_hsw.vcxproj
-set VCXPROJ_LIBGRAPHICS=build-win-x86_64\livecode\libgraphics\libGraphics.vcxproj
-set VCXPROJ_STDSCRIPT=build-win-x86_64\livecode\libscript\stdscript.vcxproj
-set VCXPROJ_LIBEXTERNAL_EXPORTS=build-win-x86_64\livecode\libexternal\libExternal-symbol-exports.vcxproj
-set VCXPROJ_LIBCORE=build-win-x86_64\livecode\libcore\libCore.vcxproj
-set VCXPROJ_LCS_EXTENSIONS=build-win-x86_64\livecode\extensions\lcs-extensions.vcxproj
+set VCXPROJ_ENGINE=build-win-x86_64\hyperxtalk\engine\development.vcxproj
+set VCXPROJ_BROWSER=build-win-x86_64\hyperxtalk\libbrowser\libbrowser.vcxproj
+set VCXPROJ_DBMYSQL=build-win-x86_64\hyperxtalk\revdb\dbmysql.vcxproj
+set VCXPROJ_DBODBC=build-win-x86_64\hyperxtalk\revdb\dbodbc.vcxproj
+set VCXPROJ_DBPOSTGRESQL=build-win-x86_64\hyperxtalk\revdb\dbpostgresql.vcxproj
+set VCXPROJ_DBSQLITE=build-win-x86_64\hyperxtalk\revdb\dbsqlite.vcxproj
+set VCXPROJ_OPENSSL_STUBS=build-win-x86_64\hyperxtalk\thirdparty\libopenssl\libopenssl_stubs.vcxproj
+set VCXPROJ_LIBSQLITE=build-win-x86_64\hyperxtalk\thirdparty\libsqlite\libsqlite.vcxproj
+set VCXPROJ_LCB_MODULES=build-win-x86_64\hyperxtalk\engine\engine_lcb_modules.vcxproj
+set VCXPROJ_LIBFFI=build-win-x86_64\hyperxtalk\thirdparty\libffi\libffi.vcxproj
+set VCXPROJ_LIBFOUNDATION=build-win-x86_64\hyperxtalk\libfoundation\libFoundation.vcxproj
+set VCXPROJ_LIBSCRIPT=build-win-x86_64\hyperxtalk\libscript\libScript.vcxproj
+set VCXPROJ_STANDALONE=build-win-x86_64\hyperxtalk\engine\standalone.vcxproj
+set VCXPROJ_KERNEL=build-win-x86_64\hyperxtalk\engine\kernel.vcxproj
+set VCXPROJ_KERNEL_STANDALONE=build-win-x86_64\hyperxtalk\engine\kernel-standalone.vcxproj
+set VCXPROJ_PERFECT=build-win-x86_64\hyperxtalk\util\perfect\perfect.vcxproj
+set VCXPROJ_KERNEL_DEVELOPMENT=build-win-x86_64\hyperxtalk\engine\kernel-development.vcxproj
+set VCXPROJ_SECURITY_COMMUNITY=build-win-x86_64\hyperxtalk\engine\security-community.vcxproj
+set VCXPROJ_LIBXML=build-win-x86_64\hyperxtalk\thirdparty\libxml\libxml.vcxproj
+set VCXPROJ_LIBXSLT=build-win-x86_64\hyperxtalk\thirdparty\libxslt\libxslt.vcxproj
+set VCXPROJ_REVXML=build-win-x86_64\hyperxtalk\revxml\external-revxml.vcxproj
+set VCXPROJ_REVXML_SERVER=build-win-x86_64\hyperxtalk\revxml\external-revxml-server.vcxproj
+set VCXPROJ_REVZIP_SERVER=build-win-x86_64\hyperxtalk\revzip\external-revzip-server.vcxproj
+set VCXPROJ_REVBROWSER=build-win-x86_64\hyperxtalk\revbrowser\external-revbrowser.vcxproj
+set VCXPROJ_REVDB=build-win-x86_64\hyperxtalk\revdb\external-revdb.vcxproj
+set VCXPROJ_OPENSSL_SYMLIST=build-win-x86_64\hyperxtalk\thirdparty\libopenssl\libopenssl_symbol_list_win.vcxproj
+set VCXPROJ_REVSECURITY=build-win-x86_64\hyperxtalk\thirdparty\libopenssl\revsecurity.vcxproj
+set VCXPROJ_REVZIP=build-win-x86_64\hyperxtalk\revzip\external-revzip.vcxproj
+set VCXPROJ_REVSPEECH=build-win-x86_64\hyperxtalk\revspeech\external-revspeech.vcxproj
+set VCXPROJ_REVPDFPRINTER=build-win-x86_64\hyperxtalk\revpdfprinter\external-revpdfprinter.vcxproj
+set VCXPROJ_LIBEXTERNAL=build-win-x86_64\hyperxtalk\libexternal\libExternal.vcxproj
+set VCXPROJ_LIBZ=build-win-x86_64\hyperxtalk\thirdparty\libz\libz.vcxproj
+set VCXPROJ_LIBGIF=build-win-x86_64\hyperxtalk\thirdparty\libgif\libgif.vcxproj
+set VCXPROJ_LIBPNG=build-win-x86_64\hyperxtalk\thirdparty\libpng\libpng.vcxproj
+set VCXPROJ_LIBJPEG=build-win-x86_64\hyperxtalk\thirdparty\libjpeg\libjpeg.vcxproj
+set VCXPROJ_LIBPCRE=build-win-x86_64\hyperxtalk\thirdparty\libpcre\libpcre.vcxproj
+set VCXPROJ_LIBCAIRO=build-win-x86_64\hyperxtalk\thirdparty\libcairo\libcairo.vcxproj
+set VCXPROJ_LIBZIP=build-win-x86_64\hyperxtalk\thirdparty\libzip\libzip.vcxproj
+set VCXPROJ_LIBSKIA=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia.vcxproj
+set VCXPROJ_LIBSKIA_NONE=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia_opt_none.vcxproj
+set VCXPROJ_LIBSKIA_ARM=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia_opt_arm.vcxproj
+set VCXPROJ_LIBSKIA_SSE2=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia_opt_sse2.vcxproj
+set VCXPROJ_LIBSKIA_SSE3=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia_opt_sse3.vcxproj
+set VCXPROJ_LIBSKIA_SSE41=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia_opt_sse41.vcxproj
+set VCXPROJ_LIBSKIA_SSE42=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia_opt_sse42.vcxproj
+set VCXPROJ_LIBSKIA_AVX=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia_opt_avx.vcxproj
+set VCXPROJ_LIBSKIA_HSW=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia_opt_hsw.vcxproj
+set VCXPROJ_LIBGRAPHICS=build-win-x86_64\hyperxtalk\libgraphics\libGraphics.vcxproj
+set VCXPROJ_STDSCRIPT=build-win-x86_64\hyperxtalk\libscript\stdscript.vcxproj
+set VCXPROJ_LIBEXTERNAL_EXPORTS=build-win-x86_64\hyperxtalk\libexternal\libExternal-symbol-exports.vcxproj
+set VCXPROJ_LIBCORE=build-win-x86_64\hyperxtalk\libcore\libCore.vcxproj
+set VCXPROJ_LCS_EXTENSIONS=build-win-x86_64\hyperxtalk\extensions\lcs-extensions.vcxproj
 
 :: ----------------------------------------------------------
 :: Release output directory.
 :: All build artifacts land here; the installer picks them up
 :: from this location.
 :: ----------------------------------------------------------
-set "OUTDIR=%~dp0build-win-x86_64\livecode\Release"
+set "OUTDIR=%~dp0build-win-x86_64\hyperxtalk\Release"
 
 :: ----------------------------------------------------------
 :: Mirror Debug import libs into the Release equivalents.
@@ -73,14 +73,14 @@ set "OUTDIR=%~dp0build-win-x86_64\livecode\Release"
 ::     prebuilt\unpacked\Thirdparty\x86_64-win32-v142_static_Release\lib
 ::
 ::   development.vcxproj links against:
-::     build-win-x86_64\livecode\Release\lib
+::     build-win-x86_64\hyperxtalk\Release\lib
 ::
 :: setup-mysql-win.bat only populates the Debug variants of both.
 :: We copy from Debug → Release here so no extra Scoop installs are needed.
 :: ----------------------------------------------------------
 set "PREBUILT_DBG=%~dp0prebuilt\unpacked\Thirdparty\x86_64-win32-v142_static_Debug\lib"
 set "PREBUILT_REL=%~dp0prebuilt\unpacked\Thirdparty\x86_64-win32-v142_static_Release\lib"
-set "DEBUG_LIB_DIR=%~dp0build-win-x86_64\livecode\Debug\lib"
+set "DEBUG_LIB_DIR=%~dp0build-win-x86_64\hyperxtalk\Debug\lib"
 set "RELEASE_LIB_DIR=%OUTDIR%\lib"
 
 if not exist "%RELEASE_LIB_DIR%" mkdir "%RELEASE_LIB_DIR%"
@@ -132,6 +132,13 @@ if not defined MSBUILD (
 )
 echo Using MSBuild: %MSBUILD%
 
+:: ----------------------------------------------------------
+:: Platform toolset override.
+:: v142 = VS 2019, v143 = VS 2022, v144 = VS 2025.
+:: Adjust if the build fails with MSB8020 (toolset not found).
+:: ----------------------------------------------------------
+set "TOOLSET=/p:PlatformToolset=v142"
+
 echo Build started: %DATE% %TIME%
 echo Build started: %DATE% %TIME% > "%LOGFILE%"
 echo. >> "%LOGFILE%"
@@ -147,10 +154,10 @@ echo. >> "%LOGFILE%"
 :: updated without a full rebuild.
 :: ----------------------------------------------------------
 echo Regenerating revbuild.h from version file ...
-set "REVBUILD_SHARED_DBG=%~dp0build-win-x86_64\livecode\engine\Debug\x64\obj\shared_intermediate"
-set "REVBUILD_SHARED_REL=%~dp0build-win-x86_64\livecode\engine\Release\x64\obj\shared_intermediate"
-set "REVBUILD_GLOBAL_DBG=%~dp0build-win-x86_64\livecode\Debug\obj\global_intermediate"
-set "REVBUILD_GLOBAL_REL=%~dp0build-win-x86_64\livecode\Release\obj\global_intermediate"
+set "REVBUILD_SHARED_DBG=%~dp0build-win-x86_64\hyperxtalk\engine\Debug\x64\obj\shared_intermediate"
+set "REVBUILD_SHARED_REL=%~dp0build-win-x86_64\hyperxtalk\engine\Release\x64\obj\shared_intermediate"
+set "REVBUILD_GLOBAL_DBG=%~dp0build-win-x86_64\hyperxtalk\Debug\obj\global_intermediate"
+set "REVBUILD_GLOBAL_REL=%~dp0build-win-x86_64\hyperxtalk\Release\obj\global_intermediate"
 set "REVBUILD_SRC=%~dp0engine\obj\global_intermediate"
 if not exist "%REVBUILD_SHARED_DBG%\include" mkdir "%REVBUILD_SHARED_DBG%\include"
 if not exist "%REVBUILD_SHARED_REL%\include" mkdir "%REVBUILD_SHARED_REL%\include"
@@ -167,21 +174,21 @@ echo revbuild.h OK.
 
 echo Building libCore (Release) ...
 echo Building libCore ... >> "%LOGFILE%"
-"%MSBUILD%" %VCXPROJ_LIBCORE%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBCORE%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBCORE BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libCore OK.
 
 echo.
 echo Building libExternal (Release) ...
 echo Building libExternal ... >> "%LOGFILE%"
-"%MSBUILD%" %VCXPROJ_LIBEXTERNAL%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBEXTERNAL%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBEXTERNAL BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libExternal OK.
 
 echo.
 echo Building libExternal-symbol-exports (Release) ...
 echo Building libExternal-symbol-exports ... >> "%LOGFILE%"
-"%MSBUILD%" %VCXPROJ_LIBEXTERNAL_EXPORTS%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBEXTERNAL_EXPORTS%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBEXTERNAL-SYMBOL-EXPORTS BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libExternal-symbol-exports OK.
 
@@ -198,7 +205,7 @@ echo.
 echo Building libbrowser (WebView2, Release) ...
 echo Building libbrowser (WebView2) ... >> "%LOGFILE%"
 if not exist "%RELEASE_LIB_DIR%" mkdir "%RELEASE_LIB_DIR%"
-"%MSBUILD%" %VCXPROJ_BROWSER% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_BROWSER% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBBROWSER BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libbrowser OK.
 
@@ -211,7 +218,7 @@ echo.
 :: ----------------------------------------------------------
 echo Building libopenssl_stubs (Release x64) ...
 echo Building libopenssl_stubs ... >> "%LOGFILE%"
-"%MSBUILD%" %VCXPROJ_OPENSSL_STUBS% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /v:minimal /nologo
+"%MSBUILD%" %TOOLSET% %VCXPROJ_OPENSSL_STUBS% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo
 if errorlevel 1 ( echo LIBOPENSSL_STUBS BUILD FAILED. & exit /b 1 )
 if not exist "%RELEASE_LIB_DIR%\libopenssl_stubs.lib" ( echo ERROR: libopenssl_stubs.lib not found in %RELEASE_LIB_DIR% & exit /b 1 )
 echo libopenssl_stubs OK.
@@ -219,21 +226,21 @@ echo libopenssl_stubs OK.
 echo.
 echo Building dbmysql (Release) ...
 echo Building dbmysql ... >> "%LOGFILE%"
-"%MSBUILD%" %VCXPROJ_DBMYSQL% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /v:minimal /nologo
+"%MSBUILD%" %TOOLSET% %VCXPROJ_DBMYSQL% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo
 if errorlevel 1 ( echo DBMYSQL BUILD FAILED. & exit /b 1 )
 echo dbmysql OK.
 
 echo.
 echo Building dbodbc (Release) ...
 echo Building dbodbc ... >> "%LOGFILE%"
-"%MSBUILD%" %VCXPROJ_DBODBC%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_DBODBC%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo DBODBC BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo dbodbc OK.
 
 echo.
 echo Building dbpostgresql (Release) ...
 echo Building dbpostgresql ... >> "%LOGFILE%"
-"%MSBUILD%" %VCXPROJ_DBPOSTGRESQL% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /p:SolutionDir=%~dp0build-win-x86_64\livecode\\ /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_DBPOSTGRESQL% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\ /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo DBPOSTGRESQL BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo dbpostgresql OK.
 
@@ -249,7 +256,7 @@ echo.
 :: ----------------------------------------------------------
 echo Building libsqlite (Release x64) ...
 echo Building libsqlite ... >> "%LOGFILE%"
-"%MSBUILD%" %VCXPROJ_LIBSQLITE% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSQLITE% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBSQLITE BUILD FAILED. See %LOGFILE% & exit /b 1 )
 if not exist "%RELEASE_LIB_DIR%\libsqlite.lib" ( echo ERROR: libsqlite.lib not found in %RELEASE_LIB_DIR% & exit /b 1 )
 echo libsqlite OK.
@@ -257,28 +264,28 @@ echo libsqlite OK.
 echo.
 echo Building dbsqlite (Release) ...
 echo Building dbsqlite ... >> "%LOGFILE%"
-"%MSBUILD%" %VCXPROJ_DBSQLITE% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /p:SolutionDir=%~dp0build-win-x86_64\livecode\\ /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_DBSQLITE% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\ /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo DBSQLITE BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo dbsqlite OK.
 
 echo.
 echo Building libffi (Release) ...
 echo Building libffi ... >> "%LOGFILE%"
-"%MSBUILD%" %VCXPROJ_LIBFFI% /t:Rebuild "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBFFI% /t:Rebuild "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBFFI BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libffi OK.
 
 echo.
 echo Building libFoundation (Release) ...
 echo Building libFoundation ... >> "%LOGFILE%"
-"%MSBUILD%" %VCXPROJ_LIBFOUNDATION% /t:Rebuild  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBFOUNDATION% /t:Rebuild  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBFOUNDATION BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libFoundation OK.
 
 echo.
 echo Building libScript (Release) ...
 echo Building libScript ... >> "%LOGFILE%"
-"%MSBUILD%" %VCXPROJ_LIBSCRIPT% /t:Rebuild  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSCRIPT% /t:Rebuild  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBSCRIPT BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libScript OK.
 
@@ -288,7 +295,7 @@ echo.
 ::
 :: These must be Release-compiled to avoid pulling in debug-CRT
 :: symbols (_CrtDbgReport from Skia, _chvalidator from libpcre)
-:: and LiveCode debug macros (__MCAssert etc. from libGraphics)
+:: and HyperXTalk debug macros (__MCAssert etc. from libGraphics)
 :: when linking the Release engine.
 ::
 :: Build order:
@@ -298,32 +305,32 @@ echo.
 ::   libGraphics last (depends on all of the above)
 :: ----------------------------------------------------------
 echo Building libz (Release) ...
-"%MSBUILD%" %VCXPROJ_LIBZ%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBZ%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBZ BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libz OK.
 
 echo Building libgif (Release) ...
-"%MSBUILD%" %VCXPROJ_LIBGIF%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBGIF%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBGIF BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libgif OK.
 
 echo Building libpng (Release) ...
-"%MSBUILD%" %VCXPROJ_LIBPNG%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBPNG%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBPNG BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libpng OK.
 
 echo Building libjpeg (Release) ...
-"%MSBUILD%" %VCXPROJ_LIBJPEG%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBJPEG%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBJPEG BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libjpeg OK.
 
 echo Building libpcre (Release) ...
-"%MSBUILD%" %VCXPROJ_LIBPCRE%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBPCRE%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBPCRE BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libpcre OK.
 
 echo Building libcairo (Release) ...
-"%MSBUILD%" %VCXPROJ_LIBCAIRO%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBCAIRO%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBCAIRO BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libcairo OK.
 
@@ -334,42 +341,42 @@ echo Building libzip (Release) ...
 echo Building libzip ... >> "%LOGFILE%"
 :: /t:Rebuild ensures obj files are recompiled from scratch so that changes to
 :: vendored headers like thirdparty/libzip/src/config.h are always picked up.
-"%MSBUILD%" %VCXPROJ_LIBZIP% /t:Rebuild /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBZIP% /t:Rebuild /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBZIP BUILD FAILED. See %LOGFILE% & exit /b 1 )
 if not exist "%RELEASE_LIB_DIR%\libzip.lib" ( echo ERROR: libzip.lib not found in %RELEASE_LIB_DIR% & exit /b 1 )
 echo libzip OK.
 
 echo Building libskia (Release) -- 530 source files, this will take a few minutes ...
-"%MSBUILD%" %VCXPROJ_LIBSKIA%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSKIA%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBSKIA BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libskia OK.
 
 echo Building libskia_opt variants (Release) ...
-"%MSBUILD%" %VCXPROJ_LIBSKIA_NONE%   "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSKIA_NONE%   "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBSKIA_OPT_NONE BUILD FAILED. See %LOGFILE% & exit /b 1 )
-"%MSBUILD%" %VCXPROJ_LIBSKIA_ARM%    "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSKIA_ARM%    "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBSKIA_OPT_ARM BUILD FAILED. See %LOGFILE% & exit /b 1 )
-"%MSBUILD%" %VCXPROJ_LIBSKIA_SSE2%   "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSKIA_SSE2%   "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBSKIA_OPT_SSE2 BUILD FAILED. See %LOGFILE% & exit /b 1 )
-"%MSBUILD%" %VCXPROJ_LIBSKIA_SSE3%   "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSKIA_SSE3%   "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBSKIA_OPT_SSE3 BUILD FAILED. See %LOGFILE% & exit /b 1 )
-"%MSBUILD%" %VCXPROJ_LIBSKIA_SSE41%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSKIA_SSE41%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBSKIA_OPT_SSE41 BUILD FAILED. See %LOGFILE% & exit /b 1 )
-"%MSBUILD%" %VCXPROJ_LIBSKIA_SSE42%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSKIA_SSE42%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBSKIA_OPT_SSE42 BUILD FAILED. See %LOGFILE% & exit /b 1 )
-"%MSBUILD%" %VCXPROJ_LIBSKIA_AVX%    "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSKIA_AVX%    "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBSKIA_OPT_AVX BUILD FAILED. See %LOGFILE% & exit /b 1 )
-"%MSBUILD%" %VCXPROJ_LIBSKIA_HSW%    "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSKIA_HSW%    "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBSKIA_OPT_HSW BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libskia_opt variants OK.
 
 echo Building libGraphics (Release) ...
-"%MSBUILD%" %VCXPROJ_LIBGRAPHICS%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBGRAPHICS%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo LIBGRAPHICS BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libGraphics OK.
 
 echo Building stdscript (Release) ...
-"%MSBUILD%" %VCXPROJ_STDSCRIPT%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_STDSCRIPT%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo STDSCRIPT BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo stdscript OK.
 
@@ -385,7 +392,7 @@ echo.
 :: it produces is identical regardless of the host's optimisation
 :: level.  The copied exe is also the one shipped in the installer.
 :: ----------------------------------------------------------
-set "DBG_DIR=%~dp0build-win-x86_64\livecode\Debug"
+set "DBG_DIR=%~dp0build-win-x86_64\hyperxtalk\Debug"
 set "LC_COMPILE_DBG=%DBG_DIR%\lc-compile.exe"
 set "LC_COMPILE_REL=%OUTDIR%\lc-compile.exe"
 if not exist "%LC_COMPILE_DBG%" (
@@ -417,17 +424,21 @@ for %%F in ("%DEBUG_LIB_DIR%\*.lib") do (
 )
 echo Lib bootstrap OK.
 
-:: Also mirror ICU and OpenSSL prebuilt lib dirs (same stub issue as Thirdparty)
+:: Also mirror ICU, OpenSSL, and curl prebuilt lib dirs (same stub issue as Thirdparty)
 set "ICU_DBG=%~dp0prebuilt\unpacked\icu\x86_64-win32-v142_static_Debug\lib"
 set "ICU_REL=%~dp0prebuilt\unpacked\icu\x86_64-win32-v142_static_Release\lib"
 set "ICU_REL_BIN=%~dp0prebuilt\unpacked\icu\x86_64-win32-v142_static_Release\bin"
 set "SSL_DBG=%~dp0prebuilt\unpacked\openssl3\x86_64-win32-v142_static_Debug\lib"
 set "SSL_REL=%~dp0prebuilt\unpacked\openssl3\x86_64-win32-v142_static_Release\lib"
-if not exist "%ICU_REL%"  mkdir "%ICU_REL%"
-if not exist "%SSL_REL%"  mkdir "%SSL_REL%"
-for %%F in ("%ICU_DBG%\*.lib")  do ( copy /Y "%%F" "%ICU_REL%\%%~nxF"  > nul )
-for %%F in ("%SSL_DBG%\*.lib")  do ( copy /Y "%%F" "%SSL_REL%\%%~nxF"  > nul )
-echo ICU + OpenSSL prebuilt lib bootstrap OK.
+set "CURL_DBG=%~dp0prebuilt\unpacked\curl\x86_64-win32-v142_static_Debug\lib"
+set "CURL_REL=%~dp0prebuilt\unpacked\curl\x86_64-win32-v142_static_Release\lib"
+if not exist "%ICU_REL%"   mkdir "%ICU_REL%"
+if not exist "%SSL_REL%"   mkdir "%SSL_REL%"
+if not exist "%CURL_REL%"  mkdir "%CURL_REL%"
+for %%F in ("%ICU_DBG%\*.lib")   do ( copy /Y "%%F" "%ICU_REL%\%%~nxF"   > nul )
+for %%F in ("%SSL_DBG%\*.lib")   do ( copy /Y "%%F" "%SSL_REL%\%%~nxF"   > nul )
+for %%F in ("%CURL_DBG%\*.lib")  do ( copy /Y "%%F" "%CURL_REL%\%%~nxF"  > nul )
+echo ICU + OpenSSL + curl prebuilt lib bootstrap OK.
 
 :: WebView2 static loader lib — copy into Release\lib so the Release linker finds
 :: it.  We use WebView2LoaderStatic.lib (not WebView2Loader.dll.lib) so that
@@ -508,8 +519,8 @@ echo server-community.exe bootstrap OK.
 :: where $(obj) = Release\x64\obj\development\
 :: so the resolved path is Release\x64\obj\shared_intermediate\src\
 :: ----------------------------------------------------------
-set "DBG_SHARED_SRC=%~dp0build-win-x86_64\livecode\engine\Debug\x64\obj\shared_intermediate\src"
-set "REL_SHARED_SRC=%~dp0build-win-x86_64\livecode\engine\Release\x64\obj\shared_intermediate\src"
+set "DBG_SHARED_SRC=%~dp0build-win-x86_64\hyperxtalk\engine\Debug\x64\obj\shared_intermediate\src"
+set "REL_SHARED_SRC=%~dp0build-win-x86_64\hyperxtalk\engine\Release\x64\obj\shared_intermediate\src"
 if not exist "%REL_SHARED_SRC%" mkdir "%REL_SHARED_SRC%"
 if exist "%DBG_SHARED_SRC%\startupstack.cpp" (
     copy /Y "%DBG_SHARED_SRC%\startupstack.cpp" "%REL_SHARED_SRC%\startupstack.cpp" > nul
@@ -534,7 +545,7 @@ echo.
 echo Building LCB engine modules (Release) ...
 echo Building LCB engine modules ... >> "%LOGFILE%"
 set "LCB_MOD_LOG=%~dp0build-lcb-modules-release.log"
-"%MSBUILD%" %VCXPROJ_LCB_MODULES%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%LCB_MOD_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LCB_MODULES%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%LCB_MOD_LOG%" 2>&1
 set LCB_MOD_ERR=%ERRORLEVEL%
 type "%LCB_MOD_LOG%"
 type "%LCB_MOD_LOG%" >> "%LOGFILE%"
@@ -548,7 +559,7 @@ echo.
 echo Building security-community (Release) ...
 echo Building security-community ... >> "%LOGFILE%"
 set "SECCOM_LOG=%~dp0build-security-community-release.log"
-"%MSBUILD%" %VCXPROJ_SECURITY_COMMUNITY%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%SECCOM_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_SECURITY_COMMUNITY%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%SECCOM_LOG%" 2>&1
 set SECCOM_ERR=%ERRORLEVEL%
 type "%SECCOM_LOG%"
 type "%SECCOM_LOG%" >> "%LOGFILE%"
@@ -563,7 +574,7 @@ echo Building kernel (Release) ...
 echo Building kernel ... >> "%LOGFILE%"
 set "KERNEL_LOG=%~dp0build-kernel-release.log"
 set "KERNEL_OUTDIR=%OUTDIR%"
-"%MSBUILD%" %VCXPROJ_KERNEL% /t:Rebuild /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%KERNEL_OUTDIR%\\" /p:BuildProjectReferences=false /v:minimal /nologo > "%KERNEL_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_KERNEL% /t:Rebuild /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%KERNEL_OUTDIR%\\" /p:BuildProjectReferences=false /v:minimal /nologo > "%KERNEL_LOG%" 2>&1
 set KERNEL_ERR=%ERRORLEVEL%
 type "%KERNEL_LOG%"
 type "%KERNEL_LOG%" >> "%LOGFILE%"
@@ -590,14 +601,14 @@ echo.
 :: Build kernel-development.lib (Release).
 :: ----------------------------------------------------------
 echo Building perfect-target (Release) ...
-"%MSBUILD%" %VCXPROJ_PERFECT%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_PERFECT%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo PERFECT BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo perfect-target OK.
 
 echo Building kernel-development (Release) ...
 echo Building kernel-development ... >> "%LOGFILE%"
 set "KDEV_LOG=%~dp0build-kernel-development-release.log"
-"%MSBUILD%" %VCXPROJ_KERNEL_DEVELOPMENT%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%KDEV_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_KERNEL_DEVELOPMENT%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%KDEV_LOG%" 2>&1
 set KDEV_ERR=%ERRORLEVEL%
 type "%KDEV_LOG%"
 type "%KDEV_LOG%" >> "%LOGFILE%"
@@ -606,12 +617,12 @@ echo kernel-development OK.
 
 echo.
 echo Building libxml2 (Release) ...
-"%MSBUILD%" %VCXPROJ_LIBXML% /t:Rebuild  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBXML% /t:Rebuild  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 ( echo libxml2 build failed. See %LOGFILE% & exit /b 1 )
 echo libxml2 OK.
 
 echo Building libxslt (Release) ...
-"%MSBUILD%" %VCXPROJ_LIBXSLT% /t:Rebuild  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBXSLT% /t:Rebuild  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 ( echo libxslt build failed. See %LOGFILE% & exit /b 1 )
 echo libxslt OK.
 
@@ -628,7 +639,7 @@ echo.
 echo Building server-revxml.dll (Release -- required by lcs-extensions) ...
 echo Building server-revxml.dll ... >> "%LOGFILE%"
 set "SRVXML_LOG=%~dp0build-server-revxml.log"
-"%MSBUILD%" %VCXPROJ_REVXML_SERVER% /t:Rebuild /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /v:minimal /nologo > "%SRVXML_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVXML_SERVER% /t:Rebuild /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo > "%SRVXML_LOG%" 2>&1
 set SRVXML_ERR=%ERRORLEVEL%
 type "%SRVXML_LOG%"
 type "%SRVXML_LOG%" >> "%LOGFILE%"
@@ -641,7 +652,7 @@ if %SRVXML_ERR% NEQ 0 (
 echo Building server-revzip.dll (Release -- required by lcs-extensions) ...
 echo Building server-revzip.dll ... >> "%LOGFILE%"
 set "SRVZIP_LOG=%~dp0build-server-revzip.log"
-"%MSBUILD%" %VCXPROJ_REVZIP_SERVER% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /v:minimal /nologo > "%SRVZIP_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVZIP_SERVER% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo > "%SRVZIP_LOG%" 2>&1
 set SRVZIP_ERR=%ERRORLEVEL%
 type "%SRVZIP_LOG%"
 type "%SRVZIP_LOG%" >> "%LOGFILE%"
@@ -681,9 +692,9 @@ if not defined CL_EXE (
 set "LIB_EXE=%CL_EXE:cl.exe=lib.exe%"
 
 echo Generating revsecurity.def (Release) ...
-"%MSBUILD%" %VCXPROJ_OPENSSL_SYMLIST% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_OPENSSL_SYMLIST% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if errorlevel 1 ( echo ERROR: libopenssl_symbol_list_win failed. & exit /b 1 )
-set "REVSEC_DEF=%~dp0build-win-x86_64\livecode\Release\obj\global_intermediate\src\revsecurity.def"
+set "REVSEC_DEF=%~dp0build-win-x86_64\hyperxtalk\Release\obj\global_intermediate\src\revsecurity.def"
 if not exist "%REVSEC_DEF%" ( echo ERROR: revsecurity.def was not generated at %REVSEC_DEF% & exit /b 1 )
 echo Generating revsecurity.lib (Release) ...
 "%LIB_EXE%" /def:"%REVSEC_DEF%" /out:"%OUTDIR%\revsecurity.lib" /machine:x64 >> "%LOGFILE%" 2>&1
@@ -694,13 +705,13 @@ echo Building engine (Release) ...
 
 set "EXE=%OUTDIR%\HyperXTalk.exe"
 set "ENGINE_LOG=%~dp0build-engine-step-release.log"
-set "LINK_TLOG=build-win-x86_64\livecode\engine\Release\x64\obj\development\development.tlog\link.write.1.tlog"
+set "LINK_TLOG=build-win-x86_64\hyperxtalk\engine\Release\x64\obj\development\development.tlog\link.write.1.tlog"
 
 if not exist "%EXE%" (
     if exist "%LINK_TLOG%" del /F /Q "%LINK_TLOG%"
 )
 
-"%MSBUILD%" %VCXPROJ_ENGINE%  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%ENGINE_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_ENGINE%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%ENGINE_LOG%" 2>&1
 set BUILD_ERR=%ERRORLEVEL%
 type "%ENGINE_LOG%"
 type "%ENGINE_LOG%" >> "%LOGFILE%"
@@ -713,7 +724,7 @@ echo.
 echo Building kernel-standalone (Release) ...
 echo Building kernel-standalone ... >> "%LOGFILE%"
 set "KSTD_LOG=%~dp0build-kernel-standalone-release.log"
-"%MSBUILD%" %VCXPROJ_KERNEL_STANDALONE% /t:Rebuild  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%KSTD_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_KERNEL_STANDALONE% /t:Rebuild  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%KSTD_LOG%" 2>&1
 set KSTD_ERR=%ERRORLEVEL%
 type "%KSTD_LOG%"
 type "%KSTD_LOG%" >> "%LOGFILE%"
@@ -725,7 +736,7 @@ echo Building standalone-community.exe (Release) ...
 echo Building standalone-community.exe ... >> "%LOGFILE%"
 set "STANDALONE_LOG=%~dp0build-standalone-release.log"
 set "STANDALONE_EXE=%OUTDIR%\standalone-community.exe"
-"%MSBUILD%" %VCXPROJ_STANDALONE% /t:Rebuild  "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%STANDALONE_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_STANDALONE% /t:Rebuild  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%STANDALONE_LOG%" 2>&1
 set STANDALONE_ERR=%ERRORLEVEL%
 type "%STANDALONE_LOG%"
 type "%STANDALONE_LOG%" >> "%LOGFILE%"
@@ -750,7 +761,7 @@ exit /b 1
 
 echo.
 echo Building revxml (Release) ...
-"%MSBUILD%" %VCXPROJ_REVXML% /t:Rebuild "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVXML% /t:Rebuild "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 ( echo revxml build failed. See %LOGFILE% & exit /b 1 )
 echo revxml OK.
 
@@ -767,7 +778,7 @@ echo.
 :: ----------------------------------------------------------
 echo Building revbrowser (Release) ...
 set "REVBROWSER_REL_LOG=%~dp0build-revbrowser-release.log"
-"%MSBUILD%" %VCXPROJ_REVBROWSER% /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%OUTDIR%\\" /p:BuildProjectReferences=false /v:minimal /nologo > "%REVBROWSER_REL_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVBROWSER% /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%OUTDIR%\\" /p:BuildProjectReferences=false /v:minimal /nologo > "%REVBROWSER_REL_LOG%" 2>&1
 set REVBROWSER_REL_ERR=%ERRORLEVEL%
 type "%REVBROWSER_REL_LOG%"
 type "%REVBROWSER_REL_LOG%" >> "%LOGFILE%"
@@ -786,7 +797,7 @@ echo revbrowser: using Debug bootstrap.
 
 echo.
 echo Building revdb (Release) ...
-"%MSBUILD%" %VCXPROJ_REVDB% /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%OUTDIR%\\" /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVDB% /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%OUTDIR%\\" /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 goto revdb_fallback
 if not exist "%OUTDIR%\revdb.dll" goto revdb_fallback
 echo revdb Release OK.
@@ -799,7 +810,7 @@ echo revdb: using Debug bootstrap.
 
 echo.
 echo Building revsecurity (Release) ...
-"%MSBUILD%" %VCXPROJ_REVSECURITY% /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%OUTDIR%\\" /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVSECURITY% /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%OUTDIR%\\" /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 goto revsecurity_fallback
 if not exist "%OUTDIR%\revsecurity.dll" goto revsecurity_fallback
 echo revsecurity Release OK.
@@ -813,7 +824,7 @@ echo revsecurity: using Debug bootstrap.
 echo.
 echo Building revzip (Release) ...
 set "REVZIP_LOG=%~dp0build-revzip-release.log"
-"%MSBUILD%" %VCXPROJ_REVZIP% /p:Configuration=Release /p:Platform=x64 "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:BuildProjectReferences=false /v:minimal /nologo > "%REVZIP_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVZIP% /p:Configuration=Release /p:Platform=x64 "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:BuildProjectReferences=false /v:minimal /nologo > "%REVZIP_LOG%" 2>&1
 set REVZIP_ERR=%ERRORLEVEL%
 type "%REVZIP_LOG%"
 type "%REVZIP_LOG%" >> "%LOGFILE%"
@@ -825,10 +836,10 @@ goto revzip_done
 echo revzip Release build failed -- attempting Debug bootstrap build ...
 :: Build libzip Debug so Debug\lib\libzip.lib exists for revzip Debug link.
 :: /t:Rebuild ensures fresh compilation picks up config.h changes.
-"%MSBUILD%" %VCXPROJ_LIBZIP% /t:Rebuild /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBZIP% /t:Rebuild /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
 :: Build revzip Debug into DBG_DIR so the copy below succeeds.
 set "REVZIP_DBG_LOG=%~dp0build-revzip-debug.log"
-"%MSBUILD%" %VCXPROJ_REVZIP% /p:Configuration=Debug /p:Platform=x64 "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /p:BuildProjectReferences=false /v:minimal /nologo > "%REVZIP_DBG_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVZIP% /p:Configuration=Debug /p:Platform=x64 "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:BuildProjectReferences=false /v:minimal /nologo > "%REVZIP_DBG_LOG%" 2>&1
 type "%REVZIP_DBG_LOG%"
 type "%REVZIP_DBG_LOG%" >> "%LOGFILE%"
 if not exist "%DBG_DIR%\revzip.dll" ( echo ERROR: revzip.dll missing from both Release build and Debug output. & exit /b 1 )
@@ -838,7 +849,7 @@ echo revzip: using Debug bootstrap.
 
 echo.
 echo Building revspeech (Release) ...
-"%MSBUILD%" %VCXPROJ_REVSPEECH% /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%OUTDIR%\\" /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVSPEECH% /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%OUTDIR%\\" /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 goto revspeech_fallback
 if not exist "%OUTDIR%\revspeech.dll" goto revspeech_fallback
 echo revspeech Release OK.
@@ -852,7 +863,7 @@ echo revspeech: using Debug bootstrap.
 echo.
 echo Building revpdfprinter (Release) ...
 set "REVPDF_LOG=%~dp0build-revpdfprinter-release.log"
-"%MSBUILD%" %VCXPROJ_REVPDFPRINTER% /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%OUTDIR%\\" /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /v:minimal /nologo > "%REVPDF_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVPDFPRINTER% /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%OUTDIR%\\" /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo > "%REVPDF_LOG%" 2>&1
 set REVPDF_ERR=%ERRORLEVEL%
 type "%REVPDF_LOG%"
 type "%REVPDF_LOG%" >> "%LOGFILE%"
@@ -863,7 +874,7 @@ goto revpdf_done
 :revpdf_fallback
 echo revpdfprinter Release build failed -- attempting Debug bootstrap build ...
 set "REVPDF_DBG_LOG=%~dp0build-revpdfprinter-debug.log"
-"%MSBUILD%" %VCXPROJ_REVPDFPRINTER% /p:Configuration=Debug /p:Platform=x64 "/p:OutDir=%DBG_DIR%\\" /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /v:minimal /nologo > "%REVPDF_DBG_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVPDFPRINTER% /p:Configuration=Debug /p:Platform=x64 "/p:OutDir=%DBG_DIR%\\" /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo > "%REVPDF_DBG_LOG%" 2>&1
 type "%REVPDF_DBG_LOG%"
 type "%REVPDF_DBG_LOG%" >> "%LOGFILE%"
 if exist "%DBG_DIR%\revpdfprinter.dll" (
@@ -909,6 +920,18 @@ if not exist "%LC_COMPILE%" (
 )
 
 if not exist "%PACKAGED_EXT%" mkdir "%PACKAGED_EXT%"
+
+:: Build yyjson native DLL for Release (required by json.lcb for JSON import on Windows)
+echo Building yyjson native DLL (Release)...
+set "VCXPROJ_YYJSON=%~dp0build-win-x86_64\hyperxtalk\extensions\libraries\json\yyjson\yyjson-build.vcxproj"
+"%MSBUILD%" %TOOLSET% "%VCXPROJ_YYJSON%" "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /v:minimal /nologo >> "%LOGFILE%" 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo WARNING: yyjson Release build failed -- JSON import extension may not work. See %LOGFILE%
+) else (
+    if not exist "%PACKAGED_EXT%\com.hyperxtalk.library.json\code\x86_64-win32" mkdir "%PACKAGED_EXT%\com.hyperxtalk.library.json\code\x86_64-win32"
+    copy /Y "%OUTDIR%\yyjson.dll" "%PACKAGED_EXT%\com.hyperxtalk.library.json\code\x86_64-win32\yyjson.dll" >> "%LOGFILE%" 2>&1
+    echo yyjson.dll OK.
+)
 
 :: Bootstrap modules/lci from Debug if Release hasn't produced it yet.
 if not exist "%LCI_DIR%" (
@@ -962,7 +985,7 @@ if exist "%BROWSER_LCB%" (
 
 echo.
 :: ----------------------------------------------------------
-:: Build lcs-extensions (LiveCode Script library extensions).
+:: Build lcs-extensions (Loadable Code Script library extensions).
 ::
 :: These are .livecodescript files (oauth2, getopt, mime, etc.)
 :: packaged via server-community.exe + extension-utils.lc in
@@ -972,7 +995,7 @@ echo.
 echo Building lcs-extensions (script libraries) ...
 echo Building lcs-extensions ... >> "%LOGFILE%"
 set "LCS_LOG=%~dp0build-lcs-extensions-release.log"
-"%MSBUILD%" %VCXPROJ_LCS_EXTENSIONS% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\livecode\\" /v:minimal /nologo > "%LCS_LOG%" 2>&1
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LCS_EXTENSIONS% /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo > "%LCS_LOG%" 2>&1
 set LCS_ERR=%ERRORLEVEL%
 type "%LCS_LOG%"
 type "%LCS_LOG%" >> "%LOGFILE%"
@@ -1115,14 +1138,4 @@ for %%F in (dbmysql.dll dbodbc.dll dbpostgresql.dll dbsqlite.dll) do (
 :: libmysql.dll and OpenSSL DLLs (MySQL runtime deps)
 for %%F in (libmysql.dll libssl-3-x64.dll libcrypto-3-x64.dll) do (
     if exist "%OUTDIR%\%%F" (
-        copy /Y "%OUTDIR%\%%F" "%~dp0%RT%\Externals\Database Drivers\%%F" > nul
-        echo   %%F staged to %RT%\Externals\Database Drivers\
-    )
-)
-
-echo Runtime staging complete.
-echo Runtime staging complete. >> "%LOGFILE%"
-
-echo.
-echo Build complete.
-echo Build complete. >> "%LOGFILE%"
+        copy /Y "%OUTDIR%\%%F" "%~dp0%RT%\Externals\Database Drivers

@@ -1,7 +1,5 @@
 Name: revDatabaseColumnNumbered
 
-Synonyms: revdb_columnbynumber
-
 Type: function
 
 Syntax: revDatabaseColumnNumbered(<recordSetID>, <columnNumber> [, <holderVariable>])
@@ -72,10 +70,6 @@ begins with the <string> "revdberr".
 > <Standalone Application Settings> window, make sure both the
 > "Database" library checkbox and those of the database drivers you are
 > using are checked.
-
-Changes:
-The ability to specify an array element as a holder variable was added
-in version 2.9.
 
 References: revMoveToLastRecord (command), revMoveToFirstRecord (command),
 revMoveToNextRecord (command), function (control structure),

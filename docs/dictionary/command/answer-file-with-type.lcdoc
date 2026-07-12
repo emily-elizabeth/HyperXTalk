@@ -48,7 +48,7 @@ values of the form "tag|extensions|filetypes".
 windowTitle:
 The windowTitle, if specified, appears in the title bar of the dialog
 box. If no windowTitle is given, the title bar is blank. (This parameter
-has no effect on Mac OS systems, because Mac OS file dialog boxes don't
+has no effect on macOS systems, because macOS file dialog boxes don't
 have a title bar.)
 
 It:
@@ -87,9 +87,6 @@ place it would if as sheet was not being used.
 If the systemFileSelector <property> is set to false, the app engine's
 built-in <dialog box> is used instead of the operating system's
 <file dialog box|standard file dialog>.
-
-Changes:
-The answer file ... with type ... form was introduced in version 2.6.
 
 References: answer file (command), command (glossary),
 property (glossary), variable (glossary), handler (glossary),

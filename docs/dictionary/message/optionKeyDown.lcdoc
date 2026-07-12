@@ -35,7 +35,7 @@ The <optionKeyDown> <message> is sent only when the user types a
 Option-F11 does not send an <optionKeyDown> <message>, because Option-F11 
 does not produce a <character>.
 
-On MacOS 9, some key codes are not sent if the preceding character is
+Some key codes are not sent if the preceding character is
 one that produces an international diacritical. In those cases, the key
 code is held until the second character is typed, which then produces a
 character with an umlaut or other diacritical. So there is no way to

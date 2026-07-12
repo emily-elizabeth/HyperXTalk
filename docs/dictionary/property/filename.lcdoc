@@ -108,24 +108,6 @@ point size of the image is rounded up to the nearest integer. If this is
 not practical for a given image, you may need to design your apps to
 handle slightly different resulting image sizes.
 
-Changes:
-The use of <QuickTime> was deprecated in version 8.1 with
-new defaults for <dontUseQT> and <dontUseQTEffects> as true on all
-systems apart from pre OS X 10.8. The Windows build no
-longer supports any <QuickTime> features and setting the <dontUseQT> and
-<dontUseQTEffects> will have no effect. Additionally <QuickTime> does 
-not include 64 bit support and therefore can not be supported on OS X 64
-bit builds.
-
-Support for Density Mapped Images was introduced in version 6. In
-previous versions, the filename of an image would only be able to use
-that particular image for display. Images with differing resolution are
-now supported, allowing applications to take full advantage of Hi-DPI.
-
-The URL option was introduced in version 1.1. In previous versions, the
-filename of an image or player always specified a file path on the local
-system, and files on the Internet could not be used.
-
 References: import (command), tempName (function),
 shortFilePath (function), saveStackRequest (message), fileType (property),
 constantMask (property)

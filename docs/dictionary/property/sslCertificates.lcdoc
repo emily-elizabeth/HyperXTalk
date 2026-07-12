@@ -68,17 +68,6 @@ that root certificates have not been found. Please let us know
 you give us full details of your system (e.g. Linux distribution and
 version). 
 
->*Note:* Unfortunately this feature does not currently work correctly on
-> Mac 10.6.x. For now, we advise including an appropriate root
-> certificates collection with your application, as was previously
-> necessary, and setting the sslCertificates property appropriately.
-
-Changes:
-Before version 4.5 it was necessary to set the <sslCertificates>
-property to the root certificates that HTTPS connections should be
-verified against. Support has now been added to locate and load the root
-certificates installed (and kept up to date) as part of the OS.
-
 References: encrypt (command), Standalone Application Settings (glossary),
 standalone application (glossary), property (glossary), 
 HyperXTalk custom library (glossary), SSL & Encryption library (library)

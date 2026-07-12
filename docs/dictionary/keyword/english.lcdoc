@@ -44,12 +44,6 @@ An abbreviated English <time> or <short> English <time> looks like this:
 > <property> and appears in the <propertyNames>. However, it cannot be
 > used as a <property> in an <expression>, nor with the <set> <command>.
 
-Changes:
-The ability to use the short, abbreviated, or long keywords in
-conjunction with the english keyword was introduced in version 1.1. In
-previous versions, the english keyword was equivalent to the long
-keyword. 
-
 References: convert (command), set (command), time (function),
 dateFormat (function), format (function), date (function),
 propertyNames (function), keyword (glossary), property (glossary),

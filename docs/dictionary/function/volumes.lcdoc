@@ -42,15 +42,8 @@ Disks which are physically installed or inserted into a disk drive, but
 are not currently mounted, do not appear in the list returned by the
 <volumes> <function>.
 
->*Cross-platform note:*  On <Mac OS> and <OS X|OS X systems>, removable
-> drives (such as floppy drives) that are connected, but do not contain
-> a disk, do not appear in the list returned by the <volumes>
-> <function>. On <Windows|Windows systems>, empty but connected
+>*Cross-platform note:*  On <Windows|Windows systems>, empty but connected
 > removable drives are reported by the <volumes> <function>.
-
->*Note:* On Mac OS and OS X systems, volumes may contain slash
-> characters (/) in their names. To use such a volume as part of a path,
-> <replace> the slash with a semi colon before constructing the path.
 
 References: replace (command), function (control structure),
 folders (function), diskSpace (function), files (function),

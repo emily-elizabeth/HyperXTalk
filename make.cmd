@@ -13,13 +13,8 @@ if not defined BUILDTYPE set BUILDTYPE=Debug
 
 @rem Guess build project
 if not defined BUILD_EDITION set BUILD_EDITION=community
-if /I "%BUILD_EDITION%"=="commercial" (
-    set BUILD_PROJECT=livecode-commercial.sln
-    set DEFAULT_TARGET=____\default
-) else (
-    set BUILD_PROJECT=livecode\livecode.sln
-    set DEFAULT_TARGET=default
-)
+set BUILD_PROJECT=hyperxtalk\hyperxtalk.sln
+set DEFAULT_TARGET=default
 
 @rem Guess target architecture based on build platform
 if /I "%BUILD_PLATFORM%"=="win-x86_64" (

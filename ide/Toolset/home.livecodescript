@@ -75,14 +75,11 @@ on saveStackRequest
    pass saveStackRequest
 end saveStackRequest
 
-local sLogPath
 on preOpenStack
    local tEdition, tSplashPath
    if the short name of the owner of the target is not "Home" then
       pass preOpenStack
    end if
-   
-   open file sLogPath for text write  // HXT
    
    revInternal__Log "Enter", "Pre-Open Stack"
    
@@ -101,12 +98,8 @@ on openStack
    revInternal__openStack
    
    revInternal__Log "Leave", "Open Stack"
+   revInternal__Log "End"
 end openStack
-
-// HXT
-on CloseStack
-   close file sLogPath
-end CloseStack
 
 local sSplashStartTime
 on revInternal__openStack
@@ -227,14 +220,13 @@ on revInternal__openStack
       
       if tSuccess then
          hxtInternal__setSplashStatus "Performing Final Steps..."
-         hxtInternal__setSplashStatus ""
          revInternal__InitialiseFinalSteps
-         
          put the result into tSuccess
       end if
    catch tError
       revInternal__Log "Error", tError
    end try
+   hxtInternal__setSplashStatus ""
    
    set the cREVLaunching of stack "Home" to false
    
@@ -251,7 +243,6 @@ on revInternal__openStack
    close stack "revSplash"
    
    revInternal__Log "Leave", "revInternal__openStack"
-   revInternal__Log "End"
    
    -- Now the home stack has loaded, we can allow interrupts..
    set the allowInterrupts to true
@@ -339,10 +330,11 @@ private command revInternal__SetupPaths
    set the itemDelimiter to "/"
    switch the platform
       case "Linux"
+         local tOldFolder
+         put the folder into tOldFolder
+         set the folder to "~"
+
          // HTX
-         --         local tOldFolder
-         --         put the folder into tOldFolder
-         --         set the folder to "~"
          --         put the folder & slash & ".hyperxtalk/hyperxtalk/enterprise/preferences" into sOldPreferencesPath
          --         if there is no folder sOldPreferencesPath then
          --            put the folder & slash & ".hyperxtalk/hyperxtalk/studio/preferences" into sOldPreferencesPath
@@ -351,12 +343,10 @@ private command revInternal__SetupPaths
          --            put the folder & slash & ".hyperxtalk/hyperxtalk/media/preferences" into sOldPreferencesPath
          --         end if
          
-         local tOldFolder
-         put the folder into tOldFolder
          put the folder & slash & ".hyperxtalk/preferences" into sPreferencesPath
          put the folder & slash & ".hyperxtalk/cache" into sCachePath
          put the folder & slash & ".hyperxtalk/crashlogs" into sCrashLogPath
-         put the folder & slash & ".hyperxtalk/documentationcache" into sUserDocsPath
+         put the folder & slash & "hyperxtalk_customization/documentationcache" into sUserDocsPath
          set the folder to tOldFolder
          
          -- MW-2013-06-13: Adjust the engine path for Linux
@@ -707,7 +697,7 @@ command revInternal__ResetPreferences
    local tPropsArray
    -- default custom property set
    put "true" into tPropsArray["cREVToolsPaintToolsVisible"]
-   put "false" into tPropsArray["cDestroyStack"]
+   put "TRUE" into tPropsArray["cDestroyStack"]
    put "false" into tPropsArray["cRevPopups"]
    put "417,113" into tPropsArray["cREVMsgTabRectGlobalProperties"]
    put "155" into tPropsArray["cREVPlayerWidth"]
@@ -787,7 +777,7 @@ command revInternal__ResetPreferences
    put "1" into tPropsArray["cREVTipNumber"]
    put "417,113" into tPropsArray["cREVMsgTabRectstacksInUse"]
    put format("blue\nbrown\ndarkorange\nred") into tPropsArray["cBuiltInColors"]
-   put "don't remove" into tPropsArray["cASKDestroy"]
+   put "remove" into tPropsArray["cASKDestroy"]
    put "Gray50" into tPropsArray["cSelectionHandle"]
    put "128,103" into tPropsArray["cREVMaximizedScriptEditorTopLeft"]
    put "true" into tPropsArray["suppressIDE"]
@@ -1010,14 +1000,13 @@ command revInternal__InstallFileAssociations
    end if
 end revInternal__InstallFileAssociations
 
---local sLogIndent, sLogPath, sLog  // HXT
-local sLogIndent, sLog
+local sLogIndent, sLogPath, sLog
 private command revInternal__LogToFile pType, pMessage   
    if sLogPath is empty then
       exit revInternal__LogToFile
    end if
    
-   --   open file sLogPath for text append  // HXT
+   open file sLogPath for text append
    
    if pType is not "Message" then
       put pType && pMessage into pMessage
@@ -1030,7 +1019,7 @@ private command revInternal__LogToFile pType, pMessage
       write tLine & return to file sLogPath
    end repeat
    
-   --   close file sLogPath  // HXT
+   close file sLogPath
 end revInternal__LogToFile
 
 private command revInternal__LogToVariable pType, pMessage  
@@ -1086,6 +1075,7 @@ command revInternal__Log pType, pMessage
       set the itemDelimiter to comma
       if tLogPath is not empty then
          put tLogPath into sLogPath
+         delete file sLogPath
          revInternal__Log "Message", "-------- Startup Started:" && the internet date
       end if
       exit revInternal__Log
@@ -2157,6 +2147,10 @@ function revEnvironmentUserColorSchemesPath
    return sCustomizationPath & "/Schemes"
 end revEnvironmentUserColorSchemesPath
 
+function revEnvironmentUserLibraries
+   return sCustomizationPath & "/Libraries"
+end revEnvironmentUserLibraries
+
 function revEnvironmentUserExtensionsPath
   return sCustomizationPath & "/Extensions"
 end revEnvironmentUserExtensionsPath
@@ -2365,4 +2359,4 @@ function revEnvironmentPlatform
    return tPlatform
 end revEnvironmentPlatform
 */
-                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                

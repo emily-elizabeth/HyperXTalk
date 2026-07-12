@@ -1,7 +1,5 @@
 Name: revDatabaseTableNames
 
-Synonyms: revdb_tablenames
-
 Type: function
 
 Syntax: revDatabaseTableNames(<databaseID>)
@@ -51,9 +49,6 @@ the user to choose between.
 > Standalone Application Settings window, make sure the
 > "Database Support" checkbox is checked and the database drivers you
 > are using are selected in the list of database drivers.
-
-Changes:
-The revDatabaseTableNames synonym was added in version 2.0.
 
 References: revExecuteSQL (command), revOpenDatabase (function)
 

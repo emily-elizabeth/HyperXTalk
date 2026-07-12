@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -3260,14 +3276,38 @@ MCControl* MCInterfaceExecCreateControlGetObject(MCExecContext& ctxt, int p_type
 
 void MCInterfaceExecCreateControl(MCExecContext& ctxt, MCStringRef p_new_name, int p_type, MCObject *p_container, bool p_force_invisible)
 {
-    
+
     MCStack *t_current_stack = p_container == nullptr ? MCdefaultstackptr : p_container->getstack();
-    
+
     if (t_current_stack->islocked())
 	{
 		ctxt . LegacyThrow(EE_CREATE_LOCKED);
 		return;
 	}
+
+    // A stack supports at most one toolbar.  If one already exists, behave
+    // like macOS and Windows: treat createToolbar as a no-op and set 'it' to
+    // the existing toolbar's long ID so the caller can still reference it.
+    if (p_type == CT_TOOLBAR)
+    {
+        MCControl *t_cptr = t_current_stack->getcontrols();
+        if (t_cptr != nullptr)
+        {
+            MCControl *t_it = t_cptr;
+            do
+            {
+                if (t_it->gettype() == CT_TOOLBAR)
+                {
+                    MCAutoValueRef t_id;
+                    t_it->names(P_LONG_ID, &t_id);
+                    ctxt.SetItToValue(*t_id);
+                    return;
+                }
+                t_it = t_it->next();
+            }
+            while (t_it != t_cptr);
+        }
+    }
 
 	MCControl *t_control = MCInterfaceExecCreateControlGetObject(ctxt, p_type, p_container);
 	if (t_control == NULL)

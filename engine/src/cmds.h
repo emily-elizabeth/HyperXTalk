@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #ifndef	COMMANDS_H
 #define	COMMANDS_H
 
@@ -1005,6 +1021,38 @@ public:
 };
 
 // ---------------------------------------------------------------------------
+// Global hotkey commands
+
+class MCRegisterHotkey : public MCStatement
+{
+    MCExpression *m_key;
+    MCExpression *m_handler;
+public:
+    MCRegisterHotkey() : m_key(nil), m_handler(nil) {}
+    virtual ~MCRegisterHotkey();
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &);
+};
+
+class MCUnregisterHotkey : public MCStatement
+{
+    MCExpression *m_key;
+public:
+    MCUnregisterHotkey() : m_key(nil) {}
+    virtual ~MCUnregisterHotkey();
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &);
+};
+
+class MCUnregisterAllHotkeys : public MCStatement
+{
+public:
+    virtual ~MCUnregisterAllHotkeys();
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &);
+};
+
+// ---------------------------------------------------------------------------
 
 class MCClickCmd : public MCStatement
 {
@@ -1117,6 +1165,19 @@ public:
 	}
 	virtual ~MCFocus();
 	virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &ctxt);
+};
+
+class MCValidateField : public MCStatement
+{
+    MCChunk *field;
+public:
+    MCValidateField()
+    {
+        field = NULL;
+    }
+    virtual ~MCValidateField();
+    virtual Parse_stat parse(MCScriptPoint &);
     virtual void exec_ctxt(MCExecContext &ctxt);
 };
 

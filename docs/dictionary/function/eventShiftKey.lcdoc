@@ -26,7 +26,7 @@ The <eventShiftKey> <function> <return|returns> down if the key is
 pressed and up if it's not.
 
 Description:
-Use the <eventAltKey> <function(control structure)> to check whether the
+Use the <eventShiftKey> <function(control structure)> to check whether the
 <Shift key> was pressed at the time the current event was dispatched.
 
 If you want to check the state of the <Shift key> at the current time,

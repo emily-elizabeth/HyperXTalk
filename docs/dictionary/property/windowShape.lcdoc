@@ -57,10 +57,6 @@ flicker.
 
 To revert to the normal window shape, set the <windowShape> to zero.
 
-Changes:
-The ability to use images with full (> 1-bit) alpha masks was introduced
-in version 2.6.
-
 References: stacks (function), property (glossary), title bar (glossary),
 current stack (glossary), mask (glossary), image (keyword),
 stack (object), ID (property), style (property), maskData (property),

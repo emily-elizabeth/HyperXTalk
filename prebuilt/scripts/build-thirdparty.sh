@@ -36,7 +36,7 @@ if [ "$PLATFORM" == "mac" ]; then
 	LIBPATH="lib/mac"
 elif [ "$PLATFORM" == "linux" ]; then
 	LIBS="${Thirdparty_LIBS_linux}"
-	BUILDPATH="../build-linux-$ARCH/livecode/out/Release/obj.target/thirdparty"
+	BUILDPATH="../build-linux-$ARCH/hyperxtalk/out/Release/obj.target/thirdparty"
 	LIBPATH="lib/linux/$ARCH"
 elif [ "$PLATFORM" == "ios" ]; then
 	LIBS="${Thirdparty_LIBS_ios}"
@@ -45,15 +45,15 @@ elif [ "$PLATFORM" == "ios" ]; then
 elif [ "$PLATFORM" == "emscripten" ]; then
 	MAKE_TARGET=emscripten
 	LIBS="${Thirdparty_LIBS_emscripten}"
-	BUILDPATH="../build-emscripten/livecode/out/Release/obj.target/thirdparty"
+	BUILDPATH="../build-emscripten/hyperxtalk/out/Release/obj.target/thirdparty"
 	LIBPATH="lib/emscripten/js"
 elif [ "$PLATFORM" == "android" ]; then
 	LIBS="${Thirdparty_LIBS_android}"
-	BUILDPATH="../build-android-$ARCH/livecode/out/Release/obj.target/thirdparty"
+	BUILDPATH="../build-android-$ARCH/hyperxtalk/out/Release/obj.target/thirdparty"
 	LIBPATH="lib/android/$ARCH/$SUBPLATFORM"
 elif [ "$PLATFORM" == "win32" ]; then
 	LIBS="${Thirdparty_LIBS_win32}"
-	BUILDPATH="../build-win-$ARCH/livecode/out/Release/obj.target/thirdparty"
+	BUILDPATH="../build-win-$ARCH/hyperxtalk/out/Release/obj.target/thirdparty"
 	LIBPATH="lib/win/$ARCH"
 fi
 
@@ -62,16 +62,16 @@ export BUILD_THIRDPARTY=1
 make -C .. config-$MAKE_TARGET
 
 if [ "$PLATFORM" == "mac" ] || [ "$PLATFORM" == "ios" ] ; then
-	${XCODEBUILD} -project "../build-$TARGET_NAME/livecode/livecode.xcodeproj" -configuration "Release" -target "thirdparty-prebuilts"
+	${XCODEBUILD} -project "../build-$TARGET_NAME/hyperxtalk/hyperxtalk.xcodeproj" -configuration "Release" -target "thirdparty-prebuilts"
 elif [ "$PLATFORM" == "linux" ] ; then
 	export BUILDTYPE=Release
-	make -C "../build-${PLATFORM}-${ARCH}/livecode" thirdparty-prebuilts
+	make -C "../build-${PLATFORM}-${ARCH}/hyperxtalk" thirdparty-prebuilts
 elif [ "$PLATFORM" == "emscripten" ] ; then
 	export BUILDTYPE=Release
-	${EMMAKE} make -j16 -C "../build-${PLATFORM}/livecode" thirdparty-prebuilts
+	${EMMAKE} make -j16 -C "../build-${PLATFORM}/hyperxtalk" thirdparty-prebuilts
 elif [ "$PLATFORM" == "android" ] ; then
 	export BUILDTYPE=Release
-	make -j16 -C "../build-${PLATFORM}-${ARCH}/livecode" thirdparty-prebuilts
+	make -j16 -C "../build-${PLATFORM}-${ARCH}/hyperxtalk" thirdparty-prebuilts
 fi
 
 mkdir -p "$LIBPATH"

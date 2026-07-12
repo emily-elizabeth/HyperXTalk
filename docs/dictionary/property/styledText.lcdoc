@@ -153,12 +153,6 @@ algorithm to parse the arrays as follows:
       end repeat
     end parseStyledTextArray
 
-Changes:
-Support for the <tabAlign> paragraph style was added in version 8.1.2
-
-Changes:
-Support for the <tabAlign> paragraph style was added in version 8.1.2
-
 References: HTMLText (property), textSize (property), flagged (property),
 textShift (property), metadata (property), textFont (property),
 RTFText (property), textStyle (property)

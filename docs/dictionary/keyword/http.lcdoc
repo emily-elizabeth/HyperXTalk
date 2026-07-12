@@ -153,18 +153,6 @@ scheme, see [RFC 1630](https://tools.ietf.org/html/rfc1630).
 > <Standalone Application Settings> window, make sure the "Internet" 
 > script library is selected.
 
->*Cross-platform note:* On iOS and Android, you can use the <http> 
-> <keyword> without the need for the <Internet library>. When
-> specifying 
-> <URL(glossary)|URLs> for iOS and Android, you must use the
-> appropriate 
-> form that conforms to [RFC
-> 1630](https://tools.ietf.org/html/rfc1630). 
-
-Changes:
-The http keyword was moved to the Internet library in version 1.1. In
-previous versions, this functionality was part of the engine.
-
 References: post (command), libURLSetStatusCallback (command),
 put (command), load (command), group (command), delete URL (command),
 get (command), libURLSetCustomHTTPHeaders (command),

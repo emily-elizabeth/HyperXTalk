@@ -1,0 +1,86 @@
+Name: registerHotkey
+
+Type: command
+
+Syntax: registerHotkey <keyString>, <handlerName>
+
+Summary:
+Registers a system-wide keyboard shortcut that fires a message to the
+current card of the default stack whenever the combination is pressed,
+even when HyperXTalk does not have keyboard focus.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- Register a global hotkey that calls "openPalette"
+registerHotkey "Ctrl+Shift+P", "openPalette"
+
+Example:
+-- Re-register the same key with a different handler (replaces the old one)
+registerHotkey "Ctrl+Shift+P", "showCommandBar"
+
+Example:
+-- Register a function-key shortcut
+registerHotkey "Alt+F9", "toggleRecording"
+
+Example:
+-- Handler that responds to the hotkey
+on openPalette
+    show stack "Palette"
+end openPalette
+
+Parameters:
+keyString (string): The key combination to register. Modifiers and the
+key name are separated by "+". Recognised modifiers (case-insensitive):
+Ctrl, Control, Alt, Option, Shift, Cmd, Command, Win.
+Recognised key names: A-Z, 0-9, F1-F12, Space, Tab, Return, Enter,
+Escape, Esc, Delete, Backspace, Home, End, PageUp, PageDown,
+Left, Right, Up, Down, Insert.
+
+handlerName (string): The name of the message to send when the hotkey
+is pressed. The message is sent to the current card of the default stack
+and bubbles up the normal message path (card → stack → stack behaviours
+→ global script).
+
+Description:
+Use <registerHotkey> to associate a system-wide keyboard shortcut with
+a HyperXTalk message handler. When the registered combination is pressed,
+HyperXTalk fires <handlerName> to the current card of the default stack,
+regardless of which application currently has focus.
+
+If the same <keyString> is already registered, calling <registerHotkey>
+again replaces the previous handler silently — there is no error.
+
+If the hotkey cannot be registered (for example, because another
+application has already claimed the combination), the command fails
+silently and sets the result to a human-readable error string. Always
+check <the result> after registering a hotkey in production code.
+
+Hotkeys are registered for the lifetime of the running engine. Use
+<unregisterHotkey> or <unregisterAllHotkeys> to release them when they
+are no longer needed, or before your stack closes.
+
+Platform notes:
+- macOS: Uses Carbon RegisterEventHotKey. No special permissions required.
+  Callbacks are delivered on the main thread.
+- Windows: Uses RegisterHotKey on the engine's message window. No elevated
+  privileges required. The shortcut fires once per press (not repeatedly
+  while held).
+- Linux: Uses XGrabKey on the root X window (X11) or the XDG GlobalShortcuts
+  D-Bus portal (Wayland). Global hotkeys on Linux are inherently less reliable
+  than on other platforms. Some applications intercept keyboard input before it
+  reaches the global hook, meaning a registered hotkey may not fire when those
+  applications have focus. This is most commonly seen with Electron-based apps
+  (VS Code, Slack, Discord), games and fullscreen apps that request an exclusive
+  input grab, and other hotkey managers that have already claimed the same
+  combination. If a hotkey is not being recognised in a particular application,
+  try a less common modifier combination or register the hotkey from within that
+  application instead.
+
+References: unregisterHotkey (command), unregisterAllHotkeys (command)
+
+Tags: hotkeys, keyboard

@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 
 #include "globdefs.h"
@@ -24,6 +40,11 @@
 #include "toolbar.h"
 #include "image.h"
 #include "mcstring.h"
+
+// Platform dark-mode query — strong definition lives in lnxgtktheme.cpp on
+// Linux; a weak stub (returning false) in buttondraw.cpp covers all other
+// platforms so this translation unit compiles everywhere.
+extern "C" bool MCplatformIsDarkMode(void);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Property table
@@ -195,7 +216,8 @@ MCToolbar::MCToolbar()
     : m_items(nil), m_item_count(0),
       m_display_mode(kMCToolbarDisplayModeDefault),
       m_toolbar_visible(true),
-      m_backend(nil)
+      m_backend(nil),
+      m_theme_next(nil)
 {
 }
 
@@ -204,7 +226,8 @@ MCToolbar::MCToolbar(const MCToolbar &p_ref)
       m_item_count(p_ref.m_item_count),
       m_display_mode(p_ref.m_display_mode),
       m_toolbar_visible(p_ref.m_toolbar_visible),
-      m_backend(nil)
+      m_backend(nil),
+      m_theme_next(nil)
 {
     m_items = nil;
     if (m_item_count > 0)
@@ -249,11 +272,12 @@ bool MCToolbar::visit_self(MCObjectVisitor *p_visitor)
 ////////////////////////////////////////////////////////////////////////////////
 // Lifecycle
 
+// Head of the intrusive linked list of all currently-open MCToolbar objects.
+static MCToolbar *s_toolbar_list = nullptr;
+
 void MCToolbar::open()
 {
-    fprintf(stderr, "[MCToolbar::open] enter\n"); fflush(stderr);
     MCControl::open();
-    fprintf(stderr, "[MCToolbar::open] after MCControl::open\n"); fflush(stderr);
 
     if (m_backend == nil)
         m_backend = _createBackend();
@@ -267,22 +291,36 @@ void MCToolbar::open()
             t_window = t_stack->getwindow();
 
         m_backend->Create(t_window);
-        fprintf(stderr, "[MCToolbar::open] after Create\n"); fflush(stderr);
         m_backend->SetDisplayMode(m_display_mode);
-        fprintf(stderr, "[MCToolbar::open] after SetDisplayMode\n"); fflush(stderr);
         m_backend->SetVisible(m_toolbar_visible);
-        fprintf(stderr, "[MCToolbar::open] after SetVisible\n"); fflush(stderr);
         // Re-resolve stack image data before syncing — m_image_data is not
         // saved to disk, so it must be rebuilt each time the stack is opened.
         _resolveItemImageData();
-        fprintf(stderr, "[MCToolbar::open] calling _syncBackendItems m_item_count=%u\n", (unsigned)m_item_count); fflush(stderr);
         _syncBackendItems();
-        fprintf(stderr, "[MCToolbar::open] after _syncBackendItems\n"); fflush(stderr);
     }
+
+    // Register in the theme-change notification list.
+    m_theme_next = s_toolbar_list;
+    s_toolbar_list = this;
 }
 
 void MCToolbar::close()
 {
+    // Unregister from the theme-change notification list.
+    if (s_toolbar_list == this)
+    {
+        s_toolbar_list = m_theme_next;
+    }
+    else
+    {
+        MCToolbar *t_prev = s_toolbar_list;
+        while (t_prev != nil && t_prev->m_theme_next != this)
+            t_prev = t_prev->m_theme_next;
+        if (t_prev != nil)
+            t_prev->m_theme_next = m_theme_next;
+    }
+    m_theme_next = nil;
+
     if (m_backend != nil)
     {
         m_backend->Destroy();
@@ -335,11 +373,9 @@ void MCToolbar::draw(MCDC *dc, const MCRectangle &dirty,
 
 MCControl *MCToolbar::clone(Boolean attach, Object_pos p, bool invisible)
 {
-    fprintf(stderr, "[MCToolbar::clone] enter attach=%d\n", (int)attach); fflush(stderr);
     MCToolbar *t_new = new (nothrow) MCToolbar(*this);
     if (attach)
         t_new->attach(p, invisible);
-    fprintf(stderr, "[MCToolbar::clone] done\n"); fflush(stderr);
     return t_new;
 }
 
@@ -350,10 +386,6 @@ bool MCToolbar::AddItem(MCNameRef p_name, MCStringRef p_label,
                         MCStringRef p_tooltip, MCStringRef p_icon,
                         MCToolbarItemStyle p_style)
 {
-    fprintf(stderr, "[MCToolbar::AddItem] name=%p backend=%p\n",
-            (void*)p_name, (void*)m_backend);
-    fflush(stderr);
-
     if (!MCMemoryResizeArray(m_item_count + 1, m_items, m_item_count))
         return false;
 
@@ -367,9 +399,6 @@ bool MCToolbar::AddItem(MCNameRef p_name, MCStringRef p_label,
 
     if (m_backend != nil)
         m_backend->AddItem(t_item);
-    else
-        fprintf(stderr, "[MCToolbar::AddItem] backend is nil — item NOT pushed to NSToolbar\n");
-    fflush(stderr);
 
     return true;
 }
@@ -711,10 +740,9 @@ void MCToolbar::_destroyItems()
 void MCToolbar::_resolveItemImageData()
 {
     // Walk every item and (re-)populate m_image_data by looking up the icon
-    // name as a stack MCImage object.  This is called from open() so that
-    // image data that was cached at script time is restored after the stack
-    // is reloaded from disk (the PNG bytes are not written to the stack file —
-    // only the icon name is saved; the MCImage object already holds the data).
+    // name as a stack MCImage object.  This is called from open() and from
+    // onThemeChanged() so that image data is restored after load and updated
+    // when the system switches between dark and light mode.
     //
     // Uses a default MCExecContext (no associated handler/object) which is
     // sufficient for MCImage::GetText — that method only uses the context for
@@ -737,25 +765,35 @@ void MCToolbar::_resolveItemImageData()
         if (*t_data != nil && !MCDataIsEmpty(*t_data))
             t_item->SetImageData(*t_data);
         else
-            t_item->SetImageData(nil);  // clear stale cache if image is now empty
+            t_item->SetImageData(nil);
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Theme-change notification
+
+void MCToolbar::onThemeChanged()
+{
+    // Re-resolve image data (picks up "-DM" variants if now in dark mode, or
+    // reverts to base names if now in light mode), then push all items to the
+    // platform backend so the native toolbar redraws with the updated icons.
+    _resolveItemImageData();
+    _syncBackendItems();
+}
+
+void MCToolbarNotifyThemeChanged()
+{
+    for (MCToolbar *t_tb = s_toolbar_list; t_tb != nil; t_tb = t_tb->m_theme_next)
+        t_tb->onThemeChanged();
 }
 
 void MCToolbar::_syncBackendItems()
 {
-    fprintf(stderr, "[MCToolbar::_syncBackendItems] enter backend=%p item_count=%u\n",
-            (void*)m_backend, (unsigned)m_item_count); fflush(stderr);
     if (m_backend == nil)
         return;
-    fprintf(stderr, "[MCToolbar::_syncBackendItems] calling ClearItems\n"); fflush(stderr);
     m_backend->ClearItems();
-    fprintf(stderr, "[MCToolbar::_syncBackendItems] ClearItems done\n"); fflush(stderr);
     for (uindex_t i = 0; i < m_item_count; i++)
-    {
-        fprintf(stderr, "[MCToolbar::_syncBackendItems] AddItem %u\n", (unsigned)i); fflush(stderr);
         m_backend->AddItem(&m_items[i]);
-    }
-    fprintf(stderr, "[MCToolbar::_syncBackendItems] done\n"); fflush(stderr);
 }
 
 MCToolbarBackend *MCToolbar::_createBackend()

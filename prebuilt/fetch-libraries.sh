@@ -45,7 +45,7 @@ URLSQLITE="https://sqlite.org/2023/sqlite-amalgamation-3420000.zip"
 
 # Platform specific settings
 if [ "${OS}" = "Windows_NT" ]; then
-	LOCAL_DIR=/cygdrive/c/LiveCode/Prebuilt/libraries
+	LOCAL_DIR=/cygdrive/c/HyperXTalk/Prebuilt/libraries
 	if [ ! -e "${LOCAL_DIR}" ]; then
 		LOCAL_DIR=
 	fi

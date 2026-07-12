@@ -35,10 +35,6 @@ or to list all the available <external|external commands>.
 You use an external command in a handler the same way you use one of
 xTalk's built-in commands.
 
-Changes:
-Support for using the externalCommands property on OS X systems was
-added in version 2.0.
-
 References: external (glossary), property (glossary), handler (glossary),
 line (keyword), stack (object), externalPackages (property)
 
