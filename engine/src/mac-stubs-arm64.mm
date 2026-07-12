@@ -1751,8 +1751,28 @@ void MCStack::sethints() {}
 void MCStack::setsizehints() {}
 void MCStack::enablewindow(bool p_enable) {}
 void MCStack::redrawicon() {}
-void MCStack::applyscroll() {}
-void MCStack::clearscroll() {}
+void MCStack::applyscroll()
+{
+    int32_t t_new_scroll = getnextscroll(false);
+    if (t_new_scroll == m_scroll)
+        return;
+
+    dirtyall();
+    rect.height += m_scroll;
+    m_scroll = t_new_scroll;
+    rect.height -= t_new_scroll;
+    syncscroll();
+    dirtyall();
+}
+
+void MCStack::clearscroll()
+{
+    if (m_scroll == 0)
+        return;
+    rect.height += m_scroll;
+    m_scroll = 0;
+    syncscroll();
+}
 void MCStack::platform_openwindow(Boolean p_override)
 {
     if (MCModeMakeLocalWindows() && window != NULL)
