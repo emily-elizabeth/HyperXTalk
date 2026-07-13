@@ -112,6 +112,11 @@
 						[
 							# w32-fileicon.cpp lives in engine_desktop_source_files.
 							'src/w32-fileicon.cpp',
+							# Hotkey stubs for the server (no display, no real hotkeys).
+							# w32-hotkey.cpp lives in engine_desktop_source_files and is
+							# excluded from the server build, so provide no-op stubs here
+							# matching the pattern used for Linux in lnx-hotkey-server.cpp.
+							'src/w32-hotkey-server.cpp',
 						],
 					},
 				],
