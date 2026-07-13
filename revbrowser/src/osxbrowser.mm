@@ -1236,15 +1236,19 @@ void TAltBrowser::RemoveJavaScriptHandler(const char *p_handler)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#endif // !__arm64__
+
 CWebBrowserBase *InstantiateBrowser(int p_window_id)
 {
+#if defined(__arm64__) || defined(__aarch64__)
+	return nil;
+#else
 	TAltBrowser *t_browser;
 	t_browser = new TAltBrowser;
 	t_browser -> init(p_window_id);
 	return t_browser;
+#endif
 }
-
-////////////////////////////////////////////////////////////////////////////////
 
 // IM-2016-03-10: [[ RemoveCefOSX ]] CEF browser no longer supported on OSX
 CWebBrowserBase *MCCefBrowserInstantiate(int p_window_id)
@@ -1255,7 +1259,3 @@ CWebBrowserBase *MCCefBrowserInstantiate(int p_window_id)
 void MCCefFinalise(void)
 {
 }
-
-////////////////////////////////////////////////////////////////////////////////
-
-#endif // !__arm64__
