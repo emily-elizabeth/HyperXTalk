@@ -2918,10 +2918,6 @@ on initialiseSearchForInclusions
    put "revPrintField,revPrintText,revShowPrintDialog" into sPatternsA["Printing"]["Script"]
    put "scriptLibraries" into sPatternsA["Printing"]["Key"]
    
-   # Browser
-   put "revBrowser,xBrowser" into sPatternsA["Browser"]["Script"]
-   put "scriptLibraries" into sPatternsA["Browser"]["Key"]
-   
    # revZip
    put "revZip" into sPatternsA["Revolution Zip"]["Script"]
    put "scriptLibraries" into sPatternsA["Revolution Zip"]["Key"]

@@ -2718,110 +2718,12 @@ private command revCopyModule pPlatform, pModuleName, pSourceFile, pSourceFolder
    revAddMapping pPlatform, pModuleName, tTargetModule
 end revCopyModule
 
-private command revCopyCEFResources pPlatform, pStandalonePath, pCopyRevBrowserResources, pCopyLibBrowserResources
-   if not (pCopyRevBrowserResources or pCopyLibBrowserResources) then
-      // No CEF resources required
-      exit revCopyCEFResources
-   end if
-   
-   // IM-2014-08-14: [[ LibCef2062 ]] Reorganisation of libcef framework files
-   local tDetails
-   put revStandalonePlatformDetails(pPlatform) into tDetails
-   local tExternalPath
-   put revExternalPath("Browser", tDetails["platform"], tDetails["architecture"]) into tExternalPath
-   // AL-2015-03-13: [[ Bug 14936 ]] Switch where case takes an expression should not switch on a value
-   local tCurrentLocation, tCEFResources, tCEFDest
-   set the itemdel to slash
-   put item 1 to -2 of pStandalonePath into tCurrentLocation
-   switch
-      case pPlatform begins with "Windows"
-         put (item 1 to -2 of tExternalPath) & "/CEF" into tCEFResources
-         put tCurrentLocation & slash & "Externals/CEF" into tCEFDest
-         
-         revSBEnsureFolder tCEFDest
-         if the result is not empty then
-            revStandaloneAddWarning "Windows, external failed to create folder:" && quote & tCEFDest & quote
-         end if
-         
-         local tCEFFiles
-         // make sure we only copy the required helper process executable
-         put revListFiles(tCEFResources) into tCEFFiles
-         filter lines of tCEFFIles not matching "*.exe"
-         if the last char of tCEFFiles is not return then
-            put return after tCEFFiles
-         end if
-         if pCopyLibBrowserResources then
-            put "libbrowser-cefprocess.exe" & return after tCEFFiles
-         end if
-         repeat for each line tCEFFile in tCEFFiles
-            revSBCopyFileToFolder tCefResources & slash & tCEFFile, tCEFDest, "revStandaloneProgressCallback", the long id of me
-            if the result is not empty then
-               revStandaloneAddWarning "Windows, external failed to copy:" && quote & tCefResources & slash & tCEFFile & quote
-            end if
-         end repeat
-         
-         revSBCopyFolderToDestination tCefResources & slash & "locales", tCEFDest, "revStandaloneProgressCallback", the long id of me
-         if the result is not empty then
-            revStandaloneAddWarning "Windows, external failed to copy:" && quote & tCefResources & slash & "locales" & quote
-         end if
-         revAddMapping pPlatform, "CEF/libcef", "Externals/CEF/libcef"
-         break
-      case pPlatform contains "Linux"
-         if revEnvironmentIsInstalled() then
-            put (item 1 to -2 of tExternalPath) & "/CEF" into tCEFResources
-         else
-            put (item 1 to -2 of tExternalPath) & "/Externals/CEF" into tCEFResources
-         end if
-         put tCurrentLocation & slash & "Externals/CEF" into tCEFDest
-         
-         revSBEnsureFolder tCEFDest
-         if the result is not empty then
-            revStandaloneAddWarning "Linux, external failed to create folder:" && quote & tCEFDest & quote
-         end if
-         
-         // make sure we only copy the required helper process executable
-         put revListFiles(tCEFResources) into tCEFFiles
-         
-         // Copy files to CEF resource folder.
-         repeat for each line tCEFFile in tCEFFiles
-            revSBCopyFileToFolder tCefResources & slash & tCEFFile, tCEFDest, "revStandaloneProgressCallback", the long id of me
-            if the result is not empty then
-               revStandaloneAddWarning "Linux, external failed to copy:" && quote & tCefResources & slash & tCEFFile & quote
-            end if
-         end repeat
-         
-         revSBCopyFolderToDestination tCefResources & slash & "locales", tCEFDest, "revStandaloneProgressCallback", the long id of me
-         if the result is not empty then
-            revStandaloneAddWarning "Linux, external failed to copy:" && quote & tCefResources & slash & "locales" & quote
-         end if
-         
-         // Copy files to standalone folder
-         put empty into tCEFFiles
-         if pCopyLibBrowserResources then
-            put "libbrowser-cefprocess" & return after tCEFFiles
-         end if
-         
-         repeat for each line tCEFFile in tCEFFiles
-            revSBCopyFileToFolder tCefResources & slash & ".." & slash & ".." & slash & tCEFFile, tCurrentLocation, "revStandaloneProgressCallback", the long id of me
-            if the result is not empty then
-               revStandaloneAddWarning "Linux, external failed to copy:" && quote & tCefResources & slash & tCEFFile & quote
-            end if
-         end repeat
-         revAddMapping pPlatform, "CEF/libcef", "Externals/CEF/libcef"
-         break
-      default
-         break
-   end switch
-end revCopyCEFResources
-
 private command revCopyExternals pPlatform, pStackFilePath, pEnginePath, pStandalonePath
    local tExternalRes, tColors, tCursorName, tCurrentLocation, tExternalPath, tExternals, tExternalLibrary
    local tCopyFiles, tOrigVisible, tPath, tExternalFile, x, tColor, tPattern, tExternalName
    
    local tScriptLibraries
    put sStandaloneSettingsA["scriptLibraries"] into tScriptLibraries
-   
-   local tAppBundle, tCEFFramework, tCEFResources, tCEFDest
    
    revStandaloneProgress "Copying externals..."
    

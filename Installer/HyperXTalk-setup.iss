@@ -197,8 +197,6 @@ Source: "..\ide\Externals\Database Drivers\Database Drivers.txt"; \
 ;   {app}\Runtime\Windows\x86-64\Externals
 ;       revExternalPath() reads Externals.txt here to resolve DLL paths when the
 ;       standalone builder copies externals into a Windows standalone.
-Source: "{#SourceDir}\revbrowser.dll"; DestDir: "{app}\Externals";                         Flags: ignoreversion skipifsourcedoesntexist
-Source: "{#SourceDir}\revbrowser.dll"; DestDir: "{app}\Runtime\Windows\x86-64\Externals";  Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SourceDir}\revdb.dll";      DestDir: "{app}\Externals";                         Flags: ignoreversion
 Source: "{#SourceDir}\revdb.dll";      DestDir: "{app}\Runtime\Windows\x86-64\Externals";  Flags: ignoreversion
 Source: "{#SourceDir}\revxml.dll";     DestDir: "{app}\Externals";                         Flags: ignoreversion

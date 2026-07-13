@@ -108,8 +108,8 @@ endif
 	    --entitlements HyperXTalk.entitlements \
 	    "_build/mac/$(BUILDTYPE)/HyperXTalk.app"; \
 	fi
-	@# Sign external bundles that live beside the app (revbrowser.bundle,
-	@# revdb.bundle, etc.).  They are loaded into the HyperXTalk process.
+	@# Sign external bundles that live beside the app (revdb.bundle, etc.).
+	@# They are loaded into the HyperXTalk process.
 	@# On macOS 26+, bundles dlopen'd into a CS_RUNTIME process must also
 	@# carry CS_RUNTIME (--options runtime); without it the kernel rejects
 	@# mapped pages with SIGKILL (CODESIGNING, Code 2, Invalid Page).
@@ -267,7 +267,7 @@ package-mac:
 	@# ----------------------------------------------------------------
 	@# Externals (IDE runtime use)
 	@# ----------------------------------------------------------------
-	@for b in revbrowser revxml revspeech revzip; do \
+	@for b in revxml revspeech revzip; do \
 	  [ -d "$(MAC_BIN)/$$b.bundle" ] && \
 	    cp -R "$(MAC_BIN)/$$b.bundle" "$(TOOLS_DIR)/Externals/" || true; \
 	done
@@ -281,7 +281,7 @@ package-mac:
 	@# Sign all bundles from mac-bin with hardened runtime before copying.
 	@# Do NOT use --deep: on macOS 26+ --deep re-signs nested executables
 	@# with --options runtime and produces page-hash mismatches (SIGKILL).
-	@for b in revbrowser revxml revspeech revzip revdb revpdfprinter dbmysql dbodbc dbpostgresql dbsqlite; do \
+	@for b in revxml revspeech revzip revdb revpdfprinter dbmysql dbodbc dbpostgresql dbsqlite; do \
 	  [ -d "$(MAC_BIN)/$$b.bundle" ] && \
 	    codesign --force --sign "$(CODESIGN_IDENTITY)" \
 	        --options runtime \
@@ -291,7 +291,7 @@ package-mac:
 	@# ----------------------------------------------------------------
 	@# Externals discovery files (read by the standalone builder)
 	@# ----------------------------------------------------------------
-	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nBrowser,revbrowser.bundle\nRevolution Zip,revzip.bundle\n' \
+	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\n' \
 	    > "$(RUNTIME_ARM64)/Externals/Externals.txt"
 	@printf 'Database,revdb.bundle\n' \
 	    >> "$(RUNTIME_ARM64)/Externals/Externals.txt"
@@ -300,7 +300,7 @@ package-mac:
 	@# ----------------------------------------------------------------
 	@# Externals (Runtime standalone use) — mirror of Tools/Externals
 	@# ----------------------------------------------------------------
-	@for b in revbrowser revxml revspeech revzip revdb; do \
+	@for b in revxml revspeech revzip revdb; do \
 	  [ -d "$(TOOLS_DIR)/Externals/$$b.bundle" ] && \
 	    cp -R "$(TOOLS_DIR)/Externals/$$b.bundle" \
 	      "$(RUNTIME_ARM64)/Externals/" || true; \
@@ -470,7 +470,7 @@ package-mac-bin:
 	@# Sign all loose bundles in mac-bin with hardened runtime.
 	@# Do NOT use --deep: on macOS 26+ --deep re-signs nested executables
 	@# with --options runtime and produces page-hash mismatches (SIGKILL).
-	@for b in revbrowser revxml revspeech revzip revdb revpdfprinter dbmysql dbodbc dbpostgresql dbsqlite; do \
+	@for b in revxml revspeech revzip revdb revpdfprinter dbmysql dbodbc dbpostgresql dbsqlite; do \
 	  [ -d "$(MACBIN_BIN)/$$b.bundle" ] && \
 	    codesign --force --sign "$(CODESIGN_IDENTITY)" \
 	        --options runtime \
@@ -512,7 +512,7 @@ package-mac-bin:
 	@# ----------------------------------------------------------------
 	@# Externals (IDE runtime use)
 	@# ----------------------------------------------------------------
-	@for b in revbrowser revxml revspeech revzip; do \
+	@for b in revxml revspeech revzip; do \
 	  [ -d "$(MACBIN_BIN)/$$b.bundle" ] && \
 	    cp -R "$(MACBIN_BIN)/$$b.bundle" "$(MACBIN_TOOLS)/Externals/" || true; \
 	done
@@ -526,7 +526,7 @@ package-mac-bin:
 	@# ----------------------------------------------------------------
 	@# Externals discovery files (read by the standalone builder)
 	@# ----------------------------------------------------------------
-	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nBrowser,revbrowser.bundle\nRevolution Zip,revzip.bundle\n' \
+	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\n' \
 	    > "$(MACBIN_RT_ARM64)/Externals/Externals.txt"
 	@printf 'Database,revdb.bundle\n' \
 	    >> "$(MACBIN_RT_ARM64)/Externals/Externals.txt"
@@ -535,7 +535,7 @@ package-mac-bin:
 	@# ----------------------------------------------------------------
 	@# Externals (Runtime standalone use) — mirror of Tools/Externals
 	@# ----------------------------------------------------------------
-	@for b in revbrowser revxml revspeech revzip revdb; do \
+	@for b in revxml revspeech revzip revdb; do \
 	  [ -d "$(MACBIN_TOOLS)/Externals/$$b.bundle" ] && \
 	    cp -R "$(MACBIN_TOOLS)/Externals/$$b.bundle" \
 	      "$(MACBIN_RT_ARM64)/Externals/" || true; \
