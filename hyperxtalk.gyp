@@ -65,7 +65,6 @@
 							'engine/engine.gyp:server',
 							
 							# Externals
-							'revbrowser/revbrowser.gyp:external-revbrowser',
 							'revdb/revdb.gyp:dbodbc',
 							'revdb/revdb.gyp:dbpostgresql',
 							'revmobile/revmobile.gyp:external-revandroid',

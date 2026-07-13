@@ -1293,7 +1293,7 @@ private function revSBPlatformToRuntimeFolderName pPlatform
 end revSBPlatformToRuntimeFolderName
 
 function revSBExternalsMapping
-   return "revbrowser Browser,revdb Database,revspeech Speech,revvideograbber Video Grabber,revxml XML,revzip Revolution Zip"
+   return "revdb Database,revspeech Speech,revvideograbber Video Grabber,revxml XML,revzip Revolution Zip"
 end revSBExternalsMapping
 
 function revSBDatabaseDriversMapping
@@ -2585,9 +2585,6 @@ end revSBAddInclusion
 
 local sDependencies
 private command __InitialiseInclusionDependencies
-   // CEF requires revbrowser
-   revSBAddDependencyForInclusion "scriptLibraries", "Browser (CEF)", "scriptLibraries", "Browser"
-   
    // Database drivers require revdb
    local tDBName
    repeat for each item tDatabaseDriver in revSBDatabaseDriversMapping()

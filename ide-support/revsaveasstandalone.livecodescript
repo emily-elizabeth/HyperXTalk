@@ -2750,9 +2750,6 @@ private command revCopyCEFResources pPlatform, pStandalonePath, pCopyRevBrowserR
          if the last char of tCEFFiles is not return then
             put return after tCEFFiles
          end if
-         if pCopyRevBrowserResources then
-            put "revbrowser-cefprocess.exe" & return after tCEFFiles
-         end if
          if pCopyLibBrowserResources then
             put "libbrowser-cefprocess.exe" & return after tCEFFiles
          end if
@@ -2800,9 +2797,6 @@ private command revCopyCEFResources pPlatform, pStandalonePath, pCopyRevBrowserR
          
          // Copy files to standalone folder
          put empty into tCEFFiles
-         if pCopyRevBrowserResources then
-            put "revbrowser-cefprocess" & return after tCEFFiles
-         end if
          if pCopyLibBrowserResources then
             put "libbrowser-cefprocess" & return after tCEFFiles
          end if
