@@ -89,6 +89,18 @@ private:
     // extension to the edge of the browser area).
     bool m_pointer_button_down;
 
+    // True when a button-press has been recorded (OnMouseDown) but not yet
+    // forwarded to WebKit.  The press is sent lazily on the first motion
+    // event so that quick clicks never trigger a synchronous show-option-menu
+    // call (which deadlocks via gtk_main() while the X11 implicit grab is
+    // still active).  For drags the press always arrives at WebKit before
+    // the first motion event.
+    bool m_button_press_pending;
+
+    // Browser-relative coords of the deferred button-press.
+    int m_pending_press_bx;
+    int m_pending_press_by;
+
     // Fired by GtkOffscreenWindow when WebKit has new content.  Schedules an
     // HXT Redraw() via a GLib idle so we don't re-enter the draw pipeline.
     static gboolean onDamage(GtkWidget *widget, GdkEvent *event,

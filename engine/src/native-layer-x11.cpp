@@ -182,8 +182,23 @@ void hxt_browser_forward_motion(int p_x, int p_y)
     MCNativeLayerX11 *t_layer = MCNativeLayerX11::s_focused_browser_layer;
     if (t_layer == NULL || !t_layer->m_pointer_button_down)
         return;
+
     int t_bx = p_x - (int)t_layer->m_rect.x;
     int t_by = p_y - (int)t_layer->m_rect.y;
+
+    // Send the deferred button-press before the first motion so WebKit can
+    // anchor the text-selection range at the original click point.
+    // At this point we know it is a drag (not a quick click), so there is no
+    // risk of a synchronous show-option-menu deadlock — <select> elements are
+    // only activated by clicks, not drags.
+    if (t_layer->m_button_press_pending)
+    {
+        t_layer->m_button_press_pending = false;
+        t_layer->forwardPointerEvent(GDK_BUTTON_PRESS,
+            t_layer->m_pending_press_bx, t_layer->m_pending_press_by,
+            1, 0);
+    }
+
     t_layer->forwardPointerEvent(GDK_MOTION_NOTIFY, t_bx, t_by,
                                  0, GDK_BUTTON1_MASK);
 }
@@ -337,7 +352,10 @@ MCNativeLayerX11::MCNativeLayerX11(MCObject *p_object, GtkWidget *p_view) :
   m_redraw_pending(false),
   m_paint_timer_id(0),
   m_browser_focused(false),
-  m_pointer_button_down(false)
+  m_pointer_button_down(false),
+  m_button_press_pending(false),
+  m_pending_press_bx(0),
+  m_pending_press_by(0)
 {
     m_object = p_object;
     m_intersect_rect = MCRectangleMake(0,0,0,0);
@@ -410,12 +428,26 @@ void MCNativeLayerX11::OnMouseDown(int p_x, int p_y)
         fprintf(stderr, "[HXT] synthetic GDK_FOCUS_CHANGE(in) sent to offscreen win\n");
     }
 
-    // Forward button press to WebKit so it can set the text-selection anchor
-    // and establish the GTK implicit device-grab needed for drag-selection.
-    // p_x/p_y are widget-relative, which equals browser-widget-relative since
-    // the browser fills the offscreen window from (0,0).
+    // Record the button-press but do NOT forward it to WebKit yet.
+    //
+    // If forwarded synchronously here, WebKit sometimes fires show-option-menu
+    // synchronously from within g_signal_emit_by_name("button-press-event") —
+    // notably on the second click on a <select> element when WebKit has cached
+    // the option list.  That signal handler calls gtk_main(), which cannot
+    // establish a pointer grab because the X11 implicit grab created by the
+    // physical click is still active.  gtk_main() then spins forever → lockup.
+    //
+    // Instead the press is forwarded lazily in hxt_browser_forward_motion on
+    // the first MotionNotify event:
+    //  • Quick click (no drag): press is never forwarded; SimulateClick's JS
+    //    .click() handles link/button/<select> activation asynchronously and
+    //    correctly (button already released, no X11 grab conflict).
+    //  • Drag (text selection): press is forwarded on first motion — guaranteed
+    //    before any motion event reaches WebKit, so selection anchoring works.
     m_pointer_button_down = true;
-    forwardPointerEvent(GDK_BUTTON_PRESS, p_x, p_y, 1, 0);
+    m_button_press_pending = true;
+    m_pending_press_bx = p_x;
+    m_pending_press_by = p_y;
 }
 
 // Called by MCWidget::mup — coordinates are widget-relative.
@@ -429,12 +461,30 @@ void MCNativeLayerX11::OnMouseUp(int p_x, int p_y)
     if (!m_visible || m_child_window == NULL || m_browser_widget == NULL)
         return;
 
-    // Forward button release so WebKit finalises any ongoing text selection.
-    // GDK_BUTTON1_MASK in state tells WebKit the button that was held.
     if (m_pointer_button_down)
     {
         m_pointer_button_down = false;
-        forwardPointerEvent(GDK_BUTTON_RELEASE, p_x, p_y, 1, GDK_BUTTON1_MASK);
+
+        if (m_button_press_pending)
+        {
+            // Quick click (no drag): the button is now physically released, so
+            // the X11 implicit grab on the HXT stack window is already gone.
+            // It is safe to forward the button-press now — if WebKit fires
+            // show-option-menu synchronously (e.g. cached <select> on second
+            // click), gtk_menu_popup_at_rect can establish its own grab and
+            // gtk_main() will run correctly without deadlocking.
+            m_button_press_pending = false;
+            forwardPointerEvent(GDK_BUTTON_PRESS,
+                m_pending_press_bx, m_pending_press_by, 1, 0);
+            // Send release so WebKit finalises any click/focus state.
+            forwardPointerEvent(GDK_BUTTON_RELEASE, p_x, p_y, 1, GDK_BUTTON1_MASK);
+        }
+        else
+        {
+            // Drag: button-press was already forwarded on the first motion.
+            // Forward the release so WebKit finalises the text selection.
+            forwardPointerEvent(GDK_BUTTON_RELEASE, p_x, p_y, 1, GDK_BUTTON1_MASK);
+        }
     }
 
     // SimulateClick: run JS to find the element at (p_x, p_y), call .click()
