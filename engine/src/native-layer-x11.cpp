@@ -61,6 +61,8 @@ namespace x11 {
 }
 
 #include <string.h>   // memcpy
+#include <vector>     // s_all_layers_list
+#include <algorithm>  // std::remove
 
 
 // Design notes — offscreen rendering
@@ -104,6 +106,10 @@ namespace x11 {
 // its embedded browser widget.  Set in OnMouseDown, cleared in doDetach and
 // the destructor.  Read by hxt_browser_key_down/up called from lnxdclnx.cpp.
 MCNativeLayerX11 *MCNativeLayerX11::s_focused_browser_layer = NULL;
+
+// All currently attached native layers.  Used by hxt_find_browser_at() to
+// route scroll events by mouse position when multiple browsers are present.
+static std::vector<MCNativeLayerX11*> s_all_layers_list;
 
 // Defined in lnxdclnx.cpp — closes any active HXT text field so that
 // subsequent key events route to WebKit instead of the field.
@@ -245,6 +251,32 @@ void hxt_browser_forward_motion(int p_x, int p_y)
 
     t_layer->forwardPointerEvent(GDK_MOTION_NOTIFY, t_bx, t_by,
                                  0, GDK_BUTTON1_MASK);
+}
+
+// Searches all attached native layers for one whose rect contains (p_x, p_y)
+// in stack-window coordinates.  Returns true and fills r_widget / r_bx / r_by
+// if found.  Used by lnxdclnx.cpp's scroll routing so that scroll events
+// reach the browser the pointer is actually over, not just the focused one.
+bool hxt_find_browser_at(int p_x, int p_y,
+                          GtkWidget **r_widget,
+                          int *r_bx, int *r_by)
+{
+    for (MCNativeLayerX11 *t_layer : s_all_layers_list)
+    {
+        if (!t_layer->m_visible || !t_layer->m_show_for_tool ||
+            t_layer->m_browser_widget == NULL)
+            continue;
+        const MCRectangle &r = t_layer->m_rect;
+        if (p_x >= (int)r.x && p_x < (int)(r.x + r.width) &&
+            p_y >= (int)r.y && p_y < (int)(r.y + r.height))
+        {
+            *r_widget = t_layer->m_browser_widget;
+            *r_bx     = (int)r.x;
+            *r_by     = (int)r.y;
+            return true;
+        }
+    }
+    return false;
 }
 
 // Synthesises a GdkEventKey and delivers it directly to the WebKitWebView
@@ -411,6 +443,9 @@ MCNativeLayerX11::~MCNativeLayerX11()
 {
     if (s_focused_browser_layer == this)
         s_focused_browser_layer = NULL;
+    s_all_layers_list.erase(
+        std::remove(s_all_layers_list.begin(), s_all_layers_list.end(), this),
+        s_all_layers_list.end());
     if (m_paint_timer_id != 0)
     {
         g_source_remove(m_paint_timer_id);
@@ -679,6 +714,12 @@ void MCNativeLayerX11::doAttach()
         }, this);
     }
 
+    // Register this layer in the global list so hxt_find_browser_at() can
+    // route scroll events to whichever browser the mouse is over.
+    if (std::find(s_all_layers_list.begin(), s_all_layers_list.end(), this)
+            == s_all_layers_list.end())
+        s_all_layers_list.push_back(this);
+
     // Size / visibility sync (runs on both first-attach and re-attach).
     doSetViewportGeometry(m_viewport_rect);
     doSetGeometry(m_rect);
@@ -693,6 +734,11 @@ void MCNativeLayerX11::doDetach()
         g_source_remove(m_paint_timer_id);
         m_paint_timer_id = 0;
     }
+
+    // Unregister from the global layer list.
+    s_all_layers_list.erase(
+        std::remove(s_all_layers_list.begin(), s_all_layers_list.end(), this),
+        s_all_layers_list.end());
 
     // Clear the scroll-redirect data stored on the stack window so that a
     // stale widget pointer is never dereferenced after detach.

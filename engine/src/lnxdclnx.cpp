@@ -67,6 +67,13 @@ extern void hxt_browser_key_up(unsigned int keyval, unsigned int state,
 // is a no-op if no browser has a button currently pressed (m_pointer_button_down).
 extern void hxt_browser_forward_motion(int p_x, int p_y);
 
+// Declared in native-layer-x11.cpp — searches all attached native layers for
+// one whose rect contains (p_x, p_y) in stack-window coordinates.  Returns
+// true and fills r_widget/r_bx/r_by when found.  Supports multiple browsers.
+extern bool hxt_find_browser_at(int p_x, int p_y,
+                                 GtkWidget **r_widget,
+                                 int *r_bx, int *r_by);
+
 // Called from native-layer-x11.cpp::OnMouseDown when the browser widget
 // receives a click.  Closes any active HXT text field so that subsequent
 // key events route to WebKit instead of the field.
@@ -872,6 +879,9 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             // If somehow the event arrived at a non-stack window
                             // (t_mousestack == NULL) we still forward via GTK.
                             GtkWidget *t_native_widget = nullptr;
+                            // Origin of the found browser rect in stack-window coords.
+                            // Set by hxt_find_browser_at; used when forwarding the event.
+                            int t_scroll_bx = 0, t_scroll_by = 0;
 
                             if (!t_mousestack)
                             {
@@ -904,28 +914,18 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             }
                             else if (MCmousestackptr)
                             {
-                                // Event arrived at the stack window.  Forward to a
-                                // browser widget only if the scroll point falls within
-                                // the browser's rect (stored by doSetGeometry via
-                                // g_object_set_data).  Using focus (getmfocused) here
-                                // would wrongly redirect scrolls to the browser even
-                                // when the mouse is over a different scrollable area.
-                                GdkWindow *t_stack_gdk = t_event->scroll.window;
-                                GtkWidget *t_bw = (GtkWidget*)g_object_get_data(
-                                    G_OBJECT(t_stack_gdk), "hxt-scr-widget");
-                                if (t_bw != nullptr)
+                                // Event arrived at the stack window.  Iterate all
+                                // attached browser layers to find whichever one the
+                                // pointer is actually over — using focus here would
+                                // wrongly redirect scrolls to the focused browser even
+                                // when the mouse is over a different one.
+                                GtkWidget *t_bw = nullptr;
+                                if (hxt_find_browser_at((int)t_event->scroll.x,
+                                                        (int)t_event->scroll.y,
+                                                        &t_bw,
+                                                        &t_scroll_bx, &t_scroll_by))
                                 {
-                                    int t_bx = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(t_stack_gdk), "hxt-scr-x"));
-                                    int t_by = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(t_stack_gdk), "hxt-scr-y"));
-                                    int t_bw2 = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(t_stack_gdk), "hxt-scr-w"));
-                                    int t_bh = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(t_stack_gdk), "hxt-scr-h"));
-                                    if ((gint)t_event->scroll.x >= t_bx &&
-                                        (gint)t_event->scroll.x <  t_bx + t_bw2 &&
-                                        (gint)t_event->scroll.y >= t_by &&
-                                        (gint)t_event->scroll.y <  t_by + t_bh)
-                                    {
-                                        t_native_widget = t_bw;
-                                    }
+                                    t_native_widget = t_bw;
                                 }
                             }
 
@@ -938,12 +938,9 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                 // Coordinates are adjusted to be browser-widget-relative.
                                 if (gtk_widget_get_realized(t_native_widget))
                                 {
-                                    GdkWindow *t_stack_gdk2 = t_event->scroll.window;
-                                    int t_bx2 = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(t_stack_gdk2), "hxt-scr-x"));
-                                    int t_by2 = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(t_stack_gdk2), "hxt-scr-y"));
                                     GdkEvent *t_fwd = gdk_event_copy(t_event);
-                                    t_fwd->scroll.x -= t_bx2;
-                                    t_fwd->scroll.y -= t_by2;
+                                    t_fwd->scroll.x -= t_scroll_bx;
+                                    t_fwd->scroll.y -= t_scroll_by;
                                     gboolean t_ret = FALSE;
                                     g_signal_emit_by_name(t_native_widget, "scroll-event", t_fwd, &t_ret);
                                     gdk_event_free(t_fwd);
@@ -1492,43 +1489,36 @@ void MCScreenDC::EnqueueGdkEvents(bool p_block)
             continue;
         }
 
-        // Redirect GDK_SCROLL events on HXT stack windows to the browser widget
-        // if the scroll position falls within the browser rect stored by doSetGeometry.
+        // Redirect GDK_SCROLL events on HXT stack windows to whichever browser
+        // widget the scroll position falls within.  Iterates all attached native
+        // layers via hxt_find_browser_at so that multiple browsers are supported.
         // This ensures WebKit receives scroll events even though it lives in an
         // offscreen GtkOffscreenWindow that is not an X11 child of the stack window.
         if (t_event->type == GDK_SCROLL && t_event->any.window != NULL)
         {
-            GtkWidget *t_bw = (GtkWidget*)g_object_get_data(
-                G_OBJECT(t_event->any.window), "hxt-scr-widget");
-            if (t_bw != NULL)
+            GtkWidget *t_bw = NULL;
+            int t_sx = 0, t_sy = 0;
+            gdouble t_ex = t_event->scroll.x;
+            gdouble t_ey = t_event->scroll.y;
+            if (hxt_find_browser_at((int)t_ex, (int)t_ey, &t_bw, &t_sx, &t_sy))
             {
-                int t_sx = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(t_event->any.window), "hxt-scr-x"));
-                int t_sy = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(t_event->any.window), "hxt-scr-y"));
-                int t_sw = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(t_event->any.window), "hxt-scr-w"));
-                int t_sh = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(t_event->any.window), "hxt-scr-h"));
-                gdouble t_ex = t_event->scroll.x;
-                gdouble t_ey = t_event->scroll.y;
-                if (t_ex >= t_sx && t_ex < t_sx + t_sw &&
-                    t_ey >= t_sy && t_ey < t_sy + t_sh)
+                if (gtk_widget_get_realized(t_bw))
                 {
-                    if (gtk_widget_get_realized(t_bw))
-                    {
-                        GdkEvent *t_fwd = gdk_event_copy(t_event);
-                        t_fwd->scroll.x = t_ex - t_sx;
-                        t_fwd->scroll.y = t_ey - t_sy;
-                        // Emit scroll-event directly on the browser widget rather than
-                        // going through gtk_widget_event(): the latter does a window-ancestry
-                        // check that fails here (the WebView's GdkWindow is a non-native
-                        // client-side window and GDK would warn "not a native X11 window"
-                        // if we tried to swap any.window to it).  Emitting the signal
-                        // directly bypasses that check while still delivering the event.
-                        gboolean t_handled = FALSE;
-                        g_signal_emit_by_name(t_bw, "scroll-event", t_fwd, &t_handled);
-                        gdk_event_free(t_fwd);
-                    }
-                    gdk_event_free(t_event);
-                    continue;
+                    GdkEvent *t_fwd = gdk_event_copy(t_event);
+                    t_fwd->scroll.x = t_ex - t_sx;
+                    t_fwd->scroll.y = t_ey - t_sy;
+                    // Emit scroll-event directly on the browser widget rather than
+                    // going through gtk_widget_event(): the latter does a window-ancestry
+                    // check that fails here (the WebView's GdkWindow is a non-native
+                    // client-side window and GDK would warn "not a native X11 window"
+                    // if we tried to swap any.window to it).  Emitting the signal
+                    // directly bypasses that check while still delivering the event.
+                    gboolean t_handled = FALSE;
+                    g_signal_emit_by_name(t_bw, "scroll-event", t_fwd, &t_handled);
+                    gdk_event_free(t_fwd);
                 }
+                gdk_event_free(t_event);
+                continue;
             }
         }
 

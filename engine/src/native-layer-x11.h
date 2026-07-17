@@ -140,6 +140,13 @@ private:
     // moves across the browser rect with a button held down.
     friend void hxt_browser_forward_motion(int, int);
 
+    // Iterates all active native layers and returns the browser widget whose
+    // rect contains (p_x, p_y) in stack-window coordinates.  Used by
+    // lnxdclnx.cpp's scroll routing to support multiple browser widgets.
+    friend bool hxt_find_browser_at(int p_x, int p_y,
+                                    GtkWidget **r_widget,
+                                    int *r_bx, int *r_by);
+
     // Returns the GdkWindow of the stack that owns this widget.
     GdkWindow* getStackGdkWindow();
 
