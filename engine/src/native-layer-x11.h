@@ -129,6 +129,7 @@ private:
     // Free functions in native-layer-x11.cpp that receive raw GDK key data
     // from lnxdclnx.cpp and forward it to the focused browser widget.
     friend bool hxt_browser_has_focus();
+    friend void hxt_browser_clear_focus();
     friend void hxt_browser_key_down(unsigned int, unsigned int,
                                      unsigned short, unsigned char);
     friend void hxt_browser_key_up(unsigned int, unsigned int,

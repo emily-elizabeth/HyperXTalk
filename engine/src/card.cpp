@@ -1399,7 +1399,12 @@ void MCCard::kfocusset(MCControl *target)
 			setstate(false, CS_KFOCUSED);
 			tkfocused->getref()->kunfocus();
 		}
-		if (kfocused != NULL)
+		// Only early-return if the focused control is actually focused.
+		// If kfocused is set but CS_KFOCUSED was cleared externally (e.g. by
+		// hxt_browser_took_focus force-clearing the field state without going
+		// through the normal kunfocus→kfocusset path), we must fall through
+		// and re-focus the target so the card state stays consistent.
+		if (kfocused != NULL && kfocused->getref()->getstate(CS_KFOCUSED))
 			return;
 		kfocused = objptrs;
 		defbutton = NULL;

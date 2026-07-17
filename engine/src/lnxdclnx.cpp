@@ -53,6 +53,9 @@ extern GdkWindow *MCLinuxPopoverGetGdkWindow(void);
 // Called immediately after the normal HXT wkdown/wkup dispatch so the browser
 // receives keys even though HXT's own kfocus mechanism is not involved.
 extern bool hxt_browser_has_focus();
+extern void hxt_browser_clear_focus();
+extern void hxt_browser_reset_mousedown_flag();
+extern bool hxt_browser_mousedown_fired();
 extern void hxt_browser_key_down(unsigned int keyval, unsigned int state,
                                   unsigned short hwcode, unsigned char group);
 extern void hxt_browser_key_up(unsigned int keyval, unsigned int state,
@@ -63,6 +66,33 @@ extern void hxt_browser_key_up(unsigned int keyval, unsigned int state,
 // p_x/p_y are in HXT's scaled stack-window coordinate space.  The function
 // is a no-op if no browser has a button currently pressed (m_pointer_button_down).
 extern void hxt_browser_forward_motion(int p_x, int p_y);
+
+// Called from native-layer-x11.cpp::OnMouseDown when the browser widget
+// receives a click.  Closes any active HXT text field so that subsequent
+// key events route to WebKit instead of the field.
+// Defined here (not in native-layer-x11.cpp) to keep MCField/MCStack
+// headers out of the native layer.
+void hxt_browser_took_focus()
+{
+    if (!MCactivefield)
+        return;
+
+    MCactivefield->getstack()->kunfocus();
+
+    if (MCactivefield)
+    {
+        // Mirror what MCField::kunfocus() does for the visual repaint, but
+        // without firing scripts again (which would re-focus the field).
+        // Save gettransient() BEFORE clearing CS_KFOCUSED so the layer knows
+        // the rendering changed (focus ring gone) and repaints the whole field.
+        uint2 t_old_trans = MCactivefield->gettransient();
+        MCscreen->cancelmessageobject(MCactivefield, MCM_internal);      // cancel blink timer re-started by closeField's kfocus
+        MCactivefield->replacecursor(False, False);                      // hide cursor
+        MCactivefield->setstate(False, CS_KFOCUSED);                     // clear focus bit
+        MCactivefield->layer_transientchangedandredrawall(t_old_trans);  // repaint: no focus ring
+        MCactivefield = nil;
+    }
+}
 
 #define XK_Window_L 0xFF6C
 #define XK_Window_R 0xFF6D
@@ -531,9 +561,13 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 {
                     if (t_event->key.window != MCtracewindow)
                     {
-                        // Let the IME have the key event first
+                        // Let the IME have the key event first — but not when the
+                        // browser owns focus.  If kunfocus() left MCactivefield set
+                        // (e.g. closeField script re-opens the field), the IM must
+                        // not eat printable chars that should go to WebKit.
                         bool t_ignore = false;
-                        if (dispatch && MCactivefield && m_im_context != nil)
+                        if (dispatch && MCactivefield && m_im_context != nil
+                                && !hxt_browser_has_focus())
                         {
                             t_ignore = gtk_im_context_filter_keypress(m_im_context, &t_event->key);
                         }
@@ -554,6 +588,12 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             t_text = MCValueRetain(kMCEmptyString);
                         
                         MCeventtime = t_event->key.time;
+                        // Forward keys to the browser when it owns focus.
+                        // Browser focus is set in OnMouseDown and cleared in
+                        // hxt_browser_clear_focus() when wmdown() indicates the
+                        // user clicked an HXT text field instead.
+                        bool t_browser_active = hxt_browser_has_focus();
+
                         if (t_event->type == GDK_KEY_PRESS)
                         {
                             // When a browser widget owns keyboard focus, send ALL
@@ -561,7 +601,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             // wkdown → MCObject::kdown calls kfocusnext for XK_Tab
                             // which conflicts with WebKit's own focus traversal,
                             // causing TAB to advance two elements instead of one.
-                            if (hxt_browser_has_focus())
+                            if (t_browser_active)
                             {
                                 hxt_browser_key_down(t_event->key.keyval,
                                                      (unsigned int)t_event->key.state,
@@ -575,7 +615,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         }
                         else
                         {
-                            if (hxt_browser_has_focus())
+                            if (t_browser_active)
                             {
                                 hxt_browser_key_up(t_event->key.keyval,
                                                    (unsigned int)t_event->key.state,
@@ -976,7 +1016,10 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                     {
                                         doubleclick = False;
                                         tripleclick = True;
+                                        hxt_browser_reset_mousedown_flag();
                                         MCdispatcher->wmdown(t_event->button.window, t_event->button.button);
+                                        if (MCactivefield && !hxt_browser_mousedown_fired())
+                                            hxt_browser_clear_focus();
                                     }
                                     else
                                     {
@@ -1005,7 +1048,18 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                     if (!skip_click_focus)
                                         MCdispatcher->wmfocus(t_event->button.window, t_clickloc.x, t_clickloc.y);
                                     
+                                    hxt_browser_reset_mousedown_flag();
                                     MCdispatcher->wmdown(t_event->button.window, t_event->button.button);
+
+                                    // If wmdown() caused an HXT text field to take
+                                    // focus, clear browser keyboard focus so keys
+                                    // route to HXT rather than WebKit.
+                                    // Guard: if OnMouseDown fired during wmdown, the
+                                    // click was on the browser widget — don't undo it.
+                                    if (MCactivefield && !hxt_browser_mousedown_fired())
+                                    {
+                                        hxt_browser_clear_focus();
+                                    }
                                 }
                             }
                         }
@@ -1015,11 +1069,11 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 {
                     t_queue = true;
                 }
-                
+
                 t_handled = true;
                 break;
             }
-                
+
             case GDK_BUTTON_RELEASE:
             {
                 // No longer in a drag-and-drop situation
@@ -1454,8 +1508,6 @@ void MCScreenDC::EnqueueGdkEvents(bool p_block)
                 int t_sh = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(t_event->any.window), "hxt-scr-h"));
                 gdouble t_ex = t_event->scroll.x;
                 gdouble t_ey = t_event->scroll.y;
-                fprintf(stderr, "[HXT-SCROLL] pos=(%.0f,%.0f) rect=(%d,%d,%d,%d)\n",
-                    t_ex, t_ey, t_sx, t_sy, t_sw, t_sh);
                 if (t_ex >= t_sx && t_ex < t_sx + t_sw &&
                     t_ey >= t_sy && t_ey < t_sy + t_sh)
                 {
@@ -1491,9 +1543,6 @@ void MCScreenDC::EnqueueGdkEvents(bool p_block)
         if ((t_event->type == GDK_KEY_PRESS || t_event->type == GDK_KEY_RELEASE)
             && t_event->any.send_event)
         {
-            fprintf(stderr, "[HXT] EnqueueGdkEvents: discarding leaked synthetic "
-                "key event type=%d keyval=0x%04x\n",
-                (int)t_event->type, t_event->key.keyval);
             gdk_event_free(t_event);
             continue;
         }

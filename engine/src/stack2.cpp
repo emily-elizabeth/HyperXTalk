@@ -670,8 +670,7 @@ void MCStack::kfocusset(MCControl *target)
 		MCscreen->waitfocus();
 	}
 
-	if (target != NULL)
-		curcard->kfocusset(target);	
+	curcard->kfocusset(target);
 	MCstacks -> ensureinputfocus(window);
 }
 

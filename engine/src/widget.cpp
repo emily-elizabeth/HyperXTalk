@@ -292,10 +292,12 @@ Boolean MCWidget::mfocus(int2 p_x, int2 p_y)
 	// Update the mouse loc.
 	mx = p_x;
 	my = p_y;
-    
+
     if (m_widget != nil)
+    {
         return MCwidgeteventmanager->event_mfocus(this, p_x, p_y);
-    
+    }
+
     return False;
 }
 

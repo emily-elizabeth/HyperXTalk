@@ -105,6 +105,11 @@ namespace x11 {
 // the destructor.  Read by hxt_browser_key_down/up called from lnxdclnx.cpp.
 MCNativeLayerX11 *MCNativeLayerX11::s_focused_browser_layer = NULL;
 
+// Defined in lnxdclnx.cpp — closes any active HXT text field so that
+// subsequent key events route to WebKit instead of the field.
+// Called from OnMouseDown when the browser widget receives a click.
+extern void hxt_browser_took_focus();
+
 // Tracks the keyval of the key currently held down by the browser widget.
 // 0 = no key currently pressed.
 //
@@ -121,6 +126,15 @@ MCNativeLayerX11 *MCNativeLayerX11::s_focused_browser_layer = NULL;
 // behaviour is preserved.
 static unsigned int s_browser_key_down_keyval = 0;
 
+// Set in OnMouseDown, reset by hxt_browser_reset_mousedown_flag() before each
+// wmdown() call in lnxdclnx.cpp.  Lets the post-wmdown check distinguish a
+// click on the browser widget (OnMouseDown fired → don't clear focus) from a
+// click on an HXT field (OnMouseDown did NOT fire → clear browser focus).
+static bool s_browser_mousedown_fired = false;
+
+void hxt_browser_reset_mousedown_flag() { s_browser_mousedown_fired = false; }
+bool hxt_browser_mousedown_fired()      { return s_browser_mousedown_fired; }
+
 // Called from lnxdclnx.cpp's GDK_KEY_PRESS/RELEASE handler immediately after
 // the normal HXT wkdown/wkup dispatch.  Forwards the raw GDK key event to the
 // focused offscreen WebKitWebView by synthesising a new GdkEventKey and
@@ -130,6 +144,16 @@ bool hxt_browser_has_focus()
 {
     MCNativeLayerX11 *t_layer = MCNativeLayerX11::s_focused_browser_layer;
     return t_layer != NULL && t_layer->m_browser_focused;
+}
+
+// Called from lnxdclnx.cpp when a ButtonPress causes wmdown() to set
+// MCactivefield — i.e. the user clicked an HXT text field.  Clears
+// browser keyboard focus so subsequent key events route to HXT, not WebKit.
+void hxt_browser_clear_focus()
+{
+    MCNativeLayerX11 *t_layer = MCNativeLayerX11::s_focused_browser_layer;
+    if (t_layer != NULL)
+        t_layer->m_browser_focused = false;
 }
 
 void hxt_browser_key_down(unsigned int p_keyval, unsigned int p_state,
@@ -143,11 +167,7 @@ void hxt_browser_key_down(unsigned int p_keyval, unsigned int p_state,
     // WebKit2GTK's async IPC processing injects an extra GDK_KEY_PRESS ~28 ms
     // after the first dispatch; this guard drops it.
     if (s_browser_key_down_keyval == p_keyval)
-    {
-        fprintf(stderr, "[HXT] hxt_browser_key_down: suppressing duplicate "
-            "keyval=0x%04x (already down)\n", p_keyval);
         return;
-    }
     s_browser_key_down_keyval = p_keyval;
 
     t_layer->dispatchKeyEvent(GDK_KEY_PRESS, p_keyval, p_state, p_hwcode, p_group);
@@ -242,15 +262,11 @@ void MCNativeLayerX11::dispatchKeyEvent(GdkEventType p_type,
     evt->key.length          = 0;
     evt->key.string          = NULL;
 
-    fprintf(stderr, "[HXT] dispatchKeyEvent %s keyval=0x%04x\n",
-        p_type == GDK_KEY_PRESS ? "PRESS" : "RELEASE", p_keyval);
 
     // Emit directly on the WebKitWebView widget — one delivery, no GtkWindow wrapping.
     const char *t_signal = (p_type == GDK_KEY_PRESS) ? "key-press-event" : "key-release-event";
     gboolean t_handled = FALSE;
     g_signal_emit_by_name(m_browser_widget, t_signal, evt, &t_handled);
-    fprintf(stderr, "[HXT] dispatchKeyEvent %s handled=%d\n",
-        p_type == GDK_KEY_PRESS ? "PRESS" : "RELEASE", (int)t_handled);
 
     gdk_event_free(evt);
 }
@@ -327,8 +343,6 @@ void MCNativeLayerX11::forwardPointerEvent(GdkEventType p_type,
                                                  : "button-release-event";
     }
 
-    fprintf(stderr, "[HXT] forwardPointerEvent type=%d bx=%d by=%d btn=%u state=0x%x\n",
-        (int)p_type, p_bx, p_by, p_button, p_state);
 
     // Emit directly on the WebKitWebView widget so the signal reaches WebKit's
     // own handlers regardless of GdkWindow hierarchy or GTK grab state.
@@ -340,7 +354,6 @@ void MCNativeLayerX11::forwardPointerEvent(GdkEventType p_type,
     // so no GTK/GDK implicit grab is required for drag-selection to work.
     gboolean t_handled = FALSE;
     g_signal_emit_by_name(m_browser_widget, t_signal, evt, &t_handled);
-    fprintf(stderr, "[HXT] forwardPointerEvent %s handled=%d\n", t_signal, (int)t_handled);
 
     gdk_event_free(evt);
 }
@@ -387,17 +400,23 @@ void MCNativeLayerX11::OnToolChanged(Tool p_new_tool)
 {
     // No input-shape management needed for offscreen rendering.
     MCNativeLayer::OnToolChanged(p_new_tool);
-    fprintf(stderr, "[HXT] OnToolChanged: p_new_tool=%d T_BROWSE=%d show_for_tool=%d\n",
-        (int)p_new_tool, (int)T_BROWSE, (int)m_show_for_tool);
 }
 
 // Called by MCWidget::mdown — coordinates are widget-relative.
 void MCNativeLayerX11::OnMouseDown(int p_x, int p_y)
 {
-    fprintf(stderr, "[HXT] OnMouseDown(%d,%d) visible=%d child=%p widget=%p\n",
-        p_x, p_y, (int)m_visible, (void*)m_child_window, (void*)m_browser_widget);
     if (!m_visible || m_child_window == NULL || m_browser_widget == NULL)
         return;
+
+    // Signal to lnxdclnx.cpp's post-wmdown check that the click landed on
+    // the browser widget (not an HXT field), so it won't clear our focus.
+    s_browser_mousedown_fired = true;
+
+    // Close any active HXT text field so keyboard focus moves to the browser.
+    // MCWidget's mdown does not trigger kunfocus() on fields the way clicking
+    // a non-browser control would, so we do it explicitly here.
+    hxt_browser_took_focus();
+
     // Record that this layer owns keyboard focus so hxt_browser_key_down/up
     // route subsequent key events here.
     m_browser_focused = true;
@@ -425,7 +444,6 @@ void MCNativeLayerX11::OnMouseDown(int p_x, int p_y)
             gdk_event_set_device(t_focus, t_fkbd);
         gtk_main_do_event(t_focus);
         gdk_event_free(t_focus);
-        fprintf(stderr, "[HXT] synthetic GDK_FOCUS_CHANGE(in) sent to offscreen win\n");
     }
 
     // Record the button-press but do NOT forward it to WebKit yet.
@@ -456,8 +474,6 @@ void MCNativeLayerX11::OnMouseDown(int p_x, int p_y)
 // SFNSP for subsequent Tab traversal.
 void MCNativeLayerX11::OnMouseUp(int p_x, int p_y)
 {
-    fprintf(stderr, "[HXT] OnMouseUp(%d,%d) visible=%d child=%p widget=%p\n",
-        p_x, p_y, (int)m_visible, (void*)m_child_window, (void*)m_browser_widget);
     if (!m_visible || m_child_window == NULL || m_browser_widget == NULL)
         return;
 
@@ -494,7 +510,6 @@ void MCNativeLayerX11::OnMouseUp(int p_x, int p_y)
         G_OBJECT(m_browser_widget), "hxt-sim-fn");
     void *ctx = g_object_get_data(
         G_OBJECT(m_browser_widget), "hxt-sim-ctx");
-    fprintf(stderr, "[HXT] OnMouseUp bridge fn=%p ctx=%p\n", (void*)fn, ctx);
     if (fn && ctx)
         fn(ctx, p_x, p_y);
 }
@@ -608,36 +623,10 @@ void MCNativeLayerX11::doAttach()
         m_damage_signal_id = g_signal_connect(m_child_window, "damage-event",
                                                G_CALLBACK(onDamage), this);
 
-        // Diagnostic: log pointer events that actually reach the WebKitWebView
-        // signal handlers so we can verify our event injection path.
-        if (m_browser_widget != NULL)
-        {
-            g_signal_connect(m_browser_widget, "button-press-event",
-                G_CALLBACK(+[](GtkWidget*, GdkEventButton *ev, gpointer) -> gboolean {
-                    fprintf(stderr, "[HXT-WK] button-press x=%.0f y=%.0f btn=%d state=0x%x send=%d\n",
-                        ev->x, ev->y, ev->button, (unsigned)ev->state, (int)ev->send_event);
-                    return FALSE;
-                }), NULL);
-            g_signal_connect(m_browser_widget, "button-release-event",
-                G_CALLBACK(+[](GtkWidget*, GdkEventButton *ev, gpointer) -> gboolean {
-                    fprintf(stderr, "[HXT-WK] button-release x=%.0f y=%.0f btn=%d state=0x%x\n",
-                        ev->x, ev->y, ev->button, (unsigned)ev->state);
-                    return FALSE;
-                }), NULL);
-            g_signal_connect(m_browser_widget, "motion-notify-event",
-                G_CALLBACK(+[](GtkWidget*, GdkEventMotion *ev, gpointer) -> gboolean {
-                    fprintf(stderr, "[HXT-WK] motion x=%.0f y=%.0f state=0x%x\n",
-                        ev->x, ev->y, (unsigned)ev->state);
-                    return FALSE;
-                }), NULL);
-        }
-
         // Event filter on the stack window: makes the (invisible) browser
         // respond to pointer and keyboard input.
         {
             GdkWindow *t_sw = getStackGdkWindow();
-            fprintf(stderr, "[HXT] doAttach: installing filter on stack_win=%p child_win=%p\n",
-                (void*)t_sw, (void*)m_child_window);
             gdk_window_add_filter(t_sw, onStackWindowFilter, this);
         }
     }

@@ -74,6 +74,9 @@ COMPILE_SRCS=(
     "engine/src/widget.cpp"
     "engine/src/widget-ref.cpp"
     "engine/src/lnxdclnx.cpp"
+    "engine/src/card.cpp"
+    "engine/src/field.cpp"
+    "engine/src/stack2.cpp"
 )
 
 COMPILE_OBJS=()
