@@ -250,6 +250,15 @@ void MCNativeLayerX11::dispatchKeyEvent(GdkEventType p_type,
         return;
 
     GdkEvent *evt = gdk_event_new(p_type);
+
+    // GTK3 requires every synthesised event to carry the appropriate GdkDevice
+    // or it emits "Event not holding a GdkDevice" warnings.
+    GdkDisplay *t_dpy = gdk_display_get_default();
+    GdkSeat    *t_seat = t_dpy ? gdk_display_get_default_seat(t_dpy) : NULL;
+    GdkDevice  *t_kbd  = t_seat ? gdk_seat_get_keyboard(t_seat) : NULL;
+    if (t_kbd)
+        gdk_event_set_device(evt, t_kbd);
+
     evt->key.window          = t_win;
     g_object_ref(t_win);
     evt->key.send_event      = TRUE;
