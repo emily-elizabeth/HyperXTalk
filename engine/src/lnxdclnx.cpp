@@ -610,6 +610,66 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             // causing TAB to advance two elements instead of one.
                             if (t_browser_active)
                             {
+                                // Ctrl+V pre-fill: if HXT owns the X11 CLIPBOARD
+                                // selection, push its text into GTK's in-process
+                                // clipboard before forwarding the key to WebKit.
+                                //
+                                // Without this, WebKit's paste command sends a
+                                // SelectionRequest X11 message to HXT while HXT's
+                                // event loop is busy dispatching the key — causing
+                                // a ~15-second X11 selection timeout and leaving
+                                // WebKit's clipboard state corrupted afterwards.
+                                //
+                                // By handing the content to GTK's clipboard first,
+                                // WebKit reads it in-process with no X11 round-trip.
+                                if (t_event->key.keyval == GDK_KEY_v &&
+                                    (t_event->key.state & GDK_CONTROL_MASK))
+                                {
+                                    MCLinuxRawClipboard *t_raw =
+                                        static_cast<MCLinuxRawClipboard*>(
+                                            MCclipboard->GetRawClipboard());
+                                    if (t_raw != NULL && t_raw->IsOwned())
+                                    {
+                                        const MCLinuxRawClipboardItem *t_item =
+                                            t_raw->GetSelectionItem();
+                                        if (t_item != NULL)
+                                        {
+                                            // Try UTF8_STRING, then text/plain variants
+                                            const MCRawClipboardItemRep *t_rep = NULL;
+                                            {
+                                                MCAutoStringRef t_type;
+                                                MCStringCreateWithCString("UTF8_STRING", &t_type);
+                                                t_rep = t_item->FetchRepresentationByType(*t_type);
+                                            }
+                                            if (t_rep == NULL)
+                                            {
+                                                MCAutoStringRef t_type;
+                                                MCStringCreateWithCString("text/plain;charset=utf-8", &t_type);
+                                                t_rep = t_item->FetchRepresentationByType(*t_type);
+                                            }
+                                            if (t_rep == NULL)
+                                            {
+                                                MCAutoStringRef t_type;
+                                                MCStringCreateWithCString("text/plain", &t_type);
+                                                t_rep = t_item->FetchRepresentationByType(*t_type);
+                                            }
+                                            if (t_rep != NULL)
+                                            {
+                                                MCAutoDataRef t_data;
+                                                t_data.Give(t_rep->CopyData());
+                                                if (*t_data != NULL && MCDataGetLength(*t_data) > 0)
+                                                {
+                                                    GtkClipboard *t_gtk_cb =
+                                                        gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+                                                    gtk_clipboard_set_text(t_gtk_cb,
+                                                        (const gchar*)MCDataGetBytePtr(*t_data),
+                                                        (gint)MCDataGetLength(*t_data));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 hxt_browser_key_down(t_event->key.keyval,
                                                      (unsigned int)t_event->key.state,
                                                      t_event->key.hardware_keycode,
