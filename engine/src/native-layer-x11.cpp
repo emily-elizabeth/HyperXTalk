@@ -766,6 +766,22 @@ bool MCNativeLayerX11::doPaint(MCGContextRef p_context)
     {
         memcpy(t_pixels, t_data, (size_t)t_h * t_stride);
 
+        // Cairo ARGB32 on little-endian stores pixels as BGRA bytes
+        // (the 32-bit int 0xAARRGGBB laid out in memory as B,G,R,A).
+        // HXT's MCG/Skia layer expects RGBA (R=byte0, G=byte1, B=byte2, A=byte3)
+        // because its backing GdkPixbuf is always RGBA.
+        // Swap byte0 (B) ↔ byte2 (R) for every pixel.
+        {
+            uint8_t *p   = static_cast<uint8_t*>(t_pixels);
+            uint8_t *end = p + (size_t)t_h * t_stride;
+            for (; p < end; p += 4)
+            {
+                uint8_t b = p[0];
+                p[0] = p[2];
+                p[2] = b;
+            }
+        }
+
         MCGRaster t_raster;
         t_raster.format = kMCGRasterFormat_ARGB;
         t_raster.width  = (uint32_t)t_w;
