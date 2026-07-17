@@ -1339,12 +1339,20 @@ void MCWebKitGTKBrowser::SimulateClick(void *ctx, int x, int y)
             "f.focus();"
             "return'HXT:field:'+f.nodeName+':'+f.id;"
           "}"
-          // Walk up for an anchor.
+          // Walk up for an anchor — return the href so the C++ callback can
+          // navigate via webkit_web_view_load_uri().
           "var a=el;"
           "while(a&&a.nodeName!=='A')a=a.parentElement;"
           "if(a&&a.href&&a.href.indexOf('javascript:')!==0)return a.href;"
-          // JS navigation handler fallback.
-          "el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));"
+          // For all other elements (buttons, divs, custom components, …) the
+          // real GDK button-press + button-release events have already been
+          // forwarded by OnMouseUp via forwardPointerEvent(), which causes
+          // WebKit to fire trusted mousedown / mouseup / click events.  Those
+          // are sufficient to activate the element.  Dispatching an additional
+          // synthetic MouseEvent('click') here causes JS menus that open on
+          // click to immediately close (their document-level dismiss listener
+          // fires on the extra synthetic click) — appearing as if nothing
+          // happened.  Do nothing; let the native events do the work.
           "return'HXT:click:'+el.nodeName;"
         "})(%d,%d)", x, y);
 
