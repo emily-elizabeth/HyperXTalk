@@ -643,7 +643,11 @@ MCWebKitGTKBrowser::MCWebKitGTKBrowser()
 
 MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
 {
-    if (m_content_manager != nil)
+    // Guard every g_signal_handler_disconnect with G_IS_OBJECT(): when HXT
+    // quits with a browser open, the native layer destroys m_child_window
+    // first, which finalizes m_web_view (and its content manager) as child
+    // widgets.  Our destructor then runs and must not touch dead GObjects.
+    if (m_content_manager != nil && G_IS_OBJECT(m_content_manager))
     {
         if (m_script_message_id)
             wk.g_signal_handler_disconnect(m_content_manager, m_script_message_id);
@@ -656,7 +660,7 @@ MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
         }
     }
 
-    if (m_web_view != nil)
+    if (m_web_view != nil && G_IS_OBJECT(m_web_view))
     {
         if (m_load_changed_id)       wk.g_signal_handler_disconnect(m_web_view, m_load_changed_id);
         if (m_load_failed_id)        wk.g_signal_handler_disconnect(m_web_view, m_load_failed_id);
