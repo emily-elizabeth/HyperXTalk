@@ -87,7 +87,7 @@ void hxt_browser_took_focus()
         // the rendering changed (focus ring gone) and repaints the whole field.
         uint2 t_old_trans = MCactivefield->gettransient();
         MCscreen->cancelmessageobject(MCactivefield, MCM_internal);      // cancel blink timer re-started by closeField's kfocus
-        MCactivefield->replacecursor(False, False);                      // hide cursor
+        MCactivefield->removecursor();                                    // erase cursor (removecursor clears cursoron/cursorfield)
         MCactivefield->setstate(False, CS_KFOCUSED);                     // clear focus bit
         MCactivefield->layer_transientchangedandredrawall(t_old_trans);  // repaint: no focus ring
         MCactivefield = nil;
