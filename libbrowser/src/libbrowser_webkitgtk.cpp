@@ -335,11 +335,10 @@ static bool LoadWebKit(void)
     // WebKit's "draw" signal handler into our cairo_t in doPaint().
     setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", 0);
 
-    // Suppress noisy GIO volume monitor / file monitor that aren't needed.
-    setenv("GIO_USE_FILE_MONITOR",   "none",  1);
-    setenv("GIO_USE_VOLUME_MONITOR", "none",  1);
-    setenv("GIO_USE_VFS",            "local", 1);
-    setenv("GVFS_DISABLE_FUSE",      "1",     1);
+    // Disable GVFS FUSE mount so WebKit doesn't try to contact gvfsd.
+    setenv("GVFS_DISABLE_FUSE", "1", 1);
+    // Use the local (non-GVFS) VFS implementation.
+    setenv("GIO_USE_VFS", "local", 1);
 
     char t_exedir[PATH_MAX];
     bool t_have_exedir = GetExeDir(t_exedir, sizeof(t_exedir));
