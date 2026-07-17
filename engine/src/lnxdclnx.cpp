@@ -106,6 +106,10 @@ void hxt_browser_took_focus()
 
 #include <gdk/gdkkeysyms.h>
 
+// Forward declarations for clipboard deadlock fix functions
+static void HXT_HandleSelectionRequest(GdkEvent *t_event);
+static GdkFilterReturn HXT_CtrlV_SelectionFilter(GdkXEvent*, GdkEvent*, gpointer);
+
 
 Boolean tripleclick = False;
 static Boolean dragclick;
@@ -610,63 +614,35 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             // causing TAB to advance two elements instead of one.
                             if (t_browser_active)
                             {
-                                // Ctrl+V pre-fill: if HXT owns the X11 CLIPBOARD
-                                // selection, push its text into GTK's in-process
-                                // clipboard before forwarding the key to WebKit.
+                                // Ctrl+V deadlock fix: if HXT owns X11 CLIPBOARD,
+                                // install a GDK event filter on the clipboard window
+                                // before dispatching the key to WebKit.
                                 //
-                                // Without this, WebKit's paste command sends a
-                                // SelectionRequest X11 message to HXT while HXT's
-                                // event loop is busy dispatching the key — causing
-                                // a ~15-second X11 selection timeout and leaving
-                                // WebKit's clipboard state corrupted afterwards.
+                                // On Fedora, WebKit's paste command calls
+                                // gtk_clipboard_wait_for_text() synchronously, which
+                                // runs a nested g_main_loop.  That nested loop processes
+                                // GDK events but does NOT call HXT's own SelectionRequest
+                                // handler — so WebKit's SelectionRequest to HXT is never
+                                // served and times out after ~15 seconds.
                                 //
-                                // By handing the content to GTK's clipboard first,
-                                // WebKit reads it in-process with no X11 round-trip.
-                                if (t_event->key.keyval == GDK_KEY_v &&
-                                    (t_event->key.state & GDK_CONTROL_MASK))
+                                // The filter (HXT_CtrlV_SelectionFilter) handles
+                                // SelectionRequest events inline and runs in any event
+                                // loop, including WebKit's nested one.  Because clipboard
+                                // ownership stays with HXT, WebKit's subsequent copy
+                                // (Ctrl+C) is completely unaffected.
+                                GdkWindow *t_clip_win = NULL;
                                 {
                                     MCLinuxRawClipboard *t_raw =
                                         static_cast<MCLinuxRawClipboard*>(
                                             MCclipboard->GetRawClipboard());
-                                    if (t_raw != NULL && t_raw->IsOwned())
+                                    if (t_raw != NULL && t_raw->IsOwned() &&
+                                        t_event->key.keyval == GDK_KEY_v &&
+                                        (t_event->key.state & GDK_CONTROL_MASK))
                                     {
-                                        const MCLinuxRawClipboardItem *t_item =
-                                            t_raw->GetSelectionItem();
-                                        if (t_item != NULL)
-                                        {
-                                            // Try UTF8_STRING, then text/plain variants
-                                            const MCRawClipboardItemRep *t_rep = NULL;
-                                            {
-                                                MCAutoStringRef t_type;
-                                                MCStringCreateWithCString("UTF8_STRING", &t_type);
-                                                t_rep = t_item->FetchRepresentationByType(*t_type);
-                                            }
-                                            if (t_rep == NULL)
-                                            {
-                                                MCAutoStringRef t_type;
-                                                MCStringCreateWithCString("text/plain;charset=utf-8", &t_type);
-                                                t_rep = t_item->FetchRepresentationByType(*t_type);
-                                            }
-                                            if (t_rep == NULL)
-                                            {
-                                                MCAutoStringRef t_type;
-                                                MCStringCreateWithCString("text/plain", &t_type);
-                                                t_rep = t_item->FetchRepresentationByType(*t_type);
-                                            }
-                                            if (t_rep != NULL)
-                                            {
-                                                MCAutoDataRef t_data;
-                                                t_data.Give(t_rep->CopyData());
-                                                if (*t_data != NULL && MCDataGetLength(*t_data) > 0)
-                                                {
-                                                    GtkClipboard *t_gtk_cb =
-                                                        gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
-                                                    gtk_clipboard_set_text(t_gtk_cb,
-                                                        (const gchar*)MCDataGetBytePtr(*t_data),
-                                                        (gint)MCDataGetLength(*t_data));
-                                                }
-                                            }
-                                        }
+                                        t_clip_win = t_raw->GetClipboardWindow();
+                                        if (t_clip_win)
+                                            gdk_window_add_filter(t_clip_win,
+                                                HXT_CtrlV_SelectionFilter, NULL);
                                     }
                                 }
 
@@ -674,6 +650,10 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                                      (unsigned int)t_event->key.state,
                                                      t_event->key.hardware_keycode,
                                                      t_event->key.group);
+
+                                if (t_clip_win)
+                                    gdk_window_remove_filter(t_clip_win,
+                                        HXT_CtrlV_SelectionFilter, NULL);
                             }
                             else
                             {
@@ -1262,149 +1242,10 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 break;
                 
             case GDK_SELECTION_REQUEST:
-            {
-                // Get the clipboard associated with the requested selection
                 // Checking for ownership is unreliable in GDK so don't bother
                 // -- we just fulfil the request anyway.
-                MCLinuxRawClipboard* t_clipboard;
-				if (t_event->selection.selection == GDK_SELECTION_PRIMARY)
-                    t_clipboard = static_cast<MCLinuxRawClipboard*> (MCselection->GetRawClipboard());
-				else if (t_event->selection.selection == GDK_SELECTION_CLIPBOARD)
-                    t_clipboard = static_cast<MCLinuxRawClipboard*> (MCclipboard->GetRawClipboard());
-                else if (t_event->selection.selection == MCdndselectionatom)
-                    t_clipboard = static_cast<MCLinuxRawClipboard*> (MCdragboard->GetRawClipboard());
-                else
-                    t_clipboard = NULL;
-                
-                // Note: we don't use a secondary selection
-                if (t_clipboard != NULL)
-                {
-                    // -- tperry 13-11-2025: GTK3 - requestor is already a GdkWindow*, not an XID
-                    // Get the requestor window
-                    GdkWindow *t_requestor;
-                    t_requestor = t_event->selection.requestor;
-                    
-                    // -- tperry 16-11-2025: Check if requestor is valid (can be NULL or destroyed)
-                    if (t_requestor == NULL || !GDK_IS_WINDOW(t_requestor))
-                    {
-                        // Requestor window is invalid, ignore this selection request
-                        break;
-                    }
-                    
-                    // There is a backwards-compatibility issue with the way the
-                    // ICCCM deals with selections: older clients can request a
-                    // selection but not supply a property name. In that case,
-                    // the property set should be equal to the target name.
-                    //
-                    // The GDK manual does not say whether it works around this
-                    // wrinkle so we might as well check ourselves.
-                    GdkAtom t_property;
-                    if (t_event->selection.property != GDK_NONE)
-                        t_property = t_event->selection.property;
-                    else
-                        t_property = t_event->selection.target;
-                    
-                    // What type should the selection be converted to?
-                    static GdkAtom s_targets = gdk_atom_intern_static_string("TARGETS");
-                    static GdkAtom s_multiple = gdk_atom_intern_static_string("MULTIPLE");
-                    static GdkAtom s_timestamp = gdk_atom_intern_static_string("TIMESTAMP");
-                    if (t_event->selection.target == s_targets)
-                    {
-                        // Get the list of types we can convert to
-                        MCAutoDataRef t_targets(t_clipboard->CopyTargets());
-                        
-                        if (*t_targets != NULL)
-                        {
-                            // Set a property on the requestor containing the
-                            // list of targets we can convert to.
-                            uindex_t t_atom_count = MCDataGetLength(*t_targets)/sizeof(gulong);
-                            gdk_property_change(t_requestor, t_property,
-                                                GDK_SELECTION_TYPE_ATOM,
-                                                32,
-                                                GDK_PROP_MODE_REPLACE,
-                                                (const guchar*)MCDataGetBytePtr(*t_targets),
-                                                t_atom_count);
-                            
-                            // Notify the requestor that we have replied
-                            gdk_selection_send_notify(t_event->selection.requestor,
-                                                      t_event->selection.selection,
-                                                      t_event->selection.target,
-                                                      t_property,
-                                                      t_event->selection.time);
-                        }
-                        else
-                        {
-                            // We don't actually have anything to supply so
-                            // reject the request without supplying any data
-                            gdk_selection_send_notify(t_event->selection.requestor,
-                                                      t_event->selection.selection,
-                                                      t_event->selection.target,
-                                                      GDK_NONE,
-                                                      t_event->selection.time);
-                        }
-                    }
-                    else if (t_event->selection.target == s_multiple)
-                    {
-                        // This should be handled by GDK
-                        MCAssert(false);
-                    }
-                    else if (t_event->selection.target == s_timestamp)
-                    {
-                        // This should be handled by GDK
-                        MCAssert(false);
-                    }
-                    else
-                    {
-                        // Turn the requested selection into a string
-                        MCAutoStringRef t_atom_string(MCLinuxRawClipboard::CopyTypeForAtom(t_event->selection.target));
-                        
-                        // Get the requested representation of the data
-                        const MCRawClipboardItemRep* t_rep = NULL;
-                        MCAutoRefcounted<const MCLinuxRawClipboardItem> t_item = t_clipboard->GetSelectionItem();
-                        if (t_item != NULL)
-                            t_rep = t_item->FetchRepresentationByType(*t_atom_string);
-                        
-                        // Get the data in the requested form
-                        MCAutoDataRef t_data;
-                        if (t_rep != NULL)
-                            t_data.Give(t_rep->CopyData());
-                        
-                        if (*t_data != NULL)
-                        {
-                            // Transfer the data to the requestor via the
-                            // property that it specified
-                            gdk_property_change(t_requestor, t_property,
-                                                t_event->selection.target,
-                                                8,
-                                                GDK_PROP_MODE_REPLACE,
-                                                (const guchar*)MCDataGetBytePtr(*t_data),
-                                                MCDataGetLength(*t_data));
-                            
-                            // Notify the requestor that we have replied
-                            gdk_selection_send_notify(t_event->selection.requestor,
-                                                      t_event->selection.selection,
-                                                      t_event->selection.target,
-                                                      t_property,
-                                                      t_event->selection.time);
-                        }
-                        else
-                        {
-                            // Could not convert the data to the format that was
-                            // requested - reject the request.
-                            gdk_selection_send_notify(t_event->selection.requestor,
-                                                      t_event->selection.selection,
-                                                      t_event->selection.target,
-                                                      GDK_NONE,
-                                                      t_event->selection.time);
-                        }
-                    }
-                    
-                    // We don't need the requestor window handle any longer
-                    g_object_unref(t_requestor);
-                }
-                
+                HXT_HandleSelectionRequest(t_event);
                 break;
-            }
             
             case GDK_DRAG_ENTER:
             case GDK_DRAG_LEAVE:   
@@ -1451,6 +1292,147 @@ GdkAtom MCworkareaatom;
 GdkAtom MCstrutpartialatom;
 GdkAtom MCclientlistatom;
 GdkAtom MCdndselectionatom;
+
+// ---------------------------------------------------------------------------
+// Clipboard SelectionRequest helper
+// ---------------------------------------------------------------------------
+// Handles a GDK_SELECTION_REQUEST event synchronously.  Used both by the
+// main event loop (case GDK_SELECTION_REQUEST) and by HXT_CtrlV_SelectionFilter
+// so that SelectionRequest events arriving inside WebKit's nested event loop
+// (e.g. from gtk_clipboard_wait_for_text) are also served without deadlock.
+// The function g_object_unref's t_event->selection.requestor on success.
+static void HXT_HandleSelectionRequest(GdkEvent *t_event)
+{
+    MCLinuxRawClipboard *t_clipboard;
+    if (t_event->selection.selection == GDK_SELECTION_PRIMARY)
+        t_clipboard = static_cast<MCLinuxRawClipboard*>(MCselection->GetRawClipboard());
+    else if (t_event->selection.selection == GDK_SELECTION_CLIPBOARD)
+        t_clipboard = static_cast<MCLinuxRawClipboard*>(MCclipboard->GetRawClipboard());
+    else if (t_event->selection.selection == MCdndselectionatom)
+        t_clipboard = static_cast<MCLinuxRawClipboard*>(MCdragboard->GetRawClipboard());
+    else
+        t_clipboard = NULL;
+
+    if (t_clipboard == NULL)
+        return;
+
+    GdkWindow *t_requestor = t_event->selection.requestor;
+    if (t_requestor == NULL || !GDK_IS_WINDOW(t_requestor))
+        return;
+
+    GdkAtom t_property = (t_event->selection.property != GDK_NONE)
+                          ? t_event->selection.property
+                          : t_event->selection.target;
+
+    static GdkAtom s_targets   = gdk_atom_intern_static_string("TARGETS");
+    static GdkAtom s_multiple  = gdk_atom_intern_static_string("MULTIPLE");
+    static GdkAtom s_timestamp = gdk_atom_intern_static_string("TIMESTAMP");
+
+    if (t_event->selection.target == s_targets)
+    {
+        MCAutoDataRef t_targets(t_clipboard->CopyTargets());
+        if (*t_targets != NULL)
+        {
+            uindex_t t_atom_count = MCDataGetLength(*t_targets) / sizeof(gulong);
+            gdk_property_change(t_requestor, t_property,
+                                GDK_SELECTION_TYPE_ATOM, 32,
+                                GDK_PROP_MODE_REPLACE,
+                                (const guchar*)MCDataGetBytePtr(*t_targets),
+                                t_atom_count);
+            gdk_selection_send_notify(t_event->selection.requestor,
+                                      t_event->selection.selection,
+                                      t_event->selection.target,
+                                      t_property,
+                                      t_event->selection.time);
+        }
+        else
+        {
+            gdk_selection_send_notify(t_event->selection.requestor,
+                                      t_event->selection.selection,
+                                      t_event->selection.target,
+                                      GDK_NONE,
+                                      t_event->selection.time);
+        }
+    }
+    else if (t_event->selection.target == s_multiple ||
+             t_event->selection.target == s_timestamp)
+    {
+        // Should be handled by GDK
+        MCAssert(false);
+    }
+    else
+    {
+        MCAutoStringRef t_atom_string(
+            MCLinuxRawClipboard::CopyTypeForAtom(t_event->selection.target));
+
+        const MCRawClipboardItemRep *t_rep = NULL;
+        MCAutoRefcounted<const MCLinuxRawClipboardItem> t_item =
+            t_clipboard->GetSelectionItem();
+        if (t_item != NULL)
+            t_rep = t_item->FetchRepresentationByType(*t_atom_string);
+
+        MCAutoDataRef t_data;
+        if (t_rep != NULL)
+            t_data.Give(t_rep->CopyData());
+
+        if (*t_data != NULL)
+        {
+            gdk_property_change(t_requestor, t_property,
+                                t_event->selection.target, 8,
+                                GDK_PROP_MODE_REPLACE,
+                                (const guchar*)MCDataGetBytePtr(*t_data),
+                                MCDataGetLength(*t_data));
+            gdk_selection_send_notify(t_event->selection.requestor,
+                                      t_event->selection.selection,
+                                      t_event->selection.target,
+                                      t_property,
+                                      t_event->selection.time);
+        }
+        else
+        {
+            gdk_selection_send_notify(t_event->selection.requestor,
+                                      t_event->selection.selection,
+                                      t_event->selection.target,
+                                      GDK_NONE,
+                                      t_event->selection.time);
+        }
+    }
+
+    g_object_unref(t_requestor);
+}
+
+// GDK event filter installed on HXT's clipboard window around Ctrl+V dispatch.
+// Intercepts X11 SelectionRequest events and serves them inline so they run
+// inside WebKit's nested event loop (gtk_clipboard_wait_for_text on Fedora
+// uses a synchronous nested g_main_loop, which processes GDK events but does
+// NOT call HXT's main event loop handler for those events).
+static GdkFilterReturn HXT_CtrlV_SelectionFilter(
+    GdkXEvent *p_xevent, GdkEvent * /*p_gdk_event*/, gpointer /*p_data*/)
+{
+    x11::XEvent *xe = static_cast<x11::XEvent*>(p_xevent);
+    if (xe->type != SelectionRequest)
+        return GDK_FILTER_CONTINUE;
+
+    x11::XSelectionRequestEvent *req = &xe->xselectionrequest;
+    GdkDisplay *t_dpy = gdk_display_get_default();
+
+    // Construct a GdkEvent so we can call the shared handler
+    GdkEvent t_fake = {};
+    t_fake.type = GDK_SELECTION_REQUEST;
+    t_fake.selection.requestor =
+        x11::gdk_x11_window_foreign_new_for_display(t_dpy, (x11::Window)req->requestor);
+    t_fake.selection.selection = x11::gdk_x11_xatom_to_atom(req->selection);
+    t_fake.selection.target    = x11::gdk_x11_xatom_to_atom(req->target);
+    t_fake.selection.property  = (req->property != 0)
+                                  ? x11::gdk_x11_xatom_to_atom(req->property)
+                                  : GDK_NONE;
+    t_fake.selection.time      = (guint32)req->time;
+
+    // HXT_HandleSelectionRequest g_object_unref's the requestor window
+    HXT_HandleSelectionRequest(&t_fake);
+
+    return GDK_FILTER_REMOVE;
+}
 
 
 void MCScreenDC::EnqueueGdkEvents(bool p_block)
@@ -1535,13 +1517,25 @@ void MCScreenDC::EnqueueGdkEvents(bool p_block)
             continue;
         }
 
+        // X11 selection events (CLEAR, REQUEST, NOTIFY) must be enqueued for
+        // HXT's handle() switch even when they arrive on a non-stack window
+        // (e.g. s_clipboard_window).  If we let them fall through to the
+        // gtk_main_do_event path below, LostSelection() / HXT_HandleSelectionRequest
+        // are never called — meaning HXT never learns it lost clipboard ownership
+        // and stale data is pasted instead of fetching from the new owner.
+        bool t_is_selection_event =
+            (t_event->type == GDK_SELECTION_CLEAR  ||
+             t_event->type == GDK_SELECTION_REQUEST ||
+             t_event->type == GDK_SELECTION_NOTIFY);
+
         // Route ALL other events for non-HXT windows (e.g. GtkMenu popup,
         // GtkOffscreenWindow) via gtk_main_do_event so GTK can deliver them
         // to the correct widget.  Without this, GDK_ENTER_NOTIFY /
         // GDK_LEAVE_NOTIFY / GDK_MOTION_NOTIFY for the <select> popup menu
         // are consumed by HXT's event processor (which finds no matching stack
         // and drops them), leaving menu item hover highlights permanently stuck.
-        if (t_event->any.window != NULL &&
+        if (!t_is_selection_event &&
+            t_event->any.window != NULL &&
             MCdispatcher->findstackd(t_event->any.window) == NULL)
         {
             gtk_main_do_event(t_event);
