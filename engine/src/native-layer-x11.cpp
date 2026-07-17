@@ -152,8 +152,32 @@ bool hxt_browser_has_focus()
 void hxt_browser_clear_focus()
 {
     MCNativeLayerX11 *t_layer = MCNativeLayerX11::s_focused_browser_layer;
-    if (t_layer != NULL)
-        t_layer->m_browser_focused = false;
+    if (t_layer == NULL)
+        return;
+
+    t_layer->m_browser_focused = false;
+
+    // Synthesise GDK_FOCUS_CHANGE(in=FALSE) so WebKit hides its text caret.
+    // Mirrors the focus-in event sent by OnMouseDown.
+    GdkWindow *t_win = (t_layer->m_child_window != NULL)
+        ? gtk_widget_get_window(GTK_WIDGET(t_layer->m_child_window))
+        : NULL;
+    if (t_win && GDK_IS_WINDOW(t_win))
+    {
+        GdkDisplay *t_dpy  = gdk_display_get_default();
+        GdkSeat    *t_seat = gdk_display_get_default_seat(t_dpy);
+        GdkDevice  *t_kbd  = gdk_seat_get_keyboard(t_seat);
+
+        GdkEvent *t_focus = gdk_event_new(GDK_FOCUS_CHANGE);
+        t_focus->focus_change.window     = t_win;
+        g_object_ref(t_win);
+        t_focus->focus_change.send_event = TRUE;
+        t_focus->focus_change.in         = FALSE;
+        if (t_kbd)
+            gdk_event_set_device(t_focus, t_kbd);
+        gtk_main_do_event(t_focus);
+        gdk_event_free(t_focus);
+    }
 }
 
 void hxt_browser_key_down(unsigned int p_keyval, unsigned int p_state,
