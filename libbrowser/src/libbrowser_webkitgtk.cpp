@@ -296,6 +296,9 @@ static GLogWriterOutput hxt_log_writer(GLogLevelFlags log_level,
                 return G_LOG_WRITER_HANDLED;
             if (strstr(msg, "waitid(") && strstr(msg, "No child processes"))
                 return G_LOG_WRITER_HANDLED;
+            if (strstr(msg, "gdk_window_get_origin") &&
+                strstr(msg, "GDK_IS_WINDOW"))
+                return G_LOG_WRITER_HANDLED;
         }
     }
     return g_log_writer_default(log_level, fields, n_fields, NULL);
@@ -1488,7 +1491,7 @@ gboolean MCWebKitGTKBrowser::on_show_option_menu(WebKitWebView *p_view,
     };
 
     GdkWindow *t_anchor_win = t_stack_win;
-    if (t_anchor_win)
+    if (t_anchor_win && GDK_IS_WINDOW(t_anchor_win))
     {
         int t_origin_x = 0, t_origin_y = 0;
         gdk_window_get_origin(t_anchor_win, &t_origin_x, &t_origin_y);

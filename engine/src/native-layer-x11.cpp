@@ -840,7 +840,7 @@ void MCNativeLayerX11::doSetGeometry(const MCRectangle &p_rect)
     {
         GdkWindow *t_stack_win = getStackGdkWindow();
         int t_origin_x = 0, t_origin_y = 0;
-        if (t_stack_win)
+        if (t_stack_win && GDK_IS_WINDOW(t_stack_win))
             gdk_window_get_origin(t_stack_win, &t_origin_x, &t_origin_y);
         g_object_set_data(G_OBJECT(m_browser_widget), "hxt-screen-x",
             GINT_TO_POINTER(t_origin_x + m_rect.x));
