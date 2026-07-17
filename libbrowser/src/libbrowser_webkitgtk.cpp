@@ -1113,7 +1113,6 @@ int MCWebKitGTKBrowser::on_decide_policy(WebKitWebView * /*p_view*/,
                                            WebKitPolicyDecision *p_decision,
                                            int p_type, gpointer p_data)
 {
-    fprintf(stderr, "[HXT] decide_policy type=%d\n", p_type);
     MCWebKitGTKBrowser *t_browser = (MCWebKitGTKBrowser*)p_data;
 
     if (p_type == WEBKIT_POLICY_DECISION_TYPE_NEW_WINDOW_ACTION)
