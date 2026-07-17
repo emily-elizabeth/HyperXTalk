@@ -266,6 +266,37 @@ static void *LoadBundled(const char *p_exedir, const char *p_name)
     return dlopen(t_path, RTLD_LAZY | RTLD_LOCAL | RTLD_DEEPBIND);
 }
 
+// Suppress known-benign GLib/GDK warnings that arise from our offscreen-window
+// architecture and from WebKit's web-process lifecycle:
+//
+//  "drawable is not a native X11 window" — GDK emits this when it internally
+//  calls gdk_x11_window_get_xid() on the GtkOffscreenWindow backing the browser.
+//  Offscreen windows have no real X11 drawable; the warning is harmless.
+//
+//  "waitid(...) failed: No child processes" — GLib's child-watch source fires
+//  after WebKit has already reaped its web-process via its own SIGCHLD handler.
+//  The double-reap attempt is benign; GLib just can't find the child any more.
+//
+// We install these handlers once, at WebKit load time, so they cover the entire
+// lifetime of the browser subsystem.  All other messages are forwarded to the
+// default handler unchanged.
+static void hxt_gdk_log_filter(const gchar *domain, GLogLevelFlags level,
+                                const gchar *message, gpointer data)
+{
+    if (message && strstr(message, "drawable is not a native X11 window"))
+        return;
+    g_log_default_handler(domain, level, message, data);
+}
+
+static void hxt_glib_log_filter(const gchar *domain, GLogLevelFlags level,
+                                 const gchar *message, gpointer data)
+{
+    if (message && strstr(message, "waitid(") &&
+        strstr(message, "No child processes"))
+        return;
+    g_log_default_handler(domain, level, message, data);
+}
+
 #define LOAD_SYM(lib, name) \
     wk.name = (__typeof__(wk.name))dlsym(lib, #name)
 
@@ -518,6 +549,9 @@ static bool LoadWebKit(void)
 
     if (!wk.webkit_web_view_load_uri || !wk.gtk_window_new || !wk.gdk_x11_window_get_xid)
         return false;
+
+    g_log_set_handler("Gdk",  G_LOG_LEVEL_WARNING, hxt_gdk_log_filter,  NULL);
+    g_log_set_handler("GLib", G_LOG_LEVEL_WARNING, hxt_glib_log_filter, NULL);
 
     s_webkit_loaded = true;
     return true;
