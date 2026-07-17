@@ -277,24 +277,28 @@ static void *LoadBundled(const char *p_exedir, const char *p_name)
 //  after WebKit has already reaped its web-process via its own SIGCHLD handler.
 //  The double-reap attempt is benign; GLib just can't find the child any more.
 //
-// We install these handlers once, at WebKit load time, so they cover the entire
-// lifetime of the browser subsystem.  All other messages are forwarded to the
-// default handler unchanged.
-static void hxt_gdk_log_filter(const gchar *domain, GLogLevelFlags level,
-                                const gchar *message, gpointer data)
+// GLib 2.50+ routes log messages through g_log_structured(), which bypasses
+// g_log_set_handler() entirely.  We must use g_log_set_writer_func() instead.
+// The writer is process-wide and called for every log message, so we forward
+// everything we don't recognise to g_log_writer_default().
+static GLogWriterOutput hxt_log_writer(GLogLevelFlags log_level,
+                                        const GLogField *fields,
+                                        gsize n_fields,
+                                        gpointer /*user_data*/)
 {
-    if (message && strstr(message, "drawable is not a native X11 window"))
-        return;
-    g_log_default_handler(domain, level, message, data);
-}
-
-static void hxt_glib_log_filter(const gchar *domain, GLogLevelFlags level,
-                                 const gchar *message, gpointer data)
-{
-    if (message && strstr(message, "waitid(") &&
-        strstr(message, "No child processes"))
-        return;
-    g_log_default_handler(domain, level, message, data);
+    for (gsize i = 0; i < n_fields; i++)
+    {
+        if (fields[i].key && strcmp(fields[i].key, "MESSAGE") == 0 &&
+            fields[i].value)
+        {
+            const char *msg = static_cast<const char*>(fields[i].value);
+            if (strstr(msg, "drawable is not a native X11 window"))
+                return G_LOG_WRITER_HANDLED;
+            if (strstr(msg, "waitid(") && strstr(msg, "No child processes"))
+                return G_LOG_WRITER_HANDLED;
+        }
+    }
+    return g_log_writer_default(log_level, fields, n_fields, NULL);
 }
 
 #define LOAD_SYM(lib, name) \
@@ -304,6 +308,10 @@ static bool LoadWebKit(void)
 {
     if (s_webkit_loaded)
         return true;
+
+    // Install the log writer before any WebKit initialisation so that warnings
+    // fired during gtk_widget_show_all() and WebKit's own startup are filtered.
+    g_log_set_writer_func(hxt_log_writer, NULL, NULL);
 
     // Disable AT-SPI bridge to prevent crashes on systems where the D-Bus/ATK
     // bridge is incompatible with the dynamically loaded WebKit.
@@ -549,9 +557,6 @@ static bool LoadWebKit(void)
 
     if (!wk.webkit_web_view_load_uri || !wk.gtk_window_new || !wk.gdk_x11_window_get_xid)
         return false;
-
-    g_log_set_handler("Gdk",  G_LOG_LEVEL_WARNING, hxt_gdk_log_filter,  NULL);
-    g_log_set_handler("GLib", G_LOG_LEVEL_WARNING, hxt_glib_log_filter, NULL);
 
     s_webkit_loaded = true;
     return true;
