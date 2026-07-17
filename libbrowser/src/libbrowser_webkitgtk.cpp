@@ -1196,26 +1196,18 @@ static void hxt_nav_done_41(GObject *source, GAsyncResult *result, gpointer user
     GError *err = NULL;
     JSCValue *val = (JSCValue*)wk.webkit_web_view_evaluate_javascript_finish(
         (WebKitWebView*)source, result, &err);
-    fprintf(stderr, "[HXT] hxt_nav_done_41: val=%p err=%s\n",
-        (void*)val, err ? err->message : "none");
     if (val)
     {
         if (wk.jsc_value_is_string && wk.jsc_value_to_string &&
             wk.jsc_value_is_string(val))
         {
             gchar *url = wk.jsc_value_to_string(val);
-            fprintf(stderr, "[HXT] JS returned '%s'\n", url ? url : "(null)");
-            // "HXT:..." strings are debug info from SimulateClick JS — log
-            // them but do not treat as a URL to navigate to.
+            // "HXT:..." strings are internal SimulateClick return values —
+            // do not treat as a URL to navigate to.
             if (url && url[0] && strncmp(url, "HXT:", 4) != 0 &&
                 wk.webkit_web_view_load_uri)
                 wk.webkit_web_view_load_uri(ctx->view, url);
             if (url) wk.g_free(url);
-        }
-        else
-        {
-            fprintf(stderr, "[HXT] JS val not a string (is_string=%p)\n",
-                (void*)wk.jsc_value_is_string);
         }
         wk.g_object_unref(val);
     }
@@ -1230,8 +1222,6 @@ static void hxt_nav_done_40(GObject *source, GAsyncResult *result, gpointer user
     GError *err = NULL;
     WebKitJavascriptResult *res = wk.webkit_web_view_run_javascript_finish(
         (WebKitWebView*)source, result, &err);
-    fprintf(stderr, "[HXT] hxt_nav_done_40: res=%p err=%s\n",
-        (void*)res, err ? err->message : "none");
     if (res && wk.webkit_javascript_result_get_js_value)
     {
         JSCValue *val = wk.webkit_javascript_result_get_js_value(res);
@@ -1239,7 +1229,6 @@ static void hxt_nav_done_40(GObject *source, GAsyncResult *result, gpointer user
             wk.jsc_value_is_string(val))
         {
             gchar *url = wk.jsc_value_to_string(val);
-            fprintf(stderr, "[HXT] JS returned '%s'\n", url ? url : "(null)");
             if (url && url[0] && strncmp(url, "HXT:", 4) != 0 &&
                 wk.webkit_web_view_load_uri)
                 wk.webkit_web_view_load_uri(ctx->view, url);
@@ -1256,10 +1245,6 @@ static void hxt_nav_done_40(GObject *source, GAsyncResult *result, gpointer user
 void MCWebKitGTKBrowser::SimulateClick(void *ctx, int x, int y)
 {
     MCWebKitGTKBrowser *b = static_cast<MCWebKitGTKBrowser*>(ctx);
-    fprintf(stderr, "[HXT] SimulateClick(%d,%d) b=%p view=%p eval=%p run=%p\n",
-        x, y, (void*)b, b ? (void*)b->m_web_view : NULL,
-        (void*)wk.webkit_web_view_evaluate_javascript,
-        (void*)wk.webkit_web_view_run_javascript);
     if (!b || !b->m_web_view) return;
 
     // Run JS that finds the nearest anchor to (x,y) and returns its absolute
@@ -1344,7 +1329,6 @@ void MCWebKitGTKBrowser::on_option_menu_item_activate(GtkMenuItem *p_item, gpoin
         (WebKitOptionMenu*)g_object_get_data(G_OBJECT(p_item), "hxt-opt-menu");
     guint t_idx =
         (guint)GPOINTER_TO_INT(g_object_get_data(G_OBJECT(p_item), "hxt-opt-idx"));
-    fprintf(stderr, "[HXT] option menu item activated idx=%u menu=%p\n", t_idx, (void*)t_menu);
     if (t_menu && wk.webkit_option_menu_activate_item)
         wk.webkit_option_menu_activate_item(t_menu, t_idx);
 }
@@ -1356,7 +1340,6 @@ void MCWebKitGTKBrowser::on_option_menu_item_activate(GtkMenuItem *p_item, gpoin
 void MCWebKitGTKBrowser::on_option_menu_hidden(GtkWidget *p_widget, gpointer p_data)
 {
     WebKitOptionMenu *t_menu = (WebKitOptionMenu*)p_data;
-    fprintf(stderr, "[HXT] option menu hidden, closing WebKitOptionMenu\n");
     if (t_menu && wk.webkit_option_menu_close)
         wk.webkit_option_menu_close(t_menu);
     wk.gtk_widget_destroy(p_widget);
@@ -1367,7 +1350,6 @@ void MCWebKitGTKBrowser::on_option_menu_hidden(GtkWidget *p_widget, gpointer p_d
 // HXT's event loop can resume.
 static void hxt_option_menu_deactivate(GtkMenuShell * /*shell*/, gpointer /*data*/)
 {
-    fprintf(stderr, "[HXT] option menu deactivated, calling gtk_main_quit\n");
     gtk_main_quit();
 }
 
@@ -1384,15 +1366,10 @@ gboolean MCWebKitGTKBrowser::on_show_option_menu(WebKitWebView *p_view,
                                                    GdkRectangle *p_rect,
                                                    gpointer /*p_data*/)
 {
-    fprintf(stderr, "[HXT] on_show_option_menu rect=(%d,%d %dx%d)\n",
-        p_rect ? p_rect->x : -1, p_rect ? p_rect->y : -1,
-        p_rect ? p_rect->width  : -1, p_rect ? p_rect->height : -1);
-
     if (!wk.webkit_option_menu_get_n_items || !wk.gtk_menu_new ||
         !wk.gtk_menu_item_new_with_label || !wk.gtk_menu_shell_append ||
         !wk.gtk_menu_popup_at_rect)
     {
-        fprintf(stderr, "[HXT] show-option-menu: missing symbols, falling back\n");
         return FALSE;
     }
 
@@ -1401,9 +1378,6 @@ gboolean MCWebKitGTKBrowser::on_show_option_menu(WebKitWebView *p_view,
     int t_screen_x = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(p_view), "hxt-screen-x"));
     int t_screen_y = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(p_view), "hxt-screen-y"));
     GdkWindow *t_stack_win = (GdkWindow*)g_object_get_data(G_OBJECT(p_view), "hxt-stack-win");
-
-    fprintf(stderr, "[HXT] widget screen=(%d,%d) stack_win=%p\n",
-        t_screen_x, t_screen_y, (void*)t_stack_win);
 
     // Build GtkMenu from WebKitOptionMenu items.
     GtkWidget *t_gtk_menu = wk.gtk_menu_new();
@@ -1479,8 +1453,6 @@ gboolean MCWebKitGTKBrowser::on_show_option_menu(WebKitWebView *p_view,
         t_anchor.y = (t_screen_y - t_origin_y) + (p_rect ? p_rect->y : 0);
         t_anchor.width  = p_rect ? p_rect->width  : 1;
         t_anchor.height = p_rect ? p_rect->height : 1;
-        fprintf(stderr, "[HXT] anchor in stack coords=(%d,%d %dx%d)\n",
-            t_anchor.x, t_anchor.y, t_anchor.width, t_anchor.height);
     }
     else
     {
@@ -1506,8 +1478,6 @@ gboolean MCWebKitGTKBrowser::on_show_option_menu(WebKitWebView *p_view,
     // Nested gtk_main() calls are explicitly supported by GTK and are the
     // standard mechanism for modal popups and combo-box dropdowns.
     gtk_main();
-
-    fprintf(stderr, "[HXT] gtk_main() returned, menu done\n");
 
     // Notify WebKit the option menu is closed and destroy the GtkMenu widget.
     if (wk.webkit_option_menu_close)
@@ -1543,7 +1513,6 @@ void MCWebKitGTKBrowser::on_progress_changed(GObject *p_obj, GParamSpec * /*p_ps
 void MCWebKitGTKBrowser::on_nav_message(WebKitUserContentManager * /*p_mgr*/,
                                           gpointer p_js_result, gpointer p_data)
 {
-    fprintf(stderr, "[HXT] on_nav_message fired p_js_result=%p\n", p_js_result);
     MCWebKitGTKBrowser *t_browser = (MCWebKitGTKBrowser*)p_data;
 
     JSCValue *t_value = nil;
