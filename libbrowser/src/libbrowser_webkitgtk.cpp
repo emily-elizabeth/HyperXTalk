@@ -1301,7 +1301,9 @@ void MCWebKitGTKBrowser::SimulateClick(void *ctx, int x, int y)
     char js[2048];
     snprintf(js, sizeof(js),
         "(function(x,y){"
-          "var dpr=window.devicePixelRatio||1,cx=x/dpr,cy=y/dpr;"
+          // doPaint() renders at physical resolution so HXT pixel == CSS pixel.
+          // Use x/y directly; no dpr division.
+          "var cx=x,cy=y;"
           "var el=document.elementFromPoint(cx,cy);"
           "if(!el)return'HXT:null';"
           // isField: INPUT/TEXTAREA/SELECT or any contenteditable element.
@@ -1337,7 +1339,7 @@ void MCWebKitGTKBrowser::SimulateClick(void *ctx, int x, int y)
             // TAB keypress would land two elements ahead instead of one.  Calling
             // .focus() alone focuses the element and resets the SFNSP to f itself.
             "f.focus();"
-            "return'HXT:field:'+f.nodeName+':'+f.id;"
+            "return'HXT:field';"
           "}"
           // Walk up for an anchor — return the href so the C++ callback can
           // navigate via webkit_web_view_load_uri().
@@ -1353,7 +1355,7 @@ void MCWebKitGTKBrowser::SimulateClick(void *ctx, int x, int y)
           // click to immediately close (their document-level dismiss listener
           // fires on the extra synthetic click) — appearing as if nothing
           // happened.  Do nothing; let the native events do the work.
-          "return'HXT:click:'+el.nodeName;"
+          "return'HXT:click';"
         "})(%d,%d)", x, y);
 
     HXTNavCtx *nav_ctx = new HXTNavCtx;

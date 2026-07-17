@@ -354,6 +354,9 @@ void MCNativeLayerX11::forwardPointerEvent(GdkEventType p_type,
     if (m_browser_widget == NULL)
         return;
 
+    // doPaint() allocates a physical-resolution cairo surface (scale×w × scale×h)
+    // so HXT logical pixel == CSS pixel. Forward coordinates as-is; no scale division.
+
     // Use the browser widget's own GdkWindow (inside the GtkOffscreenWindow)
     // as the event window so WebKit's coordinate-space assumptions stay correct.
     // Fall back to the offscreen window if the browser widget isn't yet realised.
@@ -800,14 +803,32 @@ bool MCNativeLayerX11::doPaint(MCGContextRef p_context)
     if (t_w <= 0 || t_h <= 0)
         return false;
 
-    // Allocate a software-backed ARGB32 image surface.
+    // On HiDPI displays (GDK_SCALE > 1), gtk_widget_draw() asks WebKit to render
+    // at gdk_window_get_scale_factor() × the widget's logical size.  With a 1×
+    // cairo surface this clips the CSS viewport to 1/scale of the page width.
+    // Fix: allocate a physical-resolution surface (t_w*scale × t_h*scale) and
+    // set its device_scale so cairo user coordinates stay in logical pixels.
+    // gtk_widget_draw then fills the full physical surface correctly.
+    // MCGContextDrawImage scales the result back down to m_rect dimensions.
+    GdkDisplay *t_dpy2 = gdk_display_get_default();
+    GdkMonitor *t_mon2 = t_dpy2 ? gdk_display_get_primary_monitor(t_dpy2) : NULL;
+    int t_scale = (t_mon2 ? gdk_monitor_get_scale_factor(t_mon2) : 1);
+    if (t_scale < 1) t_scale = 1;
+
+    int t_pw = t_w * t_scale;   // physical pixel width
+    int t_ph = t_h * t_scale;   // physical pixel height
+
     cairo_surface_t *t_surf =
-        cairo_image_surface_create(CAIRO_FORMAT_ARGB32, t_w, t_h);
+        cairo_image_surface_create(CAIRO_FORMAT_ARGB32, t_pw, t_ph);
     if (cairo_surface_status(t_surf) != CAIRO_STATUS_SUCCESS)
     {
         cairo_surface_destroy(t_surf);
         return false;
     }
+    // Tell cairo the surface is at t_scale device pixels per user (logical) unit.
+    // This keeps the fill/clip coordinates in logical pixels while the backing
+    // store captures physical pixels.
+    cairo_surface_set_device_scale(t_surf, (double)t_scale, (double)t_scale);
 
     // Paint the WebKit widget into the surface.
     //
@@ -815,9 +836,10 @@ bool MCNativeLayerX11::doPaint(MCGContextRef p_context)
     //   page rather than transparent / garbage pixels.
     // • gtk_widget_draw() fires the "draw" signal on WebKitWebView; in
     //   WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER mode the draw handler blits
-    //   WebKit's software-rendered tiles into our cairo_t.
+    //   WebKit's software-rendered tiles into our cairo_t.  With device_scale
+    //   set, WebKit renders the full CSS viewport at physical resolution.
     cairo_t *t_cr = cairo_create(t_surf);
-    cairo_rectangle(t_cr, 0, 0, t_w, t_h);
+    cairo_rectangle(t_cr, 0, 0, t_w, t_h);  // logical coords → physical t_pw×t_ph
     cairo_clip(t_cr);
     cairo_set_source_rgb(t_cr, 1.0, 1.0, 1.0);
     cairo_paint(t_cr);
@@ -831,10 +853,10 @@ bool MCNativeLayerX11::doPaint(MCGContextRef p_context)
     // MCGImageCreateWithRasterNoCopy does NOT take ownership of the buffer, so
     // snapshot the pixels into a separately allocated block.
     void *t_pixels = NULL;
-    bool t_success = MCMemoryAllocate((size_t)t_h * t_stride, t_pixels);
+    bool t_success = MCMemoryAllocate((size_t)t_ph * t_stride, t_pixels);
     if (t_success)
     {
-        memcpy(t_pixels, t_data, (size_t)t_h * t_stride);
+        memcpy(t_pixels, t_data, (size_t)t_ph * t_stride);
 
         // Cairo ARGB32 on little-endian stores pixels as BGRA bytes
         // (the 32-bit int 0xAARRGGBB laid out in memory as B,G,R,A).
@@ -843,7 +865,7 @@ bool MCNativeLayerX11::doPaint(MCGContextRef p_context)
         // Swap byte0 (B) ↔ byte2 (R) for every pixel.
         {
             uint8_t *p   = static_cast<uint8_t*>(t_pixels);
-            uint8_t *end = p + (size_t)t_h * t_stride;
+            uint8_t *end = p + (size_t)t_ph * t_stride;
             for (; p < end; p += 4)
             {
                 uint8_t b = p[0];
@@ -852,10 +874,12 @@ bool MCNativeLayerX11::doPaint(MCGContextRef p_context)
             }
         }
 
+        // Raster is at physical resolution (t_pw × t_ph).
+        // MCGContextDrawImage scales it into the logical m_rect (t_w × t_h).
         MCGRaster t_raster;
         t_raster.format = kMCGRasterFormat_ARGB;
-        t_raster.width  = (uint32_t)t_w;
-        t_raster.height = (uint32_t)t_h;
+        t_raster.width  = (uint32_t)t_pw;
+        t_raster.height = (uint32_t)t_ph;
         t_raster.stride = (uint32_t)t_stride;
         t_raster.pixels = t_pixels;
 
