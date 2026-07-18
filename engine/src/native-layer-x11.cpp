@@ -621,6 +621,20 @@ gboolean MCNativeLayerX11::onRedrawIdle(gpointer user_data)
     return G_SOURCE_REMOVE;
 }
 
+// static
+// Called by libbrowser's SnapshotDone() via the "hxt-repaint-fn" bridge after
+// a fresh webkit_web_view_get_snapshot() surface has been stored.  Schedules a
+// Redraw() exactly as onDamage() would, so doPaint() runs and blits the snapshot.
+void MCNativeLayerX11::TriggerRedraw(void *ctx)
+{
+    MCNativeLayerX11 *t_layer = static_cast<MCNativeLayerX11*>(ctx);
+    if (!t_layer->m_redraw_pending && t_layer->m_object != NULL)
+    {
+        t_layer->m_redraw_pending = true;
+        g_idle_add(onRedrawIdle, t_layer);
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Event forwarding — stack window → offscreen browser
 
@@ -664,6 +678,13 @@ void MCNativeLayerX11::doAttach()
         if (m_browser_widget != NULL)
         {
             gtk_container_add(GTK_CONTAINER(m_child_window), m_browser_widget);
+
+            // Register the snapshot-ready repaint bridge so that libbrowser's
+            // SnapshotDone() can schedule a Redraw() after storing a snapshot.
+            g_object_set_data(G_OBJECT(m_browser_widget), "hxt-repaint-fn",
+                (gpointer)(void(*)(void*))&MCNativeLayerX11::TriggerRedraw);
+            g_object_set_data(G_OBJECT(m_browser_widget), "hxt-repaint-ctx",
+                (gpointer)this);
         }
 
         // Size the offscreen window to the widget rect.  No intersection with
@@ -846,6 +867,40 @@ bool MCNativeLayerX11::doPaint(MCGContextRef p_context)
     gtk_widget_draw(m_browser_widget, t_cr);
     cairo_destroy(t_cr);
     cairo_surface_flush(t_surf);
+
+    // If gtk_widget_draw() produced only the white fill (blank), try the
+    // snapshot fallback for WebKit 2.44+ (Fedora) where the compositor
+    // bypasses Cairo and the draw signal handler is a no-op.
+    {
+        unsigned char *d = cairo_image_surface_get_data(t_surf);
+        // Detect blank: all-white (GTK background paint, no WebKit content) or
+        // all-zero (transparent black — what we get on WebKit 2.44+ where
+        // gtk_widget_draw() is a compositor no-op and leaves the surface untouched).
+        bool t_blank = !d ||
+                       (d[0] == 0xFF && d[1] == 0xFF && d[2] == 0xFF) ||
+                       (d[0] == 0x00 && d[1] == 0x00 && d[2] == 0x00);
+        if (t_blank)
+        {
+            // Use the most recent snapshot if one is ready.
+            cairo_surface_t *t_snap = (cairo_surface_t*)g_object_get_data(
+                G_OBJECT(m_browser_widget), "hxt-snapshot");
+            if (t_snap)
+            {
+                cairo_t *t_cr2 = cairo_create(t_surf);
+                cairo_set_source_surface(t_cr2, t_snap, 0, 0);
+                cairo_paint(t_cr2);
+                cairo_destroy(t_cr2);
+            }
+            // Request a fresh snapshot for the next frame.
+            typedef void (*HXTSnapFn)(void*);
+            HXTSnapFn snap_fn = (HXTSnapFn)g_object_get_data(
+                G_OBJECT(m_browser_widget), "hxt-snap-fn");
+            void *snap_ctx = g_object_get_data(
+                G_OBJECT(m_browser_widget), "hxt-snap-ctx");
+            if (snap_fn && snap_ctx)
+                snap_fn(snap_ctx);
+        }
+    }
 
     unsigned char *t_data   = cairo_image_surface_get_data(t_surf);
     int            t_stride = cairo_image_surface_get_stride(t_surf);
