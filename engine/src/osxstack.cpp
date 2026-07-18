@@ -15,7 +15,6 @@ You should have received a copy of the GNU General Public License
 along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 
-#if !defined(__arm64__) && !defined(__aarch64__)
 #include "osxprefix.h"
 
 #include "globdefs.h"
@@ -201,5 +200,3 @@ void MCStack::release_window_buffer()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
-#endif // !__arm64__
