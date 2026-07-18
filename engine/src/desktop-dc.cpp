@@ -130,6 +130,7 @@ Boolean MCScreenDC::open()
 	
 	backdrop_enabled = false;
 	backdrop_pattern = nil;
+	backdrop_extra_count = 0;
 	MCPlatformCreateWindow(backdrop_window);
 	
 	MCPlatformCreateMenu(icon_menu);
@@ -145,6 +146,9 @@ Boolean MCScreenDC::close(Boolean force)
 	MCPlatformReleaseMenu(icon_menu);
     
     MCPlatformReleaseWindow(backdrop_window);
+    for (uint32_t i = 0; i < backdrop_extra_count; i++)
+        MCPlatformReleaseWindow(backdrop_extra_windows[i]);
+    backdrop_extra_count = 0;
 	
 	// COCOA-TODO: Is this still needed?
 	if (ncolors != 0)
@@ -556,6 +560,14 @@ void MCScreenDC::enactraisewindows(void)
 	{
 		MCPlatformHideWindow(backdrop_window);
         MCPlatformConfigureBackdrop(nil);
+        // HXT: Hide and release per-display extra backdrop windows.
+        MCPlatformConfigureExtraBackdropWindows(nullptr, 0);
+        for (uint32_t i = 0; i < backdrop_extra_count; i++)
+        {
+            MCPlatformHideWindow(backdrop_extra_windows[i]);
+            MCPlatformReleaseWindow(backdrop_extra_windows[i]);
+        }
+        backdrop_extra_count = 0;
 	}
 }
 
@@ -566,35 +578,48 @@ void MCScreenDC::enablebackdrop(bool p_hard)
 	
 	backdrop_enabled = true;
 
-	// Build the union rect of all screens so the backdrop spans multiple monitors.
-	// Use getdisplays() rather than MCPlatformGetScreen* so this works on all
-	// platforms (macOS, Windows, Linux).
+	// Use one backdrop window per display. A single spanning window does not work
+	// on macOS when "Displays have separate Spaces" is enabled — macOS assigns the
+	// window to the Space of whichever display contains the window's center, and
+	// the window only renders on that display regardless of collection behavior.
+	// Each per-display window is sized to its display's viewport and assigned to
+	// that display's Space naturally, with no spanning needed.
 	MCDisplay const *t_displays;
 	uint32_t t_display_count = getdisplays(t_displays, false);
 
+	// Primary backdrop window covers display 0.
 	MCRectangle t_rect;
 	if (t_display_count > 0)
-	{
 		t_rect = t_displays[0].viewport;
-		for (uint32_t i = 1; i < t_display_count; i++)
-		{
-			MCRectangle t_screen = t_displays[i].viewport;
-			int32_t t_right  = MCMax(t_rect.x + (int32_t)t_rect.width,  t_screen.x + (int32_t)t_screen.width);
-			int32_t t_bottom = MCMax(t_rect.y + (int32_t)t_rect.height, t_screen.y + (int32_t)t_screen.height);
-			t_rect.x = MCMin(t_rect.x, t_screen.x);
-			t_rect.y = MCMin(t_rect.y, t_screen.y);
-			t_rect.width  = (uint32_t)(t_right  - t_rect.x);
-			t_rect.height = (uint32_t)(t_bottom - t_rect.y);
-		}
-	}
 	else
-	{
 		MCPlatformGetScreenViewport(0, t_rect);
-	}
-
 	MCPlatformSetWindowProperty(backdrop_window, kMCPlatformWindowPropertyContentRect, kMCPlatformPropertyTypeRectangle, &t_rect);
 	MCPlatformConfigureBackdrop(backdrop_window);
+
+	// Create one extra window for each additional display.
+	// Release any leftover extra windows from a previous enable call.
+	for (uint32_t i = 0; i < backdrop_extra_count; i++)
+		MCPlatformReleaseWindow(backdrop_extra_windows[i]);
+	backdrop_extra_count = 0;
+
+	for (uint32_t i = 1; i < t_display_count && i - 1 < kBackdropExtraMax; i++)
+	{
+		MCPlatformCreateWindow(backdrop_extra_windows[backdrop_extra_count]);
+		MCRectangle t_extra_rect = t_displays[i].viewport;
+		MCPlatformSetWindowProperty(backdrop_extra_windows[backdrop_extra_count],
+			kMCPlatformWindowPropertyContentRect, kMCPlatformPropertyTypeRectangle, &t_extra_rect);
+		backdrop_extra_count++;
+	}
+
+	// Register extra windows with the platform BEFORE showing any window.
+	// MCMacPlatformSyncBackdrop() (called from DoRealize then DoShow) will then
+	// apply the correct level and collection behavior to each extra window as it
+	// becomes realized.
+	MCPlatformConfigureExtraBackdropWindows(backdrop_extra_windows, backdrop_extra_count);
+
 	MCPlatformShowWindow(backdrop_window);
+	for (uint32_t i = 0; i < backdrop_extra_count; i++)
+		MCPlatformShowWindow(backdrop_extra_windows[i]);
 }
 
 void MCScreenDC::disablebackdrop(bool p_hard)
@@ -614,6 +639,12 @@ void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_patte
 	
 	MCPlatformInvalidateWindow(backdrop_window, nil);
     MCPlatformUpdateWindow(backdrop_window);
+    // HXT: Invalidate extra per-display backdrop windows too.
+    for (uint32_t i = 0; i < backdrop_extra_count; i++)
+    {
+        MCPlatformInvalidateWindow(backdrop_extra_windows[i], nil);
+        MCPlatformUpdateWindow(backdrop_extra_windows[i]);
+    }
 }
 
 void MCScreenDC::assignbackdrop(Window_mode p_mode, Window p_window)
@@ -624,7 +655,12 @@ void MCScreenDC::assignbackdrop(Window_mode p_mode, Window p_window)
 
 bool MCScreenDC::isbackdrop(MCPlatformWindowRef p_window)
 {
-	return backdrop_window == p_window;
+	if (backdrop_window == p_window)
+		return true;
+	for (uint32_t i = 0; i < backdrop_extra_count; i++)
+		if (backdrop_extra_windows[i] == p_window)
+			return true;
+	return false;
 }
 
 void MCScreenDC::redrawbackdrop(MCPlatformSurfaceRef p_surface, MCGRegionRef p_region)

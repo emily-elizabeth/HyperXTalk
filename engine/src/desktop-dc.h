@@ -32,6 +32,11 @@ private:
 	MCColor backdrop_colour;
 	MCPatternRef backdrop_pattern;
 	MCPlatformWindowRef backdrop_window;
+	// HXT: per-display backdrop windows for displays beyond the primary.
+	// Created lazily in enablebackdrop() and released in disablebackdrop().
+	static const uint32_t kBackdropExtraMax = 7;
+	MCPlatformWindowRef backdrop_extra_windows[kBackdropExtraMax];
+	uint32_t backdrop_extra_count;
 	
 	MCPlatformMenuRef icon_menu;
 	

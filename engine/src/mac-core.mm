@@ -1540,13 +1540,41 @@ void MCPlatformGetScreenPixelScale(uindex_t p_index, MCGFloat& r_scale)
 
 static MCPlatformWindowRef s_backdrop_window = nil;
 
+// HXT: Extra backdrop windows — one per display beyond the primary.
+// Populated by MCPlatformConfigureExtraBackdropWindows().
+static const uint32_t kExtraBackdropMax = 7;
+static MCPlatformWindowRef s_extra_backdrop_windows[kExtraBackdropMax];
+static uint32_t s_extra_backdrop_count = 0;
+
 void MCMacPlatformSyncBackdrop(void)
 {
     if (s_backdrop_window == nil)
         return;
-    
+
     NSWindow *t_backdrop;
     t_backdrop = ((MCMacPlatformWindow *)s_backdrop_window) -> GetHandle();
+
+    // The NSWindow may not be realized yet (ConfigureBackdrop is called before
+    // ShowWindow). Skip silently — DoShow() will call us again once it exists.
+    if (t_backdrop == nil)
+        return;
+
+    // Apply backdrop-specific window settings now that we have a real handle.
+    // These are safe to set on every sync call.
+    //
+    // canBecomeKeyWindow: NO — prevents menu actions from routing into the
+    // backdrop's (empty) responder chain.
+    //
+    // Stationary | IgnoresCycle — don't expose the backdrop in Mission Control
+    // or the Cmd+Tab switcher, and don't let it move when switching Spaces.
+    // CanJoinAllSpaces is NOT used here: the primary backdrop window covers only
+    // display 0; additional displays each get their own window via
+    // MCPlatformConfigureExtraBackdropWindows(), so no spanning is needed.
+    [t_backdrop setCanBecomeKeyWindow: NO];
+    [t_backdrop setCollectionBehavior:
+        NSWindowCollectionBehaviorStationary |
+        NSWindowCollectionBehaviorIgnoresCycle];
+
 
     // Use a CATransaction to batch all window-order changes into a single
     // composited frame with no animation.  NSDisableScreenUpdates /
@@ -1591,7 +1619,41 @@ void MCMacPlatformSyncBackdrop(void)
     else
         [t_backdrop orderBack: nil];
 
+    // HXT: Apply per-display settings to extra backdrop windows.
+    // Each extra window covers exactly one display, so it is assigned to that
+    // display's Space naturally — no CanJoinAllSpaces needed. Running at
+    // kCGNormalWindowLevel - 1 places it automatically below all normal-level
+    // app windows without needing explicit z-order manipulation.
+    for (uint32_t i = 0; i < s_extra_backdrop_count; i++)
+    {
+        NSWindow *t_extra;
+        t_extra = ((MCMacPlatformWindow *)s_extra_backdrop_windows[i]) -> GetHandle();
+        if (t_extra == nil)
+            continue;
+        [t_extra setCanBecomeKeyWindow: NO];
+        [t_extra setLevel: kCGNormalWindowLevel - 1];
+        [t_extra setCollectionBehavior:
+            NSWindowCollectionBehaviorStationary |
+            NSWindowCollectionBehaviorIgnoresCycle];
+    }
+
     [CATransaction commit];
+}
+
+void MCPlatformConfigureExtraBackdropWindows(MCPlatformWindowRef *p_windows, uint32_t p_count)
+{
+    // Release refs held from the previous call.
+    for (uint32_t i = 0; i < s_extra_backdrop_count; i++)
+        MCPlatformReleaseWindow(s_extra_backdrop_windows[i]);
+
+    s_extra_backdrop_count = MCMin(p_count, kExtraBackdropMax);
+    for (uint32_t i = 0; i < s_extra_backdrop_count; i++)
+    {
+        s_extra_backdrop_windows[i] = p_windows[i];
+        MCPlatformRetainWindow(s_extra_backdrop_windows[i]);
+    }
+
+    MCMacPlatformSyncBackdrop();
 }
 
 void MCPlatformConfigureBackdrop(MCPlatformWindowRef p_backdrop_window)
@@ -1613,13 +1675,10 @@ void MCPlatformConfigureBackdrop(MCPlatformWindowRef p_backdrop_window)
     {
 		MCPlatformRetainWindow(s_backdrop_window);
 
-        // The backdrop must never become the key window — if it does, menu
-        // actions route through its responder chain and find no handler,
-        // so menu items like "New Stack" silently do nothing.
-        // This must be set before MCPlatformShowWindow is called so that
-        // makeKeyAndOrderFront: brings the window to front without making it key.
-        NSWindow *t_new = ((MCMacPlatformWindow *)s_backdrop_window) -> GetHandle();
-        [t_new setCanBecomeKeyWindow: NO];
+        // canBecomeKeyWindow and collectionBehavior are applied in
+        // MCMacPlatformSyncBackdrop(), which is called from DoShow() once
+        // the NSWindow actually exists. Setting them here would be a no-op
+        // because the window has not been realized yet at this point.
     }
 
 	MCMacPlatformSyncBackdrop();
