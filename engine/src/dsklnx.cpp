@@ -2164,16 +2164,224 @@ virtual real64_t GetCurrentMicroseconds(void)
 #endif
     }
 
-    virtual void DoAlternateLanguage(MCStringRef p_script, MCStringRef p_language)
-    {
-        MCresult->sets("alternate language not found");
+// return 1 for true, 0 for false, -1 on error
+//TODO: fix the occasional buffer overflow
+int is_language_installed(const char *prog) {
+    int pipefd[2];
+    if (-1 == pipe(pipefd)) {
+        //perror("pipe");
+		fprintf(stderr, "pipe failed");
+        return -1;
     }
 
-    virtual bool AlternateLanguages(MCListRef& r_list)
-    {
-        r_list = MCValueRetain(kMCEmptyList);
-        return true;
+    pid_t pid = fork();
+    if (pid < 0) {
+		fprintf(stderr, "fork failed");
+        close(pipefd[0]);
+        close(pipefd[1]);
+        return -1;
     }
+    if (0 == pid) {
+        /* Child */
+        close(pipefd[0]); /* close read end in child */
+
+        /* Ensure the write end is closed if exec succeeds */
+        int flags = fcntl(pipefd[1], F_GETFD);
+        if (-1 != flags) {
+            fcntl(pipefd[1], F_SETFD, flags | FD_CLOEXEC);
+        }
+
+        /* Optional: silence child's stdout/stderr while probing */
+        int devnull = open("/dev/null", O_WRONLY);
+        if (-1 != devnull) {
+            dup2(devnull, STDOUT_FILENO);
+            dup2(devnull, STDERR_FILENO);
+            close(devnull);
+        }
+
+        /* Try to exec the program. Use --version as a harmless probe; if the
+           program doesn't accept it you can pass NULL to run with no args. */
+        execlp(prog, prog, "--version", (char *)NULL);
+
+        /* If we get here, exec failed. Write errno to parent then exit. */
+        int err = errno;
+        (void)write(pipefd[1], &err, sizeof(err)); /* best effort */
+        close(pipefd[1]);
+        _exit(127); /* indicate exec failure */
+    }
+
+    /* Parent */
+    close(pipefd[1]); /* close write end in parent */
+
+    /* Read from pipe: if exec succeeded, FD_CLOEXEC closed write end on exec,
+       so read() will return 0 (EOF) immediately. If exec failed child wrote errno. */
+    int child_errno = 0;
+    ssize_t r = read(pipefd[0], &child_errno, sizeof(child_errno));
+    close(pipefd[0]);
+
+    /* Reap child */
+    int status = 0;
+    if (-1 == waitpid(pid, &status, 0)) {
+		fprintf(stderr, "waitpid failed");
+        return -1;
+    }
+
+    if (0 == r) {
+        /* EOF: exec succeeded (the new program replaced child). Program is installed. */
+        return 1;
+    } else if (r == sizeof(child_errno)) {
+        /* exec failed; child_errno contains errno value from exec */
+        if (ENOENT == child_errno) {
+            /* file not found in PATH */
+            return 0;
+        } else {
+            /* Some other exec error (permission, ENOEXEC, etc.) */
+            fprintf(stderr, "execlp('%s') failed in child: %s\n", prog, strerror(child_errno));
+            return 0;
+        }
+    } else {
+        /* unexpected read result */
+        return -1;
+    }
+}
+
+void MCS_lnxdoalternatelanguage(MCStringRef p_script, MCStringRef p_language)
+{
+	char *langname;
+
+	MCStringConvertToCString(p_language, langname);
+	// strncmp here should handle both 'python' and 'python3'
+	if (0 == strncmp(langname, "python", 6))
+	{
+		MCS_alternate_shell(p_script, langname);
+	}
+	else
+		MCresult->sets("alternate language not found");
+}
+
+// MDW 2013-07-05 : allow alternate languages
+// by opening a new process and capturing the output
+// return the result
+/* Example:
+on mouseUp
+	local tScript
+	put "x=42" & cr into tScript
+	put "print(x)" & cr after tScript
+
+	do tScript as "python3"
+	put the result into field 1
+end mouseUp
+*/
+void MCS_alternate_shell(MCStringRef script, const char *langname)
+{
+	FILE *inProcess;
+	char *commandLine;
+	char *buffer, *line;
+	unsigned int bufferLength;
+	MCString s;
+	s = MCStringGetCString(script);
+	
+	// set up the command line (langname + arguments)
+	bufferLength = s.getlength() + strlen(langname) + 8;
+	commandLine = (char *)malloc(bufferLength);
+
+	// write the script to a temporary file
+	// this allows us to have embedded quotes in the script
+	int fileDesc;
+	char fileTemplate[] = "/tmp/HxTXXXXXX";
+	fileDesc = mkstemp(fileTemplate);
+	if (-1 == fileDesc)
+	{
+		fprintf(stderr, "mkstemp error");
+		return;
+	}
+
+	FILE *fd = fdopen(fileDesc, "w");
+	if (!fd)
+	{
+		fprintf(stderr, "fdopen error");
+		return;
+	}
+
+    if (fputs(s.getstring(), fd) == EOF) {
+        fclose(fd);
+		fprintf(stderr, "fputs error");
+		return;
+    }
+    fflush(fd);
+    fclose(fd); // also closes fileDesc
+
+	sprintf(commandLine, "%s %s 2>&1", langname, fileTemplate);
+
+	const int kREADMAX=512;
+	buffer = (char *)malloc(kREADMAX);
+	line = (char *)malloc(kREADMAX);
+	bufferLength = kREADMAX;
+	*buffer = 0; // null-terminate the output buffer
+	inProcess = popen(commandLine, "r");
+	if (NULL != inProcess)
+	{
+		while(fgets(line, kREADMAX, inProcess))
+		{
+			if (feof(inProcess))
+				break;
+			// ensure there's room in the buffer
+			if (strlen(buffer) + strlen(line) > bufferLength)
+			{
+				bufferLength *= 2;
+				buffer = (char *)realloc(buffer, bufferLength);
+			}
+			buffer = strcat(buffer, line);
+		}
+		MCresult->copysvalue(buffer);
+		int status = pclose(inProcess);
+		if (-1 == status) {
+			fprintf(stderr, "perror status=%s\n", status);
+		}
+
+		if (WIFEXITED(status)) {
+		    int exit_code = WEXITSTATUS(status);
+		    fprintf(stderr, "%s exit code: %d\n", langname, exit_code);
+		} else if (WIFSIGNALED(status)) {
+		    fprintf(stderr, "%s killed by signal: %d\n", langname, WTERMSIG(status));
+		} else {
+		    fprintf(stderr, "%s terminated abnormally (status=0x%x)\n", langname, status);
+		}
+
+	}
+	else
+	{
+		fprintf(stderr, "pOpen inProcess failed");
+	}
+
+	free(commandLine);
+	free(line);
+	free(buffer);
+    if (-1 == unlink(fileTemplate)) {
+        fprintf(stderr, "warning: unlink(%s) failed: %s\n", fileTemplate, strerror(errno));
+    }
+}
+virtual void DoAlternateLanguage(MCStringRef p_script, MCStringRef p_language)
+{
+	if (1 == is_language_installed(MCStringGetCString(p_language)))
+		MCS_lnxdoalternatelanguage(p_script, p_language);
+	else
+	{
+		MCresult->sets("alternate language not found");
+	}
+}
+
+virtual bool AlternateLanguages(MCListRef& r_list)
+{
+	MCAutoStringRef t_language;
+    /* UNCHECKED */ MCStringCreateWithCString("python", &t_language);
+	MCAutoListRef t_list;
+	if (!MCListCreateMutable('\n', &t_list))
+		return false;
+	if (!MCListAppend(*t_list, *t_language))
+		return false;
+	return MCListCopy(*t_list, r_list);
+}
 
     virtual bool GetDNSservers(MCListRef& r_list)
     {
