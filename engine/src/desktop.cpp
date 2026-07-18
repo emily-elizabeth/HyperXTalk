@@ -132,12 +132,6 @@ void MCPlatformHandleApplicationShutdown(int& r_exit_code)
 
 void MCPlatformHandleApplicationShutdownRequest(bool& r_terminate)
 {
-#if defined(_MAC_DESKTOP)
-    {
-        FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-        if (f) { fprintf(f, "MCPlatformHandleApplicationShutdownRequest called\n"); fclose(f); }
-    }
-#endif
 	switch(MCdefaultstackptr->getcard()->message(MCM_shut_down_request))
 	{
 		case ES_PASS:

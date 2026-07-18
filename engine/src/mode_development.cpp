@@ -341,22 +341,9 @@ IO_stat MCDispatch::startup(void)
         MCdefaultstackptr = MCstaticdefaultstackptr = stacks;
 
         {
-#if defined(_MAC_DESKTOP)
-            // ARM64-DEBUG: Log before startUp message
-            {
-                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-                if (f) { fprintf(f, "mode_development: sending MCM_start_up\n"); fclose(f); }
-            }
-#endif
             MCdefaultstackptr -> setextendedstate(true, ECS_DURING_STARTUP);
             MCdefaultstackptr -> message(MCM_start_up, nil, False, True);
             MCdefaultstackptr -> setextendedstate(false, ECS_DURING_STARTUP);
-#if defined(_MAC_DESKTOP)
-            {
-                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-                if (f) { fprintf(f, "mode_development: MCM_start_up returned MCquit=%d\n", (int)MCquit); fclose(f); }
-            }
-#endif
         }
 
         if (!MCquit)
@@ -368,34 +355,12 @@ IO_stat MCDispatch::startup(void)
             t_valueref2 = nil;
             MCresult -> eval(ctxt, t_valueref);
 
-#if defined(_MAC_DESKTOP)
-            {
-                MCAutoStringRef t_result_str;
-                MCStringFormat(&t_result_str, "%@", t_valueref != nil ? t_valueref : (MCValueRef)kMCEmptyString);
-                MCAutoStringRefAsUTF8String t_utf8;
-                t_utf8.Lock(*t_result_str);
-                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-                if (f) { fprintf(f, "mode_development: MCresult after startup='%s' (empty=%d)\n", *t_utf8, MCValueIsEmpty(t_valueref)); fclose(f); }
-            }
-#endif
             if (MCValueIsEmpty(t_valueref))
             {
                 sptr -> open();
                 MCImage::init();
 
-#if defined(_MAC_DESKTOP)
-                {
-                    FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-                    if (f) { fprintf(f, "mode_development: entering X_main_loop\n"); fclose(f); }
-                }
-#endif
                 X_main_loop();
-#if defined(_MAC_DESKTOP)
-                {
-                    FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-                    if (f) { fprintf(f, "mode_development: X_main_loop returned MCquit=%d\n", (int)MCquit); fclose(f); }
-                }
-#endif
                 MCresult -> eval(ctxt, t_valueref2);
                 if (MCValueIsEmpty(t_valueref2))
                 {
@@ -412,23 +377,11 @@ IO_stat MCDispatch::startup(void)
             // if (sptr -> getscript() != NULL)
             //	memset(sptr -> getscript(), 0, strlen(sptr -> getscript()));
 
-#if defined(_MAC_DESKTOP)
-            {
-                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-                if (f) { fprintf(f, "mode_development: non-empty path, calling destroystack\n"); fclose(f); }
-            }
-#endif
             destroystack(sptr, True);
             MCtopstackptr = nil;
             MCquit = False;
             MCenvironmentactive = False;
 
-#if defined(_MAC_DESKTOP)
-            {
-                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-                if (f) { fprintf(f, "mode_development: destroystack done, calling send_relaunch\n"); fclose(f); }
-            }
-#endif
             send_relaunch();
             MCNewAutoNameRef t_name;
             if(!ctxt . ConvertToName(t_valueref, &t_name))
@@ -443,26 +396,10 @@ IO_stat MCDispatch::startup(void)
             if (t_valueref2 != nil)
                 MCValueRelease(t_valueref2);
 
-#if defined(_MAC_DESKTOP)
-            {
-                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-                if (f) { fprintf(f, "mode_development: calling loadfile for home stack (sptr_found=%d)\n", (int)(sptr != NULL)); fclose(f); }
-            }
-#endif
             if (sptr == NULL && (stat = loadfile(MCNameGetString(*t_name), sptr)) != IO_NORMAL)
             {
-#if defined(_MAC_DESKTOP)
-                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-                if (f) { fprintf(f, "mode_development: loadfile FAILED stat=%d\n", (int)stat); fclose(f); }
-#endif
                 return stat;
             }
-#if defined(_MAC_DESKTOP)
-            {
-                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-                if (f) { fprintf(f, "mode_development: loadfile succeeded, sptr=%p\n", (void*)sptr); fclose(f); }
-            }
-#endif
         }
     }
 
@@ -473,34 +410,10 @@ IO_stat MCDispatch::startup(void)
 		MCallowinterrupts = true;
 		sptr -> setparent(this);
 		MCdefaultstackptr = MCstaticdefaultstackptr = stacks;
-#if defined(_MAC_DESKTOP)
-        {
-            FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-            if (f) { fprintf(f, "mode_development: calling send_startup_message\n"); fclose(f); }
-        }
-#endif
 		send_startup_message(false);
-#if defined(_MAC_DESKTOP)
-        {
-            FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-            if (f) { fprintf(f, "mode_development: send_startup_message returned MCquit=%d\n", (int)MCquit); fclose(f); }
-        }
-#endif
 		if (!MCquit)
 		{
-#if defined(_MAC_DESKTOP)
-            {
-                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-                if (f) { fprintf(f, "mode_development: calling sptr->open()\n"); fclose(f); }
-            }
-#endif
 			sptr -> open();
-#if defined(_MAC_DESKTOP)
-            {
-                FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-                if (f) { fprintf(f, "mode_development: sptr->open() returned, MCquit=%d\n", (int)MCquit); fclose(f); }
-            }
-#endif
 		}
 	}
 
