@@ -449,6 +449,14 @@ static bool LoadWebKit(void)
             else
                 snprintf(t_ldpath, sizeof(t_ldpath), "%s", t_extdir);
             setenv("LD_LIBRARY_PATH", t_ldpath, 1);
+
+            // Tell WebKit where to find its subprocess helpers (WebKitWebProcess,
+            // WebKitNetworkProcess) bundled alongside the libs in Externals/.
+            char t_subproc[PATH_MAX];
+            snprintf(t_subproc, sizeof(t_subproc), "%s/webkit-subprocess", t_extdir);
+            struct stat t_subproc_st;
+            if (stat(t_subproc, &t_subproc_st) == 0 && S_ISDIR(t_subproc_st.st_mode))
+                setenv("WEBKIT_SUBPROCESS_PATH", t_subproc, 1);
         }
     }
 

@@ -363,6 +363,169 @@ if [ "${#ffmpeg_seed[@]}" -gt 0 ]; then
     bundle_libs_recursive "${ffmpeg_seed[@]}"
 fi
 
+# --- Bundle WebKit2GTK into Externals/ ---
+#
+# The engine loads webkit via LoadBundled(exedir, name) which resolves to
+# $exedir/Externals/<name>.  In the AppImage, $exedir is usr/bin/, so all
+# WebKit libs and their transitive deps go in usr/bin/Externals/.
+#
+# After loading the bundled WebKit, C++ code (libbrowser_webkitgtk.cpp):
+#   - Pre-loads GLib/GTK from Externals/ with RTLD_DEEPBIND (avoids symbol
+#     conflicts with the engine's own GLib/GTK linkage)
+#   - Sets GIO_MODULE_DIR to $exedir/Externals/gio/modules
+#   - Prepends $exedir/Externals to LD_LIBRARY_PATH (inherited by WebKit
+#     subprocess helpers so they can find bundled libs)
+#   - Sets WEBKIT_SUBPROCESS_PATH to $exedir/Externals/webkit-subprocess
+#
+# Skip pattern for WebKit deps: exclude only kernel ABI, OpenGL, and X11.
+# We KEEP GLib/GTK so the RTLD_DEEPBIND pre-load works properly.
+WK_SKIP="linux-vdso|ld-linux|libpthread|libdl|librt|libc\\.so|libm\\.so\
+|libGL\\.so|libEGL\\.so|libGLdispatch|libGLX\
+|libX11|libXext|libXfixes|libXrender|libXi|libxcb|libXau|libXdmcp\
+|libgcc_s|libstdc++"
+
+WEBKIT_EXTERNALS="$APPBIN/Externals"
+WEBKIT_SUBPROCESS_DIR="$WEBKIT_EXTERNALS/webkit-subprocess"
+WEBKIT_GIO_MODULES="$WEBKIT_EXTERNALS/gio/modules"
+mkdir -p "$WEBKIT_SUBPROCESS_DIR" "$WEBKIT_GIO_MODULES"
+
+# Locate the WebKit and JSC shared libraries on the build machine.
+WK_LIB=""
+JSC_LIB=""
+for candidate in \
+    /usr/lib/x86_64-linux-gnu/libwebkit2gtk-4.1.so.0 \
+    /usr/lib/x86_64-linux-gnu/libwebkit2gtk-4.0.so.37 \
+    /usr/lib/libwebkit2gtk-4.1.so.0 \
+    /usr/lib/libwebkit2gtk-4.0.so.37; do
+    [ -e "$candidate" ] || continue
+    WK_LIB="$candidate"; break
+done
+for candidate in \
+    /usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.1.so.0 \
+    /usr/lib/x86_64-linux-gnu/libjavascriptcoregtk-4.0.so.18 \
+    /usr/lib/libjavascriptcoregtk-4.1.so.0 \
+    /usr/lib/libjavascriptcoregtk-4.0.so.18; do
+    [ -e "$candidate" ] || continue
+    JSC_LIB="$candidate"; break
+done
+
+if [ -z "$WK_LIB" ]; then
+    echo "WARNING: webkit2gtk not found on build machine — browser widget disabled in AppImage." >&2
+else
+    echo "Bundling WebKit2GTK from $WK_LIB ..."
+
+    # Determine the versioned subprocess helper directory.
+    if echo "$WK_LIB" | grep -q "4\.1"; then
+        WK_SUBPROC_SYS="/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1"
+    else
+        WK_SUBPROC_SYS="/usr/lib/x86_64-linux-gnu/webkit2gtk-4.0"
+    fi
+    [ -d "$WK_SUBPROC_SYS" ] || WK_SUBPROC_SYS=""
+
+    # Copy the main WebKit and JSC shared libraries (real file + any symlink).
+    _copy_lib_with_real() {
+        local f="$1" dest="$2"
+        [ -e "$f" ] || return 0
+        cp -P "$f" "$dest/" 2>/dev/null || true
+        local real; real="$(readlink -f "$f" 2>/dev/null || echo "$f")"
+        local rname; rname="$(basename "$real")"
+        local fname; fname="$(basename "$f")"
+        if [ "$rname" != "$fname" ] && [ -f "$real" ] && [ ! -e "$dest/$rname" ]; then
+            cp "$real" "$dest/" 2>/dev/null || true
+        fi
+        echo "  bundled $(basename "$f")"
+    }
+    _copy_lib_with_real "$WK_LIB"  "$WEBKIT_EXTERNALS"
+    _copy_lib_with_real "$JSC_LIB" "$WEBKIT_EXTERNALS"
+
+    # Copy WebKit subprocess helpers (WebKitWebProcess, WebKitNetworkProcess).
+    # They are ELF executables that WebKit spawns as child processes; they need
+    # WEBKIT_SUBPROCESS_PATH set so WebKit can find them.
+    if [ -n "$WK_SUBPROC_SYS" ]; then
+        for helper in WebKitWebProcess WebKitNetworkProcess; do
+            if [ -f "$WK_SUBPROC_SYS/$helper" ]; then
+                cp "$WK_SUBPROC_SYS/$helper" "$WEBKIT_SUBPROCESS_DIR/"
+                echo "  bundled subprocess helper: $helper"
+            fi
+        done
+    fi
+
+    # Copy GIO modules (needed for TLS/GVFS support inside the AppImage).
+    for gio_dir in \
+        /usr/lib/x86_64-linux-gnu/gio/modules \
+        /usr/lib/gio/modules; do
+        [ -d "$gio_dir" ] || continue
+        cp "$gio_dir"/*.so "$WEBKIT_GIO_MODULES/" 2>/dev/null || true
+        echo "  bundled GIO modules from $gio_dir"
+        break
+    done
+
+    # Recursive dep bundler — copies into an arbitrary destination directory.
+    bundle_to_dir() {
+        local dest="$1"; shift
+        local worklist=("$@")
+        local changed=1
+        while [ "$changed" -eq 1 ]; do
+            changed=0
+            local next_worklist=()
+            for target in "${worklist[@]}"; do
+                [ -f "$target" ] || continue
+                while IFS= read -r lib; do
+                    local name; name="$(basename "$lib")"
+                    echo "$lib" | grep -qE "$WK_SKIP" && continue
+                    if [ ! -e "$dest/$name" ]; then
+                        cp -P "$lib" "$dest/" 2>/dev/null || true
+                        local real; real="$(readlink -f "$lib" 2>/dev/null || echo "$lib")"
+                        local rname; rname="$(basename "$real")"
+                        if [ "$rname" != "$name" ] && [ -f "$real" ] && [ ! -e "$dest/$rname" ]; then
+                            cp "$real" "$dest/" 2>/dev/null || true
+                        fi
+                        next_worklist+=("$real")
+                        changed=1
+                    fi
+                done < <(ldd "$target" 2>/dev/null | awk '{print $3}' | grep "^/")
+            done
+            worklist=("${next_worklist[@]}")
+        done
+    }
+
+    # Seed the recursive pass with WebKit, JSC, subprocess helpers, and GIO modules.
+    wk_seed=()
+    for f in "$WEBKIT_EXTERNALS"/*.so "$WEBKIT_EXTERNALS"/*.so.*; do
+        [ -f "$f" ] || continue
+        real="$(readlink -f "$f" 2>/dev/null || echo "$f")"
+        [ -f "$real" ] && wk_seed+=("$real")
+    done
+    for f in "$WEBKIT_SUBPROCESS_DIR"/*; do
+        [ -f "$f" ] && wk_seed+=("$f")
+    done
+    for f in "$WEBKIT_GIO_MODULES"/*.so; do
+        [ -f "$f" ] && wk_seed+=("$f")
+    done
+    if [ "${#wk_seed[@]}" -gt 0 ]; then
+        mapfile -t wk_seed < <(printf '%s\n' "${wk_seed[@]}" | sort -u)
+        echo "  Resolving transitive deps for WebKit (${#wk_seed[@]} seed files)..."
+        bundle_to_dir "$WEBKIT_EXTERNALS" "${wk_seed[@]}"
+    fi
+
+    # Patch RPATH on all real libs in Externals/ so they find sibling deps.
+    echo "  Patching RPATH on Externals/ libs..."
+    find "$WEBKIT_EXTERNALS" -maxdepth 1 -type f -name "*.so*" | while read -r lib; do
+        patchelf --set-rpath '$ORIGIN' "$lib" 2>/dev/null || true
+    done
+    # GIO module helpers: one level deeper, so RPATH points up to Externals/.
+    find "$WEBKIT_GIO_MODULES" -type f -name "*.so" | while read -r lib; do
+        patchelf --set-rpath '$ORIGIN/..' "$lib" 2>/dev/null || true
+    done
+    # Subprocess helpers: also one level deeper.
+    for f in "$WEBKIT_SUBPROCESS_DIR"/*; do
+        [ -f "$f" ] || continue
+        patchelf --set-rpath '$ORIGIN/..' "$f" 2>/dev/null || true
+    done
+
+    echo "WebKit2GTK bundled ($(find "$WEBKIT_EXTERNALS" -maxdepth 1 -name "*.so*" | wc -l) libs in Externals/)"
+fi
+
 # --- Patch RPATH on every bundled lib so transitive deps resolve ---
 # Each bundled .so in LIB_DEST may have its original DT_RUNPATH pointing at the
 # build-system's /usr/lib/... paths.  DT_RUNPATH is NOT inherited, so libvlc.so.5
@@ -450,6 +613,10 @@ export BAMF_DESKTOP_FILE_HINT="$_DESKTOP_DEST"
 export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 # Fallback in case the engine's own probe doesn't run first.
 export VLC_PLUGIN_PATH="$HERE/usr/bin/vlc-plugins/plugins"
+# WebKit subprocess helpers bundled in Externals/webkit-subprocess/.
+# The C++ LoadWebKit() also sets this at runtime, but setting it here ensures
+# it's available to any early WebKit initialisation before our code runs.
+export WEBKIT_SUBPROCESS_PATH="$HERE/usr/bin/Externals/webkit-subprocess"
 exec "$HERE/usr/bin/HyperXTalk" "$@"
 APPRUN
 chmod +x "$APPDIR/AppRun"
