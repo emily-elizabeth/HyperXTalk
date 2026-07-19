@@ -451,15 +451,24 @@ else
     #
     # AppRun creates symlinks at /tmp/.hxt-wk/webkit2gtk-4.1/ pointing to
     # the bundled helpers in Externals/webkit-subprocess/ at launch time.
-    echo "  Patching PKGLIBEXECDIR in bundled libwebkit2gtk..."
+    echo "  Patching PKGLIBEXECDIR strings in bundled libwebkit2gtk..."
     python3 - "$WEBKIT_EXTERNALS" <<'PYEOF'
 import sys, os, glob
 
 dest = sys.argv[1]
-old = b'/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1\x00'
-new = b'/tmp/.hxt-wk/webkit2gtk-4.1\x00'
-assert len(new) <= len(old), f"replacement string too long ({len(new)} > {len(old)})"
-new_padded = new + b'\x00' * (len(old) - len(new))
+
+# Two separate compile-time strings to patch (both use the same /tmp target).
+# 1. PKGLIBEXECDIR alone — used to locate subprocess helpers at runtime.
+# 2. PKGLIBEXECDIR + "/injected-bundle/" — used to locate the injected bundle.
+#    This is a separate string literal, NOT derived from (1) at runtime.
+patches = [
+    (b'/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1\x00',
+     b'/tmp/.hxt-wk/webkit2gtk-4.1\x00'),
+    (b'/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/injected-bundle/\x00',
+     b'/tmp/.hxt-wk/webkit2gtk-4.1/injected-bundle/\x00'),
+]
+for old, new in patches:
+    assert len(new) <= len(old), f"replacement too long: {new!r}"
 
 patched = 0
 for pattern in ('libwebkit2gtk-4.1.so*', 'libwebkit2gtk-4.0.so*'):
@@ -468,27 +477,40 @@ for pattern in ('libwebkit2gtk-4.1.so*', 'libwebkit2gtk-4.0.so*'):
             continue  # patch real files only, not symlinks
         with open(path, 'rb') as f:
             data = f.read()
-        n = data.count(old)
-        if n:
-            data = data.replace(old, new_padded)
+        changed = False
+        for old, new in patches:
+            n = data.count(old)
+            if n:
+                new_padded = new + b'\x00' * (len(old) - len(new))
+                data = data.replace(old, new_padded)
+                label = old.rstrip(b'\x00').decode()
+                print(f'    patched {n} ref(s) of ...{label[-30:]} in {os.path.basename(path)}')
+                changed = True
+        if changed:
             with open(path, 'wb') as f:
                 f.write(data)
-            print(f'    patched {n} PKGLIBEXECDIR ref(s) in {os.path.basename(path)}')
             patched += 1
 if not patched:
-    print('    WARNING: PKGLIBEXECDIR string not found — subprocess helpers may not load', file=sys.stderr)
+    print('    WARNING: PKGLIBEXECDIR strings not found in libwebkit2gtk', file=sys.stderr)
 PYEOF
 
-    # Copy WebKit subprocess helpers (WebKitWebProcess, WebKitNetworkProcess).
-    # They are ELF executables that WebKit spawns as child processes; they need
-    # WEBKIT_SUBPROCESS_PATH set so WebKit can find them.
+    # Copy WebKit subprocess helpers and injected bundle.
     if [ -n "$WK_SUBPROC_SYS" ]; then
-        for helper in WebKitWebProcess WebKitNetworkProcess; do
+        for helper in WebKitWebProcess WebKitNetworkProcess WebKitWebDriver; do
             if [ -f "$WK_SUBPROC_SYS/$helper" ]; then
                 cp "$WK_SUBPROC_SYS/$helper" "$WEBKIT_SUBPROCESS_DIR/"
                 echo "  bundled subprocess helper: $helper"
             fi
         done
+        # The injected bundle is loaded into WebKitWebProcess; its path is
+        # a separate compile-time string in libwebkit2gtk (not derived from
+        # PKGLIBEXECDIR at runtime), so we patch it independently below.
+        if [ -d "$WK_SUBPROC_SYS/injected-bundle" ]; then
+            mkdir -p "$WEBKIT_SUBPROCESS_DIR/injected-bundle"
+            cp "$WK_SUBPROC_SYS/injected-bundle/"*.so \
+               "$WEBKIT_SUBPROCESS_DIR/injected-bundle/" 2>/dev/null || true
+            echo "  bundled injected-bundle from $WK_SUBPROC_SYS/injected-bundle/"
+        fi
     fi
 
     # Copy GIO modules (needed for TLS/GVFS support inside the AppImage).
@@ -655,17 +677,30 @@ export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin${LD_LIBRARY_PATH:+:$LD_LIBRA
 # Fallback in case the engine's own probe doesn't run first.
 export VLC_PLUGIN_PATH="$HERE/usr/bin/vlc-plugins/plugins"
 
-# WebKit subprocess helper symlinks.
+# WebKit subprocess helper and injected-bundle symlinks.
 # The bundled libwebkit2gtk has its PKGLIBEXECDIR patched to /tmp/.hxt-wk/webkit2gtk-4.1
-# at AppImage build time (env-var overrides are not available in Ubuntu release builds).
-# We create symlinks here so the helpers are found at that stable /tmp path.
-_WK_SUBPROC_LINK="/tmp/.hxt-wk/webkit2gtk-4.1"
-mkdir -p "$_WK_SUBPROC_LINK"
+# at AppImage build time (env-var overrides are not in Ubuntu release builds).
+# We create symlinks here so helpers and the injected bundle are found at that path.
+_WK_LINK="/tmp/.hxt-wk/webkit2gtk-4.1"
+mkdir -p "$_WK_LINK/injected-bundle"
 for _helper in WebKitWebProcess WebKitNetworkProcess WebKitWebDriver; do
     [ -f "$HERE/usr/bin/Externals/webkit-subprocess/$_helper" ] && \
         ln -sfn "$HERE/usr/bin/Externals/webkit-subprocess/$_helper" \
-                "$_WK_SUBPROC_LINK/$_helper" 2>/dev/null || true
+                "$_WK_LINK/$_helper" 2>/dev/null || true
 done
+for _bundle in "$HERE/usr/bin/Externals/webkit-subprocess/injected-bundle/"*.so; do
+    [ -f "$_bundle" ] && \
+        ln -sfn "$_bundle" "$_WK_LINK/injected-bundle/$(basename "$_bundle")" 2>/dev/null || true
+done
+
+# Disable WebKit GPU/DMA-BUF renderer — it calls EGL which aborts on systems
+# where the EGL stack isn't compatible with the bundled (Ubuntu-built) WebKit.
+# WEBKIT_FORCE_SANDBOX=0 ensures env vars are not stripped by bubblewrap before
+# reaching WebKitWebProcess.
+export WEBKIT_DISABLE_COMPOSITING_MODE=1
+export WEBKIT_DISABLE_DMABUF_RENDERER=1
+export WEBKIT_FORCE_SANDBOX=0
+export LIBGL_ALWAYS_SOFTWARE=1
 
 exec "$HERE/usr/bin/HyperXTalk" "$@"
 APPRUN
