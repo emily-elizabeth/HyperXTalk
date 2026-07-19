@@ -166,6 +166,33 @@ if [ -d "$OUT_DIR/modules" ]; then
     cp -a "$OUT_DIR/modules/"* "$APPBIN/modules/" 2>/dev/null || true
 fi
 
+# --- AppStream metadata ---
+# Required by software centres (GNOME Software, KDE Discover, AppImageHub) and
+# suppresses the appimagetool "upstream metadata is missing" warning.
+mkdir -p "$APPDIR/usr/share/metainfo"
+cat > "$APPDIR/usr/share/metainfo/HyperXTalk.appdata.xml" <<APPDATA
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>HyperXTalk</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <name>HyperXTalk</name>
+  <summary>Cross-platform x-talk development environment</summary>
+  <description>
+    <p>
+      HyperXTalk is a cross-platform integrated development environment for
+      building applications in the xTalk family of languages.
+    </p>
+  </description>
+  <launchable type="desktop-id">HyperXTalk.desktop</launchable>
+  <url type="homepage">https://hyperxtalk.discourse.group</url>
+  <releases>
+    <release version="${VERSION}" date="$(date -u +%Y-%m-%d)"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>
+APPDATA
+
 # --- Desktop file ---
 cat > "$APPDIR/usr/share/applications/HyperXTalk.desktop" <<'DESKTOP'
 [Desktop Entry]
