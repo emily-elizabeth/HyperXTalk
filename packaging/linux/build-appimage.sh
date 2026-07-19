@@ -185,7 +185,7 @@ cat > "$APPDIR/usr/share/metainfo/HyperXTalk.appdata.xml" <<APPDATA
     </p>
   </description>
   <launchable type="desktop-id">HyperXTalk.desktop</launchable>
-  <url type="homepage">https://hyperxtalk.discourse.group</url>
+  <url type="homepage">https://hyperxtalk.com</url>
   <releases>
     <release version="${VERSION}" date="$(date -u +%Y-%m-%d)"/>
   </releases>
