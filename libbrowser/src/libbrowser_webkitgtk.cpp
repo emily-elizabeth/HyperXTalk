@@ -399,9 +399,12 @@ static bool LoadWebKit(void)
     {
         // Fall back to bundled copies.  Pre-load bundled GLib/GTK dependencies
         // with RTLD_DEEPBIND so they don't stomp on the engine's static copies.
-        for (const char **p = (const char*[]){ "libglib-2.0.so.0", "libgobject-2.0.so.0",
-                                                "libgio-2.0.so.0", "libgdk-3.so.0",
-                                                "libgtk-3.so.0", nil }; *p; p++)
+        static const char *t_glib_deps[] = {
+            "libglib-2.0.so.0", "libgobject-2.0.so.0",
+            "libgio-2.0.so.0", "libgdk-3.so.0",
+            "libgtk-3.so.0", nil
+        };
+        for (const char **p = t_glib_deps; *p; p++)
             LoadBundled(t_exedir, *p);
 
         for (int i = 0; t_wk_names[i]; i++)
