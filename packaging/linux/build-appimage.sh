@@ -438,6 +438,47 @@ else
     _copy_lib_with_real "$WK_LIB"  "$WEBKIT_EXTERNALS"
     _copy_lib_with_real "$JSC_LIB" "$WEBKIT_EXTERNALS"
 
+    # Binary-patch PKGLIBEXECDIR in the bundled libwebkit2gtk .so.
+    #
+    # Ubuntu's release builds of WebKit do NOT honour any WEBKIT_EXEC_PATH /
+    # WEBKIT_SUBPROCESS_PATH env var — that code path is behind
+    # #if ENABLE(DEVELOPER_MODE) and is stripped in distribution packages.
+    # The only way to redirect WebKit's subprocess helper lookup is to patch
+    # the hardcoded PKGLIBEXECDIR string in the .so itself.
+    #
+    # We replace: /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1\0  (41 bytes)
+    # with:       /tmp/.hxt-wk/webkit2gtk-4.1\0 + NUL padding (41 bytes)
+    #
+    # AppRun creates symlinks at /tmp/.hxt-wk/webkit2gtk-4.1/ pointing to
+    # the bundled helpers in Externals/webkit-subprocess/ at launch time.
+    echo "  Patching PKGLIBEXECDIR in bundled libwebkit2gtk..."
+    python3 - "$WEBKIT_EXTERNALS" <<'PYEOF'
+import sys, os, glob
+
+dest = sys.argv[1]
+old = b'/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1\x00'
+new = b'/tmp/.hxt-wk/webkit2gtk-4.1\x00'
+assert len(new) <= len(old), f"replacement string too long ({len(new)} > {len(old)})"
+new_padded = new + b'\x00' * (len(old) - len(new))
+
+patched = 0
+for pattern in ('libwebkit2gtk-4.1.so*', 'libwebkit2gtk-4.0.so*'):
+    for path in sorted(glob.glob(os.path.join(dest, pattern))):
+        if os.path.islink(path):
+            continue  # patch real files only, not symlinks
+        with open(path, 'rb') as f:
+            data = f.read()
+        n = data.count(old)
+        if n:
+            data = data.replace(old, new_padded)
+            with open(path, 'wb') as f:
+                f.write(data)
+            print(f'    patched {n} PKGLIBEXECDIR ref(s) in {os.path.basename(path)}')
+            patched += 1
+if not patched:
+    print('    WARNING: PKGLIBEXECDIR string not found — subprocess helpers may not load', file=sys.stderr)
+PYEOF
+
     # Copy WebKit subprocess helpers (WebKitWebProcess, WebKitNetworkProcess).
     # They are ELF executables that WebKit spawns as child processes; they need
     # WEBKIT_SUBPROCESS_PATH set so WebKit can find them.
@@ -613,10 +654,19 @@ export BAMF_DESKTOP_FILE_HINT="$_DESKTOP_DEST"
 export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 # Fallback in case the engine's own probe doesn't run first.
 export VLC_PLUGIN_PATH="$HERE/usr/bin/vlc-plugins/plugins"
-# WebKit subprocess helpers bundled in Externals/webkit-subprocess/.
-# The C++ LoadWebKit() also sets this at runtime, but setting it here ensures
-# it's available to any early WebKit initialisation before our code runs.
-export WEBKIT_SUBPROCESS_PATH="$HERE/usr/bin/Externals/webkit-subprocess"
+
+# WebKit subprocess helper symlinks.
+# The bundled libwebkit2gtk has its PKGLIBEXECDIR patched to /tmp/.hxt-wk/webkit2gtk-4.1
+# at AppImage build time (env-var overrides are not available in Ubuntu release builds).
+# We create symlinks here so the helpers are found at that stable /tmp path.
+_WK_SUBPROC_LINK="/tmp/.hxt-wk/webkit2gtk-4.1"
+mkdir -p "$_WK_SUBPROC_LINK"
+for _helper in WebKitWebProcess WebKitNetworkProcess WebKitWebDriver; do
+    [ -f "$HERE/usr/bin/Externals/webkit-subprocess/$_helper" ] && \
+        ln -sfn "$HERE/usr/bin/Externals/webkit-subprocess/$_helper" \
+                "$_WK_SUBPROC_LINK/$_helper" 2>/dev/null || true
+done
+
 exec "$HERE/usr/bin/HyperXTalk" "$@"
 APPRUN
 chmod +x "$APPDIR/AppRun"
