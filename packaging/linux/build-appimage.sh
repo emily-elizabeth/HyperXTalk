@@ -693,14 +693,19 @@ for _bundle in "$HERE/usr/bin/Externals/webkit-subprocess/injected-bundle/"*.so;
         ln -sfn "$_bundle" "$_WK_LINK/injected-bundle/$(basename "$_bundle")" 2>/dev/null || true
 done
 
-# Disable WebKit GPU/DMA-BUF renderer — it calls EGL which aborts on systems
-# where the EGL stack isn't compatible with the bundled (Ubuntu-built) WebKit.
-# WEBKIT_FORCE_SANDBOX=0 ensures env vars are not stripped by bubblewrap before
-# reaching WebKitWebProcess.
+# Force X11 EGL on Wayland sessions.
+# On CachyOS/Arch and other Wayland-default distros, EGL_PLATFORM may already
+# be set to "wayland" in the session environment.  The bundled Ubuntu-compiled
+# WebKit passes an X11 Display* to eglGetDisplay(); on a Wayland EGL this gives
+# EGL_BAD_PARAMETER and aborts WebKitWebProcess.  Force x11 and swrast here so
+# it cannot be overridden by the inherited environment.
+unset WAYLAND_DISPLAY
+export GDK_BACKEND=x11
+export EGL_PLATFORM=x11
+export MESA_LOADER_DRIVER_OVERRIDE=swrast
+export LIBGL_ALWAYS_SOFTWARE=1
 export WEBKIT_DISABLE_COMPOSITING_MODE=1
 export WEBKIT_DISABLE_DMABUF_RENDERER=1
-export WEBKIT_FORCE_SANDBOX=0
-export LIBGL_ALWAYS_SOFTWARE=1
 
 exec "$HERE/usr/bin/HyperXTalk" "$@"
 APPRUN

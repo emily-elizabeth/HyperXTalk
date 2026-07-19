@@ -353,11 +353,15 @@ static bool LoadWebKit(void)
         {
             unsetenv("WAYLAND_DISPLAY");
             setenv("GDK_BACKEND", "x11", 1);
-            setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", 0);
-            setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", 0);
-            setenv("WEBKIT_FORCE_SANDBOX", "0", 0);
-            setenv("EGL_PLATFORM", "x11", 0);
-            setenv("LIBGL_ALWAYS_SOFTWARE", "1", 0);
+            setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", 1);
+            setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", 1);
+            // EGL_PLATFORM must be forced (overwrite=1) — on a Wayland session
+            // this variable may already be "wayland", causing eglGetDisplay() to
+            // receive an X11 Display* for a Wayland EGL, which returns EGL_BAD_PARAMETER
+            // and crashes WebKitWebProcess.
+            setenv("EGL_PLATFORM", "x11", 1);
+            setenv("MESA_LOADER_DRIVER_OVERRIDE", "swrast", 1);
+            setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
         }
     }
 
