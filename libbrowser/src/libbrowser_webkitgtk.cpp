@@ -316,7 +316,17 @@ static bool LoadWebKit(void)
 
     // Install the log writer before any WebKit initialisation so that warnings
     // fired during gtk_widget_show_all() and WebKit's own startup are filtered.
-    g_log_set_writer_func(hxt_log_writer, NULL, NULL);
+    // GLib 2.82+ aborts if g_log_set_writer_func() is called more than once, so
+    // guard with a static flag — LoadWebKit() may be called again after a failed
+    // attempt (e.g. first browser creation fails, user tries a second time).
+    {
+        static bool s_log_writer_installed = false;
+        if (!s_log_writer_installed)
+        {
+            g_log_set_writer_func(hxt_log_writer, NULL, NULL);
+            s_log_writer_installed = true;
+        }
+    }
 
     // Disable AT-SPI bridge to prevent crashes on systems where the D-Bus/ATK
     // bridge is incompatible with the dynamically loaded WebKit.
@@ -376,13 +386,15 @@ static bool LoadWebKit(void)
     // engine's already-resident copies — no duplication.
 
     const char *t_wk_names[] = {
-        "libwebkit2gtk-4.1.so.0",
-        "libwebkit2gtk-4.0.so.37",
+        "libwebkit2gtk-4.1.so.0",   // GTK3, API 4.1 (Ubuntu 22.04+, Fedora 37+)
+        "libwebkit2gtk-4.0.so.37",  // GTK3, API 4.0 (older distros)
+        "libwebkit2gtk-4.0.so",     // unversioned symlink fallback (some Arch setups)
         nil
     };
     const char *t_jsc_names[] = {
         "libjavascriptcoregtk-4.1.so.0",
         "libjavascriptcoregtk-4.0.so.18",
+        "libjavascriptcoregtk-4.0.so",
         nil
     };
 
