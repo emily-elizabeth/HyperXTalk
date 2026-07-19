@@ -49,7 +49,6 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "libbrowser_internal.h"
 
 #include <dlfcn.h>
-#include <link.h>
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
@@ -145,12 +144,6 @@ static struct WKSymbols
                                              GAsyncReadyCallback, gpointer);
     WebKitJavascriptResult* (*webkit_web_view_run_javascript_finish)(WebKitWebView*,
                                                                       GAsyncResult*, GError**);
-    // Snapshot API — captures page content directly from the web process into a
-    // cairo surface.  Available since WebKit 2.x.  Used as fallback when
-    // gtk_widget_draw() produces blank content (newer WebKit 2.44+ on Fedora).
-    void             (*webkit_web_view_get_snapshot)(WebKitWebView*, guint /*region*/, guint /*options*/,
-                                                     GCancellable*, GAsyncReadyCallback, gpointer);
-    cairo_surface_t* (*webkit_web_view_get_snapshot_finish)(WebKitWebView*, GAsyncResult*, GError**);
 
     // ---- WebKitSettings ----
     WebKitSettings* (*webkit_settings_new)(void);
@@ -204,7 +197,6 @@ static struct WKSymbols
     // ---- GObject / GLib ----
     gulong   (*g_signal_connect_data)(gpointer, const gchar*, GCallback, gpointer, GClosureNotify, GConnectFlags);
     void     (*g_signal_handler_disconnect)(gpointer, gulong);
-    gboolean (*g_signal_handler_is_connected)(gpointer, gulong);
     void     (*g_object_unref)(gpointer);
     gpointer (*g_object_ref)(gpointer);
     void     (*g_free)(gpointer);
@@ -328,29 +320,32 @@ static bool LoadWebKit(void)
     // bridge is incompatible with the dynamically loaded WebKit.
     setenv("NO_AT_BRIDGE", "1", 0);
 
-    // On Wayland desktops (e.g. Fedora 40 under GNOME), WAYLAND_DISPLAY is set
-    // in the environment and GDK is built with Wayland support enabled by default.
-    // WebKit's GPU/web/network subprocesses inherit our environment and initialize
-    // their own GDK instance — GDK_BACKEND defaults to "wayland" when Wayland is
-    // compiled in, regardless of whether WAYLAND_DISPLAY is actually set.  With no
-    // usable Wayland display inside an AppImage mount namespace, GDK falls back to
-    // X11 but EGL initialisation (using the wrong display type) returns
-    // EGL_BAD_PARAMETER, causing the GPU process to abort().  The GPU process
-    // death prevents the web process from completing IPC setup, so load-changed
-    // never fires and the view stays blank.
-    //
-    // Fix: clear WAYLAND_DISPLAY (removes the Wayland socket hint) AND set
-    // GDK_BACKEND=x11 (forces GDK in every subprocess to initialise with the X11
-    // backend, completely bypassing the Wayland/EGL path).  HXT is a pure X11
-    // application so neither change affects our own rendering.
-    unsetenv("WAYLAND_DISPLAY");
-    setenv("GDK_BACKEND", "x11", 1);  // force X11 GDK in WebKit subprocesses
-
     // Disable the bubblewrap sandbox.  When WebKit is loaded via dlopen inside
     // another application's process (rather than as a direct dependency), the
     // sandbox's seccomp filter frequently prevents the web process from starting,
     // leaving the view permanently blank.
     setenv("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS", "1", 0);
+
+    // AppImage detection: when running from an AppImage, the bundled WebKit's
+    // subprocess helpers inherit LD_LIBRARY_PATH pointing at the AppImage mount,
+    // which causes them to pick up the wrong EGL/GL libraries and crash.
+    // Force X11 backend and software rendering so WebKit subprocesses stay safe.
+    // These env vars must NOT be set on a normal dev-binary run because they
+    // prevent WebKit from using hardware acceleration on X11 desktops.
+    {
+        const char *t_ai = getenv("APPIMAGE");
+        const char *t_lp = getenv("LD_LIBRARY_PATH");
+        bool t_in_appimage = (t_ai && t_ai[0]) ||
+                             (t_lp && strstr(t_lp, "/tmp/.mount_"));
+        if (t_in_appimage)
+        {
+            unsetenv("WAYLAND_DISPLAY");
+            setenv("GDK_BACKEND", "x11", 1);
+            setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", 0);
+            setenv("EGL_PLATFORM", "x11", 0);
+            setenv("LIBGL_ALWAYS_SOFTWARE", "1", 0);
+        }
+    }
 
     // Disable DMA-BUF renderer.  WebKit2GTK ≥ 2.40 uses DMA-BUF for tile IPC
     // between the web process and the UI process.  DMA-BUF tiles are GPU textures
@@ -360,27 +355,6 @@ static bool LoadWebKit(void)
     // tiles, which are plain cairo image surfaces and are correctly blitted by
     // WebKit's "draw" signal handler into our cairo_t in doPaint().
     setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", 0);
-
-    // Disable GPU-process compositing.  On some distros (e.g. Fedora) WebKit
-    // spawns a GPU helper process that tries to initialise EGL for compositing.
-    // If EGL init fails the GPU process aborts but the compositing path is still
-    // chosen, bypassing Cairo and leaving the offscreen surface blank.
-    // WEBKIT_DISABLE_COMPOSITING_MODE=1 suppresses the GPU process on older WebKit.
-    setenv("WEBKIT_DISABLE_COMPOSITING_MODE", "1", 0);
-
-    // Force Mesa EGL to use the X11 platform.  Without this, Mesa auto-detects
-    // the display type: on Wayland desktops (even with WAYLAND_DISPLAY unset) it
-    // may try GBM/DRM first, which fails in VMs and AppImage environments with
-    // EGL_BAD_PARAMETER.  EGL_PLATFORM=x11 tells Mesa to use eglGetDisplay(X11
-    // Display*) directly, which always succeeds when DISPLAY is set.
-    // Combined with LIBGL_ALWAYS_SOFTWARE=1 this gives WebKit's GPU subprocess a
-    // working software EGL context, enabling the compositor and snapshot paths.
-    setenv("EGL_PLATFORM", "x11", 0);
-    // On newer WebKit (Fedora ships 2.44+), the above env var is ignored.
-    // LIBGL_ALWAYS_SOFTWARE=1 forces Mesa software GL so the GPU process EGL
-    // initialisation succeeds via swrast, keeping WebKit in a renderable state
-    // rather than falling back to a blank compositing path.
-    setenv("LIBGL_ALWAYS_SOFTWARE", "1", 0);
 
     // Disable GVFS FUSE mount so WebKit doesn't try to contact gvfsd.
     setenv("GVFS_DISABLE_FUSE", "1", 1);
@@ -425,12 +399,9 @@ static bool LoadWebKit(void)
     {
         // Fall back to bundled copies.  Pre-load bundled GLib/GTK dependencies
         // with RTLD_DEEPBIND so they don't stomp on the engine's static copies.
-        static const char *t_glib_deps[] = {
-            "libglib-2.0.so.0", "libgobject-2.0.so.0",
-            "libgio-2.0.so.0", "libgdk-3.so.0",
-            "libgtk-3.so.0", nil
-        };
-        for (const char **p = t_glib_deps; *p; p++)
+        for (const char **p = (const char*[]){ "libglib-2.0.so.0", "libgobject-2.0.so.0",
+                                                "libgio-2.0.so.0", "libgdk-3.so.0",
+                                                "libgtk-3.so.0", nil }; *p; p++)
             LoadBundled(t_exedir, *p);
 
         for (int i = 0; t_wk_names[i]; i++)
@@ -504,8 +475,6 @@ static bool LoadWebKit(void)
     // 4.0 JS eval API (fallback)
     LOAD_SYM(t_wk, webkit_web_view_run_javascript);
     LOAD_SYM(t_wk, webkit_web_view_run_javascript_finish);
-    LOAD_SYM(t_wk, webkit_web_view_get_snapshot);
-    LOAD_SYM(t_wk, webkit_web_view_get_snapshot_finish);
 
     wk.is4_1 = (wk.webkit_web_view_evaluate_javascript != nil);
 
@@ -563,7 +532,6 @@ static bool LoadWebKit(void)
     // GLib — resolve from webkit's loaded GLib to avoid symbol collisions
     LOAD_SYM(t_wk, g_signal_connect_data);
     LOAD_SYM(t_wk, g_signal_handler_disconnect);
-    LOAD_SYM(t_wk, g_signal_handler_is_connected);
     LOAD_SYM(t_wk, g_object_unref);
     LOAD_SYM(t_wk, g_object_ref);
     LOAD_SYM(t_wk, g_free);
@@ -612,63 +580,6 @@ static bool LoadWebKit(void)
 
     if (!wk.webkit_web_view_load_uri || !wk.gtk_window_new || !wk.gdk_x11_window_get_xid)
         return false;
-
-    // Strip AppImage-internal paths from LD_LIBRARY_PATH so that WebKit's
-    // subprocesses (WebKitWebProcess, WebKitGPUProcess, WebKitNetworkProcess)
-    // use only system libraries.
-    //
-    // AppImage's AppRun sets LD_LIBRARY_PATH to its internal mount directory
-    // (e.g. /tmp/.mount_HyperXXXXX/usr/lib) before launching HXT.  System
-    // WebKit subprocess binaries at /usr/libexec/webkit2gtk-4.1/ inherit this
-    // LD_LIBRARY_PATH and resolve libEGL, libGL, etc. from the AppImage bundle
-    // instead of the system Mesa.  AppImage-bundled EGL/GL has no matching
-    // GPU driver, so eglGetDisplay() returns EGL_BAD_PARAMETER and the GPU
-    // process aborts.  Without a functional GPU process WebKit cannot render
-    // or complete snapshots.
-    //
-    // We do this cleanup AFTER all our own dlopen() calls have succeeded — our
-    // already-loaded libraries are unaffected, and any remaining dlopen() calls
-    // (GTK/GDK above) target standard system sonames that ldconfig can find
-    // without LD_LIBRARY_PATH.
-    if (t_system)
-    {
-        const char *t_ldpath = getenv("LD_LIBRARY_PATH");
-        if (t_ldpath && strstr(t_ldpath, "/tmp/.mount_"))
-        {
-            // Rebuild LD_LIBRARY_PATH without AppImage mount entries.
-            // Entries are colon-separated; we keep any that don't look like
-            // AppImage mount paths.
-            char t_new[PATH_MAX * 4];
-            t_new[0] = '\0';
-            char t_buf[PATH_MAX * 4];
-            snprintf(t_buf, sizeof(t_buf), "%s", t_ldpath);
-
-            bool t_first = true;
-            char *t_save = NULL;
-            char *t_tok = strtok_r(t_buf, ":", &t_save);
-            while (t_tok)
-            {
-                if (!strstr(t_tok, "/tmp/.mount_"))
-                {
-                    if (!t_first)
-                    {
-                        size_t t_len = strlen(t_new);
-                        if (t_len + 1 < sizeof(t_new))
-                            t_new[t_len] = ':';
-                        t_new[t_len + 1] = '\0';
-                    }
-                    strncat(t_new, t_tok, sizeof(t_new) - strlen(t_new) - 1);
-                    t_first = false;
-                }
-                t_tok = strtok_r(NULL, ":", &t_save);
-            }
-
-            if (t_new[0])
-                setenv("LD_LIBRARY_PATH", t_new, 1);
-            else
-                unsetenv("LD_LIBRARY_PATH");
-        }
-    }
 
     s_webkit_loaded = true;
     return true;
@@ -738,12 +649,6 @@ public:
     // reliably for off-screen / popup-hosted WebKitWebView instances.
     static void SimulateClick(void *ctx, int x, int y);
 
-    // Snapshot API bridge — called from native-layer-x11 doPaint() when
-    // gtk_widget_draw() produces blank content (WebKit 2.44+ on Fedora).
-    // Requests an async snapshot; result stored as "hxt-snapshot" on the widget.
-    static void RequestSnapshot(void *ctx);
-    static void SnapshotDone(GObject *source, GAsyncResult *result, gpointer user_data);
-
 private:
     GtkWidget                *m_plug;
     WebKitWebView            *m_web_view;
@@ -800,27 +705,16 @@ MCWebKitGTKBrowser::MCWebKitGTKBrowser()
 
 MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
 {
-    // When HXT quits with a browser open, the native layer destroys
-    // m_child_window first, which triggers WebKit's widget finalisation.
-    // WebKit disconnects all signal handlers it knows about during dispose,
-    // so by the time our destructor runs some handler IDs may already be
-    // gone.  Guard each disconnect with:
-    //   (a) G_IS_OBJECT() — object still has a valid GType/refcount
-    //   (b) g_signal_handler_is_connected() — handler not yet disconnected
-    // to avoid GLib-CRITICAL "no handler with id N" warnings at shutdown.
-
-#define HXT_DISCONNECT(obj, id) \
-    do { \
-        if ((id) && wk.g_signal_handler_is_connected && \
-            wk.g_signal_handler_is_connected((obj), (id))) \
-            wk.g_signal_handler_disconnect((obj), (id)); \
-        (id) = 0; \
-    } while (0)
-
+    // Guard every g_signal_handler_disconnect with G_IS_OBJECT(): when HXT
+    // quits with a browser open, the native layer destroys m_child_window
+    // first, which finalizes m_web_view (and its content manager) as child
+    // widgets.  Our destructor then runs and must not touch dead GObjects.
     if (m_content_manager != nil && G_IS_OBJECT(m_content_manager))
     {
-        HXT_DISCONNECT(m_content_manager, m_script_message_id);
-        HXT_DISCONNECT(m_content_manager, m_nav_message_id);
+        if (m_script_message_id)
+            wk.g_signal_handler_disconnect(m_content_manager, m_script_message_id);
+        if (m_nav_message_id)
+            wk.g_signal_handler_disconnect(m_content_manager, m_nav_message_id);
         if (wk.webkit_user_content_manager_unregister_script_message_handler)
         {
             wk.webkit_user_content_manager_unregister_script_message_handler(m_content_manager, "liveCode");
@@ -830,25 +724,14 @@ MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
 
     if (m_web_view != nil && G_IS_OBJECT(m_web_view))
     {
-        // Clear lifetime guard so any in-flight SnapshotDone callback won't
-        // dereference this (now-being-destroyed) MCWebKitGTKBrowser*.
-        g_object_set_data(G_OBJECT(m_web_view), "hxt-browser-alive", NULL);
-        // Release any cached snapshot surface.
-        cairo_surface_t *snap = (cairo_surface_t*)g_object_get_data(
-            G_OBJECT(m_web_view), "hxt-snapshot");
-        if (snap) { cairo_surface_destroy(snap);
-                    g_object_set_data(G_OBJECT(m_web_view), "hxt-snapshot", NULL); }
-
-        HXT_DISCONNECT(m_web_view, m_load_changed_id);
-        HXT_DISCONNECT(m_web_view, m_load_failed_id);
-        HXT_DISCONNECT(m_web_view, m_decide_policy_id);
-        HXT_DISCONNECT(m_web_view, m_create_id);
-        HXT_DISCONNECT(m_web_view, m_context_menu_id);
-        HXT_DISCONNECT(m_web_view, m_progress_id);
-        HXT_DISCONNECT(m_web_view, m_show_option_menu_id);
+        if (m_load_changed_id)       wk.g_signal_handler_disconnect(m_web_view, m_load_changed_id);
+        if (m_load_failed_id)        wk.g_signal_handler_disconnect(m_web_view, m_load_failed_id);
+        if (m_decide_policy_id)      wk.g_signal_handler_disconnect(m_web_view, m_decide_policy_id);
+        if (m_create_id)             wk.g_signal_handler_disconnect(m_web_view, m_create_id);
+        if (m_context_menu_id)       wk.g_signal_handler_disconnect(m_web_view, m_context_menu_id);
+        if (m_progress_id)           wk.g_signal_handler_disconnect(m_web_view, m_progress_id);
+        if (m_show_option_menu_id)   wk.g_signal_handler_disconnect(m_web_view, m_show_option_menu_id);
     }
-
-#undef HXT_DISCONNECT
 
     // m_web_view is owned by m_child_window in native-layer-x11; no destroy here.
 
@@ -950,16 +833,6 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     g_object_set_data(G_OBJECT(m_web_view), "hxt-sim-fn",
         (gpointer)(void(*)(void*, int, int))&MCWebKitGTKBrowser::SimulateClick);
     g_object_set_data(G_OBJECT(m_web_view), "hxt-sim-ctx", (gpointer)this);
-
-    // Publish snapshot trampoline so native-layer-x11 doPaint() can request
-    // a fresh snapshot when gtk_widget_draw() produces blank content.
-    g_object_set_data(G_OBJECT(m_web_view), "hxt-snap-fn",
-        (gpointer)(void(*)(void*))&MCWebKitGTKBrowser::RequestSnapshot);
-    g_object_set_data(G_OBJECT(m_web_view), "hxt-snap-ctx", (gpointer)this);
-    // Lifetime guard: SnapshotDone uses the WebKitWebView* (source) which
-    // WebKit keeps alive during the async op.  It checks this flag before
-    // dereferencing the MCWebKitGTKBrowser* user_data.  Cleared in destructor.
-    g_object_set_data(G_OBJECT(m_web_view), "hxt-browser-alive", (gpointer)1);
 
     // --- Connect signals ---
     m_load_changed_id = wk.g_signal_connect_data(m_web_view, "load-changed",
@@ -1519,72 +1392,6 @@ void MCWebKitGTKBrowser::SimulateClick(void *ctx, int x, int y)
             (GAsyncReadyCallback)hxt_nav_done_40, nav_ctx);
     else
         delete nav_ctx;
-}
-
-// ---- Snapshot bridge (fallback for WebKit 2.44+ / Fedora) ----------------
-//
-// On newer WebKit, gtk_widget_draw() no longer captures page content because
-// WebKit's compositor bypasses Cairo.  webkit_web_view_get_snapshot() asks the
-// web process to render directly into a cairo_surface_t, which always works.
-//
-// Flow:
-//   doPaint() (engine) calls gtk_widget_draw() → blank → calls RequestSnapshot()
-//   via the "hxt-snap-fn" g_object_data bridge.
-//   RequestSnapshot() issues the async request; SnapshotDone() stores the
-//   resulting surface as "hxt-snapshot" on the widget.
-//   Next doPaint() finds a non-blank snapshot and blits it.
-
-// static
-void MCWebKitGTKBrowser::RequestSnapshot(void *ctx)
-{
-    MCWebKitGTKBrowser *b = static_cast<MCWebKitGTKBrowser*>(ctx);
-    if (!b || !b->m_web_view) return;
-    if (!wk.webkit_web_view_get_snapshot)
-        return;
-    // Avoid stacking concurrent requests.
-    if (g_object_get_data(G_OBJECT(b->m_web_view), "hxt-snap-pending")) return;
-    g_object_set_data(G_OBJECT(b->m_web_view), "hxt-snap-pending", (gpointer)1);
-    // WEBKIT_SNAPSHOT_REGION_VISIBLE=0, WEBKIT_SNAPSHOT_OPTIONS_NONE=0
-    wk.webkit_web_view_get_snapshot(b->m_web_view, 0, 0, NULL,
-        (GAsyncReadyCallback)SnapshotDone, b);
-}
-
-// static
-void MCWebKitGTKBrowser::SnapshotDone(GObject *source, GAsyncResult *result,
-                                        gpointer user_data)
-{
-    // source is the WebKitWebView* — WebKit keeps it alive for the duration of
-    // the async op, so it is safe to dereference even if the browser object has
-    // been destroyed in the meantime.
-    if (!source) return;
-    g_object_set_data(G_OBJECT(source), "hxt-snap-pending", NULL);
-
-    // If the browser object was destroyed before this callback fired, bail out.
-    if (!g_object_get_data(G_OBJECT(source), "hxt-browser-alive")) return;
-
-    if (!wk.webkit_web_view_get_snapshot_finish) return;
-    GError *err = NULL;
-    cairo_surface_t *surf = wk.webkit_web_view_get_snapshot_finish(
-        (WebKitWebView*)source, result, &err);
-    if (err)
-    {
-        wk.g_error_free(err);
-        return;
-    }
-    if (!surf) return;
-    // Release previous snapshot and store the new one.
-    cairo_surface_t *old = (cairo_surface_t*)g_object_get_data(
-        G_OBJECT(source), "hxt-snapshot");
-    if (old) cairo_surface_destroy(old);
-    g_object_set_data(G_OBJECT(source), "hxt-snapshot", (gpointer)surf);
-
-    // Trigger a repaint so doPaint() runs and blits the new snapshot.
-    typedef void (*HXTRepaintFn)(void*);
-    HXTRepaintFn repaint_fn = (HXTRepaintFn)g_object_get_data(
-        G_OBJECT(source), "hxt-repaint-fn");
-    void *repaint_ctx = g_object_get_data(G_OBJECT(source), "hxt-repaint-ctx");
-    if (repaint_fn && repaint_ctx)
-        repaint_fn(repaint_ctx);
 }
 
 // ---- show-option-menu callbacks ------------------------------------------

@@ -102,7 +102,7 @@ done
 
 echo "  All compiled OK"
 
-echo "=== Compiling libbrowser_webkitgtk.cpp ==="
+echo "=== Compiling libbrowser sources ==="
 LB_INCS=(
     $(pkg-config --cflags gtk+-3.0 2>/dev/null || echo "-I/usr/include/gtk-3.0 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/cairo -I/usr/include/gdk-pixbuf-2.0")
     -I"$REPO/libbrowser/include"
@@ -110,6 +110,7 @@ LB_INCS=(
     -I"$REPO/libcore/include"
 )
 LB_OBJ="$OBJ/libbrowser/libbrowser/src/libbrowser_webkitgtk.o"
+LB_FACTORIES_OBJ="$OBJ/libbrowser/libbrowser/src/libbrowser_lnx_factories.o"
 mkdir -p "$(dirname "$LB_OBJ")"
 g++ -std=c++11 -fno-exceptions -fno-rtti -fPIC \
     -fstrict-aliasing -fvisibility=hidden \
@@ -118,7 +119,18 @@ g++ -std=c++11 -fno-exceptions -fno-rtti -fPIC \
     "${LB_INCS[@]}" \
     -c "$REPO/libbrowser/src/libbrowser_webkitgtk.cpp" \
     -o "$LB_OBJ"
-ar r "$OBJ/libbrowser/libbrowser.a" "$LB_OBJ"
+# Also recompile libbrowser_lnx_factories.cpp: the stale gyp-built .o in the
+# archive has a NULL constructor pointer in kMCBrowserFactoryMap, which causes
+# MCBrowserFactoryEnsureAvailable to silently return false without ever calling
+# MCWebKitGTKBrowserFactoryCreate.
+g++ -std=c++11 -fno-exceptions -fno-rtti -fPIC \
+    -fstrict-aliasing -fvisibility=hidden \
+    -Wall -Wextra -Wno-unused-parameter \
+    -O2 \
+    "${LB_INCS[@]}" \
+    -c "$REPO/libbrowser/src/libbrowser_lnx_factories.cpp" \
+    -o "$LB_FACTORIES_OBJ"
+ar r "$OBJ/libbrowser/libbrowser.a" "$LB_OBJ" "$LB_FACTORIES_OBJ"
 echo "  Updated libbrowser.a OK"
 
 echo "=== Updating libkernel.a ==="
@@ -183,6 +195,10 @@ c++ "${LDFLAGS[@]}" \
     "${LIBS[@]}"
 
 echo "  Linked OK"
+
+echo "=== Stripping debug symbols ==="
+strip --strip-debug "$OUT/HyperXTalk"
+echo "  Stripped OK"
 
 echo "=== Deploying to linux-x86_64-bin/ ==="
 cp "$OUT/HyperXTalk" "$REPO/linux-x86_64-bin/HyperXTalk"
