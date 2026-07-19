@@ -381,6 +381,8 @@ fi
 # We KEEP GLib/GTK so the RTLD_DEEPBIND pre-load works properly.
 WK_SKIP="linux-vdso|ld-linux|libpthread|libdl|librt|libc\\.so|libm\\.so\
 |libGL\\.so|libEGL\\.so|libGLdispatch|libGLX\
+|libgbm|libdrm|libepoxy\
+|libwayland\
 |libX11|libXext|libXfixes|libXrender|libXi|libxcb|libXau|libXdmcp\
 |libgcc_s|libstdc++"
 
