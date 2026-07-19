@@ -360,7 +360,6 @@ static bool LoadWebKit(void)
             // receive an X11 Display* for a Wayland EGL, which returns EGL_BAD_PARAMETER
             // and crashes WebKitWebProcess.
             setenv("EGL_PLATFORM", "x11", 1);
-            setenv("MESA_LOADER_DRIVER_OVERRIDE", "swrast", 1);
             setenv("LIBGL_ALWAYS_SOFTWARE", "1", 1);
         }
     }
