@@ -2165,7 +2165,6 @@ virtual real64_t GetCurrentMicroseconds(void)
     }
 
 // return 1 for true, 0 for false, -1 on error
-//TODO: fix the occasional buffer overflow
 int is_language_installed(const char *prog) {
     int pipefd[2];
     if (-1 == pipe(pipefd)) {
@@ -2255,6 +2254,10 @@ void MCS_lnxdoalternatelanguage(MCStringRef p_script, MCStringRef p_language)
 	{
 		MCS_alternate_shell(p_script, langname);
 	}
+	else if (0 == strncmp(langname, "node", 10))
+	{
+		MCS_alternate_shell(p_script, langname);
+	}
 	else
 		MCresult->sets("alternate language not found");
 }
@@ -2303,7 +2306,7 @@ void MCS_alternate_shell(MCStringRef script, const char *langname)
 		return;
 	}
 
-    if (fputs(s.getstring(), fd) == EOF) {
+    if (EOF == fputs(s.getstring(), fd)) {
         fclose(fd);
 		fprintf(stderr, "fputs error");
 		return;
@@ -2311,7 +2314,16 @@ void MCS_alternate_shell(MCStringRef script, const char *langname)
     fflush(fd);
     fclose(fd); // also closes fileDesc
 
-	sprintf(commandLine, "%s %s 2>&1", langname, fileTemplate);
+	bool needsRedirection = false;
+
+	// add more as needed: node is the only one for now
+	if (0 == strcmp("node", langname))
+		needsRedirection = true;
+
+	if (needsRedirection)
+		sprintf(commandLine, "%s < %s 2>&1", langname, fileTemplate);
+	else
+		sprintf(commandLine, "%s %s 2>&1", langname, fileTemplate);
 
 	const int kREADMAX=512;
 	buffer = (char *)malloc(kREADMAX);
@@ -2336,18 +2348,17 @@ void MCS_alternate_shell(MCStringRef script, const char *langname)
 		MCresult->copysvalue(buffer);
 		int status = pclose(inProcess);
 		if (-1 == status) {
-			fprintf(stderr, "perror status=%s\n", status);
+			fprintf(stderr, "perror status=%d\n", status);
 		}
 
 		if (WIFEXITED(status)) {
 		    int exit_code = WEXITSTATUS(status);
-		    fprintf(stderr, "%s exit code: %d\n", langname, exit_code);
+//		    fprintf(stderr, "%s exit code: %d\n", langname, exit_code);
 		} else if (WIFSIGNALED(status)) {
 		    fprintf(stderr, "%s killed by signal: %d\n", langname, WTERMSIG(status));
 		} else {
 		    fprintf(stderr, "%s terminated abnormally (status=0x%x)\n", langname, status);
 		}
-
 	}
 	else
 	{
@@ -2361,25 +2372,53 @@ void MCS_alternate_shell(MCStringRef script, const char *langname)
         fprintf(stderr, "warning: unlink(%s) failed: %s\n", fileTemplate, strerror(errno));
     }
 }
+
 virtual void DoAlternateLanguage(MCStringRef p_script, MCStringRef p_language)
 {
-	if (1 == is_language_installed(MCStringGetCString(p_language)))
-		MCS_lnxdoalternatelanguage(p_script, p_language);
+	MCStringRef t_language;
+	char*languagePointer;
+
+	// on linux node.js if installed will run javascript code
+	if (MCStringIsEqualToCString(p_language, "javascript", kMCCompareCaseless))
+    	/* UNCHECKED */ MCStringCreateWithCString("node", t_language);
 	else
-	{
+		t_language = p_language;
+	MCStringConvertToCString(t_language, languagePointer);
+	if (1 == is_language_installed(languagePointer))
+		MCS_lnxdoalternatelanguage(p_script, t_language);
+	else
 		MCresult->sets("alternate language not found");
-	}
 }
 
 virtual bool AlternateLanguages(MCListRef& r_list)
 {
 	MCAutoStringRef t_language;
-    /* UNCHECKED */ MCStringCreateWithCString("python", &t_language);
+	// start with an empty list
 	MCAutoListRef t_list;
 	if (!MCListCreateMutable('\n', &t_list))
 		return false;
+
+	// assume python is always available in linux
+    /* UNCHECKED */ MCStringCreateWithCString("python", &t_language);
 	if (!MCListAppend(*t_list, *t_language))
 		return false;
+
+	// test whether node.js is installed
+	// add javascript to the list of alternate languages if so
+	if (1 == is_language_installed("node"))
+	{
+		/* UNCHECKED */ MCStringCreateWithCString("javascript", &t_language);
+		if (!MCListAppend(*t_list, *t_language))
+			return false;
+	}
+
+//	if (1 == is_language_installed("perl"))
+//	{
+//    /* UNCHECKED */ MCStringCreateWithCString("perl", &t_language);
+//		if (!MCListAppend(*t_list, *t_language))
+//			return false;
+//	}
+
 	return MCListCopy(*t_list, r_list);
 }
 
