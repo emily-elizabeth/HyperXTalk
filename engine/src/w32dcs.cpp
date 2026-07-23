@@ -1500,6 +1500,37 @@ void MCScreenDC::processdesktopchanged(bool p_notify, bool p_update_fonts)
 
 		t_display_count = getdisplays(t_displays, false);
 		SetWindowPos(backdrop_window, NULL, t_displays[0] . workarea . x, t_displays[0] . workarea . y, t_displays[0] . workarea . width, t_displays[0] . workarea . height, 0);
+
+		// HXT: Reposition extra per-display backdrop windows when display config changes.
+		// Recreate them so the count and positions match the new display layout.
+		for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+		{
+			if (m_extra_backdrop_windows[i] != NULL)
+			{
+				DestroyWindow(m_extra_backdrop_windows[i]);
+				m_extra_backdrop_windows[i] = NULL;
+			}
+		}
+		m_extra_backdrop_count = 0;
+		for (uint32_t i = 1; i < t_display_count && i - 1 < kBackdropExtraMax; i++)
+		{
+			MCRectangle t_extra_logical = t_displays[i].workarea;
+			if (t_extra_logical.height == t_displays[i].viewport.height)
+				t_extra_logical.height -= 2;
+			MCRectangle t_extra_screen = logicaltoscreenrect(t_extra_logical);
+			HWND t_extra_win = CreateWindowExA(0, MC_BACKDROP_WIN_CLASS_NAME, "", WS_POPUP,
+			    t_extra_screen.x, t_extra_screen.y, t_extra_screen.width, t_extra_screen.height,
+			    invisiblehwnd, NULL, MChInst, NULL);
+			if (t_extra_win != NULL)
+			{
+				m_extra_backdrop_windows[m_extra_backdrop_count] = t_extra_win;
+				m_extra_backdrop_rects[m_extra_backdrop_count]  = MCRectangleMake(0, 0, t_extra_logical.width, t_extra_logical.height);
+				m_extra_backdrop_scales[m_extra_backdrop_count] = m_backdrop_scale;
+				InvalidateRect(t_extra_win, NULL, TRUE);
+				ShowWindow(t_extra_win, SW_SHOW);
+				m_extra_backdrop_count++;
+			}
+		}
 	}
 
     // Force a recompute of fonts as they may have changed
@@ -1723,6 +1754,12 @@ void MCScreenDC::enablebackdrop(bool p_hard)
 	{
 		InvalidateRect(backdrop_window, NULL, TRUE);
 		ShowWindow(backdrop_window, SW_SHOW);
+		// HXT: Show and invalidate extra per-display backdrop windows.
+		for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+		{
+			InvalidateRect(m_extra_backdrop_windows[i], NULL, TRUE);
+			ShowWindow(m_extra_backdrop_windows[i], SW_SHOW);
+		}
 	}
 	else
 	{
@@ -1750,9 +1787,16 @@ void MCScreenDC::disablebackdrop(bool p_hard)
 	if (!backdrop_active && !backdrop_hard)
 	{
 		ShowWindow(backdrop_window, SW_HIDE);
+		// HXT: Hide extra per-display backdrop windows.
+		for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+			ShowWindow(m_extra_backdrop_windows[i], SW_HIDE);
 	}
 	else
+	{
 		InvalidateRect(backdrop_window, NULL, TRUE);
+		for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+			InvalidateRect(m_extra_backdrop_windows[i], NULL, TRUE);
+	}
 }
 
 // MM-2014-04-08: [[ Bug 12058 ]] Update prototype to take a MCPatternRef.
@@ -1765,7 +1809,12 @@ void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_patte
 		backdrop_colour = p_colour;
 	
 		if (backdrop_active || backdrop_hard)
+		{
 			InvalidateRect(backdrop_window, NULL, TRUE);
+			// HXT: Invalidate extra per-display backdrop windows.
+			for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+				InvalidateRect(m_extra_backdrop_windows[i], NULL, TRUE);
+		}
 	}
 }
 
@@ -1806,11 +1855,67 @@ bool MCScreenDC::initialisebackdrop(void)
 
 	backdrop_window = CreateWindowExA(0, MC_BACKDROP_WIN_CLASS_NAME, "", WS_POPUP, t_rect . x, t_rect . y, t_rect . width, t_rect . height, invisiblehwnd, NULL, MChInst, NULL);
 
+	// HXT: Create one extra backdrop window for each display beyond the primary,
+	// matching the per-display approach used on macOS.
+	//
+	// MCDisplay::workarea and ::viewport are in LiveCode logical coordinates
+	// (physical pixels divided by the primary-monitor DPI scale, via
+	// screentologicalrect).  CreateWindowExA expects physical screen pixels,
+	// so we must convert via logicaltoscreenrect before passing to the Win32 API.
+	//
+	// The draw scale stored in m_extra_backdrop_scales must be m_backdrop_scale
+	// (= primary DPI scale = MCWin32GetLogicalToScreenScale()), not
+	// t_displays[i].pixel_scale (the secondary monitor's own DPI), because all
+	// LiveCode logical coordinates use the primary-monitor DPI as their basis.
+	m_extra_backdrop_count = 0;
+	for (uint32_t i = 1; i < t_display_count && i - 1 < kBackdropExtraMax; i++)
+	{
+		MCRectangle t_extra_logical;
+		if (taskbarhidden)
+			t_extra_logical = t_displays[i].viewport;
+		else
+		{
+			t_extra_logical = t_displays[i].workarea;
+			if (t_extra_logical.height == t_displays[i].viewport.height)
+				t_extra_logical.height -= 2;
+		}
+
+		// Convert the logical rect (including its x,y offset in virtual-screen
+		// logical space) to physical screen pixels for window creation.
+		MCRectangle t_extra_screen = logicaltoscreenrect(t_extra_logical);
+
+		HWND t_extra_win = CreateWindowExA(0, MC_BACKDROP_WIN_CLASS_NAME, "", WS_POPUP,
+		    t_extra_screen.x, t_extra_screen.y, t_extra_screen.width, t_extra_screen.height,
+		    invisiblehwnd, NULL, MChInst, NULL);
+
+		if (t_extra_win != NULL)
+		{
+			m_extra_backdrop_windows[m_extra_backdrop_count] = t_extra_win;
+			// Store origin-based logical rect for the drawing code.
+			m_extra_backdrop_rects[m_extra_backdrop_count]  = MCRectangleMake(0, 0, t_extra_logical.width, t_extra_logical.height);
+			// Use the global logical→screen scale (same as primary), not the
+			// per-monitor pixel_scale, so the drawing fills the physical window.
+			m_extra_backdrop_scales[m_extra_backdrop_count] = m_backdrop_scale;
+			m_extra_backdrop_count++;
+		}
+	}
+
 	return true;
 }
 
 void MCScreenDC::finalisebackdrop(void)
 {
+	// HXT: Destroy extra per-display backdrop windows first.
+	for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+	{
+		if (m_extra_backdrop_windows[i] != NULL)
+		{
+			DestroyWindow(m_extra_backdrop_windows[i]);
+			m_extra_backdrop_windows[i] = NULL;
+		}
+	}
+	m_extra_backdrop_count = 0;
+
 	if (backdrop_window != NULL)
 	{
 		DestroyWindow(backdrop_window);
@@ -1818,8 +1923,40 @@ void MCScreenDC::finalisebackdrop(void)
 	}
 }
 
-void MCScreenDC::redrawbackdrop(void)
+// HXT: Generalised helper — draws the backdrop into any backdrop HWND.
+// Called from WM_ERASEBKGND in MCBackdropWindowProc for both the primary
+// window and each extra per-display window.
+void MCScreenDC::redrawbackdrop(HWND p_hwnd)
 {
+	if (p_hwnd == NULL)
+		return;
+
+	// Find the rect and scale for this window.
+	MCRectangle t_logical_rect;
+	MCGFloat t_scale;
+	if (p_hwnd == backdrop_window)
+	{
+		t_logical_rect = m_backdrop_rect;
+		t_scale        = m_backdrop_scale;
+	}
+	else
+	{
+		// Search the extra-window table.
+		bool t_found = false;
+		for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+		{
+			if (m_extra_backdrop_windows[i] == p_hwnd)
+			{
+				t_logical_rect = m_extra_backdrop_rects[i];
+				t_scale        = m_extra_backdrop_scales[i];
+				t_found = true;
+				break;
+			}
+		}
+		if (!t_found)
+			return;
+	}
+
 	bool t_success = true;
 
 	RECT t_winrect;
@@ -1830,9 +1967,9 @@ void MCScreenDC::redrawbackdrop(void)
 
 	// IM-2014-04-17: [[ Bug 12223 ]] Account for pixelScale when drawing backdrop
 	MCGAffineTransform t_transform;
-	t_transform = MCGAffineTransformMakeScale(m_backdrop_scale, m_backdrop_scale);
+	t_transform = MCGAffineTransformMakeScale(t_scale, t_scale);
 
-	GetClientRect(backdrop_window, &t_winrect);
+	GetClientRect(p_hwnd, &t_winrect);
 	t_width = t_winrect.right - t_winrect.left;
 	t_height = t_winrect.bottom - t_winrect.top;
 
@@ -1859,10 +1996,11 @@ void MCScreenDC::redrawbackdrop(void)
 		}
 		else
 			MCGContextSetFillRGBAColor(t_context, backdrop_colour.red / 65535.0, backdrop_colour.green / 65535.0, backdrop_colour.blue / 65535.0, 1.0);
-		MCGContextAddRectangle(t_context, MCRectangleToMCGRectangle(m_backdrop_rect));
+		MCGContextAddRectangle(t_context, MCRectangleToMCGRectangle(t_logical_rect));
 		MCGContextFill(t_context);
 
-		if (backdrop_badge != NULL && backdrop_hard)
+		// Only draw the badge on the primary backdrop window.
+		if (p_hwnd == backdrop_window && backdrop_badge != NULL && backdrop_hard)
 		{
 			MCContext *t_gfxcontext = nil;
 			t_success = nil != (t_gfxcontext = new (nothrow) MCGraphicsContext(t_context));
@@ -1871,7 +2009,7 @@ void MCScreenDC::redrawbackdrop(void)
 			{
 				MCRectangle t_rect;
 				t_rect = backdrop_badge -> getrect();
-				backdrop_badge -> drawme(t_gfxcontext, 0, 0, t_rect . width, t_rect . height, 32, m_backdrop_rect.height - 32 - t_rect . height, t_rect . width, t_rect . height);
+				backdrop_badge -> drawme(t_gfxcontext, 0, 0, t_rect . width, t_rect . height, 32, t_logical_rect.height - 32 - t_rect . height, t_rect . width, t_rect . height);
 			}
 
 			delete t_gfxcontext;
@@ -1884,7 +2022,7 @@ void MCScreenDC::redrawbackdrop(void)
 	HDC t_dc = nil;
 	HDC t_src_dc = nil;
 	if (t_success)
-		t_success = nil != (t_dc = GetDC(backdrop_window));
+		t_success = nil != (t_dc = GetDC(p_hwnd));
 	if (t_success)
 		t_success = nil != (t_src_dc = getsrchdc());
 
@@ -1897,7 +2035,7 @@ void MCScreenDC::redrawbackdrop(void)
 	}
 
 	if (t_dc != nil)
-		ReleaseDC(backdrop_window, t_dc);
+		ReleaseDC(p_hwnd, t_dc);
 
 	if (t_bitmap != nil)
 		DeleteObject(t_bitmap);
@@ -1915,7 +2053,7 @@ LRESULT CALLBACK MCBackdropWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM
 	{
 		case WM_ERASEBKGND:
 		{
-			((MCScreenDC *)MCscreen) -> redrawbackdrop();
+			((MCScreenDC *)MCscreen) -> redrawbackdrop(hwnd);
 		}
 		return 1;
 

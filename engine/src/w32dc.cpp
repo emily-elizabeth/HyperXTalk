@@ -80,6 +80,7 @@ MCScreenDC::MCScreenDC()
 	memset(&backdrop_colour, 0, sizeof(MCColor));
 	backdrop_pattern = NULL;
 	backdrop_badge = NULL;
+	m_extra_backdrop_count = 0;
 
 	m_printer_dc = NULL;
 	m_printer_dc_locked = false;

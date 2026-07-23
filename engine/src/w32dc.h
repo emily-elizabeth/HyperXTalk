@@ -153,9 +153,17 @@ class MCScreenDC : public MCUIDC
 	MCRectangle m_backdrop_rect;
 	MCGFloat m_backdrop_scale;
 
+	// HXT: Per-display extra backdrop windows for multi-monitor support.
+	// One extra HWND per display beyond the primary, matching the macOS approach.
+	static const uint32_t kBackdropExtraMax = 7;
+	HWND m_extra_backdrop_windows[kBackdropExtraMax];
+	MCRectangle m_extra_backdrop_rects[kBackdropExtraMax];
+	MCGFloat m_extra_backdrop_scales[kBackdropExtraMax];
+	uint32_t m_extra_backdrop_count;
+
 	// MM-2014-04-08: [[ Bug 12058 ]] Update back_pattern to be a MCPatternRef.
 	MCPatternRef backdrop_pattern;
-	
+
 	MCImage *backdrop_badge;
 
 	HDC m_printer_dc;
@@ -359,7 +367,7 @@ public:
 	void restackwindows(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 	void hidebackdrop(Boolean p_hide);
 
-	void redrawbackdrop(void);
+	void redrawbackdrop(HWND p_hwnd);
 
 	void settaskbarstate(bool p_visible);
 	void processdesktopchanged(bool p_notify = true, bool p_update_fonts = true);
