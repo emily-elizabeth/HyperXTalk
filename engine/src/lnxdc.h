@@ -150,6 +150,12 @@ class MCScreenDC : public MCUIDC
 	// -- tperry 12-11-2025: Pixmap is unsigned long, use 0 not nullptr
 	Pixmap m_backdrop_pixmap = 0;
 
+	// HXT [[ 376 ]]: Per-display extra backdrop windows (display 1..N).
+	// display 0 is covered by the primary `backdrop` window above.
+	static const uint32_t kBackdropExtraMax = 7;
+	Window m_extra_backdrop_windows[kBackdropExtraMax] = {};
+	uint32_t m_extra_backdrop_count = 0;
+
 	Window last_window = None; 	//XDND - Used for the moment to shunt the ID
 	
 	bool m_has_native_theme = false;
