@@ -1667,21 +1667,32 @@ void MCScreenDC::enablebackdrop(bool p_hard)
 	else
 		backdrop_active = True;
 
+	// Destroy and recreate the primary backdrop window so it starts with
+	// fresh WM state, matching how Windows re-creates via initialisebackdrop().
+	// The pre-existing window (from configurebackdrop) carries stale hints
+	// that prevent it from showing correctly on the primary monitor.
+	if (backdrop != DNULL)
+	{
+		gdk_window_hide(backdrop);
+		gdk_window_destroy(backdrop);
+		backdrop = DNULL;
+	}
+	for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+	{
+		if (m_extra_backdrop_windows[i] != DNULL)
+		{
+			gdk_window_hide(m_extra_backdrop_windows[i]);
+			gdk_window_destroy(m_extra_backdrop_windows[i]);
+			m_extra_backdrop_windows[i] = DNULL;
+		}
+	}
+	m_extra_backdrop_count = 0;
+	createbackdrop_window();
+
 	t_error = (backdrop == DNULL);
 
 	if (!t_error)
 	{
-        // Destroy any leftover extra windows from a previous enable call.
-        for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
-        {
-            if (m_extra_backdrop_windows[i] != DNULL)
-            {
-                gdk_window_hide(m_extra_backdrop_windows[i]);
-                gdk_window_destroy(m_extra_backdrop_windows[i]);
-                m_extra_backdrop_windows[i] = DNULL;
-            }
-        }
-        m_extra_backdrop_count = 0;
 
         // Helper: configure and show one backdrop GdkWindow at (x,y,w,h).
         auto show_backdrop_win = [&](GdkWindow *p_win, gint x, gint y, gint w, gint h)
