@@ -1708,8 +1708,22 @@ void MCScreenDC::enablebackdrop(bool p_hard)
                 t_x, t_y, t_right - t_x, t_bottom - t_y, t_nmon);
         gdk_window_move_resize(backdrop, t_x, t_y,
                                t_right - t_x, t_bottom - t_y);
-        gdk_window_lower(backdrop);
-        gdk_window_show_unraised(backdrop);
+
+        // Use _NET_WM_STATE_BELOW (EWMH) so the WM keeps us below normal
+        // windows but above the desktop layer.  Must be set before mapping.
+        // Raw gdk_window_lower() on modern GNOME/Mutter drops us below even
+        // the gnome-shell desktop window, making the backdrop invisible.
+        {
+            ::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
+            ::Window   t_xwin = x11::gdk_x11_window_get_xid(backdrop);
+            Atom t_wm_state   = x11::XInternAtom(t_xdpy, "_NET_WM_STATE",       False);
+            Atom t_below      = x11::XInternAtom(t_xdpy, "_NET_WM_STATE_BELOW", False);
+            x11::XChangeProperty(t_xdpy, t_xwin,
+                                 t_wm_state, XA_ATOM, 32, PropModeReplace,
+                                 (unsigned char *)&t_below, 1);
+        }
+
+        gdk_window_show(backdrop);
         // Paint after mapping so the content survives compositing.
         paint_backdrop_gdk_window(backdrop, backdropcolor, m_backdrop_pixmap);
         gdk_display_flush(dpy);
