@@ -448,10 +448,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         // Even if we found it, it may not be ours. This is very
                         // unlikely but could happen if we've created a GdkWindow
                         // for it in the past (e.g. in import snapshot)
-                        bool _is_bd = (backdrop != NULL && t_window == backdrop);
-                        for (uint32_t _i = 0; !_is_bd && _i < m_extra_backdrop_count; _i++)
-                            _is_bd = (m_extra_backdrop_windows[_i] == t_window);
-                        if (_is_bd || MCdispatcher->findstackd(t_window) != NULL)
+                        if ((backdrop != NULL && t_window == backdrop) || MCdispatcher->findstackd(t_window) != NULL)
                             t_lostfocus = false;
                         
                         if (t_lostfocus)
@@ -812,14 +809,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             
                             clicktime = t_event->button.time;
                             
-                            // Was the click on the background window (primary or extra)?
-                            auto is_backdrop_win = [&](GdkWindow *w) -> bool {
-                                if (backdrop != DNULL && w == backdrop) return true;
-                                for (uint32_t _i = 0; _i < m_extra_backdrop_count; _i++)
-                                    if (m_extra_backdrop_windows[_i] == w) return true;
-                                return false;
-                            };
-                            if (is_backdrop_win(t_event->button.window))
+                            if (backdrop != DNULL && t_event->button.window == backdrop)
                                 MCdefaultstackptr->getcard()->message_with_args(MCM_mouse_down_in_backdrop, t_event->button.button);
                             else
                             {
@@ -888,13 +878,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 
                 if (dispatch)
                 {
-                    auto is_backdrop_win_up = [&](GdkWindow *w) -> bool {
-                        if (backdrop != DNULL && w == backdrop) return true;
-                        for (uint32_t _i = 0; _i < m_extra_backdrop_count; _i++)
-                            if (m_extra_backdrop_windows[_i] == w) return true;
-                        return false;
-                    };
-                    if (is_backdrop_win_up(t_event->button.window))
+                    if (backdrop != DNULL && t_event->button.window == backdrop)
                     {
                         // Don't send mouse events to the backdrop
                         MCdefaultstackptr->getcard()->message_with_args(MCM_mouse_up_in_backdrop, t_event->button.button);

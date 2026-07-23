@@ -1602,8 +1602,7 @@ void MCScreenDC::hidebackdrop(bool p_hide)
 }
 
 
-// Paint the current backdrop color/pattern onto any GdkWindow.
-// Used for both the primary backdrop and extra per-display windows.
+// Paint the current backdrop color/pattern onto a GdkWindow.
 static void paint_backdrop_gdk_window(GdkWindow *p_win,
                                        const MCColor &p_color,
                                        Pixmap p_pixmap)
@@ -1669,65 +1668,43 @@ void MCScreenDC::enablebackdrop(bool p_hard)
         gdk_window_set_skip_taskbar_hint(backdrop, TRUE);
         gdk_window_set_skip_pager_hint(backdrop, TRUE);
 
-        // Size primary backdrop to display 0's viewport (not the combined screen rect).
-        MCDisplay const *t_displays;
-        uint32_t t_display_count = getdisplays(t_displays, false);
-        if (t_display_count > 0)
+        // On X11, the entire multi-monitor layout lives in a single virtual
+        // coordinate space, so one spanning GdkWindow covers every display.
+        // Compute the union bounding box of all monitors directly via GDK
+        // (avoids calling getdisplays() here, which would trigger
+        // apply_partial_struts() X11 round-trips mid-window-setup).
+        gint t_x = 0, t_y = 0, t_right = 0, t_bottom = 0;
+        gint t_nmon = gdk_display_get_n_monitors(dpy);
+        if (t_nmon > 0)
         {
-            MCRectangle const &r = t_displays[0].viewport;
-            gdk_window_move_resize(backdrop, r.x, r.y, r.width, r.height);
+            GdkRectangle t_r;
+            gdk_monitor_get_geometry(gdk_display_get_monitor(dpy, 0), &t_r);
+            t_x = t_r.x; t_y = t_r.y;
+            t_right  = t_r.x + t_r.width;
+            t_bottom = t_r.y + t_r.height;
+            for (gint i = 1; i < t_nmon; i++)
+            {
+                gdk_monitor_get_geometry(gdk_display_get_monitor(dpy, i), &t_r);
+                if (t_r.x < t_x)                      t_x = t_r.x;
+                if (t_r.y < t_y)                      t_y = t_r.y;
+                if (t_r.x + t_r.width  > t_right)  t_right  = t_r.x + t_r.width;
+                if (t_r.y + t_r.height > t_bottom) t_bottom = t_r.y + t_r.height;
+            }
         }
         else
         {
-            gdk_window_move_resize(backdrop, 0, 0, device_getwidth(), device_getheight());
+            t_right  = (gint)device_getwidth();
+            t_bottom = (gint)device_getheight();
         }
+        gdk_window_move_resize(backdrop, t_x, t_y,
+                               t_right - t_x, t_bottom - t_y);
         gdk_window_lower(backdrop);
         gdk_window_show_unraised(backdrop);
-        paint_backdrop_gdk_window(backdrop, backdropcolor, m_backdrop_pixmap);
-
-        // Destroy any leftover extra windows from a previous enable call.
-        for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
-        {
-            gdk_window_hide(m_extra_backdrop_windows[i]);
-            gdk_window_destroy(m_extra_backdrop_windows[i]);
-            m_extra_backdrop_windows[i] = DNULL;
-        }
-        m_extra_backdrop_count = 0;
-
-        // Create one extra window per additional display (display 1..N).
-        for (uint32_t i = 1; i < t_display_count && i - 1 < kBackdropExtraMax; i++)
-        {
-            MCRectangle const &r = t_displays[i].viewport;
-            GdkWindowAttr a = {};
-            a.event_mask = GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK
-                | GDK_FOCUS_CHANGE_MASK | GDK_POINTER_MOTION_MASK
-                | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_EXPOSURE_MASK;
-            a.x      = r.x;
-            a.y      = r.y;
-            a.width  = r.width  > 0 ? r.width  : 1;
-            a.height = r.height > 0 ? r.height : 1;
-            a.wclass      = GDK_INPUT_OUTPUT;
-            a.visual      = getvisual();
-            a.window_type = GDK_WINDOW_TOPLEVEL;
-
-            Window t_extra = gdk_window_new(getroot(), &a, GDK_WA_VISUAL);
-            if (t_extra != DNULL)
-            {
-                gdk_window_set_functions(t_extra, GdkWMFunction(0));
-                gdk_window_set_decorations(t_extra, GdkWMDecoration(0));
-                gdk_window_set_skip_taskbar_hint(t_extra, TRUE);
-                gdk_window_set_skip_pager_hint(t_extra, TRUE);
-                gdk_window_lower(t_extra);
-                gdk_window_show_unraised(t_extra);
-                paint_backdrop_gdk_window(t_extra, backdropcolor, m_backdrop_pixmap);
-                m_extra_backdrop_windows[m_extra_backdrop_count++] = t_extra;
-            }
-        }
-        gdk_display_sync(MCdpy);
 	}
 	else
 	{
 		backdrop_active = False;
+		//finalisebackdrop();
 	}
     // MDW [17323] - refresh *after* the gdk calls
     MCstacks -> refresh();
@@ -1750,17 +1727,6 @@ void MCScreenDC::disablebackdrop(bool p_hard)
 	{
 		if (backdrop != DNULL)
 			gdk_window_hide(backdrop);
-		// Hide and destroy extra per-display windows.
-		for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
-		{
-			if (m_extra_backdrop_windows[i] != DNULL)
-			{
-				gdk_window_hide(m_extra_backdrop_windows[i]);
-				gdk_window_destroy(m_extra_backdrop_windows[i]);
-				m_extra_backdrop_windows[i] = DNULL;
-			}
-		}
-		m_extra_backdrop_count = 0;
 		MCstacks -> refresh();
 	}
 
@@ -1790,12 +1756,7 @@ void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_patte
     if (backdrop == DNULL)
         return;
 
-	// Paint primary backdrop window.
 	paint_backdrop_gdk_window(backdrop, backdropcolor, m_backdrop_pixmap);
-
-	// Paint extra per-display windows with the same color/pattern.
-	for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
-		paint_backdrop_gdk_window(m_extra_backdrop_windows[i], backdropcolor, m_backdrop_pixmap);
 
 	MCstacks -> refresh();
 }
@@ -1861,18 +1822,6 @@ void MCScreenDC::destroybackdrop()
         gdk_window_destroy(backdrop);
 		backdrop = DNULL;
 	}
-
-	// Destroy extra per-display backdrop windows.
-	for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
-	{
-		if (m_extra_backdrop_windows[i] != DNULL)
-		{
-			gdk_window_hide(m_extra_backdrop_windows[i]);
-			gdk_window_destroy(m_extra_backdrop_windows[i]);
-			m_extra_backdrop_windows[i] = DNULL;
-		}
-	}
-	m_extra_backdrop_count = 0;
 
 	freepixmap(m_backdrop_pixmap);
 }
