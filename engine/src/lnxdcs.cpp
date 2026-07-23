@@ -1648,7 +1648,6 @@ void MCScreenDC::createbackdrop_window(void)
 
     backdrop = gdk_window_new(getroot(), &gdkwa, GDK_WA_VISUAL);
     gdk_display_sync(MCdpy);
-    fprintf(stderr, "HXT-BD: createbackdrop_window: backdrop=%p\n", (void*)backdrop);
 }
 
 
@@ -1658,85 +1657,91 @@ void MCScreenDC::enablebackdrop(bool p_hard)
 	t_error = false;
 
 	if (p_hard && backdrop_hard)
-    {
-        fprintf(stderr, "HXT-BD: enablebackdrop(%d): early-exit: already hard\n", p_hard);
 		return;
-    }
 
 	if (!p_hard && backdrop_active)
-    {
-        fprintf(stderr, "HXT-BD: enablebackdrop(%d): early-exit: already active\n", p_hard);
 		return;
-    }
 
 	if (p_hard)
 		backdrop_hard = true;
 	else
 		backdrop_active = True;
 
-	t_error = (backdrop == DNULL) ;
-    fprintf(stderr, "HXT-BD: enablebackdrop(%d): backdrop=%p t_error=%d\n", p_hard, (void*)backdrop, t_error);
+	t_error = (backdrop == DNULL);
 
 	if (!t_error)
 	{
-        gdk_window_set_functions(backdrop, GdkWMFunction(0));
-        gdk_window_set_decorations(backdrop, GdkWMDecoration(0));
-        gdk_window_set_skip_taskbar_hint(backdrop, TRUE);
-        gdk_window_set_skip_pager_hint(backdrop, TRUE);
-
-        // On X11, the entire multi-monitor layout lives in a single virtual
-        // coordinate space, so one spanning GdkWindow covers every display.
-        // Compute the union bounding box of all monitors directly via GDK
-        // (avoids calling getdisplays() here, which would trigger
-        // apply_partial_struts() X11 round-trips mid-window-setup).
-        gint t_x = 0, t_y = 0, t_right = 0, t_bottom = 0;
-        gint t_nmon = gdk_display_get_n_monitors(dpy);
-        if (t_nmon > 0)
+        // Destroy any leftover extra windows from a previous enable call.
+        for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
         {
-            GdkRectangle t_r;
-            gdk_monitor_get_geometry(gdk_display_get_monitor(dpy, 0), &t_r);
-            t_x = t_r.x; t_y = t_r.y;
-            t_right  = t_r.x + t_r.width;
-            t_bottom = t_r.y + t_r.height;
-            for (gint i = 1; i < t_nmon; i++)
+            if (m_extra_backdrop_windows[i] != DNULL)
             {
-                gdk_monitor_get_geometry(gdk_display_get_monitor(dpy, i), &t_r);
-                if (t_r.x < t_x)                      t_x = t_r.x;
-                if (t_r.y < t_y)                      t_y = t_r.y;
-                if (t_r.x + t_r.width  > t_right)  t_right  = t_r.x + t_r.width;
-                if (t_r.y + t_r.height > t_bottom) t_bottom = t_r.y + t_r.height;
+                gdk_window_hide(m_extra_backdrop_windows[i]);
+                gdk_window_destroy(m_extra_backdrop_windows[i]);
+                m_extra_backdrop_windows[i] = DNULL;
             }
         }
-        else
-        {
-            t_right  = (gint)device_getwidth();
-            t_bottom = (gint)device_getheight();
-        }
-        fprintf(stderr, "HXT-BD: enablebackdrop: bbox x=%d y=%d w=%d h=%d (nmon=%d)\n",
-                t_x, t_y, t_right - t_x, t_bottom - t_y, t_nmon);
-        gdk_window_move_resize(backdrop, t_x, t_y,
-                               t_right - t_x, t_bottom - t_y);
+        m_extra_backdrop_count = 0;
 
-        // Set a persistent compositor-level background so the color survives
-        // expose redraws without needing a draw handler.
+        // Helper: configure and show one backdrop GdkWindow at (x,y,w,h).
+        auto show_backdrop_win = [&](GdkWindow *p_win, gint x, gint y, gint w, gint h)
         {
+            gdk_window_set_functions(p_win, GdkWMFunction(0));
+            gdk_window_set_decorations(p_win, GdkWMDecoration(0));
+            gdk_window_set_skip_taskbar_hint(p_win, TRUE);
+            gdk_window_set_skip_pager_hint(p_win, TRUE);
+            gdk_window_move_resize(p_win, x, y, w, h);
             GdkRGBA t_rgba;
             t_rgba.red   = backdropcolor.red   / 65535.0;
             t_rgba.green = backdropcolor.green / 65535.0;
             t_rgba.blue  = backdropcolor.blue  / 65535.0;
             t_rgba.alpha = 1.0;
-            gdk_window_set_background_rgba(backdrop, &t_rgba);
-        }
+            gdk_window_set_background_rgba(p_win, &t_rgba);
+            gdk_window_show(p_win);
+            gdk_window_raise(p_win);
+            paint_backdrop_gdk_window(p_win, backdropcolor, m_backdrop_pixmap);
+        };
 
-        // Show and raise.  The backdrop sits above the desktop wallpaper layer.
-        // HXT stacks are set as transient_for the backdrop (assignbackdrop),
-        // so the WM keeps them above it automatically.
-        gdk_window_show(backdrop);
-        gdk_window_raise(backdrop);
-        paint_backdrop_gdk_window(backdrop, backdropcolor, m_backdrop_pixmap);
+        // Use GDK monitor geometry directly — avoids calling getdisplays()
+        // which triggers apply_partial_struts() X11 round-trips mid-setup.
+        // One window per monitor: primary uses `backdrop`, extras go in
+        // m_extra_backdrop_windows[].  Per-monitor windows avoid the
+        // cross-monitor Cairo clipping issues that affect a single spanning
+        // window on mixed-resolution setups.
+        gint t_nmon = gdk_display_get_n_monitors(dpy);
+        if (t_nmon > 0)
+        {
+            GdkRectangle t_r;
+            gdk_monitor_get_geometry(gdk_display_get_monitor(dpy, 0), &t_r);
+            show_backdrop_win(backdrop, t_r.x, t_r.y, t_r.width, t_r.height);
+
+            for (gint i = 1; i < t_nmon && (uint32_t)(i - 1) < kBackdropExtraMax; i++)
+            {
+                gdk_monitor_get_geometry(gdk_display_get_monitor(dpy, i), &t_r);
+                GdkWindowAttr a = {};
+                a.event_mask = GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK
+                    | GDK_FOCUS_CHANGE_MASK | GDK_POINTER_MOTION_MASK
+                    | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_EXPOSURE_MASK;
+                a.x = t_r.x; a.y = t_r.y;
+                a.width  = t_r.width  > 0 ? t_r.width  : 1;
+                a.height = t_r.height > 0 ? t_r.height : 1;
+                a.wclass      = GDK_INPUT_OUTPUT;
+                a.visual      = getvisual();
+                a.window_type = GDK_WINDOW_TOPLEVEL;
+                Window t_extra = gdk_window_new(getroot(), &a, GDK_WA_VISUAL);
+                if (t_extra != DNULL)
+                {
+                    show_backdrop_win(t_extra, t_r.x, t_r.y, t_r.width, t_r.height);
+                    m_extra_backdrop_windows[m_extra_backdrop_count++] = t_extra;
+                }
+            }
+        }
+        else
+        {
+            // Fallback: single window covering the full screen.
+            show_backdrop_win(backdrop, 0, 0, (gint)device_getwidth(), (gint)device_getheight());
+        }
         gdk_display_flush(dpy);
-        fprintf(stderr, "HXT-BD: enablebackdrop: shown (color r=%u g=%u b=%u)\n",
-                backdropcolor.red, backdropcolor.green, backdropcolor.blue);
 	}
 	else
 	{
@@ -1764,6 +1769,16 @@ void MCScreenDC::disablebackdrop(bool p_hard)
 	{
 		if (backdrop != DNULL)
 			gdk_window_hide(backdrop);
+		for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+		{
+			if (m_extra_backdrop_windows[i] != DNULL)
+			{
+				gdk_window_hide(m_extra_backdrop_windows[i]);
+				gdk_window_destroy(m_extra_backdrop_windows[i]);
+				m_extra_backdrop_windows[i] = DNULL;
+			}
+		}
+		m_extra_backdrop_count = 0;
 		MCstacks -> refresh();
 	}
 
@@ -1772,8 +1787,6 @@ void MCScreenDC::disablebackdrop(bool p_hard)
 bool MCPatternToX11Pixmap(MCPatternRef p_pattern, Pixmap &r_pixmap);
 void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_pattern, MCImage *p_badge)
 {
-    fprintf(stderr, "HXT-BD: configurebackdrop: colour r=%u g=%u b=%u pattern=%p backdrop=%p\n",
-            p_colour.red, p_colour.green, p_colour.blue, (void*)p_pattern, (void*)backdrop);
 	// -- tperry 15-11-2025: GTK3 - use DNULL for Pixmap comparisons (Pixmap is unsigned long)
 	// IM-2014-04-15: [[ Bug 11603 ]] Convert pattern to Pixmap for use with XSetWindowAttributes structure
 	freepixmap(m_backdrop_pixmap);
@@ -1796,6 +1809,8 @@ void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_patte
         return;
 
 	paint_backdrop_gdk_window(backdrop, backdropcolor, m_backdrop_pixmap);
+	for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+		paint_backdrop_gdk_window(m_extra_backdrop_windows[i], backdropcolor, m_backdrop_pixmap);
 
 	MCstacks -> refresh();
 }
@@ -1861,6 +1876,17 @@ void MCScreenDC::destroybackdrop()
         gdk_window_destroy(backdrop);
 		backdrop = DNULL;
 	}
+
+	for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+	{
+		if (m_extra_backdrop_windows[i] != DNULL)
+		{
+			gdk_window_hide(m_extra_backdrop_windows[i]);
+			gdk_window_destroy(m_extra_backdrop_windows[i]);
+			m_extra_backdrop_windows[i] = DNULL;
+		}
+	}
+	m_extra_backdrop_count = 0;
 
 	freepixmap(m_backdrop_pixmap);
 }
