@@ -1714,12 +1714,12 @@ void MCScreenDC::enablebackdrop(bool p_hard)
         // Raw gdk_window_lower() on modern GNOME/Mutter drops us below even
         // the gnome-shell desktop window, making the backdrop invisible.
         {
-            ::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
-            ::Window   t_xwin = x11::gdk_x11_window_get_xid(backdrop);
-            Atom t_wm_state   = x11::XInternAtom(t_xdpy, "_NET_WM_STATE",       False);
-            Atom t_below      = x11::XInternAtom(t_xdpy, "_NET_WM_STATE_BELOW", False);
+            x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
+            x11::Window   t_xwin = x11::gdk_x11_window_get_xid(backdrop);
+            x11::Atom t_wm_state   = x11::XInternAtom(t_xdpy, "_NET_WM_STATE",       x11::False);
+            x11::Atom t_below      = x11::XInternAtom(t_xdpy, "_NET_WM_STATE_BELOW", x11::False);
             x11::XChangeProperty(t_xdpy, t_xwin,
-                                 t_wm_state, XA_ATOM, 32, PropModeReplace,
+                                 t_wm_state, x11::XA_ATOM, 32, x11::PropModeReplace,
                                  (unsigned char *)&t_below, 1);
         }
 
