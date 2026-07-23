@@ -1716,10 +1716,11 @@ void MCScreenDC::enablebackdrop(bool p_hard)
         {
             x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
             x11::Window   t_xwin = x11::gdk_x11_window_get_xid(backdrop);
-            x11::Atom t_wm_state   = x11::XInternAtom(t_xdpy, "_NET_WM_STATE",       x11::False);
-            x11::Atom t_below      = x11::XInternAtom(t_xdpy, "_NET_WM_STATE_BELOW", x11::False);
+            x11::Atom t_wm_state   = x11::XInternAtom(t_xdpy, "_NET_WM_STATE",       0);
+            x11::Atom t_below      = x11::XInternAtom(t_xdpy, "_NET_WM_STATE_BELOW", 0);
+            // XA_ATOM=4, PropModeReplace=0 — macros, not x11:: members
             x11::XChangeProperty(t_xdpy, t_xwin,
-                                 t_wm_state, x11::XA_ATOM, 32, x11::PropModeReplace,
+                                 t_wm_state, (x11::Atom)4, 32, 0,
                                  (unsigned char *)&t_below, 1);
         }
 
