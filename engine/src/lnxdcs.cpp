@@ -1603,13 +1603,21 @@ void MCScreenDC::hidebackdrop(bool p_hide)
 
 
 // Paint the current backdrop color/pattern onto a GdkWindow.
+// cairo_reset_clip + explicit full-window rectangle ensures paint covers the
+// entire window on multi-monitor setups with different resolutions, where
+// gdk_cairo_create() may clip to per-monitor visible regions.
 static void paint_backdrop_gdk_window(GdkWindow *p_win,
                                        const MCColor &p_color,
                                        Pixmap p_pixmap)
 {
     if (!p_win)
         return;
+    gint t_w = gdk_window_get_width(p_win);
+    gint t_h = gdk_window_get_height(p_win);
     cairo_t *cr = gdk_cairo_create(p_win);
+    cairo_reset_clip(cr);
+    cairo_rectangle(cr, 0, 0, (double)t_w, (double)t_h);
+    cairo_clip(cr);
     if (p_pixmap != DNULL)
     {
         cairo_set_source_surface(cr, (cairo_surface_t *)p_pixmap, 0, 0);
@@ -1720,14 +1728,14 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             gdk_window_set_background_rgba(backdrop, &t_rgba);
         }
 
-        // DIAGNOSTIC: raise to top to verify the window is actually renderable.
-        // If a gray cover appears over both screens, the window is fine and
-        // we only need to fix Z-ordering.  Remove this raise once confirmed.
+        // Show and raise.  The backdrop sits above the desktop wallpaper layer.
+        // HXT stacks are set as transient_for the backdrop (assignbackdrop),
+        // so the WM keeps them above it automatically.
         gdk_window_show(backdrop);
         gdk_window_raise(backdrop);
         paint_backdrop_gdk_window(backdrop, backdropcolor, m_backdrop_pixmap);
         gdk_display_flush(dpy);
-        fprintf(stderr, "HXT-BD: enablebackdrop: window shown+raised (color r=%u g=%u b=%u)\n",
+        fprintf(stderr, "HXT-BD: enablebackdrop: shown (color r=%u g=%u b=%u)\n",
                 backdropcolor.red, backdropcolor.green, backdropcolor.blue);
 	}
 	else
