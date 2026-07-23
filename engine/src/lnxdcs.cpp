@@ -1640,6 +1640,7 @@ void MCScreenDC::createbackdrop_window(void)
 
     backdrop = gdk_window_new(getroot(), &gdkwa, GDK_WA_VISUAL);
     gdk_display_sync(MCdpy);
+    fprintf(stderr, "HXT-BD: createbackdrop_window: backdrop=%p\n", (void*)backdrop);
 }
 
 
@@ -1649,10 +1650,16 @@ void MCScreenDC::enablebackdrop(bool p_hard)
 	t_error = false;
 
 	if (p_hard && backdrop_hard)
+    {
+        fprintf(stderr, "HXT-BD: enablebackdrop(%d): early-exit: already hard\n", p_hard);
 		return;
+    }
 
 	if (!p_hard && backdrop_active)
+    {
+        fprintf(stderr, "HXT-BD: enablebackdrop(%d): early-exit: already active\n", p_hard);
 		return;
+    }
 
 	if (p_hard)
 		backdrop_hard = true;
@@ -1660,6 +1667,7 @@ void MCScreenDC::enablebackdrop(bool p_hard)
 		backdrop_active = True;
 
 	t_error = (backdrop == DNULL) ;
+    fprintf(stderr, "HXT-BD: enablebackdrop(%d): backdrop=%p t_error=%d\n", p_hard, (void*)backdrop, t_error);
 
 	if (!t_error)
 	{
@@ -1696,10 +1704,17 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             t_right  = (gint)device_getwidth();
             t_bottom = (gint)device_getheight();
         }
+        fprintf(stderr, "HXT-BD: enablebackdrop: bbox x=%d y=%d w=%d h=%d (nmon=%d)\n",
+                t_x, t_y, t_right - t_x, t_bottom - t_y, t_nmon);
         gdk_window_move_resize(backdrop, t_x, t_y,
                                t_right - t_x, t_bottom - t_y);
         gdk_window_lower(backdrop);
         gdk_window_show_unraised(backdrop);
+        // Paint after mapping so the content survives compositing.
+        paint_backdrop_gdk_window(backdrop, backdropcolor, m_backdrop_pixmap);
+        gdk_display_flush(dpy);
+        fprintf(stderr, "HXT-BD: enablebackdrop: window shown and painted (color r=%u g=%u b=%u)\n",
+                backdropcolor.red, backdropcolor.green, backdropcolor.blue);
 	}
 	else
 	{
@@ -1735,6 +1750,8 @@ void MCScreenDC::disablebackdrop(bool p_hard)
 bool MCPatternToX11Pixmap(MCPatternRef p_pattern, Pixmap &r_pixmap);
 void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_pattern, MCImage *p_badge)
 {
+    fprintf(stderr, "HXT-BD: configurebackdrop: colour r=%u g=%u b=%u pattern=%p backdrop=%p\n",
+            p_colour.red, p_colour.green, p_colour.blue, (void*)p_pattern, (void*)backdrop);
 	// -- tperry 15-11-2025: GTK3 - use DNULL for Pixmap comparisons (Pixmap is unsigned long)
 	// IM-2014-04-15: [[ Bug 11603 ]] Convert pattern to Pixmap for use with XSetWindowAttributes structure
 	freepixmap(m_backdrop_pixmap);
