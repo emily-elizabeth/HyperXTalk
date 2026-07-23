@@ -1709,26 +1709,25 @@ void MCScreenDC::enablebackdrop(bool p_hard)
         gdk_window_move_resize(backdrop, t_x, t_y,
                                t_right - t_x, t_bottom - t_y);
 
-        // Use _NET_WM_STATE_BELOW (EWMH) so the WM keeps us below normal
-        // windows but above the desktop layer.  Must be set before mapping.
-        // Raw gdk_window_lower() on modern GNOME/Mutter drops us below even
-        // the gnome-shell desktop window, making the backdrop invisible.
+        // Set a persistent compositor-level background so the color survives
+        // expose redraws without needing a draw handler.
         {
-            x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
-            x11::Window   t_xwin = x11::gdk_x11_window_get_xid(backdrop);
-            x11::Atom t_wm_state   = x11::XInternAtom(t_xdpy, "_NET_WM_STATE",       0);
-            x11::Atom t_below      = x11::XInternAtom(t_xdpy, "_NET_WM_STATE_BELOW", 0);
-            // XA_ATOM=4, PropModeReplace=0 — macros, not x11:: members
-            x11::XChangeProperty(t_xdpy, t_xwin,
-                                 t_wm_state, (x11::Atom)4, 32, 0,
-                                 (unsigned char *)&t_below, 1);
+            GdkRGBA t_rgba;
+            t_rgba.red   = backdropcolor.red   / 65535.0;
+            t_rgba.green = backdropcolor.green / 65535.0;
+            t_rgba.blue  = backdropcolor.blue  / 65535.0;
+            t_rgba.alpha = 1.0;
+            gdk_window_set_background_rgba(backdrop, &t_rgba);
         }
 
+        // DIAGNOSTIC: raise to top to verify the window is actually renderable.
+        // If a gray cover appears over both screens, the window is fine and
+        // we only need to fix Z-ordering.  Remove this raise once confirmed.
         gdk_window_show(backdrop);
-        // Paint after mapping so the content survives compositing.
+        gdk_window_raise(backdrop);
         paint_backdrop_gdk_window(backdrop, backdropcolor, m_backdrop_pixmap);
         gdk_display_flush(dpy);
-        fprintf(stderr, "HXT-BD: enablebackdrop: window shown and painted (color r=%u g=%u b=%u)\n",
+        fprintf(stderr, "HXT-BD: enablebackdrop: window shown+raised (color r=%u g=%u b=%u)\n",
                 backdropcolor.red, backdropcolor.green, backdropcolor.blue);
 	}
 	else
