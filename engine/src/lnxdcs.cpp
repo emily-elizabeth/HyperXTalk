@@ -1603,34 +1603,59 @@ void MCScreenDC::hidebackdrop(bool p_hide)
 
 
 // Paint the current backdrop color/pattern onto a GdkWindow.
-// cairo_reset_clip + explicit full-window rectangle ensures paint covers the
-// entire window on multi-monitor setups with different resolutions, where
-// gdk_cairo_create() may clip to per-monitor visible regions.
+// p_w / p_h are the ACTUAL X11 window dimensions (not GDK's stale cache).
+//
+// For solid colours we use XFillRectangle with a freshly-created GC that has
+// no clip mask.  gdk_cairo_create() inherits GDK's visible-region clip for the
+// window, which excludes any area covered by override_redirect windows above us
+// (e.g. the GNOME Shell top bar on the secondary monitor).  cairo_reset_clip()
+// removes the Cairo-level clip stack but NOT the underlying X11 GC clip that
+// GDK set, so those regions are never painted via Cairo.  XFillRectangle with
+// GCClipMask=None draws directly to the window's compositor backing pixmap and
+// is not subject to any visible-region clip.
 static void paint_backdrop_gdk_window(GdkWindow *p_win,
+                                       gint p_w, gint p_h,
                                        const MCColor &p_color,
                                        Pixmap p_pixmap)
 {
     if (!p_win)
         return;
-    gint t_w = gdk_window_get_width(p_win);
-    gint t_h = gdk_window_get_height(p_win);
+
+    GdkDisplay   *t_gdkdpy = gdk_window_get_display(p_win);
+    x11::Display *t_xdpy   = x11::gdk_x11_display_get_xdisplay(t_gdkdpy);
+    x11::Window   t_xwin   = x11::gdk_x11_window_get_xid(p_win);
+
+    if (p_pixmap == DNULL)
+    {
+        // Solid colour path: XFillRectangle with GCClipMask = None.
+        // Pixel format: 0xAARRGGBB (works for both 24-bit TrueColor and
+        // 32-bit ARGB compositing visuals; high byte is ignored for 24-bit).
+        unsigned long t_pixel =
+            0xFF000000UL |
+            ((unsigned long)(p_color.red   >> 8) << 16) |
+            ((unsigned long)(p_color.green >> 8) <<  8) |
+            ((unsigned long)(p_color.blue  >> 8));
+
+        x11::XGCValues t_gcv = {};
+        t_gcv.foreground = t_pixel;
+        t_gcv.clip_mask  = None;
+        x11::GC t_gc = x11::XCreateGC(t_xdpy, (x11::Drawable)t_xwin,
+                                        GCForeground | GCClipMask, &t_gcv);
+        x11::XFillRectangle(t_xdpy, (x11::Drawable)t_xwin, t_gc,
+                            0, 0, (unsigned)p_w, (unsigned)p_h);
+        x11::XFreeGC(t_xdpy, t_gc);
+        x11::XFlush(t_xdpy);
+        return;
+    }
+
+    // Pixmap path: use Cairo (pixmaps are already in X11 device space so
+    // the visible-region clip issue does not affect correctness here).
     cairo_t *cr = gdk_cairo_create(p_win);
     cairo_reset_clip(cr);
-    cairo_rectangle(cr, 0, 0, (double)t_w, (double)t_h);
+    cairo_rectangle(cr, 0, 0, (double)p_w, (double)p_h);
     cairo_clip(cr);
-    if (p_pixmap != DNULL)
-    {
-        cairo_set_source_surface(cr, (cairo_surface_t *)p_pixmap, 0, 0);
-        cairo_paint(cr);
-    }
-    else
-    {
-        cairo_set_source_rgb(cr,
-            p_color.red   / 65535.0,
-            p_color.green / 65535.0,
-            p_color.blue  / 65535.0);
-        cairo_paint(cr);
-    }
+    cairo_set_source_surface(cr, (cairo_surface_t *)p_pixmap, 0, 0);
+    cairo_paint(cr);
     cairo_destroy(cr);
 }
 
@@ -1701,56 +1726,113 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             gdk_window_set_decorations(p_win, GdkWMDecoration(0));
             gdk_window_set_skip_taskbar_hint(p_win, TRUE);
             gdk_window_set_skip_pager_hint(p_win, TRUE);
-            gdk_window_move_resize(p_win, x, y, w, h);
+
+            x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
+            x11::Window   t_xwin = x11::gdk_x11_window_get_xid(p_win);
+
+            // Remove GDK's PSize=100x100 size lock before mapping.
+            gdk_property_delete(p_win, gdk_atom_intern_static_string("WM_NORMAL_HINTS"));
+
+            // Pre-map resize: window is unmapped so the X server applies the
+            // ConfigureWindow directly without WM interception.
+            x11::XMoveResizeWindow(t_xdpy, t_xwin, x, y, (unsigned)w, (unsigned)h);
+            x11::XFlush(t_xdpy);
+
             GdkRGBA t_rgba;
             t_rgba.red   = backdropcolor.red   / 65535.0;
             t_rgba.green = backdropcolor.green / 65535.0;
             t_rgba.blue  = backdropcolor.blue  / 65535.0;
             t_rgba.alpha = 1.0;
             gdk_window_set_background_rgba(p_win, &t_rgba);
+
             gdk_window_show(p_win);
-            gdk_window_raise(p_win);
-            paint_backdrop_gdk_window(p_win, backdropcolor, m_backdrop_pixmap);
+            // Do NOT set keep_above on the backdrop: it must stay in the
+            // NORMAL compositor layer so that stacks (which get keep_above/ABOVE
+            // in assignbackdrop) naturally appear above it via Mutter's layer
+            // ordering (NORMAL < ABOVE).  Setting ABOVE here puts backdrop and
+            // stacks in the same layer, where Mutter ignores restack requests.
+            gdk_display_sync(dpy);
+
+            // Post-map: GDK may have re-set WM_NORMAL_HINTS during show().
+            // Delete again and re-assert geometry.
+            gdk_property_delete(p_win, gdk_atom_intern_static_string("WM_NORMAL_HINTS"));
+            x11::XMoveResizeWindow(t_xdpy, t_xwin, x, y, (unsigned)w, (unsigned)h);
+            x11::XFlush(t_xdpy);
+            gdk_display_sync(dpy);
+
+
+            paint_backdrop_gdk_window(p_win, w, h, backdropcolor, m_backdrop_pixmap);
         };
 
-        // Use GDK monitor geometry directly — avoids calling getdisplays()
-        // which triggers apply_partial_struts() X11 round-trips mid-setup.
-        // One window per monitor: primary uses `backdrop`, extras go in
-        // m_extra_backdrop_windows[].  Per-monitor windows avoid the
-        // cross-monitor Cairo clipping issues that affect a single spanning
-        // window on mixed-resolution setups.
-        gint t_nmon = gdk_display_get_n_monitors(dpy);
-        if (t_nmon > 0)
+        // Single spanning window across all monitors.  Per-monitor windows
+        // cannot be used: Mutter refuses ConfigureRequests for 1920x1080
+        // (monitor size) while accepting the root-spanning size as special.
         {
-            GdkRectangle t_r;
-            gdk_monitor_get_geometry(gdk_display_get_monitor(dpy, 0), &t_r);
-            show_backdrop_win(backdrop, t_r.x, t_r.y, t_r.width, t_r.height);
+            int t_nmon = gdk_display_get_n_monitors(dpy);
+            GdkScreen *t_screen = gdk_display_get_default_screen(dpy);
+            gint t_root_w = gdk_screen_get_width(t_screen);
+            gint t_root_h = gdk_screen_get_height(t_screen);
+            show_backdrop_win(backdrop, 0, 0, t_root_w, t_root_h);
 
-            for (gint i = 1; i < t_nmon && (uint32_t)(i - 1) < kBackdropExtraMax; i++)
+            // The compositor clips the spanning window at y=0..strut_top
+            // (the primary panel's _NET_WM_STRUT) across the full window
+            // width, leaving a gap at the top of secondary monitors.
+            // Fix: override_redirect "gap filler" windows placed exactly in
+            // that strip.  Override_redirect bypasses all WM placement and
+            // compositor clip — the X server positions them directly.
+            // They sit in the topmost compositor layer, but the strip is
+            // only strut_top pixels tall so stacks are not obscured in
+            // practice (the primary panel occupies the same height and
+            // stacks sit below it there too).
             {
-                gdk_monitor_get_geometry(gdk_display_get_monitor(dpy, i), &t_r);
-                GdkWindowAttr a = {};
-                a.event_mask = GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK
-                    | GDK_FOCUS_CHANGE_MASK | GDK_POINTER_MOTION_MASK
-                    | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_EXPOSURE_MASK;
-                a.x = t_r.x; a.y = t_r.y;
-                a.width  = t_r.width  > 0 ? t_r.width  : 1;
-                a.height = t_r.height > 0 ? t_r.height : 1;
-                a.wclass      = GDK_INPUT_OUTPUT;
-                a.visual      = getvisual();
-                a.window_type = GDK_WINDOW_TOPLEVEL;
-                Window t_extra = gdk_window_new(getroot(), &a, GDK_WA_VISUAL);
-                if (t_extra != DNULL)
+                GdkMonitor   *t_mon0 = gdk_display_get_monitor(dpy, 0);
+                GdkRectangle  t_work0 = {};
+                gdk_monitor_get_workarea(t_mon0, &t_work0);
+                int t_sf0 = gdk_monitor_get_scale_factor(t_mon0);
+                gint t_strut_top = t_work0.y * t_sf0;
+                if (t_strut_top > 0)
                 {
-                    show_backdrop_win(t_extra, t_r.x, t_r.y, t_r.width, t_r.height);
-                    m_extra_backdrop_windows[m_extra_backdrop_count++] = t_extra;
+                    for (int t_i = 1; t_i < t_nmon; t_i++)
+                    {
+                        if (m_extra_backdrop_count >= kBackdropExtraMax) break;
+                        GdkMonitor   *t_mon = gdk_display_get_monitor(dpy, t_i);
+                        GdkRectangle  t_geo = {};
+                        gdk_monitor_get_geometry(t_mon, &t_geo);
+                        int t_sf = gdk_monitor_get_scale_factor(t_mon);
+                        gint t_px = t_geo.x * t_sf;
+                        gint t_pw = t_geo.width * t_sf;
+                        // Only fill monitors whose top edge is at y=0
+                        // (same level as the primary panel strut).
+                        if (t_geo.y != 0) continue;
+
+                        GdkWindowAttr t_wa = {};
+                        t_wa.event_mask = GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK
+                            | GDK_EXPOSURE_MASK;
+                        t_wa.x              = t_px;
+                        t_wa.y              = 0;
+                        t_wa.width          = t_pw;
+                        t_wa.height         = t_strut_top;
+                        t_wa.wclass         = GDK_INPUT_OUTPUT;
+                        t_wa.visual         = getvisual();
+                        t_wa.window_type    = GDK_WINDOW_TOPLEVEL;
+                        t_wa.override_redirect = TRUE;
+                        GdkWindow *t_fill = gdk_window_new(getroot(), &t_wa,
+                            GDK_WA_VISUAL | GDK_WA_NOREDIR | GDK_WA_X | GDK_WA_Y);
+                        if (!t_fill) continue;
+                        m_extra_backdrop_windows[m_extra_backdrop_count++] = t_fill;
+
+                        GdkRGBA t_rgba;
+                        t_rgba.red   = backdropcolor.red   / 65535.0;
+                        t_rgba.green = backdropcolor.green / 65535.0;
+                        t_rgba.blue  = backdropcolor.blue  / 65535.0;
+                        t_rgba.alpha = 1.0;
+                        gdk_window_set_background_rgba(t_fill, &t_rgba);
+                        gdk_window_show(t_fill);
+                        paint_backdrop_gdk_window(t_fill, t_pw, t_strut_top,
+                            backdropcolor, m_backdrop_pixmap);
+                    }
                 }
             }
-        }
-        else
-        {
-            // Fallback: single window covering the full screen.
-            show_backdrop_win(backdrop, 0, 0, (gint)device_getwidth(), (gint)device_getheight());
         }
         gdk_display_flush(dpy);
 	}
@@ -1819,9 +1901,30 @@ void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_patte
     if (backdrop == DNULL)
         return;
 
-	paint_backdrop_gdk_window(backdrop, backdropcolor, m_backdrop_pixmap);
-	for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
-		paint_backdrop_gdk_window(m_extra_backdrop_windows[i], backdropcolor, m_backdrop_pixmap);
+	// Repaint the spanning backdrop and any override_redirect gap fillers.
+	{
+	    GdkScreen *t_screen = gdk_display_get_default_screen(dpy);
+	    paint_backdrop_gdk_window(backdrop,
+	        gdk_screen_get_width(t_screen),
+	        gdk_screen_get_height(t_screen),
+	        backdropcolor, m_backdrop_pixmap);
+
+	    for (uint32_t t_i = 0; t_i < m_extra_backdrop_count; t_i++)
+	    {
+	        GdkWindow *t_fill = m_extra_backdrop_windows[t_i];
+	        if (!t_fill) continue;
+	        gint t_fw = gdk_window_get_width(t_fill);
+	        gint t_fh = gdk_window_get_height(t_fill);
+	        GdkRGBA t_rgba;
+	        t_rgba.red   = backdropcolor.red   / 65535.0;
+	        t_rgba.green = backdropcolor.green / 65535.0;
+	        t_rgba.blue  = backdropcolor.blue  / 65535.0;
+	        t_rgba.alpha = 1.0;
+	        gdk_window_set_background_rgba(t_fill, &t_rgba);
+	        paint_backdrop_gdk_window(t_fill, t_fw, t_fh,
+	            backdropcolor, m_backdrop_pixmap);
+	    }
+	}
 
 	MCstacks -> refresh();
 }
@@ -1832,9 +1935,16 @@ void MCScreenDC::assignbackdrop(Window_mode p_mode, Window p_window)
 	if (p_mode <= WM_PALETTE && backdrop != DNULL)
     {
         if (backdrop_active||backdrop_hard)
-            gdk_window_set_transient_for(p_window, backdrop);
+        {
+            // Backdrop is NORMAL layer; stacks get ABOVE → Mutter layer ordering
+            // puts stacks above backdrop automatically.  No explicit restack needed.
+            gdk_window_set_keep_above(p_window, TRUE);
+        }
         else
+        {
+            gdk_window_set_keep_above(p_window, FALSE);
             gdk_property_delete(p_window, gdk_atom_intern_static_string("WM_TRANSIENT_FOR"));
+        }
     }
 }
 
