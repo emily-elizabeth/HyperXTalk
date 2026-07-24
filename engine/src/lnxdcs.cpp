@@ -1702,16 +1702,6 @@ void MCScreenDC::enablebackdrop(bool p_hard)
 		gdk_window_destroy(backdrop);
 		backdrop = DNULL;
 	}
-	for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
-	{
-		if (m_extra_backdrop_windows[i] != DNULL)
-		{
-			gdk_window_hide(m_extra_backdrop_windows[i]);
-			gdk_window_destroy(m_extra_backdrop_windows[i]);
-			m_extra_backdrop_windows[i] = DNULL;
-		}
-	}
-	m_extra_backdrop_count = 0;
 	createbackdrop_window();
 
 	t_error = (backdrop == DNULL);
@@ -1768,71 +1758,10 @@ void MCScreenDC::enablebackdrop(bool p_hard)
         // cannot be used: Mutter refuses ConfigureRequests for 1920x1080
         // (monitor size) while accepting the root-spanning size as special.
         {
-            int t_nmon = gdk_display_get_n_monitors(dpy);
             GdkScreen *t_screen = gdk_display_get_default_screen(dpy);
             gint t_root_w = gdk_screen_get_width(t_screen);
             gint t_root_h = gdk_screen_get_height(t_screen);
             show_backdrop_win(backdrop, 0, 0, t_root_w, t_root_h);
-
-            // The compositor clips the spanning window at y=0..strut_top
-            // (the primary panel's _NET_WM_STRUT) across the full window
-            // width, leaving a gap at the top of secondary monitors.
-            // Fix: override_redirect "gap filler" windows placed exactly in
-            // that strip.  Override_redirect bypasses all WM placement and
-            // compositor clip — the X server positions them directly.
-            // They sit in the topmost compositor layer, but the strip is
-            // only strut_top pixels tall so stacks are not obscured in
-            // practice (the primary panel occupies the same height and
-            // stacks sit below it there too).
-            {
-                GdkMonitor   *t_mon0 = gdk_display_get_monitor(dpy, 0);
-                GdkRectangle  t_work0 = {};
-                gdk_monitor_get_workarea(t_mon0, &t_work0);
-                int t_sf0 = gdk_monitor_get_scale_factor(t_mon0);
-                gint t_strut_top = t_work0.y * t_sf0;
-                if (t_strut_top > 0)
-                {
-                    for (int t_i = 1; t_i < t_nmon; t_i++)
-                    {
-                        if (m_extra_backdrop_count >= kBackdropExtraMax) break;
-                        GdkMonitor   *t_mon = gdk_display_get_monitor(dpy, t_i);
-                        GdkRectangle  t_geo = {};
-                        gdk_monitor_get_geometry(t_mon, &t_geo);
-                        int t_sf = gdk_monitor_get_scale_factor(t_mon);
-                        gint t_px = t_geo.x * t_sf;
-                        gint t_pw = t_geo.width * t_sf;
-                        // Only fill monitors whose top edge is at y=0
-                        // (same level as the primary panel strut).
-                        if (t_geo.y != 0) continue;
-
-                        GdkWindowAttr t_wa = {};
-                        t_wa.event_mask = GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK
-                            | GDK_EXPOSURE_MASK;
-                        t_wa.x              = t_px;
-                        t_wa.y              = 0;
-                        t_wa.width          = t_pw;
-                        t_wa.height         = t_strut_top;
-                        t_wa.wclass         = GDK_INPUT_OUTPUT;
-                        t_wa.visual         = getvisual();
-                        t_wa.window_type    = GDK_WINDOW_TOPLEVEL;
-                        t_wa.override_redirect = TRUE;
-                        GdkWindow *t_fill = gdk_window_new(getroot(), &t_wa,
-                            GDK_WA_VISUAL | GDK_WA_NOREDIR | GDK_WA_X | GDK_WA_Y);
-                        if (!t_fill) continue;
-                        m_extra_backdrop_windows[m_extra_backdrop_count++] = t_fill;
-
-                        GdkRGBA t_rgba;
-                        t_rgba.red   = backdropcolor.red   / 65535.0;
-                        t_rgba.green = backdropcolor.green / 65535.0;
-                        t_rgba.blue  = backdropcolor.blue  / 65535.0;
-                        t_rgba.alpha = 1.0;
-                        gdk_window_set_background_rgba(t_fill, &t_rgba);
-                        gdk_window_show(t_fill);
-                        paint_backdrop_gdk_window(t_fill, t_pw, t_strut_top,
-                            backdropcolor, m_backdrop_pixmap);
-                    }
-                }
-            }
         }
         gdk_display_flush(dpy);
 	}
@@ -1862,16 +1791,6 @@ void MCScreenDC::disablebackdrop(bool p_hard)
 	{
 		if (backdrop != DNULL)
 			gdk_window_hide(backdrop);
-		for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
-		{
-			if (m_extra_backdrop_windows[i] != DNULL)
-			{
-				gdk_window_hide(m_extra_backdrop_windows[i]);
-				gdk_window_destroy(m_extra_backdrop_windows[i]);
-				m_extra_backdrop_windows[i] = DNULL;
-			}
-		}
-		m_extra_backdrop_count = 0;
 		MCstacks -> refresh();
 	}
 
@@ -1908,22 +1827,6 @@ void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_patte
 	        gdk_screen_get_width(t_screen),
 	        gdk_screen_get_height(t_screen),
 	        backdropcolor, m_backdrop_pixmap);
-
-	    for (uint32_t t_i = 0; t_i < m_extra_backdrop_count; t_i++)
-	    {
-	        GdkWindow *t_fill = m_extra_backdrop_windows[t_i];
-	        if (!t_fill) continue;
-	        gint t_fw = gdk_window_get_width(t_fill);
-	        gint t_fh = gdk_window_get_height(t_fill);
-	        GdkRGBA t_rgba;
-	        t_rgba.red   = backdropcolor.red   / 65535.0;
-	        t_rgba.green = backdropcolor.green / 65535.0;
-	        t_rgba.blue  = backdropcolor.blue  / 65535.0;
-	        t_rgba.alpha = 1.0;
-	        gdk_window_set_background_rgba(t_fill, &t_rgba);
-	        paint_backdrop_gdk_window(t_fill, t_fw, t_fh,
-	            backdropcolor, m_backdrop_pixmap);
-	    }
 	}
 
 	MCstacks -> refresh();
@@ -1997,17 +1900,6 @@ void MCScreenDC::destroybackdrop()
         gdk_window_destroy(backdrop);
 		backdrop = DNULL;
 	}
-
-	for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
-	{
-		if (m_extra_backdrop_windows[i] != DNULL)
-		{
-			gdk_window_hide(m_extra_backdrop_windows[i]);
-			gdk_window_destroy(m_extra_backdrop_windows[i]);
-			m_extra_backdrop_windows[i] = DNULL;
-		}
-	}
-	m_extra_backdrop_count = 0;
 
 	freepixmap(m_backdrop_pixmap);
 }

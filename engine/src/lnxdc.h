@@ -150,11 +150,7 @@ class MCScreenDC : public MCUIDC
 	// -- tperry 12-11-2025: Pixmap is unsigned long, use 0 not nullptr
 	Pixmap m_backdrop_pixmap = 0;
 
-	// HXT [[ 376 ]]: One extra GdkWindow per monitor beyond the primary.
-	// Primary monitor is covered by the existing `backdrop` window.
-	static const uint32_t kBackdropExtraMax = 7;
-	Window m_extra_backdrop_windows[kBackdropExtraMax] = {};
-	uint32_t m_extra_backdrop_count = 0;
+
 
 	Window last_window = None; 	//XDND - Used for the moment to shunt the ID
 	
