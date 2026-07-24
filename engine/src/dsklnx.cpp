@@ -990,18 +990,16 @@ virtual real64_t GetCurrentMicroseconds(void)
             !MCS_resolvepath(*t_tilde, &t_home))
             return false;
 
-        if (MCNameIsEqualToCaseless(p_type, MCN_desktop))
-            return MCStringFormat(r_folder, "%@/Desktop", *t_home);
-        else if (MCNameIsEqualToCaseless(p_type, MCN_home))
-            return MCStringCopy(*t_home, r_folder);
-        else if (MCNameIsEqualToCaseless(p_type, MCN_documents))
-            /* Assume the documents folder is ~/Documents (which is at least true for English localizations). */
-            // TODO: Is there an easy way to localize this?
-            return MCStringFormat(r_folder, "%@/Documents", *t_home);
-        else if (MCNameIsEqualToCaseless(p_type, MCN_temporary))
-            return MCStringCreateWithCString("/tmp", r_folder);
-        // SN-2014-08-08: [[ Bug 13026 ]] Fix ported from 6.7
-        else if (MCNameIsEqualToCaseless(p_type, MCN_engine)
+		if (MCNameIsEqualToCaseless(p_type, MCN_desktop))
+			return MCStringFormat(r_folder, g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP), *t_home);
+		else if (MCNameIsEqualToCaseless(p_type, MCN_documents))
+			return MCStringFormat(r_folder, g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS), *t_home);
+		else if (MCNameIsEqualToCaseless(p_type, MCN_home))
+			return MCStringCopy(*t_home, r_folder);
+		else if (MCNameIsEqualToCaseless(p_type, MCN_temporary))
+			return MCStringCreateWithCString("/tmp", r_folder);
+		// SN-2014-08-08: [[ Bug 13026 ]] Fix ported from 6.7
+		else if (MCNameIsEqualToCaseless(p_type, MCN_engine)
                  // SN-2015-04-20: [[ Bug 14295 ]] If we are here, we are a standalone
                  // so the resources folder is the engine folder.
                  || MCNameIsEqualToCaseless(p_type, MCN_resources))
