@@ -1750,7 +1750,6 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             x11::XFlush(t_xdpy);
             gdk_display_sync(dpy);
 
-
             paint_backdrop_gdk_window(p_win, w, h, backdropcolor, m_backdrop_pixmap);
         };
 
