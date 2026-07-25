@@ -512,11 +512,6 @@ package-mac-bin:
 	@# Runtime: copy ide/Runtime to Tools/Runtime
 	@# ----------------------------------------------------------------
 	@[ -d "ide/Runtime" ] && cp -R "ide/Runtime/." "$(MACBIN_TOOLS)/Runtime/" || true
-	@# Create Sample Icons folder for standalone builder (expects icons in Support/Sample Icons/)
-	@mkdir -p "$(MACBIN_TOOLS)/Runtime/Mac OS X/arm64/Support/Sample Icons"
-	@[ -f "$(MACBIN_TOOLS)/Runtime/Mac OS X/arm64/Support/GenericApplication.icns" ] && \
-	  cp "$(MACBIN_TOOLS)/Runtime/Mac OS X/arm64/Support/GenericApplication.icns" \
-	  "$(MACBIN_TOOLS)/Runtime/Mac OS X/arm64/Support/Sample Icons/" || true
 	@# ----------------------------------------------------------------
 	@# Toolset libraries: IDE support scripts from ide-support/
 	@# ----------------------------------------------------------------
