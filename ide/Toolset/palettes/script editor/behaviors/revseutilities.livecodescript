@@ -1,4 +1,4 @@
-﻿script "revseutilities"
+script "revseutilities"
 ################################################################################
 #
 # WARNING Making changes to this script using the (new) script editor may
@@ -588,7 +588,11 @@ command sePrefGetDefaults
    put "255,255,255" into tPrefs["editor,debugBackgroundcolor"]
    put "true" into tPrefs["editor,hscrollbar"]
    put "false" into tPrefs["editor,useInteractiveFind"]
-   
+   put "true" into tPrefs["editor,folding"]
+   put 16 into tPrefs["editor,foldingwidth"]
+   put "▽" into tPrefs["editor,foldingOpen"]
+   put "▶" into tPrefs["editor,foldingClosed"]
+
    # Gutter preferences
    put "true" into tPrefs["gutter,linenumbers"]
    
