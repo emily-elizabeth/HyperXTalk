@@ -1307,7 +1307,7 @@ end getUpdateGutterRequestDetails
 #  mutable objects (the breakpoint / compilation error images). These are show again when the update is
 #  actually carried out.
 command updateGutterRequest pOffset, pSelectedLine, pOldLines, pNewLines, pTextChanged, pUpdateCompilationErrors, pForceBreakpointRedraw, pNow
-   if sGutterUpdateRequestDetails["offset"] is not empty and \
+   if pTextChanged and sGutterUpdateRequestDetails["offset"] is not empty and \
          pOffset is not sGutterUpdateRequestDetails["offset"] then
       -- if the offset is different we can't merge
       updateGutterDo
