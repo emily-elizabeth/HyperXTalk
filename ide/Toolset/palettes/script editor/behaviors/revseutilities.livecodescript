@@ -405,6 +405,9 @@ function sePrefGet pTag
          "Source Code Pro" is among the lines of the fontNames then
       return "Source Code Pro"
    end if
+   if (pTag is "editor,foldingopen" or pTag is "editor,foldingClosed") then
+      return textdecode(sPrefs[pTag],"UTF8")
+   end if
    return sPrefs[pTag]
 end sePrefGet
 
@@ -590,8 +593,8 @@ command sePrefGetDefaults
    put "false" into tPrefs["editor,useInteractiveFind"]
    put "true" into tPrefs["editor,folding"]
    put 16 into tPrefs["editor,foldingwidth"]
-   put "▽" into tPrefs["editor,foldingOpen"]
-   put "▶" into tPrefs["editor,foldingClosed"]
+   put textencode(numtocodepoint(9661),"UTF8") into tPrefs["editor,foldingOpen"]   -- "▽"
+   put textencode(numtocodepoint(9654),"UTF8") into tPrefs["editor,foldingClosed"] -- "▶"
 
    # Gutter preferences
    put "true" into tPrefs["gutter,linenumbers"]
