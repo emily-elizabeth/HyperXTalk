@@ -1720,6 +1720,20 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
             x11::Window   t_xwin = x11::gdk_x11_window_get_xid(p_win);
 
+            // Tag as _NET_WM_WINDOW_TYPE_DESKTOP before mapping.
+            // EWMH-compliant WMs (Mutter, KWin, etc.) must give DESKTOP-type
+            // windows full-screen coverage with no workarea constraints, which
+            // fixes the partial-coverage issue seen on Debian/Fedora GNOME where
+            // plain NORMAL windows get clipped to the workarea (below the panel).
+            // DESKTOP sits below the NORMAL and ABOVE compositor layers, so HXT
+            // stacks (assigned keep_above=TRUE) naturally appear above the backdrop.
+            {
+                x11::Atom t_wm_type    = x11::XInternAtom(t_xdpy, "_NET_WM_WINDOW_TYPE", False);
+                x11::Atom t_desk_type  = x11::XInternAtom(t_xdpy, "_NET_WM_WINDOW_TYPE_DESKTOP", False);
+                x11::XChangeProperty(t_xdpy, t_xwin, t_wm_type, 4 /*XA_ATOM*/, 32,
+                                     0 /*PropModeReplace*/, (unsigned char*)&t_desk_type, 1);
+            }
+
             // Remove GDK's PSize=100x100 size lock before mapping.
             gdk_property_delete(p_win, gdk_atom_intern_static_string("WM_NORMAL_HINTS"));
 
@@ -1736,11 +1750,10 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             gdk_window_set_background_rgba(p_win, &t_rgba);
 
             gdk_window_show(p_win);
-            // Do NOT set keep_above on the backdrop: it must stay in the
-            // NORMAL compositor layer so that stacks (which get keep_above/ABOVE
-            // in assignbackdrop) naturally appear above it via Mutter's layer
-            // ordering (NORMAL < ABOVE).  Setting ABOVE here puts backdrop and
-            // stacks in the same layer, where Mutter ignores restack requests.
+            // The backdrop is _NET_WM_WINDOW_TYPE_DESKTOP, placing it in the
+            // DESKTOP compositor layer (below NORMAL < ABOVE).  HXT stacks get
+            // keep_above=TRUE (ABOVE layer) so they naturally appear above the
+            // backdrop on all EWMH WMs without any explicit restack.
             gdk_display_sync(dpy);
 
             // Post-map: GDK may have re-set WM_NORMAL_HINTS during show().
