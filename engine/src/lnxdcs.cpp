@@ -47,6 +47,48 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include "lnxdc.h"
 #include "lnximagecache.h"
+
+// Temporary backdrop diagnostics — writes to /tmp/hxt_backdrop.log
+#define HXT_LOG(...) do { \
+    FILE *_f = fopen("/tmp/hxt_backdrop.log", "a"); \
+    if (_f) { fprintf(_f, __VA_ARGS__); fclose(_f); } \
+} while(0)
+
+// File-static extra backdrop windows (monitors 1..N).  Kept here rather than
+// in MCScreenDC to avoid changing the class layout (which would require a full
+// rebuild of all TUs that include lnxdc.h).
+#include <vector>
+static std::vector<GdkWindow*> s_extra_backdrops;
+// Mirror of MCScreenDC::backdrop kept in sync so hxt_is_backdrop_window can
+// check it without needing a full MCScreenDC* cast.
+static GdkWindow *s_primary_backdrop = nullptr;
+
+// Free function used by lnxdclnx.cpp to test any backdrop window.
+bool hxt_is_backdrop_window(GdkWindow *w)
+{
+    if (!w) return false;
+    if (w == s_primary_backdrop) return true;
+    for (GdkWindow *b : s_extra_backdrops) if (b == w) return true;
+    return false;
+}
+
+// Lower all backdrop windows within the ABOVE layer.
+// HXT stacks are transient children of the backdrop, so Mutter atomically
+// keeps them above the backdrop regardless of where the backdrop sits in the layer.
+// Called from button-press on backdrop and the deferred backdrop show.
+static void hxt_lower_backdrops()
+{
+    if (s_primary_backdrop && gdk_window_is_visible(s_primary_backdrop))
+        gdk_window_lower(s_primary_backdrop);
+    for (GdkWindow *bd : s_extra_backdrops)
+        if (bd && gdk_window_is_visible(bd))
+            gdk_window_lower(bd);
+}
+
+void MCScreenDC::reraise_stacks_above_backdrop()
+{
+    hxt_lower_backdrops();
+}
 // -- tperry 12-11-2025: GTK3/4 window wrapper
 #include "lnxgtk-window.h"
 
@@ -234,6 +276,7 @@ static void on_retrieve_surrounding(GtkIMContext *p_context, gpointer p_data)
 
 Boolean MCScreenDC::open()
 {
+	HXT_LOG("HXT MCScreenDC::open() build=" __DATE__ " " __TIME__ "\n");
 	// We require X11 for windowing
     initialise_required_weak_link_X11();
 
@@ -1661,17 +1704,53 @@ static void paint_backdrop_gdk_window(GdkWindow *p_win,
 
 void MCScreenDC::createbackdrop_window(void)
 {
-	GdkWindowAttr gdkwa;
-    gdkwa.event_mask = GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_FOCUS_CHANGE_MASK
-        | GDK_POINTER_MOTION_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_EXPOSURE_MASK;
-    gdkwa.x = gdkwa.y = 0;
-    gdkwa.width = gdkwa.height = 100;
-    gdkwa.wclass = GDK_INPUT_OUTPUT;
-    gdkwa.visual = getvisual();
-    // -- tperry 15-11-2025: GTK3 - colormap field removed from GdkWindowAttr
-    gdkwa.window_type = GDK_WINDOW_TOPLEVEL;
+    // Destroy any stale extra backdrops first.
+    for (Window t_extra : s_extra_backdrops)
+    {
+        if (t_extra != DNULL)
+        {
+            gdk_window_hide(t_extra);
+            gdk_window_destroy(t_extra);
+        }
+    }
+    s_extra_backdrops.clear();
 
-    backdrop = gdk_window_new(getroot(), &gdkwa, GDK_WA_VISUAL);
+    // Create one backdrop window per physical monitor, each sized exactly to
+    // that monitor.  A single window spanning multiple monitors is constrained
+    // by Mutter to the monitor containing its top-left corner (compositor
+    // rendering is per-monitor), so per-monitor windows are required.
+    GdkScreen *t_screen = gdk_display_get_default_screen(MCdpy);
+    int t_nmon = gdk_screen_get_n_monitors(t_screen);
+    if (t_nmon < 1) t_nmon = 1;
+
+    for (int i = 0; i < t_nmon; i++)
+    {
+        GdkRectangle t_geom = {0, 0, 1920, 1080};
+        gdk_screen_get_monitor_workarea(t_screen, i, &t_geom);
+
+        GdkWindowAttr gdkwa;
+        gdkwa.event_mask = GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK
+            | GDK_FOCUS_CHANGE_MASK | GDK_POINTER_MOTION_MASK
+            | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK | GDK_EXPOSURE_MASK;
+        gdkwa.x       = t_geom.x;
+        gdkwa.y       = t_geom.y;
+        gdkwa.width   = t_geom.width;
+        gdkwa.height  = t_geom.height;
+        gdkwa.wclass  = GDK_INPUT_OUTPUT;
+        gdkwa.visual  = getvisual();
+        gdkwa.window_type = GDK_WINDOW_TOPLEVEL;
+
+        Window t_win = gdk_window_new(getroot(), &gdkwa, GDK_WA_VISUAL);
+
+        if (i == 0)
+        {
+            backdrop = t_win;
+            s_primary_backdrop = t_win;
+        }
+        else
+            s_extra_backdrops.push_back(t_win);
+    }
+
     gdk_display_sync(MCdpy);
 }
 
@@ -1701,6 +1780,7 @@ void MCScreenDC::enablebackdrop(bool p_hard)
 		gdk_window_hide(backdrop);
 		gdk_window_destroy(backdrop);
 		backdrop = DNULL;
+        s_primary_backdrop = nullptr;
 	}
 	createbackdrop_window();
 
@@ -1709,38 +1789,26 @@ void MCScreenDC::enablebackdrop(bool p_hard)
 	if (!t_error)
 	{
 
-        // Helper: configure and show one backdrop GdkWindow at (x,y,w,h).
+        // Helper: configure and show one managed backdrop GdkWindow at (x,y,w,h).
+        // Strategy: pre-position the window via XMoveResizeWindow while it is
+        // still unmapped (direct X11, no WM ConfigureRequest).  When gdk_window_show
+        // triggers the MapRequest, Mutter reads XGetGeometry → (x,y) and assigns
+        // the window to the monitor containing (x,y).  Since it is already on the
+        // correct monitor, any subsequent same-monitor corrective move is accepted.
         auto show_backdrop_win = [&](GdkWindow *p_win, gint x, gint y, gint w, gint h)
         {
-            gdk_window_set_functions(p_win, GdkWMFunction(0));
-            gdk_window_set_decorations(p_win, GdkWMDecoration(0));
-            gdk_window_set_skip_taskbar_hint(p_win, TRUE);
-            gdk_window_set_skip_pager_hint(p_win, TRUE);
-
             x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
             x11::Window   t_xwin = x11::gdk_x11_window_get_xid(p_win);
 
-            // Tag as _NET_WM_WINDOW_TYPE_DESKTOP before mapping.
-            // EWMH-compliant WMs (Mutter, KWin, etc.) must give DESKTOP-type
-            // windows full-screen coverage with no workarea constraints, which
-            // fixes the partial-coverage issue seen on Debian/Fedora GNOME where
-            // plain NORMAL windows get clipped to the workarea (below the panel).
-            // DESKTOP sits below the NORMAL and ABOVE compositor layers, so HXT
-            // stacks (assigned keep_above=TRUE) naturally appear above the backdrop.
-            {
-                x11::Atom t_wm_type    = x11::XInternAtom(t_xdpy, "_NET_WM_WINDOW_TYPE", False);
-                x11::Atom t_desk_type  = x11::XInternAtom(t_xdpy, "_NET_WM_WINDOW_TYPE_DESKTOP", False);
-                x11::XChangeProperty(t_xdpy, t_xwin, t_wm_type, 4 /*XA_ATOM*/, 32,
-                                     0 /*PropModeReplace*/, (unsigned char*)&t_desk_type, 1);
-            }
-
-            // Remove GDK's PSize=100x100 size lock before mapping.
-            gdk_property_delete(p_win, gdk_atom_intern_static_string("WM_NORMAL_HINTS"));
-
-            // Pre-map resize: window is unmapped so the X server applies the
-            // ConfigureWindow directly without WM interception.
+            // Pre-position while unmapped: direct X11, no WM interference.
             x11::XMoveResizeWindow(t_xdpy, t_xwin, x, y, (unsigned)w, (unsigned)h);
             x11::XFlush(t_xdpy);
+
+            // Suppress decorations so the backdrop is a bare window.
+            gdk_window_set_decorations(p_win, (GdkWMDecoration)0);
+            gdk_window_set_functions(p_win, (GdkWMFunction)0);
+            // No keyboard focus for the backdrop.
+            gdk_window_set_accept_focus(p_win, FALSE);
 
             GdkRGBA t_rgba;
             t_rgba.red   = backdropcolor.red   / 65535.0;
@@ -1749,31 +1817,36 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             t_rgba.alpha = 1.0;
             gdk_window_set_background_rgba(p_win, &t_rgba);
 
-            gdk_window_show(p_win);
-            // The backdrop is _NET_WM_WINDOW_TYPE_DESKTOP, placing it in the
-            // DESKTOP compositor layer (below NORMAL < ABOVE).  HXT stacks get
-            // keep_above=TRUE (ABOVE layer) so they naturally appear above the
-            // backdrop on all EWMH WMs without any explicit restack.
-            gdk_display_sync(dpy);
+            // Map without raising first.
+            gdk_window_show_unraised(p_win);
 
-            // Post-map: GDK may have re-set WM_NORMAL_HINTS during show().
-            // Delete again and re-assert geometry.
-            gdk_property_delete(p_win, gdk_atom_intern_static_string("WM_NORMAL_HINTS"));
-            x11::XMoveResizeWindow(t_xdpy, t_xwin, x, y, (unsigned)w, (unsigned)h);
-            x11::XFlush(t_xdpy);
+            // Move to ABOVE layer so the backdrop sits above all NORMAL-layer
+            // application windows.  HXT stacks are made transient-for this window
+            // in assignbackdrop(), so Mutter atomically enforces stacks > backdrop
+            // with no click-to-raise flash possible.
+            gdk_window_set_keep_above(p_win, TRUE);
             gdk_display_sync(dpy);
 
             paint_backdrop_gdk_window(p_win, w, h, backdropcolor, m_backdrop_pixmap);
         };
 
-        // Single spanning window across all monitors.  Per-monitor windows
-        // cannot be used: Mutter refuses ConfigureRequests for 1920x1080
-        // (monitor size) while accepting the root-spanning size as special.
+        // Show one backdrop window per monitor at that monitor's workarea
+        // (excluding panels/docks).
         {
             GdkScreen *t_screen = gdk_display_get_default_screen(dpy);
-            gint t_root_w = gdk_screen_get_width(t_screen);
-            gint t_root_h = gdk_screen_get_height(t_screen);
-            show_backdrop_win(backdrop, 0, 0, t_root_w, t_root_h);
+            int t_nmon = gdk_screen_get_n_monitors(t_screen);
+            if (t_nmon < 1) t_nmon = 1;
+            for (int i = 0; i < t_nmon; i++)
+            {
+                GdkRectangle t_geom = {0, 0, 1920, 1080};
+                gdk_screen_get_monitor_workarea(t_screen, i, &t_geom);
+                Window t_win = (i == 0) ? backdrop
+                             : ((i - 1) < (int)s_extra_backdrops.size()
+                                ? s_extra_backdrops[i - 1] : DNULL);
+                if (t_win != DNULL)
+                    show_backdrop_win(t_win, t_geom.x, t_geom.y,
+                                      t_geom.width, t_geom.height);
+            }
         }
         gdk_display_flush(dpy);
 	}
@@ -1784,6 +1857,148 @@ void MCScreenDC::enablebackdrop(bool p_hard)
 	}
     // MDW [17323] - refresh *after* the gdk calls
     MCstacks -> refresh();
+
+    // Deferred repaint + position check (200ms): paints all backdrops after the
+    // GLib main loop has had a chance to run.
+    // to the secondary monitor, so backdrop[0] is no longer occluded on primary.
+    // GNOME Shell's compositor skips capturing textures for fully-occluded windows,
+    // so the initial XFillRectangle on backdrop[0] (done while backdrop[1] was above
+    // it at 0,0) is never picked up by the compositor.  Re-painting here, after
+    // backdrop[1] has moved away, ensures the compositor captures the correct pixels.
+    if (s_primary_backdrop)
+    {
+        // Holds geometry targets for up to 4 backdrop windows so the 200ms
+        // timer can verify placement and send corrective _NET_MOVERESIZE_WINDOW.
+        struct BackdropDiag {
+            x11::Display *xdpy;
+            x11::Window   xwin[4];
+            int           tx[4], ty[4], tw[4], th[4]; // target geometry per backdrop
+            int           count;
+            unsigned long pixel;
+        };
+        unsigned long t_def_pixel =
+            0xFF000000UL |
+            ((unsigned long)(backdropcolor.red   >> 8) << 16) |
+            ((unsigned long)(backdropcolor.green >> 8) <<  8) |
+            ((unsigned long)(backdropcolor.blue  >> 8));
+        auto *bd = new BackdropDiag{};
+        bd->xdpy  = x11::gdk_x11_display_get_xdisplay(dpy);
+        bd->pixel = t_def_pixel;
+        bd->count = 0;
+        {
+            GdkScreen *t_sc = gdk_display_get_default_screen(dpy);
+            // Primary (monitor 0)
+            GdkRectangle t_g0 = {0, 0, 1920, 1080};
+            gdk_screen_get_monitor_workarea(t_sc, 0, &t_g0);
+            bd->xwin[0] = x11::gdk_x11_window_get_xid(s_primary_backdrop);
+            bd->tx[0]   = t_g0.x; bd->ty[0] = t_g0.y;
+            bd->tw[0]   = t_g0.width; bd->th[0] = t_g0.height;
+            bd->count   = 1;
+            // Extra backdrops (monitors 1..N)
+            for (int i = 0; i < (int)s_extra_backdrops.size() && bd->count < 4; i++)
+            {
+                if (s_extra_backdrops[i])
+                {
+                    GdkRectangle t_gi = {0, 0, 1920, 1080};
+                    gdk_screen_get_monitor_workarea(t_sc, i + 1, &t_gi);
+                    int k = bd->count;
+                    bd->xwin[k] = x11::gdk_x11_window_get_xid(s_extra_backdrops[i]);
+                    bd->tx[k]   = t_gi.x; bd->ty[k] = t_gi.y;
+                    bd->tw[k]   = t_gi.width; bd->th[k] = t_gi.height;
+                    bd->count++;
+                }
+            }
+        }
+        g_timeout_add_full(G_PRIORITY_DEFAULT, 200,
+            +[](gpointer p) -> gboolean {
+                auto *d = static_cast<BackdropDiag*>(p);
+
+                x11::Atom t_mra = x11::XInternAtom(d->xdpy,
+                                                    "_NET_MOVERESIZE_WINDOW", False);
+                for (int i = 0; i < d->count; i++)
+                {
+                    // Check actual position; send corrective move if Mutter shifted it.
+                    x11::Window t_root_r; int t_gx = 0, t_gy = 0;
+                    unsigned int t_gw = 0, t_gh = 0, t_gbw = 0, t_gd_v = 0;
+                    x11::XGetGeometry(d->xdpy, (x11::Drawable)d->xwin[i],
+                                      &t_root_r, &t_gx, &t_gy,
+                                      &t_gw, &t_gh, &t_gbw, &t_gd_v);
+
+                    if (t_gx != d->tx[i] || t_gy != d->ty[i])
+                    {
+                        x11::XEvent t_ev = {};
+                        t_ev.xclient.type         = ClientMessage;
+                        t_ev.xclient.display      = d->xdpy;
+                        t_ev.xclient.window       = d->xwin[i];
+                        t_ev.xclient.message_type = t_mra;
+                        t_ev.xclient.format       = 32;
+                        t_ev.xclient.data.l[0]   = (1<<8)|(1<<9)|(1<<10)|(1<<11)|(2<<12);
+                        t_ev.xclient.data.l[1]   = (long)d->tx[i];
+                        t_ev.xclient.data.l[2]   = (long)d->ty[i];
+                        t_ev.xclient.data.l[3]   = (long)d->tw[i];
+                        t_ev.xclient.data.l[4]   = (long)d->th[i];
+                        x11::XSendEvent(d->xdpy, x11::XDefaultRootWindow(d->xdpy),
+                                        False,
+                                        SubstructureRedirectMask | SubstructureNotifyMask,
+                                        &t_ev);
+                    }
+
+                    // Repaint this backdrop.
+                    x11::XGCValues t_gcv = {};
+                    t_gcv.foreground = d->pixel;
+                    t_gcv.clip_mask  = None;
+                    x11::GC t_gc = x11::XCreateGC(d->xdpy, (x11::Drawable)d->xwin[i],
+                                                   GCForeground | GCClipMask, &t_gcv);
+                    x11::XFillRectangle(d->xdpy, (x11::Drawable)d->xwin[i], t_gc,
+                                        0, 0, (unsigned)d->tw[i], (unsigned)d->th[i]);
+                    x11::XFreeGC(d->xdpy, t_gc);
+                }
+                x11::XFlush(d->xdpy);
+
+                // Schedule a follow-up repaint at +300ms so the paint happens AFTER
+                // any corrective _NET_MOVERESIZE_WINDOW has been processed by Mutter.
+                struct RepaintData {
+                    x11::Display *xdpy;
+                    x11::Window   xwin[4];
+                    int           tw[4], th[4];
+                    int           count;
+                    unsigned long pixel;
+                };
+                auto *rd = new RepaintData{};
+                rd->xdpy  = d->xdpy;
+                rd->count = d->count;
+                rd->pixel = d->pixel;
+                for (int i = 0; i < d->count; i++) {
+                    rd->xwin[i] = d->xwin[i];
+                    rd->tw[i]   = d->tw[i];
+                    rd->th[i]   = d->th[i];
+                }
+                g_timeout_add_full(G_PRIORITY_DEFAULT, 300,
+                    +[](gpointer p2) -> gboolean {
+                        auto *rd2 = static_cast<RepaintData*>(p2);
+                        for (int i = 0; i < rd2->count; i++) {
+                            x11::XGCValues t_gcv2 = {};
+                            t_gcv2.foreground = rd2->pixel;
+                            t_gcv2.clip_mask  = None;
+                            x11::GC t_gc2 = x11::XCreateGC(
+                                rd2->xdpy, (x11::Drawable)rd2->xwin[i],
+                                GCForeground | GCClipMask, &t_gcv2);
+                            x11::XFillRectangle(rd2->xdpy, (x11::Drawable)rd2->xwin[i],
+                                                t_gc2, 0, 0,
+                                                (unsigned)rd2->tw[i], (unsigned)rd2->th[i]);
+                            x11::XFreeGC(rd2->xdpy, t_gc2);
+                        }
+                        x11::XFlush(rd2->xdpy);
+                        return G_SOURCE_REMOVE;
+                    },
+                    rd,
+                    +[](gpointer p2) { delete static_cast<RepaintData*>(p2); });
+
+                return G_SOURCE_REMOVE;
+            },
+            bd,
+            +[](gpointer p) { delete static_cast<BackdropDiag*>(p); });
+    }
 }
 
 void MCScreenDC::disablebackdrop(bool p_hard)
@@ -1803,6 +2018,9 @@ void MCScreenDC::disablebackdrop(bool p_hard)
 	{
 		if (backdrop != DNULL)
 			gdk_window_hide(backdrop);
+        for (Window t_extra : s_extra_backdrops)
+            if (t_extra != DNULL)
+                gdk_window_hide(t_extra);
 		MCstacks -> refresh();
 	}
 
@@ -1832,14 +2050,23 @@ void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_patte
     if (backdrop == DNULL)
         return;
 
-	// Repaint the spanning backdrop and any override_redirect gap fillers.
-	{
-	    GdkScreen *t_screen = gdk_display_get_default_screen(dpy);
-	    paint_backdrop_gdk_window(backdrop,
-	        gdk_screen_get_width(t_screen),
-	        gdk_screen_get_height(t_screen),
-	        backdropcolor, m_backdrop_pixmap);
-	}
+	// Repaint all per-monitor backdrop windows at their respective sizes.
+    {
+        GdkScreen *t_screen = gdk_display_get_default_screen(dpy);
+        int t_nmon = gdk_screen_get_n_monitors(t_screen);
+        if (t_nmon < 1) t_nmon = 1;
+        for (int i = 0; i < t_nmon; i++)
+        {
+            GdkRectangle t_geom = {0, 0, 1920, 1080};
+            gdk_screen_get_monitor_geometry(t_screen, i, &t_geom);
+            Window t_win = (i == 0) ? backdrop
+                         : ((i - 1) < (int)s_extra_backdrops.size()
+                            ? s_extra_backdrops[i - 1] : DNULL);
+            if (t_win != DNULL)
+                paint_backdrop_gdk_window(t_win, t_geom.width, t_geom.height,
+                                          backdropcolor, m_backdrop_pixmap);
+        }
+    }
 
 	MCstacks -> refresh();
 }
@@ -1847,17 +2074,20 @@ void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_patte
 
 void MCScreenDC::assignbackdrop(Window_mode p_mode, Window p_window)
 {
-	if (p_mode <= WM_PALETTE && backdrop != DNULL)
+    // Include WM_MODAL and WM_SHEET so dialogs/sheets opened before the
+    // backdrop was enabled also get keep_above and appear above the backdrop.
+	if (p_mode >= WM_TOP_LEVEL && p_mode <= WM_SHEET && backdrop != DNULL)
     {
         if (backdrop_active||backdrop_hard)
         {
-            // Backdrop is NORMAL layer; stacks get ABOVE → Mutter layer ordering
-            // puts stacks above backdrop automatically.  No explicit restack needed.
-            gdk_window_set_keep_above(p_window, TRUE);
+            // Make the stack a transient child of the backdrop.  Mutter atomically
+            // enforces transient windows are always above their parent — no
+            // click-to-raise on the backdrop can flip this, so no flash.
+            gdk_window_set_transient_for(p_window, backdrop);
         }
         else
         {
-            gdk_window_set_keep_above(p_window, FALSE);
+            // Remove transient relationship so the window returns to normal stacking.
             gdk_property_delete(p_window, gdk_atom_intern_static_string("WM_TRANSIENT_FOR"));
         }
     }
@@ -1911,7 +2141,13 @@ void MCScreenDC::destroybackdrop()
 		gdk_window_hide(backdrop);
         gdk_window_destroy(backdrop);
 		backdrop = DNULL;
+        s_primary_backdrop = nullptr;
 	}
+    for (GdkWindow *t_extra : s_extra_backdrops)
+    {
+        if (t_extra) { gdk_window_hide(t_extra); gdk_window_destroy(t_extra); }
+    }
+    s_extra_backdrops.clear();
 
 	freepixmap(m_backdrop_pixmap);
 }
