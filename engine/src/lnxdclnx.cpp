@@ -53,6 +53,8 @@ extern GdkWindow *MCLinuxPopoverGetGdkWindow(void);
 
 #include <gdk/gdkkeysyms.h>
 
+// Checks primary + all extra per-monitor backdrop windows (defined in lnxdcs.cpp).
+bool hxt_is_backdrop_window(GdkWindow *w);
 
 Boolean tripleclick = False;
 static Boolean dragclick;
@@ -419,7 +421,15 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             }
                             
                             if (!skip_focus)
+                            {
                                 MCdispatcher->wkfocus(t_event->focus_change.window);
+                                // When any HXT stack gains focus, re-raise all
+                                // registered stacks above the backdrop.  Mutter's
+                                // click-to-raise can push the backdrop above stacks
+                                // that were not the direct target of the click.
+                                if (!hxt_is_backdrop_window(t_event->focus_change.window))
+                                    static_cast<MCScreenDC*>(MCscreen)->reraise_stacks_above_backdrop();
+                            }
                         }
                     }
                     else
@@ -448,7 +458,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         // Even if we found it, it may not be ours. This is very
                         // unlikely but could happen if we've created a GdkWindow
                         // for it in the past (e.g. in import snapshot)
-                        bool _is_bd = (backdrop != NULL && t_window == backdrop);
+                        bool _is_bd = hxt_is_backdrop_window(t_window);
                         if (_is_bd || MCdispatcher->findstackd(t_window) != NULL)
                             t_lostfocus = false;
                         
@@ -810,9 +820,15 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             
                             clicktime = t_event->button.time;
                             
-                            bool _is_bd2 = (backdrop != DNULL && t_event->button.window == backdrop);
+                            bool _is_bd2 = hxt_is_backdrop_window(t_event->button.window);
                             if (_is_bd2)
+                            {
+                                // Restack BEFORE sending the message: Mutter's click-to-raise
+                                // has already raised the backdrop above HXT stacks. Correct
+                                // z-order now so the flash is gone before any script runs.
+                                static_cast<MCScreenDC*>(MCscreen)->reraise_stacks_above_backdrop();
                                 MCdefaultstackptr->getcard()->message_with_args(MCM_mouse_down_in_backdrop, t_event->button.button);
+                            }
                             else
                             {
                                 // MM-2013-09-16: [[ Bugfix 11176 ]] Make sure we calculate the y delta correctly.
@@ -880,7 +896,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 
                 if (dispatch)
                 {
-                    bool _is_bd3 = (backdrop != DNULL && t_event->button.window == backdrop);
+                    bool _is_bd3 = hxt_is_backdrop_window(t_event->button.window);
                     if (_is_bd3)
                     {
                         // Don't send mouse events to the backdrop

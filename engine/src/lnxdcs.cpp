@@ -48,12 +48,6 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "lnxdc.h"
 #include "lnximagecache.h"
 
-// Temporary backdrop diagnostics — writes to /tmp/hxt_backdrop.log
-#define HXT_LOG(...) do { \
-    FILE *_f = fopen("/tmp/hxt_backdrop.log", "a"); \
-    if (_f) { fprintf(_f, __VA_ARGS__); fclose(_f); } \
-} while(0)
-
 // File-static extra backdrop windows (monitors 1..N).  Kept here rather than
 // in MCScreenDC to avoid changing the class layout (which would require a full
 // rebuild of all TUs that include lnxdc.h).
@@ -276,7 +270,6 @@ static void on_retrieve_surrounding(GtkIMContext *p_context, gpointer p_data)
 
 Boolean MCScreenDC::open()
 {
-	HXT_LOG("HXT MCScreenDC::open() build=" __DATE__ " " __TIME__ "\n");
 	// We require X11 for windowing
     initialise_required_weak_link_X11();
 
