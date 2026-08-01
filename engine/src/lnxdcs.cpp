@@ -1664,8 +1664,9 @@ static void paint_backdrop_gdk_window(GdkWindow *p_win,
     if (p_pixmap == DNULL)
     {
         // Solid colour path: XFillRectangle with GCClipMask = None.
-        // Pixel format: 0xAARRGGBB (works for both 24-bit TrueColor and
-        // 32-bit ARGB compositing visuals; high byte is ignored for 24-bit).
+        // XFillRectangle uses physical pixels; p_w/p_h are GDK logical pixels,
+        // so multiply by the window's scale factor for HiDPI correctness.
+        int t_scale = gdk_window_get_scale_factor(p_win);
         unsigned long t_pixel =
             0xFF000000UL |
             ((unsigned long)(p_color.red   >> 8) << 16) |
@@ -1678,7 +1679,8 @@ static void paint_backdrop_gdk_window(GdkWindow *p_win,
         x11::GC t_gc = x11::XCreateGC(t_xdpy, (x11::Drawable)t_xwin,
                                         GCForeground | GCClipMask, &t_gcv);
         x11::XFillRectangle(t_xdpy, (x11::Drawable)t_xwin, t_gc,
-                            0, 0, (unsigned)p_w, (unsigned)p_h);
+                            0, 0,
+                            (unsigned)(p_w * t_scale), (unsigned)(p_h * t_scale));
         x11::XFreeGC(t_xdpy, t_gc);
         x11::XFlush(t_xdpy);
         return;
@@ -1733,7 +1735,11 @@ void MCScreenDC::createbackdrop_window(void)
         gdkwa.visual  = getvisual();
         gdkwa.window_type = GDK_WINDOW_TOPLEVEL;
 
-        Window t_win = gdk_window_new(getroot(), &gdkwa, GDK_WA_VISUAL);
+        // GDK_WA_X|GDK_WA_Y tell GDK to pass x,y to XCreateWindow (in physical
+        // pixels, scaled from logical by GDK internally).  Without these flags
+        // GDK ignores the position attrs and the window is created at (0,0).
+        Window t_win = gdk_window_new(getroot(), &gdkwa,
+                                      GDK_WA_VISUAL | GDK_WA_X | GDK_WA_Y);
 
         if (i == 0)
         {
@@ -1793,8 +1799,15 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(dpy);
             x11::Window   t_xwin = x11::gdk_x11_window_get_xid(p_win);
 
+            // GDK coordinates are logical (scaled) pixels; X11 direct calls need
+            // physical pixels.  Multiply by the GDK scale factor (1 on non-HiDPI,
+            // 2 on 2× HiDPI, etc.) for all raw X11 geometry operations.
+            int t_scale = gdk_window_get_scale_factor(p_win);
+
             // Pre-position while unmapped: direct X11, no WM interference.
-            x11::XMoveResizeWindow(t_xdpy, t_xwin, x, y, (unsigned)w, (unsigned)h);
+            x11::XMoveResizeWindow(t_xdpy, t_xwin,
+                                   x * t_scale, y * t_scale,
+                                   (unsigned)(w * t_scale), (unsigned)(h * t_scale));
             x11::XFlush(t_xdpy);
 
             // Suppress decorations so the backdrop is a bare window.
@@ -1880,12 +1893,14 @@ void MCScreenDC::enablebackdrop(bool p_hard)
     // backdrop[1] has moved away, ensures the compositor captures the correct pixels.
     if (s_primary_backdrop)
     {
-        // Holds geometry targets for up to 4 backdrop windows so the 200ms
-        // timer can verify placement and send corrective _NET_MOVERESIZE_WINDOW.
+        // Holds geometry targets (in PHYSICAL pixels) for up to 4 backdrop windows
+        // so the 200ms timer can verify placement and send corrective messages.
+        // XGetGeometry and _NET_MOVERESIZE_WINDOW both use physical pixels, so
+        // we pre-multiply GDK logical coords by the window scale factor here.
         struct BackdropDiag {
             x11::Display *xdpy;
             x11::Window   xwin[4];
-            int           tx[4], ty[4], tw[4], th[4]; // target geometry per backdrop
+            int           tx[4], ty[4], tw[4], th[4]; // target geometry (physical px)
             int           count;
             unsigned long pixel;
         };
@@ -1903,9 +1918,10 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             // Primary (monitor 0)
             GdkRectangle t_g0 = {0, 0, 1920, 1080};
             gdk_screen_get_monitor_workarea(t_sc, 0, &t_g0);
+            int t_s0 = gdk_window_get_scale_factor(s_primary_backdrop);
             bd->xwin[0] = x11::gdk_x11_window_get_xid(s_primary_backdrop);
-            bd->tx[0]   = t_g0.x; bd->ty[0] = t_g0.y;
-            bd->tw[0]   = t_g0.width; bd->th[0] = t_g0.height;
+            bd->tx[0]   = t_g0.x * t_s0; bd->ty[0] = t_g0.y * t_s0;
+            bd->tw[0]   = t_g0.width * t_s0; bd->th[0] = t_g0.height * t_s0;
             bd->count   = 1;
             // Extra backdrops (monitors 1..N)
             for (int i = 0; i < (int)s_extra_backdrops.size() && bd->count < 4; i++)
@@ -1914,10 +1930,11 @@ void MCScreenDC::enablebackdrop(bool p_hard)
                 {
                     GdkRectangle t_gi = {0, 0, 1920, 1080};
                     gdk_screen_get_monitor_workarea(t_sc, i + 1, &t_gi);
+                    int t_si = gdk_window_get_scale_factor(s_extra_backdrops[i]);
                     int k = bd->count;
                     bd->xwin[k] = x11::gdk_x11_window_get_xid(s_extra_backdrops[i]);
-                    bd->tx[k]   = t_gi.x; bd->ty[k] = t_gi.y;
-                    bd->tw[k]   = t_gi.width; bd->th[k] = t_gi.height;
+                    bd->tx[k]   = t_gi.x * t_si; bd->ty[k] = t_gi.y * t_si;
+                    bd->tw[k]   = t_gi.width * t_si; bd->th[k] = t_gi.height * t_si;
                     bd->count++;
                 }
             }
