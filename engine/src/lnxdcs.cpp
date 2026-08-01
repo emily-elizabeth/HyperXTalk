@@ -1802,6 +1802,24 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             gdk_window_set_functions(p_win, (GdkWMFunction)0);
             // No keyboard focus for the backdrop.
             gdk_window_set_accept_focus(p_win, FALSE);
+            // Exclude from taskbar/pager so the WM doesn't apply normal placement.
+            gdk_window_set_skip_taskbar_hint(p_win, TRUE);
+            gdk_window_set_skip_pager_hint(p_win, TRUE);
+
+            // Set _NET_WM_STATE_ABOVE as a property BEFORE mapping so the WM
+            // places the window in the ABOVE layer at MapRequest time.  Sending
+            // it as a ClientMessage after mapping (via gdk_window_set_keep_above)
+            // can cause some WMs to re-place or re-size the window as a side
+            // effect of the state change.
+            {
+                x11::Atom t_state = x11::XInternAtom(t_xdpy, "_NET_WM_STATE", False);
+                x11::Atom t_above = x11::XInternAtom(t_xdpy, "_NET_WM_STATE_ABOVE", False);
+                x11::XChangeProperty(t_xdpy, t_xwin, t_state,
+                                     (x11::Atom)4 /*XA_ATOM*/, 32,
+                                     0 /*PropModeReplace*/,
+                                     (unsigned char*)&t_above, 1);
+                x11::XFlush(t_xdpy);
+            }
 
             GdkRGBA t_rgba;
             t_rgba.red   = backdropcolor.red   / 65535.0;
@@ -1813,11 +1831,13 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             // Map without raising first.
             gdk_window_show_unraised(p_win);
 
-            // Move to ABOVE layer so the backdrop sits above all NORMAL-layer
-            // application windows.  HXT stacks are made transient-for this window
-            // in assignbackdrop(), so Mutter atomically enforces stacks > backdrop
-            // with no click-to-raise flash possible.
+            // Also send the ClientMessage form of _NET_WM_STATE_ABOVE so WMs
+            // that check state only on state-change events also see it.
             gdk_window_set_keep_above(p_win, TRUE);
+
+            // Reinforce geometry via GDK after mapping — some WMs apply their
+            // own placement when transitioning a window to the ABOVE layer.
+            gdk_window_move_resize(p_win, x, y, w, h);
             gdk_display_sync(dpy);
 
             paint_backdrop_gdk_window(p_win, w, h, backdropcolor, m_backdrop_pixmap);
@@ -1917,7 +1937,8 @@ void MCScreenDC::enablebackdrop(bool p_hard)
                                       &t_root_r, &t_gx, &t_gy,
                                       &t_gw, &t_gh, &t_gbw, &t_gd_v);
 
-                    if (t_gx != d->tx[i] || t_gy != d->ty[i])
+                    if (t_gx != d->tx[i] || t_gy != d->ty[i] ||
+                        (int)t_gw != d->tw[i] || (int)t_gh != d->th[i])
                     {
                         x11::XEvent t_ev = {};
                         t_ev.xclient.type         = ClientMessage;
