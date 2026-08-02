@@ -53,6 +53,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 // in MCScreenDC to avoid changing the class layout (which would require a full
 // rebuild of all TUs that include lnxdc.h).
 #include <vector>
+#include <algorithm>
+
 static std::vector<GdkWindow*> s_extra_backdrops;
 // Mirror of MCScreenDC::backdrop kept in sync so hxt_is_backdrop_window can
 // check it without needing a full MCScreenDC* cast.
@@ -71,6 +73,11 @@ bool s_wm_is_muffin = false;
 // and handles extra backdrop stacking correctly, so spanning-window workarounds
 // must not activate there.
 static bool s_wm_is_marco  = false;
+
+// GObject-ref'd list of HXT stack windows currently registered with the
+// backdrop via assignbackdrop().  Used by backdrop_focus_gained/lost() to
+// batch-toggle keep_above so ALT+TAB can bring other apps to the front.
+static std::vector<GdkWindow*> s_backdrop_stacks;
 
 // Free function used by lnxdclnx.cpp to test any backdrop window.
 bool hxt_is_backdrop_window(GdkWindow *w)
@@ -298,16 +305,138 @@ static gboolean hxt_check_stacking(gpointer)
 
 void MCScreenDC::reraise_stacks_above_backdrop()
 {
-    // On Mutter: lower the backdrop within the ABOVE layer.  Mutter atomically
-    // keeps transient children (HXT stacks) above the backdrop regardless.
-    // On Muffin: skip the lower — without the keep_above ClientMessage, Muffin
-    // does not maintain ABOVE layer membership after gdk_window_lower(), which
-    // allows normal-layer apps to appear above the backdrop.  HXT stacks stay
-    // naturally above the backdrop because they share the ABOVE layer (via
-    // keep_above in assignbackdrop) and were mapped after the backdrop.
-    if (!s_wm_is_muffin)
-        hxt_lower_backdrops();
+    // Called from the backdrop button-press handler: Mutter's click-to-raise
+    // has already raised the clicked backdrop above HXT stacks on that monitor.
+    // Re-raise everything to restore correct Z-order.
+    backdrop_focus_gained();
 }
+
+// ---------------------------------------------------------------------------
+// _NET_ACTIVE_WINDOW root-window filter
+//
+// GDK_FOCUS_CHANGE events are unreliable on GNOME/Mutter when keep_above
+// windows hold X11 input focus — the WM changes _NET_ACTIVE_WINDOW but never
+// delivers a FocusOut to our windows.  We monitor the root property directly.
+// ---------------------------------------------------------------------------
+
+static x11::Atom  s_net_active_window_atom = None;
+static bool       s_active_win_filter_installed = false;
+
+static GdkFilterReturn hxt_active_win_filter(GdkXEvent *p_xevent,
+                                              GdkEvent  * /*p_event*/,
+                                              gpointer    /*p_data*/)
+{
+    x11::XEvent *xe = static_cast<x11::XEvent*>(p_xevent);
+    if (xe->type != PropertyNotify) return GDK_FILTER_CONTINUE;
+    if (xe->xproperty.atom != s_net_active_window_atom) return GDK_FILTER_CONTINUE;
+
+    MCScreenDC *dc = static_cast<MCScreenDC*>(MCscreen);
+    if (!dc) return GDK_FILTER_CONTINUE;
+
+    GdkDisplay     *t_dpy  = dc->getDisplay();
+    x11::Display   *t_xdpy = x11::gdk_x11_display_get_xdisplay(t_dpy);
+    x11::Window     t_root = x11::XDefaultRootWindow(t_xdpy);
+
+    // Read the current _NET_ACTIVE_WINDOW value.
+    x11::Atom         t_type;
+    int               t_format;
+    unsigned long     t_nitems, t_bytes_after;
+    unsigned char    *t_prop = nullptr;
+    if (x11::XGetWindowProperty(t_xdpy, t_root, s_net_active_window_atom,
+                                0, 1, False, (x11::Atom)33 /*XA_WINDOW*/,
+                                &t_type, &t_format,
+                                &t_nitems, &t_bytes_after, &t_prop) != Success
+        || !t_prop)
+    {
+        return GDK_FILTER_CONTINUE;
+    }
+
+    x11::Window t_active = *(x11::Window*)t_prop;
+    x11::XFree(t_prop);
+
+    if (t_active == None)
+    {
+        // xwin=0 is a transient state the WM emits while selecting the next
+        // window (e.g. during ALT+TAB).  Reacting here disrupts the WM's own
+        // stacking decisions — skip it and wait for the real target XID.
+        return GDK_FILTER_CONTINUE;
+    }
+
+    // Look the XID up in GDK's window table.
+    GdkWindow *t_gdk = x11::gdk_x11_window_lookup_for_display(t_dpy, t_active);
+
+    bool t_is_ours = false;
+    if (t_gdk)
+    {
+        if (hxt_is_backdrop_window(t_gdk))
+            t_is_ours = true;
+        else if (MCdispatcher->findstackd(t_gdk) != nullptr)
+            t_is_ours = true;
+    }
+
+    if (t_is_ours)
+        dc->backdrop_focus_gained();
+    else
+        dc->backdrop_focus_lost();
+
+    return GDK_FILTER_CONTINUE;
+}
+
+static void hxt_install_active_window_filter(GdkDisplay *p_dpy)
+{
+    if (s_active_win_filter_installed) return;
+    s_active_win_filter_installed = true;
+
+    x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(p_dpy);
+    x11::Window   t_root = x11::XDefaultRootWindow(t_xdpy);
+
+    s_net_active_window_atom = x11::XInternAtom(t_xdpy, "_NET_ACTIVE_WINDOW", False);
+
+    // Add PropertyChangeMask to the root window so GDK forwards PropertyNotify.
+    x11::XWindowAttributes t_attrs;
+    x11::XGetWindowAttributes(t_xdpy, t_root, &t_attrs);
+    x11::XSelectInput(t_xdpy, t_root,
+                      t_attrs.your_event_mask | PropertyChangeMask);
+
+    GdkScreen *t_screen = gdk_display_get_default_screen(p_dpy);
+    GdkWindow *t_root_gdk = gdk_screen_get_root_window(t_screen);
+    gdk_window_add_filter(t_root_gdk, hxt_active_win_filter, nullptr);
+}
+
+// Called when HXT becomes the active application (_NET_ACTIVE_WINDOW points
+// to one of our windows).  Raises backdrop and stacks above other apps.
+// No keep_above — everything stays in NORMAL layer so ALT+TAB can work.
+void MCScreenDC::backdrop_focus_gained()
+{
+    if (!backdrop_active && !backdrop_hard) return;
+
+    // Raise backdrop(s) first.  On Mutter, transient_for guarantees stacks
+    // follow above the backdrop automatically.  On Muffin (no transient_for),
+    // we raise stacks explicitly afterwards.
+    auto do_raise = [](GdkWindow *w) {
+        if (w && gdk_window_is_visible(w))
+            gdk_window_raise(w);
+    };
+
+    do_raise(s_primary_backdrop);
+    for (GdkWindow *bd : s_extra_backdrops) do_raise(bd);
+
+    // Raise stacks explicitly on all WMs.
+    // On Mutter, transient_for keeps stacks above the PRIMARY backdrop, but
+    // extra backdrop windows on secondary monitors are separate and can appear
+    // above a stack on that monitor.  Explicit raise guarantees stacks end up
+    // above ALL backdrop windows regardless of monitor.
+    for (GdkWindow *stk : s_backdrop_stacks)
+        do_raise(stk);
+}
+
+// Called when a non-HXT window becomes active (_NET_ACTIVE_WINDOW changed).
+// With no keep_above, the WM can freely raise the other app above our windows
+// without any help from us.  Nothing to do here.
+void MCScreenDC::backdrop_focus_lost()
+{
+}
+
 // -- tperry 12-11-2025: GTK3/4 window wrapper
 #include "lnxgtk-window.h"
 
@@ -2066,6 +2195,10 @@ void MCScreenDC::createbackdrop_window(void)
     }
 
     gdk_display_sync(MCdpy);
+
+    // Install root-window _NET_ACTIVE_WINDOW filter (once) so we can detect
+    // when the user switches to another application via ALT+TAB.
+    hxt_install_active_window_filter(MCdpy);
 }
 
 
@@ -2134,31 +2267,15 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             gdk_window_set_skip_taskbar_hint(p_win, TRUE);
             gdk_window_set_skip_pager_hint(p_win, TRUE);
 
-            // Set _NET_WM_STATE_ABOVE as a property BEFORE mapping so the WM
-            // places the window in the ABOVE layer at MapRequest time.  Sending
-            // it as a ClientMessage after mapping (via gdk_window_set_keep_above)
-            // can cause some WMs to re-place or re-size the window as a side
-            // effect of the state change.
+            // Do NOT set _NET_WM_STATE_ABOVE: we keep everything in the NORMAL
+            // layer so the WM can freely raise other apps above the backdrop via
+            // ALT+TAB.  Z-order is managed reactively via _NET_ACTIVE_WINDOW.
             //
-            // Exception: extra backdrops on Muffin (Cinnamon) are kept in the
-            // NORMAL layer (no ABOVE).  HXT stacks carry ABOVE via assignbackdrop()
-            // so they are in the TOP layer, which is always above NORMAL.
-            // _NET_WM_WINDOW_TYPE_NORMAL is set explicitly to prevent Muffin from
-            // inferring a higher layer from the Motif no-decoration hints.
-            if (!p_is_extra || !s_wm_is_muffin)
+            // On Muffin, set _NET_WM_WINDOW_TYPE_NORMAL explicitly for all
+            // backdrop windows to prevent Muffin from inferring a higher layer
+            // from the no-decoration Motif hints.
+            if (s_wm_is_muffin)
             {
-                x11::Atom t_state = x11::XInternAtom(t_xdpy, "_NET_WM_STATE", False);
-                x11::Atom t_above = x11::XInternAtom(t_xdpy, "_NET_WM_STATE_ABOVE", False);
-                x11::XChangeProperty(t_xdpy, t_xwin, t_state,
-                                     (x11::Atom)4 /*XA_ATOM*/, 32,
-                                     0 /*PropModeReplace*/,
-                                     (unsigned char*)&t_above, 1);
-                x11::XFlush(t_xdpy);
-            }
-            else
-            {
-                // Muffin extra backdrops: set NORMAL type so Muffin places the
-                // window in META_LAYER_NORMAL (4), below the stacks' META_LAYER_TOP.
                 x11::Atom t_wm_type   = x11::XInternAtom(t_xdpy, "_NET_WM_WINDOW_TYPE", False);
                 x11::Atom t_wm_normal = x11::XInternAtom(t_xdpy, "_NET_WM_WINDOW_TYPE_NORMAL", False);
                 x11::XChangeProperty(t_xdpy, t_xwin, t_wm_type,
@@ -2175,15 +2292,10 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             t_rgba.alpha = 1.0;
             gdk_window_set_background_rgba(p_win, &t_rgba);
 
-            // Map without raising first.
+            // Map and immediately raise to cover other windows.
+            // No keep_above — we stay in the NORMAL layer so ALT+TAB works.
             gdk_window_show_unraised(p_win);
-
-            // On Mutter, gdk_window_lower() removes ABOVE layer membership unless
-            // the ClientMessage form of _NET_WM_STATE_ABOVE is also set.  On Muffin
-            // the ClientMessage causes aggressive re-raise on every click-to-raise
-            // event, which pushes HXT stacks behind the backdrop — so skip it there.
-            if (!s_wm_is_muffin)
-                gdk_window_set_keep_above(p_win, TRUE);
+            gdk_window_raise(p_win);
 
             // Reinforce geometry via GDK after mapping — some WMs apply their
             // own placement when transitioning a window to the ABOVE layer.
@@ -2241,12 +2353,13 @@ void MCScreenDC::enablebackdrop(bool p_hard)
         }
         gdk_display_flush(dpy);
 
-        // On Marco/Muffin with extra backdrops: start a polling timer that
-        // reads _NET_CLIENT_LIST_STACKING and remaps any stack buried under
-        // an extra backdrop.  Not needed for the spanning-window path
-        // (s_extra_backdrops is empty) since there are no extra backdrops to
-        // fight with.
-        if (s_wm_is_muffin && !s_extra_backdrops.empty() && s_stacking_timer_id == 0)
+        // On Muffin/Marco: start a polling timer that reads
+        // _NET_CLIENT_LIST_STACKING and re-raises any HXT stack that has been
+        // buried below a backdrop window (e.g. by Muffin's click-to-raise).
+        // Without keep_above, Muffin can raise the backdrop above stacks on
+        // click — the timer corrects this.  Not needed on Mutter because
+        // transient_for guarantees stacks stay above the backdrop.
+        if (s_wm_is_muffin && s_stacking_timer_id == 0)
             s_stacking_timer_id = g_timeout_add(250, hxt_check_stacking, nullptr);
 	}
 	else
@@ -2511,39 +2624,43 @@ void MCScreenDC::configurebackdrop(const MCColor& p_colour, MCPatternRef p_patte
 
 void MCScreenDC::assignbackdrop(Window_mode p_mode, Window p_window)
 {
-    // Include WM_MODAL and WM_SHEET so dialogs/sheets opened before the
-    // backdrop was enabled also get keep_above and appear above the backdrop.
 	if (p_mode >= WM_TOP_LEVEL && p_mode <= WM_SHEET && backdrop != DNULL)
     {
-        if (backdrop_active||backdrop_hard)
+        if (backdrop_active || backdrop_hard)
         {
+            // Register in the backdrop stack list (hold a GObject ref so the
+            // pointer stays valid until we explicitly remove it).
+            auto it = std::find(s_backdrop_stacks.begin(), s_backdrop_stacks.end(),
+                                p_window);
+            if (it == s_backdrop_stacks.end())
+            {
+                g_object_ref(p_window);
+                s_backdrop_stacks.push_back(p_window);
+            }
+
             // On Mutter: transient_for promotes the stack into the ABOVE layer
-            // (transient children inherit their parent's layer), which is required
-            // for the stack to appear above the backdrop after gdk_window_lower().
-            //
-            // On Marco/Muffin: transient_for triggers Marco's transient-group pull,
-            // which moves the stacks to be adjacent to the primary_backdrop in the
-            // stacking order.  This pushes the extra backdrop (NORMAL layer, higher
-            // stack_position because it was mapped last) past all the stacks in
-            // _NET_CLIENT_LIST_STACKING, landing it at the top.  Every attempt to
-            // restack the extra backdrop is refused by Marco because it would violate
-            // the transient-group ordering.
-            // On Marco/Muffin, keep_above(TRUE) alone places the stack in
-            // META_LAYER_TOP (6), which is always above the NORMAL-layer (4)
-            // backdrops — no transient relationship is needed.
+            // (transient children inherit their parent's layer).
+            // On Marco/Muffin: skip transient_for — it triggers WM group-pull
+            // behaviour that fights the spanning-window approach.
             if (!s_wm_is_muffin)
                 gdk_window_set_transient_for(p_window, backdrop);
             else
                 gdk_property_delete(p_window,
                                     gdk_atom_intern_static_string("WM_TRANSIENT_FOR"));
-            gdk_window_set_keep_above(p_window, TRUE);
+            // Raise the stack above the backdrop (no keep_above — NORMAL layer).
+            gdk_window_raise(p_window);
         }
         else
         {
-            // Remove transient relationship and ABOVE state so the window
-            // returns to normal stacking.
+            // Unregister from backdrop stack list.
+            auto it = std::find(s_backdrop_stacks.begin(), s_backdrop_stacks.end(),
+                                p_window);
+            if (it != s_backdrop_stacks.end())
+            {
+                g_object_unref(*it);
+                s_backdrop_stacks.erase(it);
+            }
             gdk_property_delete(p_window, gdk_atom_intern_static_string("WM_TRANSIENT_FOR"));
-            gdk_window_set_keep_above(p_window, FALSE);
         }
     }
 }

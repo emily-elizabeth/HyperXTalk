@@ -55,11 +55,6 @@ extern GdkWindow *MCLinuxPopoverGetGdkWindow(void);
 
 // Checks primary + all extra per-monitor backdrop windows (defined in lnxdcs.cpp).
 bool hxt_is_backdrop_window(GdkWindow *w);
-// Raises p_win above any extra backdrop on Muffin (defined in lnxdcs.cpp).
-void hxt_raise_above_backdrops(GdkWindow *p_win);
-// True when running under Muffin/Marco; see lnxdcs.cpp for details.
-extern bool s_wm_is_muffin;
-
 Boolean tripleclick = False;
 static Boolean dragclick;
 
@@ -401,6 +396,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                     if (!m_application_has_focus)
                     {
                         m_application_has_focus = true;
+                        static_cast<MCScreenDC*>(MCscreen)->backdrop_focus_gained();
                         hidebackdrop(true);
                         if (MCdefaultstackptr)
                             MCdefaultstackptr->getcard()->message(MCM_resume);
@@ -427,16 +423,6 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             if (!skip_focus)
                             {
                                 MCdispatcher->wkfocus(t_event->focus_change.window);
-                                // When any HXT stack gains focus, re-raise all
-                                // registered stacks above the backdrop.  Mutter's
-                                // click-to-raise can push the backdrop above stacks
-                                // that were not the direct target of the click.
-                                if (!hxt_is_backdrop_window(t_event->focus_change.window))
-                                {
-                                    static_cast<MCScreenDC*>(MCscreen)->reraise_stacks_above_backdrop();
-                                    if (s_wm_is_muffin)
-                                        hxt_raise_above_backdrops(t_event->focus_change.window);
-                                }
                             }
                         }
                     }
@@ -456,24 +442,25 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         // GDK doesn't let us get the focus window so we have
                         // to use Xlib to get it. Sigh.
                         x11::XGetInputFocus(x11::gdk_x11_display_get_xdisplay(dpy), &t_return_window, &t_return_revert_window);
-                        
+
                         // Look up the X11 window XID in GDK's window table. If
                         // it isn't found, it definitely isn't one of ours.
                         GdkWindow *t_window;
                         if ((t_window = x11::gdk_x11_window_lookup_for_display(dpy, t_return_window)) == NULL)
                             t_lostfocus = true;
-                        
+
                         // Even if we found it, it may not be ours. This is very
                         // unlikely but could happen if we've created a GdkWindow
                         // for it in the past (e.g. in import snapshot)
                         bool _is_bd = hxt_is_backdrop_window(t_window);
                         if (_is_bd || MCdispatcher->findstackd(t_window) != NULL)
                             t_lostfocus = false;
-                        
+
                         if (t_lostfocus)
                         {
                             // Another application gained focus
                             m_application_has_focus = false;
+                            static_cast<MCScreenDC*>(MCscreen)->backdrop_focus_lost();
                             hidebackdrop(true);
                             if (MCdefaultstackptr)
                                 MCdefaultstackptr->getcard()->message(MCM_suspend);
@@ -950,16 +937,6 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         else
                             t_target->uniconify();
                     }
-                    // On Muffin, the WM may clear _NET_WM_STATE_ABOVE during a
-                    // window drag.  Restore it immediately so the stack stays
-                    // above all backdrop windows.
-                    if (s_wm_is_muffin &&
-                        !hxt_is_backdrop_window(t_event->window_state.window) &&
-                        (t_event->window_state.changed_mask & GDK_WINDOW_STATE_ABOVE) &&
-                        !(t_event->window_state.new_window_state & GDK_WINDOW_STATE_ABOVE))
-                    {
-                        gdk_window_set_keep_above(t_event->window_state.window, TRUE);
-                    }
                 }
                 
                 t_handled = true;
@@ -1000,12 +977,6 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 }                        
                 
                 MCdispatcher->wreshape(t_event->configure.window);
-
-                // On Muffin, dragging a stack to the external monitor can slip
-                // it behind an extra backdrop window.
-                if (s_wm_is_muffin && !hxt_is_backdrop_window(t_event->configure.window))
-                    hxt_raise_above_backdrops(t_event->configure.window);
-
                 break;
             }
 

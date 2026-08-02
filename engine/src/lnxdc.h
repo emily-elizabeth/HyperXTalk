@@ -256,6 +256,8 @@ public:
 	virtual void configurebackdrop(const MCColor& p_colour, MCPatternRef p_pattern, MCImage *p_badge);
 	virtual void assignbackdrop(Window_mode p_mode, Window p_window);
 	void reraise_stacks_above_backdrop();
+	void backdrop_focus_gained();
+	void backdrop_focus_lost();
 
 	// IM-2014-01-29: [[ HiDPI ]] Update device_* methods to platform-specific logical coord based methods
 	virtual uint16_t platform_getwidth(void);
