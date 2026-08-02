@@ -55,6 +55,10 @@ extern GdkWindow *MCLinuxPopoverGetGdkWindow(void);
 
 // Checks primary + all extra per-monitor backdrop windows (defined in lnxdcs.cpp).
 bool hxt_is_backdrop_window(GdkWindow *w);
+// Raises p_win above any extra backdrop on Muffin (defined in lnxdcs.cpp).
+void hxt_raise_above_backdrops(GdkWindow *p_win);
+// True when running under Muffin/Marco; see lnxdcs.cpp for details.
+extern bool s_wm_is_muffin;
 
 Boolean tripleclick = False;
 static Boolean dragclick;
@@ -428,7 +432,11 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                 // click-to-raise can push the backdrop above stacks
                                 // that were not the direct target of the click.
                                 if (!hxt_is_backdrop_window(t_event->focus_change.window))
+                                {
                                     static_cast<MCScreenDC*>(MCscreen)->reraise_stacks_above_backdrop();
+                                    if (s_wm_is_muffin)
+                                        hxt_raise_above_backdrops(t_event->focus_change.window);
+                                }
                             }
                         }
                     }
@@ -942,6 +950,16 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         else
                             t_target->uniconify();
                     }
+                    // On Muffin, the WM may clear _NET_WM_STATE_ABOVE during a
+                    // window drag.  Restore it immediately so the stack stays
+                    // above all backdrop windows.
+                    if (s_wm_is_muffin &&
+                        !hxt_is_backdrop_window(t_event->window_state.window) &&
+                        (t_event->window_state.changed_mask & GDK_WINDOW_STATE_ABOVE) &&
+                        !(t_event->window_state.new_window_state & GDK_WINDOW_STATE_ABOVE))
+                    {
+                        gdk_window_set_keep_above(t_event->window_state.window, TRUE);
+                    }
                 }
                 
                 t_handled = true;
@@ -982,9 +1000,15 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 }                        
                 
                 MCdispatcher->wreshape(t_event->configure.window);
+
+                // On Muffin, dragging a stack to the external monitor can slip
+                // it behind an extra backdrop window.
+                if (s_wm_is_muffin && !hxt_is_backdrop_window(t_event->configure.window))
+                    hxt_raise_above_backdrops(t_event->configure.window);
+
                 break;
             }
-                
+
             case GDK_CLIENT_EVENT:
                 // Hmm - do we still need to react to any of these?
                 break;
