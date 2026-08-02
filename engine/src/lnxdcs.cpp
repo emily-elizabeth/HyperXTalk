@@ -65,7 +65,8 @@ static GdkWindow *s_primary_backdrop = nullptr;
 // maintain ABOVE layer membership after gdk_window_lower().
 // Detect once at startup and branch accordingly.
 // Variable kept as s_wm_is_muffin for brevity; it covers Marco too.
-static bool s_wm_is_muffin = false;
+// Not static: lnxdclnx.cpp references it via extern.
+bool s_wm_is_muffin = false;
 // True only for Marco/Metacity (MATE).  Muffin (Cinnamon) is a Mutter fork
 // and handles extra backdrop stacking correctly, so spanning-window workarounds
 // must not activate there.
