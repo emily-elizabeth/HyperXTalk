@@ -534,7 +534,15 @@ void MCScreenDC::restackwindows(HWND p_window, UINT p_message, WPARAM p_wparam, 
 		while(t_node != MCstacks -> topnode());
 	}
 
-	if (p_window != backdrop_window && (backdrop_hard || backdrop_active || MCraisewindows))
+	// HXT: Treat primary and all extra per-display backdrop windows the same way
+	// in the z-order guard so that an extra backdrop window receiving
+	// WM_WINDOWPOSCHANGING doesn't inadvertently land on top of app windows.
+	bool t_is_any_backdrop = (p_window == backdrop_window);
+	for (uint32_t i = 0; !t_is_any_backdrop && i < m_extra_backdrop_count; i++)
+		if (m_extra_backdrop_windows[i] == p_window)
+			t_is_any_backdrop = true;
+
+	if (!t_is_any_backdrop && (backdrop_hard || backdrop_active || MCraisewindows))
 	{
 		if (t_node != NULL && (t_node != MCstacks -> topnode() || t_stack == t_node -> getstack()))
 			do
@@ -565,6 +573,12 @@ void MCScreenDC::restackwindows(HWND p_window, UINT p_message, WPARAM p_wparam, 
 		if (IsWindowVisible(backdrop_window))
 			SetWindowPos(backdrop_window, t_after, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOSENDCHANGING | SWP_NOOWNERZORDER);
 
+		// HXT: Restack extra per-display backdrop windows to the same z-position.
+		// SWP_NOSENDCHANGING prevents recursive WM_WINDOWPOSCHANGING messages.
+		for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+			if (IsWindowVisible(m_extra_backdrop_windows[i]))
+				SetWindowPos(m_extra_backdrop_windows[i], t_after, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOSENDCHANGING | SWP_NOOWNERZORDER);
+
 		t_info -> flags |= SWP_NOACTIVATE | SWP_NOZORDER;
 	}
 	else
@@ -586,9 +600,19 @@ void MCScreenDC::hidebackdrop(Boolean p_hide)
 		return;
 
 	if (p_hide && IsWindowVisible(backdrop_window))
+	{
 		ShowWindow(backdrop_window, SW_HIDE);
+		// HXT: Hide extra per-display backdrop windows on alt-tab / minimize.
+		for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+			ShowWindow(m_extra_backdrop_windows[i], SW_HIDE);
+	}
 	else if (!p_hide && !IsWindowVisible(backdrop_window))
+	{
 		SetWindowPos(backdrop_window, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+		// HXT: Restore extra per-display backdrop windows when app is restored.
+		for (uint32_t i = 0; i < m_extra_backdrop_count; i++)
+			SetWindowPos(m_extra_backdrop_windows[i], NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+	}
 }
 
 LRESULT CALLBACK MCPlayerWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
