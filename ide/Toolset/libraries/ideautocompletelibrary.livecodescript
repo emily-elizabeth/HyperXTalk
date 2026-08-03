@@ -346,9 +346,18 @@ private command ideAutocomplete_ShowPopup pEditorId, pMatches
    local tX, tY
    ideAutocomplete_GetCaretScreenPos pEditorId, tX, tY
 
-   -- Keep the popup on screen
+   -- Keep the popup on the same screen as the caret.
+   -- 'the screenRect' always returns the primary display rect; use
+   -- 'the screenRects' to find the display that actually contains the caret.
    local tScreenRect
    put the screenRect into tScreenRect
+   repeat for each line tLine in the screenRects
+      if tX >= item 1 of tLine and tX < item 3 of tLine and \
+            tY >= item 2 of tLine and tY < item 4 of tLine then
+         put tLine into tScreenRect
+         exit repeat
+      end if
+   end repeat
    if tX + kPopupWidth > item 3 of tScreenRect then
       put item 3 of tScreenRect - kPopupWidth into tX
    end if
@@ -489,6 +498,12 @@ private command ideAutocomplete_GetCaretScreenPos pEditorId, @rX, @rY
          put the rect of tStackRef into tWRect
          put item 1 of tWRect into tWinX
          put item 2 of tWRect into tWinY
+         -- On macOS, applyscroll() shifts card content up by vScroll pixels so that
+         -- card y=vScroll maps to screen y=0 (top of visible window). Subtract vScroll
+         -- here so that card-space coordinates convert correctly to screen coordinates.
+         if the platform is "MacOS" then
+            subtract the vScroll of tStackRef from tWinY
+         end if
       catch tErr
          -- leave tWinX/tWinY as 0 — card coords become the fallback
       end try
