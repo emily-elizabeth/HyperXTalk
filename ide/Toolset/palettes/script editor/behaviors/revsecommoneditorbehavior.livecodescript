@@ -4,7 +4,12 @@ script "com.livecode.scripteditor.behavior.editorcommon"
 -- Defined here so it is always in the message path regardless of
 -- whether ideautocompletelibrary has been inserted into back yet.
 function ideAutocompleteIsEnabled
-   return true
+   local tPropName, tValue
+   put "cScriptEditor,editor,showautocomplete" into tPropName
+   put the tPropName of stack "revPreferences" into tValue
+   -- Default to FALSE if the preference has not been set yet
+   if tValue is EMPTY then return FALSE
+   return tValue
 end ideAutocompleteIsEnabled
 
 --------------------------------------------------------------------------------
