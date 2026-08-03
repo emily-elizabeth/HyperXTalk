@@ -321,6 +321,7 @@ void MCScreenDC::reraise_stacks_above_backdrop()
 
 static x11::Atom  s_net_active_window_atom = None;
 static bool       s_active_win_filter_installed = false;
+static x11::Window s_last_active_xwin = None;
 
 static GdkFilterReturn hxt_active_win_filter(GdkXEvent *p_xevent,
                                               GdkEvent  * /*p_event*/,
@@ -362,7 +363,26 @@ static GdkFilterReturn hxt_active_win_filter(GdkXEvent *p_xevent,
         return GDK_FILTER_CONTINUE;
     }
 
-    // Look the XID up in GDK's window table.
+    // Determine whether the PREVIOUS active window was ours.  This lets us
+    // distinguish "focus returning from another app" (needs a stack re-raise)
+    // from "focus moving between HXT windows" (Z-order is already correct —
+    // raising stacks here would bury overlays like the autocomplete popup).
+    bool t_prev_was_ours = false;
+    if (s_last_active_xwin != None)
+    {
+        GdkWindow *t_prev_gdk = x11::gdk_x11_window_lookup_for_display(t_dpy, s_last_active_xwin);
+        if (t_prev_gdk)
+        {
+            if (hxt_is_backdrop_window(t_prev_gdk))
+                t_prev_was_ours = true;
+            else if (MCdispatcher->findstackd(t_prev_gdk) != nullptr)
+                t_prev_was_ours = true;
+        }
+    }
+
+    s_last_active_xwin = t_active;
+
+    // Look the new active XID up in GDK's window table.
     GdkWindow *t_gdk = x11::gdk_x11_window_lookup_for_display(t_dpy, t_active);
 
     bool t_is_ours = false;
@@ -375,7 +395,14 @@ static GdkFilterReturn hxt_active_win_filter(GdkXEvent *p_xevent,
     }
 
     if (t_is_ours)
-        dc->backdrop_focus_gained();
+    {
+        // Only raise backdrops and stacks when focus is coming FROM outside
+        // HXT.  When focus moves between HXT windows (e.g. autocomplete popup
+        // shown then focus returned to the editor) the Z-order is already
+        // correct and raising would bury any visible overlay windows.
+        if (!t_prev_was_ours)
+            dc->backdrop_focus_gained();
+    }
     else
         dc->backdrop_focus_lost();
 
@@ -410,9 +437,6 @@ void MCScreenDC::backdrop_focus_gained()
 {
     if (!backdrop_active && !backdrop_hard) return;
 
-    // Raise backdrop(s) first.  On Mutter, transient_for guarantees stacks
-    // follow above the backdrop automatically.  On Muffin (no transient_for),
-    // we raise stacks explicitly afterwards.
     auto do_raise = [](GdkWindow *w) {
         if (w && gdk_window_is_visible(w))
             gdk_window_raise(w);
@@ -2642,7 +2666,13 @@ void MCScreenDC::assignbackdrop(Window_mode p_mode, Window p_window)
             // (transient children inherit their parent's layer).
             // On Marco/Muffin: skip transient_for — it triggers WM group-pull
             // behaviour that fights the spanning-window approach.
-            if (!s_wm_is_muffin)
+            //
+            // WM_PALETTE (autocomplete popup etc.) must NOT be made transient
+            // for the backdrop: since the ALT+TAB fix the backdrop lives in the
+            // NORMAL layer, so transient_for would demote a palette window out
+            // of the ABOVE layer (where its own _NET_WM_STATE_ABOVE placed it),
+            // causing it to appear behind script editors that stay in ABOVE.
+            if (!s_wm_is_muffin && p_mode != WM_PALETTE)
                 gdk_window_set_transient_for(p_window, backdrop);
             else
                 gdk_property_delete(p_window,
