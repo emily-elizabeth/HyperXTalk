@@ -1,12 +1,12 @@
-Name: LiveCode Builder extension
+Name: Loadable Code Builder extension
 
 Synonyms: lcb extension
 
 Type: glossary
 
 Description:
-An extension to the LiveCode environment written in the 
-<LiveCode Builder language>. The extension can be either a <widget> or 
+An extension to the HyperXTalk environment written in the 
+<Loadable Code Builder language>. The extension can be either a <widget> or 
 a <library extension|library>. 
 
 A <widget> when loaded is a <control> that can be created on the <stack>
@@ -18,6 +18,6 @@ to the bottom of the <message path> and then called in LiveCode in
 exactly the same way as script handlers.
 
 References: create widget (command), widget (glossary),
-LiveCode Builder language (glossary), library extension (glossary),
+Builder language (glossary), library extension (glossary),
 control (glossary), stack (glossary), message path (glossary)
 

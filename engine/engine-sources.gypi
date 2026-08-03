@@ -1102,14 +1102,14 @@
         # the engine.
         'engine_syntax_only_lcb_files':
         [
-            'src/license.lcb',
+            #'src/license.lcb',
         ],
 		
 		# Other engine LCB files
 		'engine_other_lcb_files':
 		[
 			'src/browser.lcb',
-			'src/emscripten.lcb',
+			#'src/emscripten.lcb',
 		],
 
 		# Engine cpptest source files

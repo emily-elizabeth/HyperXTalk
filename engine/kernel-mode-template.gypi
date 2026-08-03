@@ -51,7 +51,7 @@
 			
 			'inputs':
 			[
-				'../util/encode_errors.pl',
+				'../util/encode_errors.py',
 				'src/executionerrors.h',
 				'src/parseerrors.h',
 			],
@@ -62,8 +62,8 @@
 		
 			'action':
 			[
-				'<@(perl)',
-				'../util/encode_errors.pl',
+				'<@(python)',
+				'../util/encode_errors.py',
 				'./src',
 				'<@(_outputs)',
 			],

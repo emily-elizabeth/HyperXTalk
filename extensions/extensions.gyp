@@ -87,7 +87,7 @@
 				'script-libraries/shakecontrol/shakecontrol.livecodescript',
 				'script-libraries/macscrollenhancement2/macscrollenhancement2.livecodescript',
 				'script-libraries/hxtpm/hxtpm.livecodescript',
-				'script-libraries/json/json.livecodescript',
+				'script-libraries/jsonexport/jsonexport.livecodescript',
 			],
 			
 			'dependencies':
@@ -107,7 +107,12 @@
 										
 					'outputs':
 					[
-						'<(PRODUCT_DIR)/packaged_extensions/com.livecode.library.<(RULE_INPUT_ROOT)/<(RULE_INPUT_ROOT).livecodescript',	
+						# hack because gyp wants an output
+                        '<(RULE_INPUT_ROOT)-notarealfile.txt',
+                        # Since we have both LiveCode and HyperXTalk extensions, a single
+                        # path does not work.  The below resulted in empty directories
+                        # for HyperXTalk extensions using the `livecode` name.
+						#'<(PRODUCT_DIR)/packaged_extensions/com.livecode.library.<(RULE_INPUT_ROOT)/<(RULE_INPUT_ROOT).livecodescript',	
 					],
 					          
 					'action':

@@ -2321,13 +2321,7 @@ Exec_stat MCStack::openrect(const MCRectangle &rel, Window_mode wm, MCStack *par
 	sethints();
 	MCstacks->add(this);
 	
-#if defined(_MAC_DESKTOP)
-    { FILE *f=fopen("/tmp/hyperxtalk-arm64-startup.log","a"); if(f){fprintf(f,"openrect: calling curcard->open()\n");fclose(f);} }
-#endif
 	curcard->open();
-#if defined(_MAC_DESKTOP)
-    { FILE *f=fopen("/tmp/hyperxtalk-arm64-startup.log","a"); if(f){fprintf(f,"openrect: curcard->open() done\n");fclose(f);} }
-#endif
 	if (MCuseprivatecmap)
 		MCscreen->setcmap(this);
 	
@@ -2371,9 +2365,6 @@ Exec_stat MCStack::openrect(const MCRectangle &rel, Window_mode wm, MCStack *par
     MCPlayer::DetachPlayers(curcard -> getstack());
 #endif
 		
-#if defined(_MAC_DESKTOP)
-    { FILE *f=fopen("/tmp/hyperxtalk-arm64-startup.log","a"); if(f){fprintf(f,"openrect: sending preOpenStack\n");fclose(f);} }
-#endif
 	// MW-2008-10-31: [[ ParentScripts ]] Send preOpenControl appropriately
 	if (curcard->message(MCM_preopen_stack) == ES_ERROR
 	        || curcard != startcard
@@ -2386,17 +2377,11 @@ Exec_stat MCStack::openrect(const MCRectangle &rel, Window_mode wm, MCStack *par
 		if (curcard == startcard)
 		{
 			// MW-2011-08-17: [[ Redraw ]] Now using global screen lock and tell the stack to dirty all of itself.
-#if defined(_MAC_DESKTOP)
-            { FILE *f=fopen("/tmp/hyperxtalk-arm64-startup.log","a"); if(f){fprintf(f,"openrect: preOpenStack ES_ERROR path\n");fclose(f);} }
-#endif
 			setgeom();
 			state &= ~(CS_LOCK_SCREEN | CS_KFOCUSED | CS_NO_FOCUS);
 			dirtyall();
 			MCRedrawUnlockScreen();
 			openwindow(mode >= WM_PULLDOWN);
-#if defined(_MAC_DESKTOP)
-            { FILE *f=fopen("/tmp/hyperxtalk-arm64-startup.log","a"); if(f){fprintf(f,"openrect: returning ES_ERROR after preOpen fail\n");fclose(f);} }
-#endif
 			return ES_ERROR;
 		}
 

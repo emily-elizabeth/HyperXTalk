@@ -277,7 +277,7 @@ Type: library
 Version: 6.0.1
 
 Description:
-Animation Engine is a LiveCode script library providing geometry, collision
+Animation Engine is a Script library providing geometry, collision
 detection, easing functions, isometric and 3D projection utilities, and
 general-purpose animation helpers.
 

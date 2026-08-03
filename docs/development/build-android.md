@@ -3,7 +3,7 @@ group: advanced
 ---
 # Compiling for Android
 
-Copyright © 2015-2017 LiveCode Ltd., Edinburgh, UK
+Copyright © 2026 HyperXTalk
 
 ## Dependencies
 
@@ -117,7 +117,7 @@ Normally, it'll be enough just to use the top-level makefile:
 
 Otherwise, you'll need to build a target in the gyp-generated makefiles:
 
-    make -C build-android-armv6/livecode development
+    make -C build-android-armv6/hyperxtalk development
 
 ## Standard build environment
 
@@ -139,7 +139,7 @@ The Linux build environment used for compiling for Android is based on Debian Je
 
 * Build a debug build of the android engine
 * Inside android-XXX-bin, create a symlink librevandroid.so -> Standalone-Community
-(or Standalone-Commercial; whichever you're using)
+  (Community eventually needs to be removed from the name)
 * Build your standalone
 * Start Android Studio and select "Profile or Debug APK" on the main menu.
 * Select the APK you built

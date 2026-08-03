@@ -588,7 +588,11 @@ command sePrefGetDefaults
    put "255,255,255" into tPrefs["editor,debugBackgroundcolor"]
    put "true" into tPrefs["editor,hscrollbar"]
    put "false" into tPrefs["editor,useInteractiveFind"]
-   
+   put "true" into tPrefs["editor,folding"]
+   put 16 into tPrefs["editor,foldingwidth"]
+   put numtocodepoint(9661) into tPrefs["editor,foldingOpen"]   -- "▽"
+   put numtocodepoint(9654) into tPrefs["editor,foldingClosed"] -- "▶"
+
    # Gutter preferences
    put "true" into tPrefs["gutter,linenumbers"]
    

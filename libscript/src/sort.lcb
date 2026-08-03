@@ -15,7 +15,7 @@
  along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 /**
-This library consists of the sorting operations provided by the standard library of LiveCode Builder.
+This library consists of the sorting operations provided by the standard library of Builder.
 */
 
 module com.livecode.sort

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-BBEdit Language Module for LiveCode Builder
+BBEdit Language Module for Builder
 Put this file in 
    ~/Library/Application\ Support/BBEdit/Language\ Modules
 or equivalent.
@@ -13,7 +13,7 @@ or equivalent.
 		<key>com.barebones.DocumentType</key>
 		<string>CodelessLanguageModule</string>
 		<key>BBLMLanguageDisplayName</key>
-		<string>LiveCode Builder</string>
+		<string>Builder</string>
 		<key>BBLMLanguageCode</key>
 		<string>LCoB</string>
 		<key>BBLMColorsSyntax</key>

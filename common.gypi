@@ -7,6 +7,7 @@
 		'config/crosscompile.gypi',
 		'config/exclusions.gypi',
 		'config/perl.gypi',
+		'config/python.gypi',
 		'config/target_os.gypi',
 		'config/thirdparty.gypi',
 		'config/version.gypi',

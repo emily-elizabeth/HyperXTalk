@@ -34,7 +34,7 @@ A string used to identify the worker. This name must be unique — if a
 worker with the same name already exists, an execution error is thrown.
 
 scriptFile:
-An optional path to a LiveCode script file (.livecodescript) whose
+An optional path to a script file (.livecodescript) whose
 contents are loaded as the worker's script. If omitted, the worker is
 created with an empty script.
 

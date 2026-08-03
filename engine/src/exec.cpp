@@ -1410,11 +1410,11 @@ void MCExecContext::doscript(MCExecContext &ctxt, MCStringRef p_script, uinteger
     }
     MCexplicitvariables = oldexplicit;
 
-    if (MClicenseparameters . do_limit > 0 && count >= MClicenseparameters . do_limit)
-    {
-        MCeerror -> add(EE_DO_NOTLICENSED, p_line, p_pos, p_script);
-        stat = ES_ERROR;
-    }
+//    if (MClicenseparameters . do_limit > 0 && count >= MClicenseparameters . do_limit)
+//    {
+//        MCeerror -> add(EE_DO_NOTLICENSED, p_line, p_pos, p_script);
+//        stat = ES_ERROR;
+//    }
 
     if (stat == ES_ERROR)
     {

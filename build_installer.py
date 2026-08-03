@@ -569,8 +569,7 @@ def create_payload(payload_path):
         print("  Adding Externals …")
         ext_dir = f"{SF}/Externals"
         add_folder_entry(ext_dir)
-        for bundle in ["revspeech.bundle", "revxml.bundle",
-                       "revbrowser.bundle", "revzip.bundle"]:
+        for bundle in ["revspeech.bundle", "revxml.bundle", "revzip.bundle"]:
             src = f"{MAC_BIN}/{bundle}"
             add_single(src, f"{ext_dir}/{bundle}", zf, is_exec=True)
 

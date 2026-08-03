@@ -11,6 +11,7 @@
 
 #define MyAppName      "HyperXTalk"
 #define MyAppVersion   "0.9.15"
+#define MyAppVersionUS StringChange(StringChange(MyAppVersion, ".", "_"), "-", "_")
 #define MyAppPublisher "HyperXTalk.com"
 #define MyAppURL       "https://HyperXTalk.com"
 #define MyAppExeName   "HyperXTalk.exe"
@@ -196,8 +197,6 @@ Source: "..\ide\Externals\Database Drivers\Database Drivers.txt"; \
 ;   {app}\Runtime\Windows\x86-64\Externals
 ;       revExternalPath() reads Externals.txt here to resolve DLL paths when the
 ;       standalone builder copies externals into a Windows standalone.
-Source: "{#SourceDir}\revbrowser.dll"; DestDir: "{app}\Externals";                         Flags: ignoreversion skipifsourcedoesntexist
-Source: "{#SourceDir}\revbrowser.dll"; DestDir: "{app}\Runtime\Windows\x86-64\Externals";  Flags: ignoreversion skipifsourcedoesntexist
 Source: "{#SourceDir}\revdb.dll";      DestDir: "{app}\Externals";                         Flags: ignoreversion
 Source: "{#SourceDir}\revdb.dll";      DestDir: "{app}\Runtime\Windows\x86-64\Externals";  Flags: ignoreversion
 Source: "{#SourceDir}\revxml.dll";     DestDir: "{app}\Externals";                         Flags: ignoreversion
@@ -294,6 +293,12 @@ Source: "..\ide\Plugins\*"; \
 ; ---- IDE Documentation (dictionary, guides, HTML viewer) ----
 Source: "..\ide\Documentation\*"; \
     DestDir: "{app}\Documentation"; \
+    Flags: ignoreversion recursesubdirs createallsubdirs
+
+; ---- Documentation Cache: html_viewer ----
+; The runtime copies html_viewer via "cp -a" (Unix only) — pre-populate on Windows.
+Source: "..\ide\Documentation\html_viewer\*"; \
+    DestDir: "{localappdata}\HyperXTalk\Documentation Cache\{#MyAppVersionUS}_\html_viewer"; \
     Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; ---- IDE support libraries (deploy, revliburl, etc.) ----

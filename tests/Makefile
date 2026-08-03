@@ -3,7 +3,7 @@ top_srcdir ?= ..
 
 include $(top_srcdir)/Makefile.common
 
-########## LiveCode Script test parameters
+########## Script test parameters
 
 TEST_DIR ?= $(top_srcdir)/_tests
 LCM_DIR ?= $(TEST_DIR)/_build
@@ -30,7 +30,7 @@ LCS_SERVER_ENGINE ?= $(bin_dir)/server-community
 LCS_SERVER_TESTRUNNER ?= $(TESTS_DIR)/_testrunner.lc
 LCS_SERVER_CMD = $(LCS_SERVER_ENGINE) $(LCS_SERVER_TESTRUNNER) run $(LCS_TESTS_DIR)
 
-########## LiveCode Builder test parameters
+########## Builder test parameters
 
 MODULE_DIR ?= $(bin_dir)/modules/lci
 
@@ -44,7 +44,7 @@ LCB_LOG = _lcb_test_suite.log
 LCB_TESTRUNNER = $(LCM_DIR)/_testrunner.lcm
 LCB_TESTLIB = $(LCM_DIR)/_testlib.lcm
 
-########## LiveCode Builder Compiler test parameters
+########## Builder Compiler test parameters
 
 LCC_COMPILERTESTRUNNER ?= $(TESTS_DIR)/_compilertestrunner.livecodescript
 
@@ -52,7 +52,7 @@ LCC_CMD = $(INTERPRETER) $(LCS_ENGINE) -ui $(LCC_COMPILERTESTRUNNER) run
 
 LCC_LOG = _compiler_test_suite.log
 
-########## LiveCode Script Parser test parameters
+########## Script Parser test parameters
 
 LCP_COMPILERTESTRUNNER ?= $(TESTS_DIR)/_parsertestrunner.livecodescript
 

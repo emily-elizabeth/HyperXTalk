@@ -937,6 +937,16 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         else
                             t_target->uniconify();
                     }
+                    // On Muffin, the WM may clear _NET_WM_STATE_ABOVE during a
+                    // window drag.  Restore it immediately so the stack stays
+                    // above all backdrop windows.
+                    if (s_wm_is_muffin &&
+                        !hxt_is_backdrop_window(t_event->window_state.window) &&
+                        (t_event->window_state.changed_mask & GDK_WINDOW_STATE_ABOVE) &&
+                        !(t_event->window_state.new_window_state & GDK_WINDOW_STATE_ABOVE))
+                    {
+                        gdk_window_set_keep_above(t_event->window_state.window, TRUE);
+                    }
                 }
                 
                 t_handled = true;
@@ -977,6 +987,12 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 }                        
                 
                 MCdispatcher->wreshape(t_event->configure.window);
+
+                // On Muffin, dragging a stack to the external monitor can slip
+                // it behind an extra backdrop window.
+                if (s_wm_is_muffin && !hxt_is_backdrop_window(t_event->configure.window))
+                    hxt_raise_above_backdrops(t_event->configure.window);
+
                 break;
             }
 

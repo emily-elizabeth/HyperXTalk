@@ -34,7 +34,7 @@ local sLogCallbackURL
 -- Script-only stack handling
 ----------------------------------------------------------------
 
--- Get all livecode script files beneath the CWD, apart from
+-- Get all script files beneath the CWD, apart from
 -- filenames starting with "." or "_"
 function TesterGetTestFileNames pBaseFolder, pExtension
    local tFiles, tCount

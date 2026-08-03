@@ -1258,7 +1258,10 @@ function revDocsParseElements pExtractedA, pBlocksA, pFilename
       if tType is not "param" then
          # If any of these elements are already parsed and we are 'doing params'
          # then remaining ones should be treated as param elements
-         if tType is "standard" and tParsedA[tKey] is not empty and tDoingParams then
+         if ((tType is "standard" and tParsedA[tKey] is not empty) or \
+               tKey is "tags") and tDoingParams then
+            # There are certain keys that were changed, need to revert if processing as param
+            put tElementA["name"] into tKey
             put "param" into tType
          else
             put false into tDoingParams

@@ -416,7 +416,7 @@ private command doShell pShellCmd, @rResult, @rOutput
 end doShell
 
 /**
-Compile a LiveCode Builder extension file
+Compile a Builder extension file
 
 Parameters:
 pLCCompile: 
@@ -506,14 +506,14 @@ command extensionCompile pLCCompile, pFile, pSupportFiles, pLCIPath, pExtraLCIPa
 end extensionCompile
 
 /**
-Use lc-compile to order LiveCode Builder extensions by dependency.
+Use lc-compile to order Builder extensions by dependency.
 
 Parameters:
 pLCCompile: 
 The path to the lc-compile program. If empty, this will be computed.
 
 pExtensionList: 
-A list of LiveCode Builder extensions to put in dependency order
+A list of Builder extensions to put in dependency order
 
 The result: Any error that occurred.
 It: The dependency-ordered list.
@@ -553,7 +553,7 @@ private command appendToStringList @xList, pValue
 end appendToStringList
 
 /**
-Build, package and extract LiveCode Builder extensions
+Build, package and extract Builder extensions
 
 Parameters:
 pDocsParser: The path to the docs parser script.
@@ -1245,7 +1245,7 @@ private command extractExtension pZip, pSourceFolder, pTargetFolder
 end extractExtension
 
 /**
-Package a LiveCode Script extension
+Package a Script extension
 
 Parameters:
 pSourceFolder: The folder containing the extension
@@ -1262,7 +1262,7 @@ command extensionPackageScriptExtension pSourceFolder, \
 end extensionPackageScriptExtension
 
 /**
-Package a LiveCode Builder extension
+Package a Builder extension
 
 Parameters:
 pSourceFolder: The folder containing the extension
@@ -1366,7 +1366,7 @@ private command addXML @xXML, pDepth, pTag, pContent, pAttributesA
 end addXML
 
 /**
-Generate manifest for LiveCode Script extension
+Generate manifest for Script extension
 
 Parameters:
 pDocsParser: The path to the docs parser script.
@@ -1647,8 +1647,8 @@ pFolder: The folder to search
 rSource: The main source file found
 rSupportFiles: A list of supporting source files found
 rType (enum): The type of extension. 
-- "lcb": A LiveCode Builder extension
-- "lcs": A LiveCode Script extension
+- "lcb": A Builder extension
+- "lcs": A Script extension
 */
 command extensionFetchSourceFromFolder pFolder, @rSource, @rSupportFiles, @rType
    local tFiles
@@ -1704,7 +1704,7 @@ Description:
 Use the <extensionValidateLCEPackage> command to naively validate the 
 contents of an .lce package. <extensionValidateLCEPackage> checks if 
 there is a file that looks like the main extension (either a compiled 
-LiveCode Builder module file or a LiveCode stack), that it contains a
+Builder module file or a LiveCode stack), that it contains a
 manifest XML file and that the manifest contains the minimum required
 information, namely the name, version, author, type, and title.
 

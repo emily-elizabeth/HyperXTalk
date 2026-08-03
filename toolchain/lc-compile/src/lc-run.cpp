@@ -60,7 +60,7 @@ MCRunUsage (int p_exit_status)
 	fprintf (stderr,
 "Usage: lc-run [OPTIONS] [--] LCMFILE [ARGS ...]\n"
 "\n"
-"Run a compiled Livecode Builder bytecode file.\n"
+"Run a compiled Builder bytecode file.\n"
 "\n"
 "Options:\n"
 "  -l, --load LCMLIB    Load an additional bytecode file.\n"

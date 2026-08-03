@@ -288,10 +288,6 @@ static OSErr preDispatchAppleEvent(const AppleEvent *p_event, AppleEvent *p_repl
     //   own event handling loop and don't use [NSApp run]).
     if (aeclass == kCoreEventClass && aeid == kAEQuitApplication)
     {
-        {
-            FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-            if (f) { fprintf(f, "mac-core: kAEQuitApplication Apple Event received -> [NSApp terminate:]\n"); fclose(f); }
-        }
         [NSApp terminate: self];
         return noErr;
     }

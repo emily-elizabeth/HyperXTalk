@@ -1,4 +1,4 @@
-lc-compile(1) -- compile LiveCode Builder source code
+lc-compile(1) -- compile Builder source code
 =====================================================
 
 ## SYNOPSIS

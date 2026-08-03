@@ -127,7 +127,7 @@ Default|These modules are part of Builder and are included by default. Their syn
 Optional|These modules are created and distributed by LiveCode Ltd and must be imported by the extension developer in order to make use of their syntax.
 Custom|These modules are created and distributed through the online portal and must be imported by the extension developer in order to make use of their syntax.
 
-OpenXTalk contains the following LiveCode Ltd. modules:
+HyperXTalk contains the following LiveCode Ltd. modules:
 
 Module|Type|Description
 ---|---|---
@@ -2181,7 +2181,7 @@ To open a document with the application it is associated with use the
 To open a URL in the default web browser, use the **launch URL**
 command.
 
-	launch URL "<http://www.openxtalk.org/>"
+	launch URL "<http://www.HyperXTalk.com/>"
 
 For more information on launching URLs and details on how to render web
 pages within your stack, see the Transferring Information guide.

@@ -98,6 +98,65 @@ include Makefile.Mac
 include Makefile.Win
 
 ################################################################
-# Emscripten rules
+# Documentation rules
 ################################################################
-include Makefile.Emscripten
+# This section is based on the `buildbot.mk` file
+# from the original open source LiveCode repository
+
+BUILD_STABILITY ?= development
+# stable,maintenance,development,beta
+
+BUILD_PLATFORM ?= $(guess_platform)
+
+BUILDTOOL_STACK = builder/builder_tool.livecodescript
+
+# There is no MacOS ARM64 package for wkhtmltopdf.  Use following instructions to install X86_64 version.
+# https://rootlevel.in/blog/how-to-5/install-wkhtmltopdf-on-macos-for-odoo-23#blog_post_comment_quote
+
+WKHTMLTOPDF ?= $(shell which wkhtmltopdf 2>/dev/null)
+
+# Those directories are given to the tool builder, and they might get passed
+# (like private-dir) to engine functions, to which a path relative to this file
+# becomes invalid).
+top_src_dir=${PWD}
+engine_dir=${top_src_dir}
+output_dir=${top_src_dir}
+work_dir=${top_src_dir}/_cache/builder_tool
+bin_dir = ${top_src_dir}/$(BUILD_PLATFORM)-bin
+docs_source_dir = ${top_src_dir}/docs
+docs_build_dir = ${top_src_dir}/_build/docs-build
+
+ifeq ($(BUILD_PLATFORM),mac)
+	HYPERXTALK = $(bin_dir)/HyperXTalk.app/Contents/MacOS/HyperXTalk
+	buildtool_platform = mac
+else ifeq ($(BUILD_PLATFORM),linux-x86)
+	HYPERXTALK = $(bin_dir)/HyperXTalk
+	buildtool_platform = linux
+else ifeq ($(BUILD_PLATFORM),linux-x86_64)
+	HYPERXTALK = $(bin_dir)/HyperXTalk
+	buildtool_platform = linux
+endif
+
+buildtool_command = $(HYPERXTALK) -ui $(BUILDTOOL_STACK) \
+	--build $(BUILD_STABILITY) \
+	--engine-dir ${engine_dir} --output-dir ${docs_build_dir} --work-dir ${work_dir}
+
+build-docs: build-docs-api build-docs-guide
+
+build-docs-api:
+	mkdir -p $(docs_build_dir)
+	$(buildtool_command) --platform $(buildtool_platform) \
+		--stage docs \
+		--built-docs-dir $(docs_build_dir)
+	  
+build-notes:
+	WKHTMLTOPDF=$(WKHTMLTOPDF) \
+	$(buildtool_command) --platform $(buildtool_platform) \
+		--stage notes --warn-as-error \
+		--built-docs-dir $(docs_build_dir)
+
+build-docs-guide:
+	WKHTMLTOPDF=$(WKHTMLTOPDF) \
+	$(buildtool_command) --platform $(buildtool_platform) \
+		--stage guide --warn-as-error \
+		--built-docs-dir $(docs_build_dir)

@@ -2,10 +2,10 @@ Library: com.livecode.library.canvas
 
 Type: library
 
-Summary: Gives access to the LiveCode Builder canvas syntax from LiveCode Script 
+Summary: Gives access to the Builder canvas syntax from Script 
 
 Description:
-This library wraps a few simple handlers of the LiveCode Builder Canvas
+This library wraps a few simple handlers of the Builder Canvas
 module to provide access to the syntax for creating and manipulating
 canvas objects.
 

@@ -41,7 +41,7 @@ end handler
 Example: log colorToString(color [0.4,0.4,0.4,0.4])			-- logs "102,102,102,102"
 
 Description:
-Use the <colorToString> handler when logging colors, returning them to LiveCode script 
+Use the <colorToString> handler when logging colors, returning them to Script 
 via a property getter, or serialising them in the widget's stored properties array for saving.
 
 
@@ -74,7 +74,7 @@ public handler setColor(in pColor as String)
 end handler
 
 Description:
-Use the <stringToColor> handler when receiving colors from LiveCode script 
+Use the <stringToColor> handler when receiving colors from Script 
 via a property setter, or from the widget's stored properties array when loading.
 
 

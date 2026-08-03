@@ -126,10 +126,6 @@ component Externals
 		include Commercial.IndyDatabases
 	if TargetEdition is "CommunityPlus" then
 		include Commercial.CommunityPlusDatabases
-	if TargetPlatform is Linux then
-		include Externals.CEF.Linux
-	if TargetPlatform is Windows then
-		include Externals.CEF.Windows
 	emit externals to "[[TargetFolder]]/Externals/Externals.txt"
 	emit dbdrivers to "[[TargetFolder]]/Externals/Database Drivers/Database Drivers.txt"
 
@@ -398,12 +394,12 @@ component Resources
 
 	into [[ToolsFolder]]/Documentation/html_viewer/resources/data place
 		rfolder "ide:Documentation/html_viewer/resources/data/api"
-		rfolder "ide:Documentation/html_viewer/resources/data/api_livecode_script"
-		rfolder "ide:Documentation/html_viewer/resources/data/api_livecode_builder"				
+		rfolder "ide:Documentation/html_viewer/resources/data/api_script"
+		rfolder "ide:Documentation/html_viewer/resources/data/api_builder"				
 		rfolder "ide:Documentation/html_viewer/resources/data/guide"
 	
 	into [[ToolsFolder]]/Documentation/pdf place
-		file "repo:LiveCodeUserGuide-[[EscapedVersionTag]].pdf" as "LiveCode User Guide.pdf"
+		file "repo:HyperXTalkUserGuide-[[EscapedVersionTag]].pdf" as "HyperXTalk User Guide.pdf"
 
 component Extensions
 	into [[ToolsFolder]]/Extensions place
@@ -810,10 +806,8 @@ component Externals.Linux
 	into [[TargetFolder]]/Externals place
 		executable linux-[[TargetArchitecture]]:revxml.so
 		executable linux-[[TargetArchitecture]]:revzip.so
-		executable linux-[[TargetArchitecture]]:revbrowser.so
 	declare external "XML" using revxml.so
 	declare external "Revolution Zip" using revzip.so
-	declare external "Browser" using revbrowser.so
 
 //////////
 
@@ -821,11 +815,9 @@ component Externals.Windows
 	into [[TargetFolder]]/Externals place
 		executable win-[[TargetArchitecture]]:revspeech.dll
 		executable win-[[TargetArchitecture]]:revxml.dll
-		executable win-[[TargetArchitecture]]:revbrowser.dll
 		executable win-[[TargetArchitecture]]:revzip.dll
 	declare external "Speech" using revspeech.dll
 	declare external "XML" using revxml.dll
-	declare external "Browser" using revbrowser.dll
 	declare external "Revolution Zip" using revzip.dll
 
 //////////
@@ -834,59 +826,10 @@ component Externals.MacOSX
 	into [[TargetFolder]]/Externals place
 		executable macosx:revspeech.bundle
 		executable macosx:revxml.bundle
-		executable macosx:revbrowser.bundle
 		executable macosx:revzip.bundle
 	declare external "Speech" using revspeech.bundle
 	declare external "XML" using revxml.bundle
-	declare external "Browser" using revbrowser.bundle
 	declare external "Revolution Zip" using revzip.bundle
-
-//////////
-
-component Externals.CEF.Linux
-	into [[TargetFolder]]/Externals/CEF place
-		executable linux-[[TargetArchitecture]]:Externals/CEF/libcef.so
-		executable linux-[[TargetArchitecture]]:Externals/CEF/libEGL.so
-		executable linux-[[TargetArchitecture]]:Externals/CEF/libGLESv2.so
-		executable linux-[[TargetArchitecture]]:Externals/CEF/chrome-sandbox
-		rfolder linux-[[TargetArchitecture]]:Externals/CEF/locales
-		file linux-[[TargetArchitecture]]:Externals/CEF/cef.pak
-		file linux-[[TargetArchitecture]]:Externals/CEF/cef_100_percent.pak
-		file linux-[[TargetArchitecture]]:Externals/CEF/cef_200_percent.pak
-		file linux-[[TargetArchitecture]]:Externals/CEF/cef_extensions.pak
-		file linux-[[TargetArchitecture]]:Externals/CEF/icudtl.dat
-		file linux-[[TargetArchitecture]]:Externals/CEF/natives_blob.bin
-		file linux-[[TargetArchitecture]]:Externals/CEF/snapshot_blob.bin
-		file linux-[[TargetArchitecture]]:Externals/CEF/v8_context_snapshot.bin
-	into [[TargetFolder]]/Externals/CEF/swiftshader place
-		executable linux-[[TargetArchitecture]]:Externals/CEF/swiftshader/libEGL.so
-		executable linux-[[TargetArchitecture]]:Externals/CEF/swiftshader/libGLESv2.so
-	// Horrible workaround for a libCEF bug
-	into [[TargetFolder]] place
-		executable linux-[[TargetArchitecture]]:revbrowser-cefprocess
-		executable linux-[[TargetArchitecture]]:libbrowser-cefprocess
-
-component Externals.CEF.Windows
-	into [[TargetFolder]]/Externals/CEF place
-		executable win-[[TargetArchitecture]]:libbrowser-cefprocess.exe
-		executable win-[[TargetArchitecture]]:revbrowser-cefprocess.exe
-		executable win-[[TargetArchitecture]]:Externals/CEF/libcef.dll
-		executable win-[[TargetArchitecture]]:Externals/CEF/d3dcompiler_47.dll
-		executable win-[[TargetArchitecture]]:Externals/CEF/libEGL.dll
-		executable win-[[TargetArchitecture]]:Externals/CEF/libGLESv2.dll
-		executable win-[[TargetArchitecture]]:Externals/CEF/chrome_elf.dll
-		rfolder win-[[TargetArchitecture]]:Externals/CEF/locales
-		file win-[[TargetArchitecture]]:Externals/CEF/cef.pak
-		file win-[[TargetArchitecture]]:Externals/CEF/cef_100_percent.pak
-		file win-[[TargetArchitecture]]:Externals/CEF/cef_200_percent.pak
-		file win-[[TargetArchitecture]]:Externals/CEF/cef_extensions.pak
-		file win-[[TargetArchitecture]]:Externals/CEF/icudtl.dat
-		file win-[[TargetArchitecture]]:Externals/CEF/natives_blob.bin
-		file win-[[TargetArchitecture]]:Externals/CEF/snapshot_blob.bin
-		file win-[[TargetArchitecture]]:Externals/CEF/v8_context_snapshot.bin
-	into [[TargetFolder]]/Externals/CEF/swiftshader place
-		executable win-[[TargetArchitecture]]:Externals/CEF/swiftshader/libEGL.dll
-		executable win-[[TargetArchitecture]]:Externals/CEF/swiftshader/libGLESv2.dll
 
 ////////////////////////////////////////////////////////////////////////////////
 

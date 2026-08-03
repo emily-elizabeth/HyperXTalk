@@ -67,9 +67,11 @@
 								'unix_configure != 0',
 								{
 									'perl_command': [ 'perl' ],
+									'python_command': [ 'python' ],
 								},
 								{
 									'perl_command': [ '<@(perl)' ],
+									'python_command': [ 'python' ],
 								},
 							],
 						],

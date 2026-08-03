@@ -149,7 +149,7 @@
 					'action_name': 'generate_libfoundationjvm_stubs',
 					'inputs':
 					[
-						'../util/weak_stub_maker.pl',
+						'../util/weak_stub_maker.py',
 						'jvm.stubs',
 					],
 					'outputs':
@@ -159,8 +159,8 @@
 
 					'action':
 					[
-						'<@(perl)',
-						'../util/weak_stub_maker.pl',
+						'<@(python)',
+						'../util/weak_stub_maker.py',
 						'--foundation',
 						'jvm.stubs',
 						'<@(_outputs)',

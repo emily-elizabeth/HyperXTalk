@@ -33,7 +33,6 @@ lcidlc/src/EncodedSupport.c
 *.log
 *.sql
 *.sqlite
-!Documentation/html_viewer/resources/data/api/api.sqlite
 
 # OS generated files #
 ######################

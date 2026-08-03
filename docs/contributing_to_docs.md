@@ -10,7 +10,7 @@ instructive example? Or can you explain a concept better than it is
 currently explained? Please consider submitting your proposed changes 
 directly to the LiveCode repo on GitHub.
 
-Please consult the [documentation style guide](development/docs_style_guide.md)
+Please consult the [documentation style guide](development/Documentation%20Style%20Guide.md)
 and the [documentation format specification](guides/HyperXTalk%20Documentation%20Format%20Reference.md)
 for information on the standards and structure we aim to maintain in our
 documentation.

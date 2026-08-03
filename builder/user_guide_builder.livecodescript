@@ -50,18 +50,19 @@ private function OutputGetGuideFilename tSuffix, pVersion
    end if
    
    local tBasename
-   put merge("LiveCodeUserGuide-") & replaceText(pVersion, "[-,\.]", "_") into tBasename
+   put merge("HyperXTalkUserGuide-") & replaceText(pVersion, "[-,\.]", "_") into tBasename
    return sOutputPath & slash & tBasename & "." & tSuffix
 end OutputGetGuideFilename
 
 private function OutputGetGuideTitle
-   return merge("LiveCode [[sVersion]] User Guide")
+   return merge("HyperXTalk [[sVersion]] User Guide")
 end OutputGetGuideTitle
 
 private command OutputGuide
    OutputGuideJson
    OutputGuideHtml
    OutputGuidePdf
+   MoveOutputs
 end OutputGuide
 
 private function OutputEscape pMarkdown, pEscapeHtml
@@ -103,7 +104,9 @@ private command OutputGuideHtml
    put FileGetUTF8Contents(tHtmlTemplatePath) into tHtml
    
    replace "@PREFIX@" with OutputEscape(sMarkdownText["guide"], false) in tHtml
-   replace "@GUIDE_JSON@" with OutputGetGuideFilename("js") in tHtml
+   -- need to use relative paths to generate the pdf correctly
+   set the itemdelimiter to slash
+   replace "@GUIDE_JSON@" with (item -1 of OutputGetGuideFilename("js")) in tHtml
    
    local tOutpath
    put OutputGetGuideFilename("html") into tOutpath
@@ -132,9 +135,10 @@ private command OutputGuidePdf
    put empty into tArgs
    put merge("--header-right '[[tTitle]] [[tDate]]' ") after tArgs
    put "--header-font-size 8 --header-spacing 5 " after tArgs
-   put "--footer-center [page] --footer-font-size 8 --footer-spacing 5 " after tArgs
+   put "--footer-center '[page]' --footer-font-size 8 --footer-spacing 5 " after tArgs
    put "--margin-top 30 --margin-bottom 20 --margin-left 20 --margin-right 20 " after tArgs
    put "--enable-internal-links --encoding UTF-8 " after tArgs
+   put "--enable-local-file-access --no-stop-slow-scripts " after tArgs
    
    local tExitCode
    builderLog "report", merge("Generating [[tPdfPath]] with [[tCommand]]")
@@ -145,6 +149,24 @@ private command OutputGuidePdf
       throw merge("Failed to run [[tCommand]]: exit code [[tExitCode]]")
    end if
 end OutputGuidePdf
+
+-- Relocate output files from repo root to the builder output folder.
+-- The original location is necessary to generate the PDF correctly, 
+-- as wkhtmltopdf needs to be able to access the HTML file and its 
+-- dependencies via a file path.
+private command MoveOutputs
+   local tSourcePath, tOutpath, tExitCode
+   put OutputGetGuideFilename("*") into tSourcePath
+   put builderOutputFolder() into tOutpath
+   
+   builderLog "report", merge("Moving [[tSourcePath]] to [[tOutpath]]")
+   get shell(merge("mv -f [[tSourcePath]] [[tOutpath]]"))
+   put the result into tExitCode
+
+   if tExitCode is not 0 then
+      builderLog "error", merge("Failed to move files: exit code [[tExitCode]]")
+   end if
+end MoveOutputs
 
 ----------------------------------------------------------------
 -- Base file sections

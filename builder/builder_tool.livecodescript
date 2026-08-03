@@ -165,17 +165,25 @@ end startup
 
 command __loadExternal pExternal
    set the itemdelimiter to slash
+   local tBinariesPath
    
    if the platform is "MacOS" then
-      set the externals of the templateStack to item 1 to -4 of specialFolderPath("engine") & slash & pExternal & ".bundle"
+      put item 1 to -4 of specialFolderPath("engine") into tBinariesPath
+      set the externals of the templateStack to tBinariesPath & slash & pExternal & ".bundle"
    else if the platform is "linux" then
-      set the externals of the templateStack to specialFolderPath("engine") & slash & pExternal & ".so"
+      put specialFolderPath("engine") into tBinariesPath
+      set the externals of the templateStack to tBinariesPath & slash & pExternal & ".so"
    end if
    
    create stack pExternal && "External"
    start using it
    if the externalCommands of it is empty then
       __builderLog "error", "Cannot load external" && pExternal
+   end if
+
+   -- Ensure drivers can be found
+   if pExternal is "revdb" then
+      revSetDatabaseDriverPath tBinariesPath
    end if
 end __loadExternal 
 

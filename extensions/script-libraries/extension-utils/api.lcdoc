@@ -27,8 +27,8 @@ rSupportFiles: A list of supporting source files found
 
 rType:
 The type of extension.
-- "lcb": A LiveCode Builder extension
-- "lcs": A LiveCode Script extension
+- "lcb": A Builder extension
+- "lcs": A Script extension
 
 
 
@@ -38,7 +38,7 @@ Type: command
 
 Syntax: extensionPackageScriptExtension <pSourceFolder>,<pTargetFolder>,<pRemoveSource>
 
-Summary: Package a LiveCode Script extension
+Summary: Package a Script extension
 
 Parameters: 
 
@@ -102,13 +102,13 @@ Type: command
 
 Syntax: extensionDepsOrder <pLCCompile>,<pExtensionList>
 
-Summary: Use lc-compile to order LiveCode Builder extensions by dependency.
+Summary: Use lc-compile to order Builder extensions by dependency.
 
 Parameters: 
 
 pLCCompile: The path to the lc-compile program. If empty, this will be computed.
 
-pExtensionList: A list of LiveCode Builder extensions to put in dependency order
+pExtensionList: A list of Builder extensions to put in dependency order
 
 The result: Any error that occurred.
 
@@ -139,7 +139,7 @@ Description:
 Use the <extensionValidateLCEPackage> command to naively validate the 
 contents of an .lce package. <extensionValidateLCEPackage> checks if 
 there is a file that looks like the main extension (either a compiled 
-LiveCode Builder module file or a LiveCode stack), that it contains a
+Builder module file or a LiveCode stack), that it contains a
 manifest XML file and that the manifest contains the minimum required
 information, namely the name, version, author, type, and title.
 
@@ -174,7 +174,7 @@ Type: command
 
 Syntax: extensionPackageBuilderExtension <pSourceFolder>,<pTargetFolder>,<pRemoveSource>,<pLCCompile>,<pLCIPath>,<pExtraLCIPaths>
 
-Summary: Package a LiveCode Builder extension
+Summary: Package a Builder extension
 
 Parameters: 
 
@@ -201,7 +201,7 @@ Type: command
 
 Syntax: extensionBuildPackageAndExtractLCB <pDocsParser>,<pTargetFolder>,<pCommercialExtension>,<pLCCompile>,<pLCIPath>,<pExtraLCIPaths>
 
-Summary: Build, package and extract LiveCode Builder extensions
+Summary: Build, package and extract Builder extensions
 
 Parameters: 
 
@@ -312,7 +312,7 @@ Type: command
 
 Syntax: extensionCompile <pLCCompile>,<pFile>,<pSupportFiles>,<pLCIPath>,<pExtraLCIPaths>,<pTargetFolder>,<pOutputFilename>
 
-Summary: Compile a LiveCode Builder extension file
+Summary: Compile a Builder extension file
 
 Parameters: 
 
@@ -389,7 +389,7 @@ Type: command
 
 Syntax: extensionGenerateManifestForLCSExtension <pDocsParser>,<pSourceFolder>
 
-Summary: Generate manifest for LiveCode Script extension
+Summary: Generate manifest for Script extension
 
 Parameters: 
 

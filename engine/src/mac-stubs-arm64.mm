@@ -1716,48 +1716,6 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 
 bool MCMacThemeGetBackgroundPattern(Window_mode p_mode, bool p_has_shadow, MCPatternRef &r_pattern) { return false; }
 
-// ── Stack window ops ────────────────────────────────────────────────────
-
-void MCStack::setgeom()
-{
-    if (!opened)
-        return;
-
-    if (window == NULL)
-    {
-        MCRedrawLockScreen();
-        state &= ~CS_NEED_RESIZE;
-        resize(rect.width, rect.height);
-        MCRedrawUnlockScreen();
-        mode_setgeom();
-        return;
-    }
-
-    MCRectangle t_old_rect;
-    t_old_rect = view_getstackviewport();
-
-    rect = view_setstackviewport(rect);
-
-    state &= ~CS_NEED_RESIZE;
-
-    if (t_old_rect.x != rect.x || t_old_rect.y != rect.y ||
-        t_old_rect.width != rect.width || t_old_rect.height != rect.height)
-        resize(t_old_rect.width, t_old_rect.height);
-}
-
-void MCStack::sethints() {}
-void MCStack::setsizehints() {}
-void MCStack::enablewindow(bool p_enable) {}
-void MCStack::redrawicon() {}
-void MCStack::applyscroll() {}
-void MCStack::clearscroll() {}
-void MCStack::platform_openwindow(Boolean p_override)
-{
-    if (MCModeMakeLocalWindows() && window != NULL)
-        MCscreen->openwindow(window, p_override);
-}
-void MCStack::release_window_buffer() {}
-
 // ── HyperCard ───────────────────────────────────────────────────────────
 // ARM64: Carbon Resource Manager APIs are not available. HC stacks imported on
 // Apple Silicon simply have no icons/sounds/cursors from the resource fork —

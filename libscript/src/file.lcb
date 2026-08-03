@@ -17,7 +17,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 /**
 This module specifies the syntax definitions and bindings for
-filesystem operations in LiveCode Builder.
+filesystem operations in Builder.
 
 >*Note:* This module is currently experimental and unstable.  The
 >syntax is likely to change in future versions of LiveCode.

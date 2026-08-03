@@ -16,8 +16,8 @@ You should have received a copy of the GNU General Public License
 along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 /**
-This library provides syntax for unit testing LiveCode Builder
-programs.  It is used by the LiveCode Builder standard library's
+This library provides syntax for unit testing Builder
+programs.  It is used by the Builder standard library's
 testsuite.
 
 To use this library, write your tests in a Builder source code file.

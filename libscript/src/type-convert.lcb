@@ -15,7 +15,7 @@
  along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 /**
-This library consists of the operations for performing complex type conversion in LiveCode Builder.
+This library consists of the operations for performing complex type conversion in Builder.
 */
 
 module com.livecode.typeconvert

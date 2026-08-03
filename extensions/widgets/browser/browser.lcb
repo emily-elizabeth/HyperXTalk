@@ -18,9 +18,9 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 /**
 This widget displays web content within a native web browser view.
 
-The browser widget can display HTML content generated in LiveCode, or
+The browser widget can display HTML content generated in HyperXTalk, or
 fetch content over the Internet.  It supports JavaScript and allows
-for interaction between LiveCode scripts and JavaScript code.
+for interaction between scripts and JavaScript code.
 
 The [browser SVG icon](https://www.iconfinder.com/icons/309064/browser_globe_international_internet_web_world_icon)
 is copyright © Ivan Boyko, and is licensed under the terms of the
@@ -241,11 +241,11 @@ Parameters:
 pUrl (string): A string specifying a URL.
 
 Example:
-	-- Navigate to livecode.com by setting the url property,
+	-- Navigate to HyperXTalk.com by setting the url property,
 	-- keeping a copy of the previous URL
 	local tOldUrl
 	put the URL of widget "myBrowser" into tOldUrl
-	set the URL of widget "myBrowser" to "https://hyperxtalk.com"
+	set the URL of widget "myBrowser" to "https://HyperXTalk.com"
 
 Description:
 The <URL> is the URL of the content be displayed in the browser.
@@ -449,7 +449,7 @@ Syntax:
 set the javascriptHandlers of <widget> to <pHanderList>
 get the javascriptHandlers of <widget>
 
-Summary: A list of LiveCode handlers that are made available to JavaScript calls within the browser.
+Summary: A list of HyperXTalk handlers that are made available to JavaScript calls within the browser.
 
 Value (string): A return-separated list of handler names.
 
@@ -465,12 +465,12 @@ Example:
 	set the javascriptHandlers to "myJSHandler" & return & "myOtherJSHandler"
 
 	// Calling the handler from JavaScript within the browser
-	liveCode.myJSHandler("myMessage", 12345);
+	HyperXTalk.myJSHandler("myMessage", 12345);
 
 Description:
-The <javascriptHandlers> is a list of LiveCode handlers that are made
+The <javascriptHandlers> is a list of HyperXTalk handlers that are made
 available to JavaScript calls within the browser. The handlers will
-appear as methods attached to a global `liveCode` object. You can call
+appear as methods attached to a global `HyperXTalk` object. You can call
 these methods as you would any other JavaScript function and pass
 whatever parameters you require.
 
