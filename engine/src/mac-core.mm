@@ -1580,11 +1580,21 @@ void MCMacPlatformSyncBackdrop(void)
     [CATransaction begin];
     [CATransaction setDisableActions: YES];
 
+    // Build a set of extra backdrop NSWindow handles for quick lookup below.
+    NSMutableSet *t_extra_set = [NSMutableSet set];
+    for (uint32_t i = 0; i < s_extra_backdrop_count; i++)
+    {
+        NSWindow *t_w = ((MCMacPlatformWindow *)s_extra_backdrop_windows[i]) -> GetHandle();
+        if (t_w != nil)
+            [t_extra_set addObject: t_w];
+    }
+
     // Loop from front to back over our own windows and preserve their
     // relative order, then slot the backdrop in below all of them.
     // We no longer call orderOut: first — repositioning via
     // orderWindow:relativeTo: is sufficient and avoids the flicker caused
     // by the backdrop briefly disappearing from the screen.
+    // Extra backdrop windows are excluded: they are managed separately below.
     NSInteger t_window_above_id;
     t_window_above_id = -1;
     for(NSNumber *t_window_id in [NSWindow windowNumbersWithOptions: 0])
@@ -1602,6 +1612,10 @@ void MCMacPlatformSyncBackdrop(void)
         if (t_window == t_backdrop)
             continue;
 
+        // Skip extra backdrop windows — they are positioned separately below.
+        if ([t_extra_set containsObject: t_window])
+            continue;
+
         if (t_window_above_id != -1)
             [t_window orderWindow: NSWindowBelow relativeTo: t_window_above_id];
 
@@ -1617,9 +1631,16 @@ void MCMacPlatformSyncBackdrop(void)
 
     // HXT: Apply per-display settings to extra backdrop windows.
     // Each extra window covers exactly one display, so it is assigned to that
-    // display's Space naturally — no CanJoinAllSpaces needed. Running at
-    // kCGNormalWindowLevel - 1 places it automatically below all normal-level
-    // app windows without needing explicit z-order manipulation.
+    // display's Space naturally — no CanJoinAllSpaces needed.
+    //
+    // Use NSNormalWindowLevel so the backdrop can sit above other apps' windows
+    // on the external display (kCGNormalWindowLevel - 1 put it permanently
+    // below all normal-level windows, including foreign ones).
+    //
+    // For each extra backdrop, find the back-most HXT window whose frame
+    // intersects its display rect and slot the backdrop just below it.
+    // If no HXT window is on that display, orderFrontRegardless so it covers
+    // other apps while still not activating any foreign application.
     for (uint32_t i = 0; i < s_extra_backdrop_count; i++)
     {
         NSWindow *t_extra;
@@ -1627,10 +1648,32 @@ void MCMacPlatformSyncBackdrop(void)
         if (t_extra == nil)
             continue;
         [t_extra setCanBecomeKeyWindow: NO];
-        [t_extra setLevel: kCGNormalWindowLevel - 1];
+        [t_extra setLevel: NSNormalWindowLevel];
         [t_extra setCollectionBehavior:
             NSWindowCollectionBehaviorStationary |
             NSWindowCollectionBehaviorIgnoresCycle];
+
+        // Find the back-most HXT window on this display (front-to-back order,
+        // so the last match is the lowest in z-order).
+        NSRect t_extra_frame = [t_extra frame];
+        NSInteger t_lowest_hxt_id = -1;
+        for (NSNumber *t_window_id in [NSWindow windowNumbersWithOptions: 0])
+        {
+            NSWindow *t_window = [NSApp windowWithWindowNumber: [t_window_id longValue]];
+            if (t_window == nil) continue;          // foreign
+            if (t_window == t_extra) continue;      // self
+            if (t_window == t_backdrop) continue;   // primary backdrop
+            if ([t_extra_set containsObject: t_window]) continue; // other extra backdrops
+
+            NSRect t_intersection = NSIntersectionRect([t_window frame], t_extra_frame);
+            if (t_intersection.size.width > 0 && t_intersection.size.height > 0)
+                t_lowest_hxt_id = [t_window_id longValue]; // keep updating — last = lowest
+        }
+
+        if (t_lowest_hxt_id != -1)
+            [t_extra orderWindow: NSWindowBelow relativeTo: t_lowest_hxt_id];
+        else
+            [t_extra orderFrontRegardless];
     }
 
     [CATransaction commit];
