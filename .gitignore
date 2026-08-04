@@ -148,4 +148,3 @@ build/engine/Release/Externals/CEF
 /thirdparty/libcef
 /thirdparty/libjpeg/src/jconfig.h
 /Installer/output
-ide/Documentation/html_viewer/resources/data/api

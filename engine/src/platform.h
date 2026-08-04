@@ -967,6 +967,12 @@ void MCPlatformResetTextInputInWindow(MCPlatformWindowRef window);
 
 void MCPlatformConfigureBackdrop(MCPlatformWindowRef backdrop_window);
 
+// HXT: Register zero or more additional backdrop windows (one per extra display).
+// Each window covers exactly one display so macOS assigns it to that display's
+// Space without needing NSWindowCollectionBehaviorCanJoinAllSpaces.
+// Pass p_count = 0 to clear the list (e.g. when disabling the backdrop).
+void MCPlatformConfigureExtraBackdropWindows(MCPlatformWindowRef *p_windows, uint32_t p_count);
+
 ////////////////////////////////////////////////////////////////////////////////
 
 typedef class MCPlatformSurface *MCPlatformSurfaceRef;

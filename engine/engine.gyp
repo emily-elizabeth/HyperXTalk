@@ -883,7 +883,7 @@
 								'action_name': 'linux_library_stubs',
 								'inputs':
 								[
-									'../util/weak_stub_maker.pl',
+									'../util/weak_stub_maker.py',
 									'src/linux.stubs',
 								],
 								'outputs':
@@ -893,8 +893,8 @@
 								
 								'action':
 								[
-									'<@(perl)',
-									'../util/weak_stub_maker.pl',
+									'<@(python)',
+									'../util/weak_stub_maker.py',
 									'src/linux.stubs',
 									'<@(_outputs)',
 								],

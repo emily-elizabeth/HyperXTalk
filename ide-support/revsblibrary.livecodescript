@@ -876,7 +876,7 @@ on revSBDefaultStandaloneSettings pStack, @xSettingsA
    end if
    // HXT
    put revEnvironmentRuntimePath() & "/Mac OS X/arm64/Support/Sample Icons" into tName
-   put tName & "/GenericApplication.icns" into xSettingsA["OSX,iconFile"]
+   if xSettingsA["OSX,iconFile"] = "" then put tName & "/GenericApplication.icns" into xSettingsA["OSX,iconFile"]
    
    if xSettingsA["answerDialog"] = "" then put kAnswerDialog into xSettingsA["answerDialog"]
    if xSettingsA["cursors"] = "" then put kCursors into xSettingsA["cursors"]
@@ -1293,7 +1293,7 @@ private function revSBPlatformToRuntimeFolderName pPlatform
 end revSBPlatformToRuntimeFolderName
 
 function revSBExternalsMapping
-   return "revbrowser Browser,revdb Database,revspeech Speech,revvideograbber Video Grabber,revxml XML,revzip Revolution Zip"
+   return "revdb Database,revspeech Speech,revvideograbber Video Grabber,revxml XML,revzip Revolution Zip"
 end revSBExternalsMapping
 
 function revSBDatabaseDriversMapping
@@ -2585,9 +2585,6 @@ end revSBAddInclusion
 
 local sDependencies
 private command __InitialiseInclusionDependencies
-   // CEF requires revbrowser
-   revSBAddDependencyForInclusion "scriptLibraries", "Browser (CEF)", "scriptLibraries", "Browser"
-   
    // Database drivers require revdb
    local tDBName
    repeat for each item tDatabaseDriver in revSBDatabaseDriversMapping()
@@ -2920,10 +2917,6 @@ on initialiseSearchForInclusions
    # Printing
    put "revPrintField,revPrintText,revShowPrintDialog" into sPatternsA["Printing"]["Script"]
    put "scriptLibraries" into sPatternsA["Printing"]["Key"]
-   
-   # Browser
-   put "revBrowser,xBrowser" into sPatternsA["Browser"]["Script"]
-   put "scriptLibraries" into sPatternsA["Browser"]["Key"]
    
    # revZip
    put "revZip" into sPatternsA["Revolution Zip"]["Script"]

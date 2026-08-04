@@ -1551,7 +1551,7 @@ private function __Watchoffset pWatch, pWatches
 end __Watchoffset
 
 # Parameters
-#   pLine : a line of LiveCode script
+#   pLine : a line of script
 # Returns
 #   Whether or not pLine has a continuation
 private function __LineHasContinuation pLine

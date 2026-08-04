@@ -13,13 +13,13 @@ abstract form, and outputs as specified.
 ## OPTIONS
 
 * --output _LCBFILE_:
-  Output an LiveCode Builder source file containing a usable interface 
-  between LiveCode Builder and the Java Native Interface. Compiling and
+  Output an Builder source file containing a usable interface 
+  between Builder and the Java Native Interface. Compiling and
   loading _LCBFILE_ using **lc-compile** allows the functionality 
   described by the _DSLFILE_ to be used by LCB modules.
 
 * --modulename _NAME_:
-  Use _NAME_ as the name of the LiveCode Builder module specified by the
+  Use _NAME_ as the name of the Builder module specified by the
   --output option.
 
 * --check _CHECKFILE_:

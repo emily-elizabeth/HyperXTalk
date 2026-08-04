@@ -5,6 +5,10 @@
 # Prettifying output for CI builds
 XCODEBUILD_FILTER ?=
 
+all-mac:
+	$(MAKE) config-mac
+	$(MAKE) compile-mac
+
 # Build all macOS arm64 prebuilt dependencies in one pass.
 # Replaces the manual ritual previously documented in BUILD1.md.
 # Requires Homebrew prereqs: openssl@3, libpq, mysql-client, pixman.
@@ -47,6 +51,13 @@ endif
 ifneq ($(TRAVIS),undefined)
 	@echo "travis_fold:end:config"
 endif
+	@echo ""
+	@echo "=== config-mac: done. ==="
+	@if [ -f "prebuilt/lib/mac/libmysql.a" ]; then \
+	   echo "=== Next: make compile-mac ==="; \
+	else \
+	   echo "=== Next: make prebuilt-mac ==="; \
+	fi
 
 compile-mac:
 ifneq ($(TRAVIS),undefined)
@@ -108,8 +119,8 @@ endif
 	    --entitlements HyperXTalk.entitlements \
 	    "_build/mac/$(BUILDTYPE)/HyperXTalk.app"; \
 	fi
-	@# Sign external bundles that live beside the app (revbrowser.bundle,
-	@# revdb.bundle, etc.).  They are loaded into the HyperXTalk process.
+	@# Sign external bundles that live beside the app (revdb.bundle, etc.).
+	@# They are loaded into the HyperXTalk process.
 	@# On macOS 26+, bundles dlopen'd into a CS_RUNTIME process must also
 	@# carry CS_RUNTIME (--options runtime); without it the kernel rejects
 	@# mapped pages with SIGKILL (CODESIGNING, Code 2, Invalid Page).
@@ -200,6 +211,25 @@ endif
 	        "mac-bin/$$f" || true; \
 	  fi; \
 	done
+	@echo ""
+	@echo "=== compile-mac: done. ==="
+	@echo ""
+	@# Clearing existing documentation to force a rebuild
+	@rm -rf ide/Documentation/html_viewer/resources/data/*
+	@echo "Launching HyperXTalk from mac-bin will also build docs"
+	@echo "Be sure to close HyperXTalk before packaging if using this method"
+	@echo ""
+	@echo "=== Next:    make docs-mac        ==="
+	@echo "=== Finally: make package-mac-bin ==="
+
+docs-mac:
+	@echo "=== Building documentation files ==="
+	@echo ""
+	$(MAKE) build-docs-api
+	@echo ""
+	@echo "=== docs-mac: done. ==="
+	@echo ""
+	@echo "=== Next: make package-mac-bin ==="
 
 check-mac:
 ifneq ($(TRAVIS),undefined)
@@ -212,10 +242,6 @@ ifneq ($(TRAVIS),undefined)
 	@echo "travis_fold:end:testcpp"
 endif
 	$(MAKE) check-common-mac
-
-all-mac:
-	$(MAKE) config-mac
-	$(MAKE) compile-mac
 
 ################################################################
 # Mac packaging (self-contained bundle, no installer required)
@@ -267,7 +293,7 @@ package-mac:
 	@# ----------------------------------------------------------------
 	@# Externals (IDE runtime use)
 	@# ----------------------------------------------------------------
-	@for b in revbrowser revxml revspeech revzip; do \
+	@for b in revxml revspeech revzip; do \
 	  [ -d "$(MAC_BIN)/$$b.bundle" ] && \
 	    cp -R "$(MAC_BIN)/$$b.bundle" "$(TOOLS_DIR)/Externals/" || true; \
 	done
@@ -281,7 +307,7 @@ package-mac:
 	@# Sign all bundles from mac-bin with hardened runtime before copying.
 	@# Do NOT use --deep: on macOS 26+ --deep re-signs nested executables
 	@# with --options runtime and produces page-hash mismatches (SIGKILL).
-	@for b in revbrowser revxml revspeech revzip revdb revpdfprinter dbmysql dbodbc dbpostgresql dbsqlite; do \
+	@for b in revxml revspeech revzip revdb revpdfprinter dbmysql dbodbc dbpostgresql dbsqlite; do \
 	  [ -d "$(MAC_BIN)/$$b.bundle" ] && \
 	    codesign --force --sign "$(CODESIGN_IDENTITY)" \
 	        --options runtime \
@@ -291,7 +317,7 @@ package-mac:
 	@# ----------------------------------------------------------------
 	@# Externals discovery files (read by the standalone builder)
 	@# ----------------------------------------------------------------
-	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nBrowser,revbrowser.bundle\nRevolution Zip,revzip.bundle\n' \
+	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\n' \
 	    > "$(RUNTIME_ARM64)/Externals/Externals.txt"
 	@printf 'Database,revdb.bundle\n' \
 	    >> "$(RUNTIME_ARM64)/Externals/Externals.txt"
@@ -300,7 +326,7 @@ package-mac:
 	@# ----------------------------------------------------------------
 	@# Externals (Runtime standalone use) — mirror of Tools/Externals
 	@# ----------------------------------------------------------------
-	@for b in revbrowser revxml revspeech revzip revdb; do \
+	@for b in revxml revspeech revzip revdb; do \
 	  [ -d "$(TOOLS_DIR)/Externals/$$b.bundle" ] && \
 	    cp -R "$(TOOLS_DIR)/Externals/$$b.bundle" \
 	      "$(RUNTIME_ARM64)/Externals/" || true; \
@@ -440,19 +466,14 @@ package-mac-bin:
 	@mkdir -p "$(MACBIN_TOOLS)/Plugins"
 	@mkdir -p "$(MACBIN_TOOLS)/Externals/Database Drivers"
 	@mkdir -p "$(MACBIN_TOOLS)/Documentation"
-	@[ -d "ide/Documentation" ] && cp -R "ide/Documentation/." "$(MACBIN_TOOLS)/Documentation/" || true
-	@# docs/dictionary and docs/glossary are required by revIDEGenerateDistributedAPI
-	@# on installed builds to rebuild script.js into the user documentation cache.
-	@# Without them the function exits early and the in-app HTML doc viewer shows nothing.
-	@mkdir -p "$(MACBIN_TOOLS)/docs"
-	@[ -d "docs/dictionary" ] && cp -R "docs/dictionary" "$(MACBIN_TOOLS)/docs/" || true
-	@[ -d "docs/glossary"  ] && cp -R "docs/glossary"  "$(MACBIN_TOOLS)/docs/" || true
 	@mkdir -p "$(MACBIN_RT_ARM64)/Support"
 	@mkdir -p "$(MACBIN_RT_ARM64)/Externals/Database Drivers"
 	@mkdir -p "$(MACBIN_TOOLS)/Extensions"
 	@mkdir -p "$(MACBIN_TOOLS)/Toolchain"
 	@mkdir -p "$(MACBIN_SUPPORT)"
+	@# ----------------------------------------------------------------
 	@# Sign all loose executables in mac-bin with hardened runtime
+	@# ----------------------------------------------------------------
 	@for f in server-community lc-compile lc-run lc-compile-ffi-java installer-stub; do \
 	  [ -f "$(MACBIN_BIN)/$$f" ] && \
 	    codesign --force --sign "$(CODESIGN_IDENTITY)" \
@@ -467,10 +488,12 @@ package-mac-bin:
 	        --entitlements HyperXTalk.entitlements \
 	        "$(MACBIN_BIN)/$$f" || true; \
 	done
+	@# ----------------------------------------------------------------
 	@# Sign all loose bundles in mac-bin with hardened runtime.
+	@# ----------------------------------------------------------------
 	@# Do NOT use --deep: on macOS 26+ --deep re-signs nested executables
 	@# with --options runtime and produces page-hash mismatches (SIGKILL).
-	@for b in revbrowser revxml revspeech revzip revdb revpdfprinter dbmysql dbodbc dbpostgresql dbsqlite; do \
+	@for b in revxml revspeech revzip revdb revpdfprinter dbmysql dbodbc dbpostgresql dbsqlite; do \
 	  [ -d "$(MACBIN_BIN)/$$b.bundle" ] && \
 	    codesign --force --sign "$(CODESIGN_IDENTITY)" \
 	        --options runtime \
@@ -489,11 +512,6 @@ package-mac-bin:
 	@# Runtime: copy ide/Runtime to Tools/Runtime
 	@# ----------------------------------------------------------------
 	@[ -d "ide/Runtime" ] && cp -R "ide/Runtime/." "$(MACBIN_TOOLS)/Runtime/" || true
-	@# Create Sample Icons folder for standalone builder (expects icons in Support/Sample Icons/)
-	@mkdir -p "$(MACBIN_TOOLS)/Runtime/Mac OS X/arm64/Support/Sample Icons"
-	@[ -f "$(MACBIN_TOOLS)/Runtime/Mac OS X/arm64/Support/GenericApplication.icns" ] && \
-	  cp "$(MACBIN_TOOLS)/Runtime/Mac OS X/arm64/Support/GenericApplication.icns" \
-	  "$(MACBIN_TOOLS)/Runtime/Mac OS X/arm64/Support/Sample Icons/" || true
 	@# ----------------------------------------------------------------
 	@# Toolset libraries: IDE support scripts from ide-support/
 	@# ----------------------------------------------------------------
@@ -512,7 +530,7 @@ package-mac-bin:
 	@# ----------------------------------------------------------------
 	@# Externals (IDE runtime use)
 	@# ----------------------------------------------------------------
-	@for b in revbrowser revxml revspeech revzip; do \
+	@for b in revxml revspeech revzip; do \
 	  [ -d "$(MACBIN_BIN)/$$b.bundle" ] && \
 	    cp -R "$(MACBIN_BIN)/$$b.bundle" "$(MACBIN_TOOLS)/Externals/" || true; \
 	done
@@ -526,7 +544,7 @@ package-mac-bin:
 	@# ----------------------------------------------------------------
 	@# Externals discovery files (read by the standalone builder)
 	@# ----------------------------------------------------------------
-	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nBrowser,revbrowser.bundle\nRevolution Zip,revzip.bundle\n' \
+	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\n' \
 	    > "$(MACBIN_RT_ARM64)/Externals/Externals.txt"
 	@printf 'Database,revdb.bundle\n' \
 	    >> "$(MACBIN_RT_ARM64)/Externals/Externals.txt"
@@ -535,7 +553,7 @@ package-mac-bin:
 	@# ----------------------------------------------------------------
 	@# Externals (Runtime standalone use) — mirror of Tools/Externals
 	@# ----------------------------------------------------------------
-	@for b in revbrowser revxml revspeech revzip revdb; do \
+	@for b in revxml revspeech revzip revdb; do \
 	  [ -d "$(MACBIN_TOOLS)/Externals/$$b.bundle" ] && \
 	    cp -R "$(MACBIN_TOOLS)/Externals/$$b.bundle" \
 	      "$(MACBIN_RT_ARM64)/Externals/" || true; \
@@ -619,6 +637,11 @@ package-mac-bin:
 	    cp "ide/about.txt" "$(MACBIN_SUPPORT)/" || true
 	@[ -f "ide/Open Source Licenses.txt" ] && \
 	    cp "ide/Open Source Licenses.txt" "$(MACBIN_SUPPORT)/" || true
+	@# ----------------------------------------------------------------
+	@# Documentation: Dictionary and help files
+	@# ----------------------------------------------------------------
+	@[ -d "ide/Documentation" ] && \
+	    cp -R "ide/Documentation/." "$(MACBIN_TOOLS)/Documentation/" || true
 	@# ----------------------------------------------------------------
 	@# Quick Look extension: build and embed
 	@# ----------------------------------------------------------------
@@ -729,12 +752,14 @@ package-mac-bin:
 	    --options runtime \
 	    --entitlements HyperXTalk.entitlements \
 	    "$(MACBIN_BUNDLE)"
-	@echo "=== Package complete: $(MACBIN_BUNDLE) ==="
+	@# -------------------------------------------------------------------
 	@# Re-register the app bundle so the Quick Look extension is picked up
 	@# immediately without needing to relaunch or manually run lsregister.
+	@# -------------------------------------------------------------------
 	@/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
 	    -f "$(MACBIN_BUNDLE)" 2>/dev/null || true
 	@pluginkit -a "$(MACBIN_BUNDLE)/Contents/PlugIns/HyperXTalkQL.appex" 2>/dev/null || true
 	@qlmanage -r 2>/dev/null || true
 	@echo "Quick Look extension registered."
-
+	@echo ""
+	@echo "=== Package complete: $(MACBIN_BUNDLE) ==="

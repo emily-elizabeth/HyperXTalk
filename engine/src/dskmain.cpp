@@ -355,31 +355,6 @@ bool X_main_loop_iteration()
 
 	if (MCiconicstacks == 0 && !MCscreen->hasmessages() && MCstacks->isempty() && MCnsockets == 0)
 	{
-#if defined(_MAC_DESKTOP)
-        {
-            FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-            if (f) {
-                fprintf(f, "X_main_loop_iteration: quit condition met (iconic=%d hasmsg=%d stacksempty=%d sockets=%d)\n",
-                        (int)MCiconicstacks, (int)MCscreen->hasmessages(),
-                        (int)MCstacks->isempty(), (int)MCnsockets);
-                // Dump open stacks
-                MCStacknode *tptr = MCstacks->topnode();
-                if (tptr == NULL) {
-                    fprintf(f, "  MCstacks: empty (NULL)\n");
-                } else {
-                    MCStacknode *cur = tptr;
-                    do {
-                        MCStack *s = cur->getstack();
-                        MCAutoStringRefAsUTF8String t_name;
-                        t_name.Lock(MCNameGetString(s->getname()));
-                        fprintf(f, "  stack: '%s' scriptOnly=%d\n", *t_name, (int)s->isscriptonly());
-                        cur = cur->next();
-                    } while (cur != tptr);
-                }
-                fclose(f);
-            }
-        }
-#endif
 		// MW-2005-11-01: We want to keep the result here so we call with send=True
 		//   (the result is used by the development environment bootstrap code)
 		MCdefaultstackptr->getcard()->message(MCM_shut_down, (MCParameter *)NULL, True, True);

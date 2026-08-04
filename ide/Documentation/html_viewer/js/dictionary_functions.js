@@ -1149,7 +1149,7 @@
 			}
 
 			// Make sure we always 'fall back' to the lcs syntax
-			if (value.library == 'livecode_script')
+			if (value.library == 'script')
 			{
 				tIndex = index;
 				// If no library was specified, assume lcs syntax

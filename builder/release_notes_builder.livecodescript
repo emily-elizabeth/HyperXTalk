@@ -115,9 +115,9 @@ private command ComponentsCreateForEdition pEdition, pCollated, pBugInfo
    repeat for each item tCategory in builderComponentCategories()
       local tTitle
       if tDisplayName is not empty then
-         put merge("# LiveCode [[ tDisplayName ]] [[ tCategory ]] changes") into tTitle
+         put merge("# HyperXTalk [[ tDisplayName ]] [[ tCategory ]] changes") into tTitle
       else
-         put merge("# LiveCode [[ tCategory ]] changes") into tTitle
+         put merge("# HyperXTalk [[ tCategory ]] changes") into tTitle
       end if
       if NotesHaveContent(pCollated[pEdition][tCategory], pBugInfo[pEdition][tCategory]) then
          MarkdownAppend "notes", tTitle
@@ -204,7 +204,7 @@ private function OutputGetNotesFilename tSuffix, pVersion
    end if
    
    local tBasename
-   put "LiveCodeNotes-" & replaceText(pVersion, "[-,\.]", "_") into tBasename
+   put "HyperXTalkNotes-" & replaceText(pVersion, "[-,\.]", "_") into tBasename
    return sOutputPath & slash & tBasename & "." & tSuffix
 end OutputGetNotesFilename
 
@@ -214,7 +214,7 @@ private function OutputGetUpdatesFilename tSuffix, pVersion
    end if
    
    local tBasename
-   put "LiveCodeUpdates-" & replaceText(pVersion, "[-,\.]", "_") into tBasename
+   put "HyperXTalkUpdates-" & replaceText(pVersion, "[-,\.]", "_") into tBasename
    return sOutputPath & slash & tBasename & "." & tSuffix
 end OutputGetUpdatesFilename
 
@@ -226,12 +226,13 @@ end OutputGetGuideFilename
 private function OutputGetNotesUrl tSuffix, pVersion
    put replaceText(pVersion, "[-,\.]", "_") into pVersion
    
-   return "https://downloads.livecode.com/livecode/" & pVersion & \
-         "/LiveCodeNotes-" & pVersion & "." & tSuffix
+   --TODO: Need to get a proper URL for where these will be hosted.
+   return "https://downloads.hyperxtalk.com/hyperxtalk/" & pVersion & \
+         "/HyperXTalkNotes-" & pVersion & "." & tSuffix
 end OutputGetNotesUrl
 
 private function OutputGetNotesTitle
-   return merge("LiveCode [[sVersion]] Release Notes")
+   return merge("HyperXTalk [[sVersion]] Release Notes")
 end OutputGetNotesTitle
 
 private command OutputNotes
@@ -302,6 +303,7 @@ private command OutputNotesPdf
    put "--footer-center [page] --footer-font-size 8 --footer-spacing 5 " after tArgs
    put "--margin-top 30 --margin-bottom 20 --margin-left 20 --margin-right 20 " after tArgs
    put "--enable-internal-links --encoding UTF-8 " after tArgs
+   put "--enable-local-file-access --no-stop-slow-scripts " after tArgs
    
    local tExitCode
    builderLog "report", merge("Generating [[tPdfPath]] with [[tCommand]]")
@@ -389,11 +391,25 @@ private command EnsureMergMarkdown
 end EnsureMergMarkdown
 
 command OutputUpdatesHtml
-   local tHtml
-   EnsureMergMarkdown
-   put mergMarkdownToXHTML(sMarkdownText["updates"] \
-         ,true,true,true,true,false,true,true,true) into tHtml
+   local tCmark, tPath, tHtml
+   --EnsureMergMarkdown
+   --put mergMarkdownToXHTML(sMarkdownText["updates"] \
+   --      ,true,true,true,true,false,true,true,true) into tHtml
    
+   get shell("which cmark")
+   if it is not empty then
+      put line 1 of it into tCmark
+   else
+      put "/opt/homebrew/bin/cmark" into tCmark
+      get shell(tCmark & " --version")
+      if the result is not empty then
+         builderLog "warning", merge("cmark not found, markdown to HTML conversion may fail: [[the result]]")
+      end if
+   end if
+
+   put OutputGetUpdatesFilename("md") into tPath
+   put shell(merge("[[tCmark]] -t html [[tPath]]")) into tHtml
+
    // Shrink all headers by 2
    MakeHeadersSmaller tHTML, 2
    
@@ -404,7 +420,6 @@ command OutputUpdatesHtml
    // Add extra blank paragraphs between paragraphs
    RespectBlankLinesBetween tHTML, "p", "p"
    
-   local tPath
    put OutputGetUpdatesFilename("html") into tPath
    builderLog "report", merge("Writing [[tPath]]")
    builderFileSetUTF8Contents tPath, tHtml
@@ -474,8 +489,8 @@ private function BaseReadFile pBasename
 end BaseReadFile
 
 private command BaseCreateUpdates
-   MarkdownAppend "updates", merge("LiveCode [[sVersion]] is now available.") & return
-   MarkdownAppend "updates", merge("The full [[sVersion]] release notes are available on the LiveCode website.") & return
+   MarkdownAppend "updates", merge("HyperXTalk [[sVersion]] is now available.") & return
+   MarkdownAppend "updates", merge("The full [[sVersion]] release notes are available on the HyperXTalk website.") & return
    MarkdownAppend "updates", "Changes in this release include:" & return
 end BaseCreateUpdates
 
@@ -1113,7 +1128,7 @@ private command PreviousCreate
          
       else      
          put OutputGetNotesUrl("pdf", tVersion) into tUrl
-         MarkdownAppend "notes", merge("* [LiveCode [[tVersion]] Release Notes]([[tUrl]])")
+         MarkdownAppend "notes", merge("* [HyperXTalk [[tVersion]] Release Notes]([[tUrl]])")
       end if
       
       subtract 1 from tTagCount

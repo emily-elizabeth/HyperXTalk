@@ -12,13 +12,13 @@
  * through untouched.
  *
  * When SESetScrollRect has been called with a non-zero rect, the monitor only
- * consumes events whose current mouse position (in LiveCode screen coordinates:
+ * consumes events whose current mouse position (in HyperXTalk screen coordinates:
  * origin top-left, y increases downward) falls within that rect. Events outside
  * — e.g. over the handler list — are passed through to the engine unchanged.
  *
- * The rect is stored in LiveCode screen coordinates. The check converts
+ * The rect is stored in HyperXTalk screen coordinates. The check converts
  * [NSEvent mouseLocation] (Cocoa screen: y-up) to LC coords using the primary
- * screen height, which keeps the LiveCode Script side simple — it just passes
+ * screen height, which keeps the Script side simple — it just passes
  * `the rect of field` directly without any coordinate conversion.
  *
  * Build (via build_glue.sh):
@@ -41,7 +41,7 @@ void   SESetScrollRectStr(const char *rectStr);
 void   SERemoveMonitor(void);
 
 // ---------------------------------------------------------------------------
-// Scroll rect — stored in LiveCode screen coordinates (origin = top-left of
+// Scroll rect — stored in HyperXTalk screen coordinates (origin = top-left of
 // primary screen, y increases downward). Compared against the mouse position
 // after converting [NSEvent mouseLocation] from Cocoa to LC coords.
 // sScrollRectSet == NO means intercept everywhere (no filter active).
@@ -66,7 +66,7 @@ static NSInteger sTargetWinNum = 0;   // windowNumber of the script editor windo
 // SEInstallMonitor
 //
 // Installs an application-wide local NSEvent monitor that intercepts precise
-// trackpad scroll events. The windowId passed by LiveCode Script is the
+// trackpad scroll events. The windowId passed by Script is the
 // NSWindow windowNumber of the script editor. We look it up once here so
 // we can do a fast integer compare in the hot event handler.
 // ---------------------------------------------------------------------------
@@ -77,11 +77,11 @@ void SEInstallMonitor(long windowId)
     sDeltaY = 0.0;
     sDeltaX = 0.0;
 
-    // Popup/overlay detection is handled entirely in the LiveCode Script layer
+    // Popup/overlay detection is handled entirely in the Script layer
     // (via seHandlerListObject visibility check). No C-level window comparison
-    // is needed or reliable — LiveCode's windowId does not equal NSWindow.windowNumber,
+    // is needed or reliable — HyperXTalk's windowId does not equal NSWindow.windowNumber,
     // and capturing windowNumberAtPoint at install time races with window compositing.
-    // Always accumulate precise scroll events; LiveCode Script decides whether to apply.
+    // Always accumulate precise scroll events; Script decides whether to apply.
     sTargetWinNum = 0;
 
     sMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskScrollWheel
@@ -125,12 +125,12 @@ double SEGetAndClearDeltaX(void)
 
 // ---------------------------------------------------------------------------
 // SESetScrollRect — restrict event interception to the given rect, expressed
-// in LiveCode screen coordinates (left, top, right, bottom; origin top-left
+// in HyperXTalk screen coordinates (left, top, right, bottom; origin top-left
 // of primary screen, y increases downward). Pass all zeros to disable the
 // filter and intercept everywhere.
 //
-// Call from LiveCode Script with: the rect of field "Script"
-// No coordinate conversion needed on the LiveCode side.
+// Call from Script with: the rect of field "Script"
+// No coordinate conversion needed on the HyperXTalk side.
 // ---------------------------------------------------------------------------
 
 void SESetScrollRect(long left, long top, long right, long bottom)
@@ -147,7 +147,7 @@ void SESetScrollRect(long left, long top, long right, long bottom)
 }
 
 // ---------------------------------------------------------------------------
-// SESetScrollRectStr — convenience wrapper that parses a LiveCode-style rect
+// SESetScrollRectStr — convenience wrapper that parses a HyperXTalk-style rect
 // string "left,top,right,bottom" using sscanf and calls SESetScrollRect.
 // Called from LCB with a ZStringNative (single-parameter, avoids all LCB
 // multi-param and type-coercion issues).

@@ -231,7 +231,7 @@ command docsBuilderGenerateDistributedAPI pEdition
    put "community" into tComponents[tIndex]["metadata"]["edition"]
 
    local tLCSDictionaryA
-   put docsBuilderParseDictionary("Script", "", tComponents, tAdditionalFolders, false) into tLCSDictionaryA
+   put docsBuilderParseDictionary("Script", "HyperXTalk", tComponents, tAdditionalFolders, false) into tLCSDictionaryA
 
    if tLCSDictionaryA is empty then
       logError "Couldn't parse script dictionary data for" && pEdition
@@ -277,7 +277,7 @@ command docsBuilderGenerateDistributedAPI pEdition
 
    put "Builder" into tLCBDictionaryA["display name"]
    put revDocsModifyForUrl("Builder") into tLCBDictionaryA["name"]
-   put "xTalk" into tLCBDictionaryA["author"]
+   put "HyperXTalk" into tLCBDictionaryA["author"]
    put "dictionary" into tLCBDictionaryA["type"]
    put "builder" into tLCBDictionaryA["filename"]
    put "builder" into tLCBDictionaryA["api"]
@@ -310,7 +310,7 @@ command docsBuilderGenerateDistributedAPI pEdition
    local tFile
    repeat for each line tFile in tFiles
       local tLibA
-      put revDocsParseDocFileToLibraryArray(tExtractedDocsFolder & slash & tFile, item -2 of tFile, "") into tLibA
+      put revDocsParseDocFileToLibraryArray(tExtractedDocsFolder & slash & tFile, item -2 of tFile, "LiveCode") into tLibA
 
       if tLibA is empty then
          builderLog "error", "Couldn't parse" && item -2 of tFile && "dictionary data for" && pEdition
@@ -368,7 +368,7 @@ end docsBuilderPopulateDatabase
 private command docsBuilderGenerateZip pEdition, pVersion
    -- Ensure edition string is in titlecase
    -- put editionTitleCase(pEdition) into pEdition
-   put "community" into pEdition
+   put "Community" into pEdition
    put replaceText(pVersion, "[-,\.]", "_") into pVersion
 
    local tInputs, tZipPath
@@ -380,7 +380,7 @@ private command docsBuilderGenerateZip pEdition, pVersion
 
    -- Figure out a filename for the docs archive
    put builderOutputFolder() & slash & \
-         merge("xTalk[[pEdition]]Docs-[[pVersion]].zip") into tZipPath
+         merge("HyperXTalk[[pEdition]]Docs-[[pVersion]].zip") into tZipPath
 
    -- Use the "zip" command to store the data
    local tDocItem, tCmd, tCmdOutput

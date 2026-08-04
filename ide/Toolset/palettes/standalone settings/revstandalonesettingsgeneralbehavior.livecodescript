@@ -47,7 +47,9 @@ on preOpenCard
    enable group "profiles"
    
    local tTipLastShown, tShowTip
+   put false into tShowTip
    
+   /*
    put the cIDE_SAGeneralTipShow of stack "revPreferences" into tShowTip
    put the cIDE_SAGeneralTipLastShown of stack "revPreferences" into tTipLastShown
    
@@ -64,6 +66,7 @@ on preOpenCard
       end if
    end if   
    if tShowTip is empty then put true into tShowTip
+   */
    
    set the visible of group "generalCommercialTip" to tShowTip
    tipPreferenceSet tShowTip

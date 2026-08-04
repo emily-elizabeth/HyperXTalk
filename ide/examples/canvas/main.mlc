@@ -1,6 +1,6 @@
 -- Library modules add public handlers to the bottom of the message path.
 --
--- This simple library gives access to the LiveCode Builder canvas syntax from
+-- This simple library gives access to the Builder canvas syntax from
 -- LiveCode Script by wrapping in a few simple handlers.
 --
 -- Example usage:

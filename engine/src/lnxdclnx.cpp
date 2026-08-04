@@ -111,6 +111,8 @@ static void HXT_HandleSelectionRequest(GdkEvent *t_event);
 static GdkFilterReturn HXT_CtrlV_SelectionFilter(GdkXEvent*, GdkEvent*, gpointer);
 
 
+// Checks primary + all extra per-monitor backdrop windows (defined in lnxdcs.cpp).
+bool hxt_is_backdrop_window(GdkWindow *w);
 Boolean tripleclick = False;
 static Boolean dragclick;
 
@@ -452,6 +454,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                     if (!m_application_has_focus)
                     {
                         m_application_has_focus = true;
+                        static_cast<MCScreenDC*>(MCscreen)->backdrop_focus_gained();
                         hidebackdrop(true);
                         if (MCdefaultstackptr)
                             MCdefaultstackptr->getcard()->message(MCM_resume);
@@ -476,7 +479,9 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             }
                             
                             if (!skip_focus)
+                            {
                                 MCdispatcher->wkfocus(t_event->focus_change.window);
+                            }
                         }
                     }
                     else
@@ -495,23 +500,25 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         // GDK doesn't let us get the focus window so we have
                         // to use Xlib to get it. Sigh.
                         x11::XGetInputFocus(x11::gdk_x11_display_get_xdisplay(dpy), &t_return_window, &t_return_revert_window);
-                        
+
                         // Look up the X11 window XID in GDK's window table. If
                         // it isn't found, it definitely isn't one of ours.
                         GdkWindow *t_window;
                         if ((t_window = x11::gdk_x11_window_lookup_for_display(dpy, t_return_window)) == NULL)
                             t_lostfocus = true;
-                        
+
                         // Even if we found it, it may not be ours. This is very
                         // unlikely but could happen if we've created a GdkWindow
                         // for it in the past (e.g. in import snapshot)
-                        if ((backdrop != NULL && t_window == backdrop) || MCdispatcher->findstackd(t_window) != NULL)
+                        bool _is_bd = hxt_is_backdrop_window(t_window);
+                        if (_is_bd || MCdispatcher->findstackd(t_window) != NULL)
                             t_lostfocus = false;
-                        
+
                         if (t_lostfocus)
                         {
                             // Another application gained focus
                             m_application_has_focus = false;
+                            static_cast<MCScreenDC*>(MCscreen)->backdrop_focus_lost();
                             hidebackdrop(true);
                             if (MCdefaultstackptr)
                                 MCdefaultstackptr->getcard()->message(MCM_suspend);
@@ -1037,9 +1044,15 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             
                             clicktime = t_event->button.time;
                             
-                            // Was the click on the background window?
-                            if (backdrop != DNULL && t_event->button.window == backdrop)
+                            bool _is_bd2 = hxt_is_backdrop_window(t_event->button.window);
+                            if (_is_bd2)
+                            {
+                                // Restack BEFORE sending the message: Mutter's click-to-raise
+                                // has already raised the backdrop above HXT stacks. Correct
+                                // z-order now so the flash is gone before any script runs.
+                                static_cast<MCScreenDC*>(MCscreen)->reraise_stacks_above_backdrop();
                                 MCdefaultstackptr->getcard()->message_with_args(MCM_mouse_down_in_backdrop, t_event->button.button);
+                            }
                             else
                             {
                                 // MM-2013-09-16: [[ Bugfix 11176 ]] Make sure we calculate the y delta correctly.
@@ -1121,7 +1134,8 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 
                 if (dispatch)
                 {
-                    if (backdrop != DNULL && t_event->button.window == backdrop)
+                    bool _is_bd3 = hxt_is_backdrop_window(t_event->button.window);
+                    if (_is_bd3)
                     {
                         // Don't send mouse events to the backdrop
                         MCdefaultstackptr->getcard()->message_with_args(MCM_mouse_up_in_backdrop, t_event->button.button);
@@ -1206,9 +1220,10 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 }                        
                 
                 MCdispatcher->wreshape(t_event->configure.window);
+
                 break;
             }
-                
+
             case GDK_CLIENT_EVENT:
                 // Hmm - do we still need to react to any of these?
                 break;

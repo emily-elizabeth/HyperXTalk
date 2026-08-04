@@ -15,7 +15,7 @@
  along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 /**
-This library provides operations for interacting with LiveCode Script from LiveCode Builder.
+This library provides operations for interacting with Script from Builder.
 
 Tags: Engine
 
@@ -23,7 +23,7 @@ Name: ScriptObject
 
 Type: type
 
-Summary: An opaque type corresponding to a LiveCode script object.
+Summary: An opaque type corresponding to a script object.
 
 Syntax: ScriptObject
 
@@ -106,7 +106,7 @@ Example:
 	end if
 
 Description:
-Use the <ResolveScriptObject|resolve script object> statement to obtain a <ScriptObject> in LiveCode Builder, in order to interact with it.
+Use the <ResolveScriptObject|resolve script object> statement to obtain a <ScriptObject> in Builder, in order to interact with it.
 
 >*Note:* An error is thrown if this syntax is used in a context where access
 to script objects is not allowed.
@@ -414,7 +414,7 @@ Example:
 
 Description:
 Returns the script object which called the handler at the beginning
-of the current chain of LiveCode Builder handler execution.
+of the current chain of Builder handler execution.
 
 Tags: Script Engine
 */
@@ -426,7 +426,7 @@ begin
 end syntax
 
 /**
-Summary: Executes some LiveCode script.
+Summary: Executes some script.
 Script:  The script to execute.
 Object:  The object to execute the script in.
 Arguments:  A list of arguments for the script.
@@ -453,7 +453,7 @@ Example:
 	end handler
 
 Description:
-Executes the given fragment of LiveCode script in the context of the target
+Executes the given fragment of script in the context of the target
 script object. If no object is specified then execution occurs in the context of
 `this card of the defaultStack` in a library handler or the current widget
 instance script object if in a widget handler.
@@ -500,7 +500,7 @@ Description:
 The log command triggers a logChanged message with the 
 accumulated log messages since the logChanged message 
 was last handled.
-This can be handled in LiveCode Script, for example:
+This can be handled in Script, for example:
 
     on logChanged pLog
         write pLog to stdout

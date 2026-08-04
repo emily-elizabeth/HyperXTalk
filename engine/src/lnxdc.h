@@ -150,6 +150,8 @@ class MCScreenDC : public MCUIDC
 	// -- tperry 12-11-2025: Pixmap is unsigned long, use 0 not nullptr
 	Pixmap m_backdrop_pixmap = 0;
 
+
+
 	Window last_window = None; 	//XDND - Used for the moment to shunt the ID
 	
 	bool m_has_native_theme = false;
@@ -253,6 +255,9 @@ public:
 	virtual void disablebackdrop(bool p_hard = false);
 	virtual void configurebackdrop(const MCColor& p_colour, MCPatternRef p_pattern, MCImage *p_badge);
 	virtual void assignbackdrop(Window_mode p_mode, Window p_window);
+	void reraise_stacks_above_backdrop();
+	void backdrop_focus_gained();
+	void backdrop_focus_lost();
 
 	// IM-2014-01-29: [[ HiDPI ]] Update device_* methods to platform-specific logical coord based methods
 	virtual uint16_t platform_getwidth(void);

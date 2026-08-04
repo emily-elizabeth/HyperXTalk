@@ -1755,21 +1755,7 @@ void MCStack::loadexternals(void)
 	{
 		MCValueRef t_val;
 		/* UNCHECKED */ MCArrayFetchValueAtIndex(*t_array, i + 1, t_val);
-#if defined(_MAC_DESKTOP)
-		{
-			MCAutoStringRefAsUTF8String t_utf8;
-			t_utf8.Lock((MCStringRef)t_val);
-			FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-			if (f) { fprintf(f, "loadexternals: loading bundle[%u]: %s\n", (unsigned)i, *t_utf8); fclose(f); }
-		}
-#endif
 		m_externals->Load((MCStringRef)t_val);
-#if defined(_MAC_DESKTOP)
-		{
-			FILE *f = fopen("/tmp/hyperxtalk-arm64-startup.log", "a");
-			if (f) { fprintf(f, "loadexternals: bundle[%u] loaded\n", (unsigned)i); fclose(f); }
-		}
-#endif
 	}
 
 	// If the handler list is empty, then delete the object - thus preventing

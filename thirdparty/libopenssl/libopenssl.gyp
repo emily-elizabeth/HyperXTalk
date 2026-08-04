@@ -61,7 +61,7 @@
 					'action_name': 'generate_libopenssl_stubs',
 					'inputs':
 					[
-						'../../util/weak_stub_maker.pl',
+						'../../util/weak_stub_maker.py',
 						'>(ssl_stubs_file)',
 					],
 					'outputs':
@@ -71,8 +71,8 @@
 
 					'action':
 					[
-						'<@(perl)',
-						'../../util/weak_stub_maker.pl',
+						'<@(python)',
+						'../../util/weak_stub_maker.py',
 						'>(ssl_stubs_file)',
 						'<@(_outputs)',
 					],

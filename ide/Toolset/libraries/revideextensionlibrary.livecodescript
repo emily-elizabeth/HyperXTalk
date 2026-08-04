@@ -1459,15 +1459,15 @@ end extensionUpdateDataReceived
 private function __TypeToAPI pType
    switch pType
       case "module"
-         return "livecode_builder"
+         return "builder"
          break
       case "plugin"
-         return "livecode_ide"
+         return "ide"
          break
       case "library"
       case "widget"
       default
-         return "livecode_script"
+         return "script"
          break
    end switch
 end __TypeToAPI

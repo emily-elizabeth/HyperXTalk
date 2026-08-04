@@ -1,7 +1,7 @@
 ---
 group: ide
 ---
-# The IDE
+# The HyperXTalk IDE
 
 ## Introduction
 

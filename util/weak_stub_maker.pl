@@ -208,7 +208,7 @@ output "  char* error = new char[65536];";
 output "  char* command = new char[65536];";
 output ;
 output "  snprintf(error, 65536, \"Failed to load library \\\'%s\\\' (tried %s)\", libname, liblist);";
-output "  snprintf(command, 65536, \"TITLE=\\\"LiveCode startup error\\\" TEXT=\\\"%s\\\" /bin/sh -c \\\'%s\\\' &\", error, dialog);";
+output "  snprintf(command, 65536, \"TITLE=\\\"HyperXTalk startup error\\\" TEXT=\\\"%s\\\" /bin/sh -c \\\'%s\\\' &\", error, dialog);";
 output "  MCLog( \"Fatal: failed to load library \\\'%s\\\' (tried %s)\\n\", libname, liblist);";
 output "  int ignored = system(command); (void)ignored;";
 output "  exit(-1);";

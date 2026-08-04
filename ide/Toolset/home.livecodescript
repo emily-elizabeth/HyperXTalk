@@ -1184,8 +1184,7 @@ command revInternal__InitialiseLibraries
    revInternal_SetJAVA_HOME
    
    local tLoadList
-   put "revCommonLibrary" into tLoadList 
-   // HXT put return & "revDatabaseLibrary" after tLoadList 
+   put "revCommonLibrary" into tLoadList
    put return & "revIDEDocumentationLibrary" after tLoadList
    put return & "revMetadataLibrary" after tLoadList   
    put return & "revSBLibrary" after tLoadList

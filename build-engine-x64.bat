@@ -39,7 +39,6 @@ set VCXPROJ_LIBXSLT=build-win-x86_64\hyperxtalk\thirdparty\libxslt\libxslt.vcxpr
 set VCXPROJ_REVXML=build-win-x86_64\hyperxtalk\revxml\external-revxml.vcxproj
 set VCXPROJ_REVXML_SERVER=build-win-x86_64\hyperxtalk\revxml\external-revxml-server.vcxproj
 set VCXPROJ_REVZIP_SERVER=build-win-x86_64\hyperxtalk\revzip\external-revzip-server.vcxproj
-set VCXPROJ_REVBROWSER=build-win-x86_64\hyperxtalk\revbrowser\external-revbrowser.vcxproj
 
 :: ----------------------------------------------------------
 :: MySQL 9.6.0 prerequisite check
@@ -1069,20 +1068,6 @@ if %ERRORLEVEL% NEQ 0 (
     echo WARNING: server-revzip.dll Debug build failed -- extension packaging may fail.
 ) else (
     echo server-revzip.dll OK.
-)
-
-echo.
-echo Building revbrowser (Debug — used as fallback by build-release-x64.bat) ...
-echo Building revbrowser (Debug) ... >> "%LOGFILE%"
-set "REVBROWSER_LOG=%~dp0build-revbrowser.log"
-"%MSBUILD%" %TOOLSET% %VCXPROJ_REVBROWSER%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo > "%REVBROWSER_LOG%" 2>&1
-set REVBROWSER_ERR=%ERRORLEVEL%
-type "%REVBROWSER_LOG%"
-type "%REVBROWSER_LOG%" >> "%LOGFILE%"
-if %REVBROWSER_ERR% NEQ 0 (
-    echo WARNING: revbrowser Debug build failed -- Release step will also fail.
-) else (
-    echo revbrowser Debug OK.
 )
 
 echo.

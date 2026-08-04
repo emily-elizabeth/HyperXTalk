@@ -26,7 +26,6 @@ set VCXPROJ_LIBXSLT=build-win-x86_64\hyperxtalk\thirdparty\libxslt\libxslt.vcxpr
 set VCXPROJ_REVXML=build-win-x86_64\hyperxtalk\revxml\external-revxml.vcxproj
 set VCXPROJ_REVXML_SERVER=build-win-x86_64\hyperxtalk\revxml\external-revxml-server.vcxproj
 set VCXPROJ_REVZIP_SERVER=build-win-x86_64\hyperxtalk\revzip\external-revzip-server.vcxproj
-set VCXPROJ_REVBROWSER=build-win-x86_64\hyperxtalk\revbrowser\external-revbrowser.vcxproj
 set VCXPROJ_REVDB=build-win-x86_64\hyperxtalk\revdb\external-revdb.vcxproj
 set VCXPROJ_OPENSSL_SYMLIST=build-win-x86_64\hyperxtalk\thirdparty\libopenssl\libopenssl_symbol_list_win.vcxproj
 set VCXPROJ_REVSECURITY=build-win-x86_64\hyperxtalk\thirdparty\libopenssl\revsecurity.vcxproj
@@ -767,35 +766,15 @@ echo revxml OK.
 
 echo.
 :: ----------------------------------------------------------
-:: External DLLs: revbrowser, revdb, revsecurity.
+:: External DLLs: revdb, revsecurity.
 ::
-:: These have deep ProjectReference chains (CEF, OpenSSL wrappers)
+:: These have deep ProjectReference chains (OpenSSL wrappers)
 :: that don't fully resolve with BuildProjectReferences=false.
 :: Strategy: attempt a Release build with /p:OutDir forced to the
 :: Release output dir; if it fails or produces no DLL, fall back
 :: to the Debug output.  The DLLs are thin wrappers whose Debug vs
 :: Release difference is optimisation only — ABI is identical.
 :: ----------------------------------------------------------
-echo Building revbrowser (Release) ...
-set "REVBROWSER_REL_LOG=%~dp0build-revbrowser-release.log"
-"%MSBUILD%" %TOOLSET% %VCXPROJ_REVBROWSER% /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%OUTDIR%\\" /p:BuildProjectReferences=false /v:minimal /nologo > "%REVBROWSER_REL_LOG%" 2>&1
-set REVBROWSER_REL_ERR=%ERRORLEVEL%
-type "%REVBROWSER_REL_LOG%"
-type "%REVBROWSER_REL_LOG%" >> "%LOGFILE%"
-if %REVBROWSER_REL_ERR% NEQ 0 goto revbrowser_fallback
-if not exist "%OUTDIR%\revbrowser.dll" goto revbrowser_fallback
-echo revbrowser Release OK.
-goto revbrowser_done
-:revbrowser_fallback
-if not exist "%DBG_DIR%\revbrowser.dll" (
-    echo WARNING: revbrowser.dll not available ^(CEF removed^) -- skipping.
-    goto revbrowser_done
-)
-copy /Y "%DBG_DIR%\revbrowser.dll" "%OUTDIR%\revbrowser.dll" > nul
-echo revbrowser: using Debug bootstrap.
-:revbrowser_done
-
-echo.
 echo Building revdb (Release) ...
 "%MSBUILD%" %TOOLSET% %VCXPROJ_REVDB% /p:Configuration=Release /p:Platform=x64 "/p:OutDir=%OUTDIR%\\" /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 goto revdb_fallback
@@ -1116,7 +1095,7 @@ for %%F in (revsecurity.dll revpdfprinter.dll) do (
 )
 
 :: Externals DLLs
-for %%F in (revxml.dll revdb.dll revzip.dll revspeech.dll revbrowser.dll) do (
+for %%F in (revxml.dll revdb.dll revzip.dll revspeech.dll) do (
     if exist "%OUTDIR%\%%F" (
         copy /Y "%OUTDIR%\%%F" "%~dp0%RT%\Externals\%%F" > nul
         echo   %%F staged to %RT%\Externals\

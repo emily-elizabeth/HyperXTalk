@@ -1,6 +1,6 @@
 Name: Extension Builder language
 
-Synonyms: Loadable Code Builder, lcb, lcb language, xBuilder, livecode builder language, livecode builder
+Synonyms: Builder, Loadable Code Builder, lcb, lcb language, xBuilder, livecode builder language, livecode builder
 
 Type: glossary
 
@@ -44,7 +44,7 @@ would any another <control>.
 
 For detailed information about using LCB, please consult the Extending
 LiveCode guide, and explore the LCB API by selecting
-**LiveCode Builder** from the API dropdown menu.
+**Builder** from the API dropdown menu.
 
 References: xTalk (glossary), Extension Builder extension (glossary),
 library extension (glossary), control (glossary), stack (glossary),

@@ -285,49 +285,25 @@ thrown.
 Tags: JSON
 */
 public handler lcb_JsonExport(in pValue as optional any) returns optional String
-	variable tJSON as optional String
+	variable tJson as optional String
 	if pValue is a string then
-		put JsonExportString(pValue) into tJSON
+		put JsonExportString(pValue) into tJson
 	else if pValue is a number then
-		put JsonExportNumber(pValue) into tJSON
+		put JsonExportNumber(pValue) into tJson
 	else if pValue is a list then
-		put JsonExportList(pValue) into tJSON
+		put JsonExportList(pValue) into tJson
 	else if pValue is an array then
-		put JsonExportArray(pValue) into tJSON
+		put JsonExportArray(pValue) into tJson
 	else if pValue is true then
-		put "true" into tJSON
+		put "true" into tJson
 	else if pValue is false then
-		put "false" into tJSON
+		put "false" into tJson
 	else if pValue is nothing then
-		put "null" into tJSON
+		put "null" into tJson
 	else
 		throw "Unsupported value type for JSON"
 	end if
-	return tJSON
-end handler
-
-/**
-Summary: Format a HyperXTalk value as JSON text
-
-pValue:  A HyperXTalk value (Array, List, String, Number, Boolean, or nothing)
-pPretty: Boolean true to prettyprint the JSON
-
-Returns: A string containing JSON-formatted text.
-
-Description:
-<JsonExportPretty> is used to convert a HyperXTalk value into data encoded in JSON
-format.  If <pValue> is of a type that cannot be converted to JSON, an error is
-thrown. Set <pPretty> to true for prettyprinted output, false to leave JSON intact.
-
-Tags: JSON
-*/
-public handler JsonExportPretty(in pValue as optional any, in pPretty as optional Boolean) returns optional String
-	variable tJSON as String
-	put lcb_JsonExport(pValue) into tJSON
-	if pPretty then
-		put lcb_prettyJSON(tJSON, 4, true) into tJSON
-	end if
-	return tJSON
+	return tJson
 end handler
 
 private handler makeIndentString(in pNumSpaces as Integer) returns String
@@ -351,7 +327,7 @@ end handler
 /**
 Summary: pretty-prints the input JSON text
 
-pJSON: valid JSON text string for prettyprinting.
+pJson: valid JSON text string for prettyprinting.
 
 Returns: a string containing JSON text prettyprinted.
 
@@ -360,7 +336,7 @@ The input JSON text string is returned pretty-printed.
 
 Tags: JSON
 */
-public handler lcb_prettyJSON(in pJSON as String, in pNumSpaces as optional Integer, in pShouldExpandBraces as optional Boolean) returns optional String
+public handler lcb_PrettyJson(in pJson as String, in pNumSpaces as optional Integer, in pShouldExpandBraces as optional Boolean) returns optional String
 	variable tIndentLevel as Integer
 	variable tInString as Boolean
 	variable tEscape as Boolean
@@ -376,7 +352,7 @@ public handler lcb_prettyJSON(in pJSON as String, in pNumSpaces as optional Inte
 	put makeIndentString(pNumSpaces) into tSpaces
 
 	-- iterate characters
-	repeat for each char tCh in pJSON
+	repeat for each char tCh in pJson
    
 		if tInString then
 			put tCh after tOut
@@ -423,7 +399,7 @@ public handler lcb_prettyJSON(in pJSON as String, in pNumSpaces as optional Inte
 				put tCh after tOut
 			end if
 		end if -- tInString
-	end repeat -- for each char tCh in pJSON
+	end repeat -- for each char tCh in pJson
    
 	return tOut
 end handler

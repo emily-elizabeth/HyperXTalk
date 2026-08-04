@@ -45,6 +45,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "text.h"
 #include "variable.h"
 
+#include <strings.h>
 #include <sys/utsname.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
@@ -660,6 +661,18 @@ private:
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// Any other useful alternate languages?
+const char *availableAlternateLanguages[]=
+{
+	"python",
+	"node",	// note that there are other options for javascript (rhino, spidermonkey)
+	"ruby",
+	"perl",
+	"R",
+	"go",
+	"lua",
+};
+
 class MCLinuxDesktop: public MCSystemInterface
 {
 public:
@@ -746,15 +759,15 @@ public:
         return curtime;
     }
 
-virtual real64_t GetCurrentMicroseconds(void)
-{
-	struct timezone tz;
-	struct timeval tv;
+	virtual real64_t GetCurrentMicroseconds(void)
+	{
+		struct timezone tz;
+		struct timeval tv;
 
-	gettimeofday(&tv, &tz);
-	curtime = (tv.tv_sec * 1000000.0) + tv.tv_usec;
-	return curtime;
-}
+		gettimeofday(&tv, &tz);
+		curtime = (tv.tv_sec * 1000000.0) + tv.tv_usec;
+		return curtime;
+	}
 
     virtual bool GetVersion(MCStringRef& r_string)
     {
@@ -990,18 +1003,16 @@ virtual real64_t GetCurrentMicroseconds(void)
             !MCS_resolvepath(*t_tilde, &t_home))
             return false;
 
-        if (MCNameIsEqualToCaseless(p_type, MCN_desktop))
-            return MCStringFormat(r_folder, "%@/Desktop", *t_home);
-        else if (MCNameIsEqualToCaseless(p_type, MCN_home))
-            return MCStringCopy(*t_home, r_folder);
-        else if (MCNameIsEqualToCaseless(p_type, MCN_documents))
-            /* Assume the documents folder is ~/Documents (which is at least true for English localizations). */
-            // TODO: Is there an easy way to localize this?
-            return MCStringFormat(r_folder, "%@/Documents", *t_home);
-        else if (MCNameIsEqualToCaseless(p_type, MCN_temporary))
-            return MCStringCreateWithCString("/tmp", r_folder);
-        // SN-2014-08-08: [[ Bug 13026 ]] Fix ported from 6.7
-        else if (MCNameIsEqualToCaseless(p_type, MCN_engine)
+		if (MCNameIsEqualToCaseless(p_type, MCN_desktop))
+			return MCStringFormat(r_folder, g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP), *t_home);
+		else if (MCNameIsEqualToCaseless(p_type, MCN_documents))
+			return MCStringFormat(r_folder, g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS), *t_home);
+		else if (MCNameIsEqualToCaseless(p_type, MCN_home))
+			return MCStringCopy(*t_home, r_folder);
+		else if (MCNameIsEqualToCaseless(p_type, MCN_temporary))
+			return MCStringCreateWithCString("/tmp", r_folder);
+		// SN-2014-08-08: [[ Bug 13026 ]] Fix ported from 6.7
+		else if (MCNameIsEqualToCaseless(p_type, MCN_engine)
                  // SN-2015-04-20: [[ Bug 14295 ]] If we are here, we are a standalone
                  // so the resources folder is the engine folder.
                  || MCNameIsEqualToCaseless(p_type, MCN_resources))
@@ -2164,16 +2175,251 @@ virtual real64_t GetCurrentMicroseconds(void)
 #endif
     }
 
-    virtual void DoAlternateLanguage(MCStringRef p_script, MCStringRef p_language)
-    {
-        MCresult->sets("alternate language not found");
-    }
+	// return 1 for true, 0 for false, -1 on error
+	int is_language_installed(const char *prog) {
+		int pipefd[2];
+		if (-1 == pipe(pipefd)) {
+		    //perror("pipe");
+			fprintf(stderr, "pipe failed");
+		    return -1;
+		}
 
-    virtual bool AlternateLanguages(MCListRef& r_list)
-    {
-        r_list = MCValueRetain(kMCEmptyList);
-        return true;
-    }
+		pid_t pid = fork();
+		if (pid < 0) {
+			fprintf(stderr, "fork failed");
+		    close(pipefd[0]);
+		    close(pipefd[1]);
+		    return -1;
+		}
+		if (0 == pid) {
+		    /* Child */
+		    close(pipefd[0]); /* close read end in child */
+
+		    /* Ensure the write end is closed if exec succeeds */
+		    int flags = fcntl(pipefd[1], F_GETFD);
+		    if (-1 != flags) {
+		        fcntl(pipefd[1], F_SETFD, flags | FD_CLOEXEC);
+		    }
+
+		    /* Optional: silence child's stdout/stderr while probing */
+		    int devnull = open("/dev/null", O_WRONLY);
+		    if (-1 != devnull) {
+		        dup2(devnull, STDOUT_FILENO);
+		        dup2(devnull, STDERR_FILENO);
+		        close(devnull);
+		    }
+
+		    /* Try to exec the program. Use --version as a harmless probe; if the
+		       program doesn't accept it you can pass NULL to run with no args. */
+		    execlp(prog, prog, "--version", (char *)NULL);
+
+		    /* If we get here, exec failed. Write errno to parent then exit. */
+		    int err = errno;
+		    (void)write(pipefd[1], &err, sizeof(err)); /* best effort */
+		    close(pipefd[1]);
+		    _exit(127); /* indicate exec failure */
+		}
+
+		/* Parent */
+		close(pipefd[1]); /* close write end in parent */
+
+		/* Read from pipe: if exec succeeded, FD_CLOEXEC closed write end on exec,
+		   so read() will return 0 (EOF) immediately. If exec failed child wrote errno. */
+		int child_errno = 0;
+		ssize_t r = read(pipefd[0], &child_errno, sizeof(child_errno));
+		close(pipefd[0]);
+
+		/* Reap child */
+		int status = 0;
+		if (-1 == waitpid(pid, &status, 0)) {
+			fprintf(stderr, "waitpid failed");
+		    return -1;
+		}
+
+		if (0 == r) {
+		    /* EOF: exec succeeded (the new program replaced child). Program is installed. */
+		    return 1;
+		} else if (r == sizeof(child_errno)) {
+		    /* exec failed; child_errno contains errno value from exec */
+		    if (ENOENT == child_errno) {
+		        /* file not found in PATH */
+		        return 0;
+		    } else {
+		        /* Some other exec error (permission, ENOEXEC, etc.) */
+		        fprintf(stderr, "execlp('%s') failed in child: %s\n", prog, strerror(child_errno));
+		        return 0;
+		    }
+		} else {
+		    /* unexpected read result */
+		    return -1;
+		}
+	}
+
+	void MCS_lnxdoalternatelanguage(MCStringRef p_script, MCStringRef p_language)
+	{
+		char *langname;
+
+		MCStringConvertToCString(p_language, langname);
+		if (1 == is_language_installed(langname))
+		{
+			MCS_alternate_shell(p_script, langname);
+			return;
+		}
+		else
+			MCresult->sets("alternate language not found");
+	}
+
+	// MDW 2013-07-05 : allow alternate languages
+	// by opening a new process and capturing the output
+	// return the result
+	/* Example:
+	on mouseUp
+		local tScript
+		put "x=42" & cr into tScript
+		put "print(x)" & cr after tScript
+
+		do tScript as "python3"
+		put the result into field 1
+	end mouseUp
+	*/
+	void MCS_alternate_shell(MCStringRef script, const char *langname)
+	{
+		FILE *inProcess;
+		char *commandLine;
+		char *buffer, *line;
+		unsigned int bufferLength;
+		MCString s;
+		s = MCStringGetCString(script);
+		
+		// set up the command line (langname + arguments)
+		bufferLength = s.getlength() + strlen(langname) + 8;
+		commandLine = (char *)malloc(bufferLength);
+
+		// write the script to a temporary file
+		// this allows us to have embedded quotes in the script
+		int fileDesc;
+		char fileTemplate[] = "/tmp/HxTXXXXXX";
+		fileDesc = mkstemp(fileTemplate);
+		if (-1 == fileDesc)
+		{
+			fprintf(stderr, "mkstemp error");
+			return;
+		}
+
+		FILE *fd = fdopen(fileDesc, "w");
+		if (!fd)
+		{
+			fprintf(stderr, "fdopen error");
+			return;
+		}
+
+		if (EOF == fputs(s.getstring(), fd)) {
+		    fclose(fd);
+			fprintf(stderr, "fputs error");
+			return;
+		}
+		fflush(fd);
+		fclose(fd); // also closes fileDesc
+
+		if (0 == strcmp("node", langname))
+			sprintf(commandLine, "%s < %s 2>&1", langname, fileTemplate);
+		else if (0 == strcmp("go", langname))
+			sprintf(commandLine, "%s run %s 2>&1", langname, fileTemplate);
+		else
+			sprintf(commandLine, "%s %s 2>&1", langname, fileTemplate);
+
+		const int kREADMAX=512;
+		buffer = (char *)malloc(kREADMAX);
+		line = (char *)malloc(kREADMAX);
+		bufferLength = kREADMAX;
+		*buffer = 0; // null-terminate the output buffer
+		inProcess = popen(commandLine, "r");
+		if (NULL != inProcess)
+		{
+			while(fgets(line, kREADMAX, inProcess))
+			{
+				if (feof(inProcess))
+					break;
+				// ensure there's room in the buffer
+				if (strlen(buffer) + strlen(line) > bufferLength)
+				{
+					bufferLength *= 2;
+					buffer = (char *)realloc(buffer, bufferLength);
+				}
+				buffer = strcat(buffer, line);
+			}
+			MCresult->copysvalue(buffer);
+			int status = pclose(inProcess);
+			if (-1 == status) {
+				fprintf(stderr, "perror status=%d\n", status);
+			}
+
+			if (WIFEXITED(status)) {
+				int exit_code = WEXITSTATUS(status);
+	//		    fprintf(stderr, "%s exit code: %d\n", langname, exit_code);
+			} else if (WIFSIGNALED(status)) {
+				fprintf(stderr, "%s killed by signal: %d\n", langname, WTERMSIG(status));
+			} else {
+				fprintf(stderr, "%s terminated abnormally (status=0x%x)\n", langname, status);
+			}
+		}
+		else
+		{
+			fprintf(stderr, "pOpen inProcess failed");
+		}
+
+		free(commandLine);
+		free(line);
+		free(buffer);
+		if (-1 == unlink(fileTemplate)) {
+		    fprintf(stderr, "warning: unlink(%s) failed: %s\n", fileTemplate, strerror(errno));
+		}
+	}
+
+	virtual void DoAlternateLanguage(MCStringRef p_script, MCStringRef p_language)
+	{
+		MCStringRef t_language;
+		char*languagePointer;
+
+		// on linux node.js if installed will run javascript code
+		if (MCStringIsEqualToCString(p_language, "javascript", kMCCompareCaseless))
+			/* UNCHECKED */ MCStringCreateWithCString("node", t_language);
+		else
+			t_language = p_language;
+		MCStringConvertToCString(t_language, languagePointer);
+		if (1 == is_language_installed(languagePointer))
+			MCS_lnxdoalternatelanguage(p_script, t_language);
+		else
+			MCresult->sets("alternate language not found");
+	}
+
+	virtual bool AlternateLanguages(MCListRef& r_list)
+	{
+		MCAutoStringRef t_language;
+		// start with an empty list
+		MCAutoListRef t_list;
+		if (!MCListCreateMutable('\n', &t_list))
+			return false;
+
+		int i;
+		char *testLanguage;
+		i = 0;
+		while(nil != availableAlternateLanguages[i])
+		{
+			if (1 == is_language_installed(availableAlternateLanguages[i]))
+			{
+				// report node as javascript
+				if (0 ==  strcmp("node", availableAlternateLanguages[i]))
+					/* UNCHECKED */ MCStringCreateWithCString("javascript", &t_language);
+				else
+					/* UNCHECKED */ MCStringCreateWithCString(availableAlternateLanguages[i], &t_language);
+				if (!MCListAppend(*t_list, *t_language))
+					return false;
+			}
+			i++;
+		}
+		return MCListCopy(*t_list, r_list);
+	}
 
     virtual bool GetDNSservers(MCListRef& r_list)
     {

@@ -590,7 +590,7 @@ LCError LCObjectRelease(LCObjectRef object);
 // 
 //   The parameter list is constructed based on the 'signature' c-string. Each
 //   character in the signature determines the type of the subsequent arguments
-//   and is used to convert them to a form suitable for LiveCode script.
+//   and is used to convert them to a form suitable for script.
 //
 //   The characters that are currently understood are:
 //     'b' - the parameter is of 'bool' type, converts to 'true' or 'false'
@@ -1149,7 +1149,7 @@ enum
 	// engine processes still function however (cf. wait without messages).
 	kLCWaitOptionBlocking = 0,
 	// The wait should allow all messages to be dispatched, including those
-	// result in LiveCode script being executed (cf. wait with messages).
+	// result in script being executed (cf. wait with messages).
 	kLCWaitOptionDispatching = 1 << 0,
 };
 

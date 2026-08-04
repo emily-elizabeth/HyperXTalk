@@ -112,7 +112,7 @@ usage(int status)
 "       lc-compile [OPTION ...] --outputc OUTFILE [--] LCBFILE ... LCBFILE\n"
 "       lc-compile [OPTION ...] --deps DEPTYPE [--] LCBFILE ... LCBFILE\n"
 "\n"
-"Compile a LiveCode Builder source file.\n"
+"Compile a Builder source file.\n"
 "\n"
 "Options:\n"
 "      --modulepath PATH      Search PATH for module interface files.\n"

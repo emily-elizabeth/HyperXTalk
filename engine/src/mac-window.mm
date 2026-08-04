@@ -1936,7 +1936,6 @@ static void map_key_event(NSEvent *event, MCPlatformKeyCode& r_key_code, codepoi
 		NSView *t_subview;
 		t_subview = [t_subviews objectAtIndex:i];
 		
-        // Adjust any layers added by externals (revbrowser).
         if ([t_subview respondsToSelector:@selector(com_hyperxtalk_hyperxtalk_nativeViewId)])
         {
 			NSPoint t_origin;
@@ -2273,6 +2272,15 @@ void MCMacPlatformWindow::DoRealize(void)
     
     // MERG-2015-10-11: [[ DocumentFilename ]] Set documentFilename.
     UpdateDocumentFilename();
+
+    // HXT: If this window IS the backdrop, apply its collection behavior now —
+    // before DoShow() calls makeKeyAndOrderFront:. macOS assigns a window to a
+    // Space the moment it first becomes visible, so NSWindowCollectionBehaviorCanJoinAllSpaces
+    // must be set before that call, not after, for the backdrop to appear on all
+    // connected displays. MCMacPlatformSyncBackdrop() is a no-op when s_backdrop_window
+    // is nil or when this window's handle is not yet valid, so it's safe to call here
+    // for every window.
+    MCMacPlatformSyncBackdrop();
 }
 
 void MCMacPlatformWindow::DoSynchronize(void)

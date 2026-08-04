@@ -1,23 +1,23 @@
-# Contributing to LiveCode Documentation
+# Contributing to HyperXTalk Documentation
 
 *Note this document is specifically about contributing to the 
-documentation of LiveCode. If you are looking for a general guide to 
-contributing to the LiveCode source, see the 
+documentation of HyperXTalk. If you are looking for a general guide to 
+contributing to the HyperXTalk source, see the 
 [toplevel CONTRIBUTING.md document](../CONTRIBUTING.md)*
 
 Have you noticed an error in the documentation? Do you want to add an 
 instructive example? Or can you explain a concept better than it is 
 currently explained? Please consider submitting your proposed changes 
-directly to the LiveCode repo on GitHub.
+directly to the HyperXTalk repo on GitHub.
 
-Please consult the [documentation style guide](development/docs_style_guide.md)
+Please consult the [documentation style guide](development/Documentation%20Style%20Guide.md)
 and the [documentation format specification](guides/HyperXTalk%20Documentation%20Format%20Reference.md)
 for information on the standards and structure we aim to maintain in our
 documentation.
 
 # Documentation Objectives
 
-Our objectives for the LiveCode documentation can be categorised as
+Our objectives for the HyperXTalk documentation can be categorised as
 - Completeness
 - Correctness
 - Instructiveness
@@ -25,14 +25,14 @@ Our objectives for the LiveCode documentation can be categorised as
 ## Completeness
 
 In the context of the dictionary, completeness clearly entails the 
-documentation of all LiveCode syntax. The most basic form of 
+documentation of all HyperXTalk syntax. The most basic form of 
 incompleteness is a completely missing dictionary entry. If you intend 
 to write a missing dictionary entry, please bear these documentation 
 objectives in mind and consult the 
 [documentation format specification](guides/HyperXTalk%20Documentation%20Format%20Reference.md).
 
 The dictionary ought to contain *all* the relevant information about a
-particular piece of LiveCode syntax. Every syntax variant should be 
+particular piece of HyperXTalk syntax. Every syntax variant should be 
 explained in detail in the description. Some of the most commonly 
 missing information in our current dictionary is as follows:
 - Inadequate or missing explanation of a parameter's function
@@ -141,7 +141,7 @@ If there are many references in a given entry, consider sorting them
 alphabetically - this helps prevent duplication and makes it easier to
 spot potential ambiguities.
 
-# Community Documentation Contribution Process
+# Documentation Contribution Process
 
 After creating an account on GitHub at https://github.com/join, there 
 are three main ways of submitting pull requests. The first exclusively 
@@ -150,7 +150,7 @@ experience of git or other version control systems.
 
 ## Using the GitHub Web Interface
 
-It is possible to contribute to the LiveCode dictionary using the GitHub 
+It is possible to contribute to the HyperXTalk dictionary using the GitHub 
 website, without having to download any software or use the command line.
 
 ### Making your dictionary change
@@ -162,7 +162,7 @@ https://github.com/emily-elizabeth/HyperXTalk/blob/main/docs/dictionary/command/
 
 Either go directly to the community docs branch URL
 (https://github.com/emily-elizabeth/HyperXTalk/tree/main) or if you are 
-on the main LiveCode repository page, select 'main' from the 
+on the main HyperXTalk repository page, select 'main' from the 
 branch dropdown menu:
 
 ![](images/branch-dropdown.png)
@@ -175,7 +175,7 @@ label of the dropdown and the url of your browser.
 Now use the file system browser to find the file you want to modify, and
 click on it.
 
-![](images/hyperxtalk-repo-filesystem.png)
+![](images/repo-filesystem.png)
 
 **Click the pencil icon to the right of Raw|Blame|History buttons**
 
@@ -204,19 +204,19 @@ paragraphs when there are two return characters in a row).
 
 The title should be along the lines of 
 
-`[[ Community Docs ]] <short description of what was fixed / updated>`
+`[[ Docs ]] <short description of what was fixed / updated>`
 
 or if you are fixing a specific bug
 
-`[[ Bug <bug number> ]] <short description of what was fixed / updated>`
+`[[ Bug <issue number> ]] <short description of what was fixed / updated>`
 
 For example:
 
-`[[ Community Docs ]] Added working example to dictionary entry for accept command`
+`[[ Docs ]] Added working example to dictionary entry for accept command`
 
 or
 
-`[[ Community Docs ]] Ensure parameter names match those in syntax in dictionary entry for prepare command`
+`[[ Docs ]] Ensure parameter names match those in syntax in dictionary entry for prepare command`
 
 or
 
@@ -226,7 +226,7 @@ The description field is only necessary if you have made any more major changes 
 
 For example your title might be
 
-`[[ Community Docs ]] Rewrite various parts of dictionary entry for revXMLDeleteTree command`
+`[[ Docs ]] Rewrite various parts of dictionary entry for revXMLDeleteTree command`
 
 and description
 
@@ -239,9 +239,9 @@ and description
 **Click the Propose File Change button.**
 
 >*Note:* Please ensure the pull request has the correct base branch and 
-comparison branch. The base fork should be `livecode/hyperxtalk`, with
+comparison branch. The base fork should be `emily-elizabeth/HyperXTalk`, with
 base branch `main`, and the head fork should be 
-`<your user name>/hyperxtalk` with compare branch something like `patch-1`
+`<your user name>/HyperXTalk` with compare branch something like `patch-1`
 (unless you have renamed it).
 
 ![](images/pull-request-target.png)
@@ -263,24 +263,11 @@ Requests' menu item at the top of the GitHub website.
 
 ![](images/github-top-menu.png)
 
-**Sign the CLA if you haven't already**
-
-Go to the list of pull requests and click on the link to your pull request.
-If you have not signed the Contributor's Agreement, livecode-vulcan will have commented (or will soon!)
-to ask you to:
-1. Sign the LiveCode CLA
-2. Link your GitHub account to the LiveCode account you signed with
-
-Once you have done this, livecode-vulcan should remove the need-CLA tag from the pull request
-
-If you are not fixing a specific bug in the bug database, then you're done! You can skip the next section.
-Otherwise you need to add a release note describing what bug you have fixed.
-
 ### Adding a bug fix release note
 
 **Click on the link to your github user name on the pull request (or go to `https://github.com/<user name>`)**
 
-**Click on the link to your livecode repository (under the Popular Repositories heading).**
+**Click on the link to your HyperXTalk repository (under the Popular Repositories heading).**
 
 You should see a link to your recently pushed branch (called patch-1 or similar).
 
@@ -291,13 +278,13 @@ from the branch dropdown list.
 
 At the top of the page you should see something like
 
-Branch: patch-1   livecode/docs/notes/            New File | Find File | History
+Branch: patch-1   HyperXTalk/docs/notes/            New File | Find File | History
 
 **Click on New File**
 
 **Name the file**
 It should be called:
-`bugfix-<bug number>.md`
+`bugfix-<issue number>.md`
 
 **In the file contents, put the single line**
 
@@ -324,14 +311,14 @@ Once all the above has been sorted out, someone will review your pull request. P
 check back in case there is something that the reviewer would like you to change.
 
 When the pull request has been reviewed, it will be merged into the main repository and 
-should be in the LiveCode Dictionary in the next release!
+should be in the HyperXTalk Dictionary in the next release!
 
 ## Making further changes
 
 If you need to make further changes to your pull request, first make 
 sure you are looking at the pull request you want to change (you can 
 find your pull request either in the list of pull requests to the 
-livecode repo at https://github.com/emily-elizabeth/HyperXTalk/pulls, or by 
+HyperXTalk repo at https://github.com/emily-elizabeth/HyperXTalk/pulls, or by 
 clicking the 'Pull Requests' menu item at the top of the GitHub website 
 which shows all your outstanding pull requests).
 
@@ -354,7 +341,7 @@ The pull request will be automatically updated.
 Download a Git GUI Client from 
 http://git-scm.com/downloads/guis
 
-Once you have familiarised yourself with the client, go to the livecode repo
+Once you have familiarised yourself with the client, go to the HyperXTalk repo
 https://github.com/emily-elizabeth/HyperXTalk
 and click Fork, and then "Clone in Desktop" button at the top right.
 clone to a suitable location.
@@ -369,7 +356,7 @@ You should see the change appear in the GUI client.
 If you are fixing a particular bug in the bug database, you need to add a release note 
 describing what bug you have fixed.
 
-Add a new file to docs/notes locally, named `bugfix-<bug number>.md`, containing the single line
+Add a new file to docs/notes locally, named `bugfix-<issue number>.md`, containing the single line
 
 `# <Description of bug fixed>`
 
@@ -379,22 +366,22 @@ In the summary and description section,
 
 The title should be along the lines of 
 
-`[[ Community Docs ]] <short description of what was fixed / updated>`
+`[[ Docs ]] <short description of what was fixed / updated>`
 
 for example:
 
-`[[ Community Docs ]] Added working example to dictionary entry for accept command`
+`[[ Docs ]] Added working example to dictionary entry for accept command`
 
 or
 
-`[[ Community Docs ]] Ensure parameter names match those in syntax in dictionary entry for prepare command`
+`[[ Docs ]] Ensure parameter names match those in syntax in dictionary entry for prepare command`
 
 
 The description field is only necessary if you have made any more major changes to a file.
 
 For example your title might be
 
-`[[ Community Docs ]] Rewrite various parts of dictionary entry for revXMLDeleteTree command`
+`[[ Docs ]] Rewrite various parts of dictionary entry for revXMLDeleteTree command`
 
 and description
 
@@ -408,26 +395,26 @@ Click commit to <branch>
 
 Then click "Submit pull request"
 
-Make sure the target branch is livecode/main
+Make sure the target branch is HyperXTalk/main
 
 Check the pull request has appeared in
 https://github.com/emily-elizabeth/HyperXTalk/pulls
 
 ## Command Line
 
-go to the livecode repo
+go to the HyperXTalk repo
 https://github.com/emily-elizabeth/HyperXTalk
 and click Fork
 
 then in a terminal window, in a suitable directory, run
 
-`git clone --recursive https://github.com/<your user name>/hyperxtalk.git`
+`git clone https://github.com/<your user name>/HyperXTalk.git`
 
 once this is done, change directory into the newly created directory
 
-`cd hyperxtalk`
+`cd HyperXTalk`
 
-and add the hyperxtalk repo as upstream
+and add the HyperXTalk repo as upstream
 
 `git remote add upstream https://github.com/emily-elizabeth/HyperXTalk.git`
 
@@ -456,7 +443,7 @@ make your changes to the file you are changing, then add the changes to the stag
 If you are fixing a particular bug in the bug database, you need to add a release note 
 describing what bug you have fixed.
 
-Add a new file to docs/notes locally, named `bugfix-<bug number>.md`, containing the single line
+Add a new file to docs/notes locally, named `bugfix-<issue number>.md`, containing the single line
 
 `# <Description of bug fixed>`
 
@@ -466,22 +453,22 @@ and add that to the staging area too
 
 Then commit your changes
 
-`git commit -m "[[ Community Docs ]] <short description of what was fixed / updated>"`
+`git commit -m "[[ Docs ]] <short description of what was fixed / updated>"`
 
 for example:
 
-`git commit -m "[[ Community Docs ]] Added working example to dictionary entry for accept command"`
+`git commit -m "[[ Docs ]] Added working example to dictionary entry for accept command"`
 
 Push the changes to your fork of the repo
 
 `git push`
 
-Navigate to your fork on the Git website, `https://github.com/<your user name>/hyperxtalk/`
+Navigate to your fork on the Git website, `https://github.com/<your user name>/HyperXTalk/`
 
 You should see a link to the recently pushed branch, and an invitation to submit a pull request.
 Click this. 
 
-Ensure the base fork is livecode/hyperxtalk, and the base is main.
+Ensure the base fork is emily-elizabeth/HyperXTalk, and the base is main.
 
 Click create pull request.
 

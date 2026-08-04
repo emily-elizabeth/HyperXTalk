@@ -169,108 +169,108 @@ Fetch the data for LCS entries with name <pEntryName>, including extensions
 Returns:
 A numerically keyed array, each element of which is the array
 of data 
-pertaining to a LiveCode Script API entry with the given name.
+pertaining to a Script API entry with the given name.
 */
 function ideDocsFetchScriptData pEntryName
-   return ideDocsFetchData("livecode_script", "", pEntryName)
+   return ideDocsFetchData("script", "", pEntryName)
 end ideDocsFetchScriptData
 
 /* 
-Fetch the data for LiveCode script dictionary entries with name <pEntryName>
+Fetch the data for script dictionary entries with name <pEntryName>
 
 Returns:
 A numerically keyed array, each element of which is the array
 of data 
-pertaining to a  LiveCode script dictionary entry with the given name.
+pertaining to a  script dictionary entry with the given name.
 */
 function ideDocsFetchLCSData pEntryName
-   return ideDocsFetchData("livecode_script", "LiveCode Script", pEntryName)
+   return ideDocsFetchData("script", "Script", pEntryName)
 end ideDocsFetchLCSData
 
 /* 
-Fetch the data for the LiveCode script dictionary entry with name <pEntryName>
+Fetch the data for the script dictionary entry with name <pEntryName>
 and type <pType>
 
 Returns:
 An array
-of data pertaining to the unique LiveCode script dictionary entry with the 
+of data pertaining to the unique script dictionary entry with the 
 given name and type.
 */
 function ideDocsFetchLCSDataOfType pEntryName, pType
-   return ideDocsFetchDataOfType("livecode_script", "LiveCode Script", pEntryName, pType)
+   return ideDocsFetchDataOfType("script", "Script", pEntryName, pType)
 end ideDocsFetchLCSDataOfType
 
 /* 
-Fetch a specific element of the array of data for the LiveCode script dictionary entry 
+Fetch a specific element of the array of data for the script dictionary entry 
 with name <pEntryName> and type <pType>.
 
 Returns:
 Either a string or an array
 of data describing the element of the array of data
-pertaining to the LiveCode script dictionary entry with the given name and type.
+pertaining to the script dictionary entry with the given name and type.
 */
 function ideDocsFetchLCSElementOfType pEntryName, pType, pElement
-   return ideDocsFetchElementOfType("livecode_script", "LiveCode Script", pEntryName, pType, pElement)
+   return ideDocsFetchElementOfType("script", "Script", pEntryName, pType, pElement)
 end ideDocsFetchLCSElementOfType
 
 /* 
-Fetch all docs element of the given type in the LiveCode script dictionary.
+Fetch all docs element of the given type in the script dictionary.
 
 Returns:
 A numerically keyed array of data, each element of which is an array of data
-pertaining to a LiveCode script dictionary entry with the given type.
+pertaining to a script dictionary entry with the given type.
 */
 function ideDocsFetchLCSElementsOfType pType
-   return __ideDocsFetchData("livecode_script", "LiveCode Script", "", pType)
+   return __ideDocsFetchData("script", "Script", "", pType)
 end ideDocsFetchLCSElementsOfType
 
 /* 
-Fetch the data for LiveCode builder dictionary entries with name <pEntryName>
+Fetch the data for builder dictionary entries with name <pEntryName>
 
 Returns:
 A numerically keyed array, each element of which is the array
 of data 
-pertaining to a LiveCode builder dictionary entry with the given name.
+pertaining to a builder dictionary entry with the given name.
 */
 function ideDocsFetchLCBData pEntryName
-   return ideDocsFetchData("livecode_builder", "LiveCode Builder", pEntryName)
+   return ideDocsFetchData("builder", "Builder", pEntryName)
 end ideDocsFetchLCBData
 
 /* 
-Fetch the data for the LiveCode builder dictionary entry with name <pEntryName>
+Fetch the data for the builder dictionary entry with name <pEntryName>
 and type <pType>
 
 Returns:
 An array
-of data pertaining to the unique LiveCode builder dictionary entry with the 
+of data pertaining to the unique builder dictionary entry with the 
 given name and type.
 */
 function ideDocsFetchLCBDataOfType pEntryName, pType
-   return ideDocsFetchDataOfType("livecode_builder", "LiveCode Builder", pEntryName, pType)
+   return ideDocsFetchDataOfType("builder", "Builder", pEntryName, pType)
 end ideDocsFetchLCBDataOfType
 
 /* 
-Fetch a specific element of the array of data for the LiveCode builder dictionary entry 
+Fetch a specific element of the array of data for the builder dictionary entry 
 with name <pEntryName> and type <pType>.
 
 Returns:
 Either a string or an array
 of data describing the element of the array of data
-pertaining to the LiveCode builder dictionary entry with the given name and type.
+pertaining to the builder dictionary entry with the given name and type.
 */
 function ideDocsFetchLCBElementOfType pEntryName, pType, pElement
-   return ideDocsFetchElementOfType("livecode_builder", "LiveCode Builder", pEntryName, pType, pElement)
+   return ideDocsFetchElementOfType("builder", "Builder", pEntryName, pType, pElement)
 end ideDocsFetchLCBElementOfType
 
 /* 
-Fetch all docs element of the given type in the LiveCode builder dictionary.
+Fetch all docs element of the given type in the builder dictionary.
 
 Returns:
 A numerically keyed array of data, each element of which is an array of data
-pertaining to a LiveCode builder dictionary entry with the given type.
+pertaining to a builder dictionary entry with the given type.
 */
 function ideDocsFetchLCBElementsOfType pType
-   return __ideDocsFetchData("livecode_builder", "LiveCode Builder", "", pType)
+   return __ideDocsFetchData("builder", "Builder", "", pType)
 end ideDocsFetchLCBElementsOfType
 
 /* 
@@ -321,11 +321,11 @@ function ideDocsFetchExtensionElementOfType pID, pEntryName, pType, pElement
 end ideDocsFetchExtensionElementOfType
 
 /* 
-Fetch all docs element of the given type in the LiveCode script dictionary.
+Fetch all docs element of the given type in the script dictionary.
 
 Returns:
 A numerically keyed array of data, each element of which is an array of data
-pertaining to a LiveCode script dictionary entry with the given type.
+pertaining to a script dictionary entry with the given type.
 */
 function ideDocsFetchExtensionElementsOfType pID, pType
    local tLibraryName, tAPI
@@ -385,27 +385,27 @@ function ideDocsFetchLibraryEntries pLibraryName
 end ideDocsFetchLibraryEntries
 
 /* 
-Fetch the data for all entries in the LiveCode script dictionary
+Fetch the data for all entries in the script dictionary
 
 Returns:
 A numerically keyed array, each element of which is the array
 of data 
-pertaining to an entry in the LiveCode script dictionary.
+pertaining to an entry in the script dictionary.
 */
 function ideDocsFetchLCSEntries
-   return ideDocsFetchLibraryEntries("LiveCode Script")
+   return ideDocsFetchLibraryEntries("Script")
 end ideDocsFetchLCSEntries
 
 /* 
-Fetch the data for all entries in the LiveCode builder dictionary
+Fetch the data for all entries in the builder dictionary
 
 Returns:
 A numerically keyed array, each element of which is the array
 of data 
-pertaining to an entry in the LiveCode builder dictionary.
+pertaining to an entry in the builder dictionary.
 */
 function ideDocsFetchLCBEntries
-   return ideDocsFetchLibraryEntries("LiveCode Builder")
+   return ideDocsFetchLibraryEntries("Builder")
 end ideDocsFetchLCBEntries
 
 /* 
