@@ -887,12 +887,12 @@ bool MCField::converttoparagraphs(void *p_context, const MCTextParagraph *p_para
 	{
 		// Append the block to the current paragraph
 		MCAutoStringRef t_text;
-        
+
         if (p_block -> string_native)
             /* UNCHECKED */ MCStringCreateWithNativeChars((const char_t*)p_block->string_buffer, p_block->string_length, &t_text);
         else
             /* UNCHECKED */ MCStringCreateWithChars((const unichar_t*)p_block->string_buffer, p_block->string_length, &t_text);
-        
+
 		MCBlock *t_block = t_paragraph->AppendText(*t_text);
 
 		// MW-2008-06-12: [[ Bug 6397 ]] Pasting styled text munges the color.

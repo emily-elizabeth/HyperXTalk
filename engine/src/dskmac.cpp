@@ -3615,8 +3615,11 @@ struct MCMacDesktop: public MCSystemInterface, public MCMacSystemService
         
         // ARM replacement: use CFString for legacy encoding → Unicode
         CFStringEncoding t_cf_enc = (CFStringEncoding)t_encoding;
+        fprintf(stderr, "[RTF-tcu] TextConvertToUnicode: enc=%d cf_enc=%u inlen=%u outlen=%u\n",
+            (int)t_encoding, (unsigned)t_cf_enc, (unsigned)p_input_length, (unsigned)p_output_length);
         CFStringRef t_cf_str = CFStringCreateWithBytes(kCFAllocatorDefault,
             (const UInt8 *)p_input, (CFIndex)p_input_length, t_cf_enc, false);
+        fprintf(stderr, "[RTF-tcu] CFStringCreateWithBytes result=%s\n", t_cf_str ? "OK" : "NULL");
         if (t_cf_str == NULL)
         {
             r_used = 0;
@@ -3624,6 +3627,7 @@ struct MCMacDesktop: public MCSystemInterface, public MCMacSystemService
         }
         CFIndex t_char_count = CFStringGetLength(t_cf_str);
         CFIndex t_byte_count = t_char_count * (CFIndex)sizeof(UniChar);
+        fprintf(stderr, "[RTF-tcu] chars=%ld bytes=%ld outlen=%u\n", (long)t_char_count, (long)t_byte_count, (unsigned)p_output_length);
         if (t_byte_count > (CFIndex)p_output_length)
         {
             // Buffer too small — report required size so the caller can resize and retry.
