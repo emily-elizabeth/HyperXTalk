@@ -111,6 +111,10 @@ MCNativeLayerX11 *MCNativeLayerX11::s_focused_browser_layer = NULL;
 // route scroll events by mouse position when multiple browsers are present.
 static std::vector<MCNativeLayerX11*> s_all_layers_list;
 
+// The browser layer the pointer was last over (for enter/leave tracking).
+// NULL means the pointer is not over any browser rect.
+static MCNativeLayerX11 *s_hovered_browser_layer = NULL;
+
 // Defined in lnxdclnx.cpp — closes any active HXT text field so that
 // subsequent key events route to WebKit instead of the field.
 // Called from OnMouseDown when the browser widget receives a click.
@@ -222,35 +226,80 @@ void hxt_browser_key_up(unsigned int p_keyval, unsigned int p_state,
     (void)p_state; (void)p_hwcode; (void)p_group;
 }
 
-// Called from lnxdclnx.cpp's GDK_MOTION_NOTIFY handler while a button is
-// held inside the browser rect.  p_x/p_y are in HXT's scaled stack-window
-// coordinate space (same space as m_rect).  The function converts to
-// browser-widget-relative coords and forwards to WebKit via
-// forwardPointerEvent so that text-selection dragging works correctly.
+// Called from lnxdclnx.cpp's GDK_MOTION_NOTIFY handler on every mouse move
+// over an HXT stack window.  p_x/p_y are in HXT's scaled stack-window
+// coordinate space (same space as m_rect).
+//
+// Two cases are handled:
+//   Drag (button held): forwards motion to the focused browser so WebKit can
+//     extend a text-selection range.  The deferred button-press is flushed
+//     before the first drag motion.
+//   Hover (no button): finds whichever browser rect the pointer is over and
+//     forwards a bare GDK_MOTION_NOTIFY (state=0) so WebKit can update CSS
+//     :hover state, fire JS mouseover/mousemove events, and change the cursor.
+//     GDK_ENTER_NOTIFY / GDK_LEAVE_NOTIFY are synthesised when the pointer
+//     crosses a browser rect boundary.
 void hxt_browser_forward_motion(int p_x, int p_y)
 {
+    // --- Drag path: button held in focused browser ---
     MCNativeLayerX11 *t_layer = MCNativeLayerX11::s_focused_browser_layer;
-    if (t_layer == NULL || !t_layer->m_pointer_button_down)
-        return;
-
-    int t_bx = p_x - (int)t_layer->m_rect.x;
-    int t_by = p_y - (int)t_layer->m_rect.y;
-
-    // Send the deferred button-press before the first motion so WebKit can
-    // anchor the text-selection range at the original click point.
-    // At this point we know it is a drag (not a quick click), so there is no
-    // risk of a synchronous show-option-menu deadlock — <select> elements are
-    // only activated by clicks, not drags.
-    if (t_layer->m_button_press_pending)
+    if (t_layer != NULL && t_layer->m_pointer_button_down)
     {
-        t_layer->m_button_press_pending = false;
-        t_layer->forwardPointerEvent(GDK_BUTTON_PRESS,
-            t_layer->m_pending_press_bx, t_layer->m_pending_press_by,
-            1, 0);
+        int t_bx = p_x - (int)t_layer->m_rect.x;
+        int t_by = p_y - (int)t_layer->m_rect.y;
+
+        // Send the deferred button-press before the first motion so WebKit can
+        // anchor the text-selection range at the original click point.
+        // At this point we know it is a drag (not a quick click), so there is
+        // no risk of a synchronous show-option-menu deadlock.
+        if (t_layer->m_button_press_pending)
+        {
+            t_layer->m_button_press_pending = false;
+            t_layer->forwardPointerEvent(GDK_BUTTON_PRESS,
+                t_layer->m_pending_press_bx, t_layer->m_pending_press_by,
+                1, 0);
+        }
+
+        t_layer->forwardPointerEvent(GDK_MOTION_NOTIFY, t_bx, t_by,
+                                     0, GDK_BUTTON1_MASK);
+        return;
     }
 
-    t_layer->forwardPointerEvent(GDK_MOTION_NOTIFY, t_bx, t_by,
-                                 0, GDK_BUTTON1_MASK);
+    // --- Hover path: no button held ---
+    // Find the browser layer under the pointer (if any).
+    MCNativeLayerX11 *t_hover = NULL;
+    int t_bx = 0, t_by = 0;
+    for (MCNativeLayerX11 *t_candidate : s_all_layers_list)
+    {
+        if (!t_candidate->m_visible || !t_candidate->m_show_for_tool ||
+            t_candidate->m_browser_widget == NULL)
+            continue;
+        const MCRectangle &r = t_candidate->m_rect;
+        if (p_x >= (int)r.x && p_x < (int)(r.x + r.width) &&
+            p_y >= (int)r.y && p_y < (int)(r.y + r.height))
+        {
+            t_hover = t_candidate;
+            t_bx    = p_x - (int)r.x;
+            t_by    = p_y - (int)r.y;
+            break;
+        }
+    }
+
+    // Synthesise enter/leave events when the pointer crosses a rect boundary.
+    if (t_hover != s_hovered_browser_layer)
+    {
+        if (s_hovered_browser_layer != NULL)
+            s_hovered_browser_layer->forwardPointerEvent(
+                GDK_LEAVE_NOTIFY, t_bx, t_by, 0, 0);
+        if (t_hover != NULL)
+            t_hover->forwardPointerEvent(
+                GDK_ENTER_NOTIFY, t_bx, t_by, 0, 0);
+        s_hovered_browser_layer = t_hover;
+    }
+
+    // Forward the motion so WebKit updates hover state and fires mousemove.
+    if (t_hover != NULL)
+        t_hover->forwardPointerEvent(GDK_MOTION_NOTIFY, t_bx, t_by, 0, 0);
 }
 
 // Searches all attached native layers for one whose rect contains (p_x, p_y)
@@ -394,6 +443,23 @@ void MCNativeLayerX11::forwardPointerEvent(GdkEventType p_type,
         evt->motion.is_hint    = 0;
         t_signal               = "motion-notify-event";
     }
+    else if (p_type == GDK_ENTER_NOTIFY || p_type == GDK_LEAVE_NOTIFY)
+    {
+        evt->crossing.window     = t_win;
+        g_object_ref(t_win);
+        evt->crossing.send_event = FALSE;
+        evt->crossing.time       = GDK_CURRENT_TIME;
+        evt->crossing.x          = p_bx;
+        evt->crossing.y          = p_by;
+        evt->crossing.x_root     = 0;
+        evt->crossing.y_root     = 0;
+        evt->crossing.mode       = GDK_CROSSING_NORMAL;
+        evt->crossing.detail     = GDK_NOTIFY_NONLINEAR;
+        evt->crossing.focus      = FALSE;
+        evt->crossing.state      = (GdkModifierType)p_state;
+        t_signal = (p_type == GDK_ENTER_NOTIFY) ? "enter-notify-event"
+                                                 : "leave-notify-event";
+    }
     else
     {
         // GDK_BUTTON_PRESS or GDK_BUTTON_RELEASE
@@ -446,6 +512,8 @@ MCNativeLayerX11::~MCNativeLayerX11()
 {
     if (s_focused_browser_layer == this)
         s_focused_browser_layer = NULL;
+    if (s_hovered_browser_layer == this)
+        s_hovered_browser_layer = NULL;
     s_all_layers_list.erase(
         std::remove(s_all_layers_list.begin(), s_all_layers_list.end(), this),
         s_all_layers_list.end());
