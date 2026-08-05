@@ -2498,6 +2498,10 @@ MCImage *MCCard::createimage()
 {
 	MCtemplateimage->setrect(rect);
 	MCImage *iptr = new (nothrow) MCImage(*MCtemplateimage);
+	// Assign a proper ID so the MCObjptr can resolve this image after
+	// card close/reopen (clearref() nulls the pointer; getref() re-binds
+	// by ID — without an ID the image is permanently lost on navigation).
+	iptr->setid(getstack()->newid());
 	getstack()->appendcontrol(iptr);
 	mfocused = newcontrol(iptr, False);
 	return iptr;
