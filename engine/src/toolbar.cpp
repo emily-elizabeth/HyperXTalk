@@ -62,6 +62,14 @@ MCPropertyInfo MCToolbar::kProperties[] =
     DEFINE_RW_OBJ_ARRAY_PROPERTY(P_TOOLBAR_ITEM_ENABLED, Bool,   MCToolbar, ItemEnabled)
     DEFINE_RW_OBJ_ARRAY_PROPERTY(P_TOOLBAR_ITEM_ICON,    String, MCToolbar, ItemIcon)
     DEFINE_RW_OBJ_ARRAY_PROPERTY(P_TOOLBAR_ITEM_STYLE,   String, MCToolbar, ItemStyle)
+    // Read-only list getters — return all items' values as newline-delimited
+    // strings.  Used by "the properties" to avoid a crash (the per-item array
+    // properties above require an index and cannot be serialised as a scalar).
+    DEFINE_RO_OBJ_PROPERTY(P_TOOLBAR_ITEM_LABELS,   String, MCToolbar, ItemLabels)
+    DEFINE_RO_OBJ_PROPERTY(P_TOOLBAR_ITEM_TOOLTIPS, String, MCToolbar, ItemTooltips)
+    DEFINE_RO_OBJ_PROPERTY(P_TOOLBAR_ITEM_ENABLEDS, String, MCToolbar, ItemEnableds)
+    DEFINE_RO_OBJ_PROPERTY(P_TOOLBAR_ITEM_ICONS,    String, MCToolbar, ItemIcons)
+    DEFINE_RO_OBJ_PROPERTY(P_TOOLBAR_ITEM_STYLES,   String, MCToolbar, ItemStyles)
 };
 
 MCObjectPropertyTable MCToolbar::kPropertyTable =

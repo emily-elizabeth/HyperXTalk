@@ -1467,12 +1467,18 @@ enum Properties {
     P_TOOLBAR_DISPLAY_MODE,
     P_TOOLBAR_VISIBLE,
     P_TOOLBAR_ITEM_NAMES,
-    // toolbar item properties
+    // toolbar item properties (per-item, indexed by name)
     P_TOOLBAR_ITEM_LABEL,
     P_TOOLBAR_ITEM_TOOLTIP,
     P_TOOLBAR_ITEM_ENABLED,
     P_TOOLBAR_ITEM_ICON,
     P_TOOLBAR_ITEM_STYLE,
+    // toolbar item list properties (all items as newline-delimited list)
+    P_TOOLBAR_ITEM_LABELS,
+    P_TOOLBAR_ITEM_TOOLTIPS,
+    P_TOOLBAR_ITEM_ENABLEDS,
+    P_TOOLBAR_ITEM_ICONS,
+    P_TOOLBAR_ITEM_STYLES,
     P_FAMILY,
     P_VISITED,
     // button menu item properties

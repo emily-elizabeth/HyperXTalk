@@ -228,6 +228,14 @@ public:
     // items not in the new list are removed; order is updated to match.
     void SetItemNames(MCExecContext& ctxt, MCStringRef p_names);
 
+    // List getters — return all items' values as a newline-delimited string.
+    // These are read-only and are used by "the properties" to avoid a crash.
+    void GetItemLabels(MCExecContext& ctxt, MCStringRef& r_labels);
+    void GetItemTooltips(MCExecContext& ctxt, MCStringRef& r_tooltips);
+    void GetItemEnableds(MCExecContext& ctxt, MCStringRef& r_enableds);
+    void GetItemIcons(MCExecContext& ctxt, MCStringRef& r_icons);
+    void GetItemStyles(MCExecContext& ctxt, MCStringRef& r_styles);
+
     // Per-item property accessors
     void GetItemLabel(MCExecContext& ctxt, MCNameRef p_item,
                       MCStringRef& r_label);

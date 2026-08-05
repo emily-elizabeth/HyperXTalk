@@ -324,3 +324,76 @@ void MCToolbar::SetItemStyle(MCExecContext& ctxt, MCNameRef p_item,
     if (m_backend != nil)
         m_backend->UpdateItem(t_item);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// List getters — all items as a newline-delimited string
+
+void MCToolbar::GetItemLabels(MCExecContext& ctxt, MCStringRef& r_labels)
+{
+    MCAutoListRef t_list;
+    /* UNCHECKED */ MCListCreateMutable('\n', &t_list);
+    for (uindex_t i = 0; i < m_item_count; i++)
+    {
+        MCStringRef t_label = m_items[i].GetLabel();
+        /* UNCHECKED */ MCListAppend(*t_list,
+                                     t_label ? t_label : kMCEmptyString);
+    }
+    /* UNCHECKED */ MCListCopyAsString(*t_list, r_labels);
+}
+
+void MCToolbar::GetItemTooltips(MCExecContext& ctxt, MCStringRef& r_tooltips)
+{
+    MCAutoListRef t_list;
+    /* UNCHECKED */ MCListCreateMutable('\n', &t_list);
+    for (uindex_t i = 0; i < m_item_count; i++)
+    {
+        MCStringRef t_tooltip = m_items[i].GetTooltip();
+        /* UNCHECKED */ MCListAppend(*t_list,
+                                     t_tooltip ? t_tooltip : kMCEmptyString);
+    }
+    /* UNCHECKED */ MCListCopyAsString(*t_list, r_tooltips);
+}
+
+void MCToolbar::GetItemEnableds(MCExecContext& ctxt, MCStringRef& r_enableds)
+{
+    MCAutoListRef t_list;
+    /* UNCHECKED */ MCListCreateMutable('\n', &t_list);
+    for (uindex_t i = 0; i < m_item_count; i++)
+    {
+        /* UNCHECKED */ MCListAppendCString(*t_list,
+                                            m_items[i].GetEnabled() ? "true" : "false");
+    }
+    /* UNCHECKED */ MCListCopyAsString(*t_list, r_enableds);
+}
+
+void MCToolbar::GetItemIcons(MCExecContext& ctxt, MCStringRef& r_icons)
+{
+    MCAutoListRef t_list;
+    /* UNCHECKED */ MCListCreateMutable('\n', &t_list);
+    for (uindex_t i = 0; i < m_item_count; i++)
+    {
+        MCStringRef t_icon = m_items[i].GetIcon();
+        /* UNCHECKED */ MCListAppend(*t_list,
+                                     t_icon ? t_icon : kMCEmptyString);
+    }
+    /* UNCHECKED */ MCListCopyAsString(*t_list, r_icons);
+}
+
+void MCToolbar::GetItemStyles(MCExecContext& ctxt, MCStringRef& r_styles)
+{
+    MCAutoListRef t_list;
+    /* UNCHECKED */ MCListCreateMutable('\n', &t_list);
+    for (uindex_t i = 0; i < m_item_count; i++)
+    {
+        const char *t_str;
+        switch (m_items[i].GetStyle())
+        {
+            case kMCToolbarItemStyleSeparator: t_str = "separator"; break;
+            case kMCToolbarItemStyleSpace:     t_str = "space";     break;
+            case kMCToolbarItemStyleFlexSpace: t_str = "flexSpace"; break;
+            default:                           t_str = "button";    break;
+        }
+        /* UNCHECKED */ MCListAppendCString(*t_list, t_str);
+    }
+    /* UNCHECKED */ MCListCopyAsString(*t_list, r_styles);
+}
