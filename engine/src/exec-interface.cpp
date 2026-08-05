@@ -1676,6 +1676,11 @@ void MCInterfaceExecType(MCExecContext& ctxt, MCStringRef p_typing, uint2 p_modi
 void MCInterfaceExecPopToLast(MCExecContext& ctxt)
 {
 	MCCard *cptr = MCcstack->popcard();
+	if (cptr == nullptr)
+	{
+		ctxt.LegacyThrow(EE_POP_EMPTYSTACK);
+		return;
+	}
 	MCStack *sptr = cptr->getstack();
 	MCdefaultstackptr = sptr;
 	Boolean oldtrace = MCtrace;
@@ -1693,6 +1698,11 @@ void MCInterfaceExecPopToLast(MCExecContext& ctxt)
 void MCInterfaceExecPop(MCExecContext& ctxt, MCStringRef& r_element)
 {
 	MCCard *cptr = MCcstack->popcard();
+	if (cptr == nullptr)
+	{
+		ctxt.LegacyThrow(EE_POP_EMPTYSTACK);
+		return;
+	}
 	MCAutoValueRef t_element;
 	if (cptr -> names(P_LONG_ID, &t_element))
 		if (ctxt.ConvertToString(*t_element, r_element))
