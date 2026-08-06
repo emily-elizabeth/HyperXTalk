@@ -217,21 +217,6 @@ static NSImage *MCToolbarResolveIcon(NSString *iconName, NSString *label)
 @end
 
 ////////////////////////////////////////////////////////////////////////////////
-// Debug logging — NSLog values are redacted as <private> by the macOS privacy
-// subsystem, so write directly to a temp file instead.
-
-static void MCToolbarDebugLog(const char *fmt, ...) __attribute__((format(printf,1,2)));
-static void MCToolbarDebugLog(const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    va_end(ap);
-    fputc('\n', stderr);
-    fflush(stderr);
-}
-
-////////////////////////////////////////////////////////////////////////////////
 // C++ backend implementation
 
 class MCToolbarMacBackend : public MCToolbarBackend
@@ -263,7 +248,6 @@ public:
             m_toolbar.delegate = m_delegate;
             m_toolbar.allowsUserCustomization = YES;
 
-            MCToolbarDebugLog("--- Create() p_window_handle=%p ---", p_window_handle);
             // p_window_handle is MCPlatformWindowRef (= MCMacPlatformWindow* on
             // macOS), NOT a raw NSWindow*.  Call GetHandle() to obtain the
             // underlying NSWindow that AppKit owns.
@@ -281,30 +265,12 @@ public:
                 NSRect t_frame_before = m_window.frame;
                 NSRect t_content = [m_window
                                     contentRectForFrameRect:t_frame_before];
-                MCToolbarDebugLog("[MCToolbar] Create: frame_before={%.0f,%.0f,%.0f,%.0f} content={%.0f,%.0f,%.0f,%.0f}",
-                      t_frame_before.origin.x, t_frame_before.origin.y,
-                      t_frame_before.size.width, t_frame_before.size.height,
-                      t_content.origin.x, t_content.origin.y,
-                      t_content.size.width, t_content.size.height);
                 m_window.toolbar = m_toolbar;
                 NSRect t_frame_after_attach = m_window.frame;
                 NSRect t_content_after_attach = [m_window contentRectForFrameRect:t_frame_after_attach];
-                MCToolbarDebugLog("[MCToolbar] Create: after-attach frame={%.0f,%.0f,%.0f,%.0f} content={%.0f,%.0f,%.0f,%.0f}",
-                      t_frame_after_attach.origin.x, t_frame_after_attach.origin.y,
-                      t_frame_after_attach.size.width, t_frame_after_attach.size.height,
-                      t_content_after_attach.origin.x, t_content_after_attach.origin.y,
-                      t_content_after_attach.size.width, t_content_after_attach.size.height);
                 NSRect t_new_frame = [m_window
                                       frameRectForContentRect:t_content];
-                MCToolbarDebugLog("[MCToolbar] Create: t_new_frame={%.0f,%.0f,%.0f,%.0f} (delta h=%.0f)",
-                      t_new_frame.origin.x, t_new_frame.origin.y,
-                      t_new_frame.size.width, t_new_frame.size.height,
-                      t_new_frame.size.height - t_frame_after_attach.size.height);
                 [m_window setFrame:t_new_frame display:NO];
-                NSRect t_frame_final = m_window.frame;
-                MCToolbarDebugLog("[MCToolbar] Create: frame_final={%.0f,%.0f,%.0f,%.0f}",
-                      t_frame_final.origin.x, t_frame_final.origin.y,
-                      t_frame_final.size.width, t_frame_final.size.height);
             }
         }
     }
@@ -313,8 +279,6 @@ public:
     {
         @autoreleasepool
         {
-            MCToolbarDebugLog("--- Destroy() m_toolbar=%p m_window=%p ---",
-                              (void *)m_toolbar, (void *)m_window);
             if (m_toolbar && m_window)
             {
                 // Capture the content rect WITH the toolbar attached.  This is
@@ -327,11 +291,6 @@ public:
                 // the content to creep down by one toolbar height per cycle.
                 NSRect t_frame_before = m_window.frame;
                 NSRect t_content = [m_window contentRectForFrameRect:t_frame_before];
-                MCToolbarDebugLog("[MCToolbar] Destroy: frame_before={%.0f,%.0f,%.0f,%.0f} content={%.0f,%.0f,%.0f,%.0f}",
-                      t_frame_before.origin.x, t_frame_before.origin.y,
-                      t_frame_before.size.width, t_frame_before.size.height,
-                      t_content.origin.x, t_content.origin.y,
-                      t_content.size.width, t_content.size.height);
 
                 m_toolbar.delegate = nil;
                 if ([m_window.toolbar isEqual:m_toolbar])
@@ -341,25 +300,12 @@ public:
 #endif
                 m_toolbar = nil;
 
-                NSRect t_frame_after_remove = m_window.frame;
-                MCToolbarDebugLog("[MCToolbar] Destroy: after-remove frame={%.0f,%.0f,%.0f,%.0f}",
-                      t_frame_after_remove.origin.x, t_frame_after_remove.origin.y,
-                      t_frame_after_remove.size.width, t_frame_after_remove.size.height);
-
                 // Shrink the frame so the content area stays at exactly the
                 // same rect it had while the toolbar was attached.  This fires
                 // ProcessDidResize with the correct (small) content, which
                 // saves the right m_content for the engine.
                 NSRect t_new_frame = [m_window frameRectForContentRect:t_content];
-                MCToolbarDebugLog("[MCToolbar] Destroy: t_new_frame={%.0f,%.0f,%.0f,%.0f} (delta h=%.0f)",
-                      t_new_frame.origin.x, t_new_frame.origin.y,
-                      t_new_frame.size.width, t_new_frame.size.height,
-                      t_new_frame.size.height - t_frame_after_remove.size.height);
                 [m_window setFrame:t_new_frame display:NO];
-                NSRect t_frame_final = m_window.frame;
-                MCToolbarDebugLog("[MCToolbar] Destroy: frame_final={%.0f,%.0f,%.0f,%.0f}",
-                      t_frame_final.origin.x, t_frame_final.origin.y,
-                      t_frame_final.size.width, t_frame_final.size.height);
             }
             m_window   = nil;
 #if !__has_feature(objc_arc)
@@ -376,8 +322,6 @@ public:
         @autoreleasepool
         {
             NSString *t_ident = _nameToNSString(p_item->GetName());
-            MCToolbarDebugLog("[MCToolbar] AddItem ident=%s toolbar=%p",
-                              t_ident.UTF8String, (void*)m_toolbar);
 
             NSString *t_label   = _stringRefToNSString(p_item->GetLabel());
             NSString *t_iconName = _stringRefToNSString(p_item->GetIcon());
@@ -407,14 +351,10 @@ public:
             m_delegate.itemMeta[t_ident]  = meta;
             [m_delegate.itemOrder addObject:t_ident];
 
-            MCToolbarDebugLog("[MCToolbar] AddItem meta stored, inserting into toolbar (items=%lu)",
-                              (unsigned long)m_toolbar.items.count);
             if (m_toolbar)
             {
                 NSInteger t_index = (NSInteger)m_toolbar.items.count;
                 [m_toolbar insertItemWithItemIdentifier:t_ident atIndex:t_index];
-                MCToolbarDebugLog("[MCToolbar] AddItem inserted, toolbar now has %lu items",
-                                  (unsigned long)m_toolbar.items.count);
             }
         }
     }
@@ -528,29 +468,16 @@ public:
 
     void ClearItems() override
     {
-        MCToolbarDebugLog("[MCToolbar] ClearItems m_toolbar=%p m_delegate=%p",
-                          (void*)m_toolbar, (void*)m_delegate);
         @autoreleasepool
         {
             if (m_toolbar)
             {
-                MCToolbarDebugLog("[MCToolbar] ClearItems removing %lu toolbar items",
-                                  (unsigned long)m_toolbar.items.count);
                 while (m_toolbar.items.count > 0)
                     [m_toolbar removeItemAtIndex:0];
-                MCToolbarDebugLog("[MCToolbar] ClearItems toolbar items cleared");
             }
-            MCToolbarDebugLog("[MCToolbar] ClearItems clearing delegate dicts "
-                              "meta=%p order=%p images=%p",
-                              (void*)m_delegate.itemMeta,
-                              (void*)m_delegate.itemOrder,
-                              (void*)m_delegate.itemImages);
             [m_delegate.itemMeta   removeAllObjects];
-            MCToolbarDebugLog("[MCToolbar] ClearItems itemMeta cleared");
             [m_delegate.itemOrder  removeAllObjects];
-            MCToolbarDebugLog("[MCToolbar] ClearItems itemOrder cleared");
             [m_delegate.itemImages removeAllObjects];
-            MCToolbarDebugLog("[MCToolbar] ClearItems done");
         }
     }
 
