@@ -203,7 +203,11 @@ static void _worker_rebuild_grammar()
     bool t_have_wake_word = !t_wake_word.empty();
 
     // Clear all existing rules.
-    s_grammar->ResetGrammar(MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT));
+    // Pass LANG_ENGLISH_US explicitly — some inproc SAPI engines reject LANG_NEUTRAL
+    // and silently corrupt the grammar builder state, causing Commit to return
+    // SPERR_UNINITIALIZED even when rules were added successfully.
+    if (FAILED(s_grammar->ResetGrammar(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US))))
+        return;
 
     // Build "Commands" rule.
     if (t_have_phrases)
@@ -211,7 +215,7 @@ static void _worker_rebuild_grammar()
         SPSTATEHANDLE t_state = 0;
         if (SUCCEEDED(s_grammar->GetRule(L"Commands", 0,
                                           SPRAF_TopLevel | SPRAF_Active,
-                                          TRUE, &t_state)))
+                                          TRUE, &t_state)) && t_state)
         {
             for (const std::wstring& t_phrase : t_phrases)
             {
@@ -228,7 +232,7 @@ static void _worker_rebuild_grammar()
         SPSTATEHANDLE t_ww_state = 0;
         if (SUCCEEDED(s_grammar->GetRule(L"WakeWord", 0,
                                           SPRAF_TopLevel | SPRAF_Active,
-                                          TRUE, &t_ww_state)))
+                                          TRUE, &t_ww_state)) && t_ww_state)
         {
             s_grammar->AddWordTransition(t_ww_state, NULL,
                                           t_wake_word.c_str(), L" ",
@@ -401,6 +405,10 @@ static LRESULT CALLBACK _worker_wnd_proc(HWND p_hwnd, UINT p_msg,
             // Release SAPI objects, then quit the worker message loop.
             KillTimer(p_hwnd, TIMER_CMD_WINDOW);
             s_cmd_window_open = false;
+
+            // Deactivate before releasing so the inproc engine stops pulling
+            // audio from the microphone immediately.
+            if (s_recognizer) s_recognizer->SetRecoState(SPRST_INACTIVE);
 
             if (s_grammar)    { s_grammar->Release();    s_grammar    = nullptr; }
             if (s_context)    { s_context->Release();    s_context    = nullptr; }
@@ -598,6 +606,21 @@ static DWORD WINAPI _worker_thread(LPVOID /*unused*/)
 
     // Populate grammar from any phrases that are already registered.
     _worker_rebuild_grammar();
+
+    // The in-process recognizer starts in SPRST_INACTIVE state — it will not
+    // process any audio until explicitly activated.  The shared recognizer is
+    // already active (controlled by WSR), but for the inproc one this call is
+    // mandatory or no recognition events ever fire.
+    t_hr = s_recognizer->SetRecoState(SPRST_ACTIVE);
+    if (FAILED(t_hr))
+    {
+        MCStringRef t_err = nil;
+        /* UNCHECKED */ MCStringCreateWithCString(
+            "startListening: SetRecoState(SPRST_ACTIVE) failed", t_err);
+        _post_string_to_main(WM_SPH_FAILED, t_err);
+        MCValueRelease(t_err);
+        goto done;
+    }
 
     // All ready — notify the main thread asynchronously.
     PostThreadMessageW(s_main_thread_id, WM_SPH_STARTED, 0, 0);
