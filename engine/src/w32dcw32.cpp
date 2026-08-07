@@ -47,6 +47,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include "resolution.h"
 #include "hotkey.h"
+#include "w32-speech.h"
 
 #define VK_LAST 0xDE   //last is 222
 #define LEAVE_CHECK_INTERVAL 500
@@ -437,6 +438,16 @@ Boolean MCScreenDC::handle(real8 sleep, Boolean dispatch, Boolean anyevent,
 		if (msg.message == WM_HOTKEY)
 		{
 			MCHotkeyDispatchFired((int32_t)msg.wParam);
+			curinfo->handled = True;
+		}
+		else if (msg.hwnd == NULL &&
+		         msg.message >= WM_SPH_MAIN_FIRST &&
+		         msg.message <= WM_SPH_MAIN_LAST)
+		{
+			// Speech worker→main callbacks, posted via PostThreadMessageW.
+			// DispatchMessageW would silently drop these (NULL hwnd), so we
+			// catch them here exactly as we do for WM_HOTKEY.
+			MCPlatformHandleSpeechThreadMessage(msg.message, msg.wParam, msg.lParam);
 			curinfo->handled = True;
 		}
 		else if (t_os_dispatch)
