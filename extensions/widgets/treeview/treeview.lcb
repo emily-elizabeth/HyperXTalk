@@ -1897,7 +1897,7 @@ private handler IntegerToString(in pValue as Number) returns String
 	variable tRemaining as Number
 	variable tDigit as Number
 	put "0123456789" into tDigits
-	put the floor of (abs(pValue)) into tRemaining
+	put the floor of (the abs of pValue) into tRemaining
 	if tRemaining = 0 then
 		return "0"
 	end if
