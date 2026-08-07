@@ -1889,6 +1889,30 @@ private handler addToListBuffer(in pAt as Integer, in pElement as Array, inout x
 	splice calculateMoreElements(kRowBuffer, tLevel, tPath, tSorted, tArray) after element pAt - 1 of xList
 end handler
 
+-- Convert a whole number to a string without scientific notation.
+-- Uses digit-by-digit extraction to avoid %g-style formatting.
+private handler IntegerToString(in pValue as Number) returns String
+	variable tDigits as String
+	variable tResult as String
+	variable tRemaining as Number
+	variable tDigit as Number
+	put "0123456789" into tDigits
+	put the floor of (abs(pValue)) into tRemaining
+	if tRemaining = 0 then
+		return "0"
+	end if
+	put "" into tResult
+	repeat while tRemaining >= 1
+		put the floor of (tRemaining mod 10) into tDigit
+		put char (tDigit + 1) of tDigits & tResult into tResult
+		put the floor of (tRemaining / 10) into tRemaining
+	end repeat
+	if pValue < 0 then
+		return "-" & tResult
+	end if
+	return tResult
+end handler
+
 private handler calculateMoreElements(in pLimit as Integer, in pLevel as Integer, in pPath as List, in pSortedKeys as List, in pArray as Array) returns List
 	variable tKey as String
 	variable tElement as Array
@@ -1939,9 +1963,7 @@ private handler calculateMoreElements(in pLimit as Integer, in pLevel as Integer
 				-- notation (e.g. file pointers displayed as 1.4e+14 instead of
 				-- the full value).
 				if the floor of pArray[tKey] = pArray[tKey] then
-					variable tInt as Integer
-					put pArray[tKey] into tInt
-					format tInt as string into tString
+					put IntegerToString(pArray[tKey]) into tString
 				else
 					format pArray[tKey] as string into tString
 				end if
