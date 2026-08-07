@@ -1935,7 +1935,14 @@ private handler calculateMoreElements(in pLimit as Integer, in pLevel as Integer
 			else if pArray[tKey] is a boolean then
 				format pArray[tKey] as string into tString
 			else if pArray[tKey] is a number then
-				format pArray[tKey] as string into tString
+				-- Use integer formatting for whole numbers to avoid scientific
+				-- notation (e.g. file pointers displayed as 1.4e+14 instead of
+				-- the full value).
+				if the floor of pArray[tKey] = pArray[tKey] then
+					format "%.0f" with pArray[tKey] into tString
+				else
+					format pArray[tKey] as string into tString
+				end if
 			else if pArray[tKey] is a data then
 				if not ConvertToString(pArray[tKey], tString) then
 					put "Can't display value" into tString
