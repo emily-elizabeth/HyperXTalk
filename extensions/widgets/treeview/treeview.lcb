@@ -1939,7 +1939,9 @@ private handler calculateMoreElements(in pLimit as Integer, in pLevel as Integer
 				-- notation (e.g. file pointers displayed as 1.4e+14 instead of
 				-- the full value).
 				if the floor of pArray[tKey] = pArray[tKey] then
-					format "%.0f" with pArray[tKey] into tString
+					variable tInt as Integer
+					put pArray[tKey] into tInt
+					format tInt as string into tString
 				else
 					format pArray[tKey] as string into tString
 				end if
