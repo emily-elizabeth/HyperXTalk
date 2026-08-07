@@ -24,12 +24,13 @@ HyperXTalk. If not, see <http://www.gnu.org/licenses/>.
 // message loop.  SAPI delivers recognition events as WM_SPH_SAPI messages to
 // a hidden HWND_MESSAGE window (s_worker_hwnd) that lives on that thread.
 //
-// A second hidden HWND_MESSAGE window (s_notify_hwnd) lives on the engine
-// main thread.  The worker posts WM_SPH_* messages there so that every
-// MCSpeechDispatch* call lands on the main thread, matching the Mac backend's
-// behaviour of marshalling to the main run loop.
+// To marshal callbacks back to the engine main thread, the worker calls
+// PostThreadMessageW(s_main_thread_id, WM_SPH_*, ...).  Because msg.hwnd is
+// NULL for thread-queue messages, DispatchMessageW silently drops them;
+// MCScreenDC::handle() in w32dcw32.cpp catches them explicitly before the
+// DispatchMessageW branch — exactly the same pattern used for WM_HOTKEY.
 //
-// Shared state (phrase list, wake word, is-listening flag, HWNDs) is
+// Shared state (phrase list, wake word, is-listening flag, worker HWND) is
 // protected by s_cs (a CRITICAL_SECTION).  Worker-local SAPI objects are
 // never touched from the main thread once the worker has started.
 //
@@ -65,18 +66,10 @@ HyperXTalk. If not, see <http://www.gnu.org/licenses/>.
 #include "globals.h"
 #include "variable.h"   // MCVariable full definition — needed for MCresult->setvalueref()
 #include "speech.h"
+#include "w32-speech.h"
 
-// ── Custom window messages ────────────────────────────────────────────────────
+// ── Worker-internal messages (main → worker, PostMessage to s_worker_hwnd) ───
 
-// Worker → main thread  (PostMessage to s_notify_hwnd)
-#define WM_SPH_VOICE_COMMAND  (WM_APP + 100) // lParam = MCStringRef (main releases)
-#define WM_SPH_WAKE_WORD      (WM_APP + 101)
-#define WM_SPH_TIMEOUT        (WM_APP + 102)
-#define WM_SPH_UNRECOGNIZED   (WM_APP + 103) // lParam = MCStringRef (main releases)
-#define WM_SPH_STARTED        (WM_APP + 104)
-#define WM_SPH_FAILED         (WM_APP + 105) // lParam = MCStringRef (main releases)
-
-// Main → worker thread  (PostMessage to s_worker_hwnd)
 #define WM_SPH_SAPI           (WM_APP + 200) // SAPI notification relay
 #define WM_SPH_UPDATE_GRAMMAR (WM_APP + 201)
 #define WM_SPH_STOP           (WM_APP + 202)
@@ -94,7 +87,11 @@ static std::wstring               s_wake_word;        // empty = no wake word / 
 static uint32_t                   s_wake_timeout_ms  = 5000;
 static bool                       s_is_listening     = false;
 
-static HWND                       s_notify_hwnd      = NULL; // main-thread dispatcher
+// s_main_thread_id is captured once on the main thread in MCPlatformStartListening
+// (before CreateThread) and never modified again — no lock needed when reading
+// from the worker thread.
+static DWORD                      s_main_thread_id   = 0;
+
 static HWND                       s_worker_hwnd      = NULL; // worker SAPI HWND
 static HANDLE                     s_hwnd_ready       = NULL; // event: worker HWND is ready
 static HANDLE                     s_worker_thread_h  = NULL;
@@ -108,12 +105,10 @@ static bool                       s_cmd_window_open  = false;
 
 // ── Forward declarations ──────────────────────────────────────────────────────
 
-static LRESULT CALLBACK _notify_wnd_proc(HWND, UINT, WPARAM, LPARAM);
 static LRESULT CALLBACK _worker_wnd_proc(HWND, UINT, WPARAM, LPARAM);
 static DWORD   WINAPI   _worker_thread(LPVOID);
 static void             _worker_rebuild_grammar();
 static void             _worker_handle_sapi_events();
-static bool             _ensure_notify_hwnd();
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -126,61 +121,62 @@ static void _ensure_cs()
     }
 }
 
-// Post a retained MCStringRef to s_notify_hwnd.
-// Transfers ownership to the message recipient, which must release it.
-// Safe to call from the worker thread — s_notify_hwnd is written once on the
+// Post a retained MCStringRef to the main thread via PostThreadMessageW.
+// Transfers ownership to MCPlatformHandleSpeechThreadMessage, which releases it.
+// Safe to call from the worker thread — s_main_thread_id is written once on the
 // main thread before CreateThread (happens-before edge), so no lock needed.
 static void _post_string_to_main(UINT p_msg, MCStringRef p_str)
 {
     MCStringRef t_copy = MCValueRetain(p_str);
-    if (!PostMessage(s_notify_hwnd, p_msg, 0, (LPARAM)t_copy))
-        MCValueRelease(t_copy); // queue full or window gone
+    if (!PostThreadMessageW(s_main_thread_id, p_msg, 0, (LPARAM)t_copy))
+        MCValueRelease(t_copy); // queue full
 }
 
-// ── Notify HWND window procedure  (main thread) ───────────────────────────────
+// ── Main-thread speech message handler ───────────────────────────────────────
+//
+// Called from MCScreenDC::handle() (w32dcw32.cpp) when msg.hwnd == NULL and
+// msg.message is in [WM_SPH_MAIN_FIRST, WM_SPH_MAIN_LAST].
 
-static LRESULT CALLBACK _notify_wnd_proc(HWND p_hwnd, UINT p_msg,
-                                          WPARAM /*wp*/, LPARAM lp)
+void MCPlatformHandleSpeechThreadMessage(UINT p_msg, WPARAM /*p_wp*/, LPARAM p_lp)
 {
     switch (p_msg)
     {
         case WM_SPH_VOICE_COMMAND:
         {
-            MCStringRef t_phrase = reinterpret_cast<MCStringRef>(lp);
+            MCStringRef t_phrase = reinterpret_cast<MCStringRef>(p_lp);
             MCSpeechDispatchVoiceCommand(t_phrase);
             MCValueRelease(t_phrase);
-            return 0;
+            break;
         }
         case WM_SPH_WAKE_WORD:
             MCSpeechDispatchWakeWordDetected();
-            return 0;
+            break;
 
         case WM_SPH_TIMEOUT:
             MCSpeechDispatchListenTimeoutExpired();
-            return 0;
+            break;
 
         case WM_SPH_UNRECOGNIZED:
         {
-            MCStringRef t_text = reinterpret_cast<MCStringRef>(lp);
+            MCStringRef t_text = reinterpret_cast<MCStringRef>(p_lp);
             MCSpeechDispatchUnrecognizedInput(t_text);
             MCValueRelease(t_text);
-            return 0;
+            break;
         }
         case WM_SPH_STARTED:
             MCSpeechDispatchListeningStarted();
-            return 0;
+            break;
 
         case WM_SPH_FAILED:
         {
-            MCStringRef t_reason = reinterpret_cast<MCStringRef>(lp);
+            MCStringRef t_reason = reinterpret_cast<MCStringRef>(p_lp);
             MCSpeechDispatchListeningFailed(t_reason);
             MCValueRelease(t_reason);
-            return 0;
+            break;
         }
         default:
             break;
     }
-    return DefWindowProc(p_hwnd, p_msg, 0, lp);
 }
 
 // ── Grammar management  (worker thread only) ──────────────────────────────────
@@ -296,7 +292,7 @@ static void _worker_handle_sapi_events()
             if (t_is_wake_word)
             {
                 // Notify the main thread.
-                PostMessage(s_notify_hwnd, WM_SPH_WAKE_WORD, 0, 0);
+                PostThreadMessageW(s_main_thread_id, WM_SPH_WAKE_WORD, 0, 0);
 
                 // Open the command window.
                 s_cmd_window_open = true;
@@ -419,7 +415,7 @@ static LRESULT CALLBACK _worker_wnd_proc(HWND p_hwnd, UINT p_msg,
                 KillTimer(p_hwnd, TIMER_CMD_WINDOW);
                 s_cmd_window_open = false;
                 _worker_rebuild_grammar();
-                PostMessage(s_notify_hwnd, WM_SPH_TIMEOUT, 0, 0);
+                PostThreadMessageW(s_main_thread_id, WM_SPH_TIMEOUT, 0, 0);
                 return 0;
             }
             break;
@@ -479,7 +475,12 @@ static DWORD WINAPI _worker_thread(LPVOID /*unused*/)
 
     // ── SAPI setup ────────────────────────────────────────────────────────────
 
-    HRESULT t_hr = CoCreateInstance(CLSID_SpSharedRecognizer, NULL,
+    // Use the in-process recognizer: a private engine dedicated to HyperXTalk.
+    // CLSID_SpSharedRecognizer runs Windows Speech Recognition (WSR), which
+    // overlays its own dictation context on top of ours and shows "What was
+    // that?" for any speech that doesn't match its dictation model — even if
+    // it would match our grammar.  The in-process recognizer avoids WSR entirely.
+    HRESULT t_hr = CoCreateInstance(CLSID_SpInprocRecognizer, NULL,
                                      CLSCTX_INPROC_SERVER,
                                      IID_ISpRecognizer,
                                      reinterpret_cast<void **>(&s_recognizer));
@@ -487,10 +488,63 @@ static DWORD WINAPI _worker_thread(LPVOID /*unused*/)
     {
         MCStringRef t_err = nil;
         /* UNCHECKED */ MCStringCreateWithCString(
-            "startListening: CoCreateInstance(SpSharedRecognizer) failed", t_err);
+            "startListening: CoCreateInstance(SpInprocRecognizer) failed", t_err);
         _post_string_to_main(WM_SPH_FAILED, t_err);
         MCValueRelease(t_err);
         goto done;
+    }
+
+    // Bind the in-process recognizer to the system default microphone.
+    // We enumerate SPCAT_AUDIOIN via ISpObjectTokenCategory; the first token
+    // returned is always the system-default audio input device.  Passing the
+    // ISpObjectToken* (not a live audio stream) to SetInput lets SAPI manage
+    // the device lifetime and format negotiation itself.
+    {
+        ISpObjectTokenCategory *t_cat  = nullptr;
+        IEnumSpObjectTokens    *t_enum = nullptr;
+        ISpObjectToken         *t_tok  = nullptr;
+
+        if (SUCCEEDED(CoCreateInstance(CLSID_SpObjectTokenCategory, NULL,
+                                        CLSCTX_INPROC_SERVER,
+                                        IID_ISpObjectTokenCategory,
+                                        reinterpret_cast<void **>(&t_cat))) && t_cat)
+        {
+            if (SUCCEEDED(t_cat->SetId(SPCAT_AUDIOIN, FALSE)) &&
+                SUCCEEDED(t_cat->EnumTokens(NULL, NULL, &t_enum)) && t_enum)
+            {
+                t_enum->Next(1, &t_tok, NULL); // first = system default
+                t_enum->Release();
+            }
+            t_cat->Release();
+        }
+
+        if (t_tok)
+        {
+            HRESULT t_hr_input = s_recognizer->SetInput(t_tok, TRUE);
+            t_tok->Release();
+            if (FAILED(t_hr_input))
+            {
+                wchar_t t_buf[80];
+                swprintf_s(t_buf, ARRAYSIZE(t_buf),
+                           L"startListening: SetInput hr=0x%08X", (unsigned)t_hr_input);
+                MCStringRef t_err = nil;
+                /* UNCHECKED */ MCStringCreateWithChars(
+                    reinterpret_cast<const unichar_t *>(t_buf),
+                    static_cast<uindex_t>(wcslen(t_buf)), t_err);
+                _post_string_to_main(WM_SPH_FAILED, t_err);
+                MCValueRelease(t_err);
+                goto done;
+            }
+        }
+        else
+        {
+            MCStringRef t_err = nil;
+            /* UNCHECKED */ MCStringCreateWithCString(
+                "startListening: no audio input device found in SPCAT_AUDIOIN", t_err);
+            _post_string_to_main(WM_SPH_FAILED, t_err);
+            MCValueRelease(t_err);
+            goto done;
+        }
     }
 
     t_hr = s_recognizer->CreateRecoContext(&s_context);
@@ -546,7 +600,7 @@ static DWORD WINAPI _worker_thread(LPVOID /*unused*/)
     _worker_rebuild_grammar();
 
     // All ready — notify the main thread asynchronously.
-    PostMessage(s_notify_hwnd, WM_SPH_STARTED, 0, 0);
+    PostThreadMessageW(s_main_thread_id, WM_SPH_STARTED, 0, 0);
 
     // ── Message loop ──────────────────────────────────────────────────────────
     {
@@ -576,29 +630,6 @@ done:
     return 0;
 }
 
-// ── Notify HWND bootstrap  (called once, on the main thread) ─────────────────
-
-static bool _ensure_notify_hwnd()
-{
-    if (s_notify_hwnd != NULL)
-        return true;
-
-    static const wchar_t k_notify_class[] = L"HXTSpeechNotify";
-    {
-        WNDCLASSW t_wc     = {};
-        t_wc.lpfnWndProc   = _notify_wnd_proc;
-        t_wc.hInstance     = GetModuleHandleW(NULL);
-        t_wc.lpszClassName = k_notify_class;
-        RegisterClassW(&t_wc);
-    }
-
-    s_notify_hwnd = CreateWindowExW(0, k_notify_class, L"", 0,
-                                     0, 0, 0, 0,
-                                     HWND_MESSAGE, NULL,
-                                     GetModuleHandleW(NULL), NULL);
-    return (s_notify_hwnd != NULL);
-}
-
 // ── Platform entry points ─────────────────────────────────────────────────────
 
 bool MCPlatformStartListening(MCStringRef p_language)
@@ -613,20 +644,14 @@ bool MCPlatformStartListening(MCStringRef p_language)
             return true; // already running — idempotent
     }
 
-    if (!_ensure_notify_hwnd())
-    {
-        MCStringRef t_err = nil;
-        /* UNCHECKED */ MCStringCreateWithCString(
-            "startListening: failed to create notify window", t_err);
-        MCresult->setvalueref(t_err);
-        MCValueRelease(t_err);
-        return false;
-    }
-
     // p_language (BCP-47 tag) is accepted for API compatibility.  SAPI uses the
     // shared recognizer's current audio device locale; locale switching via
     // ISpObjectToken is left for a future implementation pass.
     (void)p_language;
+
+    // Capture the main thread ID before spawning the worker.  The worker reads
+    // this to call PostThreadMessageW; it is written once here and never changes.
+    s_main_thread_id = GetCurrentThreadId();
 
     // An event lets us wait until the worker's message queue is ready before
     // returning, so callers can immediately post commands to it.
@@ -666,7 +691,7 @@ bool MCPlatformStartListening(MCStringRef p_language)
     // Wait up to 2 s for the worker to publish its HWND.  This makes the
     // synchronous startListening return feel instant (grammar updates can be
     // posted as soon as we return).  listeningStarted or listeningFailed will
-    // arrive asynchronously via the notify HWND once SAPI setup completes.
+    // arrive asynchronously via PostThreadMessageW once SAPI setup completes.
     WaitForSingleObject(s_hwnd_ready, 2000);
     CloseHandle(s_hwnd_ready);
     s_hwnd_ready = NULL;

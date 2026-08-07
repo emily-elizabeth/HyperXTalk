@@ -1,3 +1,19 @@
+/* Copyright (C) 2003-2015 LiveCode Ltd.
+
+This file is part of LiveCode.
+
+LiveCode is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License v3 as published by the Free
+Software Foundation.
+
+LiveCode is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License
+along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
+
 #include "prefix.h"
 #include "w32dsk-legacy.h"
 
@@ -31,6 +47,7 @@
 
 #include "resolution.h"
 #include "hotkey.h"
+#include "w32-speech.h"
 
 #define VK_LAST 0xDE   //last is 222
 #define LEAVE_CHECK_INTERVAL 500
@@ -421,6 +438,16 @@ Boolean MCScreenDC::handle(real8 sleep, Boolean dispatch, Boolean anyevent,
 		if (msg.message == WM_HOTKEY)
 		{
 			MCHotkeyDispatchFired((int32_t)msg.wParam);
+			curinfo->handled = True;
+		}
+		else if (msg.hwnd == NULL &&
+		         msg.message >= WM_SPH_MAIN_FIRST &&
+		         msg.message <= WM_SPH_MAIN_LAST)
+		{
+			// Speech worker→main callbacks, posted via PostThreadMessageW.
+			// DispatchMessageW would silently drop these (NULL hwnd), so we
+			// catch them here exactly as we do for WM_HOTKEY.
+			MCPlatformHandleSpeechThreadMessage(msg.message, msg.wParam, msg.lParam);
 			curinfo->handled = True;
 		}
 		else if (t_os_dispatch)
