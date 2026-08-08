@@ -135,6 +135,65 @@ else
     echo "  To include it: pip install vosk  (or place libvosk.so in prebuilt/lib/linux/x86_64/)"
 fi
 
+# --- VLC media library ---
+#
+# The HyperXTalk binary links directly (hard dependency) against libvlc.so.5
+# and libvlccore.so.9, so the AppImage won't even start on systems without VLC.
+# We bundle both libraries plus the VLC plugin directory; vlc-player.cpp sets
+# VLC_PLUGIN_PATH before calling libvlc_new(), and AppRun sets it as a fallback.
+#
+# Search order for the libraries:
+#   1. /lib/x86_64-linux-gnu  (Debian/Ubuntu)
+#   2. /usr/lib/x86_64-linux-gnu
+#   3. /usr/lib64             (Fedora/RPM)
+#   4. /usr/lib
+#
+VLC_LIB_DIRS="/lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu /usr/lib64 /usr/lib"
+
+_find_vlc_lib() {
+    local name="$1"
+    for dir in $VLC_LIB_DIRS; do
+        [ -f "$dir/$name" ] && echo "$dir/$name" && return
+    done
+}
+
+LIBVLC="$(_find_vlc_lib libvlc.so.5)"
+LIBVLCCORE="$(_find_vlc_lib libvlccore.so.9)"
+
+if [ -n "$LIBVLC" ] && [ -n "$LIBVLCCORE" ]; then
+    echo "Bundling VLC libraries: $LIBVLC, $LIBVLCCORE"
+    cp "$LIBVLC"     "$APPBIN/libvlc.so.5"
+    cp "$LIBVLCCORE" "$APPBIN/libvlccore.so.9"
+    # Soname symlinks so dlopen("libvlc.so.5") resolves within the AppDir.
+    ln -sf libvlc.so.5     "$APPBIN/libvlc.so"
+    ln -sf libvlccore.so.9 "$APPBIN/libvlccore.so"
+    strip --strip-debug "$APPBIN/libvlc.so.5"     2>/dev/null || true
+    strip --strip-debug "$APPBIN/libvlccore.so.9" 2>/dev/null || true
+
+    # Bundle VLC plugins — libvlccore refuses to start without them.
+    VLC_PLUGIN_SRC=""
+    for dir in $VLC_LIB_DIRS; do
+        if [ -d "$dir/vlc/plugins" ]; then
+            VLC_PLUGIN_SRC="$dir/vlc"
+            break
+        fi
+    done
+    if [ -n "$VLC_PLUGIN_SRC" ]; then
+        echo "Bundling VLC plugins from: $VLC_PLUGIN_SRC"
+        mkdir -p "$APPBIN/vlc"
+        cp -a "$VLC_PLUGIN_SRC/plugins" "$APPBIN/vlc/"
+        # Also copy lua scripts if present (needed by some VLC playlist formats).
+        [ -d "$VLC_PLUGIN_SRC/lua" ] && cp -a "$VLC_PLUGIN_SRC/lua" "$APPBIN/vlc/" || true
+        echo "VLC plugins bundled: $(du -sh "$APPBIN/vlc/plugins" | cut -f1)"
+    else
+        echo "WARNING: VLC plugin directory not found — video playback may fail at runtime."
+    fi
+else
+    echo "WARNING: libvlc.so.5 / libvlccore.so.9 not found on this system."
+    echo "  The AppImage will not launch on systems without VLC installed."
+    echo "  Install VLC: sudo apt install vlc  (or equivalent for your distro)"
+fi
+
 # --- Vosk model ---
 #
 # Bundle a small speech recognition model so startListening works out of the
@@ -210,6 +269,10 @@ export LD_LIBRARY_PATH="$HERE/usr/bin${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 # Point to the bundled Vosk model unless the user has already set a preference.
 if [ -z "$VOSK_MODEL_PATH" ] && [ -d "$HERE/usr/bin/vosk-model" ]; then
     export VOSK_MODEL_PATH="$HERE/usr/bin/vosk-model"
+fi
+# Point libvlccore to bundled plugins so VLC works without a system VLC install.
+if [ -d "$HERE/usr/bin/vlc/plugins" ]; then
+    export VLC_PLUGIN_PATH="$HERE/usr/bin/vlc/plugins"
 fi
 exec "$HERE/usr/bin/HyperXTalk" "$@"
 APPRUN
