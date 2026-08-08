@@ -753,8 +753,8 @@ typedef MCSysWindowHandle Drawable;
 #include <gdk/gdk.h>
 
 typedef GdkWindow*      Window;
-typedef GdkPixmap*      Pixmap;
-typedef GdkDrawable*    Drawable;
+typedef GdkWindow*      Pixmap;   // GdkPixmap removed in GTK3
+typedef GdkWindow*      Drawable; // GdkDrawable removed in GTK3
 
 #else
 
