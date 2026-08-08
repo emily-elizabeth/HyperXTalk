@@ -954,6 +954,11 @@ EE_ICONDATAFORFILE_BADPATH, // "iconDataForFile: error evaluating path"
 EE_ICONDATAFORFILE_BADSIZE, // "iconDataForFile: error evaluating size"
 EE_ICONDATAFOREXTENSION_BADEXT, // "iconDataForExtension: error evaluating extension"
 EE_ICONDATAFOREXTENSION_BADSIZE, // "iconDataForExtension: error evaluating size"
+EE_REGISTERVOICECOMMAND_BADPHRASE, // "registerVoiceCommand: error evaluating phrase expression"
+EE_UNREGISTERVOICECOMMAND_BADPHRASE, // "unregisterVoiceCommand: error evaluating phrase expression"
+EE_STARTLISTENING_BADLANGUAGE, // "startListening: error evaluating language expression"
+EE_SETWAKEWORD_BADWORD, // "setWakeWord: error evaluating word expression"
+EE_SETWAKEWORD_BADTIMEOUT, // "setWakeWord: error evaluating timeout expression"
 };
 
 extern const char *MCexecutionerrors;
