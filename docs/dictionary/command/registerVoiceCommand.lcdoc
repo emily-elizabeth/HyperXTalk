@@ -60,17 +60,6 @@ Speech recognition must be started separately with <startListening>.
 Registering phrases before calling <startListening> is the recommended
 order.
 
-Platform notes:
-- macOS: Implemented using SFSpeechRecognizer + AVAudioEngine
-  (macOS 10.15+). The user must grant microphone and speech recognition
-  permissions. On macOS 13 and later, on-device recognition is used
-  automatically (no network required). The registered phrases are passed
-  as contextualStrings to bias recognition accuracy toward them.
-- Windows: Not yet implemented. Sets the result to a "not supported"
-  string.
-- Linux: Not yet implemented. Sets the result to a "not supported"
-  string.
-
 References: unregisterVoiceCommand (command), unregisterAllVoiceCommands (command),
 startListening (command), stopListening (command), setWakeWord (command),
 voiceCommand (message), isListening (function)
