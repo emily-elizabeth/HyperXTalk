@@ -166,6 +166,85 @@ if [ -d "$OUT_DIR/modules" ]; then
     cp -a "$OUT_DIR/modules/"* "$APPBIN/modules/" 2>/dev/null || true
 fi
 
+# --- Vosk speech recognition library ---
+#
+# lnx-speech.cpp dlopen()s libvosk.so at runtime, so we bundle it next to the
+# binary.  Search order:
+#   1. $REPO_ROOT/prebuilt/lib/linux/x86_64/libvosk.so  (CI / vendored)
+#   2. The libvosk.so that ships inside the 'vosk' Python wheel
+#   3. System paths (/usr/lib, /usr/local/lib)
+#
+VOSK_LIB=""
+VOSK_LIB_PREBUILT="$REPO_ROOT/prebuilt/lib/linux/x86_64/libvosk.so"
+if [ -f "$VOSK_LIB_PREBUILT" ]; then
+    VOSK_LIB="$VOSK_LIB_PREBUILT"
+else
+    # Try the Python vosk package (pip install vosk bundles libvosk.so)
+    VOSK_PY_LIB="$(python3 -c \
+        "import vosk, os; p=os.path.join(os.path.dirname(vosk.__file__),'libvosk.so'); print(p) if os.path.isfile(p) else None" \
+        2>/dev/null || true)"
+    if [ -n "$VOSK_PY_LIB" ] && [ -f "$VOSK_PY_LIB" ]; then
+        VOSK_LIB="$VOSK_PY_LIB"
+    else
+        VOSK_LIB="$(find /usr/lib /usr/local/lib -maxdepth 3 \
+            \( -name 'libvosk.so' -o -name 'libvosk.so.0' \) 2>/dev/null | head -1 || true)"
+    fi
+fi
+
+if [ -n "$VOSK_LIB" ] && [ -f "$VOSK_LIB" ]; then
+    echo "Bundling Vosk library: $VOSK_LIB"
+    cp "$VOSK_LIB" "$APPBIN/libvosk.so"
+    strip --strip-debug "$APPBIN/libvosk.so" 2>/dev/null || true
+else
+    echo "WARNING: libvosk.so not found — speech recognition will report an error at runtime."
+    echo "  To include it: pip install vosk  (or place libvosk.so in prebuilt/lib/linux/x86_64/)"
+fi
+
+# --- Vosk model ---
+#
+# Bundle a small speech recognition model so startListening works out of the
+# box.  The bundled model is selected in this order:
+#   1. $REPO_ROOT/prebuilt/vosk-model/          (checked-in / CI-cached)
+#   2. ~/.local/share/vosk/model                 (developer's local model)
+#   3. Download vosk-model-small-en-us-0.15 and cache it in prebuilt/
+#
+# AppRun sets VOSK_MODEL_PATH to the bundled model at launch, so users can
+# still override it by exporting VOSK_MODEL_PATH before starting HyperXTalk.
+#
+VOSK_MODEL_CACHE="$REPO_ROOT/prebuilt/vosk-model"
+VOSK_MODEL_SRC=""
+
+if [ -f "$VOSK_MODEL_CACHE/conf/model.conf" ] || [ -f "$VOSK_MODEL_CACHE/am/final.mdl" ]; then
+    VOSK_MODEL_SRC="$VOSK_MODEL_CACHE"
+elif [ -f "$HOME/.local/share/vosk/model/conf/model.conf" ] || \
+     [ -f "$HOME/.local/share/vosk/model/am/final.mdl" ]; then
+    VOSK_MODEL_SRC="$HOME/.local/share/vosk/model"
+fi
+
+mkdir -p "$APPBIN/vosk-model"
+if [ -n "$VOSK_MODEL_SRC" ]; then
+    echo "Bundling Vosk model from: $VOSK_MODEL_SRC"
+    cp -a "$VOSK_MODEL_SRC/." "$APPBIN/vosk-model/"
+else
+    echo "No Vosk model found locally — downloading vosk-model-small-en-us-0.15..."
+    MODEL_URL="https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
+    MODEL_ZIP="$BUILD_DIR/vosk-model-small-en-us-0.15.zip"
+    if [ ! -f "$MODEL_ZIP" ]; then
+        curl -fsSL --progress-bar -o "$MODEL_ZIP" "$MODEL_URL"
+    fi
+    TMPDIR_MODEL="$(mktemp -d)"
+    unzip -q "$MODEL_ZIP" -d "$TMPDIR_MODEL"
+    # The zip extracts to a single versioned subdirectory — move its contents up.
+    MODEL_SUBDIR="$(ls "$TMPDIR_MODEL")"
+    cp -a "$TMPDIR_MODEL/$MODEL_SUBDIR/." "$APPBIN/vosk-model/"
+    rm -rf "$TMPDIR_MODEL"
+    # Cache in prebuilt/ so future AppImage builds don't re-download.
+    mkdir -p "$VOSK_MODEL_CACHE"
+    cp -a "$APPBIN/vosk-model/." "$VOSK_MODEL_CACHE/"
+    echo "Model cached at: $VOSK_MODEL_CACHE"
+fi
+echo "Vosk model bundled: $(du -sh "$APPBIN/vosk-model" | cut -f1)"
+
 # --- Desktop file ---
 cat > "$APPDIR/usr/share/applications/HyperXTalk.desktop" <<'DESKTOP'
 [Desktop Entry]
@@ -450,6 +529,10 @@ export BAMF_DESKTOP_FILE_HINT="$_DESKTOP_DEST"
 export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 # Fallback in case the engine's own probe doesn't run first.
 export VLC_PLUGIN_PATH="$HERE/usr/bin/vlc-plugins/plugins"
+# Point to the bundled Vosk model unless the user has already set a preference.
+if [ -z "$VOSK_MODEL_PATH" ] && [ -d "$HERE/usr/bin/vosk-model" ]; then
+    export VOSK_MODEL_PATH="$HERE/usr/bin/vosk-model"
+fi
 exec "$HERE/usr/bin/HyperXTalk" "$@"
 APPRUN
 chmod +x "$APPDIR/AppRun"
