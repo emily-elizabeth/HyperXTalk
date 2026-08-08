@@ -175,6 +175,27 @@ static bool _load_pulse()
     return s_pa_new && s_pa_free && s_pa_read;
 }
 
+// Ask Python where vosk is installed and return the path to libvosk.so,
+// or empty string if not found.  Used as a fallback when dlopen by name fails.
+static std::string _find_vosk_via_python()
+{
+    FILE *fp = popen("python3 -c "
+                     "\"import vosk, os; "
+                     "p=os.path.join(os.path.dirname(vosk.__file__),'libvosk.so'); "
+                     "print(p) if os.path.isfile(p) else print('')\" 2>/dev/null",
+                     "r");
+    if (!fp) return {};
+    char buf[4096] = {};
+    if (fgets(buf, sizeof(buf) - 1, fp))
+    {
+        size_t n = strlen(buf);
+        while (n > 0 && (buf[n-1] == '\n' || buf[n-1] == '\r'))
+            buf[--n] = '\0';
+    }
+    pclose(fp);
+    return buf;
+}
+
 static bool _load_vosk()
 {
     if (s_vosk_lib) return true;
@@ -185,6 +206,16 @@ static bool _load_vosk()
         s_vosk_lib = dlopen(*p, RTLD_LAZY | RTLD_GLOBAL);
         if (s_vosk_lib) break;
     }
+
+    // Not found on LD_LIBRARY_PATH — try the Python vosk package location
+    // (pip install vosk puts libvosk.so inside site-packages/vosk/).
+    if (!s_vosk_lib)
+    {
+        std::string t_py_path = _find_vosk_via_python();
+        if (!t_py_path.empty())
+            s_vosk_lib = dlopen(t_py_path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+    }
+
     if (!s_vosk_lib) return false;
 
 #define LOAD(var, sym) \
