@@ -57,10 +57,14 @@ Platform notes:
   On macOS 13+, on-device recognition is used (no internet required).
   The NSSpeechRecognitionUsageDescription and NSMicrophoneUsageDescription
   keys must be present in the application's Info.plist.
-- Windows: Not yet implemented. Sets the result to a "not supported"
-  error string and returns without starting.
-- Linux: Not yet implemented. Sets the result to a "not supported"
-  error string and returns without starting.
+- Windows: Uses the Windows Speech Recognition (SAPI 5) engine via a
+  background thread. The language parameter is accepted but ignored;
+  the system speech recognition language is used instead.
+- Linux: Uses the Vosk offline speech recognition library with PulseAudio
+  for audio capture. Requires libvosk and a Vosk language model; the
+  VOSK_MODEL_PATH environment variable may be set to specify the model
+  directory. When running from the HyperXTalk AppImage, a bundled model
+  is used automatically if VOSK_MODEL_PATH is not set.
 
 References: stopListening (command), registerVoiceCommand (command),
 setWakeWord (command), isListening (function), voiceCommand (message)
