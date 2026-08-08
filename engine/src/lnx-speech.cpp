@@ -72,6 +72,15 @@ HyperXTalk. If not, see <http://www.gnu.org/licenses/>.
 
 #include <glib.h>   // g_idle_add, g_timeout_add
 
+// G_SOURCE_REMOVE / G_SOURCE_CONTINUE were added in GLib 2.32.
+// Define fallbacks for older build environments.
+#ifndef G_SOURCE_REMOVE
+#  define G_SOURCE_REMOVE  FALSE
+#endif
+#ifndef G_SOURCE_CONTINUE
+#  define G_SOURCE_CONTINUE TRUE
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 // PulseAudio simple API — types and function pointers (loaded via dlopen)
 
