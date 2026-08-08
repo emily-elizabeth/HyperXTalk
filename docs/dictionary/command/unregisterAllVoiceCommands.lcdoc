@@ -8,9 +8,9 @@ Summary:
 Removes every registered voice command phrase. The speech recognition
 engine will no longer match any phrases until new ones are registered.
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
-OS: mac
+OS: mac, Windows, Linux
 
 Platforms: desktop
 

@@ -8,9 +8,9 @@ Summary:
 Sent to the current card of the default stack when the speech recognition
 engine recognises a registered voice command phrase.
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
-OS: mac
+OS: mac, Windows, Linux
 
 Platforms: desktop
 

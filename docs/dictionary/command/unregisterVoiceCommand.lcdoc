@@ -8,9 +8,9 @@ Summary:
 Removes a previously registered voice command phrase. The phrase will no
 longer be recognised by the speech recognition engine.
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
-OS: mac
+OS: mac, Windows, Linux
 
 Platforms: desktop
 

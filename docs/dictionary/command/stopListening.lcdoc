@@ -9,9 +9,9 @@ Stops the speech recognition engine immediately. No further <voiceCommand>,
 <wakeWordDetected>, or <listenTimeoutExpired> messages will be dispatched
 until <startListening> is called again.
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
-OS: mac
+OS: mac, Windows, Linux
 
 Platforms: desktop
 

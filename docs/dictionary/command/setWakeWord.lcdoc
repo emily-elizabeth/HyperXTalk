@@ -9,9 +9,9 @@ Sets a wake word (or phrase) that must be spoken before the engine will
 match registered voice commands. Pass empty to clear the wake word and
 return to always-on command matching.
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
-OS: mac
+OS: mac, Windows, Linux
 
 Platforms: desktop
 

@@ -9,9 +9,9 @@ Sent to the current card of the default stack when the speech recognition
 engine detects the configured wake word. The command window is now open
 and registered voice command phrases will be matched.
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
-OS: mac
+OS: mac, Windows, Linux
 
 Platforms: desktop
 

@@ -11,9 +11,9 @@ registered voice command phrase. The raw transcript is passed as the
 parameter, making it suitable for forwarding to an LLM or other
 natural language processor.
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
-OS: mac
+OS: mac, Windows, Linux
 
 Platforms: desktop
 

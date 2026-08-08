@@ -9,9 +9,9 @@ Registers one or more spoken phrases that will be recognised when the
 speech recognition engine is listening. When a phrase is recognised,
 a <voiceCommand> message is dispatched to the current card.
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
-OS: mac
+OS: mac, Windows, Linux
 
 Platforms: desktop
 

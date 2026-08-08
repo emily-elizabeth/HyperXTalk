@@ -8,9 +8,9 @@ Summary:
 Returns true if the speech recognition engine is currently active,
 false otherwise.
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
-OS: mac
+OS: mac, Windows, Linux
 
 Platforms: desktop
 

@@ -9,9 +9,9 @@ Sent to the current card of the default stack when the command window
 that opened after a wake word detection expires without a registered
 voice command being recognised.
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
-OS: mac
+OS: mac, Windows, Linux
 
 Platforms: desktop
 

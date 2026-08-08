@@ -9,9 +9,9 @@ Starts the speech recognition engine. Once listening, the engine matches
 spoken audio against registered voice command phrases and dispatches
 <voiceCommand> messages when a match is found.
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
-OS: mac
+OS: mac, Windows, Linux
 
 Platforms: desktop
 
