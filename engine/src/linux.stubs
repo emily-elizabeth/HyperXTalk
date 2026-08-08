@@ -112,7 +112,8 @@ libxcursor	libXcursor.so.1
 	XcursorSetDefaultSize: (pointer, integer) -> ()
 
 # Removed: gobject libgobject-2.0.so.0
-# Removed: glib libglib-2.0.so.0 
+# Removed: glib libglib-2.0.so.0
+
 gio libgio-2.0.so.0
 	g_content_type_guess: (pointer, pointer, integer, pointer) -> (pointer)
 	g_content_type_get_icon: (pointer) -> (pointer)
