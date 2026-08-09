@@ -10698,6 +10698,8 @@ on revIDEUpdateWindowList
       end if
    end repeat
    
+   filter tStacks without "*ideAutocompletePopup*"
+   
    if tStacks is not empty then
       local tTopMostStack
       put line 1 of tStacks into tTopMostStack
