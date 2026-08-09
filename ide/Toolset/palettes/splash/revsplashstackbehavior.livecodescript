@@ -1,17 +1,23 @@
-﻿script "revSplashStackBehavior"
+script "revSplashStackBehavior"
+
+-- Prevents repeated repositioning on every status message update.
+local sPositioned
+
 setProp statusMessage pMessage
    put pMessage into field "status" of me
+   -- The behaviour is not yet loaded when preOpenStack fires, so we position
+   -- on the first status message instead — by then it's definitely active.
+   if not sPositioned then
+      put true into sPositioned
+      revSplashBehavior__CentreOnIDEScreen
+   end if
 end statusMessage
 
 
-on PreOpenStack
-   -- Try to read the last saved menubar position from the preferences stack
-   -- so the splash opens on the correct screen immediately, with no visual hop.
-   -- The prefs file is loaded by referencing it by path; the normal startup
-   -- sequence will find it already in memory and continue as usual.
+private command revSplashBehavior__CentreOnIDEScreen
+   -- Try the saved menubar rect from the preferences stack first.
    local tPrefsPath, tSavedRect
    put the homeFolderPath & "/.hyperxtalk/preferences/hyperxtalk7.rev" into tPrefsPath
-
    if there is a file tPrefsPath then
       put the palette_rect_revMenubar of stack tPrefsPath into tSavedRect
    end if
@@ -42,4 +48,4 @@ on PreOpenStack
    put (item 1 of tTargetRect + item 3 of tTargetRect) / 2 into tCX
    put (item 2 of tTargetRect + item 4 of tTargetRect) / 2 into tCY
    set the location of this stack to tCX, tCY
-end PreOpenStack
+end revSplashBehavior__CentreOnIDEScreen
