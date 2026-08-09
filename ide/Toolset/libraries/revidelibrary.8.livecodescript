@@ -8223,9 +8223,9 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- boolean and data typed values don't trip up the JSON encoder.
    revIDEProjectSanitizeArray tTree
 
-   -- Encode to JSON
+   -- Encode to JSON (pretty-printed for readable diffs in version control)
    local tJSON
-   put jsonExport(tTree) into tJSON
+   put jsonExport(tTree, true) into tJSON
 
    -- Write the main project JSON file
    put pFolderPath & "/" & tBaseName & ".hyperxtalk_project" into tMainFilePath
@@ -8428,6 +8428,21 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, @rObj
       put the short name of tBehRef into rObj["behaviorName"]
       delete variable tProps["behavior"]
    end if
+   -- Button icons: store image names instead of volatile numeric IDs
+   if tType is "button" then
+      local tIconProps, tIconProp, tIconID, tIconStackName
+      put "icon,hilitedIcon,disabledIcon,visitedIcon,armedIcon" into tIconProps
+      put revIDEStackOfObject(pControlID) into tIconStackName
+      repeat for each item tIconProp in tIconProps
+         put tProps[tIconProp] into tIconID
+         if tIconID is not empty and tIconID is not 0 then
+            if there is an image id tIconID of stack tIconStackName then
+               put the short name of image id tIconID of stack tIconStackName into rObj["iconNames"][tIconProp]
+            end if
+            delete variable tProps[tIconProp]
+         end if
+      end repeat
+   end if
    put tProps into rObj["properties"]
 
    -- Image: export binary data to media folder
@@ -8507,6 +8522,9 @@ on revIDEProjectSerializeCustomProps pObjRef, @rObj
    -- Default custom property set
    local tDefaultProps
    put the customProperties of pObjRef into tDefaultProps
+   -- Strip the project file path: it is set at load time from the bundle location
+   -- and must not be baked into the JSON (it would become stale on any path change).
+   delete variable tDefaultProps["cRevProjectFilePath"]
    if tDefaultProps is an array then
       put tDefaultProps into rObj["customProperties"]
    end if
@@ -8591,19 +8609,52 @@ on revIDELoadFromProject pFilePath
    lock screen
    -- tDeferredBehaviors collects {controlRef, behaviorName, behaviorStack} entries
    -- from all controls across all stacks/substacks, resolved after full reconstruction
-   local tDeferredBehaviors
-   revIDEProjectReconstructStack tStackNode, tFolderPath, empty, tDeferredBehaviors
+   -- tDeferredIcons collects {controlRef, stackName, iconNames} entries for buttons
+   -- whose icon images are referenced by name; resolved after all controls exist
+   local tDeferredBehaviors, tDeferredIcons
+   revIDEProjectReconstructStack tStackNode, tFolderPath, empty, tDeferredBehaviors, tDeferredIcons
    put the result into tNewStackName
    -- Resolve all deferred behaviors now that every stack and control exists
-   local bi
+   local bi, tLoadWarnings
+   put empty into tLoadWarnings
    repeat with bi = 1 to the number of elements of tDeferredBehaviors
       local tBeh, tBehaviorTarget
       put tDeferredBehaviors[bi] into tBeh
       put "button" && quote & tBeh["behaviorName"] & quote && "of stack" && quote & tBeh["behaviorStack"] & quote into tBehaviorTarget
       if there is a tBehaviorTarget then
          set the behavior of tBeh["controlRef"] to the long id of tBehaviorTarget
+      else
+         -- Behavior could not be resolved: the script button doesn't exist in any loaded stack.
+         -- This usually means the behavior's stack file is missing or was not part of the project.
+         local tBehWarn
+         put "  • "" & tBeh["behaviorName"] & """ into tBehWarn
+         if tBeh["behaviorStack"] is not empty then
+            put " (from stack "" & tBeh["behaviorStack"] & "")" after tBehWarn
+         end if
+         put tBehWarn & return after tLoadWarnings
       end if
    end repeat
+   -- Resolve deferred icon name references now that all image objects exist
+   local ii, tIconProp
+   repeat with ii = 1 to the number of elements of tDeferredIcons
+      local tIcon, tIconNames
+      put tDeferredIcons[ii] into tIcon
+      put tIcon["iconNames"] into tIconNames
+      repeat for each key tIconProp in tIconNames
+         local tImgName, tImgRef
+         put tIconNames[tIconProp] into tImgName
+         put "image" && quote & tImgName & quote && "of stack" && quote & tIcon["stackName"] & quote into tImgRef
+         if there is an image tImgRef then
+            set the tIconProp of tIcon["controlRef"] to the id of tImgRef
+         end if
+      end repeat
+   end repeat
+   -- Show a single warning dialog if any behaviors could not be resolved
+   if tLoadWarnings is not empty then
+      answer warning "Some behaviors could not be restored after loading the project:" & return & return & \
+            tLoadWarnings & return & \
+            "Check that all stacks referenced as behaviors are included in the project."
+   end if
    if tNewStackName is not empty then
       -- Store the project FOLDER path so Save knows to update the project rather
       -- than prompt for a new .hyperxtalk file. tFolderPath is the package folder
@@ -8624,7 +8675,7 @@ on revIDELoadFromProject pFilePath
 end revIDELoadFromProject
 
 
-on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDeferredBehaviors
+on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDeferredBehaviors, @pDeferredIcons
    local tName
    put pStackNode["name"] into tName
    create stack tName
@@ -8697,7 +8748,7 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
          create card
          put the id of the last card of stack tNewStackName into tThisCardID
       end if
-      revIDEProjectReconstructCard tCardNode, tNewStackName, tThisCardID, pFolderPath, pDeferredBehaviors
+      revIDEProjectReconstructCard tCardNode, tNewStackName, tThisCardID, pFolderPath, pDeferredBehaviors, pDeferredIcons
    end repeat
    if pStackNode["substacks"] is an array then
       local tSubstacks
@@ -8706,7 +8757,7 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
       repeat with s = 1 to the number of elements of tSubstacks
          local tSubNode, tSubName
          put tSubstacks[s] into tSubNode
-         revIDEProjectReconstructStack tSubNode, pFolderPath, tNewStackName, pDeferredBehaviors
+         revIDEProjectReconstructStack tSubNode, pFolderPath, tNewStackName, pDeferredBehaviors, pDeferredIcons
          put the result into tSubName
          if tSubName is not empty then
             set the mainStack of stack tSubName to tNewStackName
@@ -8723,7 +8774,7 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
 end revIDEProjectReconstructStack
 
 
-on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pDeferredBehaviors
+on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pDeferredBehaviors, @pDeferredIcons
    local tCardRef
    put "card id" && pCardID && "of stack" && quote & pStackName & quote into tCardRef
    if pCardNode["name"] is not empty then
@@ -8756,7 +8807,7 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
       repeat with j = 1 to tControlCount
          local tControlNode
          put tControls[j] into tControlNode
-         revIDEProjectReconstructControl tControlNode, pStackName, pCardID, empty, pFolderPath, pDeferredBehaviors
+         revIDEProjectReconstructControl tControlNode, pStackName, pCardID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons
       end repeat
    end if
    -- Custom properties
@@ -8766,7 +8817,7 @@ end revIDEProjectReconstructCard
 
 
 -- pGroupID: empty when creating directly on a card; group id when creating inside a group.
-on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, pFolderPath, @pDeferredBehaviors
+on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, pFolderPath, @pDeferredBehaviors, @pDeferredIcons
    local tType
    put pControlNode["type"] into tType
 
@@ -8867,6 +8918,17 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       put tBehEntry into pDeferredBehaviors[tBehIdx]
    end if
 
+   -- Defer icon resolution until all controls are reconstructed
+   -- (button icons are MCImage objects referenced by ID; IDs change on reconstruct)
+   if tType is "button" and pControlNode["iconNames"] is an array then
+      local tIconEntry, tIconIdx
+      put tStackRef into tIconEntry["controlRef"]
+      put pStackName into tIconEntry["stackName"]
+      put pControlNode["iconNames"] into tIconEntry["iconNames"]
+      put the number of elements of pDeferredIcons + 1 into tIconIdx
+      put tIconEntry into pDeferredIcons[tIconIdx]
+   end if
+
    -- Image: restore binary data from media folder
    if tType is "image" then
       if pControlNode["mediaFile"] is not empty then
@@ -8902,7 +8964,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          repeat with k = 1 to tChildCount
             local tChildNode
             put tChildControls[k] into tChildNode
-            revIDEProjectReconstructControl tChildNode, pStackName, pCardID, tNewControlID, pFolderPath, pDeferredBehaviors
+            revIDEProjectReconstructControl tChildNode, pStackName, pCardID, tNewControlID, pFolderPath, pDeferredBehaviors, pDeferredIcons
          end repeat
       end if
    end if
@@ -8916,10 +8978,38 @@ end revIDEProjectReconstructControl
 -- ---------------------------------------------------------------------------
 
 on revIDEMoveSubstackToFile pStackID
-   # Validate stack exists
-   # Validate stack has a parent
-   # Ask for the file to move it for
-   # Set filename of stack / remove parent link
+   -- Validate stack exists
+   if not exists(pStackID) then
+      answer error "The specified stack does not exist."
+      exit revIDEMoveSubstackToFile
+   end if
+   local tStackName
+   put the short name of pStackID into tStackName
+
+   -- Validate the stack is a substack (has a different main stack)
+   local tMainStack
+   put the mainStack of stack tStackName into tMainStack
+   if tMainStack is tStackName then
+      answer error "The stack "" & tStackName & "" is already a main stack. Only substacks can be moved to their own file."
+      exit revIDEMoveSubstackToFile
+   end if
+
+   -- Ask the user where to save the stack file
+   local tDefaultFile
+   put specialFolderPath("documents") & slash & tStackName & ".hyperxtalk" into tDefaultFile
+   ask file "Save substack " & quote & tStackName & quote & " as its own file:" with tDefaultFile
+   if the result is "cancel" then exit revIDEMoveSubstackToFile
+   local tFilePath
+   put it into tFilePath
+
+   -- Setting the filename saves the stack to the new file and detaches it from its parent
+   set the filename of stack tStackName to tFilePath
+   if the result is not empty then
+      answer error "Could not move substack to file:" & return & the result
+      exit revIDEMoveSubstackToFile
+   end if
+
+   revIDEMessageSend "ideStackFileMoved", the long id of stack tStackName
 end revIDEMoveSubstackToFile
 
 on revIDESaveAsStandalone pTarget
