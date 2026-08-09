@@ -8387,7 +8387,7 @@ private function revIDEProjectWriteScript pScript, pScriptsFolder, pFilename, pO
    open file tFilePath for write
    if the result is not empty then return empty
    -- Header comment identifies the object for external editors and VCS
-   write "-- HyperXTalk: " & pObjectDescription & return into file tFilePath
+   write "-- HyperXTalk: " & pObjectDescription & return to file tFilePath
    write pScript to file tFilePath
    close file tFilePath
    return "scripts/" & tFilename
