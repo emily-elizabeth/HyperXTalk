@@ -8364,7 +8364,7 @@ private function revIDEProjectControlScriptFilename pControlID
    local tOwner, tOwnerType, tOwnerName
    put the owner of pControlID into tOwner
    put word 1 of tOwner into tOwnerType
-   repeat while tOwnerType is not "card" and tOwnerType is not "stack" and tOwnerType is not "background"
+   repeat while tOwnerType is not "card" and tOwnerType is not "stack" and tOwnerType is not "background" and tOwnerType is not "group"
       try
          put the short name of tOwner into tOwnerName
       catch tErr
@@ -9002,13 +9002,18 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
             local tBGRef
             put "group" && quote & tBGNewName & quote && "of stack" && quote & tNewStackName & quote into tBGRef
             if there is a tBGRef then
-               set the backgroundBehavior of tBGRef to true
-               remove group tBGNewName from card 1 of stack tNewStackName
+               local tDefaultStack
+               put the defaultStack into tDefaultStack
+               set the defaultStack to tNewStackName
+               --               set the backgroundBehavior of tBGRef to true
+               remove group tBGNewName from card 1
+               --               remove group tBGNewName from card 1 of stack tNewStackName
+               set the defaultStack to tDefaultStack
             end if
          end if
       end repeat
    end if
-
+   
    local tCards, tCardCount
    put pStackNode["cards"] into tCards
    put the number of elements of tCards into tCardCount
@@ -9061,9 +9066,9 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
    if pCardNode["name"] is not empty then
       set the name of tCardRef to pCardNode["name"]
    end if
-   if pCardNode["rect"] is not empty then
-      set the rect of tCardRef to pCardNode["rect"]
-   end if
+   --   if pCardNode["rect"] is not empty then
+   --      set the rect of tCardRef to pCardNode["rect"]
+   --   end if
    if pCardNode["cantDelete"] is not empty then
       set the cantDelete of tCardRef to (pCardNode["cantDelete"] is "true")
    end if
@@ -9237,17 +9242,15 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       put tIconEntry into pDeferredIcons[tIconIdx]
    end if
    
-   -- Image: restore binary data from media folder
+   -- Image: restore encoded image data from media folder.
+   -- "put URL (binfile:...) into image X" decodes PNG/JPEG/etc. correctly;
+   -- "set the text of image X to data" only works for raw pixel buffers.
    if tType is "image" then
       if pControlNode["mediaFile"] is not empty then
-         local tMediaPath, tImageData
+         local tMediaPath
          put pFolderPath & "/" & pControlNode["mediaFile"] into tMediaPath
-         open file tMediaPath for binary read
-         if the result is empty then
-            read from file tMediaPath until end
-            put it into tImageData
-            close file tMediaPath
-            set the text of tStackRef to tImageData
+         if there is a file tMediaPath then
+            put URL ("binfile:" & tMediaPath) into tStackRef
          end if
       end if
    end if
