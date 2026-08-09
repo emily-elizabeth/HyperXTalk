@@ -8341,6 +8341,19 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, @rObj
       put tCardNode into rObj["cards"][i]
    end repeat
 
+   -- Background/shared groups: serialize at stack level (includes unplaced ones)
+   -- Cards record only placement references to avoid duplicating group content
+   local tBGList, tBGName, tBGNode, bgIdx
+   put the groups of stack pStackName into tBGList
+   put 1 into bgIdx
+   repeat for each line tBGName in tBGList
+      if tBGName is empty then next repeat
+      put empty into tBGNode
+      revIDEProjectSerializeControl the long id of group tBGName of stack pStackName, pMediaFolder, tBGNode
+      put tBGNode into rObj["backgrounds"][bgIdx]
+      add 1 to bgIdx
+   end repeat
+
    -- Custom properties
    revIDEProjectSerializeCustomProps "stack" && quote & pStackName & quote, rObj
 
@@ -8383,13 +8396,22 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, @rObj
    local tControlCount
    put the number of controls of card id pCardIDNum of stack pStackName into tControlCount
 
-   local j, tControlIndex
+   local j, tControlIndex, tBGPlaceIndex
    put 1 into tControlIndex
+   put 1 into tBGPlaceIndex
    repeat with j = 1 to tControlCount
       local tControlID, tControlNode
       put the long id of control j of card id pCardIDNum of stack pStackName into tControlID
       -- Only serialize top-level controls (direct children of the card, not inside groups)
       if word 1 of the owner of control j of card id pCardIDNum of stack pStackName is not "card" then next repeat
+      -- Background/shared groups are serialized once at stack level; record placement only
+      if word 1 of tControlID is "group" then
+         if the backgroundBehavior of tControlID then
+            put the short name of tControlID into rObj["backgroundGroups"][tBGPlaceIndex]
+            add 1 to tBGPlaceIndex
+            next repeat
+         end if
+      end if
       put empty into tControlNode
       revIDEProjectSerializeControl tControlID, pMediaFolder, tControlNode
       put tControlNode into rObj["controls"][tControlIndex]
@@ -8734,6 +8756,34 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    if pStackNode["stackFiles"] is not empty then
       set the stackFiles of stack tNewStackName to pStackNode["stackFiles"]
    end if
+   -- Reconstruct background/shared groups before cards so they can be placed on cards.
+   -- Groups are created on card 1 (auto-created with the stack), set as backgrounds,
+   -- then removed from card 1 so they start unplaced. Each card places them as needed.
+   if pStackNode["backgrounds"] is an array then
+      local tBGArray, bgi
+      put pStackNode["backgrounds"] into tBGArray
+      local tCard1ID
+      put the id of card 1 of stack tNewStackName into tCard1ID
+      repeat with bgi = 1 to the number of elements of tBGArray
+         local tBGNodeR
+         put tBGArray[bgi] into tBGNodeR
+         -- Use the standard control reconstructor to create the group with its children
+         revIDEProjectReconstructControl tBGNodeR, tNewStackName, tCard1ID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons
+         -- Find the newly created group by name and mark it as a background group,
+         -- then remove it from card 1 so it is unplaced (cards will place it individually)
+         local tBGNewName
+         put tBGNodeR["properties"]["name"] into tBGNewName
+         if tBGNewName is not empty then
+            local tBGRef
+            put "group" && quote & tBGNewName & quote && "of stack" && quote & tNewStackName & quote into tBGRef
+            if there is a tBGRef then
+               set the backgroundBehavior of tBGRef to true
+               remove group tBGNewName from card 1 of stack tNewStackName
+            end if
+         end if
+      end repeat
+   end if
+
    local tCards, tCardCount
    put pStackNode["cards"] into tCards
    put the number of elements of tCards into tCardCount
@@ -8808,6 +8858,18 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
          local tControlNode
          put tControls[j] into tControlNode
          revIDEProjectReconstructControl tControlNode, pStackName, pCardID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons
+      end repeat
+   end if
+   -- Place background/shared groups onto this card
+   if pCardNode["backgroundGroups"] is an array then
+      local tBGPlacements, bgpi
+      put pCardNode["backgroundGroups"] into tBGPlacements
+      repeat with bgpi = 1 to the number of elements of tBGPlacements
+         local tBGPlaceName
+         put tBGPlacements[bgpi] into tBGPlaceName
+         if tBGPlaceName is not empty then
+            place group tBGPlaceName of stack pStackName into tCardRef
+         end if
       end repeat
    end if
    -- Custom properties
