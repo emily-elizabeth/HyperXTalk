@@ -8485,18 +8485,30 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
       put tCardNode into rObj["cards"][i]
    end repeat
    
-   -- Background/shared groups: serialize at stack level (includes unplaced ones)
-   -- Cards record only placement references to avoid duplicating group content
+   -- Background/shared groups: serialize once at stack level using groupNames.
+   -- Cards record only placement references (backgroundGroups) to avoid duplicating content.
    local tBGList, tBGName, tBGNode, bgIdx
+   put empty into bgIdx
+   put 1 into bgIdx
+   local tBGSeen
+   put empty into tBGSeen
    repeat with i = 1 to tCardCount
       put the groupNames of card i of stack pStackName into tBGList
-      put 1 into bgIdx
       repeat for each line tBGName in tBGList
          if tBGName is empty then next repeat
+         if tBGName is among the lines of tBGSeen then next repeat
          put empty into tBGNode
-         revIDEProjectSerializeControl the long id of group tBGName of stack pStackName, pMediaFolder, pScriptsFolder, tBGNode
+         local tControlID
+         -- HyperXTalk may expose shared groups as "background" rather than "group"
+         try
+            do "put the long id of group" && QUOTE & tBGName & QUOTE && "of stack" && QUOTE & pStackName & QUOTE && "into tControlID"
+         catch tUnused
+            do "put the long id of background" && QUOTE & tBGName & QUOTE && "of stack" && QUOTE & pStackName & QUOTE && "into tControlID"
+         end try
+         revIDEProjectSerializeControl tControlID, pMediaFolder, pScriptsFolder, tBGNode
          put tBGNode into rObj["backgrounds"][bgIdx]
          add 1 to bgIdx
+         put tBGName & return after tBGSeen
       end repeat
    end repeat
    
@@ -8562,8 +8574,9 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
       put the long id of control j of card id pCardIDNum of stack pStackName into tControlID
       -- Only serialize top-level controls (direct children of the card, not inside groups)
       if word 1 of the owner of control j of card id pCardIDNum of stack pStackName is not "card" then next repeat
-      -- Background/shared groups are serialized once at stack level; record placement only
-      if word 1 of tControlID is "group" then
+      -- Background/shared groups are serialized once at stack level; record placement only.
+      -- HyperXTalk may report these as "background" or "group" in the long id.
+      if word 1 of tControlID is "group" or word 1 of tControlID is "background" then
          if the backgroundBehavior of tControlID then
             put the short name of tControlID into rObj["backgroundGroups"][tBGPlaceIndex]
             add 1 to tBGPlaceIndex
@@ -8717,7 +8730,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    -- widgetKind is kept as a top-level key for quick access at create time.
    if tType is "widget" then
       local tWidgetData
-      export widget pControlID to array tWidgetData
+      export pControlID to array tWidgetData
       put tWidgetData into rObj["widgetData"]
       put tWidgetData["$kind"] into rObj["widgetKind"]
    end if
@@ -9031,9 +9044,9 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    if pStackNode["stackFiles"] is not empty then
       set the stackFiles of stack tNewStackName to pStackNode["stackFiles"]
    end if
-   -- Reconstruct background/shared groups before cards so they can be placed on cards.
-   -- Groups are created on card 1 (auto-created with the stack), set as backgrounds,
-   -- then removed from card 1 so they start unplaced. Each card places them as needed.
+   -- Reconstruct background/shared groups on card 1 before cards are processed.
+   -- backgroundBehavior is restored via set the properties (it is in the saved properties).
+   -- The group stays on card 1; cards place it onto themselves as needed.
    if pStackNode["backgrounds"] is an array then
       local tBGArray, bgi
       put pStackNode["backgrounds"] into tBGArray
@@ -9042,28 +9055,9 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
       repeat with bgi = 1 to the number of elements of tBGArray
          local tBGNodeR
          put tBGArray[bgi] into tBGNodeR
-         -- Use the standard control reconstructor to create the group with its children
          revIDEProjectReconstructControl tBGNodeR, tNewStackName, tCard1ID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons
-         -- Find the newly created group by name and mark it as a background group,
-         -- then remove it from card 1 so it is unplaced (cards will place it individually)
-         local tBGNewName
-         put tBGNodeR["properties"]["name"] into tBGNewName
-         if tBGNewName is not empty then
-            local tBGRef
-            put "group" && quote & tBGNewName & quote && "of stack" && quote & tNewStackName & quote into tBGRef
-            if there is a tBGRef then
-               local tDefaultStack
-               put the defaultStack into tDefaultStack
-               set the defaultStack to tNewStackName
-               --               set the backgroundBehavior of tBGRef to true
-               remove group tBGNewName from card 1
-               --               remove group tBGNewName from card 1 of stack tNewStackName
-               set the defaultStack to tDefaultStack
-            end if
-         end if
       end repeat
    end if
-   
    local tCards, tCardCount
    put pStackNode["cards"] into tCards
    put the number of elements of tCards into tCardCount
@@ -9146,7 +9140,9 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
          revIDEProjectReconstructControl tControlNode, pStackName, pCardID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons
       end repeat
    end if
-   -- Place background/shared groups onto this card
+   -- Place background/shared groups onto this card.
+   -- The group was created on card 1 during stack reconstruction; card 1 already has it
+   -- so placement is skipped silently for that card via try/catch.
    if pCardNode["backgroundGroups"] is an array then
       local tBGPlacements, bgpi
       put pCardNode["backgroundGroups"] into tBGPlacements
@@ -9154,7 +9150,16 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
          local tBGPlaceName
          put tBGPlacements[bgpi] into tBGPlaceName
          if tBGPlaceName is not empty then
-            place group tBGPlaceName of stack pStackName into tCardRef
+            -- Try "group" first; HyperXTalk may require "background" for shared groups
+            try
+               place group tBGPlaceName of stack pStackName onto card id pCardID of stack pStackName
+            catch tPlaceErr
+               try
+                  place background tBGPlaceName of stack pStackName onto card id pCardID of stack pStackName
+               catch tUnused
+                  -- Silently ignore: already placed on this card (e.g. card 1)
+               end try
+            end try
          end if
       end repeat
    end if
