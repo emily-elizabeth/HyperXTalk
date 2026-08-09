@@ -8217,9 +8217,16 @@ on revIDESaveAsProject pStackID, pFolderPath
       create folder tMediaFolder
    end if
 
+   -- Create the scripts subfolder for per-object script files
+   local tScriptsFolder
+   put pFolderPath & "/scripts" into tScriptsFolder
+   if there is no folder tScriptsFolder then
+      create folder tScriptsFolder
+   end if
+
    -- Build the full object tree as a LiveCode array
    local tTree
-   revIDEProjectBuildTree pStackID, tMediaFolder, tTree
+   revIDEProjectBuildTree pStackID, tMediaFolder, tScriptsFolder, tTree
 
    -- Sanitize the tree: convert all leaf values to plain strings so that
    -- boolean and data typed values don't trip up the JSON encoder.
@@ -8296,24 +8303,114 @@ on revIDESaveAsLibrary pStackID, pFilePath
    answer revIDELocalise("Library saved to:") & return & pFilePath
 end revIDESaveAsLibrary
 
-on revIDEProjectBuildTree pStackID, pMediaFolder, @rTree
+-- Sanitizes an object name so it is safe to use in a filename.
+-- Replaces non-alphanumeric characters with underscores; caps at 40 chars.
+private function revIDEProjectSanitizeName pName
+   local tResult, i, tChar
+   repeat with i = 1 to the number of chars of pName
+      put char i of pName into tChar
+      if tChar is a letter or tChar is a number then
+         put tChar after tResult
+      else
+         put "_" after tResult
+      end if
+   end repeat
+   if the number of chars of tResult > 40 then put char 1 to 40 of tResult into tResult
+   if tResult is empty then put "unnamed" into tResult
+   return tResult
+end revIDEProjectSanitizeName
+
+-- Builds a human-readable .hyperxtalkscript filename for a control's script,
+-- encoding the card context and object type+name into the filename.
+private function revIDEProjectControlScriptFilename pControlID
+   local tType, tName, tFilename
+   put word 1 of pControlID into tType
+   put revIDEProjectSanitizeName(the short name of pControlID) into tName
+   put tType & "--" & tName into tFilename
+   -- Walk up the owner chain, prepending each group and the card name
+   local tOwner
+   put the owner of pControlID into tOwner
+   repeat while word 1 of tOwner is not "card" and word 1 of tOwner is not "stack"
+      put revIDEProjectSanitizeName(the short name of tOwner) & "--" & tFilename into tFilename
+      put the owner of tOwner into tOwner
+   end repeat
+   if word 1 of tOwner is "card" then
+      put "card--" & revIDEProjectSanitizeName(the short name of tOwner) & "--" & tFilename into tFilename
+   end if
+   return tFilename & ".hyperxtalkscript"
+end revIDEProjectControlScriptFilename
+
+-- Writes pScript to pScriptsFolder/pFilename with a metadata header comment.
+-- Handles filename collisions by appending --2, --3, etc.
+-- Returns the bundle-relative path (e.g. "scripts/foo.hyperxtalkscript"),
+-- or empty if the script is empty or the file could not be written.
+private function revIDEProjectWriteScript pScript, pScriptsFolder, pFilename, pObjectDescription
+   if pScript is empty then return empty
+   local tBase, tFilename, tFilePath, tCounter
+   put char 1 to (the length of pFilename - the length of ".hyperxtalkscript") of pFilename into tBase
+   put pFilename into tFilename
+   put pScriptsFolder & "/" & tFilename into tFilePath
+   put 1 into tCounter
+   repeat while there is a file tFilePath
+      add 1 to tCounter
+      put tBase & "--" & tCounter & ".hyperxtalkscript" into tFilename
+      put pScriptsFolder & "/" & tFilename into tFilePath
+   end repeat
+   open file tFilePath for write
+   if the result is not empty then return empty
+   -- Header comment identifies the object for external editors and VCS
+   write "-- HyperXTalk: " & pObjectDescription & return into file tFilePath
+   write pScript to file tFilePath
+   close file tFilePath
+   return "scripts/" & tFilename
+end revIDEProjectWriteScript
+
+-- Reads a script from a bundle-relative path, stripping the HyperXTalk header line.
+-- Falls back to empty if the file does not exist.
+private function revIDEProjectReadScript pScriptFile, pFolderPath
+   if pScriptFile is empty then return empty
+   local tFilePath
+   put pFolderPath & "/" & pScriptFile into tFilePath
+   if there is not a file tFilePath then return empty
+   open file tFilePath for read
+   if the result is not empty then return empty
+   read from file tFilePath until end
+   local tContent
+   put it into tContent
+   close file tFilePath
+   -- Strip the header line written by revIDEProjectWriteScript
+   if line 1 of tContent begins with "-- HyperXTalk: " then
+      put line 2 to (the number of lines of tContent) of tContent into tContent
+   end if
+   return tContent
+end revIDEProjectReadScript
+
+on revIDEProjectBuildTree pStackID, pMediaFolder, pScriptsFolder, @rTree
    put "hyperxtalk-project" into rTree["format"]
    put 1 into rTree["version"]
 
    -- Resolve to a plain stack name for reliable use inside serialize handlers
    local tStackNode, tStackName
    put the short name of pStackID into tStackName
-   revIDEProjectSerializeStack tStackName, pMediaFolder, tStackNode
+   revIDEProjectSerializeStack tStackName, pMediaFolder, pScriptsFolder, tStackNode
    put tStackNode into rTree["stack"]
 end revIDEProjectBuildTree
 
 -- pStackName is the plain short name of the stack (not a long id)
-on revIDEProjectSerializeStack pStackName, pMediaFolder, @rObj
+on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
    put pStackName into rObj["name"]
    put the id of stack pStackName into rObj["id"]
    put the title of stack pStackName into rObj["title"]
    put the rect of stack pStackName into rObj["rect"]
-   put the script of stack pStackName into rObj["script"]
+   local tStackScriptFile
+   put revIDEProjectWriteScript(the script of stack pStackName, pScriptsFolder, \
+         "stack--" & revIDEProjectSanitizeName(pStackName) & ".hyperxtalkscript", \
+         "stack " & quote & pStackName & quote) into tStackScriptFile
+   if tStackScriptFile is not empty then
+      put tStackScriptFile into rObj["scriptFile"]
+   else
+      put the script of stack pStackName into rObj["script"]
+   end if
    put the resizable of stack pStackName into rObj["resizable"]
    put the cantModify of stack pStackName into rObj["cantModify"]
    put the cantDelete of stack pStackName into rObj["cantDelete"]
@@ -8339,7 +8436,7 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, @rObj
       local tCardIDNum, tCardNode
       put empty into tCardNode
       put the id of card i of stack pStackName into tCardIDNum
-      revIDEProjectSerializeCard tCardIDNum, pStackName, pMediaFolder, tCardNode
+      revIDEProjectSerializeCard tCardIDNum, pStackName, pMediaFolder, pScriptsFolder, tCardNode
       put tCardNode into rObj["cards"][i]
    end repeat
 
@@ -8351,7 +8448,7 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, @rObj
    repeat for each line tBGName in tBGList
       if tBGName is empty then next repeat
       put empty into tBGNode
-      revIDEProjectSerializeControl the long id of group tBGName of stack pStackName, pMediaFolder, tBGNode
+      revIDEProjectSerializeControl the long id of group tBGName of stack pStackName, pMediaFolder, pScriptsFolder, tBGNode
       put tBGNode into rObj["backgrounds"][bgIdx]
       add 1 to bgIdx
    end repeat
@@ -8373,7 +8470,7 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, @rObj
          put the filename of stack tSubstackName into tSubstackFile
          if tSubstackFile contains "Toolset" then next repeat
          put empty into tSubstackNode
-         revIDEProjectSerializeStack tSubstackName, pMediaFolder, tSubstackNode
+         revIDEProjectSerializeStack tSubstackName, pMediaFolder, pScriptsFolder, tSubstackNode
          put tSubstackNode into rObj["substacks"][s]
          add 1 to s
       end repeat
@@ -8381,11 +8478,23 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, @rObj
 end revIDEProjectSerializeStack
 
 -- pCardIDNum is the numeric id of the card; pStackName is the plain short name of its stack
-on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, @rObj
-   put the short name of card id pCardIDNum of stack pStackName into rObj["name"]
+on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFolder, @rObj
+   local tCardName
+   put the short name of card id pCardIDNum of stack pStackName into tCardName
+   put tCardName into rObj["name"]
    put pCardIDNum into rObj["id"]
    put the rect of card id pCardIDNum of stack pStackName into rObj["rect"]
-   put the script of card id pCardIDNum of stack pStackName into rObj["script"]
+   local tCardScriptFile
+   put revIDEProjectWriteScript(the script of card id pCardIDNum of stack pStackName, \
+         pScriptsFolder, \
+         "card--" & revIDEProjectSanitizeName(tCardName) & ".hyperxtalkscript", \
+         "card " & quote & tCardName & quote && "of stack" && quote & pStackName & quote) \
+         into tCardScriptFile
+   if tCardScriptFile is not empty then
+      put tCardScriptFile into rObj["scriptFile"]
+   else
+      put the script of card id pCardIDNum of stack pStackName into rObj["script"]
+   end if
    put the cantDelete of card id pCardIDNum of stack pStackName into rObj["cantDelete"]
    put the dontSearch of card id pCardIDNum of stack pStackName into rObj["dontSearch"]
    put the mark of card id pCardIDNum of stack pStackName into rObj["mark"]
@@ -8415,18 +8524,27 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, @rObj
          end if
       end if
       put empty into tControlNode
-      revIDEProjectSerializeControl tControlID, pMediaFolder, tControlNode
+      revIDEProjectSerializeControl tControlID, pMediaFolder, pScriptsFolder, tControlNode
       put tControlNode into rObj["controls"][tControlIndex]
       add 1 to tControlIndex
    end repeat
 end revIDEProjectSerializeCard
 
-on revIDEProjectSerializeControl pControlID, pMediaFolder, @rObj
+on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    -- Derive type from word 1 of the long id (e.g. "image id 3 of ...")
    local tType
    put word 1 of pControlID into tType
    put tType into rObj["type"]
-   put the script of pControlID into rObj["script"]
+   local tControlScriptFile
+   put revIDEProjectWriteScript(the script of pControlID, pScriptsFolder, \
+         revIDEProjectControlScriptFilename(pControlID), \
+         tType && quote & the short name of pControlID & quote && "in" && pControlID) \
+         into tControlScriptFile
+   if tControlScriptFile is not empty then
+      put tControlScriptFile into rObj["scriptFile"]
+   else
+      put the script of pControlID into rObj["script"]
+   end if
 
    -- Capture all properties at once; remove read-only/handled ones
    local tProps
@@ -8539,7 +8657,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, @rObj
          -- Only serialize direct children (owner is this group, not a nested group)
          if the id of the owner of control k of pControlID is not the id of pControlID then next repeat
          put empty into tChildNode
-         revIDEProjectSerializeControl tChildID, pMediaFolder, tChildNode
+         revIDEProjectSerializeControl tChildID, pMediaFolder, pScriptsFolder, tChildNode
          put tChildNode into rObj["controls"][tChildIndex]
          add 1 to tChildIndex
       end repeat
@@ -8875,7 +8993,13 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    end if
    -- Custom properties
    revIDEProjectReconstructCustomProps pStackNode, "stack" && quote & tNewStackName & quote
-   set the script of stack tNewStackName to pStackNode["script"]
+   local tStackScript
+   if pStackNode["scriptFile"] is not empty then
+      put revIDEProjectReadScript(pStackNode["scriptFile"], pFolderPath) into tStackScript
+   else
+      put pStackNode["script"] into tStackScript
+   end if
+   set the script of stack tNewStackName to tStackScript
    unlock messages
    unlock screen
    return tNewStackName
@@ -8932,7 +9056,13 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
    end if
    -- Custom properties
    revIDEProjectReconstructCustomProps pCardNode, tCardRef
-   set the script of tCardRef to pCardNode["script"]
+   local tCardScript
+   if pCardNode["scriptFile"] is not empty then
+      put revIDEProjectReadScript(pCardNode["scriptFile"], pFolderPath) into tCardScript
+   else
+      put pCardNode["script"] into tCardScript
+   end if
+   set the script of tCardRef to tCardScript
 end revIDEProjectReconstructCard
 
 
@@ -9098,7 +9228,13 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    -- Custom properties
    revIDEProjectReconstructCustomProps pControlNode, tStackRef
    -- Script last to avoid side-effects during reconstruction
-   set the script of tStackRef to pControlNode["script"]
+   local tControlScript
+   if pControlNode["scriptFile"] is not empty then
+      put revIDEProjectReadScript(pControlNode["scriptFile"], pFolderPath) into tControlScript
+   else
+      put pControlNode["script"] into tControlScript
+   end if
+   set the script of tStackRef to tControlScript
 end revIDEProjectReconstructControl
 
 -- ---------------------------------------------------------------------------
