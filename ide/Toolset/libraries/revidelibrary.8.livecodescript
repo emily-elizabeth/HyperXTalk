@@ -8315,12 +8315,18 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, @rObj
    put the resizable of stack pStackName into rObj["resizable"]
    put the cantModify of stack pStackName into rObj["cantModify"]
    put the cantDelete of stack pStackName into rObj["cantDelete"]
+   put the cantAbort of stack pStackName into rObj["cantAbort"]
+   put the destroyStack of stack pStackName into rObj["destroyStack"]
+   put the destroyWindow of stack pStackName into rObj["destroyWindow"]
+   put the decorations of stack pStackName into rObj["decorations"]
+   put the menubar of stack pStackName into rObj["menubar"]
    put the backgroundColor of stack pStackName into rObj["backgroundColor"]
    put the foregroundColor of stack pStackName into rObj["foregroundColor"]
    put the shadow of stack pStackName into rObj["shadow"]
    put the textFont of stack pStackName into rObj["textFont"]
    put the textSize of stack pStackName into rObj["textSize"]
    put the textStyle of stack pStackName into rObj["textStyle"]
+   put the stackFiles of stack pStackName into rObj["stackFiles"]
 
    -- Cards
    local tCardCount
@@ -8608,6 +8614,21 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    if pStackNode["cantDelete"] is not empty then
       set the cantDelete of stack tNewStackName to (pStackNode["cantDelete"] is "true")
    end if
+   if pStackNode["cantAbort"] is not empty then
+      set the cantAbort of stack tNewStackName to (pStackNode["cantAbort"] is "true")
+   end if
+   if pStackNode["destroyStack"] is not empty then
+      set the destroyStack of stack tNewStackName to (pStackNode["destroyStack"] is "true")
+   end if
+   if pStackNode["destroyWindow"] is not empty then
+      set the destroyWindow of stack tNewStackName to (pStackNode["destroyWindow"] is "true")
+   end if
+   if pStackNode["decorations"] is not empty then
+      set the decorations of stack tNewStackName to pStackNode["decorations"]
+   end if
+   if pStackNode["menubar"] is not empty then
+      set the menubar of stack tNewStackName to pStackNode["menubar"]
+   end if
    if pStackNode["backgroundColor"] is not empty then
       set the backgroundColor of stack tNewStackName to pStackNode["backgroundColor"]
    end if
@@ -8625,6 +8646,9 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    end if
    if pStackNode["textStyle"] is not empty then
       set the textStyle of stack tNewStackName to pStackNode["textStyle"]
+   end if
+   if pStackNode["stackFiles"] is not empty then
+      set the stackFiles of stack tNewStackName to pStackNode["stackFiles"]
    end if
    local tCards, tCardCount
    put pStackNode["cards"] into tCards
