@@ -8598,6 +8598,15 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    put the properties of pControlID into tProps
    delete variable tProps["id"]
    delete variable tProps["script"]
+   -- showName is a boolean that gets mangled by SanitizeArray (boolean false becomes
+   -- the string "false", which jsonExport quotes as a JSON string rather than a boolean).
+   -- Save it explicitly so it survives the JSON round-trip correctly.
+   if the showName of pControlID then
+      put "true" into rObj["showName"]
+   else
+      put "false" into rObj["showName"]
+   end if
+   delete variable tProps["showName"]
    -- Image binary data is handled separately via mediaFile; don't embed in JSON
    if tType is "image" then
       delete variable tProps["text"]
@@ -9213,6 +9222,11 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       delete variable tProps["number"]
       delete variable tProps["behavior"]
       set the properties of tStackRef to tProps
+   end if
+   -- Restore showName explicitly: it is saved as the string "true"/"false" to survive
+   -- the JSON round-trip, and set here after the bulk property restore.
+   if pControlNode["showName"] is not empty then
+      set the showName of tStackRef to (pControlNode["showName"] is "true")
    end if
    
    -- Widget: restore full state via import. This must happen after basic properties
