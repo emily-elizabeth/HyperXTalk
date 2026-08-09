@@ -8672,6 +8672,9 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
    if pCardNode["name"] is not empty then
       set the name of tCardRef to pCardNode["name"]
    end if
+   if pCardNode["rect"] is not empty then
+      set the rect of tCardRef to pCardNode["rect"]
+   end if
    if pCardNode["cantDelete"] is not empty then
       set the cantDelete of tCardRef to (pCardNode["cantDelete"] is "true")
    end if
