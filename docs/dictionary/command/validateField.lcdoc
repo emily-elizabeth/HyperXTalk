@@ -8,6 +8,8 @@ Summary:
 Validates the content of a field against its input constraints and sets
 <the result> to an error message if validation fails.
 
+Associations: field
+
 Introduced: 1.0
 
 OS: mac, windows, linux

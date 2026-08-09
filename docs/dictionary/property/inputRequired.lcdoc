@@ -7,6 +7,8 @@ Syntax: set the inputRequired of <field> to {true | false}
 Summary:
 Specifies whether a field must contain a non-empty value when validated.
 
+Associations: field
+
 Introduced: 1.0
 
 OS: mac, windows, linux
