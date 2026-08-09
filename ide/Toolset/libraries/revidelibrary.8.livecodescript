@@ -8908,7 +8908,9 @@ on revIDELoadFromProject pFilePath
          put tIconNames[tIconProp] into tImgName
          put "image" && quote & tImgName & quote && "of stack" && quote & tIcon["stackName"] & quote into tImgRef
          if there is an image tImgRef then
-            set the tIconProp of tIcon["controlRef"] to the id of tImgRef
+            -- Parentheses force tIconProp to be evaluated as a variable,
+            -- not treated as the literal custom property name "tIconProp".
+            set the (tIconProp) of tIcon["controlRef"] to the id of tImgRef
          end if
       end repeat
    end repeat
