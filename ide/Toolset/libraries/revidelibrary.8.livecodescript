@@ -8359,16 +8359,28 @@ private function revIDEProjectControlScriptFilename pControlID
    -- Walk up the owner chain, prepending each group and the card name.
    -- Stop at card, stack, or background (background groups are stack-level objects
    -- whose long id begins with "background id X" -- short name lookup fails on them).
-   local tOwner, tOwnerType
+   -- Use try/catch throughout: stack names with quotes or apostrophes can cause
+   -- "can't find the card/group" when LiveCode re-parses the long id string.
+   local tOwner, tOwnerType, tOwnerName
    put the owner of pControlID into tOwner
    put word 1 of tOwner into tOwnerType
    repeat while tOwnerType is not "card" and tOwnerType is not "stack" and tOwnerType is not "background"
-      put revIDEProjectSanitizeName(the short name of tOwner) & "--" & tFilename into tFilename
+      try
+         put the short name of tOwner into tOwnerName
+      catch tErr
+         put word 3 of tOwner into tOwnerName -- fall back to numeric id
+      end try
+      put revIDEProjectSanitizeName(tOwnerName) & "--" & tFilename into tFilename
       put the owner of tOwner into tOwner
       put word 1 of tOwner into tOwnerType
    end repeat
    if tOwnerType is "card" then
-      put "card--" & revIDEProjectSanitizeName(the short name of tOwner) & "--" & tFilename into tFilename
+      try
+         put the short name of tOwner into tOwnerName
+      catch tErr
+         put "card_" & word 3 of tOwner into tOwnerName -- fall back to "card_<id>"
+      end try
+      put "card--" & revIDEProjectSanitizeName(tOwnerName) & "--" & tFilename into tFilename
    end if
    return tFilename & ".hyperxtalkscript"
 end revIDEProjectControlScriptFilename
