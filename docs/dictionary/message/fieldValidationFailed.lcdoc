@@ -23,11 +23,12 @@ on fieldValidationFailed pFieldName, pError
 end fieldValidationFailed
 
 Example:
--- Show an inline error and keep the field focused
+-- Show an inline error and restore focus to the field
 on fieldValidationFailed pFieldName, pError
     set the borderColor of field pFieldName to "red"
     show field (pFieldName & "Error")
     put pError into field (pFieldName & "Error")
+    focus on me
 end fieldValidationFailed
 
 Parameters:
@@ -44,9 +45,11 @@ The <fieldValidationFailed> message is sent to a field instead of
 input constraints (<inputRequired>, <inputType>, <inputMin>, <inputMax>,
 <inputStep>, or <inputPattern>).
 
-When <fieldValidationFailed> is sent, the field retains focus so the user
-can correct the value without having to click back into the field. The
-<closeField> message is suppressed for this edit cycle.
+Because <fieldValidationFailed> is sent under the same conditions as
+<closeField> — when the field loses focus — the field no longer has focus
+when the message arrives. The <closeField> message is suppressed for this
+edit cycle. To return focus to the field so the user can correct the value
+without clicking back in, call `focus on me` inside the handler.
 
 Handle <fieldValidationFailed> to provide visual feedback — for example,
 highlighting the field border in red, showing an error label, or playing
