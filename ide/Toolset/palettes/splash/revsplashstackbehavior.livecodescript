@@ -5,24 +5,19 @@ end statusMessage
 
 
 on PreOpenStack
-   -- Centre the splash on whichever screen the IDE menubar is on.
-   -- Falls back to the tool palette, then the primary screen centre.
-   local tRefLoc
-   if exists(stack "revMenubar") then
-      put the loc of stack "revMenubar" into tRefLoc
-   else if exists(stack "revIDEPalette") then
-      put the loc of stack "revIDEPalette" into tRefLoc
-   else
-      set the location of this stack to the screenLoc
-      exit PreOpenStack
-   end if
+   -- Centre the splash on whichever screen the mouse is on at launch time.
+   -- The IDE stacks aren't open yet when the splash fires, so the mouse
+   -- position is the only reliable indicator of the user's active screen.
+   local tRefH, tRefV
+   put item 1 of the mouseLoc into tRefH
+   put item 2 of the mouseLoc into tRefV
 
-   -- Walk screenRects to find which screen contains the reference point.
+   -- Walk screenRects to find which screen contains the mouse.
    local tTargetRect
    put line 1 of the screenRects into tTargetRect
    repeat for each line tRect in the screenRects
-      if item 1 of tRect <= item 1 of tRefLoc and item 1 of tRefLoc < item 3 of tRect and \
-            item 2 of tRect <= item 2 of tRefLoc and item 2 of tRefLoc < item 4 of tRect then
+      if item 1 of tRect <= tRefH and tRefH < item 3 of tRect and \
+            item 2 of tRect <= tRefV and tRefV < item 4 of tRect then
          put tRect into tTargetRect
          exit repeat
       end if
