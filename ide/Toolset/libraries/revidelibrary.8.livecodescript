@@ -7037,7 +7037,7 @@ on revIDEActionOpenStack
             put the last item of tStackFilePath into tBundleLeaf
             set the itemDelimiter to tSavedDelim
             put char 1 to (length(tBundleLeaf) - length(".hyperxtalk_project")) of tBundleLeaf into tProjectBaseName
-            put tStackFilePath & "/" & tProjectBaseName & ".hyperxtalk_project" into tProjectFilePath
+            put tStackFilePath & "/" & tProjectBaseName & ".json" into tProjectFilePath
          end if
          revIDELoadFromProject tProjectFilePath
       else
@@ -8201,7 +8201,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- On macOS, .hyperxtalk_project packages report false for "there is a folder",
    -- so also check for the inner JSON file as proof the package already exists.
    local tMainFilePath
-   put pFolderPath & "/" & tBaseName & ".hyperxtalk_project" into tMainFilePath
+   put pFolderPath & "/" & tBaseName & ".json" into tMainFilePath
    if there is no folder pFolderPath and there is not a file tMainFilePath then
       create folder pFolderPath
       if the result is not empty then
@@ -8230,7 +8230,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    put jsonExport(tTree, true) into tJSON
 
    -- Write the main project JSON file
-   put pFolderPath & "/" & tBaseName & ".hyperxtalk_project" into tMainFilePath
+   put pFolderPath & "/" & tBaseName & ".json" into tMainFilePath
    open file tMainFilePath for write
    if the result is not empty then
       answer revIDELocalise("Could not write project file:") & return & the result
