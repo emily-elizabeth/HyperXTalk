@@ -8173,7 +8173,9 @@ on revIDEActionSaveAsProject pStackID
 
    -- Confirm overwrite if folder already exists
    if there is a folder tFolderPath then
-      answer revIDELocalise("A project named '%1' already exists. Replace it?", tShortName) \
+      local tOverwriteParams
+      put tShortName into tOverwriteParams[1]
+      answer revIDELocalise("A project named '%1' already exists. Replace it?", tOverwriteParams) \
             with revIDELocalise("Replace") and revIDELocalise("Cancel")
       if it is revIDELocalise("Cancel") then exit revIDEActionSaveAsProject
    end if
