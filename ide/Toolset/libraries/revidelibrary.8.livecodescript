@@ -8634,9 +8634,11 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    end if
    put tProps into rObj["properties"]
 
-   -- Image: export to media folder as PNG (not raw pixel data)
+   -- Image: export to media folder as PNG (not raw pixel data).
+   -- Check both the text (embedded data) and the filename (file-referenced images);
+   -- either way, export the image as PNG so it can be reloaded portably.
    if tType is "image" then
-      if the text of pControlID is not empty then
+      if the text of pControlID is not empty or the filename of pControlID is not empty then
          local tMediaName, tMediaFile
          put revIDEProjectSanitizeName(the short name of pControlID) & "_" & the id of pControlID & ".png" into tMediaName
          put pMediaFolder & "/" & tMediaName into tMediaFile
