@@ -297,8 +297,6 @@ static void _reset_silence_timer()
 // Process one final recognised transcript on s_speech_queue.
 static void _handle_transcript(NSString *p_transcript)
 {
-    NSLog(@"[HXTSpeech] _handle_transcript: \"%@\" (phrases=%zu wake=\"%s\")",
-          p_transcript, s_phrases.size(), s_wake_word.c_str());
     if (!s_is_listening)
         return;
 
@@ -307,8 +305,6 @@ static void _handle_transcript(NSString *p_transcript)
     {
         NSString *t_ww_ns = [NSString stringWithUTF8String:s_wake_word.c_str()];
         BOOL t_ww_matched = t_ww_ns && _transcript_contains(p_transcript, t_ww_ns);
-        NSLog(@"[HXTSpeech] wake word check: transcript=\"%@\" word=\"%@\" matched=%d",
-              p_transcript, t_ww_ns, (int)t_ww_matched);
         if (t_ww_matched)
         {
             s_window_open = true;
@@ -345,7 +341,6 @@ static void _handle_transcript(NSString *p_transcript)
     }
 
     // Nothing matched — dispatch unrecognizedVoiceCommand with the raw transcript
-    NSLog(@"[HXTSpeech] no phrase matched — dispatching unrecognizedVoiceCommand");
     // so the caller can forward it to an LLM or handle it otherwise.
     // If we were in a wake-word command window, close it first.
     if (s_window_open)
@@ -362,10 +357,8 @@ static void _handle_transcript(NSString *p_transcript)
             if (t_ctx != nil)
             {
                 MCMacPlatformScheduleCallback([](void *p_ctx) {
-                    NSLog(@"[HXTSpeech] unrecognized callback on main thread");
                     MCDispatchURICtx *t_c = (MCDispatchURICtx *)p_ctx;
                     MCSpeechDispatchUnrecognizedInput(t_c->text);
-                    NSLog(@"[HXTSpeech] MCSpeechDispatchUnrecognizedInput returned");
                     MCValueRelease(t_c->text);
                     delete t_c;
                 }, t_ctx);
@@ -556,7 +549,6 @@ static bool _start_engine_locked(const std::string& p_locale_id, const char **r_
     }
 
     s_is_listening = true;
-    NSLog(@"[HXTSpeech] engine started — calling _start_recognition_task");
     _start_recognition_task();
     return true;
 }
