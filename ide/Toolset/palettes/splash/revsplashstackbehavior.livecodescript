@@ -1,4 +1,4 @@
-script "revSplashStackBehavior"
+﻿script "revSplashStackBehavior"
 
 -- Prevents repeated repositioning on every status message update.
 local sPositioned
@@ -6,7 +6,7 @@ local sPositioned
 setProp statusMessage pMessage
    put pMessage into field "status" of me
    -- The behaviour is not yet loaded when preOpenStack fires, so we position
-   -- on the first status message instead — by then it's definitely active.
+   -- on the first status message instead â by then it's definitely active.
    if not sPositioned then
       put true into sPositioned
       revSplashBehavior__CentreOnIDEScreen
@@ -17,7 +17,7 @@ end statusMessage
 private command revSplashBehavior__CentreOnIDEScreen
    -- Try the saved menubar rect from the preferences stack first.
    local tPrefsPath, tSavedRect
-   put the homeFolderPath & "/.hyperxtalk/preferences/hyperxtalk7.rev" into tPrefsPath
+   put specialfolderpath("home") & "/.hyperxtalk/preferences/hyperxtalk7.rev" into tPrefsPath
    if there is a file tPrefsPath then
       put the palette_rect_revMenubar of stack tPrefsPath into tSavedRect
    end if
@@ -28,7 +28,7 @@ private command revSplashBehavior__CentreOnIDEScreen
       put (item 1 of tSavedRect + item 3 of tSavedRect) / 2 into tRefH
       put (item 2 of tSavedRect + item 4 of tSavedRect) / 2 into tRefV
    else
-      -- First run or prefs missing — fall back to the mouse position.
+      -- First run or prefs missing â fall back to the mouse position.
       put item 1 of the mouseLoc into tRefH
       put item 2 of the mouseLoc into tRefV
    end if
