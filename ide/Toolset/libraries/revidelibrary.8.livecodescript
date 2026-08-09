@@ -8643,11 +8643,23 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
             local tIconImgName, tIconImgRef, tIconSearchStack
             put empty into tIconImgName
             put empty into tIconImgRef
-            -- Try the button's own stack first
+            -- Search order: button's own stack → button's main stack → all other stacks.
+            -- Prioritising the project stacks prevents accidentally picking up an
+            -- image with the same numeric ID from a loaded IDE/icon-library stack.
             if there is an image id tIconID of stack tIconStackName then
                put "image id" && tIconID && "of stack" && quote & tIconStackName & quote into tIconImgRef
-            else
-               -- Fall back to all loaded stacks (icon library stacks, etc.)
+            end if
+            if tIconImgRef is empty then
+               local tIconMainStackName
+               put the short name of ideMainStackOfObject(pControlID) into tIconMainStackName
+               if tIconMainStackName is not tIconStackName then
+                  if there is an image id tIconID of stack tIconMainStackName then
+                     put "image id" && tIconID && "of stack" && quote & tIconMainStackName & quote into tIconImgRef
+                  end if
+               end if
+            end if
+            if tIconImgRef is empty then
+               -- Last resort: any loaded stack (icon library, etc.)
                repeat for each line tIconSearchStack in the stacks
                   if there is an image id tIconID of stack tIconSearchStack then
                      put "image id" && tIconID && "of stack" && quote & tIconSearchStack & quote into tIconImgRef
