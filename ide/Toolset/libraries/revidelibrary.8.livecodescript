@@ -8592,7 +8592,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    else
       put the script of pControlID into rObj["script"]
    end if
-
+   
    -- Capture all properties at once; remove read-only/handled ones
    local tProps
    put the properties of pControlID into tProps
@@ -8601,12 +8601,15 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    -- showName is a boolean that gets mangled by SanitizeArray (boolean false becomes
    -- the string "false", which jsonExport quotes as a JSON string rather than a boolean).
    -- Save it explicitly so it survives the JSON round-trip correctly.
-   if the showName of pControlID then
-      put "true" into rObj["showName"]
-   else
-      put "false" into rObj["showName"]
+   -- Not all control types support showName, so guard with a key existence check.
+   if "showName" is among the keys of tProps then
+      if the showName of pControlID then
+         put "true" into rObj["showName"]
+      else
+         put "false" into rObj["showName"]
+      end if
+      delete variable tProps["showName"]
    end if
-   delete variable tProps["showName"]
    -- Image binary data is handled separately via mediaFile; don't embed in JSON
    if tType is "image" then
       delete variable tProps["text"]
@@ -8642,7 +8645,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       end repeat
    end if
    put tProps into rObj["properties"]
-
+   
    -- Image: export to media folder as PNG (not raw pixel data).
    -- Check both the text (embedded data) and the filename (file-referenced images);
    -- either way, export the image as PNG so it can be reloaded portably.
@@ -8659,7 +8662,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
          end if
       end if
    end if
-
+   
    -- Player: copy media file into media folder for portability
    if tType is "player" then
       local tPlayerFilename
@@ -8687,7 +8690,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
          end if
       end if
    end if
-
+   
    -- Widget: export kind + state in one step.
    -- The exported array contains "$kind" and "$state" keys; we store the whole
    -- thing as widgetData so reconstruction can import it back directly.
@@ -8698,10 +8701,10 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       put tWidgetData into rObj["widgetData"]
       put tWidgetData["$kind"] into rObj["widgetKind"]
    end if
-
+   
    -- Custom properties
    revIDEProjectSerializeCustomProps pControlID, rObj
-
+   
    -- Group: recurse into direct child controls only
    if tType is "group" then
       local tChildCount, k, tChildIndex
