@@ -8514,9 +8514,15 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, @rObj
       end if
    end if
 
-   -- Widget: save the kind so we can recreate it (kind is set at create time, not via properties)
+   -- Widget: export kind + state in one step.
+   -- The exported array contains "$kind" and "$state" keys; we store the whole
+   -- thing as widgetData so reconstruction can import it back directly.
+   -- widgetKind is kept as a top-level key for quick access at create time.
    if tType is "widget" then
-      put the kind of pControlID into rObj["widgetKind"]
+      local tWidgetData
+      export widget pControlID to array tWidgetData
+      put tWidgetData into rObj["widgetData"]
+      put tWidgetData["$kind"] into rObj["widgetKind"]
    end if
 
    -- Custom properties
@@ -8969,6 +8975,12 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       delete variable tProps["number"]
       delete variable tProps["behavior"]
       set the properties of tStackRef to tProps
+   end if
+
+   -- Widget: restore full state via import. This must happen after basic properties
+   -- are set so the widget exists in a valid state before receiving its saved state.
+   if tType is "widget" and pControlNode["widgetData"] is an array then
+      import widget tStackRef from array pControlNode["widgetData"]
    end if
 
    -- Defer behavior resolution until all stacks/controls are reconstructed
