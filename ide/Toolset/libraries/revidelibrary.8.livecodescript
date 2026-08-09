@@ -8413,6 +8413,10 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, @rObj
    if tType is "image" then
       delete variable tProps["text"]
    end if
+   -- Player filename is an absolute path; handle portability via mediaFile instead
+   if tType is "player" then
+      delete variable tProps["filename"]
+   end if
    -- Behavior is a long ID (changes on reconstruct) — save as name+stack instead
    if tProps["behavior"] is not empty then
       local tBehRef, tSavedDelim
@@ -8439,6 +8443,34 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, @rObj
             write tImageData to file tMediaFile
             close file tMediaFile
             put "media/" & tMediaName into rObj["mediaFile"]
+         end if
+      end if
+   end if
+
+   -- Player: copy media file into media folder for portability
+   if tType is "player" then
+      local tPlayerFilename
+      put the filename of pControlID into tPlayerFilename
+      if tPlayerFilename is not empty and there is a file tPlayerFilename then
+         local tPlayerExt, tPlayerMediaName, tPlayerMediaFile, tSavedDelim
+         put the itemDelimiter into tSavedDelim
+         set the itemDelimiter to "."
+         put the last item of tPlayerFilename into tPlayerExt
+         set the itemDelimiter to tSavedDelim
+         put the short name of pControlID & "_" & the id of pControlID & "." & tPlayerExt into tPlayerMediaName
+         put pMediaFolder & "/" & tPlayerMediaName into tPlayerMediaFile
+         local tPlayerData
+         open file tPlayerFilename for binary read
+         if the result is empty then
+            read from file tPlayerFilename until end
+            put it into tPlayerData
+            close file tPlayerFilename
+            open file tPlayerMediaFile for binary write
+            if the result is empty then
+               write tPlayerData to file tPlayerMediaFile
+               close file tPlayerMediaFile
+               put "media/" & tPlayerMediaName into rObj["mediaFile"]
+            end if
          end if
       end if
    end if
@@ -8846,6 +8878,17 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
             put it into tImageData
             close file tMediaPath
             set the text of tStackRef to tImageData
+         end if
+      end if
+   end if
+
+   -- Player: restore filename from bundled media file
+   if tType is "player" then
+      if pControlNode["mediaFile"] is not empty then
+         local tPlayerMediaPath
+         put pFolderPath & "/" & pControlNode["mediaFile"] into tPlayerMediaPath
+         if there is a file tPlayerMediaPath then
+            set the filename of tStackRef to tPlayerMediaPath
          end if
       end if
    end if
