@@ -8158,6 +8158,26 @@ end revIDEActionSaveStackAs
 -- ---------------------------------------------------------------------------
 
 on revIDEActionSaveAsProject pStackID
+   -- Validate: we need a stack reference. If nothing (or a non-stack) was passed,
+   -- try the topStack; error out rather than silently producing a broken bundle.
+   if pStackID is empty or not exists(pStackID) then
+      if the topStack is not empty then
+         put the long id of stack (the topStack) into pStackID
+      else
+         answer error revIDELocalise("No stack is open to save as a project.")
+         exit revIDEActionSaveAsProject
+      end if
+   end if
+   if word 1 of pStackID is not "stack" then
+      local tOwnerStackName
+      put revIDEStackOfObject(pStackID) into tOwnerStackName
+      if tOwnerStackName is empty then
+         answer error revIDELocalise("Could not determine which stack to save as a project.")
+         exit revIDEActionSaveAsProject
+      end if
+      put the long id of stack tOwnerStackName into pStackID
+   end if
+
    local tShortName
    put the short name of pStackID into tShortName
 
@@ -8235,6 +8255,10 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- Encode to JSON (pretty-printed for readable diffs in version control)
    local tJSON
    put jsonExport(tTree, true) into tJSON
+   if tJSON is empty then
+      answer error revIDELocalise("Could not encode project data as JSON. The project was not saved.")
+      return "Error"
+   end if
 
    -- Write the main project JSON file
    put pFolderPath & "/" & tBaseName & ".json" into tMainFilePath
@@ -8587,18 +8611,14 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    end if
    put tProps into rObj["properties"]
 
-   -- Image: export binary data to media folder
+   -- Image: export to media folder as PNG (not raw pixel data)
    if tType is "image" then
-      local tImageData
-      put the text of pControlID into tImageData
-      if tImageData is not empty then
+      if the text of pControlID is not empty then
          local tMediaName, tMediaFile
-         put the short name of pControlID & "_" & the id of pControlID & ".png" into tMediaName
+         put revIDEProjectSanitizeName(the short name of pControlID) & "_" & the id of pControlID & ".png" into tMediaName
          put pMediaFolder & "/" & tMediaName into tMediaFile
-         open file tMediaFile for binary write
+         export pControlID to file tMediaFile as PNG
          if the result is empty then
-            write tImageData to file tMediaFile
-            close file tMediaFile
             put "media/" & tMediaName into rObj["mediaFile"]
          end if
       end if
@@ -8751,8 +8771,10 @@ on revIDEProjectSanitizeArray @pArray
 end revIDEProjectSanitizeArray
 
 -- Returns true if pValue contains bytes that cannot be safely represented
--- in a JSON string: null bytes, or control characters below 0x09 (tab),
--- or 0x0B (vertical tab), 0x0C (form feed), or 0x0E–0x1F.
+-- in a JSON string: null bytes, control characters below 0x09 (tab),
+-- 0x0B (vertical tab), 0x0C (form feed), 0x0E–0x1F, or any byte 0x80–0xFF
+-- (which cannot be guaranteed to form valid UTF-8 sequences — e.g. raw MD5
+-- checksums stored in custom properties).
 private function revIDEProjectValueIsBinary pValue
    local i
    -- Chars 0x00–0x08 (null through backspace)
@@ -8764,6 +8786,10 @@ private function revIDEProjectValueIsBinary pValue
    if pValue contains numToChar(12) then return true
    -- 0x0E–0x1F (shift-out through unit separator)
    repeat with i = 14 to 31
+      if pValue contains numToChar(i) then return true
+   end repeat
+   -- 0x80–0xFF: high bytes that may not form valid UTF-8
+   repeat with i = 128 to 255
       if pValue contains numToChar(i) then return true
    end repeat
    return false
