@@ -8277,6 +8277,10 @@ on revIDESaveAsProject pStackID, pFolderPath
    put pFolderPath & "/preview.png" into tPreviewPath
    export snapshot from card 1 of stack tStackName to file tPreviewPath as PNG
 
+   -- Record the project path so subsequent Cmd+S saves route back here
+   -- instead of falling through to the binary stack saver.
+   set the cRevProjectFilePath of stack tStackName to pFolderPath
+
    -- Mark the stack as saved and update recent files
    revIDESetUnedited the short name of pStackID
    revUpdateRecentFiles the short name of pStackID
