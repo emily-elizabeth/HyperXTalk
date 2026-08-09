@@ -8575,19 +8575,44 @@ end revIDEProjectSerializeCustomProps
 -- onto any object. pObjRef must be a valid, already-created object expression.
 on revIDEProjectReconstructCustomProps pNode, pObjRef
    if pNode["customProperties"] is an array then
-      set the customProperties of pObjRef to pNode["customProperties"]
+      local tDefaultProps
+      put pNode["customProperties"] into tDefaultProps
+      revIDEProjectDecodeBinaryProps tDefaultProps
+      set the customProperties of pObjRef to tDefaultProps
    end if
    if pNode["customPropertySets"] is an array then
       local tSetName
       repeat for each key tSetName in pNode["customPropertySets"]
-         set the customProperties[tSetName] of pObjRef to pNode["customPropertySets"][tSetName]
+         local tSetProps
+         put pNode["customPropertySets"][tSetName] into tSetProps
+         revIDEProjectDecodeBinaryProps tSetProps
+         set the customProperties[tSetName] of pObjRef to tSetProps
       end repeat
    end if
 end revIDEProjectReconstructCustomProps
 
+-- Recursively decodes any "__binary__:" prefixed values back to raw binary data.
+on revIDEProjectDecodeBinaryProps @pProps
+   local tKey
+   repeat for each key tKey in pProps
+      if pProps[tKey] is an array then
+         local tSub
+         put pProps[tKey] into tSub
+         revIDEProjectDecodeBinaryProps tSub
+         put tSub into pProps[tKey]
+      else if pProps[tKey] begins with "__binary__:" then
+         -- "__binary__:" is 11 chars; everything after is the base64-encoded payload
+         put base64Decode(char 12 to (the length of pProps[tKey]) of pProps[tKey]) into pProps[tKey]
+      end if
+   end repeat
+end revIDEProjectDecodeBinaryProps
+
 -- Recursively converts every leaf value in an array to a plain string,
 -- so that livecode.lang.boolean and livecode.lang.data typed values do not
 -- cause type errors inside jsonExport.
+-- Binary values (those containing null bytes or other control characters that
+-- jsonExport cannot safely represent) are base64-encoded with a "__binary__:"
+-- prefix so they survive the JSON round-trip intact.
 on revIDEProjectSanitizeArray @pArray
    local tKey, tSubArray
    repeat for each key tKey in pArray
@@ -8596,10 +8621,35 @@ on revIDEProjectSanitizeArray @pArray
          revIDEProjectSanitizeArray tSubArray
          put tSubArray into pArray[tKey]
       else
-         put pArray[tKey] & "" into pArray[tKey]
+         local tLeaf
+         put pArray[tKey] & "" into tLeaf
+         if revIDEProjectValueIsBinary(tLeaf) then
+            put "__binary__:" & base64Encode(tLeaf) into pArray[tKey]
+         else
+            put tLeaf into pArray[tKey]
+         end if
       end if
    end repeat
 end revIDEProjectSanitizeArray
+
+-- Returns true if pValue contains bytes that cannot be safely represented
+-- in a JSON string: null bytes, or control characters below 0x09 (tab),
+-- or 0x0B (vertical tab), 0x0C (form feed), or 0x0E–0x1F.
+private function revIDEProjectValueIsBinary pValue
+   local i
+   -- Chars 0x00–0x08 (null through backspace)
+   repeat with i = 0 to 8
+      if pValue contains numToChar(i) then return true
+   end repeat
+   -- 0x0B (vertical tab) and 0x0C (form feed)
+   if pValue contains numToChar(11) then return true
+   if pValue contains numToChar(12) then return true
+   -- 0x0E–0x1F (shift-out through unit separator)
+   repeat with i = 14 to 31
+      if pValue contains numToChar(i) then return true
+   end repeat
+   return false
+end revIDEProjectValueIsBinary
 
 -- ---------------------------------------------------------------------------
 -- Project format loading (commented out for incremental testing)
