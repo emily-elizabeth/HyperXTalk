@@ -8629,58 +8629,37 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       put the short name of tBehRef into rObj["behaviorName"]
       delete variable tProps["behavior"]
    end if
-   -- Button icons: store image names and export image data so icons survive
-   -- even when they come from external/icon-library stacks not part of the project.
+   -- Button icons: store image names instead of volatile numeric IDs.
+   -- Icons can reference images in any loaded stack, so search broadly.
+   -- Only delete the property from tProps when we successfully record the name;
+   -- if the image can't be found the numeric ID stays in properties (better than losing it).
    if tType is "button" then
       local tIconProps, tIconProp, tIconID, tIconStackName
       put "icon,hilitedIcon,disabledIcon,visitedIcon,armedIcon" into tIconProps
       put revIDEStackOfObject(pControlID) into tIconStackName
       repeat for each item tIconProp in tIconProps
-         -- Read directly from the object; icon may not appear in the properties array.
+         -- Read directly from the object rather than tProps; icon may not appear
+         -- in the properties array for all button configurations.
          do "put the" && tIconProp && "of pControlID into tIconID"
          delete variable tProps[tIconProp]
          if tIconID is not empty and tIconID is not 0 then
-            local tIconImgName, tIconImgRef, tIconSearchStack
+            local tIconImgName, tIconSearchStack
             put empty into tIconImgName
-            put empty into tIconImgRef
-            -- Search order: button's own stack → button's main stack → all other stacks.
-            -- Prioritising the project stacks prevents accidentally picking up an
-            -- image with the same numeric ID from a loaded IDE/icon-library stack.
+            -- Try the button's own stack first
             if there is an image id tIconID of stack tIconStackName then
-               put "image id" && tIconID && "of stack" && quote & tIconStackName & quote into tIconImgRef
-            end if
-            if tIconImgRef is empty then
-               local tIconMainStackName
-               put the short name of ideMainStackOfObject(pControlID) into tIconMainStackName
-               if tIconMainStackName is not tIconStackName then
-                  if there is an image id tIconID of stack tIconMainStackName then
-                     put "image id" && tIconID && "of stack" && quote & tIconMainStackName & quote into tIconImgRef
-                  end if
-               end if
-            end if
-            if tIconImgRef is empty then
-               -- Last resort: any loaded stack (icon library, etc.)
+               put the short name of image id tIconID of stack tIconStackName into tIconImgName
+            else
+               -- Fall back to searching all loaded stacks
                repeat for each line tIconSearchStack in the stacks
                   if there is an image id tIconID of stack tIconSearchStack then
-                     put "image id" && tIconID && "of stack" && quote & tIconSearchStack & quote into tIconImgRef
+                     put the short name of image id tIconID of stack tIconSearchStack into tIconImgName
                      exit repeat
                   end if
                end repeat
             end if
-            if tIconImgRef is not empty then
-               put the short name of tIconImgRef into tIconImgName
+            if tIconImgName is not empty then
                put tIconImgName into rObj["iconNames"][tIconProp]
-               -- Also export the image to media so it is available even when the
-               -- source stack (e.g. an icon library) is not loaded after restoration.
-               local tIconMediaName, tIconMediaFile
-               put revIDEProjectSanitizeName(tIconImgName) & "_" & tIconID & "_icon.png" into tIconMediaName
-               put pMediaFolder & "/" & tIconMediaName into tIconMediaFile
-               if there is not a file tIconMediaFile then
-                  export tIconImgRef to file tIconMediaFile as PNG
-               end if
-               if there is a file tIconMediaFile then
-                  put "media/" & tIconMediaName into rObj["iconMediaFiles"][tIconProp]
-               end if
+               delete variable tProps[tIconProp]
             end if
          end if
       end repeat
@@ -8947,34 +8926,14 @@ on revIDELoadFromProject pFilePath
       repeat for each key tIconProp in tIconNames
          local tImgName, tImgRef
          put tIconNames[tIconProp] into tImgName
-         -- Try button's own stack first, then all loaded stacks
+         -- Try button's own stack first, then search all loaded stacks
          put "image" && quote & tImgName & quote && "of stack" && quote & tIcon["stackName"] & quote into tImgRef
          if not (there is an image tImgRef) then
             local tIconRestoreStack
             repeat for each line tIconRestoreStack in the stacks
                put "image" && quote & tImgName & quote && "of stack" && quote & tIconRestoreStack & quote into tImgRef
                if there is an image tImgRef then exit repeat
-               put empty into tImgRef
             end repeat
-         end if
-         -- Not found by name: fall back to the bundled media file (handles icons from
-         -- external stacks like icon libraries that are not part of the project).
-         if tImgRef is empty or not (there is an image tImgRef) then
-            local tIconMediaFiles, tIconMediaPath
-            put tIcon["iconMediaFiles"] into tIconMediaFiles
-            if tIconMediaFiles[tIconProp] is not empty then
-               put tFolderPath & "/" & tIconMediaFiles[tIconProp] into tIconMediaPath
-               if there is a file tIconMediaPath then
-                  -- Create a hidden image in the stack to hold the icon data
-                  create image in card 1 of stack tIcon["stackName"]
-                  local tNewIconRef
-                  put the long id of the last image of card 1 of stack tIcon["stackName"] into tNewIconRef
-                  set the name of tNewIconRef to tImgName
-                  set the visible of tNewIconRef to false
-                  set the text of tNewIconRef to URL ("binfile:" & tIconMediaPath)
-                  put "image" && quote & tImgName & quote && "of stack" && quote & tIcon["stackName"] & quote into tImgRef
-               end if
-            end if
          end if
          if there is an image tImgRef then
             do "set the" && tIconProp && "of tIcon[" & QUOTE & "controlRef" & QUOTE & "] to the id of" && tImgRef
@@ -9328,7 +9287,6 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       put tStackRef into tIconEntry["controlRef"]
       put pStackName into tIconEntry["stackName"]
       put pControlNode["iconNames"] into tIconEntry["iconNames"]
-      put pControlNode["iconMediaFiles"] into tIconEntry["iconMediaFiles"]
       put the number of elements of pDeferredIcons + 1 into tIconIdx
       put tIconEntry into pDeferredIcons[tIconIdx]
    end if
