@@ -8629,7 +8629,10 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       put the short name of tBehRef into rObj["behaviorName"]
       delete variable tProps["behavior"]
    end if
-   -- Button icons: store image names instead of volatile numeric IDs
+   -- Button icons: store image names instead of volatile numeric IDs.
+   -- Icons can reference images in any loaded stack, so search broadly.
+   -- Only delete the property from tProps when we successfully record the name;
+   -- if the image can't be found the numeric ID stays in properties (better than losing it).
    if tType is "button" then
       local tIconProps, tIconProp, tIconID, tIconStackName
       put "icon,hilitedIcon,disabledIcon,visitedIcon,armedIcon" into tIconProps
@@ -8637,10 +8640,24 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       repeat for each item tIconProp in tIconProps
          put tProps[tIconProp] into tIconID
          if tIconID is not empty and tIconID is not 0 then
+            local tIconImgName, tIconSearchStack
+            put empty into tIconImgName
+            -- Try the button's own stack first
             if there is an image id tIconID of stack tIconStackName then
-               put the short name of image id tIconID of stack tIconStackName into rObj["iconNames"][tIconProp]
+               put the short name of image id tIconID of stack tIconStackName into tIconImgName
+            else
+               -- Fall back to searching all loaded stacks
+               repeat for each line tIconSearchStack in the stacks
+                  if there is an image id tIconID of stack tIconSearchStack then
+                     put the short name of image id tIconID of stack tIconSearchStack into tIconImgName
+                     exit repeat
+                  end if
+               end repeat
             end if
-            delete variable tProps[tIconProp]
+            if tIconImgName is not empty then
+               put tIconImgName into rObj["iconNames"][tIconProp]
+               delete variable tProps[tIconProp]
+            end if
          end if
       end repeat
    end if
@@ -8906,11 +8923,17 @@ on revIDELoadFromProject pFilePath
       repeat for each key tIconProp in tIconNames
          local tImgName, tImgRef
          put tIconNames[tIconProp] into tImgName
+         -- Try button's own stack first, then search all loaded stacks
          put "image" && quote & tImgName & quote && "of stack" && quote & tIcon["stackName"] & quote into tImgRef
+         if not (there is an image tImgRef) then
+            local tIconRestoreStack
+            repeat for each line tIconRestoreStack in the stacks
+               put "image" && quote & tImgName & quote && "of stack" && quote & tIconRestoreStack & quote into tImgRef
+               if there is an image tImgRef then exit repeat
+            end repeat
+         end if
          if there is an image tImgRef then
-            -- Parentheses force tIconProp to be evaluated as a variable,
-            -- not treated as the literal custom property name "tIconProp".
-            set the (tIconProp) of tIcon["controlRef"] to the id of tImgRef
+            do "set the" && tIconProp && "of tIcon[" & QUOTE & "controlRef" & QUOTE & "] to the id of" && tImgRef
          end if
       end repeat
    end repeat
