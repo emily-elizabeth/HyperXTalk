@@ -8643,7 +8643,9 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
          put revIDEProjectSanitizeName(the short name of pControlID) & "_" & the id of pControlID & ".png" into tMediaName
          put pMediaFolder & "/" & tMediaName into tMediaFile
          export pControlID to file tMediaFile as PNG
-         if the result is empty then
+         -- Check file existence rather than the result, since the result
+         -- after export may be non-empty even on success in HyperXTalk.
+         if there is a file tMediaFile then
             put "media/" & tMediaName into rObj["mediaFile"]
          end if
       end if
