@@ -8337,7 +8337,8 @@ private function revIDEProjectSanitizeName pName
    local tResult, i, tChar
    repeat with i = 1 to the number of chars of pName
       put char i of pName into tChar
-      if tChar is a letter or tChar is a number then
+      --      if tChar is a letter or tChar is a number then
+      if (tChar is among the characters of "abcdefghijklmnopqrstuvwxyz0123456789") then
          put tChar after tResult
       else
          put "_" after tResult
@@ -8355,14 +8356,18 @@ private function revIDEProjectControlScriptFilename pControlID
    put word 1 of pControlID into tType
    put revIDEProjectSanitizeName(the short name of pControlID) into tName
    put tType & "--" & tName into tFilename
-   -- Walk up the owner chain, prepending each group and the card name
-   local tOwner
+   -- Walk up the owner chain, prepending each group and the card name.
+   -- Stop at card, stack, or background (background groups are stack-level objects
+   -- whose long id begins with "background id X" -- short name lookup fails on them).
+   local tOwner, tOwnerType
    put the owner of pControlID into tOwner
-   repeat while word 1 of tOwner is not "card" and word 1 of tOwner is not "stack"
+   put word 1 of tOwner into tOwnerType
+   repeat while tOwnerType is not "card" and tOwnerType is not "stack" and tOwnerType is not "background"
       put revIDEProjectSanitizeName(the short name of tOwner) & "--" & tFilename into tFilename
       put the owner of tOwner into tOwner
+      put word 1 of tOwner into tOwnerType
    end repeat
-   if word 1 of tOwner is "card" then
+   if tOwnerType is "card" then
       put "card--" & revIDEProjectSanitizeName(the short name of tOwner) & "--" & tFilename into tFilename
    end if
    return tFilename & ".hyperxtalkscript"
@@ -8454,11 +8459,11 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
    put the textSize of stack pStackName into rObj["textSize"]
    put the textStyle of stack pStackName into rObj["textStyle"]
    put the stackFiles of stack pStackName into rObj["stackFiles"]
-
+   
    -- Cards
    local tCardCount
    put the number of cards of stack pStackName into tCardCount
-
+   
    local i
    repeat with i = 1 to tCardCount
       local tCardIDNum, tCardNode
@@ -8467,23 +8472,25 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
       revIDEProjectSerializeCard tCardIDNum, pStackName, pMediaFolder, pScriptsFolder, tCardNode
       put tCardNode into rObj["cards"][i]
    end repeat
-
+   
    -- Background/shared groups: serialize at stack level (includes unplaced ones)
    -- Cards record only placement references to avoid duplicating group content
    local tBGList, tBGName, tBGNode, bgIdx
-   put the groups of stack pStackName into tBGList
-   put 1 into bgIdx
-   repeat for each line tBGName in tBGList
-      if tBGName is empty then next repeat
-      put empty into tBGNode
-      revIDEProjectSerializeControl the long id of group tBGName of stack pStackName, pMediaFolder, pScriptsFolder, tBGNode
-      put tBGNode into rObj["backgrounds"][bgIdx]
-      add 1 to bgIdx
+   repeat with i = 1 to tCardCount
+      put the groupNames of card i of stack pStackName into tBGList
+      put 1 into bgIdx
+      repeat for each line tBGName in tBGList
+         if tBGName is empty then next repeat
+         put empty into tBGNode
+         revIDEProjectSerializeControl the long id of group tBGName of stack pStackName, pMediaFolder, pScriptsFolder, tBGNode
+         put tBGNode into rObj["backgrounds"][bgIdx]
+         add 1 to bgIdx
+      end repeat
    end repeat
-
+   
    -- Custom properties
    revIDEProjectSerializeCustomProps "stack" && quote & pStackName & quote, rObj
-
+   
    -- Substacks
    local tSubstacks
    put the substacks of stack pStackName into tSubstacks
@@ -8633,7 +8640,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       local tPlayerFilename
       put the filename of pControlID into tPlayerFilename
       if tPlayerFilename is not empty and there is a file tPlayerFilename then
-         local tPlayerExt, tPlayerMediaName, tPlayerMediaFile, tSavedDelim
+         local tPlayerExt, tPlayerMediaName, tPlayerMediaFile //, tSavedDelim
          put the itemDelimiter into tSavedDelim
          set the itemDelimiter to "."
          put the last item of tPlayerFilename into tPlayerExt
@@ -8855,9 +8862,9 @@ on revIDELoadFromProject pFilePath
          -- Behavior could not be resolved: the script button doesn't exist in any loaded stack.
          -- This usually means the behavior's stack file is missing or was not part of the project.
          local tBehWarn
-         put "  • "" & tBeh["behaviorName"] & """ into tBehWarn
+         put "  • " & QUOTE & tBeh["behaviorName"] & QUOTE into tBehWarn
          if tBeh["behaviorStack"] is not empty then
-            put " (from stack "" & tBeh["behaviorStack"] & "")" after tBehWarn
+            put " (from stack " & QUOTE & tBeh["behaviorStack"] & QUOTE & ")" after tBehWarn
          end if
          put tBehWarn & return after tLoadWarnings
       end if
@@ -9100,10 +9107,10 @@ end revIDEProjectReconstructCard
 on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, pFolderPath, @pDeferredBehaviors, @pDeferredIcons
    local tType
    put pControlNode["type"] into tType
-
+   
    local tCardRef
    put "card id" && pCardID && "of stack" && quote & pStackName & quote into tCardRef
-
+   
    -- Build the creation target (card or group)
    -- pGroupID is always a plain numeric id, so "group id X of card id Y of stack Z"
    -- is always one level deep regardless of nesting depth
@@ -9113,7 +9120,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    else
       put "group id" && pGroupID && "of" && tCardRef into tTarget
    end if
-
+   
    -- Create the control
    -- tControlRef: full long id from `it` — used for properties/script/text
    -- tNewControlID: plain numeric id — used to build tTarget for child creates
@@ -9168,12 +9175,12 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          -- Unknown type, skip
          exit revIDEProjectReconstructControl
    end switch
-
+   
    -- Build a flat stack-level reference for property/script/text operations
    -- Control IDs are unique within a stack, so this works regardless of nesting depth
    local tStackRef
    put tType && "id" && tNewControlID && "of stack" && quote & pStackName & quote into tStackRef
-
+   
    -- Restore all properties at once (script and image data handled separately)
    -- Strip "layer"/"number": restoring a card-level layer on a grouped control moves it
    -- out of its group. Creation order already preserves stacking.
@@ -9186,13 +9193,16 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       delete variable tProps["behavior"]
       set the properties of tStackRef to tProps
    end if
-
+   
    -- Widget: restore full state via import. This must happen after basic properties
    -- are set so the widget exists in a valid state before receiving its saved state.
    if tType is "widget" and pControlNode["widgetData"] is an array then
-      import widget tStackRef from array pControlNode["widgetData"]
+      local tWidgetDataArray
+      put pControlNode["widgetData"] into tWidgetDataArray
+      --      import widget tStackRef from array tWidgetDataArray
+      import widget from array tWidgetDataArray
    end if
-
+   
    -- Defer behavior resolution until all stacks/controls are reconstructed
    -- (the behavior button may not exist yet if it lives in the same project stack)
    if pControlNode["behaviorName"] is not empty then
@@ -9203,7 +9213,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       put the number of elements of pDeferredBehaviors + 1 into tBehIdx
       put tBehEntry into pDeferredBehaviors[tBehIdx]
    end if
-
+   
    -- Defer icon resolution until all controls are reconstructed
    -- (button icons are MCImage objects referenced by ID; IDs change on reconstruct)
    if tType is "button" and pControlNode["iconNames"] is an array then
@@ -9214,7 +9224,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       put the number of elements of pDeferredIcons + 1 into tIconIdx
       put tIconEntry into pDeferredIcons[tIconIdx]
    end if
-
+   
    -- Image: restore binary data from media folder
    if tType is "image" then
       if pControlNode["mediaFile"] is not empty then
@@ -9229,7 +9239,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          end if
       end if
    end if
-
+   
    -- Player: restore filename from bundled media file
    if tType is "player" then
       if pControlNode["mediaFile"] is not empty then
@@ -9240,7 +9250,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          end if
       end if
    end if
-
+   
    -- Group: recurse into child controls in reverse order
    if tType is "group" then
       if pControlNode["controls"] is an array then
@@ -9254,7 +9264,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          end repeat
       end if
    end if
-
+   
    -- Custom properties
    revIDEProjectReconstructCustomProps pControlNode, tStackRef
    -- Script last to avoid side-effects during reconstruction
@@ -9282,7 +9292,7 @@ on revIDEMoveSubstackToFile pStackID
    local tMainStack
    put the mainStack of stack tStackName into tMainStack
    if tMainStack is tStackName then
-      answer error "The stack "" & tStackName & "" is already a main stack. Only substacks can be moved to their own file."
+      answer error "The stack " & QUOTE & tStackName & QUOTE & " is already a main stack. Only substacks can be moved to their own file."
       exit revIDEMoveSubstackToFile
    end if
 
