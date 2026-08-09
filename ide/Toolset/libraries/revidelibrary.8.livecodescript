@@ -9243,14 +9243,16 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    end if
    
    -- Image: restore encoded image data from media folder.
-   -- "put URL (binfile:...) into image X" decodes PNG/JPEG/etc. correctly;
-   -- "set the text of image X to data" only works for raw pixel buffers.
+   -- Read the PNG bytes into a variable first, then use set the text of <ref>
+   -- so LiveCode evaluates tStackRef as an object reference (not a container).
+   -- "put X into tStackRef" would overwrite the reference string itself.
    if tType is "image" then
       if pControlNode["mediaFile"] is not empty then
-         local tMediaPath
+         local tMediaPath, tImageData
          put pFolderPath & "/" & pControlNode["mediaFile"] into tMediaPath
          if there is a file tMediaPath then
-            put URL ("binfile:" & tMediaPath) into tStackRef
+            put URL ("binfile:" & tMediaPath) into tImageData
+            set the text of tStackRef to tImageData
          end if
       end if
    end if
