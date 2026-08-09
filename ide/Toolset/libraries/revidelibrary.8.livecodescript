@@ -8638,7 +8638,10 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       put "icon,hilitedIcon,disabledIcon,visitedIcon,armedIcon" into tIconProps
       put revIDEStackOfObject(pControlID) into tIconStackName
       repeat for each item tIconProp in tIconProps
-         put tProps[tIconProp] into tIconID
+         -- Read directly from the object rather than tProps; icon may not appear
+         -- in the properties array for all button configurations.
+         do "put the" && tIconProp && "of pControlID into tIconID"
+         delete variable tProps[tIconProp]
          if tIconID is not empty and tIconID is not 0 then
             local tIconImgName, tIconSearchStack
             put empty into tIconImgName
