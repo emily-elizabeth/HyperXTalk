@@ -34,8 +34,8 @@ Example:
 -- Blend commands and free-form input
 on unrecognizedVoiceCommand pText
     -- Treat anything unmatched as a dictation input to the focused field
-    if the focused object is a field then
-        put pText after the text of the focused object
+    if word 1 of the focusedObject is "field" then
+        put pText after the focusedObject
     end if
 end unrecognizedVoiceCommand
 
