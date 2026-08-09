@@ -8373,6 +8373,7 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, @rObj
    put the script of card id pCardIDNum of stack pStackName into rObj["script"]
    put the cantDelete of card id pCardIDNum of stack pStackName into rObj["cantDelete"]
    put the dontSearch of card id pCardIDNum of stack pStackName into rObj["dontSearch"]
+   put the mark of card id pCardIDNum of stack pStackName into rObj["mark"]
    put the backgroundColor of card id pCardIDNum of stack pStackName into rObj["backgroundColor"]
    put the foregroundColor of card id pCardIDNum of stack pStackName into rObj["foregroundColor"]
 
@@ -8704,6 +8705,9 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
    end if
    if pCardNode["dontSearch"] is not empty then
       set the dontSearch of tCardRef to (pCardNode["dontSearch"] is "true")
+   end if
+   if pCardNode["mark"] is not empty then
+      set the mark of tCardRef to (pCardNode["mark"] is "true")
    end if
    if pCardNode["backgroundColor"] is not empty then
       set the backgroundColor of tCardRef to pCardNode["backgroundColor"]
