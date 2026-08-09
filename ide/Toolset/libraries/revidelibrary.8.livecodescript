@@ -8593,6 +8593,9 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       put the script of pControlID into rObj["script"]
    end if
    
+   -- Save the short name explicitly so it can be reliably restored even if
+   -- set the properties does not set the name in this engine version.
+   put the short name of pControlID into rObj["controlName"]
    -- Capture all properties at once; remove read-only/handled ones
    local tProps
    put the properties of pControlID into tProps
@@ -8630,26 +8633,23 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       delete variable tProps["behavior"]
    end if
    -- Button icons: store image names instead of volatile numeric IDs.
-   -- Icons can reference images in any loaded stack, so search broadly.
-   -- Only delete the property from tProps when we successfully record the name;
-   -- if the image can't be found the numeric ID stays in properties (better than losing it).
+   -- revIDEStackOfObject returns "stack \"Name\"" (with keyword), so use the short name
+   -- to get just the stack name string for a correct "of stack X" lookup.
    if tType is "button" then
       local tIconProps, tIconProp, tIconID, tIconStackName
       put "icon,hilitedIcon,disabledIcon,visitedIcon,armedIcon" into tIconProps
-      put revIDEStackOfObject(pControlID) into tIconStackName
+      put the short name of revIDEStackOfObject(pControlID) into tIconStackName
       repeat for each item tIconProp in tIconProps
-         -- Read directly from the object rather than tProps; icon may not appear
-         -- in the properties array for all button configurations.
          do "put the" && tIconProp && "of pControlID into tIconID"
-         delete variable tProps[tIconProp]
          if tIconID is not empty and tIconID is not 0 then
-            local tIconImgName, tIconSearchStack
+            -- Search the button's own stack first; only fall back to other stacks
+            -- if the image genuinely lives elsewhere (e.g. a shared resource stack).
+            local tIconImgName
             put empty into tIconImgName
-            -- Try the button's own stack first
             if there is an image id tIconID of stack tIconStackName then
                put the short name of image id tIconID of stack tIconStackName into tIconImgName
             else
-               -- Fall back to searching all loaded stacks
+               local tIconSearchStack
                repeat for each line tIconSearchStack in the stacks
                   if there is an image id tIconID of stack tIconSearchStack then
                      put the short name of image id tIconID of stack tIconSearchStack into tIconImgName
@@ -8665,7 +8665,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       end repeat
    end if
    put tProps into rObj["properties"]
-   
+
    -- Image: export to media folder as PNG (not raw pixel data).
    -- Check both the text (embedded data) and the filename (file-referenced images);
    -- either way, export the image as PNG so it can be reloaded portably.
@@ -8891,9 +8891,8 @@ on revIDELoadFromProject pFilePath
    put tTree["stack"] into tStackNode
    lock screen
    -- tDeferredBehaviors collects {controlRef, behaviorName, behaviorStack} entries
-   -- from all controls across all stacks/substacks, resolved after full reconstruction
    -- tDeferredIcons collects {controlRef, stackName, iconNames} entries for buttons
-   -- whose icon images are referenced by name; resolved after all controls exist
+   -- Both are resolved after full reconstruction so all controls exist with correct names.
    local tDeferredBehaviors, tDeferredIcons
    revIDEProjectReconstructStack tStackNode, tFolderPath, empty, tDeferredBehaviors, tDeferredIcons
    put the result into tNewStackName
@@ -8917,26 +8916,33 @@ on revIDELoadFromProject pFilePath
          put tBehWarn & return after tLoadWarnings
       end if
    end repeat
-   -- Resolve deferred icon name references now that all image objects exist
-   local ii, tIconProp
+   -- Resolve deferred icon name references now that all controls exist with correct names.
+   -- Images were explicitly named (controlName) during reconstruction, so lookups are reliable.
+   -- Walk cards and controls explicitly since "there is an image X of stack Y" is not valid syntax.
+   local ii
    repeat with ii = 1 to the number of elements of tDeferredIcons
-      local tIcon, tIconNames
+      local tIcon, tIconNames, tIconProp
       put tDeferredIcons[ii] into tIcon
       put tIcon["iconNames"] into tIconNames
       repeat for each key tIconProp in tIconNames
-         local tImgName, tImgRef
+         local tImgName, tFoundImgID
          put tIconNames[tIconProp] into tImgName
-         -- Try button's own stack first, then search all loaded stacks
-         put "image" && quote & tImgName & quote && "of stack" && quote & tIcon["stackName"] & quote into tImgRef
-         if not (there is an image tImgRef) then
-            local tIconRestoreStack
-            repeat for each line tIconRestoreStack in the stacks
-               put "image" && quote & tImgName & quote && "of stack" && quote & tIconRestoreStack & quote into tImgRef
-               if there is an image tImgRef then exit repeat
+         put 0 into tFoundImgID
+         local tIconSearchStackName, tIconCardNum, tIconCtrlNum
+         put tIcon["stackName"] into tIconSearchStackName
+         repeat with tIconCardNum = 1 to the number of cards of stack tIconSearchStackName
+            repeat with tIconCtrlNum = 1 to the number of controls of card tIconCardNum of stack tIconSearchStackName
+               if word 1 of the long id of control tIconCtrlNum of card tIconCardNum of stack tIconSearchStackName is "image" then
+                  if the short name of control tIconCtrlNum of card tIconCardNum of stack tIconSearchStackName is tImgName then
+                     put the id of control tIconCtrlNum of card tIconCardNum of stack tIconSearchStackName into tFoundImgID
+                     exit repeat
+                  end if
+               end if
             end repeat
-         end if
-         if there is an image tImgRef then
-            do "set the" && tIconProp && "of tIcon[" & QUOTE & "controlRef" & QUOTE & "] to the id of" && tImgRef
+            if tFoundImgID is not 0 then exit repeat
+         end repeat
+         if tFoundImgID is not 0 then
+            do "set the" && tIconProp && "of tIcon[" & QUOTE & "controlRef" & QUOTE & "] to" && tFoundImgID
          end if
       end repeat
    end repeat
@@ -9236,12 +9242,12 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          -- Unknown type, skip
          exit revIDEProjectReconstructControl
    end switch
-   
+
    -- Build a flat stack-level reference for property/script/text operations
    -- Control IDs are unique within a stack, so this works regardless of nesting depth
    local tStackRef
    put tType && "id" && tNewControlID && "of stack" && quote & pStackName & quote into tStackRef
-   
+
    -- Restore all properties at once (script and image data handled separately)
    -- Strip "layer"/"number": restoring a card-level layer on a grouped control moves it
    -- out of its group. Creation order already preserves stacking.
@@ -9253,6 +9259,11 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       delete variable tProps["number"]
       delete variable tProps["behavior"]
       set the properties of tStackRef to tProps
+   end if
+   -- Explicitly set the name from the saved controlName so icon lookups can find images
+   -- by name even if set the properties does not honour the name key in this engine.
+   if pControlNode["controlName"] is not empty then
+      set the name of tStackRef to pControlNode["controlName"]
    end if
    -- Restore showName explicitly: it is saved as the string "true"/"false" to survive
    -- the JSON round-trip, and set here after the bulk property restore.
@@ -9279,9 +9290,10 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       put the number of elements of pDeferredBehaviors + 1 into tBehIdx
       put tBehEntry into pDeferredBehaviors[tBehIdx]
    end if
-   
-   -- Defer icon resolution until all controls are reconstructed
-   -- (button icons are MCImage objects referenced by ID; IDs change on reconstruct)
+
+   -- Defer icon resolution until all controls exist and have their names set.
+   -- Button icon properties are numeric image IDs that change on reconstruct;
+   -- we resolve them by image name after full reconstruction.
    if tType is "button" and pControlNode["iconNames"] is an array then
       local tIconEntry, tIconIdx
       put tStackRef into tIconEntry["controlRef"]
@@ -9290,7 +9302,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       put the number of elements of pDeferredIcons + 1 into tIconIdx
       put tIconEntry into pDeferredIcons[tIconIdx]
    end if
-   
+
    -- Image: restore encoded image data from media folder.
    -- Read the PNG bytes into a variable first, then use set the text of <ref>
    -- so LiveCode evaluates tStackRef as an object reference (not a container).
