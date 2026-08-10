@@ -8630,10 +8630,11 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       end if
       delete variable tProps["showName"]
    end if
-   -- borderWidth: not returned by the properties array, so read it directly and
-   -- inject it into tProps under a safe key so it travels with the properties
-   -- sub-array (which is known to survive the JSON round-trip correctly).
-   put the borderWidth of pControlID into tProps["savedBorderWidth"]
+   -- borderWidth: not returned by the properties array, and reading it via a
+   -- variable holding the long id returns 0. Use do to build a concrete reference.
+   local tBorderWidthVal
+   do "put the borderWidth of" && pControlID && "into tBorderWidthVal"
+   put tBorderWidthVal into tProps["savedBorderWidth"]
    -- Image binary data is handled separately via mediaFile; don't embed in JSON
    if tType is "image" then
       delete variable tProps["text"]
