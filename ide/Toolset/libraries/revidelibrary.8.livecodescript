@@ -8497,7 +8497,6 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
       repeat for each line tBGName in tBGList
          if tBGName is empty then next repeat
          if tBGName is among the lines of tBGSeen then next repeat
-         put empty into tBGNode
          local tControlID
          -- HyperXTalk may expose shared groups as "background" rather than "group"
          try
@@ -8505,6 +8504,11 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
          catch tUnused
             do "put the long id of background" && QUOTE & tBGName & QUOTE && "of stack" && QUOTE & pStackName & QUOTE && "into tControlID"
          end try
+         if tControlID is empty then next repeat
+         -- groupNames may return all groups in HyperXTalk, not just background ones.
+         -- Only serialize groups that are actually shared (backgroundBehavior=true).
+         if not the backgroundBehavior of tControlID then next repeat
+         put empty into tBGNode
          revIDEProjectSerializeControl tControlID, pMediaFolder, pScriptsFolder, tBGNode
          put tBGNode into rObj["backgrounds"][bgIdx]
          add 1 to bgIdx
@@ -8831,6 +8835,11 @@ on revIDEProjectSanitizeArray @pArray
          revIDEProjectSanitizeArray tSubArray
          put tSubArray into pArray[tKey]
       else
+         -- Preserve booleans and numbers so jsonExport emits the correct JSON types.
+         -- LCB widget properties require proper types; stringifying breaks them.
+         if pArray[tKey] is a boolean or pArray[tKey] is a number then
+            next repeat
+         end if
          local tLeaf
          put pArray[tKey] & "" into tLeaf
          if revIDEProjectValueIsBinary(tLeaf) then
@@ -9045,8 +9054,9 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
       set the stackFiles of stack tNewStackName to pStackNode["stackFiles"]
    end if
    -- Reconstruct background/shared groups on card 1 before cards are processed.
-   -- backgroundBehavior is restored via set the properties (it is in the saved properties).
-   -- The group stays on card 1; cards place it onto themselves as needed.
+   -- backgroundBehavior is restored via set the properties (booleans now preserved).
+   -- If the group has backgroundBehavior=true after reconstruction, remove it from card 1
+   -- so it can be cleanly placed onto each card that needs it.
    if pStackNode["backgrounds"] is an array then
       local tBGArray, bgi
       put pStackNode["backgrounds"] into tBGArray
@@ -9056,6 +9066,24 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
          local tBGNodeR
          put tBGArray[bgi] into tBGNodeR
          revIDEProjectReconstructControl tBGNodeR, tNewStackName, tCard1ID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons
+         local tBGNewName
+         put tBGNodeR["controlName"] into tBGNewName
+         if tBGNewName is not empty then
+            local tDefaultStack
+            put the defaultStack into tDefaultStack
+            set the defaultStack to tNewStackName
+            -- All entries in the backgrounds array are shared groups; remove from card 1
+            -- so they start unplaced and can be placed cleanly onto each card.
+            try
+               remove group tBGNewName from card 1
+            catch tUnused
+               try
+                  remove background tBGNewName from card 1
+               catch tUnused2
+               end try
+            end try
+            set the defaultStack to tDefaultStack
+         end if
       end repeat
    end if
    local tCards, tCardCount
@@ -9107,6 +9135,31 @@ end revIDEProjectReconstructStack
 on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pDeferredBehaviors, @pDeferredIcons
    local tCardRef
    put "card id" && pCardID && "of stack" && quote & pStackName & quote into tCardRef
+   -- HyperXTalk auto-places all background groups on every new card (HyperCard behaviour).
+   -- Strip them all first; we will re-place only those listed in backgroundGroups below.
+   local tAutoName
+   repeat for each line tAutoName in the groupNames of card id pCardID of stack pStackName
+      if tAutoName is empty then next repeat
+      try
+         remove group tAutoName from card id pCardID of stack pStackName
+      catch tUnused
+         try
+            remove background tAutoName from card id pCardID of stack pStackName
+         catch tUnused2
+         end try
+      end try
+   end repeat
+   -- HyperXTalk may also copy card-level controls from card 1 to each new card.
+   -- Delete them all now; they will be reconstructed from JSON below.
+   local tPreCtrl
+   put the number of controls of card id pCardID of stack pStackName into tPreCtrl
+   repeat with tPreCtrl = tPreCtrl down to 1
+      local tPreRef
+      put the long id of control tPreCtrl of card id pCardID of stack pStackName into tPreRef
+      if word 1 of the owner of tPreRef is "card" then
+         delete tPreRef
+      end if
+   end repeat
    if pCardNode["name"] is not empty then
       set the name of tCardRef to pCardNode["name"]
    end if
@@ -9236,13 +9289,30 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          
       case "widget"
          if pControlNode["widgetKind"] is empty then exit revIDEProjectReconstructControl
-         local tWidgetKind
-         put pControlNode["widgetKind"] into tWidgetKind
-         create widget as tWidgetKind in tTarget
-         put it into tControlRef
-         put the id of tControlRef into tNewControlID
+         if pControlNode["widgetData"] is an array then
+            -- Use import to restore full internal widget state ($state etc.).
+            -- import widget from array creates on the current card of the default stack.
+            set the defaultStack to pStackName
+            import widget from array pControlNode["widgetData"]
+            put it into tControlRef
+            put the id of tControlRef into tNewControlID
+            -- If the widget belongs inside a group, copy it there then remove the original.
+            if pGroupID is not empty then
+               copy tControlRef to tTarget
+               delete tControlRef
+               put it into tControlRef
+               put the id of tControlRef into tNewControlID
+            end if
+         else
+            -- No saved widget data: fall back to creating a blank instance.
+            local tWidgetKind
+            put pControlNode["widgetKind"] into tWidgetKind
+            create widget as tWidgetKind in tTarget
+            put it into tControlRef
+            put the id of tControlRef into tNewControlID
+         end if
          break
-         
+
       default
          -- Unknown type, skip
          exit revIDEProjectReconstructControl
@@ -9257,6 +9327,8 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    -- Strip "layer"/"number": restoring a card-level layer on a grouped control moves it
    -- out of its group. Creation order already preserves stacking.
    -- Strip "behavior": it is a long ID that changes on reconstruct; resolved by name below.
+   -- For widgets, properties are set after import to fix up geometry/name; the import
+   -- already restored the full internal state so we strip widgetData-only keys.
    if pControlNode["properties"] is an array then
       local tProps
       put pControlNode["properties"] into tProps
@@ -9274,15 +9346,6 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    -- the JSON round-trip, and set here after the bulk property restore.
    if pControlNode["showName"] is not empty then
       set the showName of tStackRef to (pControlNode["showName"] is "true")
-   end if
-   
-   -- Widget: restore full state via import. This must happen after basic properties
-   -- are set so the widget exists in a valid state before receiving its saved state.
-   if tType is "widget" and pControlNode["widgetData"] is an array then
-      local tWidgetDataArray
-      put pControlNode["widgetData"] into tWidgetDataArray
-      --      import widget tStackRef from array tWidgetDataArray
-      import widget from array tWidgetDataArray
    end if
    
    -- Defer behavior resolution until all stacks/controls are reconstructed
