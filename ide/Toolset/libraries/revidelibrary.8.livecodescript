@@ -8630,6 +8630,12 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       end if
       delete variable tProps["showName"]
    end if
+   -- borderWidth: the properties array returns 0 regardless of the actual value.
+   -- Save it directly from the control and strip from tProps to avoid clobbering.
+   if "borderWidth" is among the keys of tProps then
+      put the borderWidth of pControlID into rObj["borderWidth"]
+      delete variable tProps["borderWidth"]
+   end if
    -- Image binary data is handled separately via mediaFile; don't embed in JSON
    if tType is "image" then
       delete variable tProps["text"]
@@ -9376,10 +9382,6 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       delete variable tProps["layer"]
       delete variable tProps["number"]
       delete variable tProps["behavior"]
-      -- borderWidth is not reliably applied by set the properties; handle explicitly below.
-      local tBorderWidth
-      put tProps["borderWidth"] into tBorderWidth
-      delete variable tProps["borderWidth"]
       set the properties of tStackRef to tProps
    end if
    -- Explicitly set the name from the saved controlName so icon lookups can find images
@@ -9392,9 +9394,10 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    if pControlNode["showName"] is not empty then
       set the showName of tStackRef to (pControlNode["showName"] is "true")
    end if
-   -- Restore borderWidth explicitly: set the properties does not apply it reliably.
-   if tBorderWidth is not empty then
-      set the borderWidth of tStackRef to tBorderWidth
+   -- Restore borderWidth explicitly: the properties array returns 0 at save time
+   -- so it is saved directly from the control into pControlNode["borderWidth"].
+   if pControlNode["borderWidth"] is not empty then
+      set the borderWidth of tStackRef to pControlNode["borderWidth"]
    end if
    
    -- Defer behavior resolution until all stacks/controls are reconstructed
@@ -9415,7 +9418,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       local tDGEntry, tDGIdx
       put tStackRef into tDGEntry["controlRef"]
       put pControlNode["dgData"] into tDGEntry["dgData"]
-      put tBorderWidth into tDGEntry["borderWidth"]
+      put pControlNode["borderWidth"] into tDGEntry["borderWidth"]
       put the number of elements of pDeferredDgData + 1 into tDGIdx
       put tDGEntry into pDeferredDgData[tDGIdx]
    end if
