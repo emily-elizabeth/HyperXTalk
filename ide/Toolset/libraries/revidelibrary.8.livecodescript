@@ -8630,8 +8630,9 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       end if
       delete variable tProps["showName"]
    end if
-   -- borderWidth: not present in the properties array, so save it directly.
-   put the borderWidth of pControlID into rObj["borderWidth"]
+   -- borderWidth: not present in the properties array, and the key name collides
+   -- with a built-in engine property so store it under a distinct key.
+   put the borderWidth of pControlID into rObj["savedBorderWidth"]
    -- Image binary data is handled separately via mediaFile; don't embed in JSON
    if tType is "image" then
       delete variable tProps["text"]
@@ -9391,9 +9392,9 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       set the showName of tStackRef to (pControlNode["showName"] is "true")
    end if
    -- Restore borderWidth explicitly: the properties array returns 0 at save time
-   -- so it is saved directly from the control into pControlNode["borderWidth"].
-   if pControlNode["borderWidth"] is not empty then
-      set the borderWidth of tStackRef to pControlNode["borderWidth"]
+   -- so it is saved directly from the control into pControlNode["savedBorderWidth"].
+   if pControlNode["savedBorderWidth"] is not empty then
+      set the borderWidth of tStackRef to pControlNode["savedBorderWidth"]
    end if
    
    -- Defer behavior resolution until all stacks/controls are reconstructed
@@ -9414,7 +9415,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       local tDGEntry, tDGIdx
       put tStackRef into tDGEntry["controlRef"]
       put pControlNode["dgData"] into tDGEntry["dgData"]
-      put pControlNode["borderWidth"] into tDGEntry["borderWidth"]
+      put pControlNode["savedBorderWidth"] into tDGEntry["borderWidth"]
       put the number of elements of pDeferredDgData + 1 into tDGIdx
       put tDGEntry into pDeferredDgData[tDGIdx]
    end if
