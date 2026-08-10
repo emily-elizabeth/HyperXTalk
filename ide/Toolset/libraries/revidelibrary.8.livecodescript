@@ -8969,9 +8969,11 @@ on revIDELoadFromProject pFilePath
    -- dgData is a behavior-driven property so it must be set after set the behavior.
    local tDGDataIdx
    repeat with tDGDataIdx = 1 to the number of elements of tDeferredDgData
-      local tDGDataEntry
+      local tDGDataEntry, tDGData
       put tDeferredDgData[tDGDataIdx] into tDGDataEntry
-      set the dgData of tDGDataEntry["controlRef"] to tDGDataEntry["dgData"]
+      put tDGDataEntry["dgData"] into tDGData
+      revIDEProjectDecodeBinaryProps tDGData
+      set the dgData of tDGDataEntry["controlRef"] to tDGData
    end repeat
    -- Resolve deferred icon name references now that all controls exist with correct names.
    -- Images were explicitly named (controlName) during reconstruction, so lookups are reliable.
