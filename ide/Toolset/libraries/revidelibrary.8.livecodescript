@@ -8739,6 +8739,11 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       put tWidgetData["$kind"] into rObj["widgetKind"]
    end if
    
+   -- Datagrid: save dgData (the row array) separately so it can be restored after
+   -- the behavior is wired up. Identified by the dgProps custom property set.
+   if tType is "group" and "dgProps" is among the lines of the customPropertySets of pControlID then
+      put the dgData of pControlID into rObj["dgData"]
+   end if
    -- Custom properties
    revIDEProjectSerializeCustomProps pControlID, rObj
    
@@ -8915,8 +8920,8 @@ on revIDELoadFromProject pFilePath
    -- tDeferredBehaviors collects {controlRef, behaviorName, behaviorStack} entries
    -- tDeferredIcons collects {controlRef, stackName, iconNames} entries for buttons
    -- Both are resolved after full reconstruction so all controls exist with correct names.
-   local tDeferredBehaviors, tDeferredIcons
-   revIDEProjectReconstructStack tStackNode, tFolderPath, empty, tDeferredBehaviors, tDeferredIcons
+   local tDeferredBehaviors, tDeferredIcons, tDeferredDgData
+   revIDEProjectReconstructStack tStackNode, tFolderPath, empty, tDeferredBehaviors, tDeferredIcons, tDeferredDgData
    put the result into tNewStackName
    -- Resolve all deferred behaviors now that every stack and control exists
    local bi, tLoadWarnings
@@ -8959,6 +8964,14 @@ on revIDELoadFromProject pFilePath
             end if
          end repeat
       end repeat
+   end repeat
+   -- Restore datagrid data now that behaviors are wired up.
+   -- dgData is a behavior-driven property so it must be set after set the behavior.
+   local tDGDataIdx
+   repeat with tDGDataIdx = 1 to the number of elements of tDeferredDgData
+      local tDGDataEntry
+      put tDeferredDgData[tDGDataIdx] into tDGDataEntry
+      set the dgData of tDGDataEntry["controlRef"] to tDGDataEntry["dgData"]
    end repeat
    -- Resolve deferred icon name references now that all controls exist with correct names.
    -- Images were explicitly named (controlName) during reconstruction, so lookups are reliable.
@@ -9016,7 +9029,7 @@ on revIDELoadFromProject pFilePath
 end revIDELoadFromProject
 
 
-on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDeferredBehaviors, @pDeferredIcons
+on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDeferredBehaviors, @pDeferredIcons, @pDeferredDgData
    local tName
    put pStackNode["name"] into tName
    create stack tName
@@ -9087,7 +9100,7 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
       repeat with bgi = 1 to the number of elements of tBGArray
          local tBGNodeR
          put tBGArray[bgi] into tBGNodeR
-         revIDEProjectReconstructControl tBGNodeR, tNewStackName, tCard1ID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons
+         revIDEProjectReconstructControl tBGNodeR, tNewStackName, tCard1ID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
          local tBGNewName
          put tBGNodeR["controlName"] into tBGNewName
          if tBGNewName is not empty then
@@ -9122,7 +9135,7 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
          create card
          put the id of the last card of stack tNewStackName into tThisCardID
       end if
-      revIDEProjectReconstructCard tCardNode, tNewStackName, tThisCardID, pFolderPath, pDeferredBehaviors, pDeferredIcons
+      revIDEProjectReconstructCard tCardNode, tNewStackName, tThisCardID, pFolderPath, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
    end repeat
    if pStackNode["substacks"] is an array then
       local tSubstacks
@@ -9131,7 +9144,7 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
       repeat with s = 1 to the number of elements of tSubstacks
          local tSubNode, tSubName
          put tSubstacks[s] into tSubNode
-         revIDEProjectReconstructStack tSubNode, pFolderPath, tNewStackName, pDeferredBehaviors, pDeferredIcons
+         revIDEProjectReconstructStack tSubNode, pFolderPath, tNewStackName, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
          put the result into tSubName
          if tSubName is not empty then
             set the mainStack of stack tSubName to tNewStackName
@@ -9154,7 +9167,7 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
 end revIDEProjectReconstructStack
 
 
-on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pDeferredBehaviors, @pDeferredIcons
+on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pDeferredBehaviors, @pDeferredIcons, @pDeferredDgData
    local tCardRef
    put "card id" && pCardID && "of stack" && quote & pStackName & quote into tCardRef
    -- HyperXTalk auto-places all background groups on every new card (HyperCard behaviour).
@@ -9212,7 +9225,7 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
       repeat with j = 1 to tControlCount
          local tControlNode
          put tControls[j] into tControlNode
-         revIDEProjectReconstructControl tControlNode, pStackName, pCardID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons
+         revIDEProjectReconstructControl tControlNode, pStackName, pCardID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
       end repeat
    end if
    -- Place background/shared groups onto this card.
@@ -9251,7 +9264,7 @@ end revIDEProjectReconstructCard
 
 
 -- pGroupID: empty when creating directly on a card; group id when creating inside a group.
-on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, pFolderPath, @pDeferredBehaviors, @pDeferredIcons
+on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, pFolderPath, @pDeferredBehaviors, @pDeferredIcons, @pDeferredDgData
    local tType
    put pControlNode["type"] into tType
    
@@ -9381,6 +9394,15 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       put tBehEntry into pDeferredBehaviors[tBehIdx]
    end if
 
+   -- Defer dgData restore until behaviors are wired up (dgData is behavior-driven).
+   if tType is "group" and pControlNode["dgData"] is an array then
+      local tDGEntry, tDGIdx
+      put tStackRef into tDGEntry["controlRef"]
+      put pControlNode["dgData"] into tDGEntry["dgData"]
+      put the number of elements of pDeferredDgData + 1 into tDGIdx
+      put tDGEntry into pDeferredDgData[tDGIdx]
+   end if
+
    -- Defer icon resolution until all controls exist and have their names set.
    -- Button icon properties are numeric image IDs that change on reconstruct;
    -- we resolve them by image name after full reconstruction.
@@ -9428,7 +9450,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          repeat with k = 1 to tChildCount
             local tChildNode
             put tChildControls[k] into tChildNode
-            revIDEProjectReconstructControl tChildNode, pStackName, pCardID, tNewControlID, pFolderPath, pDeferredBehaviors, pDeferredIcons
+            revIDEProjectReconstructControl tChildNode, pStackName, pCardID, tNewControlID, pFolderPath, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
          end repeat
       end if
    end if
