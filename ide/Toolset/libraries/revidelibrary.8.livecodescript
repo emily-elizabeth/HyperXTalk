@@ -8639,6 +8639,9 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    local tBorderWidthVal
    do "put the borderWidth of" && pControlID && "into tBorderWidthVal"
    put "sz:" & tBorderWidthVal into tProps["ctlBorderSz"]
+   local tLineSzVal
+   do "put the lineSize of" && pControlID && "into tLineSzVal"
+   put "sz:" & tLineSzVal into tProps["ctlLineSz"]
    -- Image binary data is handled separately via mediaFile; don't embed in JSON
    if tType is "image" then
       delete variable tProps["text"]
@@ -8941,12 +8944,18 @@ on revIDELoadFromProject pFilePath
       put "button" && quote & tBeh["behaviorName"] & quote && "of stack" && quote & tBeh["behaviorStack"] & quote into tBehaviorTarget
       if there is a tBehaviorTarget then
          set the behavior of tBeh["controlRef"] to the long id of tBehaviorTarget
-         -- Re-apply borderWidth: behavior init may reset it to 0.
+         -- Re-apply borderWidth and lineSize: behavior init may reset them to 0.
          local tRestoredBW
          put the uRestoredBorderWidth of tBeh["controlRef"] into tRestoredBW
          if tRestoredBW is not empty then
             set the borderWidth of tBeh["controlRef"] to tRestoredBW
             set the uRestoredBorderWidth of tBeh["controlRef"] to empty
+         end if
+         local tRestoredLS
+         put the uRestoredLineSz of tBeh["controlRef"] into tRestoredLS
+         if tRestoredLS is not empty then
+            set the lineSize of tBeh["controlRef"] to tRestoredLS
+            set the uRestoredLineSz of tBeh["controlRef"] to empty
          end if
       else
          -- Behavior could not be resolved: the script button doesn't exist in any loaded stack.
@@ -9394,10 +9403,12 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       delete variable tProps["behavior"]
       -- Extract savedBorderWidth before bulk set so the engine does not try to
       -- apply an unknown property, then re-apply it explicitly below.
-      local tSavedBorderWidth
+      local tSavedBorderWidth, tSavedLineSz
       -- Strip the "sz:" prefix added at save time to force JSON string storage.
       put char 4 to -1 of tProps["ctlBorderSz"] into tSavedBorderWidth
       delete variable tProps["ctlBorderSz"]
+      put char 4 to -1 of tProps["ctlLineSz"] into tSavedLineSz
+      delete variable tProps["ctlLineSz"]
       set the properties of tStackRef to tProps
    end if
    -- Explicitly set the name from the saved controlName so icon lookups can find images
@@ -9417,6 +9428,10 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    if tSavedBorderWidth is not empty then
       set the borderWidth of tStackRef to tSavedBorderWidth
       set the uRestoredBorderWidth of tStackRef to tSavedBorderWidth
+   end if
+   if tSavedLineSz is not empty then
+      set the lineSize of tStackRef to tSavedLineSz
+      set the uRestoredLineSz of tStackRef to tSavedLineSz
    end if
 
    -- Defer behavior resolution until all stacks/controls are reconstructed
