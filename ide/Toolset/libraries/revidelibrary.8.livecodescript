@@ -8936,6 +8936,13 @@ on revIDELoadFromProject pFilePath
       put "button" && quote & tBeh["behaviorName"] & quote && "of stack" && quote & tBeh["behaviorStack"] & quote into tBehaviorTarget
       if there is a tBehaviorTarget then
          set the behavior of tBeh["controlRef"] to the long id of tBehaviorTarget
+         -- Re-apply borderWidth: behavior init may reset it to 0.
+         local tRestoredBW
+         put the uRestoredBorderWidth of tBeh["controlRef"] into tRestoredBW
+         if tRestoredBW is not empty then
+            set the borderWidth of tBeh["controlRef"] to tRestoredBW
+            set the uRestoredBorderWidth of tBeh["controlRef"] to empty
+         end if
       else
          -- Behavior could not be resolved: the script button doesn't exist in any loaded stack.
          -- This usually means the behavior's stack file is missing or was not part of the project.
@@ -9399,10 +9406,13 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    end if
    -- Restore borderWidth explicitly: injected into the properties sub-array at save
    -- time so it travels through the JSON round-trip reliably.
+   -- Also stash it in a temporary custom property so the deferred behavior loop
+   -- can re-apply it after behavior init (which resets borderWidth to 0).
    if tSavedBorderWidth is not empty then
       set the borderWidth of tStackRef to tSavedBorderWidth
+      set the uRestoredBorderWidth of tStackRef to tSavedBorderWidth
    end if
-   
+
    -- Defer behavior resolution until all stacks/controls are reconstructed
    -- (the behavior button may not exist yet if it lives in the same project stack)
    if pControlNode["behaviorName"] is not empty then
