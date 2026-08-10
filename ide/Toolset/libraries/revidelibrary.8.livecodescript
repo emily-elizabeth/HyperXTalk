@@ -8634,9 +8634,11 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    -- variable holding the long id returns 0. Use do to build a concrete reference.
    -- "borderWidth" and any key containing that substring are zeroed by a jsonImport
    -- bug in HyperXTalk. Use a neutral key name to avoid the issue.
+   -- Prefix with "sz:" so the value is stored as a JSON string, not a number.
+   -- This avoids a jsonImport bug that zeros certain numeric values on import.
    local tBorderWidthVal
    do "put the borderWidth of" && pControlID && "into tBorderWidthVal"
-   put tBorderWidthVal into tProps["ctlBorderSz"]
+   put "sz:" & tBorderWidthVal into tProps["ctlBorderSz"]
    -- Image binary data is handled separately via mediaFile; don't embed in JSON
    if tType is "image" then
       delete variable tProps["text"]
@@ -9393,7 +9395,8 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       -- Extract savedBorderWidth before bulk set so the engine does not try to
       -- apply an unknown property, then re-apply it explicitly below.
       local tSavedBorderWidth
-      put tProps["ctlBorderSz"] into tSavedBorderWidth
+      -- Strip the "sz:" prefix added at save time to force JSON string storage.
+      put char 4 to -1 of tProps["ctlBorderSz"] into tSavedBorderWidth
       delete variable tProps["ctlBorderSz"]
       set the properties of tStackRef to tProps
    end if
