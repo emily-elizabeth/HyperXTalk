@@ -9372,6 +9372,10 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       delete variable tProps["layer"]
       delete variable tProps["number"]
       delete variable tProps["behavior"]
+      -- borderWidth is not reliably applied by set the properties; handle explicitly below.
+      local tBorderWidth
+      put tProps["borderWidth"] into tBorderWidth
+      delete variable tProps["borderWidth"]
       set the properties of tStackRef to tProps
    end if
    -- Explicitly set the name from the saved controlName so icon lookups can find images
@@ -9383,6 +9387,10 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    -- the JSON round-trip, and set here after the bulk property restore.
    if pControlNode["showName"] is not empty then
       set the showName of tStackRef to (pControlNode["showName"] is "true")
+   end if
+   -- Restore borderWidth explicitly: set the properties does not apply it reliably.
+   if tBorderWidth is not empty then
+      set the borderWidth of tStackRef to tBorderWidth
    end if
    
    -- Defer behavior resolution until all stacks/controls are reconstructed
