@@ -8974,6 +8974,10 @@ on revIDELoadFromProject pFilePath
       put tDGDataEntry["dgData"] into tDGData
       revIDEProjectDecodeBinaryProps tDGData
       set the dgData of tDGDataEntry["controlRef"] to tDGData
+      -- Re-apply borderWidth after dgData: the behavior may have reset it on init.
+      if tDGDataEntry["borderWidth"] is not empty then
+         set the borderWidth of tDGDataEntry["controlRef"] to tDGDataEntry["borderWidth"]
+      end if
    end repeat
    -- Resolve deferred icon name references now that all controls exist with correct names.
    -- Images were explicitly named (controlName) during reconstruction, so lookups are reliable.
@@ -9405,10 +9409,13 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    end if
 
    -- Defer dgData restore until behaviors are wired up (dgData is behavior-driven).
+   -- Also defer borderWidth: the datagrid behavior resets it to 0 on init, so it
+   -- must be re-applied after the behavior is attached.
    if tType is "group" and pControlNode["dgData"] is an array then
       local tDGEntry, tDGIdx
       put tStackRef into tDGEntry["controlRef"]
       put pControlNode["dgData"] into tDGEntry["dgData"]
+      put tBorderWidth into tDGEntry["borderWidth"]
       put the number of elements of pDeferredDgData + 1 into tDGIdx
       put tDGEntry into pDeferredDgData[tDGIdx]
    end if
