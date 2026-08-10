@@ -8954,7 +8954,8 @@ on revIDELoadFromProject pFilePath
             put the long id of control tDGCtrlNum of card tDGCardNum of stack tRefreshStack into tDGRef
             if (word 1 of tDGRef is "group" or word 1 of tDGRef is "background") and \
                   "dgProps" is among the lines of the customPropertySets of tDGRef then
-               dispatch "RefreshList" to tDGRef
+               --               dispatch "RefreshList" to tDGRef
+               send "RefreshList" to tDGRef in 1 millisecond
             end if
          end repeat
       end repeat
