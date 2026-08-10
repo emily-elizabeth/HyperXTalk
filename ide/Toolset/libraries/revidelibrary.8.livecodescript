@@ -8816,7 +8816,7 @@ on revIDEProjectDecodeBinaryProps @pProps
          put tSub into pProps[tKey]
       else if pProps[tKey] begins with "__binary__:" then
          -- "__binary__:" is 11 chars; everything after is the base64-encoded payload
-         put base64Decode(char 12 to (the length of pProps[tKey]) of pProps[tKey]) into pProps[tKey]
+         put base64Decode(char 12 to -1 of pProps[tKey]) into pProps[tKey]
       end if
    end repeat
 end revIDEProjectDecodeBinaryProps
