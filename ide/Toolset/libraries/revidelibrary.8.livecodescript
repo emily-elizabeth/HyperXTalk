@@ -8632,9 +8632,11 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    end if
    -- borderWidth: not returned by the properties array, and reading it via a
    -- variable holding the long id returns 0. Use do to build a concrete reference.
+   -- "borderWidth" and any key containing that substring are zeroed by a jsonImport
+   -- bug in HyperXTalk. Use a neutral key name to avoid the issue.
    local tBorderWidthVal
    do "put the borderWidth of" && pControlID && "into tBorderWidthVal"
-   put tBorderWidthVal into tProps["savedBorderWidth"]
+   put tBorderWidthVal into tProps["ctlBorderSz"]
    -- Image binary data is handled separately via mediaFile; don't embed in JSON
    if tType is "image" then
       delete variable tProps["text"]
@@ -9391,8 +9393,8 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       -- Extract savedBorderWidth before bulk set so the engine does not try to
       -- apply an unknown property, then re-apply it explicitly below.
       local tSavedBorderWidth
-      put tProps["savedBorderWidth"] into tSavedBorderWidth
-      delete variable tProps["savedBorderWidth"]
+      put tProps["ctlBorderSz"] into tSavedBorderWidth
+      delete variable tProps["ctlBorderSz"]
       set the properties of tStackRef to tProps
    end if
    -- Explicitly set the name from the saved controlName so icon lookups can find images
