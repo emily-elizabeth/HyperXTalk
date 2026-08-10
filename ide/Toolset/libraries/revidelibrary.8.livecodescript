@@ -8938,6 +8938,27 @@ on revIDELoadFromProject pFilePath
          put tBehWarn & return after tLoadWarnings
       end if
    end repeat
+   -- Dispatch RefreshList to all datagrids now that behaviors are wired up.
+   -- Datagrids are groups with a "dgProps" custom property set.
+   -- Iterate the main stack and any substacks produced by the reconstruction.
+   local tRefreshStacks, tRefreshStack
+   put tNewStackName into tRefreshStacks
+   put return & the substacks of stack tNewStackName after tRefreshStacks
+   repeat for each line tRefreshStack in tRefreshStacks
+      if tRefreshStack is empty then next repeat
+      local tDGCardNum
+      repeat with tDGCardNum = 1 to the number of cards of stack tRefreshStack
+         local tDGCtrlNum
+         repeat with tDGCtrlNum = 1 to the number of controls of card tDGCardNum of stack tRefreshStack
+            local tDGRef
+            put the long id of control tDGCtrlNum of card tDGCardNum of stack tRefreshStack into tDGRef
+            if (word 1 of tDGRef is "group" or word 1 of tDGRef is "background") and \
+                  "dgProps" is among the lines of the customPropertySets of tDGRef then
+               dispatch "RefreshList" to tDGRef
+            end if
+         end repeat
+      end repeat
+   end repeat
    -- Resolve deferred icon name references now that all controls exist with correct names.
    -- Images were explicitly named (controlName) during reconstruction, so lookups are reliable.
    -- Walk cards and controls explicitly since "there is an image X of stack Y" is not valid syntax.
