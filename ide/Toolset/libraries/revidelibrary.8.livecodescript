@@ -8630,9 +8630,10 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       end if
       delete variable tProps["showName"]
    end if
-   -- borderWidth: not present in the properties array, and the key name collides
-   -- with a built-in engine property so store it under a distinct key.
-   put the borderWidth of pControlID into rObj["savedBorderWidth"]
+   -- borderWidth: not returned by the properties array, so read it directly and
+   -- inject it into tProps under a safe key so it travels with the properties
+   -- sub-array (which is known to survive the JSON round-trip correctly).
+   put the borderWidth of pControlID into tProps["savedBorderWidth"]
    -- Image binary data is handled separately via mediaFile; don't embed in JSON
    if tType is "image" then
       delete variable tProps["text"]
@@ -9379,6 +9380,11 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       delete variable tProps["layer"]
       delete variable tProps["number"]
       delete variable tProps["behavior"]
+      -- Extract savedBorderWidth before bulk set so the engine does not try to
+      -- apply an unknown property, then re-apply it explicitly below.
+      local tSavedBorderWidth
+      put tProps["savedBorderWidth"] into tSavedBorderWidth
+      delete variable tProps["savedBorderWidth"]
       set the properties of tStackRef to tProps
    end if
    -- Explicitly set the name from the saved controlName so icon lookups can find images
@@ -9391,10 +9397,10 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    if pControlNode["showName"] is not empty then
       set the showName of tStackRef to (pControlNode["showName"] is "true")
    end if
-   -- Restore borderWidth explicitly: the properties array returns 0 at save time
-   -- so it is saved directly from the control into pControlNode["savedBorderWidth"].
-   if pControlNode["savedBorderWidth"] is not empty then
-      set the borderWidth of tStackRef to pControlNode["savedBorderWidth"]
+   -- Restore borderWidth explicitly: injected into the properties sub-array at save
+   -- time so it travels through the JSON round-trip reliably.
+   if tSavedBorderWidth is not empty then
+      set the borderWidth of tStackRef to tSavedBorderWidth
    end if
    
    -- Defer behavior resolution until all stacks/controls are reconstructed
@@ -9415,7 +9421,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       local tDGEntry, tDGIdx
       put tStackRef into tDGEntry["controlRef"]
       put pControlNode["dgData"] into tDGEntry["dgData"]
-      put pControlNode["savedBorderWidth"] into tDGEntry["borderWidth"]
+      put tSavedBorderWidth into tDGEntry["borderWidth"]
       put the number of elements of pDeferredDgData + 1 into tDGIdx
       put tDGEntry into pDeferredDgData[tDGIdx]
    end if
