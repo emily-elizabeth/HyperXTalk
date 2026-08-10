@@ -8630,12 +8630,8 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       end if
       delete variable tProps["showName"]
    end if
-   -- borderWidth: the properties array returns 0 regardless of the actual value.
-   -- Save it directly from the control and strip from tProps to avoid clobbering.
-   if "borderWidth" is among the keys of tProps then
-      put the borderWidth of pControlID into rObj["borderWidth"]
-      delete variable tProps["borderWidth"]
-   end if
+   -- borderWidth: not present in the properties array, so save it directly.
+   put the borderWidth of pControlID into rObj["borderWidth"]
    -- Image binary data is handled separately via mediaFile; don't embed in JSON
    if tType is "image" then
       delete variable tProps["text"]
