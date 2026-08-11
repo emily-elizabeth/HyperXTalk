@@ -8630,18 +8630,15 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       end if
       delete variable tProps["showName"]
    end if
-   -- borderWidth: not returned by the properties array, and reading it via a
-   -- variable holding the long id returns 0. Use do to build a concrete reference.
-   -- "borderWidth" and any key containing that substring are zeroed by a jsonImport
-   -- bug in HyperXTalk. Use a neutral key name to avoid the issue.
-   -- Prefix with "sz:" so the value is stored as a JSON string, not a number.
-   -- This avoids a jsonImport bug that zeros certain numeric values on import.
+   -- borderWidth and lineSize: not returned by the properties array, and reading
+   -- them via a variable holding the long id returns 0. Use do to build a
+   -- concrete reference so the engine resolves the property correctly.
    local tBorderWidthVal
    do "put the borderWidth of" && pControlID && "into tBorderWidthVal"
-   put "sz:" & tBorderWidthVal into tProps["ctlBorderSz"]
+   put tBorderWidthVal into tProps["borderWidth"]
    local tLineSzVal
    do "put the lineSize of" && pControlID && "into tLineSzVal"
-   put "sz:" & tLineSzVal into tProps["ctlLineSz"]
+   put tLineSzVal into tProps["lineSize"]
    -- Image binary data is handled separately via mediaFile; don't embed in JSON
    if tType is "image" then
       delete variable tProps["text"]
@@ -8944,19 +8941,6 @@ on revIDELoadFromProject pFilePath
       put "button" && quote & tBeh["behaviorName"] & quote && "of stack" && quote & tBeh["behaviorStack"] & quote into tBehaviorTarget
       if there is a tBehaviorTarget then
          set the behavior of tBeh["controlRef"] to the long id of tBehaviorTarget
-         -- Re-apply borderWidth and lineSize: behavior init may reset them to 0.
-         local tRestoredBW
-         put the uRestoredBorderWidth of tBeh["controlRef"] into tRestoredBW
-         if tRestoredBW is not empty then
-            set the borderWidth of tBeh["controlRef"] to tRestoredBW
-            set the uRestoredBorderWidth of tBeh["controlRef"] to empty
-         end if
-         local tRestoredLS
-         put the uRestoredLineSz of tBeh["controlRef"] into tRestoredLS
-         if tRestoredLS is not empty then
-            set the lineSize of tBeh["controlRef"] to tRestoredLS
-            set the uRestoredLineSz of tBeh["controlRef"] to empty
-         end if
       else
          -- Behavior could not be resolved: the script button doesn't exist in any loaded stack.
          -- This usually means the behavior's stack file is missing or was not part of the project.
@@ -8999,10 +8983,6 @@ on revIDELoadFromProject pFilePath
       put tDGDataEntry["dgData"] into tDGData
       revIDEProjectDecodeBinaryProps tDGData
       set the dgData of tDGDataEntry["controlRef"] to tDGData
-      -- Re-apply borderWidth after dgData: the behavior may have reset it on init.
-      if tDGDataEntry["borderWidth"] is not empty then
-         set the borderWidth of tDGDataEntry["controlRef"] to tDGDataEntry["borderWidth"]
-      end if
    end repeat
    -- Resolve deferred icon name references now that all controls exist with correct names.
    -- Images were explicitly named (controlName) during reconstruction, so lookups are reliable.
@@ -9401,14 +9381,13 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       delete variable tProps["layer"]
       delete variable tProps["number"]
       delete variable tProps["behavior"]
-      -- Extract savedBorderWidth before bulk set so the engine does not try to
-      -- apply an unknown property, then re-apply it explicitly below.
+      -- Extract borderWidth and lineSize before bulk set and re-apply explicitly:
+      -- set the properties does not reliably apply them.
       local tSavedBorderWidth, tSavedLineSz
-      -- Strip the "sz:" prefix added at save time to force JSON string storage.
-      put char 4 to -1 of tProps["ctlBorderSz"] into tSavedBorderWidth
-      delete variable tProps["ctlBorderSz"]
-      put char 4 to -1 of tProps["ctlLineSz"] into tSavedLineSz
-      delete variable tProps["ctlLineSz"]
+      put tProps["borderWidth"] into tSavedBorderWidth
+      delete variable tProps["borderWidth"]
+      put tProps["lineSize"] into tSavedLineSz
+      delete variable tProps["lineSize"]
       set the properties of tStackRef to tProps
    end if
    -- Explicitly set the name from the saved controlName so icon lookups can find images
@@ -9421,17 +9400,12 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    if pControlNode["showName"] is not empty then
       set the showName of tStackRef to (pControlNode["showName"] is "true")
    end if
-   -- Restore borderWidth explicitly: injected into the properties sub-array at save
-   -- time so it travels through the JSON round-trip reliably.
-   -- Also stash it in a temporary custom property so the deferred behavior loop
-   -- can re-apply it after behavior init (which resets borderWidth to 0).
+   -- Restore borderWidth and lineSize explicitly: set the properties does not apply them.
    if tSavedBorderWidth is not empty then
       set the borderWidth of tStackRef to tSavedBorderWidth
-      set the uRestoredBorderWidth of tStackRef to tSavedBorderWidth
    end if
    if tSavedLineSz is not empty then
       set the lineSize of tStackRef to tSavedLineSz
-      set the uRestoredLineSz of tStackRef to tSavedLineSz
    end if
 
    -- Defer behavior resolution until all stacks/controls are reconstructed
@@ -9452,7 +9426,6 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       local tDGEntry, tDGIdx
       put tStackRef into tDGEntry["controlRef"]
       put pControlNode["dgData"] into tDGEntry["dgData"]
-      put tSavedBorderWidth into tDGEntry["borderWidth"]
       put the number of elements of pDeferredDgData + 1 into tDGIdx
       put tDGEntry into pDeferredDgData[tDGIdx]
    end if
