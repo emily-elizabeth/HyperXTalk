@@ -8750,8 +8750,33 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    
    -- Datagrid: save dgData (the row array) separately so it can be restored after
    -- the behavior is wired up. Identified by the dgProps custom property set.
+   -- Also save the row template reference by group name + stack name (not long id)
+   -- so it can be re-resolved after reconstruction (group/card ids change on rebuild).
    if tType is "group" and "dgProps" is among the lines of the customPropertySets of pControlID then
       put the dgData of pControlID into rObj["dgData"]
+      local tRowTplRef
+      put the dgProps["row template"] of pControlID into tRowTplRef
+      if tRowTplRef is not empty then
+         -- Long id format: group id XXXX of card id YYYY of stack "Stack Name"
+         -- Group/card ids change on rebuild; save stack name + card ordinal (not ids).
+         -- DataGridTemplates has one card per datagrid; ordinal order is stable across rebuild.
+         local tOfStack, tStackPos, tRowTplStackName
+         put " of stack " & quote into tOfStack
+         put offset(tOfStack, tRowTplRef) into tStackPos
+         if tStackPos > 0 then
+            put char (tStackPos + the number of chars in tOfStack) to -2 of tRowTplRef into tRowTplStackName
+            put tRowTplStackName into rObj["rowTemplateStackName"]
+            -- word 3 = group id, word 7 = card id in the long id format.
+            -- Save the group's short name and the card's short name so we can find the right
+            -- group after reconstruction. Cards are identified by name (not ordinal) because
+            -- there is one card per datagrid and card names are stable across rebuild.
+            local tGroupIDNum, tCardID
+            put word 3 of tRowTplRef into tGroupIDNum
+            put word 7 of tRowTplRef into tCardID
+            put the short name of group id tGroupIDNum of stack tRowTplStackName into rObj["rowTemplateGroupName"]
+            put the short name of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardName"]
+         end if
+      end if
    end if
    -- Custom properties
    revIDEProjectSerializeCustomProps pControlID, rObj
@@ -8974,15 +8999,31 @@ on revIDELoadFromProject pFilePath
          end repeat
       end repeat
    end repeat
-   -- Restore datagrid data now that behaviors are wired up.
-   -- dgData is a behavior-driven property so it must be set after set the behavior.
+   -- Restore datagrid row template reference and data now that behaviors are wired
+   -- up and all substacks (including DataGridTemplates stacks) are reconstructed.
+   -- The row template long id from the saved file has stale group/card ids; re-resolve
+   -- by the group's short name in the template stack (names are stable, ids are not).
    local tDGDataIdx
    repeat with tDGDataIdx = 1 to the number of elements of tDeferredDgData
       local tDGDataEntry, tDGData
       put tDeferredDgData[tDGDataIdx] into tDGDataEntry
-      put tDGDataEntry["dgData"] into tDGData
-      revIDEProjectDecodeBinaryProps tDGData
-      set the dgData of tDGDataEntry["controlRef"] to tDGData
+      -- Fix row template reference: the long id was pre-resolved during substack
+      -- reconstruction (before close stack unloads the DataGridTemplates stack).
+      -- Use direct custom property manipulation to bypass the setprop dgProps behavior
+      -- handler, which may throw on `there is not a pValue` for groups in hidden substacks.
+      if tDGDataEntry["resolvedRowTemplateRef"] is not empty then
+         local tDGPropsForFix
+         put the customProperties["dgProps"] of tDGDataEntry["controlRef"] into tDGPropsForFix
+         put tDGDataEntry["resolvedRowTemplateRef"] into tDGPropsForFix["row template"]
+         set the customProperties["dgProps"] of tDGDataEntry["controlRef"] to tDGPropsForFix
+         put empty into tDGPropsForFix
+      end if
+      -- Restore dgData (behavior-driven, must follow behavior attach)
+      if tDGDataEntry["dgData"] is an array then
+         put tDGDataEntry["dgData"] into tDGData
+         revIDEProjectDecodeBinaryProps tDGData
+         set the dgData of tDGDataEntry["controlRef"] to tDGData
+      end if
    end repeat
    -- Resolve deferred icon name references now that all controls exist with correct names.
    -- Images were explicitly named (controlName) during reconstruction, so lookups are reliable.
@@ -9158,8 +9199,71 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
          revIDEProjectReconstructStack tSubNode, pFolderPath, tNewStackName, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
          put the result into tSubName
          if tSubName is not empty then
+            -- Before closing (which may unload the substack if destroyStack=true),
+            -- resolve any pending datagrid row template references that point to this substack.
+            -- Check if this substack is a DataGridTemplates stack for any pending datagrid.
+            -- If so: pre-resolve the new row template long id (IDs change on rebuild) and
+            -- apply dgProps["row template"] immediately while the stack is still open — before
+            -- hiding it. The datagrid behavior is not yet attached at this point, so the
+            -- direct customProperties set has no side effects. A second pass also applies
+            -- the fix in revIDELoadFromProject (after behavior wiring) for belt-and-suspenders.
+            local tDGScanIdx, tIsRowTplStack
+            put false into tIsRowTplStack
+            repeat with tDGScanIdx = 1 to the number of elements of pDeferredDgData
+               if pDeferredDgData[tDGScanIdx]["rowTemplateStackName"] is tSubName then
+                  put true into tIsRowTplStack
+                  local tRTEntry, tRTCardNum
+                  put pDeferredDgData[tDGScanIdx] into tRTEntry
+                  -- Look up the row template group using the saved card name and group name.
+                  -- Card names in DataGridTemplates are unique per datagrid and stable across rebuild.
+                  -- Multiple cards may each have a "Row Template" group, so we must identify
+                  -- the correct card by name before finding the group within it.
+                  local tRTGroupName, tRTCardName, tRTCardCount, tRTScanCard
+                  put tRTEntry["rowTemplateGroupName"] into tRTGroupName
+                  put tRTEntry["rowTemplateCardName"] into tRTCardName
+                  put the number of cards of stack tSubName into tRTCardCount
+                  if tRTCardName is not empty and tRTGroupName is not empty then
+                     -- Primary path: find card by name, then group by name within that card
+                     if there is a card tRTCardName of stack tSubName then
+                        if there is a group tRTGroupName of card tRTCardName of stack tSubName then
+                           put the long id of group tRTGroupName of card tRTCardName of stack tSubName into tRTEntry["resolvedRowTemplateRef"]
+                        end if
+                     end if
+                  end if
+                  if tRTEntry["resolvedRowTemplateRef"] is empty and tRTGroupName is not empty then
+                     -- Fallback for older project files without rowTemplateCardName:
+                     -- use saved card ordinal to narrow the search, then find group by name
+                     put tRTEntry["rowTemplateCardNum"] into tRTCardNum
+                     if tRTCardNum is not an integer or tRTCardNum < 1 then put 1 into tRTCardNum
+                     if there is a group tRTGroupName of card tRTCardNum of stack tSubName then
+                        put the long id of group tRTGroupName of card tRTCardNum of stack tSubName into tRTEntry["resolvedRowTemplateRef"]
+                     end if
+                  end if
+                  put empty into tRTGroupName
+                  -- Apply fix immediately while DataGridTemplates stack is still OPEN (not hidden yet).
+                  -- The datagrid behavior is not attached yet, so no setprop handler fires — this is
+                  -- a safe direct custom property set. The fix is also applied again in the deferred
+                  -- pass of revIDELoadFromProject (after behaviors are wired up) for belt-and-suspenders.
+                  if tRTEntry["resolvedRowTemplateRef"] is not empty and tRTEntry["controlRef"] is not empty then
+                     local tEarlyDGProps
+                     put the customProperties["dgProps"] of tRTEntry["controlRef"] into tEarlyDGProps
+                     put tRTEntry["resolvedRowTemplateRef"] into tEarlyDGProps["row template"]
+                     set the customProperties["dgProps"] of tRTEntry["controlRef"] to tEarlyDGProps
+                     put empty into tEarlyDGProps
+                  end if
+                  put tRTEntry into pDeferredDgData[tDGScanIdx]
+               end if
+            end repeat
             set the mainStack of stack tSubName to tNewStackName
-            close stack tSubName
+            if tIsRowTplStack then
+               -- Keep DataGridTemplates stack in memory (hidden) so datagrid behavior
+               -- can access the row template group. Hiding is fine; the datagrid behavior
+               -- works with hidden template stacks (same as normal LC IDE workflow).
+               set the destroyStack of stack tSubName to false
+               hide stack tSubName
+            else
+               close stack tSubName
+            end if
          end if
       end repeat
    end if
@@ -9419,13 +9523,19 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       put tBehEntry into pDeferredBehaviors[tBehIdx]
    end if
 
-   -- Defer dgData restore until behaviors are wired up (dgData is behavior-driven).
-   -- Also defer borderWidth: the datagrid behavior resets it to 0 on init, so it
-   -- must be re-applied after the behavior is attached.
-   if tType is "group" and pControlNode["dgData"] is an array then
+   -- Defer dgData restore and row template fix until behaviors are wired up and
+   -- all substacks (including DataGridTemplates) are reconstructed.
+   if tType is "group" and \
+         (pControlNode["dgData"] is an array or pControlNode["rowTemplateStackName"] is not empty) then
       local tDGEntry, tDGIdx
       put tStackRef into tDGEntry["controlRef"]
-      put pControlNode["dgData"] into tDGEntry["dgData"]
+      if pControlNode["dgData"] is an array then
+         put pControlNode["dgData"] into tDGEntry["dgData"]
+      end if
+      put pControlNode["rowTemplateStackName"] into tDGEntry["rowTemplateStackName"]
+      put pControlNode["rowTemplateCardName"] into tDGEntry["rowTemplateCardName"]
+      put pControlNode["rowTemplateCardNum"] into tDGEntry["rowTemplateCardNum"] -- legacy fallback
+      put pControlNode["rowTemplateGroupName"] into tDGEntry["rowTemplateGroupName"]
       put the number of elements of pDeferredDgData + 1 into tDGIdx
       put tDGEntry into pDeferredDgData[tDGIdx]
    end if
