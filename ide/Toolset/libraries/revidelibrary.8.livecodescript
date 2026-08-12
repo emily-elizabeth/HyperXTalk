@@ -9208,6 +9208,9 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
          revIDEProjectReconstructControl tBGNodeR, tNewStackName, tCard1ID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
          local tBGNewName
          put tBGNodeR["controlName"] into tBGNewName
+         if tBGNewName begins with "__binary__:" then
+            put base64Decode(char 12 to -1 of tBGNewName) into tBGNewName
+         end if
          if tBGNewName is not empty then
             local tDefaultStack
             put the defaultStack into tDefaultStack
@@ -9538,6 +9541,10 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       delete variable tProps["layer"]
       delete variable tProps["number"]
       delete variable tProps["behavior"]
+      -- Decode any __binary__: prefixed values back to raw data before applying.
+      -- revIDEProjectSanitizeArray encodes binary leaf values across the whole tree
+      -- at save time; without this decode the prefix strings get set as literal values.
+      revIDEProjectDecodeBinaryProps tProps
       -- Extract borderWidth and lineSize before bulk set and re-apply explicitly:
       -- set the properties does not reliably apply them.
       local tSavedBorderWidth, tSavedLineSz
@@ -9549,8 +9556,13 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    end if
    -- Explicitly set the name from the saved controlName so icon lookups can find images
    -- by name even if set the properties does not honour the name key in this engine.
-   if pControlNode["controlName"] is not empty then
-      set the name of tStackRef to pControlNode["controlName"]
+   local tDecodedControlName
+   put pControlNode["controlName"] into tDecodedControlName
+   if tDecodedControlName begins with "__binary__:" then
+      put base64Decode(char 12 to -1 of tDecodedControlName) into tDecodedControlName
+   end if
+   if tDecodedControlName is not empty then
+      set the name of tStackRef to tDecodedControlName
    end if
    -- Restore showName explicitly: it is saved as the string "true"/"false" to survive
    -- the JSON round-trip, and set here after the bulk property restore.
