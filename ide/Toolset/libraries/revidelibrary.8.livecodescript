@@ -8244,6 +8244,14 @@ on revIDESaveAsProject pStackID, pFolderPath
       create folder tScriptsFolder
    end if
 
+   -- Show the IDE saving dialog (mirrors the binary stack save in revIDESaveStack)
+   local tSavingStackName
+   put the short name of pStackID into tSavingStackName
+   set the visible of stack "revSaving" to false
+   palette "revSaving"
+   set the cSavingStack of card 1 of stack "revSaving" to tSavingStackName
+   show stack "revSaving"
+
    -- Build the full object tree as a LiveCode array
    local tTree
    revIDEProjectBuildTree pStackID, tMediaFolder, tScriptsFolder, tTree
@@ -8256,6 +8264,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    local tJSON
    put jsonExport(tTree, true) into tJSON
    if tJSON is empty then
+      close stack "revSaving"
       answer error revIDELocalise("Could not encode project data as JSON. The project was not saved.")
       return "Error"
    end if
@@ -8264,6 +8273,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    put pFolderPath & "/" & tBaseName & ".json" into tMainFilePath
    open file tMainFilePath for write
    if the result is not empty then
+      close stack "revSaving"
       answer revIDELocalise("Could not write project file:") & return & the result
       return "Error"
    end if
@@ -8284,6 +8294,18 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- Mark the stack as saved and update recent files
    revIDESetUnedited the short name of pStackID
    revUpdateRecentFiles the short name of pStackID
+
+   -- Show "Save complete" in the dialog, then close it after a brief pause
+   -- (mirrors the binary stack save behaviour in revIDESaveStack)
+   put revIDELocalise("Save complete - click to continue") into line -1 of field 1 of stack "revSaving"
+   get flushEvents("all")
+   local tSaveTime
+   put the milliseconds into tSaveTime
+   repeat
+      if the milliseconds - tSaveTime > 400 then exit repeat
+      if the mouseClick then exit repeat
+   end repeat
+   close stack "revSaving"
 end revIDESaveAsProject
 
 -- ---------------------------------------------------------------------------
