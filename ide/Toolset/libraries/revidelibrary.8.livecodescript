@@ -8208,7 +8208,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- pFolderPath is the full path to the project folder,
    -- e.g. "/Users/emily/Documents/MyStack.hyperxtalk_project"
    -- The main JSON file inside takes the same name as the folder.
-
+   
    -- Derive base project name from folder (strip .hyperxtalk_project suffix)
    local tSavedItemDelim2, tFolderLeaf, tBaseName
    put the itemDelimiter into tSavedItemDelim2
@@ -8216,7 +8216,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    put the last item of pFolderPath into tFolderLeaf
    set the itemDelimiter to tSavedItemDelim2
    put char 1 to (length(tFolderLeaf) - length(".hyperxtalk_project")) of tFolderLeaf into tBaseName
-
+   
    -- Create the project folder if it doesn't already exist.
    -- On macOS, .hyperxtalk_project packages report false for "there is a folder",
    -- so also check for the inner JSON file as proof the package already exists.
@@ -8229,21 +8229,21 @@ on revIDESaveAsProject pStackID, pFolderPath
          return "Error"
       end if
    end if
-
+   
    -- Create the media subfolder for extracted assets
    local tMediaFolder
    put pFolderPath & "/media" into tMediaFolder
    if there is no folder tMediaFolder then
       create folder tMediaFolder
    end if
-
+   
    -- Create the scripts subfolder for per-object script files
    local tScriptsFolder
    put pFolderPath & "/scripts" into tScriptsFolder
    if there is no folder tScriptsFolder then
       create folder tScriptsFolder
    end if
-
+   
    -- Show the IDE saving dialog (mirrors the binary stack save in revIDESaveStack)
    local tSavingStackName
    put the short name of pStackID into tSavingStackName
@@ -8268,16 +8268,16 @@ on revIDESaveAsProject pStackID, pFolderPath
    set the topleft of field 1 of stack "revSaving" to 0,0
    set the width of stack "revSaving" to the right of field 1 of stack "revSaving"
    set the height of stack "revSaving" to the height of field 1 of stack "revSaving"
-   send "revCheckSaveStackRect" to stack "revSaving"
-
+   send "revCheckSaveStackRect" to card 1 of stack "revSaving"
+   
    -- Build the full object tree as a LiveCode array
    local tTree
    revIDEProjectBuildTree pStackID, tMediaFolder, tScriptsFolder, tTree
-
+   
    -- Sanitize the tree: convert all leaf values to plain strings so that
    -- boolean and data typed values don't trip up the JSON encoder.
    revIDEProjectSanitizeArray tTree
-
+   
    -- Encode to JSON (pretty-printed for readable diffs in version control)
    local tJSON
    put jsonExport(tTree, true) into tJSON
@@ -8286,7 +8286,7 @@ on revIDESaveAsProject pStackID, pFolderPath
       answer error revIDELocalise("Could not encode project data as JSON. The project was not saved.")
       return "Error"
    end if
-
+   
    -- Write the main project JSON file
    put pFolderPath & "/" & tBaseName & ".json" into tMainFilePath
    open file tMainFilePath for write
@@ -8297,22 +8297,22 @@ on revIDESaveAsProject pStackID, pFolderPath
    end if
    write tJSON to file tMainFilePath
    close file tMainFilePath
-
+   
    -- Export first-card preview as preview.png inside the bundle.
    -- Being part of the package it travels with the file automatically.
    local tStackName, tPreviewPath
    put the short name of pStackID into tStackName
    put pFolderPath & "/preview.png" into tPreviewPath
    export snapshot from card 1 of stack tStackName to file tPreviewPath as PNG
-
+   
    -- Record the project path so subsequent Cmd+S saves route back here
    -- instead of falling through to the binary stack saver.
    set the cRevProjectFilePath of stack tStackName to pFolderPath
-
+   
    -- Mark the stack as saved and update recent files
    revIDESetUnedited the short name of pStackID
    revUpdateRecentFiles the short name of pStackID
-
+   
    -- Show "Save complete" in the dialog, then close it after a brief pause
    -- (mirrors the binary stack save behaviour in revIDESaveStack)
    put revIDELocalise("Save complete - click to continue") into line -1 of field 1 of stack "revSaving"
