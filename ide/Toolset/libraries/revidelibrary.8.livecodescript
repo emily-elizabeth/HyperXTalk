@@ -8959,10 +8959,10 @@ private function revIDEProjectValueIsBinary pValue
    repeat with i = 14 to 31
       if pValue contains numToChar(i) then return true
    end repeat
-   -- 0x80–0xFF: high bytes that may not form valid UTF-8
-   repeat with i = 128 to 255
-      if pValue contains numToChar(i) then return true
-   end repeat
+   -- Note: bytes 0x80–0xFF are NOT treated as binary here. The project JSON file
+   -- is written/read as explicit UTF-8, so Unicode text strings (including names
+   -- with non-ASCII characters) are stored as readable UTF-8 in the JSON rather
+   -- than being base64-encoded. Only genuine control-character binary data is flagged.
    return false
 end revIDEProjectValueIsBinary
 
