@@ -8278,9 +8278,14 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- boolean and data typed values don't trip up the JSON encoder.
    revIDEProjectSanitizeArray tTree
    
-   -- Encode to JSON (pretty-printed for readable diffs in version control)
+   -- Encode to JSON (pretty-printed for readable diffs in version control).
+   -- Use lcb_JsonExport + lcb_prettyJson directly instead of jsonExport() to bypass
+   -- _cleaningNonPrintableChars, which maps numToChar(128-159) via Mac Roman and
+   -- corrupts accented characters (e.g. É →  → ƒ on re-import).
+   -- The project JSON is written as UTF-8, so Unicode text is valid as-is.
    local tJSON
-   put jsonExport(tTree, true) into tJSON
+   put lcb_JsonExport(tTree) into tJSON
+   put lcb_prettyJson(tJSON, 4, true) into tJSON
    if tJSON is empty then
       close stack "revSaving"
       answer error revIDELocalise("Could not encode project data as JSON. The project was not saved.")
