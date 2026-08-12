@@ -8251,6 +8251,24 @@ on revIDESaveAsProject pStackID, pFolderPath
    palette "revSaving"
    set the cSavingStack of card 1 of stack "revSaving" to tSavingStackName
    show stack "revSaving"
+   -- Project stacks have no binary filename so the cSavingStack setter leaves
+   -- "File name:" empty and sizes the dialog too small.  Patch the field to
+   -- show the project bundle path, then resize the dialog to fit.
+   local tFldLines, tFldLineNum
+   put field 1 of stack "revSaving" into tFldLines
+   repeat with tFldLineNum = 1 to the number of lines of tFldLines
+      if line tFldLineNum of tFldLines begins with revIDELocalise("File name:") then
+         put revIDELocalise("File name:") & tab & tab & pFolderPath into line tFldLineNum of tFldLines
+         exit repeat
+      end if
+   end repeat
+   put tFldLines into field 1 of stack "revSaving"
+   set the width of field 1 of stack "revSaving" to the formattedWidth of field 1 of stack "revSaving" + 8
+   set the height of field 1 of stack "revSaving" to the formattedHeight of field 1 of stack "revSaving"
+   set the topleft of field 1 of stack "revSaving" to 0,0
+   set the width of stack "revSaving" to the right of field 1 of stack "revSaving"
+   set the height of stack "revSaving" to the height of field 1 of stack "revSaving"
+   send "revCheckSaveStackRect" to stack "revSaving"
 
    -- Build the full object tree as a LiveCode array
    local tTree
