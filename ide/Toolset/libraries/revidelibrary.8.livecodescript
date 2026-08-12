@@ -9121,6 +9121,7 @@ on revIDELoadFromProject pFilePath
       revIDEAddRecentStack pFilePath
       unlock screen
       lock error dialogs
+      go card 1 of stack tNewStackName
       send "preOpenStack" to card 1 of stack tNewStackName
       send "preOpenCard" to card 1 of stack tNewStackName
       go stack tNewStackName
