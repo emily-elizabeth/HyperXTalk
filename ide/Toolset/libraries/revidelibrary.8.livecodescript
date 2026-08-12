@@ -8287,15 +8287,15 @@ on revIDESaveAsProject pStackID, pFolderPath
       return "Error"
    end if
    
-   -- Write the main project JSON file
+   -- Write the main project JSON file (binary + UTF-8 to preserve Unicode in scripts/properties)
    put pFolderPath & "/" & tBaseName & ".json" into tMainFilePath
-   open file tMainFilePath for write
+   open file tMainFilePath for binary write
    if the result is not empty then
       close stack "revSaving"
       answer revIDELocalise("Could not write project file:") & return & the result
       return "Error"
    end if
-   write tJSON to file tMainFilePath
+   write textEncode(tJSON, "UTF-8") to file tMainFilePath
    close file tMainFilePath
    
    -- Export first-card preview as preview.png inside the bundle.
@@ -8441,11 +8441,10 @@ private function revIDEProjectWriteScript pScript, pScriptsFolder, pFilename, pO
       put tBase & "--" & tCounter & ".hyperxtalkscript" into tFilename
       put pScriptsFolder & "/" & tFilename into tFilePath
    end repeat
-   open file tFilePath for write
+   open file tFilePath for binary write
    if the result is not empty then return empty
    -- Header comment identifies the object for external editors and VCS
-   write "-- HyperXTalk: " & pObjectDescription & return to file tFilePath
-   write pScript to file tFilePath
+   write textEncode("-- HyperXTalk: " & pObjectDescription & return & pScript, "UTF-8") to file tFilePath
    close file tFilePath
    return "scripts/" & tFilename
 end revIDEProjectWriteScript
@@ -8457,11 +8456,11 @@ private function revIDEProjectReadScript pScriptFile, pFolderPath
    local tFilePath
    put pFolderPath & "/" & pScriptFile into tFilePath
    if there is not a file tFilePath then return empty
-   open file tFilePath for read
+   open file tFilePath for binary read
    if the result is not empty then return empty
    read from file tFilePath until end
    local tContent
-   put it into tContent
+   put textDecode(it, "UTF-8") into tContent
    close file tFilePath
    -- Strip the header line written by revIDEProjectWriteScript
    if line 1 of tContent begins with "-- HyperXTalk: " then
@@ -8982,13 +8981,13 @@ on revIDELoadFromProject pFilePath
       return "Error"
    end if
    local tJSON
-   open file pFilePath for read
+   open file pFilePath for binary read
    if the result is not empty then
       answer revIDELocalise("Could not read project file:") & return & the result
       return "Error"
    end if
    read from file pFilePath until end
-   put it into tJSON
+   put textDecode(it, "UTF-8") into tJSON
    close file pFilePath
    local tTree
    put jsonImport(tJSON) into tTree
