@@ -8643,6 +8643,18 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    if tType is "image" then
       delete variable tProps["text"]
    end if
+   -- Field htmlText: save explicitly as base64 to avoid encoding issues (&, tab
+   -- entities etc. getting mangled by the JSON sanitizer) and to prevent data loss.
+   -- The engine applies htmlText before text during set the properties, so text
+   -- would silently override htmlText and destroy styled formatting. By saving
+   -- htmlText separately and removing both from tProps we avoid the conflict.
+   if tType is "field" then
+      local tFieldHtmlText
+      do "put the htmlText of" && pControlID && "into tFieldHtmlText"
+      put base64Encode(tFieldHtmlText) into rObj["fieldHtmlText"]
+      delete variable tProps["htmlText"]
+      delete variable tProps["text"]
+   end if
    -- Player filename is an absolute path; handle portability via mediaFile instead
    if tType is "player" then
       delete variable tProps["filename"]
@@ -9510,6 +9522,15 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    end if
    if tSavedLineSz is not empty then
       set the lineSize of tStackRef to tSavedLineSz
+   end if
+   -- Restore field htmlText explicitly after all other properties are set.
+   -- Saved as base64 to avoid JSON encoding corruption of HTML entities (&, etc.).
+   -- Restored last so it is not overridden by the text property from set the properties.
+   if pControlNode["fieldHtmlText"] is not empty then
+      local tRestoredHtmlText
+      put base64Decode(pControlNode["fieldHtmlText"]) into tRestoredHtmlText
+      set the htmlText of tStackRef to tRestoredHtmlText
+      put empty into tRestoredHtmlText
    end if
 
    -- Defer behavior resolution until all stacks/controls are reconstructed
