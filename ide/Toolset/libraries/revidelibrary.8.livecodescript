@@ -9137,6 +9137,9 @@ end revIDELoadFromProject
 on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDeferredBehaviors, @pDeferredIcons, @pDeferredDgData
    local tName
    put pStackNode["name"] into tName
+   if tName begins with "__binary__:" then
+      put base64Decode(char 12 to -1 of tName) into tName
+   end if
    create stack tName
    local tNewStackName
    put tName into tNewStackName
@@ -9367,7 +9370,12 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
       end if
    end repeat
    if pCardNode["name"] is not empty then
-      set the name of tCardRef to pCardNode["name"]
+      local tCardName
+      put pCardNode["name"] into tCardName
+      if tCardName begins with "__binary__:" then
+         put base64Decode(char 12 to -1 of tCardName) into tCardName
+      end if
+      set the name of tCardRef to tCardName
    end if
    --   if pCardNode["rect"] is not empty then
    --      set the rect of tCardRef to pCardNode["rect"]
