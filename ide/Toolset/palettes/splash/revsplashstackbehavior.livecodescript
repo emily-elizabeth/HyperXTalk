@@ -17,7 +17,7 @@ end statusMessage
 private command revSplashBehavior__CentreOnIDEScreen
    -- Try the saved menubar rect from the preferences stack first.
    local tPrefsPath, tSavedRect
-   put specialfolderpath("home") & "/.hyperxtalk/preferences/hyperxtalk7.rev" into tPrefsPath
+   put revEnvironmentUserPreferencesPath() & "/hyperxtalk7.rev" into tPrefsPath
    if there is a file tPrefsPath then
       put the palette_rect_revMenubar of stack tPrefsPath into tSavedRect
    end if
