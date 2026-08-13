@@ -84,16 +84,22 @@ struct import_md_t
     // Style for the current character run.
     MCFieldCharacterStyle char_style;
 
-    // Raw byte buffer for the current run (native encoding, non-unicode path).
+    // Raw byte buffer for the current run.
+    // When is_unicode is false: native (single-byte) encoding.
+    // When is_unicode is true:  UTF-16 (two bytes per code unit).
     uint8_t  *bytes;
     uint32_t  byte_count;
     uint32_t  byte_capacity;
+    bool      is_unicode;
 
     // Fenced code-block state.
     bool     in_fenced_code;
     char     fence_char;
     uint32_t fence_len;
 };
+
+// Forward declarations (these functions are mutually dependent).
+static void import_md_flush(import_md_t& ctxt);
 
 static bool import_md_ensure_bytes(import_md_t& ctxt, uint32_t p_amount)
 {
@@ -115,6 +121,54 @@ static void import_md_append_bytes(import_md_t& ctxt, const char *p, uint32_t le
     }
 }
 
+// Append a single UTF-16 code unit.  Flushes any pending native bytes first.
+static void import_md_append_unicode_char(import_md_t& ctxt, unichar_t p_char)
+{
+    if (!ctxt.is_unicode && ctxt.byte_count > 0)
+        import_md_flush(ctxt);
+    if (!import_md_ensure_bytes(ctxt, 2))
+        return;
+    ctxt.is_unicode = true;
+    memcpy(ctxt.bytes + ctxt.byte_count, &p_char, 2);
+    ctxt.byte_count += 2;
+}
+
+// Append a UTF-8 byte sequence, decoding multi-byte characters to UTF-16.
+// ASCII bytes are kept as native (single-byte); non-ASCII bytes are decoded
+// from UTF-8 and stored as UTF-16, flushing between mode switches.
+static void import_md_append_utf8(import_md_t& ctxt, const char *p, uint32_t len)
+{
+    while (len > 0)
+    {
+        // Collect a run of ASCII bytes (high bit clear).
+        const char *q = p;
+        while (len > 0 && (unsigned char)*q < 128) { q++; len--; }
+        if (q > p)
+        {
+            // Flush if we were in unicode mode before writing native bytes.
+            if (ctxt.is_unicode && ctxt.byte_count > 0)
+                import_md_flush(ctxt);
+            import_md_append_bytes(ctxt, p, (uint32_t)(q - p));
+        }
+        p = q;
+
+        // Collect a run of non-ASCII bytes (high bit set = multi-byte UTF-8).
+        while (len > 0 && (unsigned char)*q >= 128) { q++; len--; }
+        if (q > p)
+        {
+            // Decode the UTF-8 sequence to a temporary MCStringRef (UTF-16).
+            MCAutoStringRef t_str;
+            /* UNCHECKED */ MCStringCreateWithBytes((const byte_t *)p, (uint32_t)(q - p),
+                                                    kMCStringEncodingUTF8, false, &t_str);
+            uindex_t t_len = MCStringGetLength(*t_str);
+            const unichar_t *t_chars = MCStringGetCharPtr(*t_str);
+            for (uindex_t i = 0; i < t_len; i++)
+                import_md_append_unicode_char(ctxt, t_chars[i]);
+        }
+        p = q;
+    }
+}
+
 static void import_md_flush(import_md_t& ctxt)
 {
     if (ctxt.byte_count == 0)
@@ -127,8 +181,9 @@ static void import_md_flush(import_md_t& ctxt)
     }
 
     ctxt.field->importblock(ctxt.paragraphs->prev(), ctxt.char_style,
-                             ctxt.bytes, ctxt.byte_count, false /* native */);
+                             ctxt.bytes, ctxt.byte_count, ctxt.is_unicode);
     ctxt.byte_count = 0;
+    ctxt.is_unicode = false;
 }
 
 static void import_md_end_paragraph(import_md_t& ctxt)
@@ -181,7 +236,7 @@ static void import_md_emit_plain(import_md_t& ctxt,
     }
     import_md_flush(ctxt);
     ctxt.char_style = style;
-    import_md_append_bytes(ctxt, p, len);
+    import_md_append_utf8(ctxt, p, len);
     import_md_flush(ctxt);
 }
 
