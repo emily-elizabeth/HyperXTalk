@@ -290,11 +290,12 @@ static void import_md_inline(import_md_t& ctxt,
             if (delim_len > 3) delim_len = 3;
 
             // Try to find a matching closing run, longest first.
+            // NOTE: must use signed int so decrement from 1 reaches 0, not UINT32_MAX.
             bool matched = false;
-            for (uint32_t try_len = delim_len; try_len >= 1 && !matched; try_len--)
+            for (int32_t try_len = (int32_t)delim_len; try_len >= 1 && !matched; try_len--)
             {
                 char delim_buf[3] = { ch, ch, ch };
-                const char *close = find_closing(p + try_len, end, delim_buf, try_len);
+                const char *close = find_closing(p + try_len, end, delim_buf, (uint32_t)try_len);
                 if (close == nil)
                     continue;
 
@@ -346,6 +347,11 @@ static void import_md_inline(import_md_t& ctxt,
                     continue;
                 }
             }
+            // Not a valid link (e.g. "[ ]", "[Topic]" with no following "(url)").
+            // Emit '[' as a literal character and advance, otherwise p never moves.
+            import_md_emit_plain(ctxt, p, 1, base_style);
+            p++;
+            continue;
         }
 
         // ── Regular character(s) ─────────────────────────────────────────────
