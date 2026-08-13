@@ -729,12 +729,10 @@ MCParagraph *MCField::importmarkdowntext(MCStringRef p_text)
         }
 
         // ── Regular paragraph ─────────────────────────────────────────────────
+        // Each source line becomes its own field paragraph.  Blank lines are
+        // already handled above (they set need_paragraph = true, which is a
+        // no-op if it's already true after the previous line ended).
         {
-            // Check for a soft line break: two or more trailing spaces.
-            bool soft_break = raw_line_len >= 2 &&
-                              raw_line[raw_line_len - 1] == ' ' &&
-                              raw_line[raw_line_len - 2] == ' ';
-
             if (ctxt.need_paragraph)
             {
                 MCFieldParagraphStyle para;
@@ -744,13 +742,10 @@ MCParagraph *MCField::importmarkdowntext(MCStringRef p_text)
                 memset(&ctxt.char_style, 0, sizeof(ctxt.char_style));
             }
 
-            uint32_t    content_len = soft_break ? raw_line_len - 2 : trimmed_len;
             MCFieldCharacterStyle base;
             memset(&base, 0, sizeof(base));
-            import_md_inline(ctxt, p, content_len, base);
-
-            if (soft_break)
-                import_md_end_paragraph(ctxt);
+            import_md_inline(ctxt, p, trimmed_len, base);
+            import_md_end_paragraph(ctxt);
         }
 
         line = next_line;
