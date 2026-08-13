@@ -442,7 +442,7 @@ MCParagraph *MCField::importmarkdowntext(MCStringRef p_text)
             MCFieldCharacterStyle cs;
             memset(&cs, 0, sizeof(cs));
             cs.has_text_font = true;
-            /* UNCHECKED */ MCNameCreateWithCString("Courier", cs.text_font);
+            { MCAutoStringRef t_font; /* UNCHECKED */ MCStringCreateWithCString("Courier", &t_font); /* UNCHECKED */ MCNameCreate(*t_font, cs.text_font); }
             import_md_paragraph(ctxt, raw_line, raw_line_len, &para, &cs);
             MCValueRelease(cs.text_font);
             line = next_line;
@@ -593,7 +593,7 @@ MCParagraph *MCField::importmarkdowntext(MCStringRef p_text)
             MCFieldCharacterStyle cs;
             memset(&cs, 0, sizeof(cs));
             cs.has_text_font = true;
-            /* UNCHECKED */ MCNameCreateWithCString("Courier", cs.text_font);
+            { MCAutoStringRef t_font; /* UNCHECKED */ MCStringCreateWithCString("Courier", &t_font); /* UNCHECKED */ MCNameCreate(*t_font, cs.text_font); }
             import_md_paragraph(ctxt, content, content_len, &para, &cs);
             MCValueRelease(cs.text_font);
             line = next_line;
