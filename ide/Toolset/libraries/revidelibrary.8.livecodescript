@@ -8805,6 +8805,18 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       -- causing type errors (e.g. segmented control mSegmentNames expecting a List).
       put base64Encode(arrayEncode(tWidgetData)) into rObj["widgetDataEncoded"]
       put tWidgetData["$kind"] into rObj["widgetKind"]
+      -- Save the four built-in color properties as text (get returns "r,g,b" format).
+      -- The binary color values in the properties array may not survive the JSON
+      -- round-trip correctly and, if the hiliteColor is not restored, the widget
+      -- falls back to the system accent color (which may be pink rather than the
+      -- intended blue). Saving them explicitly as text strings guarantees restoration.
+      local tWCKey, tWCVal
+      repeat for each item tWCKey in "foregroundColor,backgroundColor,hiliteColor,borderColor"
+         do "put the " & tWCKey & " of pControlID into tWCVal"
+         if tWCVal is not empty then
+            put tWCVal into rObj["widgetColors"][tWCKey]
+         end if
+      end repeat
    end if
    
    -- Datagrid: save dgData (the row array) separately so it can be restored after
@@ -9594,6 +9606,18 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    end if
    if tSavedLineSz is not empty then
       set the lineSize of tStackRef to tSavedLineSz
+   end if
+   -- Restore widget built-in color properties explicitly from the saved text values.
+   -- These are saved as "r,g,b" text strings to avoid binary format round-trip issues.
+   -- Applied after set the properties so they override any binary format residue.
+   if tType is "widget" and pControlNode["widgetColors"] is an array then
+      local tWCRestoreKey, tWCRestoreVal
+      repeat for each key tWCRestoreKey in pControlNode["widgetColors"]
+         put pControlNode["widgetColors"][tWCRestoreKey] into tWCRestoreVal
+         if tWCRestoreVal is not empty then
+            do "set the " & tWCRestoreKey & " of " & tStackRef & " to" && quote & tWCRestoreVal & quote
+         end if
+      end repeat
    end if
    -- Restore field htmlText explicitly after all other properties are set.
    -- Saved as base64 to avoid JSON encoding corruption of HTML entities (&, etc.).
