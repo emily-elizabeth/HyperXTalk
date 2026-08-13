@@ -225,6 +225,23 @@ constant kDefaultSelectedLabelColor is [1,1,1]
 
 constant kPostMessage is true
 constant kDontPostMessage is false
+
+-- Coerce a value to a List. When widget data is loaded from external serialization
+-- (e.g. project format), LCB Lists may arrive as Arrays with numeric string keys
+-- rather than as native LCB List values. This helper accepts both and always returns
+-- a proper List so OnLoad assignments to List-typed variables do not throw type errors.
+private handler coerceToList(in pValue as optional any) returns List
+   if pValue is a list then
+      return pValue
+   end if
+   variable tList as List
+   put [] into tList
+   variable tElement as optional any
+   repeat for each element tElement in pValue
+      push tElement onto tList
+   end repeat
+   return tList
+end handler
 --
 
 public handler OnSave(out rProperties as Array)
@@ -251,16 +268,16 @@ end handler
 
 public handler OnLoad(in pProperties as Array)
 
-	put pProperties["segmentNames"]		into mSegmentNames
+	put coerceToList(pProperties["segmentNames"])	into mSegmentNames
 	put the number of elements in mSegmentNames into mNumSegments
 
 	put pProperties["multiSelect"]		into mMultiSelect
 	if "toggleHilites" is among the keys of pProperties then
 		put pProperties["toggleHilites"] into mToggleHilites
 	end if
-	put pProperties["segmentLabels"]	into mSegmentLabels
-	put pProperties["segmentIcons"]		into mSegmentIcons
-	put pProperties["selectedIcons"]	into mSelectedIcons
+	put coerceToList(pProperties["segmentLabels"])	into mSegmentLabels
+	put coerceToList(pProperties["segmentIcons"])	into mSegmentIcons
+	put coerceToList(pProperties["selectedIcons"])	into mSelectedIcons
 	put pProperties["segmentDisplay"]	into mSegmentDisplay
 	if "segmentMinWidth" is among the keys of pProperties then
 		put pProperties["segmentMinWidth"]	into mSegmentMinExtent
