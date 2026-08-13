@@ -8800,7 +8800,10 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    if tType is "widget" then
       local tWidgetData
       export pControlID to array tWidgetData
-      put tWidgetData into rObj["widgetData"]
+      -- Store widgetData as arrayEncode/base64 to preserve LCB List vs Array type
+      -- information through the JSON round-trip. lcb_JsonExport loses this distinction,
+      -- causing type errors (e.g. segmented control mSegmentNames expecting a List).
+      put base64Encode(arrayEncode(tWidgetData)) into rObj["widgetDataEncoded"]
       put tWidgetData["$kind"] into rObj["widgetKind"]
    end if
    
@@ -9507,11 +9510,19 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          
       case "widget"
          if pControlNode["widgetKind"] is empty then exit revIDEProjectReconstructControl
-         if pControlNode["widgetData"] is an array then
+         local tWidgetDataForImport
+         if pControlNode["widgetDataEncoded"] is not empty then
+            -- Preferred path: decode the arrayEncode/base64 blob which preserves LCB types
+            put arrayDecode(base64Decode(pControlNode["widgetDataEncoded"])) into tWidgetDataForImport
+         else if pControlNode["widgetData"] is an array then
+            -- Legacy fallback for projects saved before widgetDataEncoded was introduced
+            put pControlNode["widgetData"] into tWidgetDataForImport
+         end if
+         if tWidgetDataForImport is an array then
             -- Use import to restore full internal widget state ($state etc.).
             -- import widget from array creates on the current card of the default stack.
             set the defaultStack to pStackName
-            import widget from array pControlNode["widgetData"]
+            import widget from array tWidgetDataForImport
             put it into tControlRef
             put the id of tControlRef into tNewControlID
             -- If the widget belongs inside a group, copy it there then remove the original.
