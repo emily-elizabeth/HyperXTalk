@@ -257,7 +257,7 @@ static void import_md_inline(import_md_t& ctxt,
                 // Emit code span in Courier.
                 MCFieldCharacterStyle code_style = base_style;
                 code_style.has_text_font = true;
-                /* UNCHECKED */ MCNameCreateWithCString("Courier", code_style.text_font);
+                { MCAutoStringRef t_font; /* UNCHECKED */ MCStringCreateWithCString("Courier", &t_font); /* UNCHECKED */ MCNameCreate(*t_font, code_style.text_font); }
 
                 // Strip a single leading/trailing space (CommonMark rule).
                 uint32_t content_len = (uint32_t)(close - content_start);
