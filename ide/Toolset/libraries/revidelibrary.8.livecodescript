@@ -9512,11 +9512,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          if pControlNode["widgetKind"] is empty then exit revIDEProjectReconstructControl
          local tWidgetDataForImport
          if pControlNode["widgetDataEncoded"] is not empty then
-            -- Preferred path: decode the arrayEncode/base64 blob which preserves LCB types
             put arrayDecode(base64Decode(pControlNode["widgetDataEncoded"])) into tWidgetDataForImport
-         else if pControlNode["widgetData"] is an array then
-            -- Legacy fallback for projects saved before widgetDataEncoded was introduced
-            put pControlNode["widgetData"] into tWidgetDataForImport
          end if
          if tWidgetDataForImport is an array then
             -- Use import to restore full internal widget state ($state etc.).
