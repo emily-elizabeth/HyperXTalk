@@ -738,6 +738,15 @@ Exec_stat MCField::setrtf(uint4 parid, MCStringRef data)
 	return ES_NORMAL;
 }
 
+Exec_stat MCField::setmarkdown(uint4 parid, MCStringRef data)
+{
+	state |= CS_NO_FILE;
+	MCParagraph *t_paragraphs = importmarkdowntext(data);
+	setparagraphs(t_paragraphs, parid);
+	state &= ~CS_NO_FILE;
+	return ES_NORMAL;
+}
+
 void MCField::setstyledtext(uint32_t part_id, MCArrayRef p_text)
 {
 	state |= CS_NO_FILE; // prevent interactions while downloading images

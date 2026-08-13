@@ -1562,6 +1562,7 @@ enum Properties {
     P_UNICODE_TEXT,
     P_HTML_TEXT,
     P_RTF_TEXT,
+    P_MARKDOWN_TEXT,
 	// MW-2011-12-08: [[ StyledText ]] Property tag for the styledText
 	P_STYLED_TEXT,
 	// MW-2012-02-21: [[ LineBreaks ]] Property tag for the formattedStyledText

@@ -1481,6 +1481,21 @@ void MCField::SetRtfTextOfCharChunk(MCExecContext& ctxt, uint32_t p_part_id, int
     state &= ~CS_NO_FILE;
 }
 
+void MCField::GetMarkdownTextOfCharChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t p_start, int32_t p_finish, MCStringRef& r_value)
+{
+    if (exportasmarkdowntext(p_part_id, p_start, p_finish, r_value))
+        return;
+
+    ctxt . Throw();
+}
+
+void MCField::SetMarkdownTextOfCharChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t p_start, int32_t p_finish, MCStringRef p_value)
+{
+    state |= CS_NO_FILE;
+    setparagraphs(importmarkdowntext(p_value), p_part_id, p_start, p_finish);
+    state &= ~CS_NO_FILE;
+}
+
 void MCField::GetHtmlTextOfCharChunk(MCExecContext& ctxt, uint32_t p_part_id, int32_t p_start, int32_t p_finish, MCValueRef& r_value)
 {
     if (exportashtmltext(p_part_id, p_start, p_finish, false, (MCDataRef&)r_value))

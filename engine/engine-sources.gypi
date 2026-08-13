@@ -271,6 +271,7 @@
 			'src/fieldf.cpp',
 			'src/fieldh.cpp',
 			'src/fieldhtml.cpp',
+			'src/fieldmarkdown.cpp',
 			'src/fieldrtf.cpp',
 			'src/fields.cpp',
 			'src/fieldstyledtext.cpp',

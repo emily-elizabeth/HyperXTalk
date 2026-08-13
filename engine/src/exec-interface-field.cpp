@@ -865,6 +865,19 @@ void MCField::SetRtfText(MCExecContext& ctxt, uint32_t part, MCStringRef p_text)
 	setrtf(part, p_text);
 }
 
+void MCField::GetMarkdownText(MCExecContext& ctxt, uint32_t part, MCStringRef& r_text)
+{
+	if (exportasmarkdowntext(part, 0, INT32_MAX, r_text))
+		return;
+
+	ctxt . Throw();
+}
+
+void MCField::SetMarkdownText(MCExecContext& ctxt, uint32_t part, MCStringRef p_text)
+{
+	setmarkdown(part, p_text);
+}
+
 void MCField::GetStyledText(MCExecContext& ctxt, uint32_t part, MCArrayRef& r_array)
 {
 	if (exportasstyledtext(part, 0, INT32_MAX, false, false, r_array))

@@ -1250,6 +1250,7 @@ const LT factor_table[] =
         {"margins", TT_PROPERTY, P_MARGINS},
         {"mark", TT_PROPERTY, P_MARKED},
         {"markchar", TT_PROPERTY, P_MARK_CHAR},
+        {"markdowntext", TT_PROPERTY, P_MARKDOWN_TEXT},
         {"marked", TT_CLASS, CT_MARKED},
         {"markercolor", TT_PROPERTY, P_HILITE_COLOR},
         {"markerdrawn", TT_PROPERTY, P_MARKER_DRAWN},

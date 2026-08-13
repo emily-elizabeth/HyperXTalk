@@ -364,6 +364,7 @@ static const PropList fieldprops[] =
         {"hScrollbar", P_HSCROLLBAR},
         {"hintText", P_HINT_TEXT},
         {"htmlText", P_HTML_TEXT},
+        {"markdownText", P_MARKDOWN_TEXT},
         {"id", P_ID},
         {"ink", P_INK},
         {"innerGlow", P_BITMAP_EFFECT_INNER_GLOW},
@@ -3483,6 +3484,7 @@ static struct { Properties prop; const char *tag; } s_preprocess_props[] =
     // MERG-2013-07-20: [[ Bug 11060 ]] hilitedLines being lost.
     { P_LIST_BEHAVIOR, "listBehavior" }, // setting hilitedLines before listBehavior will lose the hilited lines
     { P_HTML_TEXT, "htmlText" }, // setting hilitedLines before htmlText will lose the hilited lines
+    { P_MARKDOWN_TEXT, "markdownText" },
     // MERG-2013-08-30: [[ RevisedPropsProp ]] Ensure button text has precedence over label and menuHistory
     { P_TEXT, "text" },
     { P_MENU_HISTORY, "menuHistory" },
