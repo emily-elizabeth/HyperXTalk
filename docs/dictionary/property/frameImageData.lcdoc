@@ -10,7 +10,7 @@ Returns the raw ARGB pixel data for the current <frame> of an
 
 Associations: image
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 

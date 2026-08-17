@@ -9,7 +9,7 @@ Returns the current <frame> of an <animated GIF> encoded as PNG data.
 
 Associations: image
 
-Introduced: 1.1.0
+Introduced: 1.0.0
 
 OS: mac, windows, linux
 
