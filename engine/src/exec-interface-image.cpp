@@ -525,6 +525,120 @@ void MCImage::GetImageData(MCExecContext& ctxt, MCDataRef& r_data)
     ctxt . Throw();
 }
 
+void MCImage::GetFrameDuration(MCExecContext& ctxt, uinteger_t& r_duration)
+{
+    // Returns the display duration of the current frame in milliseconds.
+    // Returns 0 for non-animated images.
+    if (m_rep == nil || m_rep->GetFrameCount() <= 1)
+    {
+        r_duration = 0;
+        return;
+    }
+
+    uint32_t t_duration = 0;
+    if (!m_rep->GetFrameDuration(currentframe, t_duration))
+    {
+        ctxt.Throw();
+        return;
+    }
+    r_duration = t_duration;
+}
+
+void MCImage::GetFrameImageData(MCExecContext& ctxt, MCDataRef& r_data)
+{
+    // For non-animated images fall back to standard imageData behaviour.
+    if (m_rep == nil || m_rep->GetFrameCount() <= 1)
+    {
+        GetImageData(ctxt, r_data);
+        return;
+    }
+
+    // Lock the image open without resizing it.
+    bool t_tmp_locked = false;
+    if (!getflag(F_LOCK_LOCATION))
+    {
+        setflag(true, F_LOCK_LOCATION);
+        t_tmp_locked = true;
+    }
+    openimage();
+
+    // Access the current frame's composited bitmap directly, without
+    // disturbing currentframe or triggering a repaint.
+    MCImageBitmap *t_bitmap = nil;
+    bool t_success = m_rep->LockBitmap(currentframe, 1.0, t_bitmap);
+
+    if (t_success)
+    {
+        uint32_t t_pixel_count = t_bitmap->width * t_bitmap->height;
+        uint32_t t_data_size   = t_pixel_count * sizeof(uint32_t);
+
+        MCAutoByteArray t_buffer;
+        t_success = t_buffer.New(t_data_size);
+
+        if (t_success)
+        {
+            uint32_t *t_data_ptr = (uint32_t*)t_buffer.Bytes();
+            MCMemoryCopy(t_data_ptr, t_bitmap->data, t_data_size);
+            // Normalise to ARGB regardless of native pixel format.
+#if (kMCGPixelFormatNative != kMCGPixelFormatARGB)
+            uint32_t t_remaining = t_pixel_count;
+            while (t_remaining--)
+            {
+                uint8_t t_r, t_g, t_b, t_a;
+                MCGPixelUnpackNative(*t_data_ptr, t_r, t_g, t_b, t_a);
+                *t_data_ptr++ = MCGPixelPack(kMCGPixelFormatARGB, t_r, t_g, t_b, t_a);
+            }
+#endif
+            t_success = t_buffer.CreateDataAndRelease(r_data);
+        }
+
+        m_rep->UnlockBitmap(currentframe, t_bitmap);
+    }
+
+    if (t_tmp_locked)
+        setflag(false, F_LOCK_LOCATION);
+    closeimage();
+
+    if (!t_success)
+        ctxt.Throw();
+}
+
+void MCImage::GetFrameText(MCExecContext& ctxt, MCDataRef& r_data)
+{
+    // Returns the current frame encoded as PNG, suitable for passing to
+    // "image from data" in LCB or "set the text of image" in LCS.
+    // For non-animated images falls back to GetText.
+    if (m_rep == nil || m_rep->GetFrameCount() <= 1)
+    {
+        GetText(ctxt, r_data);
+        return;
+    }
+
+    bool t_tmp_locked = false;
+    if (!getflag(F_LOCK_LOCATION))
+    {
+        setflag(true, F_LOCK_LOCATION);
+        t_tmp_locked = true;
+    }
+    openimage();
+
+    MCImageBitmap *t_bitmap = nil;
+    bool t_success = m_rep->LockBitmap(currentframe, 1.0, t_bitmap);
+
+    if (t_success)
+        t_success = MCImageCreateClipboardData(t_bitmap, r_data);
+
+    if (t_bitmap != nil)
+        m_rep->UnlockBitmap(currentframe, t_bitmap);
+
+    if (t_tmp_locked)
+        setflag(false, F_LOCK_LOCATION);
+    closeimage();
+
+    if (!t_success)
+        ctxt.Throw();
+}
+
 void MCImage::SetImageData(MCExecContext& ctxt, MCDataRef p_data)
 {
     if (m_rep && m_rep->IsLocked())
