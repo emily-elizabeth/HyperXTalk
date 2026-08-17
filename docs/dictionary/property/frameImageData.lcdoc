@@ -1,0 +1,53 @@
+Name: frameImageData
+
+Type: property
+
+Syntax: get the frameImageData of <image>
+
+Summary:
+Returns the raw ARGB pixel data for the current <frame> of an
+<animated GIF>.
+
+Associations: image
+
+Introduced: 1.1.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+set the currentFrame of image "myGIF" to 3
+put the frameImageData of image "myGIF" into tPixels
+
+Value:
+The <frameImageData> of an <image> is binary data containing the
+composited ARGB pixel values for the current frame, in the same format
+as the <imageData> property.
+This property is read-only and cannot be set.
+
+Description:
+Use the <frameImageData> <property> to obtain raw pixel data for a
+specific <frame> of an <animated GIF> without altering playback or
+triggering a repaint. Unlike setting <currentFrame> and reading
+<imageData>, accessing <frameImageData> does not call layer_redrawall()
+and does not visually disturb the animation.
+
+The returned data contains one 32-bit ARGB value per pixel, in row-major
+order, for the full canvas dimensions of the GIF.
+
+Set <currentFrame> to the desired frame index before reading this
+property.
+
+For non-animated images, <frameImageData> returns the same value as
+<imageData>.
+
+To obtain the frame as encoded PNG data suitable for passing to LCB
+widgets or setting on another image object, use <frameText> instead.
+
+References: property (glossary), animated GIF (glossary),
+frame (glossary), image (keyword), currentFrame (property),
+frameCount (property), frameText (property), frameDuration (property),
+imageData (property)
+
+Tags: multimedia
