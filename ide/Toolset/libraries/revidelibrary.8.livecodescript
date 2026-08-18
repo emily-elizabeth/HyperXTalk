@@ -8849,9 +8849,8 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
          end if
       end if
       -- Save group/card short names for the other customisable DataGrid controls
-      -- (left/right swipe, edit mode controls).  These live in the same template stack
-      -- as the row template, so we reuse tRowTplStackName for the lookup.
-      -- Storing names (not IDs) lets us re-resolve after reconstruction when IDs change.
+      -- (left/right swipe, edit mode controls).  Storing names (not IDs) lets us
+      -- re-resolve after reconstruction when IDs change.
       local tDG2CtrlList, tDG2CtrlItem
       put "left swipe control,right swipe control,edit mode action control,edit mode action select control,edit mode reorder control" into tDG2CtrlList
       repeat for each item tDG2CtrlItem in tDG2CtrlList
@@ -8863,12 +8862,34 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
             -- word 3 = group id number, word 7 = card id number in long-id format
             put word 3 of tDG2CtrlVal into tDG2GroupIDNum
             put word 7 of tDG2CtrlVal into tDG2CardIDNum
-            -- Use the correct template stack name (already extracted above) for the lookup,
-            -- not the stack name embedded in the stored value, which may have lost spaces.
-            if tRowTplStackName is not empty and tDG2GroupIDNum is an integer then
-               if there is a group id tDG2GroupIDNum of stack tRowTplStackName then
-                  put the short name of group id tDG2GroupIDNum of stack tRowTplStackName into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
-                  put the short name of card id tDG2CardIDNum of stack tRowTplStackName into rObj["dg2CtrlCardName_" & tDG2SafeKey]
+            if tDG2GroupIDNum is an integer then
+               -- Use the stack name embedded in this control's stored reference.
+               -- It reflects the actual stack name when the property was set (with or
+               -- without spaces) and is more reliable than tRowTplStackName for lookup.
+               local tDG2RefStackPos, tDG2RefStack
+               put offset(" of stack " & quote, tDG2CtrlVal) into tDG2RefStackPos
+               if tDG2RefStackPos > 0 then
+                  -- " of stack " & quote = 11 chars; stack name starts at offset + 11
+                  put char (tDG2RefStackPos + 11) to -2 of tDG2CtrlVal into tDG2RefStack
+               end if
+               local tDG2LookupStack
+               if tDG2RefStack is not empty and there is a group id tDG2GroupIDNum of stack tDG2RefStack then
+                  put tDG2RefStack into tDG2LookupStack
+               else if tRowTplStackName is not empty and there is a group id tDG2GroupIDNum of stack tRowTplStackName then
+                  -- Fallback: the row template stack name (may differ from embedded name)
+                  put tRowTplStackName into tDG2LookupStack
+               else if tRowTplStackName is not empty then
+                  -- Last resort: try space-normalized row template stack name
+                  local tDG2NormStack
+                  put tRowTplStackName into tDG2NormStack
+                  replace space with empty in tDG2NormStack
+                  if there is a group id tDG2GroupIDNum of stack tDG2NormStack then
+                     put tDG2NormStack into tDG2LookupStack
+                  end if
+               end if
+               if tDG2LookupStack is not empty then
+                  put the short name of group id tDG2GroupIDNum of stack tDG2LookupStack into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                  put the short name of card id tDG2CardIDNum of stack tDG2LookupStack into rObj["dg2CtrlCardName_" & tDG2SafeKey]
                end if
             end if
          end if
