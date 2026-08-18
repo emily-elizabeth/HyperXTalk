@@ -8848,6 +8848,31 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
             put the short name of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardName"]
          end if
       end if
+      -- Save group/card short names for the other customisable DataGrid controls
+      -- (left/right swipe, edit mode controls).  These live in the same template stack
+      -- as the row template, so we reuse tRowTplStackName for the lookup.
+      -- Storing names (not IDs) lets us re-resolve after reconstruction when IDs change.
+      local tDG2CtrlList, tDG2CtrlItem
+      put "left swipe control,right swipe control,edit mode action control,edit mode action select control,edit mode reorder control" into tDG2CtrlList
+      repeat for each item tDG2CtrlItem in tDG2CtrlList
+         local tDG2CtrlVal, tDG2SafeKey, tDG2GroupIDNum, tDG2CardIDNum
+         put the dgProps[tDG2CtrlItem] of pControlID into tDG2CtrlVal
+         put tDG2CtrlItem into tDG2SafeKey
+         replace space with "_" in tDG2SafeKey
+         if tDG2CtrlVal is not empty then
+            -- word 3 = group id number, word 7 = card id number in long-id format
+            put word 3 of tDG2CtrlVal into tDG2GroupIDNum
+            put word 7 of tDG2CtrlVal into tDG2CardIDNum
+            -- Use the correct template stack name (already extracted above) for the lookup,
+            -- not the stack name embedded in the stored value, which may have lost spaces.
+            if tRowTplStackName is not empty and tDG2GroupIDNum is an integer then
+               if there is a group id tDG2GroupIDNum of stack tRowTplStackName then
+                  put the short name of group id tDG2GroupIDNum of stack tRowTplStackName into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                  put the short name of card id tDG2CardIDNum of stack tRowTplStackName into rObj["dg2CtrlCardName_" & tDG2SafeKey]
+               end if
+            end if
+         end if
+      end repeat
    end if
    -- Custom properties
    revIDEProjectSerializeCustomProps pControlID, rObj
@@ -9078,14 +9103,34 @@ on revIDELoadFromProject pFilePath
    repeat with tDGDataIdx = 1 to the number of elements of tDeferredDgData
       local tDGDataEntry, tDGData
       put tDeferredDgData[tDGDataIdx] into tDGDataEntry
-      -- Fix row template reference: the long id was pre-resolved during substack
-      -- reconstruction (before close stack unloads the DataGridTemplates stack).
+      -- Fix row template and other customisable control references: long ids were
+      -- pre-resolved during substack reconstruction (before close stack unloads the
+      -- DataGridTemplates stack).  Apply them now that behaviors are wired up.
       -- Use direct custom property manipulation to bypass the setprop dgProps behavior
       -- handler, which may throw on `there is not a pValue` for groups in hidden substacks.
-      if tDGDataEntry["resolvedRowTemplateRef"] is not empty then
+      local tDGHasCtrlFix
+      put false into tDGHasCtrlFix
+      if tDGDataEntry["resolvedRowTemplateRef"] is not empty then put true into tDGHasCtrlFix
+      local tDG2ApplyList, tDG2ApplyItem, tDG2ApplyKey
+      put "left swipe control,right swipe control,edit mode action control,edit mode action select control,edit mode reorder control" into tDG2ApplyList
+      repeat for each item tDG2ApplyItem in tDG2ApplyList
+         put tDG2ApplyItem into tDG2ApplyKey
+         replace space with "_" in tDG2ApplyKey
+         if tDGDataEntry["resolvedDG2CtrlRef_" & tDG2ApplyKey] is not empty then put true into tDGHasCtrlFix
+      end repeat
+      if tDGHasCtrlFix then
          local tDGPropsForFix
          put the customProperties["dgProps"] of tDGDataEntry["controlRef"] into tDGPropsForFix
-         put tDGDataEntry["resolvedRowTemplateRef"] into tDGPropsForFix["row template"]
+         if tDGDataEntry["resolvedRowTemplateRef"] is not empty then
+            put tDGDataEntry["resolvedRowTemplateRef"] into tDGPropsForFix["row template"]
+         end if
+         repeat for each item tDG2ApplyItem in tDG2ApplyList
+            put tDG2ApplyItem into tDG2ApplyKey
+            replace space with "_" in tDG2ApplyKey
+            if tDGDataEntry["resolvedDG2CtrlRef_" & tDG2ApplyKey] is not empty then
+               put tDGDataEntry["resolvedDG2CtrlRef_" & tDG2ApplyKey] into tDGPropsForFix[tDG2ApplyItem]
+            end if
+         end repeat
          set the customProperties["dgProps"] of tDGDataEntry["controlRef"] to tDGPropsForFix
          put empty into tDGPropsForFix
       end if
@@ -9288,7 +9333,26 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
             local tDGScanIdx, tIsRowTplStack
             put false into tIsRowTplStack
             repeat with tDGScanIdx = 1 to the number of elements of pDeferredDgData
+               -- Primary match: case-insensitive comparison of saved stack name vs reconstructed name.
+               -- Fuzzy fallback: if the JSON lost spaces from "Data Grid Templates <ms>"
+               -- → "DataGridTemplates<ms>", the primary match fails.  Catch this by comparing
+               -- both names after stripping spaces, but only when both begin with "DataGridTemplates"
+               -- (after normalization) to avoid false positives across unrelated substacks.
+               local tDGMatchRT
+               put false into tDGMatchRT
                if pDeferredDgData[tDGScanIdx]["rowTemplateStackName"] is tSubName then
+                  put true into tDGMatchRT
+               else
+                  local tRTNameNorm, tSubNameNorm
+                  put pDeferredDgData[tDGScanIdx]["rowTemplateStackName"] into tRTNameNorm
+                  replace space with empty in tRTNameNorm
+                  put tSubName into tSubNameNorm
+                  replace space with empty in tSubNameNorm
+                  if tRTNameNorm begins with "DataGridTemplates" and tRTNameNorm is tSubNameNorm then
+                     put true into tDGMatchRT
+                  end if
+               end if
+               if tDGMatchRT then
                   put true into tIsRowTplStack
                   local tRTEntry, tRTCardNum
                   put pDeferredDgData[tDGScanIdx] into tRTEntry
@@ -9318,14 +9382,43 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                      end if
                   end if
                   put empty into tRTGroupName
-                  -- Apply fix immediately while DataGridTemplates stack is still OPEN (not hidden yet).
+                  -- Resolve the other customisable DataGrid controls (left/right swipe, edit mode)
+                  -- by the short group and card names saved at project-save time.  IDs in the
+                  -- stored values are stale after reconstruction; resolving by name is reliable.
+                  local tDG2ResolveList, tDG2ResolveItem, tDG2ResolveKey
+                  put "left swipe control,right swipe control,edit mode action control,edit mode action select control,edit mode reorder control" into tDG2ResolveList
+                  repeat for each item tDG2ResolveItem in tDG2ResolveList
+                     put tDG2ResolveItem into tDG2ResolveKey
+                     replace space with "_" in tDG2ResolveKey
+                     local tDG2GrpName, tDG2CdName
+                     put tRTEntry["dg2CtrlGroupName_" & tDG2ResolveKey] into tDG2GrpName
+                     put tRTEntry["dg2CtrlCardName_" & tDG2ResolveKey] into tDG2CdName
+                     if tDG2GrpName is not empty and tDG2CdName is not empty then
+                        if there is a card tDG2CdName of stack tSubName then
+                           if there is a group tDG2GrpName of card tDG2CdName of stack tSubName then
+                              put the long id of group tDG2GrpName of card tDG2CdName of stack tSubName into tRTEntry["resolvedDG2CtrlRef_" & tDG2ResolveKey]
+                           end if
+                        end if
+                     end if
+                  end repeat
+                  -- Apply fixes immediately while DataGridTemplates stack is still OPEN (not hidden yet).
                   -- The datagrid behavior is not attached yet, so no setprop handler fires — this is
                   -- a safe direct custom property set. The fix is also applied again in the deferred
                   -- pass of revIDELoadFromProject (after behaviors are wired up) for belt-and-suspenders.
-                  if tRTEntry["resolvedRowTemplateRef"] is not empty and tRTEntry["controlRef"] is not empty then
+                  if tRTEntry["controlRef"] is not empty then
                      local tEarlyDGProps
                      put the customProperties["dgProps"] of tRTEntry["controlRef"] into tEarlyDGProps
-                     put tRTEntry["resolvedRowTemplateRef"] into tEarlyDGProps["row template"]
+                     if tRTEntry["resolvedRowTemplateRef"] is not empty then
+                        put tRTEntry["resolvedRowTemplateRef"] into tEarlyDGProps["row template"]
+                     end if
+                     local tDG2EarlyItem, tDG2EarlyKey
+                     repeat for each item tDG2EarlyItem in tDG2ResolveList
+                        put tDG2EarlyItem into tDG2EarlyKey
+                        replace space with "_" in tDG2EarlyKey
+                        if tRTEntry["resolvedDG2CtrlRef_" & tDG2EarlyKey] is not empty then
+                           put tRTEntry["resolvedDG2CtrlRef_" & tDG2EarlyKey] into tEarlyDGProps[tDG2EarlyItem]
+                        end if
+                     end repeat
                      set the customProperties["dgProps"] of tRTEntry["controlRef"] to tEarlyDGProps
                      put empty into tEarlyDGProps
                   end if
@@ -9653,6 +9746,16 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       put pControlNode["rowTemplateCardName"] into tDGEntry["rowTemplateCardName"]
       put pControlNode["rowTemplateCardNum"] into tDGEntry["rowTemplateCardNum"] -- legacy fallback
       put pControlNode["rowTemplateGroupName"] into tDGEntry["rowTemplateGroupName"]
+      -- Pass through the short names saved for the other customisable controls so that
+      -- the substack resolution pass (revIDEProjectReconstructStack) can re-resolve them.
+      local tDG2PassList, tDG2PassItem, tDG2PassKey
+      put "left swipe control,right swipe control,edit mode action control,edit mode action select control,edit mode reorder control" into tDG2PassList
+      repeat for each item tDG2PassItem in tDG2PassList
+         put tDG2PassItem into tDG2PassKey
+         replace space with "_" in tDG2PassKey
+         put pControlNode["dg2CtrlGroupName_" & tDG2PassKey] into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
+         put pControlNode["dg2CtrlCardName_" & tDG2PassKey] into tDGEntry["dg2CtrlCardName_" & tDG2PassKey]
+      end repeat
       put the number of elements of pDeferredDgData + 1 into tDGIdx
       put tDGEntry into pDeferredDgData[tDGIdx]
    end if
