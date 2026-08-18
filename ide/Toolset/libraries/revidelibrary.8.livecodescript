@@ -8844,25 +8844,37 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
             local tGroupIDNum, tCardID
             put word 3 of tRowTplRef into tGroupIDNum
             put word 7 of tRowTplRef into tCardID
+            -- Fast path: IDs in dgProps are current — look up directly.
             put the short name of group id tGroupIDNum of stack tRowTplStackName into rObj["rowTemplateGroupName"]
-            if rObj["rowTemplateGroupName"] is empty then
-               -- Stack not in memory (closed between sessions) — group id lookup returns empty.
-               -- The DataGrid behavior always names the row template group "Row Template".
-               put "Row Template" into rObj["rowTemplateGroupName"]
-            end if
-            -- cRevUniqueID is a more reliable matcher than name+ordinal: it is unique per
-            -- object and survives custom-property round-trips (saved/restored by
-            -- revIDEProjectSerializeCustomProps / revIDEProjectReconstructCustomProps).
-            -- Saved here so the loader can scan the template stack for the matching group
-            -- without relying on group/card IDs that change on rebuild.
             put the cRevUniqueID of group id tGroupIDNum of stack tRowTplStackName into rObj["rowTemplateGroupUID"]
             put the short name of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardName"]
-            -- Also save card ordinal: card names can be empty, making name-based lookup fail.
-            -- Ordinal is stable because DataGridTemplates stacks gain cards but never lose them.
             put the number of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardNum"]
-            if rObj["rowTemplateCardNum"] is empty then
-               -- Stack not in memory; DataGridTemplates stacks always have exactly one card.
-               put 1 into rObj["rowTemplateCardNum"]
+            if rObj["rowTemplateGroupName"] is empty then
+               -- IDs in dgProps are stale (stored from a previous session when objects had
+               -- different IDs, e.g. after the template stack was rebuilt) or the stack is
+               -- not in memory.  The DG behavior always names the group "Row Template".
+               put "Row Template" into rObj["rowTemplateGroupName"]
+               if there is a stack tRowTplStackName then
+                  -- Stack IS in memory but the stored IDs do not match any live object.
+                  -- Scan the template stack by name to locate the actual current group and
+                  -- capture its cRevUniqueID + correct card ordinal for the loader.
+                  -- Note: for stacks serving multiple DataGrids each card holds one "Row
+                  -- Template" group; this scan finds the first one, which is correct for the
+                  -- single-DataGrid case.  A multi-DataGrid stack would need valid IDs to
+                  -- disambiguate — this is the best we can do with stale references.
+                  local tRTScanC
+                  repeat with tRTScanC = 1 to the number of cards of stack tRowTplStackName
+                     if there is a group "Row Template" of card tRTScanC of stack tRowTplStackName then
+                        put the cRevUniqueID of group "Row Template" of card tRTScanC of stack tRowTplStackName into rObj["rowTemplateGroupUID"]
+                        put tRTScanC into rObj["rowTemplateCardNum"]
+                        exit repeat
+                     end if
+                  end repeat
+                  if rObj["rowTemplateCardNum"] is empty then put 1 into rObj["rowTemplateCardNum"]
+               else
+                  -- Stack not in memory at all; fall back to ordinal 1.
+                  put 1 into rObj["rowTemplateCardNum"]
+               end if
             end if
          end if
       end if
