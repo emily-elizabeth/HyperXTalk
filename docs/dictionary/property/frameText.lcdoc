@@ -36,17 +36,17 @@ property.
 Use <frameDuration> to obtain the display time for the frame in order to
 drive an animation loop:
 
-   on nextFrame
-      add 1 to sCurrentFrame
-      if sCurrentFrame > the frameCount of image "myGIF" then
-         put 1 into sCurrentFrame
-      end if
-      set the currentFrame of image "myGIF" to sCurrentFrame
-      set the viewerImage of widget "imageViewer" to \
-         the frameText of image "myGIF"
-      send "nextFrame" to me in \
-         (the frameDuration of image "myGIF") milliseconds
-   end nextFrame
+    on nextFrame
+        add 1 to sCurrentFrame
+        if sCurrentFrame > the frameCount of image "myGIF" then
+            put 1 into sCurrentFrame
+        end if
+        set the currentFrame of image "myGIF" to sCurrentFrame
+        set the viewerImage of widget "imageViewer" to \
+            the frameText of image "myGIF"
+        send "nextFrame" to me in \
+            (the frameDuration of image "myGIF") milliseconds
+    end nextFrame
 
 For non-animated images, <frameText> returns the same value as the
 <text> property.
