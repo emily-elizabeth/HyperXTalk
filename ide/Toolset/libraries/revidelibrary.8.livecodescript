@@ -8846,6 +8846,12 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
             put word 7 of tRowTplRef into tCardID
             put the short name of group id tGroupIDNum of stack tRowTplStackName into rObj["rowTemplateGroupName"]
             put the short name of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardName"]
+            -- cRevUniqueID is the most reliable anchor: it survives any stack rename or id change.
+            local tRowTplGrpUID
+            put the cRevUniqueID of group id tGroupIDNum of stack tRowTplStackName into tRowTplGrpUID
+            if tRowTplGrpUID is not empty then
+               put tRowTplGrpUID into rObj["rowTemplateGroupUID"]
+            end if
          end if
       end if
       -- Save group/card short names for the other customisable DataGrid controls
@@ -8890,6 +8896,11 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
                if tDG2LookupStack is not empty then
                   put the short name of group id tDG2GroupIDNum of stack tDG2LookupStack into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
                   put the short name of card id tDG2CardIDNum of stack tDG2LookupStack into rObj["dg2CtrlCardName_" & tDG2SafeKey]
+                  local tDG2CtrlUID
+                  put the cRevUniqueID of group id tDG2GroupIDNum of stack tDG2LookupStack into tDG2CtrlUID
+                  if tDG2CtrlUID is not empty then
+                     put tDG2CtrlUID into rObj["dg2CtrlGroupUID_" & tDG2SafeKey]
+                  end if
                end if
             end if
          end if
@@ -9377,16 +9388,34 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                   put true into tIsRowTplStack
                   local tRTEntry, tRTCardNum
                   put pDeferredDgData[tDGScanIdx] into tRTEntry
-                  -- Look up the row template group using the saved card name and group name.
-                  -- Card names in DataGridTemplates are unique per datagrid and stable across rebuild.
-                  -- Multiple cards may each have a "Row Template" group, so we must identify
-                  -- the correct card by name before finding the group within it.
+                  -- Build a UID→longid map for every group in this template stack once.
+                  -- cRevUniqueID survives any stack rename or id change, so UID lookup is
+                  -- the most reliable way to re-anchor stale long-id references.
+                  local tUIDToLongID
+                  local tUIDScanCard, tUIDScanGrp
+                  repeat with tUIDScanCard = 1 to the number of cards of stack tSubName
+                     repeat with tUIDScanGrp = 1 to the number of groups of card tUIDScanCard of stack tSubName
+                        local tGrpUID
+                        put the cRevUniqueID of group tUIDScanGrp of card tUIDScanCard of stack tSubName into tGrpUID
+                        if tGrpUID is not empty then
+                           put the long id of group tUIDScanGrp of card tUIDScanCard of stack tSubName into tUIDToLongID[tGrpUID]
+                        end if
+                     end repeat
+                  end repeat
+
+                  -- UID-based lookup for row template (primary — most reliable).
+                  local tRTGroupUID
+                  put tRTEntry["rowTemplateGroupUID"] into tRTGroupUID
+                  if tRTGroupUID is not empty and tUIDToLongID[tRTGroupUID] is not empty then
+                     put tUIDToLongID[tRTGroupUID] into tRTEntry["resolvedRowTemplateRef"]
+                  end if
+
+                  -- Name-based lookup (fallback for older project files without UIDs).
                   local tRTGroupName, tRTCardName, tRTCardCount, tRTScanCard
                   put tRTEntry["rowTemplateGroupName"] into tRTGroupName
                   put tRTEntry["rowTemplateCardName"] into tRTCardName
                   put the number of cards of stack tSubName into tRTCardCount
-                  if tRTCardName is not empty and tRTGroupName is not empty then
-                     -- Primary path: find card by name, then group by name within that card
+                  if tRTEntry["resolvedRowTemplateRef"] is empty and tRTCardName is not empty and tRTGroupName is not empty then
                      if there is a card tRTCardName of stack tSubName then
                         if there is a group tRTGroupName of card tRTCardName of stack tSubName then
                            put the long id of group tRTGroupName of card tRTCardName of stack tSubName into tRTEntry["resolvedRowTemplateRef"]
@@ -9411,10 +9440,15 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                   repeat for each item tDG2ResolveItem in tDG2ResolveList
                      put tDG2ResolveItem into tDG2ResolveKey
                      replace space with "_" in tDG2ResolveKey
-                     local tDG2GrpName, tDG2CdName
+                     local tDG2GrpName, tDG2CdName, tDG2ResolveUID
                      put tRTEntry["dg2CtrlGroupName_" & tDG2ResolveKey] into tDG2GrpName
                      put tRTEntry["dg2CtrlCardName_" & tDG2ResolveKey] into tDG2CdName
-                     if tDG2GrpName is not empty and tDG2CdName is not empty then
+                     put tRTEntry["dg2CtrlGroupUID_" & tDG2ResolveKey] into tDG2ResolveUID
+                     if tDG2ResolveUID is not empty and tUIDToLongID[tDG2ResolveUID] is not empty then
+                        -- UID-based lookup (primary)
+                        put tUIDToLongID[tDG2ResolveUID] into tRTEntry["resolvedDG2CtrlRef_" & tDG2ResolveKey]
+                     else if tDG2GrpName is not empty and tDG2CdName is not empty then
+                        -- Name-based lookup (fallback for older project files without UIDs)
                         if there is a card tDG2CdName of stack tSubName then
                            if there is a group tDG2GrpName of card tDG2CdName of stack tSubName then
                               put the long id of group tDG2GrpName of card tDG2CdName of stack tSubName into tRTEntry["resolvedDG2CtrlRef_" & tDG2ResolveKey]
@@ -9767,7 +9801,8 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       put pControlNode["rowTemplateCardName"] into tDGEntry["rowTemplateCardName"]
       put pControlNode["rowTemplateCardNum"] into tDGEntry["rowTemplateCardNum"] -- legacy fallback
       put pControlNode["rowTemplateGroupName"] into tDGEntry["rowTemplateGroupName"]
-      -- Pass through the short names saved for the other customisable controls so that
+      put pControlNode["rowTemplateGroupUID"] into tDGEntry["rowTemplateGroupUID"]
+      -- Pass through the short names (and UIDs) saved for the other customisable controls so that
       -- the substack resolution pass (revIDEProjectReconstructStack) can re-resolve them.
       local tDG2PassList, tDG2PassItem, tDG2PassKey
       put "left swipe control,right swipe control,edit mode action control,edit mode action select control,edit mode reorder control" into tDG2PassList
@@ -9776,6 +9811,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          replace space with "_" in tDG2PassKey
          put pControlNode["dg2CtrlGroupName_" & tDG2PassKey] into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
          put pControlNode["dg2CtrlCardName_" & tDG2PassKey] into tDGEntry["dg2CtrlCardName_" & tDG2PassKey]
+         put pControlNode["dg2CtrlGroupUID_" & tDG2PassKey] into tDGEntry["dg2CtrlGroupUID_" & tDG2PassKey]
       end repeat
       put the number of elements of pDeferredDgData + 1 into tDGIdx
       put tDGEntry into pDeferredDgData[tDGIdx]
