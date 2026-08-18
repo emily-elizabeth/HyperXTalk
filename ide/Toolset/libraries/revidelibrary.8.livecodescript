@@ -8845,10 +8845,19 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
             put word 3 of tRowTplRef into tGroupIDNum
             put word 7 of tRowTplRef into tCardID
             put the short name of group id tGroupIDNum of stack tRowTplStackName into rObj["rowTemplateGroupName"]
+            if rObj["rowTemplateGroupName"] is empty then
+               -- Stack not in memory (closed between sessions) — group id lookup returns empty.
+               -- The DataGrid behavior always names the row template group "Row Template".
+               put "Row Template" into rObj["rowTemplateGroupName"]
+            end if
             put the short name of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardName"]
             -- Also save card ordinal: card names can be empty, making name-based lookup fail.
             -- Ordinal is stable because DataGridTemplates stacks gain cards but never lose them.
             put the number of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardNum"]
+            if rObj["rowTemplateCardNum"] is empty then
+               -- Stack not in memory; DataGridTemplates stacks always have exactly one card.
+               put 1 into rObj["rowTemplateCardNum"]
+            end if
          end if
       end if
       -- Save group/card short names for the other customisable DataGrid controls
@@ -8893,6 +8902,28 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
                if tDG2LookupStack is not empty then
                   put the short name of group id tDG2GroupIDNum of stack tDG2LookupStack into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
                   put the short name of card id tDG2CardIDNum of stack tDG2LookupStack into rObj["dg2CtrlCardName_" & tDG2SafeKey]
+               else
+                  -- Template stack not in memory at save time; fall back to the conventional names
+                  -- the DG behavior assigns to default controls.  If a custom control was used,
+                  -- these names won't match at load time (the group won't exist) and the stale
+                  -- reference will be left for DG2_CustomisableControlsInit to recreate.
+                  switch tDG2CtrlItem
+                     case "left swipe control"
+                        put "DG2 Default Left Swipe Control" into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                        break
+                     case "right swipe control"
+                        put "DG2 Default Right Swipe Control" into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                        break
+                     case "edit mode action control"
+                        put "DG2 Default Edit Mode Action Control" into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                        break
+                     case "edit mode action select control"
+                        put "DG2 Default Edit Mode Action Select Control" into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                        break
+                     case "edit mode reorder control"
+                        put "DG2 Default Edit Mode Reorder Control" into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                        break
+                  end switch
                end if
             end if
          end if
@@ -9386,6 +9417,11 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                   -- the correct card by name before finding the group within it.
                   local tRTGroupName, tRTCardName, tRTCardCount, tRTScanCard
                   put tRTEntry["rowTemplateGroupName"] into tRTGroupName
+                  if tRTGroupName is empty then
+                     -- Not saved (old project file or stack-not-in-memory at save time).
+                     -- The DG behavior always names this group "Row Template".
+                     put "Row Template" into tRTGroupName
+                  end if
                   put tRTEntry["rowTemplateCardName"] into tRTCardName
                   put the number of cards of stack tSubName into tRTCardCount
                   if tRTCardName is not empty and tRTGroupName is not empty then
@@ -9773,17 +9809,42 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
 
    -- Defer dgData restore and row template fix until behaviors are wired up and
    -- all substacks (including DataGridTemplates) are reconstructed.
+   -- The third condition catches old project files (pre-rowTemplateStackName) whose dgProps
+   -- has a row template reference even though the extra fields weren't saved yet.
    if tType is "group" and \
-         (pControlNode["dgData"] is an array or pControlNode["rowTemplateStackName"] is not empty) then
+         (pControlNode["dgData"] is an array \
+         or pControlNode["rowTemplateStackName"] is not empty \
+         or pControlNode["customPropertySets"]["dgProps"]["row template"] is not empty) then
       local tDGEntry, tDGIdx
       put tStackRef into tDGEntry["controlRef"]
       if pControlNode["dgData"] is an array then
          put pControlNode["dgData"] into tDGEntry["dgData"]
       end if
       put pControlNode["rowTemplateStackName"] into tDGEntry["rowTemplateStackName"]
+      -- Fallback for old project files: extract the stack name from the serialized dgProps long id.
+      -- "row template" stores group id X of card id Y of stack "Name"; parse out "Name".
+      if tDGEntry["rowTemplateStackName"] is empty then
+         local tLegacyRef, tLegacyOfStack, tLegacyPos
+         put pControlNode["customPropertySets"]["dgProps"]["row template"] into tLegacyRef
+         if tLegacyRef is not empty then
+            put " of stack " & quote into tLegacyOfStack
+            put offset(tLegacyOfStack, tLegacyRef) into tLegacyPos
+            if tLegacyPos > 0 then
+               put char (tLegacyPos + the number of chars in tLegacyOfStack) to -2 of tLegacyRef into tDGEntry["rowTemplateStackName"]
+            end if
+         end if
+      end if
       put pControlNode["rowTemplateCardName"] into tDGEntry["rowTemplateCardName"]
-      put pControlNode["rowTemplateCardNum"] into tDGEntry["rowTemplateCardNum"] -- legacy fallback
+      put pControlNode["rowTemplateCardNum"] into tDGEntry["rowTemplateCardNum"]
+      -- Fallback: DataGridTemplates stacks always have exactly one card.
+      if tDGEntry["rowTemplateCardNum"] is empty then
+         put 1 into tDGEntry["rowTemplateCardNum"]
+      end if
       put pControlNode["rowTemplateGroupName"] into tDGEntry["rowTemplateGroupName"]
+      -- Fallback: the DG behavior always names the row template group "Row Template".
+      if tDGEntry["rowTemplateGroupName"] is empty and tDGEntry["rowTemplateStackName"] is not empty then
+         put "Row Template" into tDGEntry["rowTemplateGroupName"]
+      end if
       -- Pass through the short names saved for the other customisable controls so that
       -- the substack resolution pass (revIDEProjectReconstructStack) can re-resolve them.
       local tDG2PassList, tDG2PassItem, tDG2PassKey
@@ -9793,6 +9854,29 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          replace space with "_" in tDG2PassKey
          put pControlNode["dg2CtrlGroupName_" & tDG2PassKey] into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
          put pControlNode["dg2CtrlCardName_" & tDG2PassKey] into tDGEntry["dg2CtrlCardName_" & tDG2PassKey]
+         -- Fallback for old project files: use the conventional name the DG behavior assigns.
+         -- Only applied when the group name wasn't saved AND the dgProps has a reference for this
+         -- control (meaning the default control existed at save time).
+         if tDGEntry["dg2CtrlGroupName_" & tDG2PassKey] is empty and \
+               pControlNode["customPropertySets"]["dgProps"][tDG2PassItem] is not empty then
+            switch tDG2PassItem
+               case "left swipe control"
+                  put "DG2 Default Left Swipe Control" into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
+                  break
+               case "right swipe control"
+                  put "DG2 Default Right Swipe Control" into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
+                  break
+               case "edit mode action control"
+                  put "DG2 Default Edit Mode Action Control" into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
+                  break
+               case "edit mode action select control"
+                  put "DG2 Default Edit Mode Action Select Control" into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
+                  break
+               case "edit mode reorder control"
+                  put "DG2 Default Edit Mode Reorder Control" into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
+                  break
+            end switch
+         end if
       end repeat
       put the number of elements of pDeferredDgData + 1 into tDGIdx
       put tDGEntry into pDeferredDgData[tDGIdx]
