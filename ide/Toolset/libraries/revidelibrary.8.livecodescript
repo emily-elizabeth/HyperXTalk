@@ -8846,6 +8846,9 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
             put word 7 of tRowTplRef into tCardID
             put the short name of group id tGroupIDNum of stack tRowTplStackName into rObj["rowTemplateGroupName"]
             put the short name of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardName"]
+            -- Also save card ordinal: card names can be empty, making name-based lookup fail.
+            -- Ordinal is stable because DataGridTemplates stacks gain cards but never lose them.
+            put the number of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardNum"]
          end if
       end if
       -- Save group/card short names for the other customisable DataGrid controls
@@ -9406,6 +9409,12 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                   -- Resolve the other customisable DataGrid controls (left/right swipe, edit mode)
                   -- by the short group and card names saved at project-save time.  IDs in the
                   -- stored values are stale after reconstruction; resolving by name is reliable.
+                  -- DG2 default controls live on the same card as the row template group, so if the
+                  -- card-name lookup fails (e.g. empty card name), fall back to the row template card.
+                  local tRTCardRef
+                  if tRTEntry["resolvedRowTemplateRef"] is not empty then
+                     put the long id of the owner of tRTEntry["resolvedRowTemplateRef"] into tRTCardRef
+                  end if
                   local tDG2ResolveList, tDG2ResolveItem, tDG2ResolveKey
                   put "left swipe control,right swipe control,edit mode action control,edit mode action select control,edit mode reorder control" into tDG2ResolveList
                   repeat for each item tDG2ResolveItem in tDG2ResolveList
@@ -9414,10 +9423,18 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                      local tDG2GrpName, tDG2CdName
                      put tRTEntry["dg2CtrlGroupName_" & tDG2ResolveKey] into tDG2GrpName
                      put tRTEntry["dg2CtrlCardName_" & tDG2ResolveKey] into tDG2CdName
-                     if tDG2GrpName is not empty and tDG2CdName is not empty then
-                        if there is a card tDG2CdName of stack tSubName then
-                           if there is a group tDG2GrpName of card tDG2CdName of stack tSubName then
-                              put the long id of group tDG2GrpName of card tDG2CdName of stack tSubName into tRTEntry["resolvedDG2CtrlRef_" & tDG2ResolveKey]
+                     if tDG2GrpName is not empty then
+                        local tDG2CardTarget
+                        if tDG2CdName is not empty and there is a card tDG2CdName of stack tSubName then
+                           put the long id of card tDG2CdName of stack tSubName into tDG2CardTarget
+                        else if tRTCardRef is not empty then
+                           -- Card name missing or not found in this stack — use the row template card
+                           -- (DG2 default controls are created in the same card as the row template).
+                           put tRTCardRef into tDG2CardTarget
+                        end if
+                        if tDG2CardTarget is not empty then
+                           if there is a group tDG2GrpName of tDG2CardTarget then
+                              put the long id of group tDG2GrpName of tDG2CardTarget into tRTEntry["resolvedDG2CtrlRef_" & tDG2ResolveKey]
                            end if
                         end if
                      end if
