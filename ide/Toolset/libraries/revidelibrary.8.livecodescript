@@ -9287,23 +9287,6 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    if tName begins with "__binary__:" then
       put base64Decode(char 12 to -1 of tName) into tName
    end if
-   -- Remove any lingering in-memory stack with the same name from a previous project
-   -- load before creating the reconstruction.  DataGridTemplates substacks are kept
-   -- in memory with destroyStack=false so the DataGrid behavior can access the row
-   -- template group; if the same project is loaded again without quitting the IDE,
-   -- create stack would produce a second stack with the same short name and LCS
-   -- name-based lookups (e.g. "stack tName") would resolve to the OLD one, causing
-   -- the cRevUniqueID scan to find and return the OLD group's long id.
-   if there is a stack tName then
-      local tExistingDestroyStack
-      put the destroyStack of stack tName into tExistingDestroyStack
-      if not tExistingDestroyStack then
-         -- Likely a lingering hidden substack from a prior load (destroyStack was set
-         -- to false to keep it alive).  Flush it so create stack gets the correct name.
-         set the destroyStack of stack tName to true
-         close stack tName
-      end if
-   end if
    create stack tName
    local tNewStackName
    put tName into tNewStackName
