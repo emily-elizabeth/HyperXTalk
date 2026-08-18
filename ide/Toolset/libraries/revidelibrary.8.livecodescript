@@ -9133,6 +9133,25 @@ on revIDELoadFromProject pFilePath
    -- tDeferredBehaviors collects {controlRef, behaviorName, behaviorStack} entries
    -- tDeferredIcons collects {controlRef, stackName, iconNames} entries for buttons
    -- Both are resolved after full reconstruction so all controls exist with correct names.
+
+   -- Flush any DataGridTemplates substacks that are lingering in memory from a previous
+   -- load of this (or any) project.  These stacks are kept alive with destroyStack=false
+   -- so the DataGrid behavior can access the row template group while the project is open.
+   -- If the project is loaded again without quitting the IDE, a second stack with the same
+   -- name would be created, and LCS name-based lookups would resolve to the OLD one —
+   -- causing the cRevUniqueID scan to find the old group's long id instead of the new one.
+   -- Only "Data Grid Templates *" stacks with destroyStack=false are targeted; IDE stacks
+   -- and any user stacks with destroyStack=true are left untouched.
+   local tFlushStack
+   repeat for each line tFlushStack in the stacks
+      if tFlushStack begins with "Data Grid Templates" then
+         if not (the destroyStack of stack tFlushStack) then
+            set the destroyStack of stack tFlushStack to true
+            close stack tFlushStack
+         end if
+      end if
+   end repeat
+
    local tDeferredBehaviors, tDeferredIcons, tDeferredDgData
    revIDEProjectReconstructStack tStackNode, tFolderPath, empty, tDeferredBehaviors, tDeferredIcons, tDeferredDgData
    put the result into tNewStackName
