@@ -8826,7 +8826,13 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    if tType is "group" and "dgProps" is among the lines of the customPropertySets of pControlID then
       put the dgData of pControlID into rObj["dgData"]
       local tRowTplRef
-      put the dgProps["row template"] of pControlID into tRowTplRef
+      -- Read raw from the custom property set to bypass getprop dgProps.
+      -- The getprop handler validates references and returns empty for stale ones
+      -- (e.g. group id from a previous session that no longer exists in the template
+      -- stack), which would cause us to skip saving the row template metadata entirely.
+      local tRawDGProps
+      put the customProperties["dgProps"] of pControlID into tRawDGProps
+      put tRawDGProps["row template"] into tRowTplRef
       if tRowTplRef is not empty then
          -- Long id format: group id XXXX of card id YYYY of stack "Stack Name"
          -- Group/card ids change on rebuild; save stack name + card ordinal (not ids).
@@ -8885,7 +8891,8 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       put "left swipe control,right swipe control,edit mode action control,edit mode action select control,edit mode reorder control" into tDG2CtrlList
       repeat for each item tDG2CtrlItem in tDG2CtrlList
          local tDG2CtrlVal, tDG2SafeKey, tDG2GroupIDNum, tDG2CardIDNum
-         put the dgProps[tDG2CtrlItem] of pControlID into tDG2CtrlVal
+         -- Read raw (tRawDGProps already holds the bypassed custom property set)
+         put tRawDGProps[tDG2CtrlItem] into tDG2CtrlVal
          put tDG2CtrlItem into tDG2SafeKey
          replace space with "_" in tDG2SafeKey
          if tDG2CtrlVal is not empty then
