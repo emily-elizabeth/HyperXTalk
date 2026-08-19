@@ -9287,6 +9287,14 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    if tName begins with "__binary__:" then
       put base64Decode(char 12 to -1 of tName) into tName
    end if
+   -- If a same-named stack is still in memory from a previous project load
+   -- (DataGridTemplates substacks use destroyStack=false so they survive close),
+   -- explicitly destroy it before creating the fresh replacement.  Without this,
+   -- two stacks share the same name and name-based lookups become ambiguous.
+   if there is a stack tName then
+      set the destroyStack of stack tName to true
+      close stack tName
+   end if
    create stack tName
    local tNewStackName
    put tName into tNewStackName
