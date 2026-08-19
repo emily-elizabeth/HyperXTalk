@@ -9287,18 +9287,15 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    if tName begins with "__binary__:" then
       put base64Decode(char 12 to -1 of tName) into tName
    end if
-   -- Create under a unique temp name so we can capture the numeric stack ID without
-   -- any risk of name collision.  If a same-named stack is already in memory (e.g. a
-   -- DataGridTemplates stack kept alive with destroyStack=false), "stack tName" would
-   -- be ambiguous.  The temp name is guaranteed unique; we rename immediately after
-   -- capturing the ID so the rest of the handler can use tNewStackName as normal.
-   local tTempName
-   put "____hxt_temp_" & the milliseconds into tTempName
-   create stack tTempName
+   create stack tName
    local tNewStackName, tNewStackID
    put tName into tNewStackName
-   put the id of stack tTempName into tNewStackID
-   set the name of stack id tNewStackID to tName
+   -- Capture the numeric stack ID immediately via "this stack" (the defaultStack after
+   -- create stack).  If an older stack with the same name is still in memory (e.g. a
+   -- DataGridTemplates stack kept alive with destroyStack=false), name-based lookups
+   -- like "stack tNewStackName" may resolve to that old stack.  Storing the ID here
+   -- lets the substack resolution pass use "stack id X" to target this exact stack.
+   put the id of this stack into tNewStackID
    lock screen
    lock messages
    if pStackNode["title"] is not empty then
