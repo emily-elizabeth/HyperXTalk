@@ -9135,7 +9135,7 @@ on revIDELoadFromProject pFilePath
    -- Both are resolved after full reconstruction so all controls exist with correct names.
    local tDeferredBehaviors, tDeferredIcons, tDeferredDgData
    revIDEProjectReconstructStack tStackNode, tFolderPath, empty, tDeferredBehaviors, tDeferredIcons, tDeferredDgData
-   put line 1 of the result into tNewStackName
+   put the result into tNewStackName
    -- Resolve all deferred behaviors now that every stack and control exists
    local bi, tLoadWarnings
    put empty into tLoadWarnings
@@ -9288,14 +9288,8 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
       put base64Decode(char 12 to -1 of tName) into tName
    end if
    create stack tName
-   local tNewStackName, tNewStackID
+   local tNewStackName
    put tName into tNewStackName
-   -- Capture the numeric stack ID immediately via "this stack" (the defaultStack after
-   -- create stack).  If an older stack with the same name is still in memory (e.g. a
-   -- DataGridTemplates stack kept alive with destroyStack=false), name-based lookups
-   -- like "stack tNewStackName" may resolve to that old stack.  Storing the ID here
-   -- lets the substack resolution pass use "stack id X" to target this exact stack.
-   put the id of this stack into tNewStackID
    lock screen
    lock messages
    if pStackNode["title"] is not empty then
@@ -9406,11 +9400,10 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
       put pStackNode["substacks"] into tSubstacks
       local s
       repeat with s = 1 to the number of elements of tSubstacks
-         local tSubNode, tSubName, tSubID
+         local tSubNode, tSubName
          put tSubstacks[s] into tSubNode
          revIDEProjectReconstructStack tSubNode, pFolderPath, tNewStackName, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
-         put line 1 of the result into tSubName
-         put line 2 of the result into tSubID
+         put the result into tSubName
          if tSubName is not empty then
             -- Before closing (which may unload the substack if destroyStack=true),
             -- resolve any pending datagrid row template references that point to this substack.
@@ -9458,7 +9451,7 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                      put "Row Template" into tRTGroupName
                   end if
                   put tRTEntry["rowTemplateCardName"] into tRTCardName
-                  put the number of cards of stack id tSubID into tRTCardCount
+                  put the number of cards of stack tSubName into tRTCardCount
                   -- Pass 1: cRevUniqueID scan — unique per object, survives custom-property
                   -- round-trips (revIDEProjectReconstructCustomProps restores the full default
                   -- custom property set including cRevUniqueID).  lock messages is active here
@@ -9468,9 +9461,9 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                   if tRTGroupUID is not empty then
                      local tUIDScanCard, tUIDScanGrp
                      repeat with tUIDScanCard = 1 to tRTCardCount
-                        repeat with tUIDScanGrp = 1 to the number of groups of card tUIDScanCard of stack id tSubID
-                           if the cRevUniqueID of group tUIDScanGrp of card tUIDScanCard of stack id tSubID is tRTGroupUID then
-                              put the long id of group tUIDScanGrp of card tUIDScanCard of stack id tSubID into tRTEntry["resolvedRowTemplateRef"]
+                        repeat with tUIDScanGrp = 1 to the number of groups of card tUIDScanCard of stack tSubName
+                           if the cRevUniqueID of group tUIDScanGrp of card tUIDScanCard of stack tSubName is tRTGroupUID then
+                              put the long id of group tUIDScanGrp of card tUIDScanCard of stack tSubName into tRTEntry["resolvedRowTemplateRef"]
                               exit repeat
                            end if
                         end repeat
@@ -9482,9 +9475,9 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                   if tRTEntry["resolvedRowTemplateRef"] is empty then
                      if tRTCardName is not empty and tRTGroupName is not empty then
                         -- Find card by name, then group by name within that card
-                        if there is a card tRTCardName of stack id tSubID then
-                           if there is a group tRTGroupName of card tRTCardName of stack id tSubID then
-                              put the long id of group tRTGroupName of card tRTCardName of stack id tSubID into tRTEntry["resolvedRowTemplateRef"]
+                        if there is a card tRTCardName of stack tSubName then
+                           if there is a group tRTGroupName of card tRTCardName of stack tSubName then
+                              put the long id of group tRTGroupName of card tRTCardName of stack tSubName into tRTEntry["resolvedRowTemplateRef"]
                            end if
                         end if
                      end if
@@ -9492,8 +9485,8 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                         -- Use saved card ordinal to narrow the search, then find group by name
                         put tRTEntry["rowTemplateCardNum"] into tRTCardNum
                         if tRTCardNum is not an integer or tRTCardNum < 1 then put 1 into tRTCardNum
-                        if there is a group tRTGroupName of card tRTCardNum of stack id tSubID then
-                           put the long id of group tRTGroupName of card tRTCardNum of stack id tSubID into tRTEntry["resolvedRowTemplateRef"]
+                        if there is a group tRTGroupName of card tRTCardNum of stack tSubName then
+                           put the long id of group tRTGroupName of card tRTCardNum of stack tSubName into tRTEntry["resolvedRowTemplateRef"]
                         end if
                      end if
                   end if
@@ -9527,8 +9520,8 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                      -- Pass 2: name-based fallback
                      if tRTEntry["resolvedDG2CtrlRef_" & tDG2ResolveKey] is empty and tDG2GrpName is not empty then
                         local tDG2CardTarget
-                        if tDG2CdName is not empty and there is a card tDG2CdName of stack id tSubID then
-                           put the long id of card tDG2CdName of stack id tSubID into tDG2CardTarget
+                        if tDG2CdName is not empty and there is a card tDG2CdName of stack tSubName then
+                           put the long id of card tDG2CdName of stack tSubName into tDG2CardTarget
                         else if tRTCardRef is not empty then
                            -- Card name missing or not found — use the row template card
                            put tRTCardRef into tDG2CardTarget
@@ -9564,15 +9557,15 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                   put tRTEntry into pDeferredDgData[tDGScanIdx]
                end if
             end repeat
-            set the mainStack of stack id tSubID to tNewStackName
+            set the mainStack of stack tSubName to tNewStackName
             if tIsRowTplStack then
                -- Keep DataGridTemplates stack in memory (hidden) so datagrid behavior
                -- can access the row template group. Hiding is fine; the datagrid behavior
                -- works with hidden template stacks (same as normal LC IDE workflow).
-               set the destroyStack of stack id tSubID to false
-               hide stack id tSubID
+               set the destroyStack of stack tSubName to false
+               hide stack tSubName
             else
-               close stack id tSubID
+               close stack tSubName
             end if
          end if
       end repeat
@@ -9588,9 +9581,7 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    set the script of stack tNewStackName to tStackScript
    unlock messages
    unlock screen
-   -- Return name (line 1) and numeric stack ID (line 2) so the caller can use
-   -- "stack id X" for unambiguous lookups when a same-named stack is in memory.
-   return tNewStackName & return & tNewStackID
+   return tNewStackName
 end revIDEProjectReconstructStack
 
 
