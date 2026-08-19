@@ -8851,10 +8851,18 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
             put word 3 of tRowTplRef into tGroupIDNum
             put word 7 of tRowTplRef into tCardID
             -- Fast path: IDs in dgProps are current — look up directly.
-            put the short name of group id tGroupIDNum of stack tRowTplStackName into rObj["rowTemplateGroupName"]
-            put the cRevUniqueID of group id tGroupIDNum of stack tRowTplStackName into rObj["rowTemplateGroupUID"]
-            put the short name of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardName"]
-            put the number of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardNum"]
+            -- Wrap in try/catch: OpenXTalk throws an error (rather than returning empty)
+            -- when accessing a property of a non-existent object, so stale IDs would
+            -- otherwise propagate as a script error in the calling handler.
+            try
+               put the short name of group id tGroupIDNum of stack tRowTplStackName into rObj["rowTemplateGroupName"]
+               put the cRevUniqueID of group id tGroupIDNum of stack tRowTplStackName into rObj["rowTemplateGroupUID"]
+               put the short name of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardName"]
+               put the number of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardNum"]
+            catch tLookupErr
+               -- IDs are stale; the fallback scan below will find the group by name
+               put empty into rObj["rowTemplateGroupName"]
+            end try
             if rObj["rowTemplateGroupName"] is empty then
                -- IDs in dgProps are stale (stored from a previous session when objects had
                -- different IDs, e.g. after the template stack was rebuilt) or the stack is
