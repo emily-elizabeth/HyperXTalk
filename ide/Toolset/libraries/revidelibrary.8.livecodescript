@@ -8884,7 +8884,9 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
                         exit repeat
                      end if
                   end repeat
-                  if rObj["rowTemplateCardNum"] is empty then put 1 into rObj["rowTemplateCardNum"]
+                  if rObj["rowTemplateCardNum"] is empty then
+                     put 1 into rObj["rowTemplateCardNum"]
+                  end if
                else
                   -- Stack not in memory at all; fall back to ordinal 1.
                   put 1 into rObj["rowTemplateCardNum"]
