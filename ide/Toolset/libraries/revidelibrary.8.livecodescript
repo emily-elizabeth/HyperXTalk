@@ -9957,6 +9957,8 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       -- changes the group's type token, which can make "group id N of stack X" fail
       -- to resolve — so the name (and any subsequent explicit set) would silently no-op.
       -- We re-apply it explicitly below, after the name has already been set.
+      local tSavedSharedBehavior
+      put tProps["sharedBehavior"] into tSavedSharedBehavior
       delete variable tProps["sharedBehavior"]
       -- Also strip backgroundBehavior for the same reason (legacy projects may have it).
       delete variable tProps["backgroundBehavior"]
@@ -9988,10 +9990,16 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    if pControlNode["showName"] is not empty then
       set the showName of tStackRef to (pControlNode["showName"] is "true")
    end if
-   -- NOTE: sharedBehavior is intentionally NOT set here for groups. In HyperXTalk,
-   -- "remove group from card" is what enables sharedBehavior — it is a result of the
-   -- remove, not a prerequisite. Setting it explicitly here can cause the engine to
-   -- auto-unplace the group before the caller has a chance to do the remove properly.
+   -- Re-apply sharedBehavior explicitly now that the name and all other properties are
+   -- set. Doing it here (rather than via set the properties) avoids the group's type
+   -- token changing before the name is applied, which would make tStackRef unresolvable.
+   -- For unplaced background groups, "remove group from card" in the backgrounds loop
+   -- remains the primary mechanism; this explicit set is a safety net and is harmless
+   -- because if the group auto-unplaces correctly the remove is caught by try/catch,
+   -- and if it doesn't the remove still runs.
+   if (tType is "group" or tType is "background" or tType is "bkgnd") and tSavedSharedBehavior is "true" then
+      set the sharedBehavior of tStackRef to true
+   end if
    -- Restore borderWidth and lineSize explicitly: set the properties does not apply them.
    if tSavedBorderWidth is not empty then
       set the borderWidth of tStackRef to tSavedBorderWidth
