@@ -8527,16 +8527,22 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
    put the textStyle of stack pStackName into rObj["textStyle"]
    put the stackFiles of stack pStackName into rObj["stackFiles"]
    
+   -- Compute unplaced background group IDs once, before serializing any cards.
+   -- revUnplacedGroupIds returns groups whose parent != curcard; calling it once ensures
+   -- the same snapshot is used for all cards (curcard may change between per-card calls).
+   local tUnplacedIDs
+   put the revUnplacedGroupIds of stack pStackName into tUnplacedIDs
+
    -- Cards
    local tCardCount
    put the number of cards of stack pStackName into tCardCount
-   
+
    local i
    repeat with i = 1 to tCardCount
       local tCardIDNum, tCardNode
       put empty into tCardNode
       put the id of card i of stack pStackName into tCardIDNum
-      revIDEProjectSerializeCard tCardIDNum, pStackName, pMediaFolder, pScriptsFolder, tCardNode
+      revIDEProjectSerializeCard tCardIDNum, pStackName, pMediaFolder, pScriptsFolder, tCardNode, tUnplacedIDs
       put tCardNode into rObj["cards"][i]
    end repeat
    
@@ -8568,10 +8574,9 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
       put tBGNode into rObj["backgrounds"][bgIdx]
       add 1 to bgIdx
    end repeat
-   -- Unplaced backgrounds (not on any card)
-   local tStackRef, tUnplacedIDs, tUnplacedID
+   -- Unplaced backgrounds (not on any card; tUnplacedIDs already computed above)
+   local tStackRef, tUnplacedID
    put the long id of stack pStackName into tStackRef
-   put the revUnplacedGroupIds of tStackRef into tUnplacedIDs
    repeat for each line tUnplacedID in tUnplacedIDs
       if tUnplacedID is empty then next repeat
       if tUnplacedID is among the lines of tBGSeen then next repeat
@@ -8610,7 +8615,7 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
 end revIDEProjectSerializeStack
 
 -- pCardIDNum is the numeric id of the card; pStackName is the plain short name of its stack
-on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFolder, @rObj
+on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFolder, @rObj, pUnplacedBGIDs
    local tCardName
    put the short name of card id pCardIDNum of stack pStackName into tCardName
    put tCardName into rObj["name"]
@@ -8639,12 +8644,10 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
    local tControlCount
    put the number of controls of card id pCardIDNum of stack pStackName into tControlCount
 
-   -- Pre-compute unplaced background group IDs so we can correctly distinguish a true
-   -- background group (serialized at stack level; only placement recorded per card) from
-   -- a regular group that merely has sharedBehavior=true set on it (should be serialized
-   -- as a normal card control, not silently dropped).
-   local tUnplacedBGIDs
-   put the revUnplacedGroupIds of stack pStackName into tUnplacedBGIDs
+   -- pUnplacedBGIDs is passed in from revIDEProjectSerializeStack, which computed it once
+   -- via revUnplacedGroupIds before serializing any cards. Using the same snapshot for all
+   -- cards avoids curcard-dependent variations (revUnplacedGroupIds returns groups whose
+   -- parent != curcard, so calling it per-card can return different sets per card).
 
    local j, tControlIndex, tBGPlaceIndex
    put 1 into tControlIndex
@@ -8659,7 +8662,12 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
       -- placed on multiple cards). A group with sharedBehavior=true but placed on only ONE card
       -- has parent = that card, is NOT in revUnplacedGroupIds, and must be serialized normally.
       if word 1 of tControlID is "group" or word 1 of tControlID is "background" or word 1 of tControlID is "bkgnd" then
-         if the id of tControlID is among the lines of tUnplacedBGIDs then
+         -- A group is a true background only if it is BOTH in revUnplacedGroupIds (parent != curcard,
+         -- i.e. placed on multiple cards or unplaced) AND has sharedBehavior=true.
+         -- Checking only sharedBehavior misses a placed group with sharedBehavior set manually;
+         -- checking only revUnplacedGroupIds incorrectly catches groups on other cards (e.g. DataGrid
+         -- row template groups) whose parent != curcard simply because curcard is a different card.
+         if the sharedBehavior of tControlID and (the id of tControlID is among the lines of pUnplacedBGIDs) then
             put the short name of tControlID into rObj["backgroundGroups"][tBGPlaceIndex]
             add 1 to tBGPlaceIndex
             next repeat
