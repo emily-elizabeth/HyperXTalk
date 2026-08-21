@@ -8540,34 +8540,49 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
       put tCardNode into rObj["cards"][i]
    end repeat
    
-   -- Background/shared groups: serialize once at stack level using groupNames.
+   -- Background/shared groups: serialize once at stack level.
+   -- backgroundNames covers groups placed on at least one card.
+   -- revUnplacedGroupIds covers groups that exist in the stack but are not placed on any card.
+   -- Both are needed to capture the full set.
    -- Cards record only placement references (backgroundGroups) to avoid duplicating content.
-   local tBGList, tBGName, tBGNode, bgIdx
-   put empty into bgIdx
+   local tBGNode, bgIdx, tBGSeen
    put 1 into bgIdx
-   local tBGSeen
    put empty into tBGSeen
-   repeat with i = 1 to tCardCount
-      put the groupNames of card i of stack pStackName into tBGList
-      repeat for each line tBGName in tBGList
-         if tBGName is empty then next repeat
-         if tBGName is among the lines of tBGSeen then next repeat
-         local tControlID
-         -- HyperXTalk may expose shared groups as "background" rather than "group"
-         try
-            do "put the long id of" && tBGName && "of stack" && QUOTE & pStackName & QUOTE && "into tControlID"
-         catch tUnused
-         end try
-         if tControlID is empty then next repeat
-         -- groupNames may return all groups in HyperXTalk, not just background ones.
-         -- Only serialize groups that are actually shared (backgroundBehavior=true).
-         if not the backgroundBehavior of tControlID then next repeat
-         put empty into tBGNode
-         revIDEProjectSerializeControl tControlID, pMediaFolder, pScriptsFolder, tBGNode
-         put tBGNode into rObj["backgrounds"][bgIdx]
-         add 1 to bgIdx
-         put tBGName & return after tBGSeen
-      end repeat
+   -- Placed backgrounds
+   local tBGNameList, tBGName
+   put the backgroundNames of stack pStackName into tBGNameList
+   repeat for each line tBGName in tBGNameList
+      if tBGName is empty then next repeat
+      local tControlID
+      try
+         do "put the long id of" && tBGName && "of stack" && QUOTE & pStackName & QUOTE && "into tControlID"
+      catch tUnused
+      end try
+      if tControlID is empty then next repeat
+      local tBGIDNum
+      put the id of tControlID into tBGIDNum
+      if tBGIDNum is among the lines of tBGSeen then next repeat
+      put tBGIDNum & return after tBGSeen
+      put empty into tBGNode
+      revIDEProjectSerializeControl tControlID, pMediaFolder, pScriptsFolder, tBGNode
+      put tBGNode into rObj["backgrounds"][bgIdx]
+      add 1 to bgIdx
+   end repeat
+   -- Unplaced backgrounds (not on any card)
+   local tStackRef, tUnplacedIDs, tUnplacedID
+   put the long id of stack pStackName into tStackRef
+   put the revUnplacedGroupIds of tStackRef into tUnplacedIDs
+   repeat for each line tUnplacedID in tUnplacedIDs
+      if tUnplacedID is empty then next repeat
+      if tUnplacedID is among the lines of tBGSeen then next repeat
+      put tUnplacedID & return after tBGSeen
+      local tUnplacedRef
+      put the long id of control id tUnplacedID of tStackRef into tUnplacedRef
+      if tUnplacedRef is empty then next repeat
+      put empty into tBGNode
+      revIDEProjectSerializeControl tUnplacedRef, pMediaFolder, pScriptsFolder, tBGNode
+      put tBGNode into rObj["backgrounds"][bgIdx]
+      add 1 to bgIdx
    end repeat
    
    -- Custom properties
@@ -8624,6 +8639,13 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
    local tControlCount
    put the number of controls of card id pCardIDNum of stack pStackName into tControlCount
 
+   -- Pre-compute unplaced background group IDs so we can correctly distinguish a true
+   -- background group (serialized at stack level; only placement recorded per card) from
+   -- a regular group that merely has sharedBehavior=true set on it (should be serialized
+   -- as a normal card control, not silently dropped).
+   local tUnplacedBGIDs
+   put the revUnplacedGroupIds of stack pStackName into tUnplacedBGIDs
+
    local j, tControlIndex, tBGPlaceIndex
    put 1 into tControlIndex
    put 1 into tBGPlaceIndex
@@ -8632,10 +8654,12 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
       put the long id of control j of card id pCardIDNum of stack pStackName into tControlID
       -- Only serialize top-level controls (direct children of the card, not inside groups)
       if word 1 of the owner of control j of card id pCardIDNum of stack pStackName is not "card" then next repeat
-      -- Background/shared groups are serialized once at stack level; record placement only.
-      -- HyperXTalk may report these as "background" or "group" in the long id.
-      if word 1 of tControlID is "group" or word 1 of tControlID is "background" then
-         if the backgroundBehavior of tControlID then
+      -- True background groups are serialized once at stack level; record placement only.
+      -- A group is a true background if its ID appears in revUnplacedGroupIds (parent = stack,
+      -- placed on multiple cards). A group with sharedBehavior=true but placed on only ONE card
+      -- has parent = that card, is NOT in revUnplacedGroupIds, and must be serialized normally.
+      if word 1 of tControlID is "group" or word 1 of tControlID is "background" or word 1 of tControlID is "bkgnd" then
+         if the id of tControlID is among the lines of tUnplacedBGIDs then
             put the short name of tControlID into rObj["backgroundGroups"][tBGPlaceIndex]
             add 1 to tBGPlaceIndex
             next repeat
@@ -8649,9 +8673,20 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
 end revIDEProjectSerializeCard
 
 on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
-   -- Derive type from word 1 of the long id (e.g. "image id 3 of ...")
-   local tType
+   -- Derive type from word 1 of the long id (e.g. "image id 3 of ...").
+   -- Unplaced background groups have long ids starting with "background" rather than
+   -- "group" (because their parent is the stack, not a card). Normalise both the type
+   -- token AND the reference itself — "background id N of stack X" is not a valid
+   -- object reference in HyperXTalk, so every subsequent property read would fail.
+   local tType, tIsUnplacedBG
    put word 1 of pControlID into tType
+   if tType is "background" or tType is "bkgnd" then
+      put "group" into tType
+      put true into tIsUnplacedBG
+      -- "background id N" / "bkgnd id N of stack X" is the engine's own long-id form for
+      -- unplaced groups (HyperXTalk uses the HyperCard abbreviation "bkgnd").
+      -- Leave pControlID as-is so property reads resolve; normalise only the type tag.
+   end if
    put tType into rObj["type"]
    local tControlScriptFile
    put revIDEProjectWriteScript(the script of pControlID, pScriptsFolder, \
@@ -8671,6 +8706,14 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    -- Capture all properties at once; remove read-only/handled ones
    local tProps
    put the properties of pControlID into tProps
+   -- For unplaced background groups, explicitly save sharedBehavior so it survives
+   -- the JSON round-trip and can be used to verify the group was correctly unplaced
+   -- during reconstruction.
+   -- NOTE: controlName is already set above via "the short name of pControlID"; "bkgnd id N"
+   -- resolves correctly for short name, so no override is needed here.
+   if tIsUnplacedBG then
+      put the sharedBehavior of pControlID into tProps["sharedBehavior"]
+   end if
    delete variable tProps["id"]
    delete variable tProps["script"]
    -- showName is a boolean that gets mangled by SanitizeArray (boolean false becomes
@@ -9453,35 +9496,88 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
       -- Restore card 1's original ID NOW before any background group IDs are set.
       -- Without this, the fresh auto-assigned card ID can collide with a background
       -- group's origID, causing "another control already has the id".
-      local tCard1OrigID
+      local tCard1OrigID, tCard1IDErr
       put pStackNode["cards"][1]["id"] into tCard1OrigID
       if tCard1OrigID is not empty then
-         set the id of card id tCard1ID of stack tNewStackName to tCard1OrigID
-         put tCard1OrigID into tCard1ID
+         try
+            set the id of card id tCard1ID of stack tNewStackName to tCard1OrigID
+         catch tCard1IDErr
+            -- ID conflict (e.g. tCard1OrigID equals the reconstructed stack's auto-id).
+            -- Silently keep the auto-assigned card ID; tCard1ID will be re-read below.
+         end try
       end if
+      -- Always re-read the actual card 1 ID so tCard1ID is valid regardless of whether
+      -- the restoration above succeeded. This prevents an ID conflict from poisoning
+      -- tCardRef with a stack-level ID that "create group in tCardRef" can't resolve.
+      put the id of card 1 of stack tNewStackName into tCard1ID
+      local tBGNodeR, tBGNewName, tDefaultStack
+      local tPreGroupNames, tPostGroupNames, tActualGroupName
+      local tRemoveErr1
+      local tOrigID, tShortName
       repeat with bgi = 1 to the number of elements of tBGArray
-         local tBGNodeR
          put tBGArray[bgi] into tBGNodeR
+
+         -- Snapshot groupNames before reconstruction so we can find the new group by diff.
+         -- In HyperXTalk, "remove group from card" is what enables sharedBehavior, so we
+         -- must NOT set sharedBehavior first. We find the newly created group by name diff.
+         put the groupNames of card 1 of stack tNewStackName into tPreGroupNames
          revIDEProjectReconstructControl tBGNodeR, tNewStackName, tCard1ID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
-         local tBGNewName
-         put tBGNodeR["controlName"] into tBGNewName
-         if tBGNewName begins with "__binary__:" then
-            put base64Decode(char 12 to -1 of tBGNewName) into tBGNewName
+         put the groupNames of card 1 of stack tNewStackName into tPostGroupNames
+
+         -- Find the group that was just added to card 1
+         put empty into tActualGroupName
+         repeat for each line tPostLine in tPostGroupNames
+            if tPostLine is not among the lines of tPreGroupNames then
+               put tPostLine into tActualGroupName
+               exit repeat
+            end if
+         end repeat
+
+         -- Primary: look up the actual short name via origID, since the property set
+         -- inside revIDEProjectReconstructControl restores origID so the group is now
+         -- findable as "group id origID of card id tCard1ID of stack X".
+         -- This avoids relying on tProps["name"] which can return an id-style string
+         -- (e.g. "group id 1004") for unplaced background groups.
+         put empty into tBGNewName
+         put tBGNodeR["origID"] into tOrigID
+         if tOrigID is not empty then
+            put the short name of group id tOrigID of card id tCard1ID of stack tNewStackName into tShortName
+            if tShortName is not empty then
+               put tShortName into tBGNewName
+            end if
          end if
+         -- Fallback: use the name diff result or the stored controlName
+         if tBGNewName is empty then
+            put tBGNodeR["controlName"] into tBGNewName
+            if tBGNewName begins with "__binary__:" then
+               put base64Decode(char 12 to -1 of tBGNewName) into tBGNewName
+            end if
+            if tActualGroupName is not empty then
+               put tActualGroupName into tBGNewName
+            end if
+         end if
+
          if tBGNewName is not empty then
-            local tDefaultStack
             put the defaultStack into tDefaultStack
             set the defaultStack to tNewStackName
-            -- All entries in the backgrounds array are shared groups; remove from card 1
-            -- so they start unplaced and can be placed cleanly onto each card.
-            try
-               remove group tBGNewName from card 1
-            catch tUnused
+
+            -- Remove from card 1 by ID (most reliable); fall back to name if origID unknown.
+            -- In HyperXTalk, "remove group from card" enables sharedBehavior and unplaces.
+            put empty into tRemoveErr1
+            if tOrigID is not empty then
                try
-                  remove background tBGNewName from card 1
-               catch tUnused2
+                  remove group id tOrigID from card id tCard1ID of stack tNewStackName
+               catch tRemoveErr1
                end try
-            end try
+            end if
+            if tRemoveErr1 is not empty or tOrigID is empty then
+               put empty into tRemoveErr1
+               try
+                  remove group tBGNewName from card id tCard1ID of stack tNewStackName
+               catch tRemoveErr1
+               end try
+            end if
+
             set the defaultStack to tDefaultStack
          end if
       end repeat
@@ -9640,10 +9736,6 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
       try
          remove group tAutoName from card id pCardID of stack pStackName
       catch tUnused
-         try
-            remove background tAutoName from card id pCardID of stack pStackName
-         catch tUnused2
-         end try
       end try
    end repeat
    -- HyperXTalk may also copy card-level controls from card 1 to each new card.
@@ -9705,15 +9797,10 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
          local tBGPlaceName
          put tBGPlacements[bgpi] into tBGPlaceName
          if tBGPlaceName is not empty then
-            -- Try "group" first; HyperXTalk may require "background" for shared groups
             try
                place group tBGPlaceName of stack pStackName onto card id pCardID of stack pStackName
-            catch tPlaceErr
-               try
-                  place background tBGPlaceName of stack pStackName onto card id pCardID of stack pStackName
-               catch tUnused
-                  -- Silently ignore: already placed on this card (e.g. card 1)
-               end try
+            catch tUnused
+               -- Silently ignore: group not found or already placed on this card
             end try
          end if
       end repeat
@@ -9784,11 +9871,15 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          put the id of tControlRef into tNewControlID
          break
       case "group"
+      case "background"
+      case "bkgnd"
+         -- "background" / "bkgnd" are legacy type tokens for unplaced background groups.
+         -- Reconstructed identically to "group"; sharedBehavior is restored via remove below.
          create group in tTarget
          put it into tControlRef
          put the id of tControlRef into tNewControlID
          break
-         
+
       case "widget"
          if pControlNode["widgetKind"] is empty then exit revIDEProjectReconstructControl
          local tWidgetDataForImport
@@ -9854,6 +9945,13 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       delete variable tProps["layer"]
       delete variable tProps["number"]
       delete variable tProps["behavior"]
+      -- Strip sharedBehavior from the bulk set: applying it via set the properties
+      -- changes the group's type token, which can make "group id N of stack X" fail
+      -- to resolve — so the name (and any subsequent explicit set) would silently no-op.
+      -- We re-apply it explicitly below, after the name has already been set.
+      delete variable tProps["sharedBehavior"]
+      -- Also strip backgroundBehavior for the same reason (legacy projects may have it).
+      delete variable tProps["backgroundBehavior"]
       -- Decode any __binary__: prefixed values back to raw data before applying.
       -- revIDEProjectSanitizeArray encodes binary leaf values across the whole tree
       -- at save time; without this decode the prefix strings get set as literal values.
@@ -9882,6 +9980,10 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    if pControlNode["showName"] is not empty then
       set the showName of tStackRef to (pControlNode["showName"] is "true")
    end if
+   -- NOTE: sharedBehavior is intentionally NOT set here for groups. In HyperXTalk,
+   -- "remove group from card" is what enables sharedBehavior — it is a result of the
+   -- remove, not a prerequisite. Setting it explicitly here can cause the engine to
+   -- auto-unplace the group before the caller has a chance to do the remove properly.
    -- Restore borderWidth and lineSize explicitly: set the properties does not apply them.
    if tSavedBorderWidth is not empty then
       set the borderWidth of tStackRef to tSavedBorderWidth
@@ -9926,7 +10028,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    -- all substacks (including DataGridTemplates) are reconstructed.
    -- The third condition catches old project files (pre-rowTemplateStackName) whose dgProps
    -- has a row template reference even though the extra fields weren't saved yet.
-   if tType is "group" and \
+   if (tType is "group" or tType is "background" or tType is "bkgnd") and \
          (pControlNode["dgData"] is an array \
          or pControlNode["rowTemplateStackName"] is not empty \
          or pControlNode["customPropertySets"]["dgProps"]["row template"] is not empty) then
@@ -10043,8 +10145,8 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       end if
    end if
    
-   -- Group: recurse into child controls in reverse order
-   if tType is "group" then
+   -- Group: recurse into child controls in reverse order ("background"/"bkgnd" = legacy type tokens for unplaced bg groups)
+   if tType is "group" or tType is "background" or tType is "bkgnd" then
       if pControlNode["controls"] is an array then
          local tChildControls, tChildCount, k
          put pControlNode["controls"] into tChildControls
