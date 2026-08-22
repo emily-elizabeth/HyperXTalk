@@ -9905,7 +9905,16 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
       if tCardName begins with "__binary__:" then
          put base64Decode(char 12 to -1 of tCardName) into tCardName
       end if
-      set the name of tCardRef to tCardName
+      -- Skip ID-based placeholder names like "card id 1002"
+      local tCNWords
+      put the number of words of tCardName into tCNWords
+      if tCNWords >= 2 and word (tCNWords - 1) of tCardName is "id" \
+            and word tCNWords of tCardName is a number then
+         put empty into tCardName
+      end if
+      if tCardName is not empty then
+         set the name of tCardRef to tCardName
+      end if
    end if
    --   if pCardNode["rect"] is not empty then
    --      set the rect of tCardRef to pCardNode["rect"]
@@ -10125,6 +10134,16 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    put pControlNode["controlName"] into tDecodedControlName
    if tDecodedControlName begins with "__binary__:" then
       put base64Decode(char 12 to -1 of tDecodedControlName) into tDecodedControlName
+   end if
+   -- Skip names of the form "objectType id number" — these are LiveCode's auto-generated
+   -- ID-based placeholders meaning the object has no real name.
+   if tDecodedControlName is not empty then
+      local tNCWords
+      put the number of words of tDecodedControlName into tNCWords
+      if tNCWords >= 2 and word (tNCWords - 1) of tDecodedControlName is "id" \
+            and word tNCWords of tDecodedControlName is a number then
+         put empty into tDecodedControlName
+      end if
    end if
    if tDecodedControlName is not empty then
       set the name of tStackRef to tDecodedControlName
