@@ -33,6 +33,9 @@ another image object using "set the text of image".
 Set <currentFrame> to the desired frame index before reading this
 property.
 
+> **Note:** Accessing this property stops the animation. If you want the
+> animation to continue after reading the data, you will need to restart it.
+
 Use <frameDuration> to obtain the display time for the frame in order to
 drive an animation loop:
 

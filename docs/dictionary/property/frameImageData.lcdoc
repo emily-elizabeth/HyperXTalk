@@ -39,6 +39,9 @@ order, for the full canvas dimensions of the GIF.
 Set <currentFrame> to the desired frame index before reading this
 property.
 
+> **Note:** Accessing this property stops the animation. If you want the
+> animation to continue after reading the data, you will need to restart it.
+
 For non-animated images, <frameImageData> returns the same value as
 <imageData>.
 
