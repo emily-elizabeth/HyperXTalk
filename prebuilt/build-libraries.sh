@@ -50,22 +50,22 @@ fi
 # Set which libs to build for the target platform
 case "${PLATFORM}" in
 	android)
-		PREBUILT_LIBS="openssl icu libz libzip libgif libjpeg libpng libcairo libfreetype libiodbc"
+		PREBUILT_LIBS="openssl icu libz libzip libgif libjpeg libpng libwebp libcairo libfreetype libiodbc"
 		;;
 	mac)
-		PREBUILT_LIBS="openssl icu libz libzip libgif libjpeg libpng libcairo libfreetype libiodbc"
+		PREBUILT_LIBS="openssl icu libz libzip libgif libjpeg libpng libwebp libcairo libfreetype libiodbc"
 		;;
 	ios)
-		PREBUILT_LIBS="openssl icu libz libzip libgif libjpeg libpng libcairo libfreetype libiodbc"
+		PREBUILT_LIBS="openssl icu libz libzip libgif libjpeg libpng libwebp libcairo libfreetype libiodbc"
 		;;
 	win32)
-		PREBUILT_LIBS="openssl curl icu cef libz libzip libgif libjpeg libpng libcairo libfreetype libiodbc"
+		PREBUILT_LIBS="openssl curl icu cef libz libzip libgif libjpeg libpng libwebp libcairo libfreetype libiodbc"
 		;;
 	linux)
-		PREBUILT_LIBS="openssl curl icu cef libz libgif libjpeg libpng libcairo libfreetype libiodbc"
+		PREBUILT_LIBS="openssl curl icu cef libz libgif libjpeg libpng libwebp libcairo libfreetype libiodbc"
 		;;
 	emscripten)
-		PREBUILT_LIBS="icu libz libzip libgif libjpeg libpng libcairo libfreetype libiodbc"
+		PREBUILT_LIBS="icu libz libzip libgif libjpeg libpng libwebp libcairo libfreetype libiodbc"
 		;;
 esac
 

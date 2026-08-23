@@ -550,6 +550,7 @@ const static LT export_table[] =
         {"vc", TT_UNDEFINED, EX_VIDEO_CLIP},
         {"videoclip", TT_UNDEFINED, EX_VIDEO_CLIP},
         {"wave", TT_UNDEFINED, EX_WAVE},
+        {"webp", TT_UNDEFINED, EX_WEBP},
         {"xbm", TT_UNDEFINED, EX_XBM},
         {"xwd", TT_UNDEFINED, EX_XWD}
     };

@@ -7203,7 +7203,7 @@ function revIDEAcceptedTypes pType
    local tTypes
    switch pType
       case "image"
-         return "jpg,jpeg,jfif,gif,png,bitmap,bmp,dib,vga,pict,pict2,pic,svg"
+         return "jpg,jpeg,jfif,gif,png,webp,bitmap,bmp,dib,vga,pict,pict2,pic,svg"
       case "video"
          put "mp4,mpg,mpeg,mov" into tTypes 
          if the platform is "win32" then

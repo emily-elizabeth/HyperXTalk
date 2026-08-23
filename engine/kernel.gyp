@@ -35,6 +35,7 @@
 				'../thirdparty/libjpeg/libjpeg.gyp:libjpeg',
 				'../thirdparty/libgif/libgif.gyp:libgif',
 				'../thirdparty/libpng/libpng.gyp:libpng',
+				'../thirdparty/libwebp/libwebp.gyp:libwebp',
 				'../thirdparty/libvlc/libvlc.gyp:libvlc_headers',
 
 				'../thirdparty/libz/libz.gyp:libz',

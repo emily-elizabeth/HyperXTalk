@@ -61,6 +61,7 @@
 				'../thirdparty/libjpeg/libjpeg.gyp:libjpeg',
 				'../thirdparty/libgif/libgif.gyp:libgif',
 				'../thirdparty/libpng/libpng.gyp:libpng',
+				'../thirdparty/libwebp/libwebp.gyp:libwebp',
 		
 				'../thirdparty/libz/libz.gyp:libz',
 		

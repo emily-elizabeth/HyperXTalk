@@ -38,6 +38,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 //////////////////////////////////////////////////////////////////////
 
+extern bool MCImageEncodeWebP(MCImageBitmap *p_image, IO_handle p_stream, uindex_t &r_bytes_written);
+
 // MW-2014-07-17: [[ ImageMetadata ]] Convert array to the metadata struct.
 bool MCImageParseMetadata(MCExecContext& ctxt, MCArrayRef p_array, MCImageMetadata& r_metadata)
 {
@@ -89,6 +91,11 @@ bool MCImageCompress(MCImageBitmap *p_bitmap, bool p_dither, MCImageCompressedBi
 			 {
 				 t_compression = F_JPEG;
 				 t_success = MCImageEncodeJPEG(p_bitmap, nil, t_stream, t_size);
+			 }
+			 else if (MCpaintcompression == EX_WEBP)
+			 {
+				 t_compression = F_PNG; // WebP stored as decoded bitmap; fall back to PNG for internal storage
+				 t_success = MCImageEncodeWebP(p_bitmap, t_stream, t_size);
 			 }
 			 else
 			 {
@@ -263,6 +270,10 @@ bool MCImageEncode(MCImageBitmap *p_bitmap, Export_format p_format, bool p_dithe
 
 	case EX_BMP:
 		t_success = MCImageEncodeBMP(p_bitmap, p_stream, r_bytes_written);
+		break;
+
+	case EX_WEBP:
+		t_success = MCImageEncodeWebP(p_bitmap, p_stream, r_bytes_written);
 		break;
 
 	case EX_RAW_ARGB:

@@ -241,6 +241,7 @@ enum Export_format {
 	EX_RAW_INDEXED,
 	EX_BMP,
     EX_OBJECT,
+	EX_WEBP,
 };
 
 enum Factor_rank {

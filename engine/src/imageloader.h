@@ -33,6 +33,7 @@ enum MCImageLoaderFormat
 	kMCImageFormatXPM,
 	kMCImageFormatNetPBM,
 	kMCImageFormatXWD,
+	kMCImageFormatWebP,
 };
 
 // Abstract class for reading an image in 2 stages - header data then bitmap data

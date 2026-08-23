@@ -10,6 +10,7 @@
 		'use_system_libgif%':		0,
 		'use_system_libiodbc%':		0,
 		'use_system_libjpeg%':		0,
+		'use_system_libwebp%':		0,
 		'use_system_libmysql%':		0,
 		'use_system_libopenssl%':	0,
 		'use_system_libpcre%':		0,

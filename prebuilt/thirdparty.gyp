@@ -447,6 +447,108 @@
 			},
 		},
 		{
+			'target_name': 'thirdparty_prebuilt_webp',
+			'type': 'none',
+
+			'toolsets': ['host','target'],
+
+			'dependencies':
+			[
+				'thirdparty_prebuilt_dep',
+			],
+
+			'direct_dependent_settings':
+			{
+				'include_dirs':
+				[
+					'../thirdparty/libwebp/include',
+				],
+			},
+
+			'link_settings':
+			{
+				'target_conditions':
+				[
+					[
+						'toolset_os == "mac"',
+						{
+							'conditions':
+							[
+								[
+									'GENERATOR == "xcode"',
+									{
+										'libraries':
+										[
+											'lib/mac/libwebp.a',
+										],
+									},
+									{
+										'libraries':
+										[
+											'-lwebp',
+										],
+									},
+								],
+							],
+						},
+					],
+					[
+						'toolset_os == "ios"',
+						{
+							'libraries':
+							[
+								'lib/ios/$(SDK_NAME)/libwebp.a',
+							],
+						},
+					],
+					[
+						'toolset_os == "linux"',
+						{
+							'libraries':
+							[
+								'-lwebp',
+							],
+						},
+					],
+					[
+						'toolset_os == "android"',
+						{
+							'conditions':
+							[
+								[
+									'OS == "android"',
+									{
+										'libraries':
+										[
+											'-lwebp',
+										],
+									},
+								],
+							],
+						},
+					],
+					[
+						'toolset_os == "win"',
+						{
+							'libraries':
+							[
+								'-llibwebp',
+							],
+						},
+					],
+					[
+						'OS == "emscripten"',
+						{
+							'libraries':
+							[
+								'-lwebp',
+							],
+						},
+					],
+				],
+			},
+		},
+		{
 			'target_name': 'thirdparty_prebuilt_png',
 			'type': 'none',
 
@@ -560,6 +662,7 @@
 				'thirdparty_prebuilt_gif',
 				'thirdparty_prebuilt_png',
 				'thirdparty_prebuilt_jpeg',
+				'thirdparty_prebuilt_webp',
 				'thirdparty_prebuilt_expat',
 				'thirdparty_prebuilt_freetype',
 				'thirdparty_prebuilt_fontconfig',
