@@ -6761,17 +6761,18 @@ Tags: ide
 */
 on revIDENewMainstack pWidth, pHeight
    # Set the width and height of the template stack
-
+   
    # Generate a unique name for the stack
-   local tNumber
-   put 1 into tNumber
-   repeat
-      if there is a stack ("Untitled" && tNumber) then  add 1 to tNumber
-      else exit repeat
-   end repeat
-
+   --   local tNumber
+   --   put 1 into tNumber
+   --   repeat
+   --      if there is a stack ("Untitled" && tNumber) then  add 1 to tNumber
+   --      else exit repeat
+   --   end repeat
+   
    # Setup the template stack
-   set the name of the templateStack to "Untitled" && tNumber
+   --   set the name of the templateStack to "Untitled" && tNumber
+   set the name of the templateStack to "Untitled" && the seconds
    set the visible of the templateStack to false
    if pWidth > 100 then
       set the width of the templateStack to pWidth
@@ -6787,7 +6788,7 @@ on revIDENewMainstack pWidth, pHeight
       set the destroyStack of the templateStack to true
       set the destroyWindow of the templateStack to true
    end if
-
+   
    local tToolsRight
    put the right of stack revIDEPaletteToStackName("tools") into tToolsRight
    
@@ -6796,20 +6797,20 @@ on revIDENewMainstack pWidth, pHeight
    if tToolsRight < (item 3 of tScreenRect / 2) then put tToolsRight + 20 into tLeft
    else put item 1 of tScreenRect + 20 into tLeft
    set the topLeft of the templateStack to tLeft,(the bottom of stack revIDEPaletteToStackName("menubar") + 40)
-
+   
    # Create the new stack
    lock messages
    create stack
    show stack it
    unlock messages
-
+   
    # Final items
    reset the templateStack
    
    # Send the 'ideNewStack' message
    ideMessageSend "ideNewStack", it
    
-    # Update the active stacks
+   # Update the active stacks
    ideMessageSend "ideActiveStacksChanged"
    
    # Return the created stack long id
