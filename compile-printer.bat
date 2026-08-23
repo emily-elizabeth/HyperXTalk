@@ -106,10 +106,18 @@ echo Using VCVARS: %VCVARS% >> "%LOGFILE%"
 
 :: ============================================================
 :: Step 2: Set up x64 build environment
+:: Skip vcvars if cl.exe is already on PATH (e.g. Developer Command Prompt).
+:: Some VS versions return non-zero when vcvars is called a second time.
 :: ============================================================
 echo Step 2: Setting up x64 build environment ...
-call "%VCVARS%" >> "%LOGFILE%" 2>&1
-if errorlevel 1 ( echo ERROR: vcvars64.bat failed. & exit /b 1 )
+where cl.exe >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    echo cl.exe already on PATH - skipping vcvars setup.
+    echo cl.exe already on PATH - skipping vcvars setup. >> "%LOGFILE%"
+) else (
+    call "%VCVARS%" >> "%LOGFILE%" 2>&1
+    if errorlevel 1 ( echo ERROR: vcvars64.bat failed. & exit /b 1 )
+)
 
 :: ============================================================
 :: Detect versioned prebuilt directories
