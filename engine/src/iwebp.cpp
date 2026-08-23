@@ -28,6 +28,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "globals.h"
 
 #include <webp/decode.h>
+#include <webp/demux.h>
 #include <webp/encode.h>
 
 // Defined in iimport.cpp: reads all remaining bytes from p_stream.
@@ -53,6 +54,7 @@ private:
     uindex_t m_data_size;
     uint32_t m_width;
     uint32_t m_height;
+    uint32_t m_frame_count;
 };
 
 MCWebPImageLoader::MCWebPImageLoader(IO_handle p_stream) : MCImageLoader(p_stream)
@@ -61,6 +63,7 @@ MCWebPImageLoader::MCWebPImageLoader(IO_handle p_stream) : MCImageLoader(p_strea
     m_data_size = 0;
     m_width = 0;
     m_height = 0;
+    m_frame_count = 0;
 }
 
 MCWebPImageLoader::~MCWebPImageLoader()
@@ -77,14 +80,28 @@ bool MCWebPImageLoader::LoadHeader(uint32_t &r_width, uint32_t &r_height, uint32
     if (t_success)
         t_success = read_all(GetStream(), m_data, m_data_size);
 
+    // Use WebPAnimDecoder to handle both static and animated WebP uniformly.
     if (t_success)
     {
-        int t_width = 0, t_height = 0;
-        t_success = WebPGetInfo(m_data, m_data_size, &t_width, &t_height) != 0;
+        WebPData t_webp_data = { m_data, m_data_size };
+        WebPAnimDecoderOptions t_opts;
+        WebPAnimDecoderOptionsInit(&t_opts);
+        t_opts.color_mode = MODE_RGBA;
+
+        WebPAnimDecoder *t_dec = WebPAnimDecoderNew(&t_webp_data, &t_opts);
+        t_success = (t_dec != nil);
+
         if (t_success)
         {
-            m_width = (uint32_t)t_width;
-            m_height = (uint32_t)t_height;
+            WebPAnimInfo t_info;
+            t_success = WebPAnimDecoderGetInfo(t_dec, &t_info) != 0;
+            if (t_success)
+            {
+                m_width = t_info.canvas_width;
+                m_height = t_info.canvas_height;
+                m_frame_count = t_info.frame_count;
+            }
+            WebPAnimDecoderDelete(t_dec);
         }
     }
 
@@ -94,73 +111,95 @@ bool MCWebPImageLoader::LoadHeader(uint32_t &r_width, uint32_t &r_height, uint32
         r_height = m_height;
         r_xhot = r_yhot = 0;
         r_name = MCValueRetain(kMCEmptyString);
-        r_frame_count = 1;
+        r_frame_count = m_frame_count;
         MCMemoryClear(&r_metadata, sizeof(r_metadata));
     }
 
     return t_success;
 }
 
+// Swizzle an RGBA byte buffer into native pixel format in-place.
+static void webp_swizzle_rgba_to_native(MCImageBitmap *p_bitmap)
+{
+    uint8_t *t_row = (uint8_t *)p_bitmap->data;
+    for (uint32_t y = 0; y < p_bitmap->height; y++)
+    {
+        uint32_t *t_pixel = (uint32_t *)t_row;
+        for (uint32_t x = 0; x < p_bitmap->width; x++)
+        {
+            uint8_t *t_b = (uint8_t *)&t_pixel[x];
+            t_pixel[x] = MCGPixelPackNative(t_b[0], t_b[1], t_b[2], t_b[3]);
+        }
+        t_row += p_bitmap->stride;
+    }
+}
+
 bool MCWebPImageLoader::LoadFrames(MCBitmapFrame *&r_frames, uint32_t &r_count)
 {
     bool t_success = true;
 
-    MCBitmapFrame *t_frame = nil;
+    MCBitmapFrame *t_frames = nil;
+    uint32_t t_frame_count = 0;
 
-    if (t_success)
-        t_success = MCMemoryNew(t_frame);
-
-    if (t_success)
-        t_success = MCImageBitmapCreate(m_width, m_height, t_frame->image);
+    WebPAnimDecoder *t_dec = nil;
 
     if (t_success)
     {
-        // Decode directly into our bitmap's row-major ARGB buffer.
-        // libwebp's WebPDecodeRGBAInto writes R,G,B,A bytes per pixel.
-        // MCGPixelPackNative expects (r, g, b, a) on all platforms.
-        uint8_t *t_dst = (uint8_t *)t_frame->image->data;
-        uindex_t t_stride = t_frame->image->stride;
-
-        // Use WebPDecodeRGBAInto to decode row by row into the target buffer.
-        uint8_t *t_result = WebPDecodeRGBAInto(
-            m_data, m_data_size,
-            t_dst, t_stride * m_height,
-            (int)t_stride);
-
-        t_success = (t_result != nil);
+        WebPData t_webp_data = { m_data, m_data_size };
+        WebPAnimDecoderOptions t_opts;
+        WebPAnimDecoderOptionsInit(&t_opts);
+        t_opts.color_mode = MODE_RGBA;
+        t_dec = WebPAnimDecoderNew(&t_webp_data, &t_opts);
+        t_success = (t_dec != nil);
     }
 
-    // WebPDecodeRGBAInto writes bytes as R,G,B,A but our bitmap wants
-    // MCGPixelPackNative order. On little-endian (most targets) native is
-    // BGRA in memory, so we need to swizzle R and B.
     if (t_success)
+        t_success = MCMemoryNewArray(m_frame_count, t_frames);
+
+    int t_prev_timestamp = 0;
+    uint32_t t_frame_idx = 0;
+
+    while (t_success && WebPAnimDecoderHasMoreFrames(t_dec))
     {
-        uint8_t *t_row = (uint8_t *)t_frame->image->data;
-        for (uint32_t y = 0; y < m_height; y++)
+        uint8_t *t_rgba = nil;
+        int t_timestamp = 0;
+
+        t_success = WebPAnimDecoderGetNext(t_dec, &t_rgba, &t_timestamp) != 0;
+
+        if (t_success)
+            t_success = MCImageBitmapCreate(m_width, m_height, t_frames[t_frame_idx].image);
+
+        if (t_success)
         {
-            uint32_t *t_pixel = (uint32_t *)t_row;
-            for (uint32_t x = 0; x < m_width; x++)
+            // Copy RGBA rows into our bitmap stride.
+            uint32_t t_src_stride = m_width * 4;
+            uint8_t *t_src_row = t_rgba;
+            uint8_t *t_dst_row = (uint8_t *)t_frames[t_frame_idx].image->data;
+            for (uint32_t y = 0; y < m_height; y++)
             {
-                uint8_t t_r, t_g, t_b, t_a;
-                // Read as RGBA bytes (what libwebp wrote)
-                uint8_t *t_bytes = (uint8_t *)&t_pixel[x];
-                t_r = t_bytes[0];
-                t_g = t_bytes[1];
-                t_b = t_bytes[2];
-                t_a = t_bytes[3];
-                t_pixel[x] = MCGPixelPackNative(t_r, t_g, t_b, t_a);
+                MCMemoryCopy(t_dst_row, t_src_row, t_src_stride);
+                t_src_row += t_src_stride;
+                t_dst_row += t_frames[t_frame_idx].image->stride;
             }
-            t_row += t_frame->image->stride;
+            webp_swizzle_rgba_to_native(t_frames[t_frame_idx].image);
+
+            // Duration in milliseconds: difference between successive timestamps.
+            t_frames[t_frame_idx].duration = (uint32_t)(t_timestamp - t_prev_timestamp);
+            t_prev_timestamp = t_timestamp;
+            t_frame_idx++;
         }
     }
 
+    if (t_dec != nil)
+        WebPAnimDecoderDelete(t_dec);
+
     if (t_success)
     {
-        r_frames = t_frame;
-        r_count = 1;
+        r_frames = t_frames;
+        r_count = t_frame_idx;
     }
     else
-        MCImageFreeFrames(t_frame, 1);
+        MCImageFreeFrames(t_frames, t_frame_idx);
 
     return t_success;
 }

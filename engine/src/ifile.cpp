@@ -92,11 +92,6 @@ bool MCImageCompress(MCImageBitmap *p_bitmap, bool p_dither, MCImageCompressedBi
 				 t_compression = F_JPEG;
 				 t_success = MCImageEncodeJPEG(p_bitmap, nil, t_stream, t_size);
 			 }
-			 else if (MCpaintcompression == EX_WEBP)
-			 {
-				 t_compression = F_PNG; // WebP stored as decoded bitmap; fall back to PNG for internal storage
-				 t_success = MCImageEncodeWebP(p_bitmap, t_stream, t_size);
-			 }
 			 else
 			 {
 				 t_compression = F_PNG;

@@ -394,6 +394,10 @@ void MCMiscExecExportImageToAlbum(MCExecContext& ctxt, MCStringRef p_data_or_id,
 		{
             /* UNCHECKED */ MCStringCreateWithCString(".gif\n", &t_file_extension);
         }
+        else if (t_image -> getcompression() == F_WEBP)
+        {
+            /* UNCHECKED */ MCStringCreateWithCString(".webp\n", &t_file_extension);
+        }
         else
         {
             MCLog("not a supported image");

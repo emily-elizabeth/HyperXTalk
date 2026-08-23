@@ -37,7 +37,10 @@
 							'include/webp/format_constants.h',
 							'include/webp/types.h',
 
-							'src/dec/alpha_dec.c',
+							'src/demux/anim_decode.c',
+						'src/demux/demux.c',
+
+						'src/dec/alpha_dec.c',
 							'src/dec/buffer_dec.c',
 							'src/dec/frame_dec.c',
 							'src/dec/idec_dec.c',

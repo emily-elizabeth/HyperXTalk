@@ -67,6 +67,7 @@ static MCExecEnumTypeElementInfo _kMCInterfaceImagePaintCompressionElementInfo[]
 	{ "gif", F_GIF, false },
 	{ "pict", F_PICT, false },
 	{ "rle", F_RLE, false },
+	{ "webp", F_WEBP, false },
 };
 
 static MCExecEnumTypeInfo _kMCInterfaceImagePaintCompressionTypeInfo =
