@@ -119,8 +119,12 @@ command initialize
    lock screen
    textInitialize
    call "initialize" to group "Gutter" of me
-   
-   set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+
+   if (the systemAppearance is "light") then
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+   else
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
+   end if
    setHandlersFieldBackColor
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
    
@@ -567,7 +571,11 @@ end scriptLock
 #   Unlocks the script, allowing the user to edit it.
 command scriptUnlock
    set the lockText of field "Script" of me to false
-   set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundColor")
+   if (the systemAppearance is "light") then
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+   else
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
+   end if
    setHandlersFieldBackColor
 end scriptUnlock
 
