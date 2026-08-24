@@ -151,8 +151,13 @@ end initialize
 private command setHandlersFieldBackColor
    if there is a field "Handlers" of group "Left Handler List" of group "Left Bar" \
          of card "Main" of this stack then
-      set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
+      if (the systemAppearance is "light") then
+         set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
             of card "Main" of this stack to sePrefGet("editor,backgroundcolor")
+      else
+         set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
+            of card "Main" of this stack to sePrefGet("editor,backgroundcolordark")
+      end if
    end if
 end setHandlersFieldBackColor
 
@@ -196,7 +201,11 @@ command reapplyPreferences
    colorizationUpdate
    scriptColorize "script"
    
-   set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+   if (the systemAppearance is "light") then
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+   else
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
+   end if
    setHandlersFieldBackColor
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
    
