@@ -460,7 +460,11 @@ command sePrefInit
    end if
    
    # The colorization settings need to be loaded
-   seColorizationLoadScheme tPrefs["colorization,scheme"], tPrefs
+   if (the systemAppearance is "light") then
+      seColorizationLoadScheme tPrefs["colorization,scheme"], tPrefs
+   else
+      seColorizationLoadScheme tPrefs["colorization,schemedark"], tPrefs
+   end if
    
    # Put the completed array into the script local sPrefs for use by the script editor.
    put tPrefs into sPrefs
@@ -567,6 +571,7 @@ command sePrefGetDefaults
    
    # Colorization preferences
    put "default" into tPrefs["colorization,scheme"]
+   put "One Dark Pro" into tPrefs["colorization,schemedark"]
    seColorizationLoadScheme "default", tPrefs
    
    # Editor preferences
@@ -711,7 +716,11 @@ local sColorizationKeywords
 #   Gets the current colorization settings from the preferences system, and builds
 #   them into two script local arrays for use by the editor group.
 command seColorizationInit
-  colorizationBuildSettings sePrefGet("colorization,config"), sColorizationClasses, sColorizationKeywords
+   if (the systemAppearance is "light") then
+      colorizationBuildSettings sePrefGet("colorization,config"), sColorizationClasses, sColorizationKeywords
+   else
+      colorizationBuildSettings sePrefGet("colorization,configdark"), sColorizationClasses, sColorizationKeywords
+   end if
 end seColorizationInit
 
 # Parameters
@@ -722,6 +731,7 @@ end seColorizationInit
 #   the sPrefs array. To apply the newly loaded scheme, call seColorizationInit
 #   after the scheme has been loaded.
 command seColorizationLoadScheme pScheme, @pPreferencesArray
+   local tPreferencesArray
    switch pScheme
       case "default"
          put "group commands bold 127,127,0" & return & \
@@ -754,7 +764,12 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword default bold 0,0,0" & return & \
                "keyword finally bold 0,0,0" & return & \
                "keyword next bold 0,0,0" & return & \
-               "keyword exit bold 0,0,0" & return into pPreferencesArray["colorization,config"]
+               "keyword exit bold 0,0,0" & return into tPreferencesArray
+               if (the systemAppearance is "light") then
+                  put tPreferencesArray into pPreferencesArray["colorization,config"]
+               else
+                  put tPreferencesArray into pPreferencesArray["colorization,configdark"]
+               end if
          break
          
       case "revolution classic"
@@ -786,7 +801,12 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword catch none 152,5,23" & return & \
                "keyword case none 152,5,23" & return & \
                "keyword default none 152,5,23" & return & \
-               "keyword finally none 152,5,23" into pPreferencesArray["colorization,config"]
+               "keyword finally none 152,5,23" into tPreferencesArray
+               if (the systemAppearance is "light") then
+                  put tPreferencesArray into pPreferencesArray["colorization,config"]
+               else
+                  put tPreferencesArray into pPreferencesArray["colorization,configdark"]
+               end if
          break
          
       case "one dark pro"
@@ -819,7 +839,12 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword default none 198,120,221" & return & \
                "keyword finally none 198,120,221" & return & \
                "keyword next none 198,120,221" & return & \
-               "keyword exit none 255,38,0" into pPreferencesArray["colorization,config"]
+               "keyword exit none 255,38,0" into tPreferencesArray
+               if (the systemAppearance is "light") then
+                  put tPreferencesArray into pPreferencesArray["colorization,config"]
+               else
+                  put tPreferencesArray into pPreferencesArray["colorization,configdark"]
+               end if
          break
 
       case "no colorization"
@@ -848,7 +873,12 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword catch none 0,0,0" & return & \
                "keyword case none 0,0,0" & return & \
                "keyword default none 0,0,0" & return & \
-               "keyword finally none 0,0,0" into pPreferencesArray["colorization,config"]
+               "keyword finally none 0,0,0" into tPreferencesArray
+               if (the systemAppearance is "light") then
+                  put tPreferencesArray into pPreferencesArray["colorization,config"]
+               else
+                  put tPreferencesArray into pPreferencesArray["colorization,configdark"]
+               end if
          break
    end switch
 end seColorizationLoadScheme
@@ -1092,7 +1122,11 @@ command revSEColorizeField pField, pStart, pEnd
    
    sePrefInit
    local tConfig
-   put sePrefGet("colorization,config") into tConfig
+   if (the systemAppearance is "light") then
+      put sePrefGet("colorization,config") into tConfig
+   else
+      put sePrefGet("colorization,configdark") into tConfig
+   end if
    
    _internal script configure classes sColorizationClasses
    _internal script configure keywords sColorizationKeywords
@@ -1103,12 +1137,22 @@ end revSEColorizeField
    # Colorizes pScript and returns it as revHTML
 command revSEColorize pScript, pScheme
    local tOldScheme, tConfig
-   if pScheme is not sePrefGet("colorization,scheme") then
-      put sePrefGet("colorization,scheme") into tOldScheme
-      seColorizationLoadScheme pScheme, tConfig
-      put tConfig["colorization,config"] into tConfig
+   if (the systemAppearance is "light") then
+      if pScheme is not sePrefGet("colorization,scheme") then
+         put sePrefGet("colorization,scheme") into tOldScheme
+         seColorizationLoadScheme pScheme, tConfig
+         put tConfig["colorization,config"] into tConfig
+      else
+         put sePrefGet("colorization,config") into tConfig
+      end if
    else
-      put sePrefGet("colorization,config") into tConfig
+      if pScheme is not sePrefGet("colorization,schemedark") then
+         put sePrefGet("colorization,schemedark") into tOldScheme
+         seColorizationLoadScheme pScheme, tConfig
+         put tConfig["colorization,configdark"] into tConfig
+      else
+         put sePrefGet("colorization,configdark") into tConfig
+      end if
    end if
    
    local tClasses, tKeywords
