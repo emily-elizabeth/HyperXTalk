@@ -201,14 +201,18 @@ command reapplyPreferences
    colorizationUpdate
    scriptColorize "script"
    
-   if (the systemAppearance is "light") then
-      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+   if the lockText of field "Script" of me then
+      scriptLock
    else
-      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
+      if (the systemAppearance is "light") then
+         set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+      else
+         set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
+      end if
+      setHandlersFieldBackColor
    end if
-   setHandlersFieldBackColor
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
-   
+
    updateGutterRequest empty, empty, empty, empty, false, false, true
    resize
    unlock screen
