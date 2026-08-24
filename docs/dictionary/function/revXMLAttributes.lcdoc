@@ -27,8 +27,8 @@ put revXMLAttributes(myTree,thisNode," - ",";") into field "Attr"
 Example:
 set itemdel to tab
 repeat for each line thisLine in revXMLAttributes(1,"/",tab,return)
-	put item 2 of thisline into tValue
-	put textdecode(tValue,"utf8") into tDecodedValue
+   put item 2 of thisline into tValue
+   put textdecode(tValue,"utf8") into tDecodedValue
 next repeat
 
 Parameters:
