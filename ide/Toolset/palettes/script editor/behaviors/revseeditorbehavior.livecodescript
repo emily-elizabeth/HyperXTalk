@@ -570,10 +570,16 @@ end clearCache
 # Description
 #   Locks the script to prevent the uesr from editing it. Used by the debugger.
 command scriptLock
+   local tDebugBGColor
+   if (the systemAppearance is "light") then
+      put sePrefGet("editor,debugBackgroundcolor") into tDebugBGColor
+   else
+      put sePrefGet("editor,debugBackgroundcolordark") into tDebugBGColor
+   end if
    set the lockText of field "Script" of me to true
-   set the backgroundColor of field "Script" of me to sePrefGet("editor,debugBackgroundcolor")
-   set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
-         of card "Main" of this stack to sePrefGet("editor,debugBackgroundcolor")
+   set the backgroundColor of field "Script" of me to tDebugBGColor
+   set the backgroundColor of field "Handlers" of group "Left Handler List" of group "Left Bar" \
+         of card "Main" of this stack to tDebugBGColor
 end scriptLock
 
 # Description
@@ -4474,3 +4480,8 @@ on parseStructs pStartLine
    
 end parseStructs
 
+on systemAppearanceChanged
+   seColorizationInit
+   reapplyPreferences
+   pass systemAppearanceChanged
+end systemAppearanceChanged
