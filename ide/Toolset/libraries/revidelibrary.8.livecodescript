@@ -8039,6 +8039,19 @@ on revIDEActionSaveStackAs pStackID, pSubstackOnly
    end switch
    put the result into tVersion
    
+   // get the saved file name from the dialog
+   local tStackNameFromFileName
+   set the itemDelimiter to "/"
+   put item -1 of it into tStackNameFromFileName
+   set the itemDelimiter to "."
+   delete item -1 of tStackNameFromFileName
+   
+   if (tShortName begins with "Untitled") OR (tShortName <> tStackNameFromFileName) then
+      set the name of stack tMainStackName to tStackNameFromFileName
+      put tStackNameFromFileName into tMainStackName
+      put tStackNameFromFileName into tShortName
+   end if
+   
    switch tVersion
       case revIDELocalise("Legacy LiveCode Stack (8.0)")
          put 8.0 into tVersion
