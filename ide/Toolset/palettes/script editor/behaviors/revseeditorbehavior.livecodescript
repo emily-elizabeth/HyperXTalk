@@ -119,8 +119,12 @@ command initialize
    lock screen
    textInitialize
    call "initialize" to group "Gutter" of me
-   
-   set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+
+   if (the systemAppearance is "light") then
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+   else
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
+   end if
    setHandlersFieldBackColor
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
    
@@ -147,8 +151,13 @@ end initialize
 private command setHandlersFieldBackColor
    if there is a field "Handlers" of group "Left Handler List" of group "Left Bar" \
          of card "Main" of this stack then
-      set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
+      if (the systemAppearance is "light") then
+         set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
             of card "Main" of this stack to sePrefGet("editor,backgroundcolor")
+      else
+         set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
+            of card "Main" of this stack to sePrefGet("editor,backgroundcolordark")
+      end if
    end if
 end setHandlersFieldBackColor
 
@@ -192,10 +201,18 @@ command reapplyPreferences
    colorizationUpdate
    scriptColorize "script"
    
-   set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
-   setHandlersFieldBackColor
+   if the lockText of field "Script" of me then
+      scriptLock
+   else
+      if (the systemAppearance is "light") then
+         set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+      else
+         set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
+      end if
+      setHandlersFieldBackColor
+   end if
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
-   
+
    updateGutterRequest empty, empty, empty, empty, false, false, true
    resize
    unlock screen
@@ -557,17 +574,27 @@ end clearCache
 # Description
 #   Locks the script to prevent the uesr from editing it. Used by the debugger.
 command scriptLock
+   local tDebugBGColor
+   if (the systemAppearance is "light") then
+      put sePrefGet("editor,debugBackgroundcolor") into tDebugBGColor
+   else
+      put sePrefGet("editor,debugBackgroundcolordark") into tDebugBGColor
+   end if
    set the lockText of field "Script" of me to true
-   set the backgroundColor of field "Script" of me to sePrefGet("editor,debugBackgroundcolor")
-   set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
-         of card "Main" of this stack to sePrefGet("editor,debugBackgroundcolor")
+   set the backgroundColor of field "Script" of me to tDebugBGColor
+   set the backgroundColor of field "Handlers" of group "Left Handler List" of group "Left Bar" \
+         of card "Main" of this stack to tDebugBGColor
 end scriptLock
 
 # Description
 #   Unlocks the script, allowing the user to edit it.
 command scriptUnlock
    set the lockText of field "Script" of me to false
-   set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundColor")
+   if (the systemAppearance is "light") then
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+   else
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
+   end if
    setHandlersFieldBackColor
 end scriptUnlock
 
@@ -4457,3 +4484,8 @@ on parseStructs pStartLine
    
 end parseStructs
 
+on systemAppearanceChanged
+   seColorizationInit
+   reapplyPreferences
+   pass systemAppearanceChanged
+end systemAppearanceChanged
