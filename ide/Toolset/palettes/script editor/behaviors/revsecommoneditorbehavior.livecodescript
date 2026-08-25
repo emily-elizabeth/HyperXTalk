@@ -2840,20 +2840,29 @@ on rawKeyDown pKey
    if not handleEvent("rawKeyDown", the long id of the target) then
       pass rawKeyDown
    end if
-
-   -- folding
-   local tFoldingIsOn
-   put sePrefGet("Editor,folding") into tFoldingIsOn
    
-   if tFoldingIsOn then
-      -- pass scrollbar and tabKey
-      if pKey is among the items of "65308,65309,65310,65311,65289" then pass rawKeyDown
+    ## folding
+    ## catch rawKeyDown from multiline Messages Box
+   local tTarget, tFromScriptEditor
+   put the long name of the target into tTarget
+   if tTarget contains "revNewScriptEditor" then
+      put true into tFromScriptEditor
+   end if
+   
+   local tFoldingIsOn
+   if tFromScriptEditor then
+      put sePrefGet("Editor,folding") into tFoldingIsOn
       
-      -- block editing a folded structure
-      if the selectedLine is not empty then
-         if the hidden of the selectedLine then
-            beep
-            exit rawKeyDown
+      if tFoldingIsOn then
+         ## pass scrollbar and tabKey
+         if pKey is among the items of "65308,65309,65310,65311,65289" then pass rawKeyDown
+         
+         -- block editing a folded structure
+         if the selectedLine is not empty then
+            if the hidden of the selectedLine then
+               beep
+               exit rawKeyDown
+            end if
          end if
       end if
    end if
@@ -3509,13 +3518,21 @@ command scriptFormat pScope, pDontGroup
    put word 2 of it into tStart
    put word 4 of it into tEnd
    
-   if sePrefGet("editor,folding") then
-      local tFolding, tSelLine
-      put true into tFolding
-      put word 2 of the selectedLine into tSelLine
-      
-      local tVerticalPixAbove
-      put the formattedTop of line tSelLine of field "Script" of me into tVerticalPixAbove
+   ## catch rawKeyDown from multiline Messages Box
+   local tTarget, tFromScriptEditor
+   put the long name of the target into tTarget
+   if tTarget contains "revNewScriptEditor" then
+      put true into tFromScriptEditor
+   end if
+   if tFromScriptEditor then
+      if sePrefGet("editor,folding") then
+         local tFolding, tSelLine
+         put true into tFolding
+         put word 2 of the selectedLine into tSelLine
+         
+         local tVerticalPixAbove
+         put the formattedTop of line tSelLine of field "Script" of me into tVerticalPixAbove
+      end if
    end if
    
    if pScope is "script" then
