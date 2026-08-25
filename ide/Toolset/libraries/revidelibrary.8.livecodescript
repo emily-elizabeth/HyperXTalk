@@ -9390,16 +9390,31 @@ on revIDELoadFromProject pFilePath
    repeat with bi = 1 to the number of elements of tDeferredBehaviors
       local tBeh, tBehaviorTarget
       put tDeferredBehaviors[bi] into tBeh
-      put "button" && quote & tBeh["behaviorName"] & quote && "of stack" && quote & tBeh["behaviorStack"] & quote into tBehaviorTarget
-      if there is a tBehaviorTarget then
-         set the behavior of tBeh["controlRef"] to the long id of tBehaviorTarget
-      else
+      -- "button name of stack X" only searches the stack's current card.
+      -- Search all cards of the behavior stack to handle buttons on non-current cards.
+      local tBehName, tBehStack, tBehFound
+      put tBeh["behaviorName"] into tBehName
+      put tBeh["behaviorStack"] into tBehStack
+      put false into tBehFound
+      if tBehName is not empty and tBehStack is not empty then
+         local tBehCardCount, tBehCI
+         put the number of cards of stack tBehStack into tBehCardCount
+         repeat with tBehCI = 1 to tBehCardCount
+            put "button" && quote & tBehName & quote && "of card" && tBehCI && "of stack" && quote & tBehStack & quote into tBehaviorTarget
+            if there is a tBehaviorTarget then
+               set the behavior of tBeh["controlRef"] to the long id of tBehaviorTarget
+               put true into tBehFound
+               exit repeat
+            end if
+         end repeat
+      end if
+      if not tBehFound then
          -- Behavior could not be resolved: the script button doesn't exist in any loaded stack.
          -- This usually means the behavior's stack file is missing or was not part of the project.
          local tBehWarn
-         put "  • " & QUOTE & tBeh["behaviorName"] & QUOTE into tBehWarn
-         if tBeh["behaviorStack"] is not empty then
-            put " (from stack " & QUOTE & tBeh["behaviorStack"] & QUOTE & ")" after tBehWarn
+         put "  • " & QUOTE & tBehName & QUOTE into tBehWarn
+         if tBehStack is not empty then
+            put " (from stack " & QUOTE & tBehStack & QUOTE & ")" after tBehWarn
          end if
          put tBehWarn & return after tLoadWarnings
       end if
@@ -10113,7 +10128,9 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       local tSavedSharedBehavior
       put tProps["sharedBehavior"] into tSavedSharedBehavior
       delete variable tProps["sharedBehavior"]
-      -- Also strip backgroundBehavior for the same reason (legacy projects may have it).
+      -- Also strip backgroundBehavior for the same reason; re-applied explicitly below.
+      local tSavedBackgroundBehavior
+      put tProps["backgroundBehavior"] into tSavedBackgroundBehavior
       delete variable tProps["backgroundBehavior"]
       -- Decode any __binary__: prefixed values back to raw data before applying.
       -- revIDEProjectSanitizeArray encodes binary leaf values across the whole tree
@@ -10162,6 +10179,10 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    -- and if it doesn't the remove still runs.
    if (tType is "group" or tType is "background" or tType is "bkgnd") and tSavedSharedBehavior is "true" then
       set the sharedBehavior of tStackRef to true
+   end if
+   -- Re-apply backgroundBehavior explicitly for the same reason as sharedBehavior above.
+   if (tType is "group" or tType is "background" or tType is "bkgnd") and tSavedBackgroundBehavior is not empty then
+      set the backgroundBehavior of tStackRef to (tSavedBackgroundBehavior is "true")
    end if
    -- Restore borderWidth and lineSize explicitly: set the properties does not apply them.
    if tSavedBorderWidth is not empty then
