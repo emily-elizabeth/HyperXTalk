@@ -5864,6 +5864,17 @@ on revIDEDataGridAction pObj, pProperty
          local tCard
          put "card" && item 2 to -1 of tTemplate into tCard
          if exists(tCard) then
+            -- The DataGridTemplates stack is a hidden substack; go alone does not show it.
+            -- Parse the stack name from the long id and show it explicitly first.
+            local tStkMarker, tStkPos, tDGTStkName
+            put " of stack " & quote into tStkMarker
+            put offset(tStkMarker, tTemplate) into tStkPos
+            if tStkPos > 0 then
+               put char (tStkPos + the number of chars in tStkMarker) to -2 of tTemplate into tDGTStkName
+            end if
+            if tDGTStkName is not empty then
+               show stack tDGTStkName
+            end if
             go tCard
          end if
          break
@@ -7037,7 +7048,7 @@ on revIDEActionOpenStack
             put the last item of tStackFilePath into tBundleLeaf
             set the itemDelimiter to tSavedDelim
             put char 1 to (length(tBundleLeaf) - length(".hyperxtalk_project")) of tBundleLeaf into tProjectBaseName
-            put tStackFilePath & "/" & tProjectBaseName & ".hyperxtalk_project" into tProjectFilePath
+            put tStackFilePath & "/" & tProjectBaseName & ".json" into tProjectFilePath
          end if
          revIDELoadFromProject tProjectFilePath
       else
@@ -8158,6 +8169,26 @@ end revIDEActionSaveStackAs
 -- ---------------------------------------------------------------------------
 
 on revIDEActionSaveAsProject pStackID
+   -- Validate: we need a stack reference. If nothing (or a non-stack) was passed,
+   -- try the topStack; error out rather than silently producing a broken bundle.
+   if pStackID is empty or not exists(pStackID) then
+      if the topStack is not empty then
+         put the long id of stack (the topStack) into pStackID
+      else
+         answer error revIDELocalise("No stack is open to save as a project.")
+         exit revIDEActionSaveAsProject
+      end if
+   end if
+   if word 1 of pStackID is not "stack" then
+      local tOwnerStackName
+      put revIDEStackOfObject(pStackID) into tOwnerStackName
+      if tOwnerStackName is empty then
+         answer error revIDELocalise("Could not determine which stack to save as a project.")
+         exit revIDEActionSaveAsProject
+      end if
+      put the long id of stack tOwnerStackName into pStackID
+   end if
+
    local tShortName
    put the short name of pStackID into tShortName
 
@@ -8173,7 +8204,9 @@ on revIDEActionSaveAsProject pStackID
 
    -- Confirm overwrite if folder already exists
    if there is a folder tFolderPath then
-      answer revIDELocalise("A project named '%1' already exists. Replace it?", tShortName) \
+      local tOverwriteParams
+      put tShortName into tOverwriteParams[1]
+      answer revIDELocalise("A project named '%1' already exists. Replace it?", tOverwriteParams) \
             with revIDELocalise("Replace") and revIDELocalise("Cancel")
       if it is revIDELocalise("Cancel") then exit revIDEActionSaveAsProject
    end if
@@ -8186,7 +8219,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- pFolderPath is the full path to the project folder,
    -- e.g. "/Users/emily/Documents/MyStack.hyperxtalk_project"
    -- The main JSON file inside takes the same name as the folder.
-
+   
    -- Derive base project name from folder (strip .hyperxtalk_project suffix)
    local tSavedItemDelim2, tFolderLeaf, tBaseName
    put the itemDelimiter into tSavedItemDelim2
@@ -8194,12 +8227,12 @@ on revIDESaveAsProject pStackID, pFolderPath
    put the last item of pFolderPath into tFolderLeaf
    set the itemDelimiter to tSavedItemDelim2
    put char 1 to (length(tFolderLeaf) - length(".hyperxtalk_project")) of tFolderLeaf into tBaseName
-
+   
    -- Create the project folder if it doesn't already exist.
    -- On macOS, .hyperxtalk_project packages report false for "there is a folder",
    -- so also check for the inner JSON file as proof the package already exists.
    local tMainFilePath
-   put pFolderPath & "/" & tBaseName & ".hyperxtalk_project" into tMainFilePath
+   put pFolderPath & "/" & tBaseName & ".json" into tMainFilePath
    if there is no folder pFolderPath and there is not a file tMainFilePath then
       create folder pFolderPath
       if the result is not empty then
@@ -8207,46 +8240,106 @@ on revIDESaveAsProject pStackID, pFolderPath
          return "Error"
       end if
    end if
-
+   
    -- Create the media subfolder for extracted assets
    local tMediaFolder
    put pFolderPath & "/media" into tMediaFolder
    if there is no folder tMediaFolder then
       create folder tMediaFolder
    end if
-
+   
+   -- Create the scripts subfolder for per-object script files
+   local tScriptsFolder
+   put pFolderPath & "/scripts" into tScriptsFolder
+   if there is no folder tScriptsFolder then
+      create folder tScriptsFolder
+   end if
+   
+   -- Show the IDE saving dialog (mirrors the binary stack save in revIDESaveStack)
+   local tSavingStackName
+   put the short name of pStackID into tSavingStackName
+   set the visible of stack "revSaving" to false
+   palette "revSaving"
+   set the cSavingStack of card 1 of stack "revSaving" to tSavingStackName
+   show stack "revSaving"
+   -- Project stacks have no binary filename so the cSavingStack setter leaves
+   -- "File name:" empty and sizes the dialog too small.  Patch the field to
+   -- show the project bundle path, then resize the dialog to fit.
+   local tFldLines, tFldLineNum
+   put field 1 of stack "revSaving" into tFldLines
+   repeat with tFldLineNum = 1 to the number of lines of tFldLines
+      if line tFldLineNum of tFldLines begins with revIDELocalise("File name:") then
+         put revIDELocalise("File name:") & tab & tab & pFolderPath into line tFldLineNum of tFldLines
+         exit repeat
+      end if
+   end repeat
+   put tFldLines into field 1 of stack "revSaving"
+   set the width of field 1 of stack "revSaving" to the formattedWidth of field 1 of stack "revSaving" + 8
+   set the height of field 1 of stack "revSaving" to the formattedHeight of field 1 of stack "revSaving"
+   set the topleft of field 1 of stack "revSaving" to 0,0
+   set the width of stack "revSaving" to the right of field 1 of stack "revSaving"
+   set the height of stack "revSaving" to the height of field 1 of stack "revSaving"
+   send "revCheckSaveStackRect" to card 1 of stack "revSaving"
+   
    -- Build the full object tree as a LiveCode array
    local tTree
-   revIDEProjectBuildTree pStackID, tMediaFolder, tTree
-
+   revIDEProjectBuildTree pStackID, tMediaFolder, tScriptsFolder, tTree
+   
    -- Sanitize the tree: convert all leaf values to plain strings so that
    -- boolean and data typed values don't trip up the JSON encoder.
    revIDEProjectSanitizeArray tTree
-
-   -- Encode to JSON
+   
+   -- Encode to JSON (pretty-printed for readable diffs in version control).
+   -- Use lcb_JsonExport + lcb_prettyJson directly instead of jsonExport() to bypass
+   -- _cleaningNonPrintableChars, which maps numToChar(128-159) via Mac Roman and
+   -- corrupts accented characters (e.g. É →  → ƒ on re-import).
+   -- The project JSON is written as UTF-8, so Unicode text is valid as-is.
    local tJSON
-   put jsonExport(tTree) into tJSON
-
-   -- Write the main project JSON file
-   put pFolderPath & "/" & tBaseName & ".hyperxtalk_project" into tMainFilePath
-   open file tMainFilePath for write
+   put lcb_JsonExport(tTree) into tJSON
+   put lcb_prettyJson(tJSON, 4, true) into tJSON
+   if tJSON is empty then
+      close stack "revSaving"
+      answer error revIDELocalise("Could not encode project data as JSON. The project was not saved.")
+      return "Error"
+   end if
+   
+   -- Write the main project JSON file (binary + UTF-8 to preserve Unicode in scripts/properties)
+   put pFolderPath & "/" & tBaseName & ".json" into tMainFilePath
+   open file tMainFilePath for binary write
    if the result is not empty then
+      close stack "revSaving"
       answer revIDELocalise("Could not write project file:") & return & the result
       return "Error"
    end if
-   write tJSON to file tMainFilePath
+   write textEncode(tJSON, "UTF-8") to file tMainFilePath
    close file tMainFilePath
-
+   
    -- Export first-card preview as preview.png inside the bundle.
    -- Being part of the package it travels with the file automatically.
    local tStackName, tPreviewPath
    put the short name of pStackID into tStackName
    put pFolderPath & "/preview.png" into tPreviewPath
    export snapshot from card 1 of stack tStackName to file tPreviewPath as PNG
-
+   
+   -- Record the project path so subsequent Cmd+S saves route back here
+   -- instead of falling through to the binary stack saver.
+   set the cRevProjectFilePath of stack tStackName to pFolderPath
+   
    -- Mark the stack as saved and update recent files
    revIDESetUnedited the short name of pStackID
    revUpdateRecentFiles the short name of pStackID
+   
+   -- Show "Save complete" in the dialog, then close it after a brief pause
+   -- (mirrors the binary stack save behaviour in revIDESaveStack)
+   put revIDELocalise("Save complete - click to continue") into line -1 of field 1 of stack "revSaving"
+   get flushEvents("all")
+   local tSaveTime
+   put the milliseconds into tSaveTime
+   repeat
+      if the milliseconds - tSaveTime > 400 then exit repeat
+      if the mouseClick then exit repeat
+   end repeat
+   close stack "revSaving"
 end revIDESaveAsProject
 
 -- ---------------------------------------------------------------------------
@@ -8294,33 +8387,151 @@ on revIDESaveAsLibrary pStackID, pFilePath
    answer revIDELocalise("Library saved to:") & return & pFilePath
 end revIDESaveAsLibrary
 
-on revIDEProjectBuildTree pStackID, pMediaFolder, @rTree
+-- Sanitizes an object name so it is safe to use in a filename.
+-- Replaces non-alphanumeric characters with underscores; caps at 40 chars.
+private function revIDEProjectSanitizeName pName
+   local tResult, i, tChar
+   repeat with i = 1 to the number of chars of pName
+      put char i of pName into tChar
+      --      if tChar is a letter or tChar is a number then
+      if (tChar is among the characters of "abcdefghijklmnopqrstuvwxyz0123456789") then
+         put tChar after tResult
+      else
+         put "_" after tResult
+      end if
+   end repeat
+   if the number of chars of tResult > 40 then put char 1 to 40 of tResult into tResult
+   if tResult is empty then put "unnamed" into tResult
+   return tResult
+end revIDEProjectSanitizeName
+
+-- Builds a human-readable .hyperxtalkscript filename for a control's script,
+-- encoding the card context and object type+name into the filename.
+private function revIDEProjectControlScriptFilename pControlID
+   local tType, tName, tFilename
+   put word 1 of pControlID into tType
+   put revIDEProjectSanitizeName(the short name of pControlID) into tName
+   put tType & "--" & tName into tFilename
+   -- Walk up the owner chain, prepending each group and the card name.
+   -- Stop at card, stack, or background (background groups are stack-level objects
+   -- whose long id begins with "background id X" -- short name lookup fails on them).
+   -- Use try/catch throughout: stack names with quotes or apostrophes can cause
+   -- "can't find the card/group" when LiveCode re-parses the long id string.
+   local tOwner, tOwnerType, tOwnerName
+   put the owner of pControlID into tOwner
+   put word 1 of tOwner into tOwnerType
+   repeat while tOwnerType is not "card" and tOwnerType is not "stack" and tOwnerType is not "background" and tOwnerType is not "group"
+      try
+         put the short name of tOwner into tOwnerName
+      catch tErr
+         put word 3 of tOwner into tOwnerName -- fall back to numeric id
+      end try
+      put revIDEProjectSanitizeName(tOwnerName) & "--" & tFilename into tFilename
+      put the owner of tOwner into tOwner
+      put word 1 of tOwner into tOwnerType
+   end repeat
+   if tOwnerType is "card" then
+      try
+         put the short name of tOwner into tOwnerName
+      catch tErr
+         put "card_" & word 3 of tOwner into tOwnerName -- fall back to "card_<id>"
+      end try
+      put "card--" & revIDEProjectSanitizeName(tOwnerName) & "--" & tFilename into tFilename
+   end if
+   return tFilename & ".hyperxtalkscript"
+end revIDEProjectControlScriptFilename
+
+-- Writes pScript to pScriptsFolder/pFilename with a metadata header comment.
+-- Handles filename collisions by appending --2, --3, etc.
+-- Returns the bundle-relative path (e.g. "scripts/foo.hyperxtalkscript"),
+-- or empty if the script is empty or the file could not be written.
+private function revIDEProjectWriteScript pScript, pScriptsFolder, pFilename, pObjectDescription
+   if pScript is empty then return empty
+   local tBase, tFilename, tFilePath, tCounter
+   put char 1 to (the length of pFilename - the length of ".hyperxtalkscript") of pFilename into tBase
+   put pFilename into tFilename
+   put pScriptsFolder & "/" & tFilename into tFilePath
+   put 1 into tCounter
+   repeat while there is a file tFilePath
+      add 1 to tCounter
+      put tBase & "--" & tCounter & ".hyperxtalkscript" into tFilename
+      put pScriptsFolder & "/" & tFilename into tFilePath
+   end repeat
+   open file tFilePath for binary write
+   if the result is not empty then return empty
+   -- Header comment identifies the object for external editors and VCS
+   write textEncode("-- HyperXTalk: " & pObjectDescription & return & pScript, "UTF-8") to file tFilePath
+   close file tFilePath
+   return "scripts/" & tFilename
+end revIDEProjectWriteScript
+
+-- Reads a script from a bundle-relative path, stripping the HyperXTalk header line.
+-- Falls back to empty if the file does not exist.
+private function revIDEProjectReadScript pScriptFile, pFolderPath
+   if pScriptFile is empty then return empty
+   local tFilePath
+   put pFolderPath & "/" & pScriptFile into tFilePath
+   if there is not a file tFilePath then return empty
+   open file tFilePath for binary read
+   if the result is not empty then return empty
+   read from file tFilePath until end
+   local tContent
+   put textDecode(it, "UTF-8") into tContent
+   close file tFilePath
+   -- Strip the header line written by revIDEProjectWriteScript
+   if line 1 of tContent begins with "-- HyperXTalk: " then
+      put line 2 to (the number of lines of tContent) of tContent into tContent
+   end if
+   return tContent
+end revIDEProjectReadScript
+
+on revIDEProjectBuildTree pStackID, pMediaFolder, pScriptsFolder, @rTree
    put "hyperxtalk-project" into rTree["format"]
    put 1 into rTree["version"]
 
    -- Resolve to a plain stack name for reliable use inside serialize handlers
    local tStackNode, tStackName
    put the short name of pStackID into tStackName
-   revIDEProjectSerializeStack tStackName, pMediaFolder, tStackNode
+   revIDEProjectSerializeStack tStackName, pMediaFolder, pScriptsFolder, tStackNode
    put tStackNode into rTree["stack"]
 end revIDEProjectBuildTree
 
 -- pStackName is the plain short name of the stack (not a long id)
-on revIDEProjectSerializeStack pStackName, pMediaFolder, @rObj
+on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
    put pStackName into rObj["name"]
    put the id of stack pStackName into rObj["id"]
    put the title of stack pStackName into rObj["title"]
    put the rect of stack pStackName into rObj["rect"]
-   put the script of stack pStackName into rObj["script"]
+   local tStackScriptFile
+   put revIDEProjectWriteScript(the script of stack pStackName, pScriptsFolder, \
+         "stack--" & revIDEProjectSanitizeName(pStackName) & ".hyperxtalkscript", \
+         "stack " & quote & pStackName & quote) into tStackScriptFile
+   if tStackScriptFile is not empty then
+      put tStackScriptFile into rObj["scriptFile"]
+   else
+      put the script of stack pStackName into rObj["script"]
+   end if
    put the resizable of stack pStackName into rObj["resizable"]
    put the cantModify of stack pStackName into rObj["cantModify"]
    put the cantDelete of stack pStackName into rObj["cantDelete"]
+   put the cantAbort of stack pStackName into rObj["cantAbort"]
+   put the destroyStack of stack pStackName into rObj["destroyStack"]
+   put the destroyWindow of stack pStackName into rObj["destroyWindow"]
+   put the decorations of stack pStackName into rObj["decorations"]
+   put the menubar of stack pStackName into rObj["menubar"]
    put the backgroundColor of stack pStackName into rObj["backgroundColor"]
    put the foregroundColor of stack pStackName into rObj["foregroundColor"]
    put the shadow of stack pStackName into rObj["shadow"]
    put the textFont of stack pStackName into rObj["textFont"]
    put the textSize of stack pStackName into rObj["textSize"]
    put the textStyle of stack pStackName into rObj["textStyle"]
+   put the stackFiles of stack pStackName into rObj["stackFiles"]
+   
+   -- Compute unplaced background group IDs once, before serializing any cards.
+   -- revUnplacedGroupIds returns groups whose parent != curcard; calling it once ensures
+   -- the same snapshot is used for all cards (curcard may change between per-card calls).
+   local tUnplacedIDs
+   put the revUnplacedGroupIds of stack pStackName into tUnplacedIDs
 
    -- Cards
    local tCardCount
@@ -8331,13 +8542,82 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, @rObj
       local tCardIDNum, tCardNode
       put empty into tCardNode
       put the id of card i of stack pStackName into tCardIDNum
-      revIDEProjectSerializeCard tCardIDNum, pStackName, pMediaFolder, tCardNode
+      revIDEProjectSerializeCard tCardIDNum, pStackName, pMediaFolder, pScriptsFolder, tCardNode, tUnplacedIDs
       put tCardNode into rObj["cards"][i]
+   end repeat
+   
+   -- Background/shared groups: serialize once at stack level.
+   -- backgroundNames covers groups placed on at least one card.
+   -- revUnplacedGroupIds covers groups that exist in the stack but are not placed on any card.
+   -- Both are needed to capture the full set.
+   -- Cards record only placement references (backgroundGroups) to avoid duplicating content.
+   local tBGNode, bgIdx, tBGSeen
+   put 1 into bgIdx
+   put empty into tBGSeen
+   -- Placed backgrounds
+   local tBGNameList, tBGName
+   put the backgroundNames of stack pStackName into tBGNameList
+   repeat for each line tBGName in tBGNameList
+      if tBGName is empty then next repeat
+      local tControlID
+      try
+         do "put the long id of" && tBGName && "of stack" && QUOTE & pStackName & QUOTE && "into tControlID"
+      catch tUnused
+      end try
+      if tControlID is empty then next repeat
+      local tBGIDNum
+      put the id of tControlID into tBGIDNum
+      if tBGIDNum is among the lines of tBGSeen then next repeat
+      put tBGIDNum & return after tBGSeen
+      put empty into tBGNode
+      revIDEProjectSerializeControl tControlID, pMediaFolder, pScriptsFolder, tBGNode
+      put tBGNode into rObj["backgrounds"][bgIdx]
+      add 1 to bgIdx
+   end repeat
+   -- Unplaced backgrounds (not on any card; tUnplacedIDs already computed above)
+   local tStackRef, tUnplacedID
+   put the long id of stack pStackName into tStackRef
+   repeat for each line tUnplacedID in tUnplacedIDs
+      if tUnplacedID is empty then next repeat
+      if tUnplacedID is among the lines of tBGSeen then next repeat
+      put tUnplacedID & return after tBGSeen
+      local tUnplacedRef
+      put the long id of control id tUnplacedID of tStackRef into tUnplacedRef
+      if tUnplacedRef is empty then next repeat
+      put empty into tBGNode
+      revIDEProjectSerializeControl tUnplacedRef, pMediaFolder, pScriptsFolder, tBGNode
+      put tBGNode into rObj["backgrounds"][bgIdx]
+      add 1 to bgIdx
+   end repeat
+   -- Third pass: scan every card's controls for sharedBehavior groups not yet captured.
+   -- backgroundNames misses groups whose parent = a specific card (not the stack), and
+   -- revUnplacedGroupIds also misses them when that card is the current card at call time.
+   local tScanCardI
+   repeat with tScanCardI = 1 to tCardCount
+      local tScanCardID, tScanCtrlCt
+      put the id of card tScanCardI of stack pStackName into tScanCardID
+      put the number of controls of card id tScanCardID of stack pStackName into tScanCtrlCt
+      local tScanCI
+      repeat with tScanCI = 1 to tScanCtrlCt
+         local tScanCtrlID, tScanW1
+         put the long id of control tScanCI of card id tScanCardID of stack pStackName into tScanCtrlID
+         put word 1 of tScanCtrlID into tScanW1
+         if tScanW1 is not "group" and tScanW1 is not "bkgnd" and tScanW1 is not "background" then next repeat
+         if not (the sharedBehavior of tScanCtrlID) then next repeat
+         local tScanIDNum
+         put the id of tScanCtrlID into tScanIDNum
+         if tScanIDNum is among the lines of tBGSeen then next repeat
+         put tScanIDNum & return after tBGSeen
+         put empty into tBGNode
+         revIDEProjectSerializeControl tScanCtrlID, pMediaFolder, pScriptsFolder, tBGNode
+         put tBGNode into rObj["backgrounds"][bgIdx]
+         add 1 to bgIdx
+      end repeat
    end repeat
 
    -- Custom properties
    revIDEProjectSerializeCustomProps "stack" && quote & pStackName & quote, rObj
-
+   
    -- Substacks
    local tSubstacks
    put the substacks of stack pStackName into tSubstacks
@@ -8352,7 +8632,7 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, @rObj
          put the filename of stack tSubstackName into tSubstackFile
          if tSubstackFile contains "Toolset" then next repeat
          put empty into tSubstackNode
-         revIDEProjectSerializeStack tSubstackName, pMediaFolder, tSubstackNode
+         revIDEProjectSerializeStack tSubstackName, pMediaFolder, pScriptsFolder, tSubstackNode
          put tSubstackNode into rObj["substacks"][s]
          add 1 to s
       end repeat
@@ -8360,13 +8640,26 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, @rObj
 end revIDEProjectSerializeStack
 
 -- pCardIDNum is the numeric id of the card; pStackName is the plain short name of its stack
-on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, @rObj
-   put the short name of card id pCardIDNum of stack pStackName into rObj["name"]
+on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFolder, @rObj, pUnplacedBGIDs
+   local tCardName
+   put the short name of card id pCardIDNum of stack pStackName into tCardName
+   put tCardName into rObj["name"]
    put pCardIDNum into rObj["id"]
    put the rect of card id pCardIDNum of stack pStackName into rObj["rect"]
-   put the script of card id pCardIDNum of stack pStackName into rObj["script"]
+   local tCardScriptFile
+   put revIDEProjectWriteScript(the script of card id pCardIDNum of stack pStackName, \
+         pScriptsFolder, \
+         "card--" & revIDEProjectSanitizeName(tCardName) & ".hyperxtalkscript", \
+         "card " & quote & tCardName & quote && "of stack" && quote & pStackName & quote) \
+         into tCardScriptFile
+   if tCardScriptFile is not empty then
+      put tCardScriptFile into rObj["scriptFile"]
+   else
+      put the script of card id pCardIDNum of stack pStackName into rObj["script"]
+   end if
    put the cantDelete of card id pCardIDNum of stack pStackName into rObj["cantDelete"]
    put the dontSearch of card id pCardIDNum of stack pStackName into rObj["dontSearch"]
+   put the mark of card id pCardIDNum of stack pStackName into rObj["mark"]
    put the backgroundColor of card id pCardIDNum of stack pStackName into rObj["backgroundColor"]
    put the foregroundColor of card id pCardIDNum of stack pStackName into rObj["foregroundColor"]
 
@@ -8376,6 +8669,30 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, @rObj
    local tControlCount
    put the number of controls of card id pCardIDNum of stack pStackName into tControlCount
 
+   -- pUnplacedBGIDs is passed in from revIDEProjectSerializeStack, which computed it once
+   -- via revUnplacedGroupIds before serializing any cards. Using the same snapshot for all
+   -- cards avoids curcard-dependent variations (revUnplacedGroupIds returns groups whose
+   -- parent != curcard, so calling it per-card can return different sets per card).
+
+   -- Get the IDs of all groups placed on this card (used by placement loop below).
+   local tDiagCardGrpIDs
+   put the groupids of card id pCardIDNum of stack pStackName into tDiagCardGrpIDs
+
+   -- Record background/shared group placements on this card, keyed by origID.
+   -- Store IDs (not names): after reconstruction the groups are unplaced and can't be found
+   -- by name, but are accessible via "group id N of stack X". origIDs are restored during
+   -- reconstruction, so the IDs here will match the reconstructed group IDs.
+   -- Any group with sharedBehavior=true is serialized at the stack level, so its per-card
+   -- placement must be recorded here.
+   local tBGPlaceIndex
+   put 1 into tBGPlaceIndex
+   repeat for each line tCardGrpID in tDiagCardGrpIDs
+      if tCardGrpID is empty then next repeat
+      if not (the sharedBehavior of group id tCardGrpID of stack pStackName) then next repeat
+      put tCardGrpID into rObj["backgroundGroups"][tBGPlaceIndex]
+      add 1 to tBGPlaceIndex
+   end repeat
+
    local j, tControlIndex
    put 1 into tControlIndex
    repeat with j = 1 to tControlCount
@@ -8383,28 +8700,176 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, @rObj
       put the long id of control j of card id pCardIDNum of stack pStackName into tControlID
       -- Only serialize top-level controls (direct children of the card, not inside groups)
       if word 1 of the owner of control j of card id pCardIDNum of stack pStackName is not "card" then next repeat
+      -- Skip background groups — serialized once at stack level, placement recorded above.
+      if word 1 of tControlID is "group" or word 1 of tControlID is "background" or word 1 of tControlID is "bkgnd" then
+         if the sharedBehavior of tControlID then next repeat
+      end if
       put empty into tControlNode
-      revIDEProjectSerializeControl tControlID, pMediaFolder, tControlNode
+      revIDEProjectSerializeControl tControlID, pMediaFolder, pScriptsFolder, tControlNode
       put tControlNode into rObj["controls"][tControlIndex]
       add 1 to tControlIndex
    end repeat
+
+   -- Capture per-card text for non-sharedText fields inside background groups.
+   -- Strategy: navigate to this card, scan ALL top-level controls of the card for groups
+   -- with sharedBehavior=true, then BFS within each such group for fields with
+   -- sharedText=false. This is more robust than backgroundNames, which may be incomplete
+   -- (backgroundNames returned the wrong group in testing — the one with buttons, not fields).
+   local tBGFTOldDefault, tBGFTPrevCardID
+   put the defaultStack into tBGFTOldDefault
+   set the defaultStack to pStackName
+   put the id of the currentCard of stack pStackName into tBGFTPrevCardID
+   lock screen
+   go card id pCardIDNum of stack pStackName
+   local tBGFTCardCtrlCt
+   put the number of controls of card id pCardIDNum of stack pStackName into tBGFTCardCtrlCt
+   -- Seed the BFS queue with background groups found among the card's top-level controls.
+   -- Queue entries are sub-arrays with keys "id" (long id) and "bg" (background group name).
+   local tBGFTQueue, tBGFTQHead, tBGFTQTail
+   put 1 into tBGFTQHead
+   put 0 into tBGFTQTail
+   local tBGFTTopI
+   repeat with tBGFTTopI = 1 to tBGFTCardCtrlCt
+      local tBGFTTopID, tBGFTTopW1
+      put the long id of control tBGFTTopI of card id pCardIDNum of stack pStackName into tBGFTTopID
+      put word 1 of tBGFTTopID into tBGFTTopW1
+      if tBGFTTopW1 is not "group" and tBGFTTopW1 is not "bkgnd" and tBGFTTopW1 is not "background" then next repeat
+      if not (the sharedBehavior of tBGFTTopID) then next repeat
+      -- Found a background group on this card — seed the BFS with it
+      add 1 to tBGFTQTail
+      put tBGFTTopID into tBGFTQueue[tBGFTQTail]["id"]
+      put the short name of tBGFTTopID into tBGFTQueue[tBGFTQTail]["bg"]
+   end repeat
+   -- BFS: each item carries its ancestor background group name as the storage key
+   repeat while tBGFTQHead <= tBGFTQTail
+      local tBGFTCurID, tBGFTBGName, tBGFTChildCt2, tBGFTCI2
+      put tBGFTQueue[tBGFTQHead]["id"] into tBGFTCurID
+      put tBGFTQueue[tBGFTQHead]["bg"] into tBGFTBGName
+      add 1 to tBGFTQHead
+      put the number of controls of tBGFTCurID into tBGFTChildCt2
+      repeat with tBGFTCI2 = 1 to tBGFTChildCt2
+         local tBGFTChildID2, tBGFTChildW1
+         put the long id of control tBGFTCI2 of tBGFTCurID into tBGFTChildID2
+         put word 1 of tBGFTChildID2 into tBGFTChildW1
+         -- Normalize bkgnd/background prefix to get the base type
+         local tBGFTChildBaseType
+         if tBGFTChildW1 is "bkgnd" or tBGFTChildW1 is "background" then
+            put word 2 of tBGFTChildID2 into tBGFTChildBaseType
+         else
+            put tBGFTChildW1 into tBGFTChildBaseType
+         end if
+         if tBGFTChildBaseType is "group" then
+            -- Recurse into sub-group, keeping the same background group name
+            add 1 to tBGFTQTail
+            put tBGFTChildID2 into tBGFTQueue[tBGFTQTail]["id"]
+            put tBGFTBGName into tBGFTQueue[tBGFTQTail]["bg"]
+         else if tBGFTChildBaseType is "field" then
+            if not (the sharedText of tBGFTChildID2) then
+               local tBGFTFName2, tBGFTFIDPos2, tBGFTFIDNum2, tBGFTFHTML2
+               put the short name of tBGFTChildID2 into tBGFTFName2
+               put wordOffset("id", tBGFTChildID2) into tBGFTFIDPos2
+               put word (tBGFTFIDPos2 + 1) of tBGFTChildID2 into tBGFTFIDNum2
+               put empty into tBGFTFHTML2
+               try
+                  put the htmlText of field id tBGFTFIDNum2 of stack pStackName into tBGFTFHTML2
+               catch tUnused
+               end try
+               put "__binary__:" & base64Encode(tBGFTFHTML2) into rObj["bgFieldTexts"][tBGFTBGName][tBGFTFName2]
+            end if
+         end if
+      end repeat
+   end repeat
+   if tBGFTPrevCardID is not empty then
+      go card id tBGFTPrevCardID of stack pStackName
+   end if
+   unlock screen
+   set the defaultStack to tBGFTOldDefault
 end revIDEProjectSerializeCard
 
-on revIDEProjectSerializeControl pControlID, pMediaFolder, @rObj
-   -- Derive type from word 1 of the long id (e.g. "image id 3 of ...")
-   local tType
+on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
+   -- Derive type from word 1 of the long id (e.g. "image id 3 of ...").
+   -- Unplaced background groups have long ids starting with "background" rather than
+   -- "group" (because their parent is the stack, not a card). Normalise both the type
+   -- token AND the reference itself — "background id N of stack X" is not a valid
+   -- object reference in HyperXTalk, so every subsequent property read would fail.
+   local tType, tIsUnplacedBG
    put word 1 of pControlID into tType
+   if tType is "background" or tType is "bkgnd" then
+      put "group" into tType
+      put true into tIsUnplacedBG
+      -- "background id N" / "bkgnd id N of stack X" is the engine's own long-id form for
+      -- unplaced groups (HyperXTalk uses the HyperCard abbreviation "bkgnd").
+      -- Leave pControlID as-is so property reads resolve; normalise only the type tag.
+   end if
    put tType into rObj["type"]
-   put the script of pControlID into rObj["script"]
-
+   local tControlScriptFile
+   put revIDEProjectWriteScript(the script of pControlID, pScriptsFolder, \
+         revIDEProjectControlScriptFilename(pControlID), \
+         tType && quote & the short name of pControlID & quote && "in" && pControlID) \
+         into tControlScriptFile
+   if tControlScriptFile is not empty then
+      put tControlScriptFile into rObj["scriptFile"]
+   else
+      put the script of pControlID into rObj["script"]
+   end if
+   
+   -- Save the short name explicitly so it can be reliably restored even if
+   -- set the properties does not set the name in this engine version.
+   put the short name of pControlID into rObj["controlName"]
+   put the id of pControlID into rObj["origID"]
    -- Capture all properties at once; remove read-only/handled ones
    local tProps
    put the properties of pControlID into tProps
+   -- For unplaced background groups, explicitly save sharedBehavior so it survives
+   -- the JSON round-trip and can be used to verify the group was correctly unplaced
+   -- during reconstruction.
+   -- NOTE: controlName is already set above via "the short name of pControlID"; "bkgnd id N"
+   -- resolves correctly for short name, so no override is needed here.
+   if tIsUnplacedBG then
+      put the sharedBehavior of pControlID into tProps["sharedBehavior"]
+   end if
    delete variable tProps["id"]
    delete variable tProps["script"]
+   -- showName is a boolean that gets mangled by SanitizeArray (boolean false becomes
+   -- the string "false", which jsonExport quotes as a JSON string rather than a boolean).
+   -- Save it explicitly so it survives the JSON round-trip correctly.
+   -- Not all control types support showName, so guard with a key existence check.
+   if "showName" is among the keys of tProps then
+      if the showName of pControlID then
+         put "true" into rObj["showName"]
+      else
+         put "false" into rObj["showName"]
+      end if
+      delete variable tProps["showName"]
+   end if
+   -- borderWidth and lineSize: not returned by the properties array, and reading
+   -- them via a variable holding the long id returns 0. Use do to build a
+   -- concrete reference so the engine resolves the property correctly.
+   local tBorderWidthVal
+   do "put the borderWidth of" && pControlID && "into tBorderWidthVal"
+   put tBorderWidthVal into tProps["borderWidth"]
+   local tLineSzVal
+   do "put the lineSize of" && pControlID && "into tLineSzVal"
+   put tLineSzVal into tProps["lineSize"]
    -- Image binary data is handled separately via mediaFile; don't embed in JSON
    if tType is "image" then
       delete variable tProps["text"]
+   end if
+   -- Field htmlText: save explicitly as base64 to avoid encoding issues (&, tab
+   -- entities etc. getting mangled by the JSON sanitizer) and to prevent data loss.
+   -- The engine applies htmlText before text during set the properties, so text
+   -- would silently override htmlText and destroy styled formatting. By saving
+   -- htmlText separately and removing both from tProps we avoid the conflict.
+   if tType is "field" then
+      local tFieldHtmlText
+      do "put the htmlText of" && pControlID && "into tFieldHtmlText"
+      put base64Encode(tFieldHtmlText) into rObj["fieldHtmlText"]
+      delete variable tProps["htmlText"]
+      delete variable tProps["text"]
+   end if
+   -- Player filename is an absolute path; handle portability via mediaFile instead
+   if tType is "player" then
+      delete variable tProps["filename"]
    end if
    -- Behavior is a long ID (changes on reconstruct) — save as name+stack instead
    if tProps["behavior"] is not empty then
@@ -8417,33 +8882,308 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, @rObj
       put the short name of tBehRef into rObj["behaviorName"]
       delete variable tProps["behavior"]
    end if
+   -- Button icons: store image names instead of volatile numeric IDs.
+   -- revIDEStackOfObject returns "stack \"Name\"" (with keyword), so use the short name
+   -- to get just the stack name string for a correct "of stack X" lookup.
+   if tType is "button" then
+      local tIconProps, tIconProp, tIconID, tIconStackName
+      put "icon,hilitedIcon,disabledIcon,visitedIcon,armedIcon" into tIconProps
+      put the short name of revIDEStackOfObject(pControlID) into tIconStackName
+      repeat for each item tIconProp in tIconProps
+         do "put the" && tIconProp && "of pControlID into tIconID"
+         if tIconID is not empty and tIconID is not 0 then
+            -- Search the button's own stack first; only fall back to other stacks
+            -- if the image genuinely lives elsewhere (e.g. a shared resource stack).
+            local tIconImgName
+            put empty into tIconImgName
+            if there is an image id tIconID of stack tIconStackName then
+               put the short name of image id tIconID of stack tIconStackName into tIconImgName
+            else
+               local tIconSearchStack
+               repeat for each line tIconSearchStack in the stacks
+                  if there is an image id tIconID of stack tIconSearchStack then
+                     put the short name of image id tIconID of stack tIconSearchStack into tIconImgName
+                     exit repeat
+                  end if
+               end repeat
+            end if
+            if tIconImgName is not empty then
+               put tIconImgName into rObj["iconNames"][tIconProp]
+               delete variable tProps[tIconProp]
+            end if
+         end if
+      end repeat
+   end if
    put tProps into rObj["properties"]
 
-   -- Image: export binary data to media folder
+   -- Image: export to media folder as PNG (not raw pixel data).
+   -- Check both the text (embedded data) and the filename (file-referenced images);
+   -- either way, export the image as PNG so it can be reloaded portably.
    if tType is "image" then
-      local tImageData
-      put the text of pControlID into tImageData
-      if tImageData is not empty then
+      if the text of pControlID is not empty or the filename of pControlID is not empty then
          local tMediaName, tMediaFile
-         put the short name of pControlID & "_" & the id of pControlID & ".png" into tMediaName
+         put revIDEProjectSanitizeName(the short name of pControlID) & "_" & the id of pControlID & ".png" into tMediaName
          put pMediaFolder & "/" & tMediaName into tMediaFile
-         open file tMediaFile for binary write
-         if the result is empty then
-            write tImageData to file tMediaFile
-            close file tMediaFile
+         export pControlID to file tMediaFile as PNG
+         -- Check file existence rather than the result, since the result
+         -- after export may be non-empty even on success in HyperXTalk.
+         if there is a file tMediaFile then
             put "media/" & tMediaName into rObj["mediaFile"]
          end if
       end if
    end if
-
-   -- Widget: save the kind so we can recreate it (kind is set at create time, not via properties)
-   if tType is "widget" then
-      put the kind of pControlID into rObj["widgetKind"]
+   
+   -- Player: copy media file into media folder for portability
+   if tType is "player" then
+      local tPlayerFilename
+      put the filename of pControlID into tPlayerFilename
+      if tPlayerFilename is not empty and there is a file tPlayerFilename then
+         local tPlayerExt, tPlayerMediaName, tPlayerMediaFile //, tSavedDelim
+         put the itemDelimiter into tSavedDelim
+         set the itemDelimiter to "."
+         put the last item of tPlayerFilename into tPlayerExt
+         set the itemDelimiter to tSavedDelim
+         put the short name of pControlID & "_" & the id of pControlID & "." & tPlayerExt into tPlayerMediaName
+         put pMediaFolder & "/" & tPlayerMediaName into tPlayerMediaFile
+         local tPlayerData
+         open file tPlayerFilename for binary read
+         if the result is empty then
+            read from file tPlayerFilename until end
+            put it into tPlayerData
+            close file tPlayerFilename
+            open file tPlayerMediaFile for binary write
+            if the result is empty then
+               write tPlayerData to file tPlayerMediaFile
+               close file tPlayerMediaFile
+               put "media/" & tPlayerMediaName into rObj["mediaFile"]
+            end if
+         end if
+      end if
    end if
-
+   
+   -- Widget: export kind + state in one step.
+   -- The exported array contains "$kind" and "$state" keys; we store the whole
+   -- thing as widgetData so reconstruction can import it back directly.
+   -- widgetKind is kept as a top-level key for quick access at create time.
+   if tType is "widget" then
+      local tWidgetData
+      export pControlID to array tWidgetData
+      -- Store widgetData as arrayEncode/base64 to preserve LCB List vs Array type
+      -- information through the JSON round-trip. lcb_JsonExport loses this distinction,
+      -- causing type errors (e.g. segmented control mSegmentNames expecting a List).
+      put base64Encode(arrayEncode(tWidgetData)) into rObj["widgetDataEncoded"]
+      put tWidgetData["$kind"] into rObj["widgetKind"]
+      -- Save the four built-in color properties as text (get returns "r,g,b" format).
+      -- The binary color values in the properties array may not survive the JSON
+      -- round-trip correctly and, if the hiliteColor is not restored, the widget
+      -- falls back to the system accent color (which may be pink rather than the
+      -- intended blue). Saving them explicitly as text strings guarantees restoration.
+      local tWCKey, tWCVal
+      repeat for each item tWCKey in "foregroundColor,backgroundColor,hiliteColor,borderColor"
+         do "put the " & tWCKey & " of pControlID into tWCVal"
+         if tWCVal is not empty then
+            put tWCVal into rObj["widgetColors"][tWCKey]
+         end if
+      end repeat
+   end if
+   
+   -- Datagrid: save dgData (the row array) separately so it can be restored after
+   -- the behavior is wired up. Identified by the dgProps custom property set.
+   -- Also save the row template reference by group name + stack name (not long id)
+   -- so it can be re-resolved after reconstruction (group/card ids change on rebuild).
+   if tType is "group" and "dgProps" is among the lines of the customPropertySets of pControlID then
+      put the dgData of pControlID into rObj["dgData"]
+      local tRowTplRef
+      -- Read raw from the custom property set to bypass getprop dgProps.
+      -- The getprop handler validates references and returns empty for stale ones
+      -- (e.g. group id from a previous session that no longer exists in the template
+      -- stack), which would cause us to skip saving the row template metadata entirely.
+      local tRawDGProps
+      put the customProperties["dgProps"] of pControlID into tRawDGProps
+      put tRawDGProps["row template"] into tRowTplRef
+      if tRowTplRef is not empty then
+         if tRowTplRef begins with "__uid__:" then
+            -- Already a UID reference from a previous load cycle; extract directly.
+            -- Scan DataGridTemplates stacks to repopulate rowTemplateStackName etc. so
+            -- the DG2 control block below can resolve its own __uid__: references too.
+            put char 9 to -1 of tRowTplRef into rObj["rowTemplateGroupUID"]
+            local tRTUIDScanStr, tRTUIDStkLine, tRTUIDCard, tRTUIDGrp, tRowTplStackName
+            put rObj["rowTemplateGroupUID"] into tRTUIDScanStr
+            repeat for each line tRTUIDStkLine in the stacks
+               if not (tRTUIDStkLine begins with "Data Grid Templates") then next repeat
+               repeat with tRTUIDCard = 1 to the number of cards of stack tRTUIDStkLine
+                  repeat with tRTUIDGrp = 1 to the number of groups of card tRTUIDCard of stack tRTUIDStkLine
+                     local tRTUIDRevGen
+                     put the customProperties["cREVGeneral"] of group tRTUIDGrp of card tRTUIDCard of stack tRTUIDStkLine into tRTUIDRevGen
+                     if tRTUIDRevGen["revUniqueID"] & "" is tRTUIDScanStr then
+                        put tRTUIDStkLine into tRowTplStackName
+                        put tRTUIDStkLine into rObj["rowTemplateStackName"]
+                        put the short name of group tRTUIDGrp of card tRTUIDCard of stack tRTUIDStkLine into rObj["rowTemplateGroupName"]
+                        put the short name of card tRTUIDCard of stack tRTUIDStkLine into rObj["rowTemplateCardName"]
+                        put tRTUIDCard into rObj["rowTemplateCardNum"]
+                        exit repeat
+                     end if
+                  end repeat
+                  if tRowTplStackName is not empty then exit repeat
+               end repeat
+               if tRowTplStackName is not empty then exit repeat
+            end repeat
+         else
+         -- Long id format: group id XXXX of card id YYYY of stack "Stack Name"
+         -- Group/card ids change on rebuild; save stack name + card ordinal (not ids).
+         -- DataGridTemplates has one card per datagrid; ordinal order is stable across rebuild.
+         local tOfStack, tStackPos
+         put " of stack " & quote into tOfStack
+         put offset(tOfStack, tRowTplRef) into tStackPos
+         if tStackPos > 0 then
+            put char (tStackPos + the number of chars in tOfStack) to -2 of tRowTplRef into tRowTplStackName
+            put tRowTplStackName into rObj["rowTemplateStackName"]
+            -- Save the DataGrid's own short name: the DG behavior names the template
+            -- card after the DataGrid, giving us a robust card identifier at load time
+            -- that doesn't depend on volatile group/card IDs or the stack being in memory.
+            put the short name of pControlID into rObj["rowTemplateDGName"]
+            -- word 3 = group id, word 7 = card id in the long id format.
+            -- Save the group's short name and the card's short name so we can find the right
+            -- group after reconstruction. Cards are identified by name (not ordinal) because
+            -- there is one card per datagrid and card names are stable across rebuild.
+            local tGroupIDNum, tCardID
+            put word 3 of tRowTplRef into tGroupIDNum
+            put word 7 of tRowTplRef into tCardID
+            -- Save original numeric IDs so the loader can restore them via "set the id of".
+            put tGroupIDNum into rObj["rowTemplateGroupOrigID"]
+            put tCardID into rObj["rowTemplateCardOrigID"]
+            -- Fast path: IDs in dgProps are current — look up directly.
+            -- Wrap in try/catch: OpenXTalk throws an error (rather than returning empty)
+            -- when accessing a property of a non-existent object, so stale IDs would
+            -- otherwise propagate as a script error in the calling handler.
+            try
+               put the short name of group id tGroupIDNum of stack tRowTplStackName into rObj["rowTemplateGroupName"]
+               local tRTGroupRevGen
+               put the customProperties["cREVGeneral"] of group id tGroupIDNum of stack tRowTplStackName into tRTGroupRevGen
+               put tRTGroupRevGen["revUniqueID"] & "" into rObj["rowTemplateGroupUID"]
+               put the short name of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardName"]
+               put the number of card id tCardID of stack tRowTplStackName into rObj["rowTemplateCardNum"]
+            catch tLookupErr
+               -- IDs are stale; the fallback scan below will find the group by name
+               put empty into rObj["rowTemplateGroupName"]
+            end try
+            if rObj["rowTemplateGroupName"] is empty then
+               -- IDs in dgProps are stale (stored from a previous session when objects had
+               -- different IDs, e.g. after the template stack was rebuilt) or the stack is
+               -- not in memory.  The DG behavior always names the group "Row Template".
+               put "Row Template" into rObj["rowTemplateGroupName"]
+               if there is a stack tRowTplStackName then
+                  -- Stack IS in memory but the stored IDs do not match any live object.
+                  -- Scan the template stack by name to locate the actual current group and
+                  -- capture its cRevUniqueID + correct card ordinal for the loader.
+                  -- Note: for stacks serving multiple DataGrids each card holds one "Row
+                  -- Template" group; this scan finds the first one, which is correct for the
+                  -- single-DataGrid case.  A multi-DataGrid stack would need valid IDs to
+                  -- disambiguate — this is the best we can do with stale references.
+                  local tRTScanC
+                  repeat with tRTScanC = 1 to the number of cards of stack tRowTplStackName
+                     if there is a group "Row Template" of card tRTScanC of stack tRowTplStackName then
+                        local tRTScanRevGen
+                        put the customProperties["cREVGeneral"] of group "Row Template" of card tRTScanC of stack tRowTplStackName into tRTScanRevGen
+                        put tRTScanRevGen["revUniqueID"] & "" into rObj["rowTemplateGroupUID"]
+                        put tRTScanC into rObj["rowTemplateCardNum"]
+                        exit repeat
+                     end if
+                  end repeat
+                  if rObj["rowTemplateCardNum"] is empty then
+                     put 1 into rObj["rowTemplateCardNum"]
+                  end if
+               else
+                  -- Stack not in memory at all; fall back to ordinal 1.
+                  put 1 into rObj["rowTemplateCardNum"]
+               end if
+            end if
+         end if -- end long-id parse branch
+         end if -- end if tRowTplRef begins with "__uid__:"
+      end if
+      -- Save group/card short names for the other customisable DataGrid controls
+      -- (left/right swipe, edit mode controls).  Storing names (not IDs) lets us
+      -- re-resolve after reconstruction when IDs change.
+      local tDG2CtrlList, tDG2CtrlItem
+      put "left swipe control,right swipe control,edit mode action control,edit mode action select control,edit mode reorder control" into tDG2CtrlList
+      repeat for each item tDG2CtrlItem in tDG2CtrlList
+         local tDG2CtrlVal, tDG2SafeKey, tDG2GroupIDNum, tDG2CardIDNum
+         -- Read raw (tRawDGProps already holds the bypassed custom property set)
+         put tRawDGProps[tDG2CtrlItem] into tDG2CtrlVal
+         put tDG2CtrlItem into tDG2SafeKey
+         replace space with "_" in tDG2SafeKey
+         if tDG2CtrlVal is not empty then
+            if tDG2CtrlVal begins with "__uid__:" then
+               -- Already a UID reference; extract directly, no long-id parsing needed.
+               put char 9 to -1 of tDG2CtrlVal into rObj["dg2CtrlUID_" & tDG2SafeKey]
+            else
+            -- word 3 = group id number, word 7 = card id number in long-id format
+            put word 3 of tDG2CtrlVal into tDG2GroupIDNum
+            put word 7 of tDG2CtrlVal into tDG2CardIDNum
+            if tDG2GroupIDNum is an integer then
+               -- Use the stack name embedded in this control's stored reference.
+               -- It reflects the actual stack name when the property was set (with or
+               -- without spaces) and is more reliable than tRowTplStackName for lookup.
+               local tDG2RefStackPos, tDG2RefStack
+               put offset(" of stack " & quote, tDG2CtrlVal) into tDG2RefStackPos
+               if tDG2RefStackPos > 0 then
+                  -- " of stack " & quote = 11 chars; stack name starts at offset + 11
+                  put char (tDG2RefStackPos + 11) to -2 of tDG2CtrlVal into tDG2RefStack
+               end if
+               local tDG2LookupStack
+               if tDG2RefStack is not empty and there is a group id tDG2GroupIDNum of stack tDG2RefStack then
+                  put tDG2RefStack into tDG2LookupStack
+               else if tRowTplStackName is not empty and there is a group id tDG2GroupIDNum of stack tRowTplStackName then
+                  -- Fallback: the row template stack name (may differ from embedded name)
+                  put tRowTplStackName into tDG2LookupStack
+               else if tRowTplStackName is not empty then
+                  -- Last resort: try space-normalized row template stack name
+                  local tDG2NormStack
+                  put tRowTplStackName into tDG2NormStack
+                  replace space with empty in tDG2NormStack
+                  if there is a group id tDG2GroupIDNum of stack tDG2NormStack then
+                     put tDG2NormStack into tDG2LookupStack
+                  end if
+               end if
+               if tDG2LookupStack is not empty then
+                  put the short name of group id tDG2GroupIDNum of stack tDG2LookupStack into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                  put the short name of card id tDG2CardIDNum of stack tDG2LookupStack into rObj["dg2CtrlCardName_" & tDG2SafeKey]
+                  -- cRevUniqueID survives custom-property round-trips; save it so the loader
+                  -- can find the group by unique id rather than relying on name alone.
+                  local tDG2RevGen
+                  put the customProperties["cREVGeneral"] of group id tDG2GroupIDNum of stack tDG2LookupStack into tDG2RevGen
+                  put tDG2RevGen["revUniqueID"] & "" into rObj["dg2CtrlUID_" & tDG2SafeKey]
+                  put tDG2GroupIDNum into rObj["dg2CtrlOrigID_" & tDG2SafeKey]
+               else
+                  -- Template stack not in memory at save time; fall back to the conventional names
+                  -- the DG behavior assigns to default controls.  If a custom control was used,
+                  -- these names won't match at load time (the group won't exist) and the stale
+                  -- reference will be left for DG2_CustomisableControlsInit to recreate.
+                  switch tDG2CtrlItem
+                     case "left swipe control"
+                        put "DG2 Default Left Swipe Control" into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                        break
+                     case "right swipe control"
+                        put "DG2 Default Right Swipe Control" into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                        break
+                     case "edit mode action control"
+                        put "DG2 Default Edit Mode Action Control" into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                        break
+                     case "edit mode action select control"
+                        put "DG2 Default Edit Mode Action Select Control" into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                        break
+                     case "edit mode reorder control"
+                        put "DG2 Default Edit Mode Reorder Control" into rObj["dg2CtrlGroupName_" & tDG2SafeKey]
+                        break
+                  end switch
+               end if
+            end if -- end if tDG2GroupIDNum is an integer
+            end if -- end __uid__: round-trip else branch
+         end if
+      end repeat
+   end if
    -- Custom properties
    revIDEProjectSerializeCustomProps pControlID, rObj
-
    -- Group: recurse into direct child controls only
    if tType is "group" then
       local tChildCount, k, tChildIndex
@@ -8455,7 +9195,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, @rObj
          -- Only serialize direct children (owner is this group, not a nested group)
          if the id of the owner of control k of pControlID is not the id of pControlID then next repeat
          put empty into tChildNode
-         revIDEProjectSerializeControl tChildID, pMediaFolder, tChildNode
+         revIDEProjectSerializeControl tChildID, pMediaFolder, pScriptsFolder, tChildNode
          put tChildNode into rObj["controls"][tChildIndex]
          add 1 to tChildIndex
       end repeat
@@ -8468,6 +9208,9 @@ on revIDEProjectSerializeCustomProps pObjRef, @rObj
    -- Default custom property set
    local tDefaultProps
    put the customProperties of pObjRef into tDefaultProps
+   -- Strip the project file path: it is set at load time from the bundle location
+   -- and must not be baked into the JSON (it would become stale on any path change).
+   delete variable tDefaultProps["cRevProjectFilePath"]
    if tDefaultProps is an array then
       put tDefaultProps into rObj["customProperties"]
    end if
@@ -8479,6 +9222,22 @@ on revIDEProjectSerializeCustomProps pObjRef, @rObj
       local tSetProps
       put the customProperties[tSetName] of pObjRef into tSetProps
       if tSetProps is an array then
+         -- Preserve full integer precision for revUniqueID: the JSON float representation
+         -- (e.g. 1.78707e+12) loses digits for 13-digit timestamps.  Storing as a quoted
+         -- string keeps full precision so UID scans at load time can match correctly.
+         if tSetProps["revUniqueID"] is not empty then
+            put tSetProps["revUniqueID"] & "" into tSetProps["revUniqueID"]
+         end if
+         -- Workaround: lcb_JsonExport strips spaces from string values that contain
+         -- embedded double-quote characters (e.g. long ids like stack "My Stack").
+         -- Replace the quote char with a safe placeholder before JSON encoding;
+         -- revIDEProjectReconstructCustomProps restores it after loading.
+         local tQKey
+         repeat for each key tQKey in tSetProps
+            if tSetProps[tQKey] is not an array and quote is in tSetProps[tQKey] then
+               replace quote with "__LCQUOTE__" in tSetProps[tQKey]
+            end if
+         end repeat
          put tSetProps into rObj["customPropertySets"][tSetName]
       end if
    end repeat
@@ -8488,19 +9247,52 @@ end revIDEProjectSerializeCustomProps
 -- onto any object. pObjRef must be a valid, already-created object expression.
 on revIDEProjectReconstructCustomProps pNode, pObjRef
    if pNode["customProperties"] is an array then
-      set the customProperties of pObjRef to pNode["customProperties"]
+      local tDefaultProps
+      put pNode["customProperties"] into tDefaultProps
+      revIDEProjectDecodeBinaryProps tDefaultProps
+      set the customProperties of pObjRef to tDefaultProps
    end if
    if pNode["customPropertySets"] is an array then
       local tSetName
       repeat for each key tSetName in pNode["customPropertySets"]
-         set the customProperties[tSetName] of pObjRef to pNode["customPropertySets"][tSetName]
+         local tSetProps
+         put pNode["customPropertySets"][tSetName] into tSetProps
+         -- Restore double-quote chars that were placeholdered during serialization
+         -- to work around the lcb_JsonExport space-stripping bug.
+         local tQKey
+         repeat for each key tQKey in tSetProps
+            if tSetProps[tQKey] is not an array and "__LCQUOTE__" is in tSetProps[tQKey] then
+               replace "__LCQUOTE__" with quote in tSetProps[tQKey]
+            end if
+         end repeat
+         revIDEProjectDecodeBinaryProps tSetProps
+         set the customProperties[tSetName] of pObjRef to tSetProps
       end repeat
    end if
 end revIDEProjectReconstructCustomProps
 
+-- Recursively decodes any "__binary__:" prefixed values back to raw binary data.
+on revIDEProjectDecodeBinaryProps @pProps
+   local tKey
+   repeat for each key tKey in pProps
+      if pProps[tKey] is an array then
+         local tSub
+         put pProps[tKey] into tSub
+         revIDEProjectDecodeBinaryProps tSub
+         put tSub into pProps[tKey]
+      else if pProps[tKey] begins with "__binary__:" then
+         -- "__binary__:" is 11 chars; everything after is the base64-encoded payload
+         put base64Decode(char 12 to -1 of pProps[tKey]) into pProps[tKey]
+      end if
+   end repeat
+end revIDEProjectDecodeBinaryProps
+
 -- Recursively converts every leaf value in an array to a plain string,
 -- so that livecode.lang.boolean and livecode.lang.data typed values do not
 -- cause type errors inside jsonExport.
+-- Binary values (those containing null bytes or other control characters that
+-- jsonExport cannot safely represent) are base64-encoded with a "__binary__:"
+-- prefix so they survive the JSON round-trip intact.
 on revIDEProjectSanitizeArray @pArray
    local tKey, tSubArray
    repeat for each key tKey in pArray
@@ -8509,10 +9301,46 @@ on revIDEProjectSanitizeArray @pArray
          revIDEProjectSanitizeArray tSubArray
          put tSubArray into pArray[tKey]
       else
-         put pArray[tKey] & "" into pArray[tKey]
+         -- Preserve booleans and numbers so jsonExport emits the correct JSON types.
+         -- LCB widget properties require proper types; stringifying breaks them.
+         if pArray[tKey] is a boolean or pArray[tKey] is a number then
+            next repeat
+         end if
+         local tLeaf
+         put pArray[tKey] & "" into tLeaf
+         if revIDEProjectValueIsBinary(tLeaf) then
+            put "__binary__:" & base64Encode(tLeaf) into pArray[tKey]
+         else
+            put tLeaf into pArray[tKey]
+         end if
       end if
    end repeat
 end revIDEProjectSanitizeArray
+
+-- Returns true if pValue contains bytes that cannot be safely represented
+-- in a JSON string: null bytes, control characters below 0x09 (tab),
+-- 0x0B (vertical tab), 0x0C (form feed), 0x0E–0x1F, or any byte 0x80–0xFF
+-- (which cannot be guaranteed to form valid UTF-8 sequences — e.g. raw MD5
+-- checksums stored in custom properties).
+private function revIDEProjectValueIsBinary pValue
+   local i
+   -- Chars 0x00–0x08 (null through backspace)
+   repeat with i = 0 to 8
+      if pValue contains numToChar(i) then return true
+   end repeat
+   -- 0x0B (vertical tab) and 0x0C (form feed)
+   if pValue contains numToChar(11) then return true
+   if pValue contains numToChar(12) then return true
+   -- 0x0E–0x1F (shift-out through unit separator)
+   repeat with i = 14 to 31
+      if pValue contains numToChar(i) then return true
+   end repeat
+   -- Note: bytes 0x80–0xFF are NOT treated as binary here. The project JSON file
+   -- is written/read as explicit UTF-8, so Unicode text strings (including names
+   -- with non-ASCII characters) are stored as readable UTF-8 in the JSON rather
+   -- than being base64-encoded. Only genuine control-character binary data is flagged.
+   return false
+end revIDEProjectValueIsBinary
 
 -- ---------------------------------------------------------------------------
 -- Project format loading (commented out for incremental testing)
@@ -8529,13 +9357,13 @@ on revIDELoadFromProject pFilePath
       return "Error"
    end if
    local tJSON
-   open file pFilePath for read
+   open file pFilePath for binary read
    if the result is not empty then
       answer revIDELocalise("Could not read project file:") & return & the result
       return "Error"
    end if
    read from file pFilePath until end
-   put it into tJSON
+   put textDecode(it, "UTF-8") into tJSON
    close file pFilePath
    local tTree
    put jsonImport(tJSON) into tTree
@@ -8551,20 +9379,146 @@ on revIDELoadFromProject pFilePath
    put tTree["stack"] into tStackNode
    lock screen
    -- tDeferredBehaviors collects {controlRef, behaviorName, behaviorStack} entries
-   -- from all controls across all stacks/substacks, resolved after full reconstruction
-   local tDeferredBehaviors
-   revIDEProjectReconstructStack tStackNode, tFolderPath, empty, tDeferredBehaviors
+   -- tDeferredIcons collects {controlRef, stackName, iconNames} entries for buttons
+   -- Both are resolved after full reconstruction so all controls exist with correct names.
+   local tDeferredBehaviors, tDeferredIcons, tDeferredDgData
+   revIDEProjectReconstructStack tStackNode, tFolderPath, empty, tDeferredBehaviors, tDeferredIcons, tDeferredDgData
    put the result into tNewStackName
    -- Resolve all deferred behaviors now that every stack and control exists
-   local bi
+   local bi, tLoadWarnings
+   put empty into tLoadWarnings
    repeat with bi = 1 to the number of elements of tDeferredBehaviors
       local tBeh, tBehaviorTarget
       put tDeferredBehaviors[bi] into tBeh
-      put "button" && quote & tBeh["behaviorName"] & quote && "of stack" && quote & tBeh["behaviorStack"] & quote into tBehaviorTarget
-      if there is a tBehaviorTarget then
-         set the behavior of tBeh["controlRef"] to the long id of tBehaviorTarget
+      -- "button name of stack X" only searches the stack's current card.
+      -- Search all cards of the behavior stack to handle buttons on non-current cards.
+      local tBehName, tBehStack, tBehFound
+      put tBeh["behaviorName"] into tBehName
+      put tBeh["behaviorStack"] into tBehStack
+      put false into tBehFound
+      if tBehName is not empty and tBehStack is not empty then
+         local tBehCardCount, tBehCI
+         put the number of cards of stack tBehStack into tBehCardCount
+         repeat with tBehCI = 1 to tBehCardCount
+            put "button" && quote & tBehName & quote && "of card" && tBehCI && "of stack" && quote & tBehStack & quote into tBehaviorTarget
+            if there is a tBehaviorTarget then
+               set the behavior of tBeh["controlRef"] to the long id of tBehaviorTarget
+               put true into tBehFound
+               exit repeat
+            end if
+         end repeat
+      end if
+      if not tBehFound then
+         -- Behavior could not be resolved: the script button doesn't exist in any loaded stack.
+         -- This usually means the behavior's stack file is missing or was not part of the project.
+         local tBehWarn
+         put "  • " & QUOTE & tBehName & QUOTE into tBehWarn
+         if tBehStack is not empty then
+            put " (from stack " & QUOTE & tBehStack & QUOTE & ")" after tBehWarn
+         end if
+         put tBehWarn & return after tLoadWarnings
       end if
    end repeat
+   -- Dispatch RefreshList to all datagrids now that behaviors are wired up.
+   -- Datagrids are groups with a "dgProps" custom property set.
+   -- Iterate the main stack and any substacks produced by the reconstruction.
+   local tRefreshStacks, tRefreshStack
+   put tNewStackName into tRefreshStacks
+   put return & the substacks of stack tNewStackName after tRefreshStacks
+   repeat for each line tRefreshStack in tRefreshStacks
+      if tRefreshStack is empty then next repeat
+      local tDGCardNum
+      repeat with tDGCardNum = 1 to the number of cards of stack tRefreshStack
+         local tDGCtrlNum
+         repeat with tDGCtrlNum = 1 to the number of controls of card tDGCardNum of stack tRefreshStack
+            local tDGRef
+            put the long id of control tDGCtrlNum of card tDGCardNum of stack tRefreshStack into tDGRef
+            if (word 1 of tDGRef is "group" or word 1 of tDGRef is "background") and \
+                  "dgProps" is among the lines of the customPropertySets of tDGRef then
+               --               dispatch "RefreshList" to tDGRef
+               send "RefreshList" to tDGRef in 1 millisecond
+            end if
+         end repeat
+      end repeat
+   end repeat
+   -- Restore datagrid row template reference and data now that behaviors are wired
+   -- up and all substacks (including DataGridTemplates stacks) are reconstructed.
+   -- The row template long id from the saved file has stale group/card ids; re-resolve
+   -- by the group's short name in the template stack (names are stable, ids are not).
+   local tDGDataIdx
+   repeat with tDGDataIdx = 1 to the number of elements of tDeferredDgData
+      local tDGDataEntry, tDGData
+      put tDeferredDgData[tDGDataIdx] into tDGDataEntry
+      -- Re-apply resolved row template and DG2 control refs now that behaviors are wired up.
+      local tDGHasCtrlFix
+      put false into tDGHasCtrlFix
+      if tDGDataEntry["resolvedRowTemplateRef"] is not empty then put true into tDGHasCtrlFix
+      local tDG2ApplyList, tDG2ApplyItem, tDG2ApplyKey
+      put "left swipe control,right swipe control,edit mode action control,edit mode action select control,edit mode reorder control" into tDG2ApplyList
+      repeat for each item tDG2ApplyItem in tDG2ApplyList
+         put tDG2ApplyItem into tDG2ApplyKey
+         replace space with "_" in tDG2ApplyKey
+         if tDGDataEntry["resolvedDG2CtrlRef_" & tDG2ApplyKey] is not empty then put true into tDGHasCtrlFix
+      end repeat
+      if tDGHasCtrlFix then
+         local tDGPropsForFix
+         put the customProperties["dgProps"] of tDGDataEntry["controlRef"] into tDGPropsForFix
+         if tDGDataEntry["resolvedRowTemplateRef"] is not empty then
+            put tDGDataEntry["resolvedRowTemplateRef"] into tDGPropsForFix["row template"]
+         end if
+         repeat for each item tDG2ApplyItem in tDG2ApplyList
+            put tDG2ApplyItem into tDG2ApplyKey
+            replace space with "_" in tDG2ApplyKey
+            if tDGDataEntry["resolvedDG2CtrlRef_" & tDG2ApplyKey] is not empty then
+               put tDGDataEntry["resolvedDG2CtrlRef_" & tDG2ApplyKey] into tDGPropsForFix[tDG2ApplyItem]
+            end if
+         end repeat
+         set the customProperties["dgProps"] of tDGDataEntry["controlRef"] to tDGPropsForFix
+         put empty into tDGPropsForFix
+      end if
+      -- Restore dgData (behavior-driven, must follow behavior attach)
+      if tDGDataEntry["dgData"] is an array then
+         put tDGDataEntry["dgData"] into tDGData
+         revIDEProjectDecodeBinaryProps tDGData
+         set the dgData of tDGDataEntry["controlRef"] to tDGData
+      end if
+   end repeat
+   -- Resolve deferred icon name references now that all controls exist with correct names.
+   -- Images were explicitly named (controlName) during reconstruction, so lookups are reliable.
+   -- Walk cards and controls explicitly since "there is an image X of stack Y" is not valid syntax.
+   local ii
+   repeat with ii = 1 to the number of elements of tDeferredIcons
+      local tIcon, tIconNames, tIconProp
+      put tDeferredIcons[ii] into tIcon
+      put tIcon["iconNames"] into tIconNames
+      repeat for each key tIconProp in tIconNames
+         local tImgName, tFoundImgID
+         put tIconNames[tIconProp] into tImgName
+         put 0 into tFoundImgID
+         local tIconSearchStackName, tIconCardNum, tIconCtrlNum
+         put tIcon["stackName"] into tIconSearchStackName
+         repeat with tIconCardNum = 1 to the number of cards of stack tIconSearchStackName
+            repeat with tIconCtrlNum = 1 to the number of controls of card tIconCardNum of stack tIconSearchStackName
+               if word 1 of the long id of control tIconCtrlNum of card tIconCardNum of stack tIconSearchStackName is "image" then
+                  if the short name of control tIconCtrlNum of card tIconCardNum of stack tIconSearchStackName is tImgName then
+                     put the id of control tIconCtrlNum of card tIconCardNum of stack tIconSearchStackName into tFoundImgID
+                     exit repeat
+                  end if
+               end if
+            end repeat
+            if tFoundImgID is not 0 then exit repeat
+         end repeat
+         if tFoundImgID is not 0 then
+            do "set the" && tIconProp && "of tIcon[" & QUOTE & "controlRef" & QUOTE & "] to" && tFoundImgID
+         end if
+      end repeat
+   end repeat
+   -- Show a single warning dialog if any behaviors could not be resolved
+   if tLoadWarnings is not empty then
+      answer warning "Some behaviors could not be restored after loading the project:" & return & return & \
+            tLoadWarnings & return & \
+            "Check that all stacks referenced as behaviors are included in the project."
+   end if
    if tNewStackName is not empty then
       -- Store the project FOLDER path so Save knows to update the project rather
       -- than prompt for a new .hyperxtalk file. tFolderPath is the package folder
@@ -8573,6 +9527,7 @@ on revIDELoadFromProject pFilePath
       revIDEAddRecentStack pFilePath
       unlock screen
       lock error dialogs
+      go card 1 of stack tNewStackName
       send "preOpenStack" to card 1 of stack tNewStackName
       send "preOpenCard" to card 1 of stack tNewStackName
       go stack tNewStackName
@@ -8585,12 +9540,26 @@ on revIDELoadFromProject pFilePath
 end revIDELoadFromProject
 
 
-on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDeferredBehaviors
+on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDeferredBehaviors, @pDeferredIcons, @pDeferredDgData
    local tName
    put pStackNode["name"] into tName
+   if tName begins with "__binary__:" then
+      put base64Decode(char 12 to -1 of tName) into tName
+   end if
    create stack tName
    local tNewStackName
-   put tName into tNewStackName
+   put the short name of it into tNewStackName
+   -- Restore the stack's original ID immediately so its fresh auto-assigned ID
+   -- cannot collide with any control's origID during reconstruction.
+   if pStackNode["id"] is not empty then
+      set the id of stack tNewStackName to pStackNode["id"]
+   end if
+   -- Restore card 1's original ID for the same reason.
+   local tEarlyCard1ID
+   put the id of card 1 of stack tNewStackName into tEarlyCard1ID
+   if pStackNode["cards"][1]["id"] is not empty then
+      set the id of card id tEarlyCard1ID of stack tNewStackName to pStackNode["cards"][1]["id"]
+   end if
    lock screen
    lock messages
    if pStackNode["title"] is not empty then
@@ -8607,6 +9576,21 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    end if
    if pStackNode["cantDelete"] is not empty then
       set the cantDelete of stack tNewStackName to (pStackNode["cantDelete"] is "true")
+   end if
+   if pStackNode["cantAbort"] is not empty then
+      set the cantAbort of stack tNewStackName to (pStackNode["cantAbort"] is "true")
+   end if
+   if pStackNode["destroyStack"] is not empty then
+      set the destroyStack of stack tNewStackName to (pStackNode["destroyStack"] is "true")
+   end if
+   if pStackNode["destroyWindow"] is not empty then
+      set the destroyWindow of stack tNewStackName to (pStackNode["destroyWindow"] is "true")
+   end if
+   if pStackNode["decorations"] is not empty then
+      set the decorations of stack tNewStackName to pStackNode["decorations"]
+   end if
+   if pStackNode["menubar"] is not empty then
+      set the menubar of stack tNewStackName to pStackNode["menubar"]
    end if
    if pStackNode["backgroundColor"] is not empty then
       set the backgroundColor of stack tNewStackName to pStackNode["backgroundColor"]
@@ -8626,6 +9610,108 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    if pStackNode["textStyle"] is not empty then
       set the textStyle of stack tNewStackName to pStackNode["textStyle"]
    end if
+   if pStackNode["stackFiles"] is not empty then
+      set the stackFiles of stack tNewStackName to pStackNode["stackFiles"]
+   end if
+   -- Reconstruct background/shared groups on card 1 before cards are processed.
+   -- backgroundBehavior is restored via set the properties (booleans now preserved).
+   -- If the group has backgroundBehavior=true after reconstruction, remove it from card 1
+   -- so it can be cleanly placed onto each card that needs it.
+   if pStackNode["backgrounds"] is an array then
+      local tBGArray, bgi
+      put pStackNode["backgrounds"] into tBGArray
+      local tCard1ID
+      put the id of card 1 of stack tNewStackName into tCard1ID
+      -- Restore card 1's original ID NOW before any background group IDs are set.
+      -- Without this, the fresh auto-assigned card ID can collide with a background
+      -- group's origID, causing "another control already has the id".
+      local tCard1OrigID, tCard1IDErr
+      put pStackNode["cards"][1]["id"] into tCard1OrigID
+      if tCard1OrigID is not empty then
+         try
+            set the id of card id tCard1ID of stack tNewStackName to tCard1OrigID
+         catch tCard1IDErr
+            -- ID conflict (e.g. tCard1OrigID equals the reconstructed stack's auto-id).
+            -- Silently keep the auto-assigned card ID; tCard1ID will be re-read below.
+         end try
+      end if
+      -- Always re-read the actual card 1 ID so tCard1ID is valid regardless of whether
+      -- the restoration above succeeded. This prevents an ID conflict from poisoning
+      -- tCardRef with a stack-level ID that "create group in tCardRef" can't resolve.
+      put the id of card 1 of stack tNewStackName into tCard1ID
+      local tBGNodeR, tBGNewName, tDefaultStack
+      local tPreGroupNames, tPostGroupNames, tActualGroupName
+      local tRemoveErr1
+      local tOrigID, tShortName
+      repeat with bgi = 1 to the number of elements of tBGArray
+         put tBGArray[bgi] into tBGNodeR
+
+         -- Snapshot groupNames before reconstruction so we can find the new group by diff.
+         -- In HyperXTalk, "remove group from card" is what enables sharedBehavior, so we
+         -- must NOT set sharedBehavior first. We find the newly created group by name diff.
+         put the groupNames of card 1 of stack tNewStackName into tPreGroupNames
+         revIDEProjectReconstructControl tBGNodeR, tNewStackName, tCard1ID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
+         put the groupNames of card 1 of stack tNewStackName into tPostGroupNames
+
+         -- Find the group that was just added to card 1
+         put empty into tActualGroupName
+         repeat for each line tPostLine in tPostGroupNames
+            if tPostLine is not among the lines of tPreGroupNames then
+               put tPostLine into tActualGroupName
+               exit repeat
+            end if
+         end repeat
+
+         -- Primary: look up the actual short name via origID, since the property set
+         -- inside revIDEProjectReconstructControl restores origID so the group is now
+         -- findable as "group id origID of card id tCard1ID of stack X".
+         -- This avoids relying on tProps["name"] which can return an id-style string
+         -- (e.g. "group id 1004") for unplaced background groups.
+         put empty into tBGNewName
+         put tBGNodeR["origID"] into tOrigID
+         if tOrigID is not empty then
+            put the short name of group id tOrigID of card id tCard1ID of stack tNewStackName into tShortName
+            if tShortName is not empty then
+               put tShortName into tBGNewName
+            end if
+         end if
+         -- Fallback: use the name diff result or the stored controlName
+         if tBGNewName is empty then
+            put tBGNodeR["controlName"] into tBGNewName
+            if tBGNewName begins with "__binary__:" then
+               put base64Decode(char 12 to -1 of tBGNewName) into tBGNewName
+            end if
+            if tActualGroupName is not empty then
+               put tActualGroupName into tBGNewName
+            end if
+         end if
+
+         if tBGNewName is not empty then
+            put the defaultStack into tDefaultStack
+            set the defaultStack to tNewStackName
+
+            -- Remove from card 1 by ID (most reliable); fall back to name if origID unknown.
+            -- In HyperXTalk, "remove group from card" unplaces the group (does not delete it)
+            -- and sets sharedBehavior=true. The group remains accessible by ID in the stack.
+            put empty into tRemoveErr1
+            if tOrigID is not empty then
+               try
+                  remove group id tOrigID from card id tCard1ID of stack tNewStackName
+               catch tRemoveErr1
+               end try
+            end if
+            if tRemoveErr1 is not empty or tOrigID is empty then
+               put empty into tRemoveErr1
+               try
+                  remove group tBGNewName from card id tCard1ID of stack tNewStackName
+               catch tRemoveErr1
+               end try
+            end if
+
+            set the defaultStack to tDefaultStack
+         end if
+      end repeat
+   end if
    local tCards, tCardCount
    put pStackNode["cards"] into tCards
    put the number of elements of tCards into tCardCount
@@ -8640,8 +9726,47 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
          create card
          put the id of the last card of stack tNewStackName into tThisCardID
       end if
-      revIDEProjectReconstructCard tCardNode, tNewStackName, tThisCardID, pFolderPath, pDeferredBehaviors
+      -- Restore the card's original ID immediately — before any other object can claim it.
+      if tCardNode["id"] is not empty then
+         set the id of card id tThisCardID of stack tNewStackName to tCardNode["id"]
+         put tCardNode["id"] into tThisCardID
+      end if
+      revIDEProjectReconstructCard tCardNode, tNewStackName, tThisCardID, pFolderPath, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
    end repeat
+   -- Post-process: restore per-card text for non-sharedText fields in background groups.
+   -- Navigate to each card (stack script is not set yet so no user scripts will fire).
+   -- Messages are unlocked just for the go so navigation actually commits; they are
+   -- re-locked immediately after so the rest of reconstruction stays quiet.
+   set the defaultStack to tNewStackName
+   local tPCTI
+   repeat with tPCTI = 1 to tCardCount
+      local tPCTCardNode
+      put tCards[tPCTI] into tPCTCardNode
+      if not (tPCTCardNode["bgFieldTexts"] is an array) then next repeat
+      unlock messages
+      go card tPCTI of stack tNewStackName
+      lock messages
+      local tPCTGrp, tPCTField, tPCTEnc, tPCTHTML, tPCTUnused
+      repeat for each key tPCTGrp in tPCTCardNode["bgFieldTexts"]
+         repeat for each key tPCTField in tPCTCardNode["bgFieldTexts"][tPCTGrp]
+            put tPCTCardNode["bgFieldTexts"][tPCTGrp][tPCTField] into tPCTEnc
+            if tPCTEnc begins with "__binary__:" then
+               put base64Decode(char 12 to -1 of tPCTEnc) into tPCTHTML
+            else
+               put tPCTEnc into tPCTHTML
+            end if
+            try
+               -- Use stack-scoped name so nested fields are found regardless of group depth.
+               -- The current card is already set by "go card tPCTI" above.
+               set the htmlText of field tPCTField of stack tNewStackName to tPCTHTML
+            catch tPCTUnused
+            end try
+         end repeat
+      end repeat
+   end repeat
+   unlock messages
+   go card 1 of stack tNewStackName
+   lock messages
    if pStackNode["substacks"] is an array then
       local tSubstacks
       put pStackNode["substacks"] into tSubstacks
@@ -8649,34 +9774,174 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
       repeat with s = 1 to the number of elements of tSubstacks
          local tSubNode, tSubName
          put tSubstacks[s] into tSubNode
-         revIDEProjectReconstructStack tSubNode, pFolderPath, tNewStackName, pDeferredBehaviors
+         revIDEProjectReconstructStack tSubNode, pFolderPath, tNewStackName, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
          put the result into tSubName
          if tSubName is not empty then
+            -- Before closing (which may unload the substack if destroyStack=true),
+            -- resolve any pending datagrid row template references that point to this substack.
+            -- Check if this substack is a DataGridTemplates stack for any pending datagrid.
+            -- If so: pre-resolve the new row template long id (IDs change on rebuild) and
+            -- apply dgProps["row template"] immediately while the stack is still open — before
+            -- hiding it. The datagrid behavior is not yet attached at this point, so the
+            -- direct customProperties set has no side effects. A second pass also applies
+            -- the fix in revIDELoadFromProject (after behavior wiring) for belt-and-suspenders.
+            local tDGScanIdx, tIsRowTplStack
+            put false into tIsRowTplStack
+            repeat with tDGScanIdx = 1 to the number of elements of pDeferredDgData
+               -- Primary match: case-insensitive comparison of saved stack name vs reconstructed name.
+               -- Fuzzy fallback: if the JSON lost spaces from "Data Grid Templates <ms>"
+               -- → "DataGridTemplates<ms>", the primary match fails.  Catch this by comparing
+               -- both names after stripping spaces, but only when both begin with "DataGridTemplates"
+               -- (after normalization) to avoid false positives across unrelated substacks.
+               local tDGMatchRT
+               put false into tDGMatchRT
+               if pDeferredDgData[tDGScanIdx]["rowTemplateStackName"] is tSubName then
+                  put true into tDGMatchRT
+               else
+                  local tRTNameNorm, tSubNameNorm
+                  put pDeferredDgData[tDGScanIdx]["rowTemplateStackName"] into tRTNameNorm
+                  replace space with empty in tRTNameNorm
+                  put tSubName into tSubNameNorm
+                  replace space with empty in tSubNameNorm
+                  if tRTNameNorm begins with "DataGridTemplates" and tRTNameNorm is tSubNameNorm then
+                     put true into tDGMatchRT
+                  end if
+               end if
+               if tDGMatchRT then
+                  put true into tIsRowTplStack
+                  local tRTEntry
+                  put pDeferredDgData[tDGScanIdx] into tRTEntry
+                  -- Build a fresh long id using the actual reconstructed stack name and the
+                  -- restored original IDs (set at creation time).  The stored dgProps value
+                  -- may have a normalised stack name (e.g. spaces stripped by the engine's
+                  -- _CustomControlReference), so we must overwrite it with the canonical form.
+                  local tRTGroupName, tRTCardNum
+                  put tRTEntry["rowTemplateGroupName"] into tRTGroupName
+                  if tRTGroupName is empty then put "Row Template" into tRTGroupName
+                  put tRTEntry["rowTemplateCardNum"] into tRTCardNum
+                  if tRTCardNum is not an integer or tRTCardNum < 1 then put 1 into tRTCardNum
+                  if there is a group tRTGroupName of card tRTCardNum of stack tSubName then
+                     put the long id of group tRTGroupName of card tRTCardNum of stack tSubName into tRTEntry["resolvedRowTemplateRef"]
+                  end if
+                  -- Resolve DG2 customisable controls on the same card.
+                  local tRTCardRef
+                  if there is a card tRTCardNum of stack tSubName then
+                     put the long id of card tRTCardNum of stack tSubName into tRTCardRef
+                  end if
+                  local tDG2ResolveList, tDG2ResolveItem, tDG2ResolveKey, tDG2GrpName
+                  put "left swipe control,right swipe control,edit mode action control,edit mode action select control,edit mode reorder control" into tDG2ResolveList
+                  repeat for each item tDG2ResolveItem in tDG2ResolveList
+                     put tDG2ResolveItem into tDG2ResolveKey
+                     replace space with "_" in tDG2ResolveKey
+                     put tRTEntry["dg2CtrlGroupName_" & tDG2ResolveKey] into tDG2GrpName
+                     if tDG2GrpName is not empty and tRTCardRef is not empty then
+                        if there is a group tDG2GrpName of tRTCardRef then
+                           put the long id of group tDG2GrpName of tRTCardRef into tRTEntry["resolvedDG2CtrlRef_" & tDG2ResolveKey]
+                        end if
+                     end if
+                  end repeat
+                  -- Apply immediately while the DataGridTemplates stack is still open.
+                  if tRTEntry["controlRef"] is not empty then
+                     local tEarlyDGProps
+                     put the customProperties["dgProps"] of tRTEntry["controlRef"] into tEarlyDGProps
+                     if tRTEntry["resolvedRowTemplateRef"] is not empty then
+                        put tRTEntry["resolvedRowTemplateRef"] into tEarlyDGProps["row template"]
+                     end if
+                     local tDG2EarlyItem, tDG2EarlyKey
+                     repeat for each item tDG2EarlyItem in tDG2ResolveList
+                        put tDG2EarlyItem into tDG2EarlyKey
+                        replace space with "_" in tDG2EarlyKey
+                        if tRTEntry["resolvedDG2CtrlRef_" & tDG2EarlyKey] is not empty then
+                           put tRTEntry["resolvedDG2CtrlRef_" & tDG2EarlyKey] into tEarlyDGProps[tDG2EarlyItem]
+                        end if
+                     end repeat
+                     set the customProperties["dgProps"] of tRTEntry["controlRef"] to tEarlyDGProps
+                     put empty into tEarlyDGProps
+                  end if
+                  put tRTEntry into pDeferredDgData[tDGScanIdx]
+               end if
+            end repeat
             set the mainStack of stack tSubName to tNewStackName
-            close stack tSubName
+            if tIsRowTplStack then
+               -- Keep DataGridTemplates stack in memory (hidden) so datagrid behavior
+               -- can access the row template group. Hiding is fine; the datagrid behavior
+               -- works with hidden template stacks (same as normal LC IDE workflow).
+               set the destroyStack of stack tSubName to false
+               hide stack tSubName
+            else
+               close stack tSubName
+            end if
          end if
       end repeat
    end if
    -- Custom properties
    revIDEProjectReconstructCustomProps pStackNode, "stack" && quote & tNewStackName & quote
-   set the script of stack tNewStackName to pStackNode["script"]
+   local tStackScript
+   if pStackNode["scriptFile"] is not empty then
+      put revIDEProjectReadScript(pStackNode["scriptFile"], pFolderPath) into tStackScript
+   else
+      put pStackNode["script"] into tStackScript
+   end if
+   set the script of stack tNewStackName to tStackScript
    unlock messages
    unlock screen
    return tNewStackName
 end revIDEProjectReconstructStack
 
 
-on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pDeferredBehaviors
+on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pDeferredBehaviors, @pDeferredIcons, @pDeferredDgData
    local tCardRef
    put "card id" && pCardID && "of stack" && quote & pStackName & quote into tCardRef
+   -- HyperXTalk auto-places all background groups on every new card (HyperCard behaviour).
+   -- Strip them all first; we will re-place only those listed in backgroundGroups below.
+   -- Strip any groups that HyperXTalk auto-placed on this card; placement is handled below.
+   local tAutoName
+   repeat for each line tAutoName in the groupNames of card id pCardID of stack pStackName
+      if tAutoName is empty then next repeat
+      try
+         remove group tAutoName from card id pCardID of stack pStackName
+      catch tUnused
+      end try
+   end repeat
+   -- HyperXTalk may also copy card-level controls from card 1 to each new card.
+   -- Delete them all now; they will be reconstructed from JSON below.
+   local tPreCtrl
+   put the number of controls of card id pCardID of stack pStackName into tPreCtrl
+   repeat with tPreCtrl = tPreCtrl down to 1
+      local tPreRef
+      put the long id of control tPreCtrl of card id pCardID of stack pStackName into tPreRef
+      if word 1 of the owner of tPreRef is "card" then
+         delete tPreRef
+      end if
+   end repeat
    if pCardNode["name"] is not empty then
-      set the name of tCardRef to pCardNode["name"]
+      local tCardName
+      put pCardNode["name"] into tCardName
+      if tCardName begins with "__binary__:" then
+         put base64Decode(char 12 to -1 of tCardName) into tCardName
+      end if
+      -- Skip ID-based placeholder names like "card id 1002"
+      local tCNWords
+      put the number of words of tCardName into tCNWords
+      if tCNWords >= 2 and word (tCNWords - 1) of tCardName is "id" \
+            and word tCNWords of tCardName is a number then
+         put empty into tCardName
+      end if
+      if tCardName is not empty then
+         set the name of tCardRef to tCardName
+      end if
    end if
+   --   if pCardNode["rect"] is not empty then
+   --      set the rect of tCardRef to pCardNode["rect"]
+   --   end if
    if pCardNode["cantDelete"] is not empty then
       set the cantDelete of tCardRef to (pCardNode["cantDelete"] is "true")
    end if
    if pCardNode["dontSearch"] is not empty then
       set the dontSearch of tCardRef to (pCardNode["dontSearch"] is "true")
+   end if
+   if pCardNode["mark"] is not empty then
+      set the mark of tCardRef to (pCardNode["mark"] is "true")
    end if
    if pCardNode["backgroundColor"] is not empty then
       set the backgroundColor of tCardRef to pCardNode["backgroundColor"]
@@ -8693,23 +9958,49 @@ on revIDEProjectReconstructCard pCardNode, pStackName, pCardID, pFolderPath, @pD
       repeat with j = 1 to tControlCount
          local tControlNode
          put tControls[j] into tControlNode
-         revIDEProjectReconstructControl tControlNode, pStackName, pCardID, empty, pFolderPath, pDeferredBehaviors
+         revIDEProjectReconstructControl tControlNode, pStackName, pCardID, empty, pFolderPath, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
       end repeat
    end if
+   -- Place background/shared groups onto this card using group IDs.
+   -- After background reconstruction the groups are unplaced; they cannot be found by name
+   -- but are accessible as "group id N of stack X" since origIDs are restored.
+   if pCardNode["backgroundGroups"] is an array then
+      local tBGPlacements, bgpi
+      put pCardNode["backgroundGroups"] into tBGPlacements
+      repeat with bgpi = 1 to the number of elements of tBGPlacements
+         local tBGPlaceID
+         put tBGPlacements[bgpi] into tBGPlaceID
+         if tBGPlaceID is not empty then
+            try
+               place group id tBGPlaceID of stack pStackName onto card id pCardID of stack pStackName
+            catch tUnused
+            end try
+         end if
+      end repeat
+   end if
+   -- bgFieldTexts is restored in a post-processing pass in revIDEProjectReconstructStack
+   -- (after all cards are placed) by navigating to each card so the engine uses the
+   -- correct per-card non-sharedText field storage. Nothing to do here.
    -- Custom properties
    revIDEProjectReconstructCustomProps pCardNode, tCardRef
-   set the script of tCardRef to pCardNode["script"]
+   local tCardScript
+   if pCardNode["scriptFile"] is not empty then
+      put revIDEProjectReadScript(pCardNode["scriptFile"], pFolderPath) into tCardScript
+   else
+      put pCardNode["script"] into tCardScript
+   end if
+   set the script of tCardRef to tCardScript
 end revIDEProjectReconstructCard
 
 
 -- pGroupID: empty when creating directly on a card; group id when creating inside a group.
-on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, pFolderPath, @pDeferredBehaviors
+on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, pFolderPath, @pDeferredBehaviors, @pDeferredIcons, @pDeferredDgData
    local tType
    put pControlNode["type"] into tType
-
+   
    local tCardRef
    put "card id" && pCardID && "of stack" && quote & pStackName & quote into tCardRef
-
+   
    -- Build the creation target (card or group)
    -- pGroupID is always a plain numeric id, so "group id X of card id Y of stack Z"
    -- is always one level deep regardless of nesting depth
@@ -8719,7 +10010,7 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    else
       put "group id" && pGroupID && "of" && tCardRef into tTarget
    end if
-
+   
    -- Create the control
    -- tControlRef: full long id from `it` — used for properties/script/text
    -- tNewControlID: plain numeric id — used to build tTarget for child creates
@@ -8756,24 +10047,62 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          put the id of tControlRef into tNewControlID
          break
       case "group"
+      case "background"
+      case "bkgnd"
+         -- "background" / "bkgnd" are legacy type tokens for unplaced background groups.
+         -- Reconstructed identically to "group"; sharedBehavior is restored via remove below.
          create group in tTarget
          put it into tControlRef
          put the id of tControlRef into tNewControlID
          break
-         
+
       case "widget"
          if pControlNode["widgetKind"] is empty then exit revIDEProjectReconstructControl
-         local tWidgetKind
-         put pControlNode["widgetKind"] into tWidgetKind
-         create widget as tWidgetKind in tTarget
-         put it into tControlRef
-         put the id of tControlRef into tNewControlID
+         local tWidgetDataForImport
+         if pControlNode["widgetDataEncoded"] is not empty then
+            put arrayDecode(base64Decode(pControlNode["widgetDataEncoded"])) into tWidgetDataForImport
+         end if
+         if tWidgetDataForImport is an array then
+            -- Use import to restore full internal widget state ($state etc.).
+            -- import widget from array creates on the current card of the default stack.
+            set the defaultStack to pStackName
+            import widget from array tWidgetDataForImport
+            put it into tControlRef
+            put the id of tControlRef into tNewControlID
+            -- If the widget belongs inside a group, copy it there then remove the original.
+            if pGroupID is not empty then
+               copy tControlRef to tTarget
+               delete tControlRef
+               put it into tControlRef
+               put the id of tControlRef into tNewControlID
+            end if
+         else
+            -- No saved widget data: fall back to creating a blank instance.
+            local tWidgetKind
+            put pControlNode["widgetKind"] into tWidgetKind
+            create widget as tWidgetKind in tTarget
+            put it into tControlRef
+            put the id of tControlRef into tNewControlID
+         end if
          break
-         
+
       default
          -- Unknown type, skip
          exit revIDEProjectReconstructControl
    end switch
+
+   -- Restore original control ID immediately after creation.
+   -- Wrapped in try/catch: in HyperXTalk some object types (e.g. background groups)
+   -- may have ID constraints that cause conflicts even when no visible control holds
+   -- the ID. Silently fall back to the auto-assigned ID in that case — background
+   -- groups are referenced by name, not ID, so this is safe for them.
+   if pControlNode["origID"] is not empty then
+      try
+         set the id of tControlRef to pControlNode["origID"]
+         put pControlNode["origID"] into tNewControlID
+      catch tIDConflict
+      end try
+   end if
 
    -- Build a flat stack-level reference for property/script/text operations
    -- Control IDs are unique within a stack, so this works regardless of nesting depth
@@ -8784,13 +10113,104 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
    -- Strip "layer"/"number": restoring a card-level layer on a grouped control moves it
    -- out of its group. Creation order already preserves stacking.
    -- Strip "behavior": it is a long ID that changes on reconstruct; resolved by name below.
+   -- For widgets, properties are set after import to fix up geometry/name; the import
+   -- already restored the full internal state so we strip widgetData-only keys.
    if pControlNode["properties"] is an array then
       local tProps
       put pControlNode["properties"] into tProps
       delete variable tProps["layer"]
       delete variable tProps["number"]
       delete variable tProps["behavior"]
+      -- Strip sharedBehavior from the bulk set: applying it via set the properties
+      -- changes the group's type token, which can make "group id N of stack X" fail
+      -- to resolve — so the name (and any subsequent explicit set) would silently no-op.
+      -- We re-apply it explicitly below, after the name has already been set.
+      local tSavedSharedBehavior
+      put tProps["sharedBehavior"] into tSavedSharedBehavior
+      delete variable tProps["sharedBehavior"]
+      -- Also strip backgroundBehavior for the same reason; re-applied explicitly below.
+      local tSavedBackgroundBehavior
+      put tProps["backgroundBehavior"] into tSavedBackgroundBehavior
+      delete variable tProps["backgroundBehavior"]
+      -- Decode any __binary__: prefixed values back to raw data before applying.
+      -- revIDEProjectSanitizeArray encodes binary leaf values across the whole tree
+      -- at save time; without this decode the prefix strings get set as literal values.
+      revIDEProjectDecodeBinaryProps tProps
+      -- Extract borderWidth and lineSize before bulk set and re-apply explicitly:
+      -- set the properties does not reliably apply them.
+      local tSavedBorderWidth, tSavedLineSz
+      put tProps["borderWidth"] into tSavedBorderWidth
+      delete variable tProps["borderWidth"]
+      put tProps["lineSize"] into tSavedLineSz
+      delete variable tProps["lineSize"]
       set the properties of tStackRef to tProps
+   end if
+   -- Explicitly set the name from the saved controlName so icon lookups can find images
+   -- by name even if set the properties does not honour the name key in this engine.
+   local tDecodedControlName
+   put pControlNode["controlName"] into tDecodedControlName
+   if tDecodedControlName begins with "__binary__:" then
+      put base64Decode(char 12 to -1 of tDecodedControlName) into tDecodedControlName
+   end if
+   -- Skip names of the form "objectType id number" — these are LiveCode's auto-generated
+   -- ID-based placeholders meaning the object has no real name.
+   if tDecodedControlName is not empty then
+      local tNCWords
+      put the number of words of tDecodedControlName into tNCWords
+      if tNCWords >= 2 and word (tNCWords - 1) of tDecodedControlName is "id" \
+            and word tNCWords of tDecodedControlName is a number then
+         put empty into tDecodedControlName
+      end if
+   end if
+   if tDecodedControlName is not empty then
+      set the name of tStackRef to tDecodedControlName
+   end if
+   -- Restore showName explicitly: it is saved as the string "true"/"false" to survive
+   -- the JSON round-trip, and set here after the bulk property restore.
+   if pControlNode["showName"] is not empty then
+      set the showName of tStackRef to (pControlNode["showName"] is "true")
+   end if
+   -- Re-apply sharedBehavior explicitly now that the name and all other properties are
+   -- set. Doing it here (rather than via set the properties) avoids the group's type
+   -- token changing before the name is applied, which would make tStackRef unresolvable.
+   -- For unplaced background groups, "remove group from card" in the backgrounds loop
+   -- remains the primary mechanism; this explicit set is a safety net and is harmless
+   -- because if the group auto-unplaces correctly the remove is caught by try/catch,
+   -- and if it doesn't the remove still runs.
+   if (tType is "group" or tType is "background" or tType is "bkgnd") and tSavedSharedBehavior is "true" then
+      set the sharedBehavior of tStackRef to true
+   end if
+   -- Re-apply backgroundBehavior explicitly for the same reason as sharedBehavior above.
+   if (tType is "group" or tType is "background" or tType is "bkgnd") and tSavedBackgroundBehavior is not empty then
+      set the backgroundBehavior of tStackRef to (tSavedBackgroundBehavior is "true")
+   end if
+   -- Restore borderWidth and lineSize explicitly: set the properties does not apply them.
+   if tSavedBorderWidth is not empty then
+      set the borderWidth of tStackRef to tSavedBorderWidth
+   end if
+   if tSavedLineSz is not empty then
+      set the lineSize of tStackRef to tSavedLineSz
+   end if
+   -- Restore widget built-in color properties explicitly from the saved text values.
+   -- These are saved as "r,g,b" text strings to avoid binary format round-trip issues.
+   -- Applied after set the properties so they override any binary format residue.
+   if tType is "widget" and pControlNode["widgetColors"] is an array then
+      local tWCRestoreKey, tWCRestoreVal
+      repeat for each key tWCRestoreKey in pControlNode["widgetColors"]
+         put pControlNode["widgetColors"][tWCRestoreKey] into tWCRestoreVal
+         if tWCRestoreVal is not empty then
+            do "set the " & tWCRestoreKey & " of " & tStackRef & " to" && quote & tWCRestoreVal & quote
+         end if
+      end repeat
+   end if
+   -- Restore field htmlText explicitly after all other properties are set.
+   -- Saved as base64 to avoid JSON encoding corruption of HTML entities (&, etc.).
+   -- Restored last so it is not overridden by the text property from set the properties.
+   if pControlNode["fieldHtmlText"] is not empty then
+      local tRestoredHtmlText
+      put base64Decode(pControlNode["fieldHtmlText"]) into tRestoredHtmlText
+      set the htmlText of tStackRef to tRestoredHtmlText
+      put empty into tRestoredHtmlText
    end if
 
    -- Defer behavior resolution until all stacks/controls are reconstructed
@@ -8804,23 +10224,129 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
       put tBehEntry into pDeferredBehaviors[tBehIdx]
    end if
 
-   -- Image: restore binary data from media folder
+   -- Defer dgData restore and row template fix until behaviors are wired up and
+   -- all substacks (including DataGridTemplates) are reconstructed.
+   -- The third condition catches old project files (pre-rowTemplateStackName) whose dgProps
+   -- has a row template reference even though the extra fields weren't saved yet.
+   if (tType is "group" or tType is "background" or tType is "bkgnd") and \
+         (pControlNode["dgData"] is an array \
+         or pControlNode["rowTemplateStackName"] is not empty \
+         or pControlNode["customPropertySets"]["dgProps"]["row template"] is not empty) then
+      local tDGEntry, tDGIdx
+      put tStackRef into tDGEntry["controlRef"]
+      if pControlNode["dgData"] is an array then
+         put pControlNode["dgData"] into tDGEntry["dgData"]
+      end if
+      put pControlNode["rowTemplateStackName"] into tDGEntry["rowTemplateStackName"]
+      -- Fallback for old project files: extract the stack name from the serialized dgProps long id.
+      -- "row template" stores group id X of card id Y of stack "Name"; parse out "Name".
+      if tDGEntry["rowTemplateStackName"] is empty then
+         local tLegacyRef, tLegacyOfStack, tLegacyPos
+         put pControlNode["customPropertySets"]["dgProps"]["row template"] into tLegacyRef
+         if tLegacyRef is not empty then
+            put " of stack " & quote into tLegacyOfStack
+            put offset(tLegacyOfStack, tLegacyRef) into tLegacyPos
+            if tLegacyPos > 0 then
+               put char (tLegacyPos + the number of chars in tLegacyOfStack) to -2 of tLegacyRef into tDGEntry["rowTemplateStackName"]
+            end if
+         end if
+      end if
+      put pControlNode["rowTemplateCardName"] into tDGEntry["rowTemplateCardName"]
+      put pControlNode["rowTemplateCardNum"] into tDGEntry["rowTemplateCardNum"]
+      -- Fallback: DataGridTemplates stacks always have exactly one card.
+      if tDGEntry["rowTemplateCardNum"] is empty then
+         put 1 into tDGEntry["rowTemplateCardNum"]
+      end if
+      put pControlNode["rowTemplateGroupName"] into tDGEntry["rowTemplateGroupName"]
+      put pControlNode["rowTemplateGroupOrigID"] into tDGEntry["rowTemplateGroupOrigID"]
+      put pControlNode["rowTemplateCardOrigID"] into tDGEntry["rowTemplateCardOrigID"]
+      -- Fallback: the DG behavior always names the row template group "Row Template".
+      if tDGEntry["rowTemplateGroupName"] is empty and tDGEntry["rowTemplateStackName"] is not empty then
+         put "Row Template" into tDGEntry["rowTemplateGroupName"]
+      end if
+      -- cRevUniqueID: stable across saves; the loader will scan the template stack for the
+      -- group/control whose restored cRevUniqueID matches, bypassing the stale group/card IDs.
+      put pControlNode["rowTemplateGroupUID"] into tDGEntry["rowTemplateGroupUID"]
+      put pControlNode["rowTemplateDGName"] into tDGEntry["rowTemplateDGName"]
+      -- Pass through the short names saved for the other customisable controls so that
+      -- the substack resolution pass (revIDEProjectReconstructStack) can re-resolve them.
+      local tDG2PassList, tDG2PassItem, tDG2PassKey
+      put "left swipe control,right swipe control,edit mode action control,edit mode action select control,edit mode reorder control" into tDG2PassList
+      repeat for each item tDG2PassItem in tDG2PassList
+         put tDG2PassItem into tDG2PassKey
+         replace space with "_" in tDG2PassKey
+         put pControlNode["dg2CtrlGroupName_" & tDG2PassKey] into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
+         put pControlNode["dg2CtrlCardName_" & tDG2PassKey] into tDGEntry["dg2CtrlCardName_" & tDG2PassKey]
+         put pControlNode["dg2CtrlUID_" & tDG2PassKey] into tDGEntry["dg2CtrlUID_" & tDG2PassKey]
+         put pControlNode["dg2CtrlOrigID_" & tDG2PassKey] into tDGEntry["dg2CtrlOrigID_" & tDG2PassKey]
+         -- Fallback for old project files: use the conventional name the DG behavior assigns.
+         -- Only applied when the group name wasn't saved AND the dgProps has a reference for this
+         -- control (meaning the default control existed at save time).
+         if tDGEntry["dg2CtrlGroupName_" & tDG2PassKey] is empty and \
+               pControlNode["customPropertySets"]["dgProps"][tDG2PassItem] is not empty then
+            switch tDG2PassItem
+               case "left swipe control"
+                  put "DG2 Default Left Swipe Control" into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
+                  break
+               case "right swipe control"
+                  put "DG2 Default Right Swipe Control" into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
+                  break
+               case "edit mode action control"
+                  put "DG2 Default Edit Mode Action Control" into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
+                  break
+               case "edit mode action select control"
+                  put "DG2 Default Edit Mode Action Select Control" into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
+                  break
+               case "edit mode reorder control"
+                  put "DG2 Default Edit Mode Reorder Control" into tDGEntry["dg2CtrlGroupName_" & tDG2PassKey]
+                  break
+            end switch
+         end if
+      end repeat
+      put the number of elements of pDeferredDgData + 1 into tDGIdx
+      put tDGEntry into pDeferredDgData[tDGIdx]
+   end if
+
+   -- Defer icon resolution until all controls exist and have their names set.
+   -- Button icon properties are numeric image IDs that change on reconstruct;
+   -- we resolve them by image name after full reconstruction.
+   if tType is "button" and pControlNode["iconNames"] is an array then
+      local tIconEntry, tIconIdx
+      put tStackRef into tIconEntry["controlRef"]
+      put pStackName into tIconEntry["stackName"]
+      put pControlNode["iconNames"] into tIconEntry["iconNames"]
+      put the number of elements of pDeferredIcons + 1 into tIconIdx
+      put tIconEntry into pDeferredIcons[tIconIdx]
+   end if
+
+   -- Image: restore encoded image data from media folder.
+   -- Read the PNG bytes into a variable first, then use set the text of <ref>
+   -- so LiveCode evaluates tStackRef as an object reference (not a container).
+   -- "put X into tStackRef" would overwrite the reference string itself.
    if tType is "image" then
       if pControlNode["mediaFile"] is not empty then
          local tMediaPath, tImageData
          put pFolderPath & "/" & pControlNode["mediaFile"] into tMediaPath
-         open file tMediaPath for binary read
-         if the result is empty then
-            read from file tMediaPath until end
-            put it into tImageData
-            close file tMediaPath
+         if there is a file tMediaPath then
+            put URL ("binfile:" & tMediaPath) into tImageData
             set the text of tStackRef to tImageData
          end if
       end if
    end if
-
-   -- Group: recurse into child controls in reverse order
-   if tType is "group" then
+   
+   -- Player: restore filename from bundled media file
+   if tType is "player" then
+      if pControlNode["mediaFile"] is not empty then
+         local tPlayerMediaPath
+         put pFolderPath & "/" & pControlNode["mediaFile"] into tPlayerMediaPath
+         if there is a file tPlayerMediaPath then
+            set the filename of tStackRef to tPlayerMediaPath
+         end if
+      end if
+   end if
+   
+   -- Group: recurse into child controls in reverse order ("background"/"bkgnd" = legacy type tokens for unplaced bg groups)
+   if tType is "group" or tType is "background" or tType is "bkgnd" then
       if pControlNode["controls"] is an array then
          local tChildControls, tChildCount, k
          put pControlNode["controls"] into tChildControls
@@ -8828,24 +10354,58 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
          repeat with k = 1 to tChildCount
             local tChildNode
             put tChildControls[k] into tChildNode
-            revIDEProjectReconstructControl tChildNode, pStackName, pCardID, tNewControlID, pFolderPath, pDeferredBehaviors
+            revIDEProjectReconstructControl tChildNode, pStackName, pCardID, tNewControlID, pFolderPath, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
          end repeat
       end if
    end if
-
+   
    -- Custom properties
    revIDEProjectReconstructCustomProps pControlNode, tStackRef
    -- Script last to avoid side-effects during reconstruction
-   set the script of tStackRef to pControlNode["script"]
+   local tControlScript
+   if pControlNode["scriptFile"] is not empty then
+      put revIDEProjectReadScript(pControlNode["scriptFile"], pFolderPath) into tControlScript
+   else
+      put pControlNode["script"] into tControlScript
+   end if
+   set the script of tStackRef to tControlScript
 end revIDEProjectReconstructControl
 
 -- ---------------------------------------------------------------------------
 
 on revIDEMoveSubstackToFile pStackID
-   # Validate stack exists
-   # Validate stack has a parent
-   # Ask for the file to move it for
-   # Set filename of stack / remove parent link
+   -- Validate stack exists
+   if not exists(pStackID) then
+      answer error "The specified stack does not exist."
+      exit revIDEMoveSubstackToFile
+   end if
+   local tStackName
+   put the short name of pStackID into tStackName
+
+   -- Validate the stack is a substack (has a different main stack)
+   local tMainStack
+   put the mainStack of stack tStackName into tMainStack
+   if tMainStack is tStackName then
+      answer error "The stack " & QUOTE & tStackName & QUOTE & " is already a main stack. Only substacks can be moved to their own file."
+      exit revIDEMoveSubstackToFile
+   end if
+
+   -- Ask the user where to save the stack file
+   local tDefaultFile
+   put specialFolderPath("documents") & slash & tStackName & ".hyperxtalk" into tDefaultFile
+   ask file "Save substack " & quote & tStackName & quote & " as its own file:" with tDefaultFile
+   if the result is "cancel" then exit revIDEMoveSubstackToFile
+   local tFilePath
+   put it into tFilePath
+
+   -- Setting the filename saves the stack to the new file and detaches it from its parent
+   set the filename of stack tStackName to tFilePath
+   if the result is not empty then
+      answer error "Could not move substack to file:" & return & the result
+      exit revIDEMoveSubstackToFile
+   end if
+
+   revIDEMessageSend "ideStackFileMoved", the long id of stack tStackName
 end revIDEMoveSubstackToFile
 
 on revIDESaveAsStandalone pTarget

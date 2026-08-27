@@ -1122,14 +1122,16 @@ void MCWidget::GetState(MCExecContext& ctxt, MCArrayRef& r_state)
     else
     {
         if (!MCWidgetOnSave(m_widget, &t_value) || 
-            // A widget might not have an OnSave handler (e.g. colorswatch widget)
+            // A widget might not have an OnSave handler (e.g. colorswatch widget),
+            // in which case OnSave succeeds but returns nil. Guard against passing
+            // nil to MCExtensionConvertToScriptType which would crash the engine.
             (*t_value == nil))
         {
             r_state = MCValueRetain(kMCEmptyArray);
             return;
         }
     }
-    
+
     if (!MCExtensionConvertToScriptType(ctxt, InOut(t_value)))
     {
         CatchError(ctxt);
