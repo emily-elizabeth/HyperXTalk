@@ -6763,16 +6763,15 @@ on revIDENewMainstack pWidth, pHeight
    # Set the width and height of the template stack
    
    # Generate a unique name for the stack
-   --   local tNumber
-   --   put 1 into tNumber
-   --   repeat
-   --      if there is a stack ("Untitled" && tNumber) then  add 1 to tNumber
-   --      else exit repeat
-   --   end repeat
+   local tNumber
+   put 1 into tNumber
+   repeat
+      if there is a stack ("Untitled" && tNumber) then  add 1 to tNumber
+      else exit repeat
+   end repeat
    
    # Setup the template stack
-   --   set the name of the templateStack to "Untitled" && tNumber
-   set the name of the templateStack to "Untitled" && the seconds
+   set the name of the templateStack to "Untitled" && tNumber
    set the visible of the templateStack to false
    if pWidth > 100 then
       set the width of the templateStack to pWidth
