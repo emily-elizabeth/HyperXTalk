@@ -472,6 +472,11 @@ void MCScreenDC::backdrop_focus_lost()
 // MCpopoverstack must be nulled before calling so on_popover_closed() is a no-op.
 extern void MCLinuxPopoverClose(void);
 
+// Dark-mode colour helpers — strong definitions in lnxgtktheme.cpp.
+extern "C" bool MCplatformIsDarkMode(void);
+extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen);
+extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen);
+
 #include <langinfo.h>
 #include <fcntl.h>
 #include <sys/shm.h>
@@ -2787,6 +2792,20 @@ void MCScreenDC::getsystemappearance(MCSystemAppearance &r_appearance)
 		}
 		g_free(t_theme_name);
 	}
+}
+
+void MCScreenDC::getsystemwindowcolor(MCStringRef &r_color)
+{
+	char t_buf[8] = "#ffffff";
+	MCplatformGetWindowBackgroundColor(t_buf, sizeof(t_buf));
+	/* UNCHECKED */ MCStringCreateWithCString(t_buf, r_color);
+}
+
+void MCScreenDC::getsystemtextcolor(MCStringRef &r_color)
+{
+	char t_buf[8] = "#000000";
+	MCplatformGetLabelColor(t_buf, sizeof(t_buf));
+	/* UNCHECKED */ MCStringCreateWithCString(t_buf, r_color);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
