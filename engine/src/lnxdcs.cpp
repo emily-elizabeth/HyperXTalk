@@ -2779,6 +2779,18 @@ void MCScreenDC::getsystemappearance(MCSystemAppearance &r_appearance)
 	if (t_settings == NULL)
 		return;
 
+	// On modern GNOME (GTK 3.24.31+), dark mode is signalled via
+	// gtk-application-prefer-dark-theme rather than the theme name.
+	gboolean t_prefer_dark = FALSE;
+	g_object_get(t_settings, "gtk-application-prefer-dark-theme", &t_prefer_dark, NULL);
+	if (t_prefer_dark)
+	{
+		r_appearance = kMCSystemAppearanceDark;
+		return;
+	}
+
+	// Fall back to checking the theme name for "dark" — used by older distros
+	// that ship separate dark-theme packages (e.g. Yaru-dark, Adwaita-dark).
 	gchar *t_theme_name = NULL;
 	g_object_get(t_settings, "gtk-theme-name", &t_theme_name, NULL);
 	if (t_theme_name != NULL)

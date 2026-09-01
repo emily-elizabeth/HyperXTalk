@@ -280,6 +280,16 @@ extern "C" bool MCplatformIsDarkMode(void)
 	if (t_settings == NULL)
 		return false;
 
+	// On modern GNOME (GTK 3.24.31+), dark mode is controlled via
+	// org.freedesktop.portal.Settings, which GTK maps to the
+	// gtk-application-prefer-dark-theme property.  Check this first.
+	gboolean t_prefer_dark = FALSE;
+	g_object_get(t_settings, "gtk-application-prefer-dark-theme", &t_prefer_dark, NULL);
+	if (t_prefer_dark)
+		return true;
+
+	// Fall back to checking the theme name for "dark" — used by older distros
+	// that ship separate dark-theme packages (e.g. Yaru-dark, Adwaita-dark).
 	gchar *t_theme_name = NULL;
 	g_object_get(t_settings, "gtk-theme-name", &t_theme_name, NULL);
 	if (t_theme_name == NULL)
@@ -398,25 +408,30 @@ Boolean MCNativeTheme::load()
 	// Initialize member variables
 	m_settings = NULL;
 	m_settings_signal_handler = 0;
-	
+	m_settings_prefer_dark_signal_handler = 0;
+
 	if (!initialised)
 	{
 		gtk_init();
-		
 		initialised = True;
-		m_settings = gtk_settings_get_default();
-		if (m_settings)
-		{
-			// Store the signal handler ID so we can disconnect it later
-			m_settings_signal_handler = g_signal_connect_data(m_settings, "notify::gtk-theme-name",
-			                                                    G_CALLBACK(reload_theme),
-			                                                    NULL, NULL, (GConnectFlags)0);
-			// Also watch the prefer-dark-theme flag, used by some GTK environments
-			// to toggle dark mode independently of the theme name.
-			g_signal_connect_data(m_settings, "notify::gtk-application-prefer-dark-theme",
-			                      G_CALLBACK(reload_theme),
-			                      NULL, NULL, (GConnectFlags)0);
-		}
+	}
+
+	// Connect signals every time load() is called — they are disconnected by
+	// unload(), so they must be reconnected here on each reload_theme() cycle.
+	m_settings = gtk_settings_get_default();
+	if (m_settings)
+	{
+		// gtk-theme-name fires on distros that use separate dark-theme packages
+		// (e.g. Yaru-dark, Adwaita-dark).
+		m_settings_signal_handler = g_signal_connect_data(m_settings, "notify::gtk-theme-name",
+		                                                   G_CALLBACK(reload_theme),
+		                                                   NULL, NULL, (GConnectFlags)0);
+		// gtk-application-prefer-dark-theme fires on modern GNOME (GTK 3.24.31+)
+		// when the user toggles dark mode via Settings → Appearance.
+		m_settings_prefer_dark_signal_handler = g_signal_connect_data(m_settings,
+		                                                               "notify::gtk-application-prefer-dark-theme",
+		                                                               G_CALLBACK(reload_theme),
+		                                                               NULL, NULL, (GConnectFlags)0);
 	}
 	// -- tperry 15-11-2025: GTK3 - initialize offscreen window for theme rendering
 	gtkpix_offscreen = NULL;
@@ -444,11 +459,19 @@ Boolean MCNativeTheme::load()
 
 void MCNativeTheme::unload()
 {
-	// Disconnect the signal handler before cleanup to avoid the finalization warning
-	if (m_settings && m_settings_signal_handler != 0)
+	// Disconnect both signal handlers before cleanup.
+	if (m_settings)
 	{
-		g_signal_handler_disconnect(m_settings, m_settings_signal_handler);
-		m_settings_signal_handler = 0;
+		if (m_settings_signal_handler != 0)
+		{
+			g_signal_handler_disconnect(m_settings, m_settings_signal_handler);
+			m_settings_signal_handler = 0;
+		}
+		if (m_settings_prefer_dark_signal_handler != 0)
+		{
+			g_signal_handler_disconnect(m_settings, m_settings_prefer_dark_signal_handler);
+			m_settings_prefer_dark_signal_handler = 0;
+		}
 		m_settings = NULL;
 	}
 		
