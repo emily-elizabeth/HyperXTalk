@@ -34,6 +34,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "lnxgtkthemedrawing.h"
 #include "lnxtheme.h"
 #include "lnximagecache.h"
+#include "card.h"
 
 #include <gdk/gdkx.h>
 #include <gtk/gtk.h>
@@ -260,7 +261,6 @@ static gboolean reload_theme(void)
 		MCRedrawDirtyScreen();
 
 		// Notify scripts that the system appearance may have changed.
-		void MCPlatformHandleSystemAppearanceChanged(void);
 		MCPlatformHandleSystemAppearanceChanged();
 	}
 	return (TRUE);
@@ -306,6 +306,51 @@ extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen)
 		snprintf(p_buf, p_buflen, "#ffffff");
 	else
 		snprintf(p_buf, p_buflen, "#000000");
+}
+
+// Linux implementation of MCPlatformHandleSystemAppearanceChanged.
+// desktop.cpp is excluded from the Linux build, so we provide the function
+// here.  This mirrors the dispatch logic in desktop.cpp but omits the
+// updatesystemcolors() call (desktop-dc.cpp is also excluded on Linux — GTK
+// handles native widget colours itself) and the Mac HITheme cache flush.
+void MCPlatformHandleSystemAppearanceChanged(void)
+{
+	if (MCscreen == nil)
+		return;
+
+	char t_color_buf[8] = {};
+	char t_text_color_buf[8] = {};
+	MCplatformGetWindowBackgroundColor(t_color_buf, sizeof(t_color_buf));
+	MCplatformGetLabelColor(t_text_color_buf, sizeof(t_text_color_buf));
+	bool t_is_dark = MCplatformIsDarkMode();
+
+	MCStacknode *t_stack_node = MCstacks->topnode();
+	MCStacknode *t_first_node = t_stack_node;
+	while (t_stack_node != NULL)
+	{
+		MCStack *t_stack = t_stack_node->getstack();
+		if (t_stack != nil && t_stack->getcurcard() != nil)
+		{
+			t_stack->dirtyall();
+
+			MCStringRef t_color_str;
+			/* UNCHECKED */ MCStringCreateWithCString(t_color_buf, t_color_str);
+			MCStringRef t_text_color_str;
+			/* UNCHECKED */ MCStringCreateWithCString(t_text_color_buf, t_text_color_str);
+			MCscreen->delaymessage(t_stack->getcurcard(),
+			                       MCM_system_appearance_changed,
+			                       t_is_dark ? MCSTR("dark") : MCSTR("light"),
+			                       t_color_str,
+			                       t_text_color_str);
+			MCValueRelease(t_color_str);
+			MCValueRelease(t_text_color_str);
+		}
+		t_stack_node = t_stack_node->next();
+		if (t_stack_node == t_first_node)
+			break;
+	}
+
+	MCRedrawDirtyScreen();
 }
 
 
