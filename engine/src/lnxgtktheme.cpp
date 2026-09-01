@@ -258,8 +258,54 @@ static gboolean reload_theme(void)
 
 		// MW-2011-08-17: [[ Redraw ]] The theme has changed so redraw everything.
 		MCRedrawDirtyScreen();
+
+		// Notify scripts that the system appearance may have changed.
+		void MCPlatformHandleSystemAppearanceChanged(void);
+		MCPlatformHandleSystemAppearanceChanged();
 	}
 	return (TRUE);
+}
+
+// ── Linux dark-mode appearance helpers ────────────────────────────────────
+// These provide the strong definitions declared as extern "C" in desktop.cpp.
+// They are called from MCPlatformHandleSystemAppearanceChanged() to supply the
+// three parameters sent with the systemAppearanceChanged message.
+
+extern "C" bool MCplatformIsDarkMode(void)
+{
+	GtkSettings *t_settings = gtk_settings_get_default();
+	if (t_settings == NULL)
+		return false;
+
+	gchar *t_theme_name = NULL;
+	g_object_get(t_settings, "gtk-theme-name", &t_theme_name, NULL);
+	if (t_theme_name == NULL)
+		return false;
+
+	gchar *t_lower = g_ascii_strdown(t_theme_name, -1);
+	g_free(t_theme_name);
+	if (t_lower == NULL)
+		return false;
+
+	bool t_dark = g_strstr_len(t_lower, -1, "dark") != NULL;
+	g_free(t_lower);
+	return t_dark;
+}
+
+extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen)
+{
+	if (MCplatformIsDarkMode())
+		snprintf(p_buf, p_buflen, "#1e1e1e");
+	else
+		snprintf(p_buf, p_buflen, "#ffffff");
+}
+
+extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen)
+{
+	if (MCplatformIsDarkMode())
+		snprintf(p_buf, p_buflen, "#ffffff");
+	else
+		snprintf(p_buf, p_buflen, "#000000");
 }
 
 
@@ -314,9 +360,14 @@ Boolean MCNativeTheme::load()
 		if (m_settings)
 		{
 			// Store the signal handler ID so we can disconnect it later
-			m_settings_signal_handler = g_signal_connect_data(m_settings, "notify::gtk-theme-name", 
+			m_settings_signal_handler = g_signal_connect_data(m_settings, "notify::gtk-theme-name",
 			                                                    G_CALLBACK(reload_theme),
 			                                                    NULL, NULL, (GConnectFlags)0);
+			// Also watch the prefer-dark-theme flag, used by some GTK environments
+			// to toggle dark mode independently of the theme name.
+			g_signal_connect_data(m_settings, "notify::gtk-application-prefer-dark-theme",
+			                      G_CALLBACK(reload_theme),
+			                      NULL, NULL, (GConnectFlags)0);
 		}
 	}
 	// -- tperry 15-11-2025: GTK3 - initialize offscreen window for theme rendering
