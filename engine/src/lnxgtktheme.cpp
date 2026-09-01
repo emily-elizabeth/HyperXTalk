@@ -243,6 +243,9 @@ static GtkWidgetState getpartandstate(const MCWidgetInfo &winfo, GtkThemeWidgetT
 	return state;
 }
 
+// Forward declaration — defined later in this file.
+void MCPlatformHandleSystemAppearanceChanged(void);
+
 static gboolean reload_theme(void)
 {
 	Boolean reload = True;
