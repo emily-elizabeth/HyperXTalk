@@ -90,6 +90,9 @@ MCPropertyInfo MCImage::kProperties[] =
 	DEFINE_RO_OBJ_PROPERTY(P_SIZE, UInt16, MCImage, Size)
 	DEFINE_RW_OBJ_PROPERTY(P_CURRENT_FRAME, UInt16, MCImage, CurrentFrame)
 	DEFINE_RO_OBJ_PROPERTY(P_FRAME_COUNT, Int16, MCImage, FrameCount)
+	DEFINE_RO_OBJ_PROPERTY(P_FRAME_DURATION, UInt32, MCImage, FrameDuration)
+	DEFINE_RO_OBJ_PROPERTY(P_FRAME_IMAGE_DATA, BinaryString, MCImage, FrameImageData)
+	DEFINE_RO_OBJ_PROPERTY(P_FRAME_TEXT, BinaryString, MCImage, FrameText)
 	DEFINE_RW_OBJ_PROPERTY(P_PALINDROME_FRAMES, Bool, MCImage, PalindromeFrames)
 	DEFINE_RW_OBJ_PROPERTY(P_CONSTANT_MASK, Bool, MCImage, ConstantMask)
 	DEFINE_RW_OBJ_PROPERTY(P_REPEAT_COUNT, Int16, MCImage, RepeatCount)
@@ -1842,6 +1845,7 @@ bool MCImage::setcompressedbitmap(MCImageCompressedBitmap *p_compressed)
 	case F_GIF:
 	case F_PNG:
 	case F_JPEG:
+	case F_WEBP:
 		t_success = MCImageRepGetResident(p_compressed->data, p_compressed->size, t_rep);
 		break;
 	case F_PICT:

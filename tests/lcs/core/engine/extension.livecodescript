@@ -21,7 +21,7 @@ on TestSetup
    TestSkipIfNot "lcb"
    
    TestLoadExtension "com.livecode.library.widgetutils" --required for clock
-    TestLoadExtension "com.livecode.library.json"
+    TestLoadExtension "com.hyperxtalk.library.json"
     TestLoadExtension "com.livecode.widget.clock"
 
     buildMultiModuleExtension "_extension,_extension_support"
@@ -54,7 +54,7 @@ end buildMultiModuleExtension
 /////////
 
 on TestUnloadLibraryModule
-    unload extension "com.livecode.library.json"
+    unload extension "com.hyperxtalk.library.json"
     TestAssert "library extension unloaded", the result is empty
 end TestUnloadLibraryModule
 

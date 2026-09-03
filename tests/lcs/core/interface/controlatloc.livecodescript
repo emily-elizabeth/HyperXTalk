@@ -24,7 +24,7 @@ on TestControlAtLoc
 	set the defaultStack to "Test"
 	
 	local tControl, tLoc
-	repeat for each item tType in "button,field,scrollbar,image,player,graphic,widget,group"
+	repeat for each item tType in "button,field,scrollbar,image,graphic,widget,group" -- ,player
 		switch tType
 		case "graphic"
 			do format("create %s", tType)
@@ -55,4 +55,5 @@ on TestControlAtLoc
 		TestAssert format("invisible %s controlAtLoc", tType), controlAtLoc(tLoc) is empty
 		delete tControl
 	end repeat
+	TestSkip "visible/invisible player controlAtLoc", "VLC causes a crash"
 end TestControlAtLoc

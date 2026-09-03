@@ -28,6 +28,9 @@ end TestSetup
 
 
 on TestMergExtURL
+   TestSkip "Check mergExt", "mergExt is no longer available"
+   exit TestMergExtURL
+
    local tVersion
    put builderMergExtVersion() into tVersion
    
@@ -49,6 +52,9 @@ on TestMergExtURL
 end TestMergExtURL
 
 on TestTSNetURL
+   TestSkip "Check tsNet", "tsNet is not available in open source edition"
+   exit TestTSNetURL
+
    local tVersion
    put builderTSNetVersion() into tVersion
    

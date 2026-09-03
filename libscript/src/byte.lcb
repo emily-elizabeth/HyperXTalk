@@ -103,6 +103,7 @@ syntax ByteOffset is prefix operator with function chunk precedence
 begin
     MCByteEvalOffsetOfBytes(IsLast, Needle, Target, output)
 end syntax
+/** undocumented_syntax */
 syntax ByteIndex is prefix operator with function chunk precedence
     "the" ( "first" <IsLast=false> | "last" <IsLast=true> | <IsLast=false> ) "index" "of" <Needle: Expression> "in" <Target: Expression>
 begin
@@ -128,6 +129,7 @@ syntax ByteOffsetAfter is prefix operator with function chunk precedence
 begin
 	MCByteEvalOffsetOfBytesAfter(IsLast, Needle, After, Target, output)
 end syntax
+/** undocumented_syntax */
 syntax ByteIndexAfter is prefix operator with function chunk precedence
 	"the" ( "first" <IsLast=false> | "last" <IsLast=true> | <IsLast=false> ) "index" "of" <Needle: Expression> "after" <After: Expression> "in" <Target: Expression>
 begin
@@ -153,6 +155,7 @@ syntax ByteOffsetBefore is prefix operator with function chunk precedence
 begin
     MCByteEvalOffsetOfBytesBefore(IsFirst, Needle, Before, Target, output)
 end syntax
+/** undocumented_syntax */
 syntax ByteIndexBefore is prefix operator with function chunk precedence
     "the" ( "first" <IsFirst=true> | "last" <IsFirst=false> | <IsFirst=false> ) "index" "of" <Needle: Expression> "before" <Before: Expression> "in" <Target: Expression>
 begin

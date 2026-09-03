@@ -193,7 +193,7 @@ private foreign handler MCProperListConvertToCFArrayRef(in pList as List, in pUs
 Summary:    Convert a List into an Objective-C array
 
 Parameters:
-pNumber: The List to convert
+pList: The List to convert
 
 Returns:
 A Objective-C object of type NSArray
@@ -215,10 +215,10 @@ end handler
 Summary:    Convert a Objective-C array into a List
 
 Parameters:
-pObjcNumber: The NSArray to convert
+pObjcArray: The NSArray to convert
 
 Returns:
-A Number value
+A List value
 
 Description
 Use <ListFromNSArray> to convert an Objective-C array object (NSArray) to
@@ -242,7 +242,7 @@ private foreign handler MCArrayConvertToCFDictionaryRef(in pArray as Array, in p
 Summary:    Convert an Array into an Objective-C dictionary
 
 Parameters:
-pNumber: The Array to convert
+pArray: The Array to convert
 
 Returns:
 A Objective-C object of type NSDictionary
@@ -264,7 +264,7 @@ end handler
 Summary:    Convert a Objective-C dictionary into a Array
 
 Parameters:
-pObjcNumber: The NSDictionary to convert
+pObjcArray: The NSDictionary to convert
 
 Returns:
 An Array value

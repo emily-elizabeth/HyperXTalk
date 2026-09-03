@@ -1,0 +1,72 @@
+Name: startListening
+
+Type: command
+
+Syntax: startListening [<language>]
+
+Summary:
+Starts the speech recognition engine. Once listening, the engine matches
+spoken audio against registered voice command phrases and dispatches
+<voiceCommand> messages when a match is found.
+
+Introduced: 1.0.0
+
+OS: mac, Windows, Linux
+
+Platforms: desktop
+
+Example:
+-- Start listening using the system locale
+startListening
+
+Example:
+-- Start listening in a specific language
+startListening "fr-FR"
+
+Example:
+-- Typical setup sequence
+registerVoiceCommand "next slide"
+registerVoiceCommand "previous slide"
+startListening "en-US"
+if the result is not empty then
+    answer "Could not start listening: " & the result
+end if
+
+Parameters:
+language (string): An optional BCP-47 language tag that sets the
+recognition locale (e.g. "en-US", "fr-FR", "de-DE", "ja-JP"). If
+omitted or empty, the system default locale is used.
+
+Description:
+Call <startListening> after registering the phrases you want to recognise
+with <registerVoiceCommand>. The engine runs continuously in the background
+until <stopListening> is called.
+
+On first use, macOS will prompt the user to grant microphone access and
+speech recognition permission. If either permission is denied,
+<startListening> sets the result to a human-readable error string and
+returns false. Check the result after calling <startListening> in
+production code.
+
+Calling <startListening> when the engine is already running is a no-op
+and succeeds silently. The language parameter is ignored on subsequent
+calls; call <stopListening> first if you need to change the locale.
+
+Platform notes:
+- macOS: Uses SFSpeechRecognizer (macOS 10.15+) with AVAudioEngine.
+  On macOS 13+, on-device recognition is used (no internet required).
+  The NSSpeechRecognitionUsageDescription and NSMicrophoneUsageDescription
+  keys must be present in the application's Info.plist.
+- Windows: Uses the Windows Speech Recognition (SAPI 5) engine via a
+  background thread. The language parameter is accepted but ignored;
+  the system speech recognition language is used instead.
+- Linux: Uses the Vosk offline speech recognition library with PulseAudio
+  for audio capture. Requires libvosk and a Vosk language model; the
+  VOSK_MODEL_PATH environment variable may be set to specify the model
+  directory. When running from the HyperXTalk AppImage, a bundled model
+  is used automatically if VOSK_MODEL_PATH is not set.
+
+References: stopListening (command), registerVoiceCommand (command),
+setWakeWord (command), isListening (function), voiceCommand (message)
+
+Tags: speech, voice

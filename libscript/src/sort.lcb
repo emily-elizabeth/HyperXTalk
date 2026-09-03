@@ -223,11 +223,33 @@ end syntax
 
 --
 
+/**
+Summary:        Sorts <Target> in ascending chronological order.
+Target:         An expression that evaluates to a list of date/time data.
+
+Description:
+Chronological sort is performed by comparing elements on a chronological basis.
+>*Note:* It is an error if <Target> contains any elements of non-date/time type.
+
+Tags: Sorting
+*/
+
 syntax SortListAscendingDateTime is statement
     "sort" <Target: Expression> "in" "ascending" "chronological" "order"
 begin 
     MCSortExecSortListAscendingDateTime(Target)
 end syntax
+
+/**
+Summary:        Sorts <Target> in descending chronological order.
+Target:         An expression that evaluates to a list of date/time data.
+
+Description:
+Chronological sort is performed by comparing elements on a chronological basis.
+>*Note:* It is an error if <Target> contains any elements of non-date/time type.
+
+Tags: Sorting
+*/
 
 syntax SortListDescendingDateTime is statement
     "sort" <Target: Expression> "in" "descending" "chronological" "order"

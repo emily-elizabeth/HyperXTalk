@@ -70,5 +70,13 @@ guess_engine_flags := $(shell $(guess_engine_flags_script))
 
 bin_dir ?= $(top_srcdir)/$(guess_platform)-bin
 
-guess_engine := $(if $(filter mac,$(guess_platform)),$(bin_dir)/HyperXTalk.app/Contents/MacOS/HyperXTalk,$(bin_dir)/HyperXTalk)
-guess_dev_engine := $(if $(filter mac,$(guess_platform)),$(bin_dir)/HyperXTalk.app/Contents/MacOS/HyperXTalk,$(bin_dir)/HyperXTalk)
+# Used in running tests.  IDE build does not pass command line arguments, so
+# need to actually provide path to the standalone engine build.
+# TODO: need to rename `standalone-community` to just `standalone` or `HyperXTalk-standalone`
+#       for Linux and Windows
+guess_engine := $(if $(filter mac,$(guess_platform)), \
+                $(bin_dir)/HyperXTalk-Standalone.app/Contents/MacOS/HyperXTalk-Standalone, \
+				$(bin_dir)/standalone-community)
+guess_dev_engine := $(if $(filter mac,$(guess_platform)), \
+                    $(bin_dir)/HyperXTalk.app/Contents/MacOS/HyperXTalk, \
+					$(bin_dir)/HyperXTalk)

@@ -75,5 +75,9 @@
 		<string>arm64</string>
 		<string>x86_64</string>
 	</array>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app uses speech recognition to respond to voice commands.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access to listen for voice commands.</string>
 </dict>
 </plist>

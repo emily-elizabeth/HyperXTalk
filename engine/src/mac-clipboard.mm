@@ -37,6 +37,7 @@ const char* const MCMacRawClipboard::s_clipboard_types[] =
     "com.compuserve.gif",
     "public.jpeg",
 	"public.tiff",
+    "org.webmproject.webp",         // WebP image
     NULL,
     NULL,
     NULL,                   // "com.microsoft.bmp" but the Mac engine doesn't support this format

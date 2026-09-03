@@ -1,0 +1,55 @@
+Name: wakeWordDetected
+
+Type: message
+
+Syntax: wakeWordDetected
+
+Summary:
+Sent to the current card of the default stack when the speech recognition
+engine detects the configured wake word. The command window is now open
+and registered voice command phrases will be matched.
+
+Introduced: 1.0.0
+
+OS: mac, Windows, Linux
+
+Platforms: desktop
+
+Example:
+-- Give audio feedback when the wake word is detected
+on wakeWordDetected
+    beep
+end wakeWordDetected
+
+Example:
+-- Show a visual indicator
+on wakeWordDetected
+    show image "listeningIndicator"
+end wakeWordDetected
+
+on listenTimeoutExpired
+    hide image "listeningIndicator"
+end listenTimeoutExpired
+
+on voiceCommand pPhrase
+    hide image "listeningIndicator"
+    -- handle pPhrase...
+end voiceCommand
+
+Description:
+<wakeWordDetected> is dispatched immediately after the engine recognises
+the wake word set with <setWakeWord>. After this message the engine
+enters a command window during which it listens for registered phrases.
+If a registered phrase is recognised within the timeout period,
+<voiceCommand> is dispatched and the engine returns to waiting for the
+wake word. If no phrase is recognised before the timeout,
+<listenTimeoutExpired> is dispatched instead.
+
+This message is only dispatched when a wake word has been set. When no
+wake word is configured, the engine matches commands directly and
+<wakeWordDetected> is never sent.
+
+References: setWakeWord (command), listenTimeoutExpired (message),
+voiceCommand (message), startListening (command)
+
+Tags: speech, voice

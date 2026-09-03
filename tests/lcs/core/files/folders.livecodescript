@@ -16,8 +16,22 @@ for more details.
 You should have received a copy of the GNU General Public License
 along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
+private function _specialFolderPath pFolderName
+   local tPath
+   if the platform is "MacOS" then
+      # Use an in repo folder on MacOS to avoid issues with sandboxing and permissions
+      put "../_tests" into tPath
+      TestDiagnostic tPath
+      put "~/Desktop" into tPath
+      TestDiagnostic tPath
+   else
+      put specialFolderPath(pFolderName) into tPath
+   end if
+   return tPath
+end _specialFolderPath
+
 on TestFolderInListing
-   set the defaultFolder to specialFolderPath("temporary")
+   set the defaultFolder to _specialFolderPath("temporary")
    
    local tTestFolder
    put "evalThereIsAFolderTest" into tTestFolder
@@ -36,7 +50,7 @@ end TestFolderInListing
 
 on TestFilesOfFolder
    local tFolder, tTempContents, tTestFile, tTestPath
-   put specialFolderPath("temporary") into tFolder
+   put _specialFolderPath("temporary") into tFolder
 
    put "evalfilestest.txt" into tTestFile
    put tFolder & slash & tTestFile into tTestPath
@@ -60,7 +74,7 @@ end TestFilesOfFolder
 
 on TestFoldersOfFolder
    local tFolder, tTestFolder, tTestPath
-   put specialFolderPath("temporary") into tFolder
+   put _specialFolderPath("temporary") into tFolder
    put "evalfolderstest" into tTestFolder
    put tFolder & slash & tTestFolder into tTestPath
    create folder tTestPath
@@ -86,7 +100,7 @@ on TestBugfix12039
    // 12039
    local tOldCwd, tTestFile
    put the defaultFolder into tOldCwd
-   set the defaultFolder to specialFolderPath("temporary")
+   set the defaultFolder to _specialFolderPath("temporary")
    
    put "evalfilestest.txt" into tTestfile
    put "some text" into url ("binfile:" & tTestfile)
@@ -123,7 +137,7 @@ on TestEmptyFolder
    
    // Create a new, empty folder
    put "files__TestEmptyFolder" into tNewFolder
-   set the defaultFolder to specialFolderPath("temporary")
+   set the defaultFolder to _specialFolderPath("temporary")
    
    create folder tNewFolder
 
@@ -188,7 +202,7 @@ end TestNonExistentFolder
 on TestBugfix22213
    local tTestFolder
    // Create a new, empty folder
-   put specialFolderPath("temporary") & "/TestUTF8" into tTestFolder
+   put _specialFolderPath("temporary") & "/TestUTF8" into tTestFolder
    create folder tTestFolder
 
    put empty into url ("file:" & tTestFolder & "/😊.txt")

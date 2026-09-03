@@ -272,6 +272,8 @@ MCCard *MCCardlist::popcard()
 		delete tptr;
 		return card;
 	}
-	return MCdispatcher->gethome()->getcurcard();
+	// Nothing was pushed — return nullptr so callers can throw a scripting
+	// error instead of dereferencing a potentially invalid fallback pointer.
+	return nullptr;
 }
 

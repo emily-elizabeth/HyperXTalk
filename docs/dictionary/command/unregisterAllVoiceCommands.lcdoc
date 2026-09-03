@@ -1,0 +1,41 @@
+Name: unregisterAllVoiceCommands
+
+Type: command
+
+Syntax: unregisterAllVoiceCommands
+
+Summary:
+Removes every registered voice command phrase. The speech recognition
+engine will no longer match any phrases until new ones are registered.
+
+Introduced: 1.0.0
+
+OS: mac, Windows, Linux
+
+Platforms: desktop
+
+Example:
+-- Clear all commands, then re-register only the ones needed in this context
+unregisterAllVoiceCommands
+registerVoiceCommand "next slide"
+registerVoiceCommand "previous slide"
+
+Example:
+-- Clean up when a stack closes
+on closeStack
+    stopListening
+    unregisterAllVoiceCommands
+end closeStack
+
+Description:
+Use <unregisterAllVoiceCommands> to clear the entire voice command
+registry in one call. This is equivalent to calling <unregisterVoiceCommand>
+for every phrase that was registered, but more efficient.
+
+The command does not stop the recognition engine — call <stopListening>
+separately if you also want to stop listening.
+
+References: registerVoiceCommand (command), unregisterVoiceCommand (command),
+stopListening (command), voiceCommand (message)
+
+Tags: speech, voice

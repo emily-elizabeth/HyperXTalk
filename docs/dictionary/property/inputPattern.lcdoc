@@ -7,6 +7,8 @@ Syntax: set the inputPattern of <field> to <pattern>
 Summary:
 Specifies a regular expression that the field's value must match when validated.
 
+Associations: field
+
 Introduced: 1.0
 
 OS: mac, windows, linux

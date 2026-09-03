@@ -145,7 +145,7 @@ public:
 	virtual Chunk_term gettype(void) const;
 	virtual const char *gettypestring(void);
 
-	virtual const MCObjectPropertyTable *getpropertytable(void) const;
+	virtual const MCObjectPropertyTable *getpropertytable(void) const { return &kPropertyTable; }
     
 	virtual bool visit_self(MCObjectVisitor *p_visitor);
 	

@@ -175,7 +175,11 @@ bool MCImageLoaderFormatToCompression(MCImageLoaderFormat p_format, uint32_t &r_
 		case kMCImageFormatMetafile:
 			r_compression = F_PICT;
 			return true;
-			
+
+		case kMCImageFormatWebP:
+			r_compression = F_WEBP;
+			return true;
+
 		default:
 			break;
 	}

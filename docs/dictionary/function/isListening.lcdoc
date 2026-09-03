@@ -1,0 +1,49 @@
+Name: isListening
+
+Type: function
+
+Syntax: isListening()
+
+Summary:
+Returns true if the speech recognition engine is currently active,
+false otherwise.
+
+Introduced: 1.0.0
+
+OS: mac, Windows, Linux
+
+Platforms: desktop
+
+Example:
+-- Only register commands if not already listening
+if not isListening() then
+    registerVoiceCommand "open stack"
+    startListening
+end if
+
+Example:
+-- Toggle listening on a button click
+if isListening() then
+    stopListening
+    set the label of me to "Start Listening"
+else
+    startListening
+    set the label of me to "Stop Listening"
+end if
+
+Returns: true if <startListening> has been called and the engine is
+running; false if the engine has not been started or was stopped with
+<stopListening>.
+
+Description:
+Use <isListening> to query the current state of the speech recognition
+engine without attempting to start or stop it. The function reflects the
+state set by <startListening> and <stopListening>.
+
+On platforms where speech recognition is not yet implemented (Windows,
+Linux), <isListening> always returns false.
+
+References: startListening (command), stopListening (command),
+registerVoiceCommand (command), voiceCommand (message)
+
+Tags: speech, voice

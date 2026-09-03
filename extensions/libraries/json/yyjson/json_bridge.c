@@ -63,18 +63,21 @@ static void walk_value(yyjson_val *val, json_event_fn cb)
 
         case YYJSON_TYPE_NUM:
         {
-            /* yyjson gives us the raw number string — use it directly to
-               preserve precision without printf rounding. */
-            const char *raw = yyjson_get_raw(val);
-            if (raw)
-                cb(JSON_EVENT_NUMBER, raw);
-            else
+            yyjson_subtype subtype = yyjson_get_subtype(val);
+            char buf[64];
+            switch (subtype)
             {
-                /* Fallback: format as double */
-                char buf[64];
-                snprintf(buf, sizeof(buf), "%.17g", yyjson_get_real(val));
-                cb(JSON_EVENT_NUMBER, buf);
+                case YYJSON_SUBTYPE_REAL:
+                    snprintf(buf, sizeof(buf), "%.17g", yyjson_get_real(val));
+                    break;
+                case YYJSON_SUBTYPE_UINT:
+                    snprintf(buf, sizeof(buf), "%lu", yyjson_get_uint(val));
+                    break;
+                case YYJSON_SUBTYPE_SINT:
+                    snprintf(buf, sizeof(buf), "%ld", yyjson_get_sint(val));
+                    break;
             }
+            cb(JSON_EVENT_NUMBER, buf);
             break;
         }
 

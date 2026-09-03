@@ -241,6 +241,7 @@ enum Export_format {
 	EX_RAW_INDEXED,
 	EX_BMP,
     EX_OBJECT,
+	EX_WEBP,
 };
 
 enum Factor_rank {
@@ -1467,12 +1468,18 @@ enum Properties {
     P_TOOLBAR_DISPLAY_MODE,
     P_TOOLBAR_VISIBLE,
     P_TOOLBAR_ITEM_NAMES,
-    // toolbar item properties
+    // toolbar item properties (per-item, indexed by name)
     P_TOOLBAR_ITEM_LABEL,
     P_TOOLBAR_ITEM_TOOLTIP,
     P_TOOLBAR_ITEM_ENABLED,
     P_TOOLBAR_ITEM_ICON,
     P_TOOLBAR_ITEM_STYLE,
+    // toolbar item list properties (all items as newline-delimited list)
+    P_TOOLBAR_ITEM_LABELS,
+    P_TOOLBAR_ITEM_TOOLTIPS,
+    P_TOOLBAR_ITEM_ENABLEDS,
+    P_TOOLBAR_ITEM_ICONS,
+    P_TOOLBAR_ITEM_STYLES,
     P_FAMILY,
     P_VISITED,
     // button menu item properties
@@ -1493,6 +1500,9 @@ enum Properties {
     P_DONT_DITHER,
     P_CURRENT_FRAME,
     P_FRAME_COUNT,
+    P_FRAME_DURATION,
+    P_FRAME_IMAGE_DATA,
+    P_FRAME_TEXT,
     P_REPEAT_COUNT,
     P_PALINDROME_FRAMES,
     P_CONSTANT_MASK,
@@ -1556,6 +1566,7 @@ enum Properties {
     P_UNICODE_TEXT,
     P_HTML_TEXT,
     P_RTF_TEXT,
+    P_MARKDOWN_TEXT,
 	// MW-2011-12-08: [[ StyledText ]] Property tag for the styledText
 	P_STYLED_TEXT,
 	// MW-2012-02-21: [[ LineBreaks ]] Property tag for the formattedStyledText
@@ -2144,6 +2155,7 @@ enum Statements {
     S_RECORD,
     S_REDO,
     S_REGISTER_HOTKEY,
+    S_REGISTER_VOICE_COMMAND,
 	S_RELAYER,
     S_RELEASE,
     S_REMOVE,
@@ -2176,7 +2188,10 @@ enum Statements {
     S_SORT,
     S_SPLIT,
     S_START,
+    S_START_LISTENING,
     S_STOP,
+    S_STOP_LISTENING,
+    S_SET_WAKE_WORD,
     S_SUBTRACT,
     S_SYMMETRIC,
     S_SWITCH,
@@ -2194,7 +2209,9 @@ enum Statements {
     S_UNLOCK,
     S_UNMARK,
     S_UNREGISTER_ALL_HOTKEYS,
+    S_UNREGISTER_ALL_VOICE_COMMANDS,
     S_UNREGISTER_HOTKEY,
+    S_UNREGISTER_VOICE_COMMAND,
     S_VISUAL,
     S_VALIDATE_FIELD,
     S_WAIT,

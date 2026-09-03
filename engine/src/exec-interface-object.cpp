@@ -364,6 +364,7 @@ static const PropList fieldprops[] =
         {"hScrollbar", P_HSCROLLBAR},
         {"hintText", P_HINT_TEXT},
         {"htmlText", P_HTML_TEXT},
+        {"markdownText", P_MARKDOWN_TEXT},
         {"id", P_ID},
         {"ink", P_INK},
         {"innerGlow", P_BITMAP_EFFECT_INNER_GLOW},
@@ -748,12 +749,12 @@ static const PropList toolbarprops[] =
     {
         {"displayMode",      P_TOOLBAR_DISPLAY_MODE},
         {"id",               P_ID},
-        {"itemEnabled",      P_TOOLBAR_ITEM_ENABLED},
-        {"itemIcon",         P_TOOLBAR_ITEM_ICON},
-        {"itemLabel",        P_TOOLBAR_ITEM_LABEL},
+        {"itemEnableds",     P_TOOLBAR_ITEM_ENABLEDS},
+        {"itemIcons",        P_TOOLBAR_ITEM_ICONS},
+        {"itemLabels",       P_TOOLBAR_ITEM_LABELS},
         {"itemNames",        P_TOOLBAR_ITEM_NAMES},
-        {"itemStyle",        P_TOOLBAR_ITEM_STYLE},
-        {"itemTooltip",      P_TOOLBAR_ITEM_TOOLTIP},
+        {"itemStyles",       P_TOOLBAR_ITEM_STYLES},
+        {"itemTooltips",     P_TOOLBAR_ITEM_TOOLTIPS},
         {"layer",            P_LAYER},
         {"lockLoc",          P_LOCK_LOCATION},
         {"name",             P_SHORT_NAME},
@@ -771,6 +772,23 @@ static const PropList videoclipprops[] =
         {"name", P_NAME},
         {"playLoudness", P_PLAY_LOUDNESS},
         {"scale", P_SCALE},
+    };
+
+static const PropList widgetprops[] =
+    {
+        {"altId", P_ALT_ID},
+        {"behavior", P_PARENT_SCRIPT},
+        {"blendLevel", P_BLEND_LEVEL},
+        {"disabled", P_DISABLED},
+        {"id", P_ID},
+        {"ink", P_INK},
+        {"label", P_LABEL},
+        {"layer", P_LAYER},
+        {"layerMode", P_LAYER_MODE},
+        {"lockLoc", P_LOCK_LOCATION},
+        {"name", P_SHORT_NAME},
+        {"rect", P_RECTANGLE},
+        {"visible", P_VISIBLE},
     };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3398,9 +3416,8 @@ void MCObject::DoGetProperties(MCExecContext& ctxt, uint32_t part, bool p_effect
         tablesize = ELEMENTS(toolbarprops);
         break;
     case CT_WIDGET:
-		table = NULL;
-		tablesize = 0;
-        // WIDGET-TODO: Implement properties
+        table = widgetprops;
+        tablesize = ELEMENTS(widgetprops);
         break;
 	default:
 		return;
@@ -3467,6 +3484,7 @@ static struct { Properties prop; const char *tag; } s_preprocess_props[] =
     // MERG-2013-07-20: [[ Bug 11060 ]] hilitedLines being lost.
     { P_LIST_BEHAVIOR, "listBehavior" }, // setting hilitedLines before listBehavior will lose the hilited lines
     { P_HTML_TEXT, "htmlText" }, // setting hilitedLines before htmlText will lose the hilited lines
+    { P_MARKDOWN_TEXT, "markdownText" },
     // MERG-2013-08-30: [[ RevisedPropsProp ]] Ensure button text has precedence over label and menuHistory
     { P_TEXT, "text" },
     { P_MENU_HISTORY, "menuHistory" },

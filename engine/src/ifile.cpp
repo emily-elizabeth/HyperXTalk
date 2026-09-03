@@ -38,6 +38,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 //////////////////////////////////////////////////////////////////////
 
+extern bool MCImageEncodeWebP(MCImageBitmap *p_image, IO_handle p_stream, uindex_t &r_bytes_written);
+
 // MW-2014-07-17: [[ ImageMetadata ]] Convert array to the metadata struct.
 bool MCImageParseMetadata(MCExecContext& ctxt, MCArrayRef p_array, MCImageMetadata& r_metadata)
 {
@@ -263,6 +265,10 @@ bool MCImageEncode(MCImageBitmap *p_bitmap, Export_format p_format, bool p_dithe
 
 	case EX_BMP:
 		t_success = MCImageEncodeBMP(p_bitmap, p_stream, r_bytes_written);
+		break;
+
+	case EX_WEBP:
+		t_success = MCImageEncodeWebP(p_bitmap, p_stream, r_bytes_written);
 		break;
 
 	case EX_RAW_ARGB:

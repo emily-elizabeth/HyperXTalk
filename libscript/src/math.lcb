@@ -330,7 +330,7 @@ end handler
 --
 
 /**
-Syntax:		log(<Operand>)
+Syntax:		log10(<Operand>)
 Summary:    Base 10 log operator.
 Operand:    An expression that evaluates to a number.
 

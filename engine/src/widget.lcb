@@ -322,6 +322,8 @@ Syntax: OnKeyPress <keyText>
 Summary: Sent when a key is pressed while the widget has focus.
 Parameters:
 keyText(string): The key pressed
+Description:
+Use to detect when a key is pressed while the widget has focus.
 
 
 Name: OnModifiersChanged
@@ -336,6 +338,8 @@ Syntax: OnActionKeyPress <keyText>
 Summary: Sent when an action key is pressed while the widget has focus.
 Parameters:
 keyText(string): The key pressed
+Description:
+Use to detect when an action key is pressed while the widget has focus.
 
 
 Name: OnDragEnter
@@ -802,9 +806,9 @@ end syntax
 /*syntax MouseButtonName is phrase
     ( "primary" <Index=1> | "secondary" <Index=2> | "left" <Index=1> | "right" <Index=2> | "middle" <Index=3> )
 begin
-end syntax
+end syntax*/
 
-syntax TheMouseButtonState is expression
+/*syntax TheMouseButtonState is expression
   "the" <Index: MouseButtonName> "mouse" "button"
 begin
     MCWidgetGetMouseButtonState(Index, output)
@@ -909,8 +913,7 @@ begin
 end syntax
 
 -- FIXME not actually implemented
-/*
-syntax TheModifierKeys is expression
+/*syntax TheModifierKeys is expression
   "the" ( "current" <IsCurrent=true> | <IsCurrent=false> ) "modifier" "keys"
 begin
     MCWidgetGetModifierKeys(IsCurrent, output)
@@ -926,9 +929,9 @@ end syntax
   <mState: Expression> "is" ( "currently" <Currently=true> | <Currently=false> ) "pressed"
 begin
     MCWidgetEvalStateIsPressed(mState, Currently, output)
-end syntax
+end syntax*/
 
-syntax IsNotPressed is postfix operator with function chunk precedence
+/*syntax IsNotPressed is postfix operator with function chunk precedence
   <mState: Expression> "is not" ( "currently" <Currently=true> | <Currently=false> ) "pressed"
 begin
     MCWidgetEvalStateIsNotPressed(mState, Currently, output)
@@ -1489,8 +1492,7 @@ of the snapshot image in pixels.
 Tags: Widget
 */
 -- FIXME not implemented
-/*
-syntax SnapshotWidget is statement
+/*syntax SnapshotWidget is statement
     "snapshot" <Widget: Expression> [ "at" "size" <Size: Expression> ]
 begin
     MCWidgetSnapshotWidget(Widget)

@@ -619,6 +619,11 @@ PE_REGISTERHOTKEY_BADHANDLER, // "registerHotkey: bad handler name expression"
 PE_UNREGISTERHOTKEY_BADKEY, // "unregisterHotkey: bad key expression"
 PE_ICONDATAFORFILE_BADPARAM, // "iconDataForFile: bad parameter"
 PE_ICONDATAFOREXTENSION_BADPARAM, // "iconDataForExtension: bad parameter"
+PE_REGISTERVOICECOMMAND_BADPHRASE, // "registerVoiceCommand: bad phrase expression"
+PE_UNREGISTERVOICECOMMAND_BADPHRASE, // "unregisterVoiceCommand: bad phrase expression"
+PE_STARTLISTENING_BADLANGUAGE, // "startListening: bad language expression"
+PE_SETWAKEWORD_BADWORD, // "setWakeWord: bad word expression"
+PE_SETWAKEWORD_BADTIMEOUT, // "setWakeWord: bad timeout expression"
 };
 
 extern const char *MCparsingerrors;

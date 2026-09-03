@@ -1,0 +1,40 @@
+Name: stopListening
+
+Type: command
+
+Syntax: stopListening
+
+Summary:
+Stops the speech recognition engine immediately. No further <voiceCommand>,
+<wakeWordDetected>, or <listenTimeoutExpired> messages will be dispatched
+until <startListening> is called again.
+
+Introduced: 1.0.0
+
+OS: mac, Windows, Linux
+
+Platforms: desktop
+
+Example:
+-- Stop listening when we no longer need voice commands
+stopListening
+
+Example:
+-- Clean up when the application quits
+on shutdownApp
+    stopListening
+    unregisterAllVoiceCommands
+end shutdownApp
+
+Description:
+Use <stopListening> to release the microphone and stop all speech
+recognition activity. Registered command phrases are retained — calling
+<startListening> again will resume recognition of the same phrases
+without needing to re-register them.
+
+Calling <stopListening> when the engine is not running is a no-op.
+
+References: startListening (command), isListening (function),
+registerVoiceCommand (command), unregisterAllVoiceCommands (command)
+
+Tags: speech, voice

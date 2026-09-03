@@ -45,6 +45,7 @@ readVersion libzip
 readVersion libgif
 readVersion libjpeg
 readVersion libpng
+readVersion libwebp
 readVersion libfreetype
 readVersion libcairo
 readVersion libiodbc

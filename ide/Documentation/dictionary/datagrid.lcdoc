@@ -3006,7 +3006,7 @@ Type: message
 
 Associations: datagrid, Datagrid Template Custom Properties & Messages
 
-Syntax: on EditModeActionSelectControlClicked pTarget
+Syntax: on EditModeActionSelectControlClicked <pTarget>
 
 Summary: Sent when a user clicks on a data grid edit mode action select control.
 
@@ -3048,7 +3048,7 @@ Type: message
 
 Associations: datagrid, Datagrid Template Custom Properties & Messages
 
-Syntax: on EditModeActionControlClicked pTarget
+Syntax: on EditModeActionControlClicked <pTarget>
 
 Summary: Sent when a user clicks on a data grid edit mode action control.
 
@@ -3188,7 +3188,7 @@ Type: message
 
 Associations: datagrid, Datagrid Template Custom Properties & Messages
 
-Syntax: on RowLeftSwipeControlClicked pTarget
+Syntax: on RowLeftSwipeControlClicked <pTarget>
 
 Summary: Sent when the left hand side data grid swipe control is clicked.
 
@@ -3235,7 +3235,7 @@ Type: message
 
 Associations: datagrid, Datagrid Template Custom Properties & Messages
 
-Syntax: on RowRightSwipeControlClicked pTarget
+Syntax: on RowRightSwipeControlClicked <pTarget>
 
 Summary: Sent when the right hand side data grid swipe control is clicked.
 
@@ -3560,7 +3560,7 @@ Type: message
 
 Associations: datagrid
 
-Syntax: EditModeReorderStarted pIndex, pLineNo
+Syntax: EditModeReorderStarted <pIndex>, <pLineNo>
 
 Summary: Sent when a user starts a dynamic reordering of a data grid.
 
@@ -3588,7 +3588,7 @@ Type: message
 
 Associations: datagrid
 
-Syntax: EditModeReorderCompleted pIndex, pStartLineNo, pNewLineNo
+Syntax: EditModeReorderCompleted <pIndex>, <pStartLineNo>, <pNewLineNo>
 
 Summary: Sent when a user completes a dynamic reordering of a data grid.
 

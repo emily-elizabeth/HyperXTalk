@@ -1,0 +1,47 @@
+Name: listenTimeoutExpired
+
+Type: message
+
+Syntax: listenTimeoutExpired
+
+Summary:
+Sent to the current card of the default stack when the command window
+that opened after a wake word detection expires without a registered
+voice command being recognised.
+
+Introduced: 1.0.0
+
+OS: mac, Windows, Linux
+
+Platforms: desktop
+
+Example:
+-- Notify the user that no command was heard in time
+on listenTimeoutExpired
+    play "timeout.aiff"
+end listenTimeoutExpired
+
+Example:
+-- Hide the listening indicator when the window closes
+on listenTimeoutExpired
+    hide image "listeningIndicator"
+end listenTimeoutExpired
+
+Description:
+When a wake word is configured with <setWakeWord>, the engine opens a
+command window after the wake word is detected. If no registered phrase
+is recognised before the window closes (after the number of milliseconds
+specified in <setWakeWord>), <listenTimeoutExpired> is dispatched and
+the engine returns to waiting for the wake word.
+
+This message gives you an opportunity to inform the user that the engine
+is no longer actively listening for a command.
+
+<listenTimeoutExpired> is only dispatched when a wake word is set and
+the command window times out. It is not sent when <stopListening> is
+called directly.
+
+References: setWakeWord (command), wakeWordDetected (message),
+voiceCommand (message), startListening (command)
+
+Tags: speech, voice

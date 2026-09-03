@@ -182,6 +182,9 @@ end seGetScrollTarget
 seSyncGutter pScrolledControl, pNewV
 If the scrolled control is the Script field of a script editor, syncs
 the line-number gutter to the same vertical scroll position.
+Parameters:
+pScrolledControl (string): The control that was scrolled (long id).
+pNewV (integer): The new vertical scroll position.
 */
 command seSyncGutter pScrolledControl, pNewV
    if the short name of pScrolledControl is not "Script" then exit seSyncGutter

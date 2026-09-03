@@ -432,9 +432,10 @@ on revDocsExtractDocBlocks pText, pSource, @rAPIData, @rLibraryData
    local tEntryType
    put empty into tEntryType
    
-   local tInComment, tInEntry, tEntryEnded
+   local tInComment, tInEntry, tEntryEnded, tSkipSyntax
    put false into tInComment
    put false into tInEntry
+   put false into tSkipSyntax
    
    local tFirstWord, tEntryData, tTrimLine
    local tComment, tCommentOffset, tData
@@ -647,6 +648,11 @@ on revDocsExtractDocBlocks pText, pSource, @rAPIData, @rLibraryData
             if word 1 of tLine is empty then
                next repeat
             end if
+
+            if word 1 of tLine is "undocumented_syntax" then
+               put true into tSkipSyntax
+               next repeat
+            end if
          else if tComment is empty and tFirstWord is empty then
             next repeat
          end if
@@ -715,7 +721,12 @@ on revDocsExtractDocBlocks pText, pSource, @rAPIData, @rLibraryData
             end switch
             
          else
-            if tEntryData["need_docs"] then
+            if tEntryData["name"] is among the items of "Sin,Cos,Tan,Asin,Acos,Atan,Atan2,Sqrt," & \
+                  "Log10,Exp,Ln,Min,Max,MCSystemExecQuit,MCSystemExecQuitWithStatus" or \
+                  tEntryData["name"] begins with "MCUnitTest" then
+               -- special case for math functions that are already documented via syntax
+               -- special case unit test handlers and system quit handlers as well
+            else if tEntryData["need_docs"] and not tSkipSyntax then
                logError "Required documentation not found for" && tEntryData["type"] && tEntryData["name"], pSource
             end if
          end if
@@ -723,6 +734,7 @@ on revDocsExtractDocBlocks pText, pSource, @rAPIData, @rLibraryData
          put empty into tComment
          put empty into tData
          put false into tInEntry
+         put false into tSkipSyntax
       end if
    end repeat
    

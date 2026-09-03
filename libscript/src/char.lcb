@@ -354,6 +354,7 @@ syntax CharOffset is prefix operator with function chunk precedence
 begin
     MCCharEvalOffsetOfChars(IsLast, Needle, Target, output)
 end syntax
+/** undocumented_syntax */
 syntax CharIndex is prefix operator with function chunk precedence
     "the" ( "first" <IsLast=false> | "last" <IsLast=true> | <IsLast=false> ) "index" "of" <Needle: Expression> "in" <Target: Expression>
 begin
@@ -383,6 +384,7 @@ syntax CharOffsetAfter is prefix operator with function chunk precedence
 begin
     MCCharEvalOffsetOfCharsAfter(IsLast, Needle, After, Target, output)
 end syntax
+/** undocumented_syntax */
 syntax CharIndexAfter is prefix operator with function chunk precedence
     "the" ( "first" <IsLast=false> | "last" <IsLast=true> | <IsLast=false> ) "index" "of" <Needle: Expression> "after" <After: Expression> "in" <Target: Expression>
 begin
@@ -403,7 +405,7 @@ Example:
 	variable tLastDot as Number
 	variable tAddress as String
 	variable tTLD as String
-	put "http://www.livecode.com/index.html" into tAddress
+	put "http://www.hyperxtalk.com/index.html" into tAddress
 	put the last offset of "." in tAddress into tLastDot
 	put the offset of "." before tLastDot in tAddress into tVar
 	put char tVar + 1 to tVar + 3 of tAddress into tTLD -- tTLD contains "com"
@@ -419,6 +421,7 @@ syntax CharOffsetBefore is prefix operator with function chunk precedence
 begin
     MCCharEvalOffsetOfCharsBefore(IsFirst, Needle, Before, Target, output)
 end syntax
+/** undocumented_syntax */
 syntax CharIndexBefore is prefix operator with function chunk precedence
     "the" ( "first" <IsFirst=true> | "last" <IsFirst=false> | <IsFirst=false> ) "index" "of" <Needle: Expression> "before" <Before: Expression> "in" <Target: Expression>
 begin

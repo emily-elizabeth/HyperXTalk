@@ -1499,7 +1499,12 @@ void MCScreenDC::processdesktopchanged(bool p_notify, bool p_update_fonts)
 		const MCDisplay *t_displays;
 
 		t_display_count = getdisplays(t_displays, false);
-		SetWindowPos(backdrop_window, NULL, t_displays[0] . workarea . x, t_displays[0] . workarea . y, t_displays[0] . workarea . width, t_displays[0] . workarea . height, 0);
+		// HXT: workarea is in logical coordinates; SetWindowPos needs physical
+		// screen pixels, so convert via logicaltoscreenrect (same as initialisebackdrop).
+		{
+			MCRectangle t_primary_screen = logicaltoscreenrect(t_displays[0] . workarea);
+			SetWindowPos(backdrop_window, NULL, t_primary_screen . x, t_primary_screen . y, t_primary_screen . width, t_primary_screen . height, 0);
+		}
 
 		// HXT: Reposition extra per-display backdrop windows when display config changes.
 		// Recreate them so the count and positions match the new display layout.

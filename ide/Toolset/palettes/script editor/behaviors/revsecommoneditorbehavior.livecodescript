@@ -4,7 +4,12 @@ script "com.livecode.scripteditor.behavior.editorcommon"
 -- Defined here so it is always in the message path regardless of
 -- whether ideautocompletelibrary has been inserted into back yet.
 function ideAutocompleteIsEnabled
-   return true
+   local tPropName, tValue
+   put "cScriptEditor,editor,showautocomplete" into tPropName
+   put the tPropName of stack "revPreferences" into tValue
+   -- Default to FALSE if the preference has not been set yet
+   if tValue is EMPTY then return FALSE
+   return tValue
 end ideAutocompleteIsEnabled
 
 --------------------------------------------------------------------------------
@@ -2542,6 +2547,9 @@ on backspaceKey
    local tFrom, tTo
    put word 2 of it into tFrom
    put word 4 of it into tTo
+
+   ## caret position at char 1 -> exit
+   if tTo is 0 then exit backspaceKey
    
    local tAt, tLength
    if tFrom > tTo then
@@ -2564,7 +2572,7 @@ on backspaceKey
          local tWordFound
          put false into tWordFound
          repeat with x = tTo down to 1
-            if not matchText(char x of tScript, "\s") then
+            if not matchText(char x of tScript, "\S") then -- upper case "S" instead of lower case
                put true into tWordFound
             else
                if tWordFound then
@@ -2835,20 +2843,29 @@ on rawKeyDown pKey
    if not handleEvent("rawKeyDown", the long id of the target) then
       pass rawKeyDown
    end if
-
-   -- folding
-   local tFoldingIsOn
-   put sePrefGet("Editor,folding") into tFoldingIsOn
    
-   if tFoldingIsOn then
-      -- pass scrollbar and tabKey
-      if pKey is among the items of "65308,65309,65310,65311,65289" then pass rawKeyDown
+    ## folding
+    ## catch rawKeyDown from multiline Messages Box
+   local tTarget, tFromScriptEditor
+   put the long name of the target into tTarget
+   if tTarget contains "revNewScriptEditor" then
+      put true into tFromScriptEditor
+   end if
+   
+   local tFoldingIsOn
+   if tFromScriptEditor then
+      put sePrefGet("Editor,folding") into tFoldingIsOn
       
-      -- block editing a folded structure
-      if the selectedLine is not empty then
-         if the hidden of the selectedLine then
-            beep
-            exit rawKeyDown
+      if tFoldingIsOn then
+         ## pass scrollbar and tabKey
+         if pKey is among the items of "65308,65309,65310,65311,65289" then pass rawKeyDown
+         
+         -- block editing a folded structure
+         if the selectedLine is not empty then
+            if the hidden of the selectedLine then
+               beep
+               exit rawKeyDown
+            end if
          end if
       end if
    end if
@@ -3204,6 +3221,7 @@ command actionSelectAll
    
    if word 1 of the name of the focusedObject is "field" then
       select char 1 to -1 of the focusedObject
+      send "scrollbarDrag" to the focusedObject
    end if
    unlock messages
 end actionSelectAll
@@ -3504,13 +3522,21 @@ command scriptFormat pScope, pDontGroup
    put word 2 of it into tStart
    put word 4 of it into tEnd
    
-   if sePrefGet("editor,folding") then
-      local tFolding, tSelLine
-      put true into tFolding
-      put word 2 of the selectedLine into tSelLine
-      
-      local tVerticalPixAbove
-      put the formattedTop of line tSelLine of field "Script" of me into tVerticalPixAbove
+   ## catch rawKeyDown from multiline Messages Box
+   local tTarget, tFromScriptEditor
+   put the long name of the target into tTarget
+   if tTarget contains "revNewScriptEditor" then
+      put true into tFromScriptEditor
+   end if
+   if tFromScriptEditor then
+      if sePrefGet("editor,folding") then
+         local tFolding, tSelLine
+         put true into tFolding
+         put word 2 of the selectedLine into tSelLine
+         
+         local tVerticalPixAbove
+         put the formattedTop of line tSelLine of field "Script" of me into tVerticalPixAbove
+      end if
    end if
    
    if pScope is "script" then

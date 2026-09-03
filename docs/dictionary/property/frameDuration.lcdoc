@@ -1,0 +1,42 @@
+Name: frameDuration
+
+Type: property
+
+Syntax: get the frameDuration of <image>
+
+Summary:
+Reports the display duration of the current <frame> of an <animated GIF>
+in milliseconds.
+
+Associations: image
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+send "nextFrame" to me in (the frameDuration of image "myGIF") milliseconds
+
+Value:
+The <frameDuration> of an <image> is a <non-negative> <integer>
+representing milliseconds.
+This property is read-only and cannot be set.
+
+Description:
+Use the <frameDuration> <property> to obtain the delay time specified
+for the current <frame> of an <animated GIF>. The value is expressed in
+milliseconds and reflects the timing encoded in the GIF file.
+
+Set <currentFrame> before reading <frameDuration> to obtain the duration
+for a specific frame.
+
+If the image is not an animated GIF, <frameDuration> returns 0.
+
+References: property (glossary), animated GIF (glossary),
+frame (glossary), non-negative (glossary), image (keyword),
+integer (keyword), currentFrame (property), frameCount (property),
+frameText (property), frameImageData (property), repeatCount (property)
+
+Tags: multimedia

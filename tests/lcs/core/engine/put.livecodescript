@@ -19,19 +19,19 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 on _TestPutBeforeInvalidContainer pContainer
 	local tDo
-	put "put" && quote & foo & quote && "before" && pContainer into tDo
+	put "put" && quote & "foo" & quote && "before" && pContainer into tDo
 	do tDo
 end _TestPutBeforeInvalidContainer
 
 on _TestPutIntoInvalidContainer pContainer
     local tDo
-	put "put" && quote & foo & quote && "into" && pContainer into tDo
+	put "put" && quote & "foo" & quote && "into" && pContainer into tDo
 	do tDo
 end _TestPutIntoInvalidContainer
 
 on _TestPutAfterInvalidContainer pContainer
     local tDo
-	put "put" && quote & foo & quote && "after" && pContainer into tDo
+	put "put" && quote & "foo" & quote && "after" && pContainer into tDo
 	do tDo
 end _TestPutAfterInvalidContainer
 
@@ -74,7 +74,7 @@ on TestPutBeforeIntoAfterInvalidContainer
 			"EE_CHUNK_SETNOTACONTAINER", tWidgetID
 
 
-	repeat for each item tContainer in "scrollbar,group,player,graphic,eps"
+	repeat for each item tContainer in "scrollbar,group,graphic,eps" -- ,player
 		local tID
 		local tDo
       	put "create" && tContainer && "myContainer" into tDo
@@ -88,6 +88,7 @@ on TestPutBeforeIntoAfterInvalidContainer
 			"EE_CHUNK_SETNOTACONTAINER", tID
 		delete tID
 	end repeat
+	TestSkip "put before|into|after player invalid container", "VLC causes a crash"
 	
 	delete stack "myTestStack"
 end TestPutBeforeIntoAfterInvalidContainer

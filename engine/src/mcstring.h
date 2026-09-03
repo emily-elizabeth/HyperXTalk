@@ -163,6 +163,7 @@ extern MCNameRef MCN_styles;
 extern MCNameRef MCN_styledtext;
 extern MCNameRef MCN_rtftext;
 extern MCNameRef MCN_htmltext;
+extern MCNameRef MCN_markdowntext;
 extern MCNameRef MCN_png;
 extern MCNameRef MCN_gif;
 extern MCNameRef MCN_jpeg;

@@ -1889,6 +1889,30 @@ private handler addToListBuffer(in pAt as Integer, in pElement as Array, inout x
 	splice calculateMoreElements(kRowBuffer, tLevel, tPath, tSorted, tArray) after element pAt - 1 of xList
 end handler
 
+-- Convert a whole number to a string without scientific notation.
+-- Uses digit-by-digit extraction to avoid %g-style formatting.
+private handler IntegerToString(in pValue as Number) returns String
+	variable tDigits as String
+	variable tResult as String
+	variable tRemaining as Number
+	variable tDigit as Number
+	put "0123456789" into tDigits
+	put the floor of (the abs of pValue) into tRemaining
+	if tRemaining = 0 then
+		return "0"
+	end if
+	put "" into tResult
+	repeat while tRemaining >= 1
+		put the floor of (tRemaining mod 10) into tDigit
+		put char (tDigit + 1) of tDigits & tResult into tResult
+		put the floor of (tRemaining / 10) into tRemaining
+	end repeat
+	if pValue < 0 then
+		return "-" & tResult
+	end if
+	return tResult
+end handler
+
 private handler calculateMoreElements(in pLimit as Integer, in pLevel as Integer, in pPath as List, in pSortedKeys as List, in pArray as Array) returns List
 	variable tKey as String
 	variable tElement as Array
@@ -1935,7 +1959,14 @@ private handler calculateMoreElements(in pLimit as Integer, in pLevel as Integer
 			else if pArray[tKey] is a boolean then
 				format pArray[tKey] as string into tString
 			else if pArray[tKey] is a number then
-				format pArray[tKey] as string into tString
+				-- Use integer formatting for whole numbers to avoid scientific
+				-- notation (e.g. file pointers displayed as 1.4e+14 instead of
+				-- the full value).
+				if the floor of pArray[tKey] = pArray[tKey] then
+					put IntegerToString(pArray[tKey]) into tString
+				else
+					format pArray[tKey] as string into tString
+				end if
 			else if pArray[tKey] is a data then
 				if not ConvertToString(pArray[tKey], tString) then
 					put "Can't display value" into tString
@@ -2683,6 +2714,15 @@ private handler displayWidth(in pText as String, in pSpace as Real, out rText as
 			put true into rTrimmed
 			return tLastWidth
 		end if
+		
+		// case of invisible chars as in Nullbytes assume 
+		// that printables should at least be 2 pixel wide
+		if tCount > pSpace/2 then
+			put "\u{2026}" into rText
+			put true into rTrimmed
+			return tWidth
+		end if
+		// end invisible
 		
 		add 1 to tCount
 	end repeat

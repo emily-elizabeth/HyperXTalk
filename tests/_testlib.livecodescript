@@ -206,12 +206,16 @@ function TestBuildErrorMap pErrorFile, pErrorPrefix, pZerothError
    local tErrorMap, tCode
    repeat for each line tLine in tSource
       if tLine is empty then next repeat
-      if word 1 of tLine begins with pErrorPrefix & "_" & pZerothError then 
+      if word 1 of tLine begins with pErrorPrefix & "_" & pZerothError then
+         put 0 into tCode
          next repeat
       end if
-      
-      if tCode is empty and \
-            matchText(tLine, ".*\/\/ \{" & pErrorPrefix & "-([0-9]{4})\}.*", tCode) then
+
+      if (word 1 of tLine begins with pErrorPrefix) or \
+            (word 1 of tLine begins with "NOTUSED__") then
+         add 1 to tCode
+         put format("%04d",tCode) into tCode
+      else
          next repeat
       end if
       
@@ -238,7 +242,6 @@ function TestBuildErrorMap pErrorFile, pErrorPrefix, pZerothError
          end if
 
          put tError into tErrorMap[tCode]
-         put empty into tCode
       end if
    end repeat
 

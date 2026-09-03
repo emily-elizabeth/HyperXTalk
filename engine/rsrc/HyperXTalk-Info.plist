@@ -259,5 +259,9 @@
 	<true/>
 	<key>NSPrincipalClass</key>
 	<string>com_hyperxtalk_hyperxtalk_MCApplication</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>HyperXTalk uses speech recognition to respond to voice commands.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>HyperXTalk needs microphone access to listen for voice commands.</string>
 </dict>
 </plist>

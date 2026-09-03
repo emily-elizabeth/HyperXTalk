@@ -1,6 +1,6 @@
 Name: scriptTextSize
 
-Type: property,command
+Type: property
 
 Syntax: set the scriptTextSize to <pointSize>
 

@@ -1171,6 +1171,13 @@ Exec_stat MCStack::setcard(MCCard *card, Boolean recent, Boolean dynamic)
 		curcard->open();
 		
         
+		// Commit any in-progress paint edit before closing the old card.
+		// Without this, the mutable image rep is never serialised: the painted
+		// image object exists on the card but its bitmap data is lost when the
+		// stack is saved and reloaded (or when the card is revisited).
+		if (MCeditingimage)
+			MCeditingimage->finishediting();
+
 		// MW-2011-11-23: [[ Bug ]] Close the old card here to ensure no players
 		//   linger longer than they should.
 		oldcard -> close();

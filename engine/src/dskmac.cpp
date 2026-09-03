@@ -3625,13 +3625,18 @@ struct MCMacDesktop: public MCSystemInterface, public MCMacSystemService
         CFIndex t_char_count = CFStringGetLength(t_cf_str);
         CFIndex t_byte_count = t_char_count * (CFIndex)sizeof(UniChar);
         if (t_byte_count > (CFIndex)p_output_length)
-            t_byte_count = (CFIndex)p_output_length;
+        {
+            // Buffer too small — report required size so the caller can resize and retry.
+            r_used = (uint4)t_byte_count;
+            CFRelease(t_cf_str);
+            return false;
+        }
         CFStringGetCharacters(t_cf_str,
-            CFRangeMake(0, t_byte_count / (CFIndex)sizeof(UniChar)),
+            CFRangeMake(0, t_char_count),
             (UniChar *)p_output);
         CFRelease(t_cf_str);
         r_used = (uint4)t_byte_count;
-        
+
         return true;
     }
     

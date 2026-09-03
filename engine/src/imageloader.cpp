@@ -178,15 +178,16 @@ bool MCImageLoader::IdentifyFormat(IO_handle p_stream, MCImageLoaderFormat &r_fo
 	
 	uindex_t t_width = 0, t_height = 0;
 	
-	uint8_t t_head[8];
-	uindex_t t_size = 8;
-	
+	// 12 bytes needed: WebP magic is "RIFF" + 4-byte size + "WEBP"
+	uint8_t t_head[12];
+	uindex_t t_size = 12;
+
 	MCImageLoaderFormat t_format;
-	
+
 	if (t_success)
 		t_success = MCS_readfixed(t_head, t_size, p_stream) == IO_NORMAL &&
-		t_size == 8 && MCS_seek_cur(p_stream, -8) == IO_NORMAL;
-	
+		t_size >= 8 && MCS_seek_cur(p_stream, -(int32_t)t_size) == IO_NORMAL;
+
 	if (t_success)
 	{
 		if (memcmp(t_head, "GIF87a", 6) == 0)
@@ -197,6 +198,8 @@ bool MCImageLoader::IdentifyFormat(IO_handle p_stream, MCImageLoaderFormat &r_fo
 			t_format = kMCImageFormatPNG;
 		else if (memcmp(t_head, "\xff\xd8", 2) == 0)
 			t_format = kMCImageFormatJPEG;
+		else if (t_size >= 12 && memcmp(t_head, "RIFF", 4) == 0 && memcmp(t_head + 8, "WEBP", 4) == 0)
+			t_format = kMCImageFormatWebP;
 		else if (MCImageGetMetafileGeometry(p_stream, t_width, t_height))
 			t_format = kMCImageFormatMetafile;
 		else if (memcmp(t_head, "BM", 2) == 0)
@@ -224,6 +227,7 @@ extern bool MCImageLoaderCreateForGIFStream(IO_handle p_stream, MCImageLoader *&
 extern bool MCImageLoaderCreateForJPEGStream(IO_handle p_stream, MCImageLoader *&r_loader);
 extern bool MCImageLoaderCreateForNetPBMStream(IO_handle p_stream, MCImageLoader *&r_loader);
 extern bool MCImageLoaderCreateForPNGStream(IO_handle p_stream, MCImageLoader *&r_loader);
+extern bool MCImageLoaderCreateForWebPStream(IO_handle p_stream, MCImageLoader *&r_loader);
 extern bool MCImageLoaderCreateForXBMStream(IO_handle p_stream, MCImageLoader *&r_loader);
 extern bool MCImageLoaderCreateForXPMStream(IO_handle p_stream, MCImageLoader *&r_loader);
 extern bool MCImageLoaderCreateForXWDStream(IO_handle p_stream, MCImageLoader *&r_loader);
@@ -246,7 +250,10 @@ bool MCImageLoader::LoaderForStreamWithFormat(IO_handle p_stream, MCImageLoaderF
 			
 		case kMCImageFormatPNG:
 			return MCImageLoaderCreateForPNGStream(p_stream, r_loader);
-			
+
+		case kMCImageFormatWebP:
+			return MCImageLoaderCreateForWebPStream(p_stream, r_loader);
+
 		case kMCImageFormatXBM:
 			return MCImageLoaderCreateForXBMStream(p_stream, r_loader);
 			

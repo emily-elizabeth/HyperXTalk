@@ -592,7 +592,10 @@ command sePrefGetDefaults
    put 16 into tPrefs["editor,foldingwidth"]
    put numtocodepoint(9661) into tPrefs["editor,foldingOpen"]   -- "▽"
    put numtocodepoint(9654) into tPrefs["editor,foldingClosed"] -- "▶"
-
+   
+   # Auto-complete preferences
+   put "false" into tPrefs["editor,showautocomplete"]
+   
    # Gutter preferences
    put "true" into tPrefs["gutter,linenumbers"]
    

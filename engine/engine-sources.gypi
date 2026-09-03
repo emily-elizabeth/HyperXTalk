@@ -271,6 +271,7 @@
 			'src/fieldf.cpp',
 			'src/fieldh.cpp',
 			'src/fieldhtml.cpp',
+			'src/fieldmarkdown.cpp',
 			'src/fieldrtf.cpp',
 			'src/fields.cpp',
 			'src/fieldstyledtext.cpp',
@@ -295,6 +296,7 @@
 			'src/imageloader.cpp',
             'src/internal.cpp',
 			'src/ipng.cpp',
+			'src/iwebp.cpp',
 			'src/iquantization.cpp',
 			'src/iquantize_new.cpp',
 			'src/irle.cpp',
@@ -659,6 +661,13 @@
 			'src/mac-hotkey.mm',
 			'src/w32-hotkey.cpp',
 
+			# Voice commands / speech recognition
+			'src/speech.h',
+			'src/speech.cpp',
+			'src/lnx-speech.cpp',
+			'src/mac-speech.mm',
+			'src/w32-speech.cpp',
+
 			# Credential storage
 			'src/exec-credentials.h',
 			'src/exec-credentials.cpp',
@@ -979,6 +988,7 @@
 			'src/srvstack.cpp',
 			'src/native-layer-srv.cpp',
 			'src/player-srv-stubs.cpp',
+			'src/srv-speech.cpp',
 		],
 		
 		# Java sources for Android
@@ -1072,6 +1082,12 @@
 				'src/lnx-hotkey.cpp',
 				'src/lnx-hotkey-x11.cpp',
 				'src/lnx-hotkey-portal.cpp',
+				# Platform speech backends require audio input / desktop event loop.
+				# speech.cpp (cross-platform registry + statement implementations)
+				# stays shared; srv-speech.cpp provides the no-op platform stubs.
+				'src/mac-speech.mm',
+				'src/w32-speech.cpp',
+				'src/lnx-speech.cpp',
 		],
 
 		# Sources used to implement LCB modules in the engine

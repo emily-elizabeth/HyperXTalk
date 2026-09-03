@@ -1,0 +1,67 @@
+Name: registerVoiceCommand
+
+Type: command
+
+Syntax: registerVoiceCommand <phrases>
+
+Summary:
+Registers one or more spoken phrases that will be recognised when the
+speech recognition engine is listening. When a phrase is recognised,
+a <voiceCommand> message is dispatched to the current card.
+
+Introduced: 1.0.0
+
+OS: mac, Windows, Linux
+
+Platforms: desktop
+
+Example:
+-- Register a single command phrase
+registerVoiceCommand "open stack"
+
+Example:
+-- Register several phrases in one call using a return-delimited list
+registerVoiceCommand "open stack" & return & "close stack" & return & "save stack"
+
+Example:
+-- Build the list dynamically from an array of commands
+put empty into tPhrases
+repeat for each element tCmd in tCommands
+    put tCmd & return after tPhrases
+end repeat
+registerVoiceCommand tPhrases
+
+Example:
+-- Register and then start listening
+registerVoiceCommand "next slide"
+registerVoiceCommand "previous slide"
+startListening
+
+Parameters:
+phrases (string): A single spoken phrase or a return-delimited list of
+phrases to register. Each phrase should be natural-sounding text in the
+recognition language. Duplicate phrases (case-insensitive) are silently
+ignored.
+
+Description:
+Use <registerVoiceCommand> to tell the speech recognition engine which
+phrases it should watch for. When a registered phrase is recognised while
+the engine is listening, a <voiceCommand> message is sent to the current
+card of the default stack with the matched phrase as its parameter.
+
+You can call <registerVoiceCommand> multiple times to build up a library
+of commands, or pass all phrases at once as a return-delimited list in a
+single call — both styles produce identical results.
+
+Registering a phrase that is already registered is a no-op; the existing
+registration is not duplicated.
+
+Speech recognition must be started separately with <startListening>.
+Registering phrases before calling <startListening> is the recommended
+order.
+
+References: unregisterVoiceCommand (command), unregisterAllVoiceCommands (command),
+startListening (command), stopListening (command), setWakeWord (command),
+voiceCommand (message), isListening (function)
+
+Tags: speech, voice

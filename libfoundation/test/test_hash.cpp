@@ -66,7 +66,8 @@ TEST(hash, floating_point)
     EXPECT_EQ(MCHashDouble(0), MCHashUInteger(0));
 
     auto t_uinteger = random_pos_int<uinteger_t>();
-    double t_intpart = t_uinteger;    EXPECT_EQ(MCHashDouble(t_intpart), MCHashUInteger(t_uinteger));
+    double t_intpart = t_uinteger;    
+    EXPECT_EQ(MCHashDouble(t_intpart), MCHashUInteger(t_uinteger));
     EXPECT_EQ(MCHashDouble(-t_intpart), MCHashUInteger(t_uinteger));
 
     auto t_fraction = MCSRandomReal();

@@ -338,6 +338,10 @@ end animationEngineDate
 
 Summary: Calculates the aspect ratio of a width and height
 
+Parameters:
+isWidth (number): width
+isHeight (number): height
+
 Returns: The computed result
 */
 function aspectRatio isWidth,isHeight
@@ -1168,6 +1172,9 @@ end maskComparePoints
 
 Summary: Returns the midpoint of the left edge of an object
 
+Parameters:
+theObject: The object to compute the midpoint for
+
 Returns: The computed result
 */
 function midLeft theObject
@@ -1183,6 +1190,9 @@ end midleft
 /**
 
 Summary: Returns the midpoint of the right edge of an object
+
+Parameters:
+theObject: The object to compute the midpoint for
 
 Returns: The computed result
 */
@@ -1200,6 +1210,9 @@ end midRight
 
 Summary: Returns the midpoint of the top edge of an object
 
+Parameters:
+theObject: The object to compute the midpoint for
+
 Returns: The computed result
 */
 function midTop theObject
@@ -1216,6 +1229,9 @@ end midTop
 
 Summary: Returns the midpoint of the bottom edge of an object
 
+Parameters:
+theObject: The object to compute the midpoint for
+
 Returns: The computed result
 */
 function midBottom theObject
@@ -1231,6 +1247,9 @@ end midBottom
 /**
 
 Summary: Returns the alpha channel value of an object at a point
+
+Parameters:
+theObject: The object to compute the alpha channel value for
 
 Returns: The computed result
 */
@@ -1259,6 +1278,11 @@ end splitAlpha
 
 Summary: Tests whether two image objects overlap using pixel comparison
 
+Parameters:
+object1: The first image object
+object2: The second image object
+threshold: The threshold value for pixel comparison
+
 Returns: The computed result
 */
 function imageCollide object1,object2,threshold
@@ -1277,6 +1301,11 @@ end imageCollide
 /**
 
 Summary: Tests whether two image objects overlap using an alternate pixel method
+
+Parameters:
+object1: The first image object
+object2: The second image object
+threshold: The threshold value for pixel comparison
 
 Returns: The computed result
 */
@@ -1708,6 +1737,11 @@ end lineIntersectionPoint
 
 Summary: Tests whether two polygons intersect
 
+Parameters:
+pointlist1: The first polygon defined by a list of points
+pointlist2: The second polygon defined by a list of points
+method: The method to use for collision detection ("SAT", "pip", or default)
+
 Returns: The computed result
 */
 function polyCollide pointlist1,pointlist2,method
@@ -1799,6 +1833,15 @@ end polyCollide
 /**
 
 Summary: Calculates a point on a Gielis superformula curve
+
+Parameters:
+m: The number of symmetries
+n1: The first exponent
+n2: The second exponent
+n3: The third exponent
+phi: The angle in radians
+a: The scaling factor for the x-axis
+b: The scaling factor for the y-axis
 
 Returns: The computed result
 */
@@ -3145,6 +3188,13 @@ end movePolygonalChangeStepInOut
 
 Summary: Returns an ease-in interpolated value
 
+Parameters:
+pStart: The starting value
+pEnd: The ending value
+pDuration: The total duration of the interpolation
+pElapsedTime: The elapsed time since the start of the interpolation
+pExponent: The exponent to control the easing curve
+
 Returns: The computed result
 */
 function aeEaseIn pStart,pEnd,pDuration,pElapsedTime,pExponent
@@ -3162,6 +3212,13 @@ end aeEaseIn
 
 Summary: Returns an ease-out interpolated value
 
+Parameters:
+pStart: The starting value
+pEnd: The ending value
+pDuration: The total duration of the interpolation
+pElapsedTime: The elapsed time since the start of the interpolation
+pExponent: The exponent to control the easing curve
+
 Returns: The computed result
 */
 function aeEaseOut pStart,pEnd,pDuration,pElapsedTime,pExponent
@@ -3178,6 +3235,13 @@ end aeEaseOut
 /**
 
 Summary: Returns an ease-in-out interpolated value
+
+Parameters:
+pStart: The starting value
+pEnd: The ending value
+pDuration: The total duration of the interpolation
+pElapsedTime: The elapsed time since the start of the interpolation
+pExponent: The exponent to control the easing curve
 
 Returns: The computed result
 */
@@ -3199,6 +3263,10 @@ end aeEaseInOut
 /**
 
 Summary: Returns a mathematically computed ease-out value
+
+Parameters:
+pR: The ratio of elapsed time to duration
+pExponent: The exponent to control the easing curve
 
 Returns: The computed result
 */
@@ -3643,6 +3711,10 @@ end rotate3DPoint
 
 Summary: Returns the scale ratio for a point at a given Z depth
 
+Parameters:
+pZ: The Z coordinate of the point
+pFocalLength: The focal length of the camera
+
 Returns: The computed result
 */
 function ae3dScaleRatio pZ,pFocalLength
@@ -3658,6 +3730,14 @@ end ae3dScaleRatio
 /**
 
 Summary: Draws a 3D box primitive
+
+Parameters:
+px: The X coordinate of the box
+py: The Y coordinate of the box
+pz: The Z coordinate of the box
+pa: The width of the box along the X axis
+pb: The height of the box along the Y axis
+pc: The depth of the box along the Z axis
 
 Returns: The computed result
 */
@@ -4294,6 +4374,13 @@ end aeMorphGradientDone
 
 Summary: Interpolates between two point lists over time
 
+Parameters:
+pList1: The first point list
+pList2: The second point list
+pDuration: The duration of the interpolation
+pCurrentTime: The current time in the interpolation
+pEffect: The easing effect to use for the interpolation (bounce, overshoot, in, out, inOut)
+
 Returns: The computed result
 */
 function aeMorphPointlists pList1,pList2,pDuration,pCurrentTime,pEffect
@@ -4334,6 +4421,16 @@ end aeMorphPointlists
 
 Summary: Interpolates between two numeric lists over time
 
+Parameters:
+pList1: The first numeric list
+pList2: The second numeric list
+pDuration: The duration of the interpolation
+pCurrentTime: The current time in the interpolation
+pEffect: The easing effect to use for the interpolation (bounce, overshoot, in, out, inOut)
+pRound: Boolean indicating whether to round the result
+pMin: Minimum value for the result (optional)
+pMax: Maximum value for the result (optional)
+
 Returns: The computed result
 */
 function aeMorphLists pList1,pList2,pDuration,pCurrentTime,pEffect,pRound,pMin,pMax
@@ -4373,7 +4470,7 @@ function aeMorphLists pList1,pList2,pDuration,pCurrentTime,pEffect,pRound,pMin,p
                put pMin into tVal
             end if
          end if
-          if pMax is not empty then
+         if pMax is not empty then
             if tVal > pMax then 
                put pMax into tVal
             end if
@@ -4390,6 +4487,13 @@ end aeMorphLists
 /**
 
 Summary: Interpolates between two gradient ramp lists over time
+
+Parameters:
+pList1: The first gradient ramp list
+pList2: The second gradient ramp list
+pDuration: The duration of the interpolation
+pCurrentTime: The current time in the interpolation
+pEffect: The easing effect to use for the interpolation (bounce, overshoot, in, out, inOut)
 
 Returns: The computed result
 */
@@ -4448,6 +4552,12 @@ end aeMorphGradient
 
 Summary: Returns a bounce ease-in interpolated value
 
+Parameters:
+pStart: The starting value
+pEnd: The ending value
+pDuration: The duration of the interpolation
+pCurrentTime: The current time in the interpolation
+
 Returns: The computed result
 */
 function aeBounceEaseIn pStart,pEnd,pDuration,pCurrentTime
@@ -4462,6 +4572,12 @@ end aeBounceEaseIn
 /**
 
 Summary: Performs the aeBounceEaseOut operation
+
+Parameters:
+pStart: The starting value
+pEnd: The ending value
+pDuration: The duration of the interpolation
+pCurrentTime: The current time in the interpolation
 
 Returns: The computed result
 */
@@ -4495,6 +4611,13 @@ end aeBounceEaseOut
 
 Summary: Returns an overshoot ease-in interpolated value
 
+Parameters:
+pStart: The starting value
+pEnd: The ending value
+pDuration: The duration of the interpolation
+pCurrentTime: The current time in the interpolation
+pOvershoot: The amount of overshoot
+
 Returns: The computed result
 */
 function aeOvershootEaseIn pStart,pEnd,pDuration,pCurrentTime,pOvershoot
@@ -4513,6 +4636,13 @@ end aeOvershootEaseIn
 
 Summary: Performs the aeOverShootEaseOut operation
 
+Parameters:
+pStart: The starting value
+pEnd: The ending value
+pDuration: The duration of the interpolation
+pCurrentTime: The current time in the interpolation
+pOvershoot: The amount of overshoot
+
 Returns: The computed result
 */
 function aeOverShootEaseOut pStart,pEnd,pDuration,pCurrentTime,pOvershoot
@@ -4530,6 +4660,9 @@ end aeOverShootEaseOut
 /**
 
 Summary: Logs a debug value to the animation engine debug output
+
+Parameters:
+pValue: The value to log
 */
 command aeDebug pValue
    put cr&pValue after msg
@@ -6558,85 +6691,98 @@ end aeCollidingObjects
 
 Summary: Rotates a list of 3D points around the X, Y and Z axes
 
+Parameters:
+pointList: A list of 3D points in the form of "x,y,z" (one point per line)
+pXRotation: The rotation around the X axis in degrees
+pYRotation: The rotation around the Y axis in degrees
+pZRotation: The rotation around the Z axis in degrees
+pFocalLength: The focal length for perspective projection (optional, default is 300)
+
 Returns: The computed result
 */
 function rotate3DPointList pointList,pXRotation,pYRotation,pZRotation,pFocalLength
-   local cX,cY,cZ,i
-   local newX,newY,newZ
-   local pX,pY
-   local pZ,tScaleFactor,sX
-   local sY,sZ,theValue,xY
-   local xZ,yX,yZ,zX
-   local zY
+   local cX,cY,cZ,i
+   local newX,newY,newZ
+   local pX,pY
+   local pZ,tScaleFactor,sX
+   local sY,sZ,theValue,xY
+   local xZ,yX,yZ,zX
+   local zY
 local tReturnList
-   if pFocalLength is empty then put 300 into pFocalLength
-   put pXrotation*pi/180 into pXrotation
-   put pYrotation*pi/180 into pYrotation
-   put pZrotation*pi/180 into pZrotation
-   put sin(pXRotation) into sX
-   put cos(pXRotation) into cX
-   put sin(pYRotation) into sY
-   put cos(pYRotation) into cY
-   put sin(pZRotation) into sZ
-   put cos(pZRotation) into cZ
-   try
-      repeat for each line L in pointList
-         if L is empty then
-            put cr after tReturnList
-            next repeat
-         end if
-         put item 1 of L into pX
-         put item 2 of L into pY
-         put item 3 of L into pZ
-         -- rotation around x
-         put cx*pY - sx*pZ into xY
-         put sx*pY + cx*pZ into xZ
-         -- rotation around y
-         put cy*xz - sy*pX into yZ
-         put sy*xz + cy*pX into yX
-         -- rotation around z
-         put cz*yx - sz*xy into zX
-         put sz*yx + cz*xy into zY
-         put pfocalLength/(pfocalLength + yz) into tScaleFactor
-         put zX * tScalefactor into newX
-         put zY * tScalefactor into newY
-         put yZ into newZ
-         put newX,newY,newZ & cr after tReturnList
-      end repeat
-      return char 1 to - 2 of tReturnList
-   catch theError
-      return theError
-   end try
+   if pFocalLength is empty then put 300 into pFocalLength
+   put pXrotation*pi/180 into pXrotation
+   put pYrotation*pi/180 into pYrotation
+   put pZrotation*pi/180 into pZrotation
+   put sin(pXRotation) into sX
+   put cos(pXRotation) into cX
+   put sin(pYRotation) into sY
+   put cos(pYRotation) into cY
+   put sin(pZRotation) into sZ
+   put cos(pZRotation) into cZ
+   try
+      repeat for each line L in pointList
+         if L is empty then
+            put cr after tReturnList
+            next repeat
+         end if
+         put item 1 of L into pX
+         put item 2 of L into pY
+         put item 3 of L into pZ
+         -- rotation around x
+         put cx*pY - sx*pZ into xY
+         put sx*pY + cx*pZ into xZ
+         -- rotation around y
+         put cy*xz - sy*pX into yZ
+         put sy*xz + cy*pX into yX
+         -- rotation around z
+         put cz*yx - sz*xy into zX
+         put sz*yx + cz*xy into zY
+         put pfocalLength/(pfocalLength + yz) into tScaleFactor
+         put zX * tScalefactor into newX
+         put zY * tScalefactor into newY
+         put yZ into newZ
+         put newX,newY,newZ & cr after tReturnList
+      end repeat
+      return char 1 to - 2 of tReturnList
+   catch theError
+      return theError
+   end try
 end rotate3DPointList
 
 /**
 
 Summary: Projects a list of 3D points onto the 2D screen
 
+Parameters:
+pointList: A list of 3D points in the form of "x,y,z" (one point per line)
+pOriginX: The x-coordinate of the origin
+pOriginY: The y-coordinate of the origin
+pFocalLength: The focal length for perspective projection (optional, default is 300)
+
 Returns: The computed result
 */
 function ae3dConvertListToScreen pointList,pOriginX,pOriginY,pFocalLength
-   local i
-   local pX,pY,pZ,theValue
-   local tScaleFactor,tXCartesian,tYCartesian,tReturnList
-   if pFocalLength is empty then put 300 into pFocalLength
-   try
-      repeat for each line L in pointList
-         if L is empty then
-            put cr after tReturnList
-            next repeat
-         end if
-         put item 1 of L into pX
-         put item 2 of L into pY
-         put item 3 of L into pZ
-         put pFocalLength/(pFocalLength+pZ) into tScaleFactor
-         put pX*tScaleFactor into tXCartesian
-         put pY*tScaleFactor into tYCartesian
-         put round(tXCartesian+pOriginX),round(-tYCartesian+pOriginY) & cr after tReturnList
-      end repeat
-      return char 1 to -2 of tReturnList
-   catch theError
-      return theError
-   end try
+   local i
+   local pX,pY,pZ,theValue
+   local tScaleFactor,tXCartesian,tYCartesian,tReturnList
+   if pFocalLength is empty then put 300 into pFocalLength
+   try
+      repeat for each line L in pointList
+         if L is empty then
+            put cr after tReturnList
+            next repeat
+         end if
+         put item 1 of L into pX
+         put item 2 of L into pY
+         put item 3 of L into pZ
+         put pFocalLength/(pFocalLength+pZ) into tScaleFactor
+         put pX*tScaleFactor into tXCartesian
+         put pY*tScaleFactor into tYCartesian
+         put round(tXCartesian+pOriginX),round(-tYCartesian+pOriginY) & cr after tReturnList
+      end repeat
+      return char 1 to -2 of tReturnList
+   catch theError
+      return theError
+   end try
 end ae3dConvertListToScreen
 

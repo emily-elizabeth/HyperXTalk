@@ -136,6 +136,7 @@ begin
 	MCCanvasRectangleSetLeft(input, mRect)
 end syntax
 
+/** undocumented_syntax */
 syntax RectanglePropertyX is prefix operator with property precedence
 	"the" "x" "of" <mRect:Expression>
 begin
@@ -174,6 +175,7 @@ begin
 	MCCanvasRectangleSetTop(input, mRect)
 end syntax
 
+/** undocumented_syntax */
 syntax RectanglePropertyY is prefix operator with property precedence
 	"the" "y" "of" <mRect:Expression>
 begin
@@ -4600,6 +4602,17 @@ begin
 	MCCanvasBeginLayer(mCanvas)
 	MCCanvasBeginLayerWithEffect(mEffect, mCanvas)
 end syntax
+
+/**
+Summary:	Begin a new effect only drawing layer on a canvas.
+
+mCanvas:		An expression which evaluates to a canvas.
+mEffect:	An expression which evaluates to an effect.
+
+Description:	Begins a new layer on <mCanvas> to group drawing operations for which the opacity, blend mode, and effect are to be applied to as a whole rather than individually.
+
+Tags:	Canvas
+*/
 syntax CanvasOperationBeginEffectOnlyLayer is statement
 	"begin" "effect" "only" "layer" "with" <mEffect: Expression> "on" <mCanvas: Expression>
 begin

@@ -1053,6 +1053,66 @@ public:
 };
 
 // ---------------------------------------------------------------------------
+// Voice command statements
+
+class MCRegisterVoiceCommand : public MCStatement
+{
+    MCExpression *m_phrases;
+public:
+    MCRegisterVoiceCommand() : m_phrases(nil) {}
+    virtual ~MCRegisterVoiceCommand();
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &);
+};
+
+class MCUnregisterVoiceCommand : public MCStatement
+{
+    MCExpression *m_phrase;
+public:
+    MCUnregisterVoiceCommand() : m_phrase(nil) {}
+    virtual ~MCUnregisterVoiceCommand();
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &);
+};
+
+class MCUnregisterAllVoiceCommands : public MCStatement
+{
+public:
+    virtual ~MCUnregisterAllVoiceCommands() {}
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &);
+};
+
+class MCStartListening : public MCStatement
+{
+    MCExpression *m_language; // optional
+public:
+    MCStartListening() : m_language(nil) {}
+    virtual ~MCStartListening();
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &);
+};
+
+class MCStopListening : public MCStatement
+{
+public:
+    virtual ~MCStopListening() {}
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &);
+};
+
+class MCSetWakeWord : public MCStatement
+{
+    MCExpression *m_word;
+    MCExpression *m_timeout; // optional, milliseconds
+public:
+    MCSetWakeWord() : m_word(nil), m_timeout(nil) {}
+    virtual ~MCSetWakeWord();
+    virtual Parse_stat parse(MCScriptPoint &);
+    virtual void exec_ctxt(MCExecContext &);
+};
+
+// ---------------------------------------------------------------------------
 
 class MCClickCmd : public MCStatement
 {

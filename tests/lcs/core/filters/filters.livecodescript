@@ -212,14 +212,14 @@ end TestFiltersMessageDigest
 
 on TestFiltersUrldecode
 
-TestAssert "test", urldecode("+") is " "
+TestAssert "test", urldecode("%20") is " " // HXT changed from '+'
 TestAssert "test", urldecode("%3F") is "?"
 TestAssert "test", urldecode("abcde") is "abcde"
 
 end TestFiltersUrldecode
 on TestFiltersUrlencode
 
-TestAssert "test", urlencode(" ") is "+"
+TestAssert "test", urlencode(" ") is "%20" // HXT changed from '+'
 TestAssert "test", urlencode("?") is "%3F"
 TestAssert "test", urlencode("abcde") is "abcde"
 

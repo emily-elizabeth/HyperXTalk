@@ -32,7 +32,7 @@ switch notificationPermission()
         set the label of button "Notifications" to "Not set"
 end switch
 
-Value:
+Returns:
 <notificationPermission> returns one of the following strings:
 
 - "granted" — the application is allowed to show notifications.

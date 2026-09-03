@@ -319,6 +319,10 @@
 										[
 											'$(SDKROOT)/System/Library/Frameworks/CoreFoundation.framework',
 											'$(SDKROOT)/System/Library/Frameworks/Foundation.framework',
+											# Direct prebuilt path so the linker can find
+											# libffi symbols that libFoundation.a references.
+											# Path is relative to SRCROOT (= lcidlc/).
+											'../prebuilt/lib/mac/libffi.a',
 										],
 									},
 									{
@@ -327,6 +331,7 @@
 											'-framework', 'CoreFoundation',
 											'-framework', 'Foundation',
 										],
+										'libraries': [ '-lffi' ],
 									},
 								],
 							],

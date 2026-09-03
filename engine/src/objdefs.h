@@ -178,6 +178,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #define F_REPEAT_COUNT          (1UL << 20)
 #define F_PALINDROME_FRAMES     (1UL << 21)
 #define F_PICT                  (1UL << 22)
+#define F_WEBP                  (1UL << 17 | 1UL << 22)
 #define F_SAVE_SIZE             (1UL << 23)
 #define F_I_ALWAYS_BUFFER       (1UL << 24)
 #define F_CONSTANT_MASK         (1UL << 25)

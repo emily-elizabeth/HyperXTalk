@@ -328,6 +328,8 @@ end handler
 Summary: pretty-prints the input JSON text
 
 pJson: valid JSON text string for prettyprinting.
+pNumSpaces: optional number of spaces to use for indentation (default is 2)
+pShouldExpandBraces: optional boolean to determine if braces should be expanded (default is true
 
 Returns: a string containing JSON text prettyprinted.
 

@@ -211,6 +211,7 @@ MCNameRef MCN_styles;
 MCNameRef MCN_styledtext;
 MCNameRef MCN_rtftext;
 MCNameRef MCN_htmltext;
+MCNameRef MCN_markdowntext;
 MCNameRef MCN_png;
 MCNameRef MCN_gif;
 MCNameRef MCN_jpeg;
@@ -671,6 +672,7 @@ const struct { const char *cstring; MCNameRef *name_var; } kInitialNames[] =
     { "styledtext", &MCN_styledtext },
     { "rtftext", &MCN_rtftext },
     { "htmltext", &MCN_htmltext },
+    { "markdowntext", &MCN_markdowntext },
     { "png", &MCN_png },
     { "gif", &MCN_gif },
     { "jpeg", &MCN_jpeg },
