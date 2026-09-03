@@ -317,6 +317,8 @@ package-mac:
 	@# ----------------------------------------------------------------
 	@# Externals discovery files (read by the standalone builder)
 	@# ----------------------------------------------------------------
+	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\nDatabase,revdb.bundle\n' \
+	    > "$(TOOLS_DIR)/Externals/Externals.txt"
 	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\n' \
 	    > "$(RUNTIME_ARM64)/Externals/Externals.txt"
 	@printf 'Database,revdb.bundle\n' \
@@ -544,6 +546,8 @@ package-mac-bin:
 	@# ----------------------------------------------------------------
 	@# Externals discovery files (read by the standalone builder)
 	@# ----------------------------------------------------------------
+	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\nDatabase,revdb.bundle\n' \
+	    > "$(MACBIN_TOOLS)/Externals/Externals.txt"
 	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\n' \
 	    > "$(MACBIN_RT_ARM64)/Externals/Externals.txt"
 	@printf 'Database,revdb.bundle\n' \
