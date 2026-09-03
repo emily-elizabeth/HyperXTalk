@@ -70,7 +70,7 @@ bool MCClipboard::Lock(bool p_skip_pull) const
     {
         return PullUpdates();
     }
-    
+
     return true;
 }
 

@@ -397,11 +397,11 @@ bool MCLinuxRawClipboard::PushUpdates()
     // Fail if GDK isn't available
     if (!HasGDK())
         return false;
-    
+
     // Do nothing if there are no changes to push
     if (!m_dirty)
         return true;
-    
+
     // Take ownership of the selection
     if (!gdk_selection_owner_set_for_display(GetDisplay(), GetClipboardWindow(), m_selection, GDK_CURRENT_TIME, TRUE))
         return false;
@@ -427,8 +427,21 @@ bool MCLinuxRawClipboard::PullUpdates()
     // Fail if GDK isn't available
     if (!HasGDK())
         return false;
-    
+
     // If we're still the owner of the clipboard, do nothing
+    // m_owned may be stale: another app may have taken X11 clipboard
+    // ownership and queued a SelectionClear that hasn't been dequeued yet.
+    // Query the X server directly so we don't paste stale data.
+    if (m_owned)
+    {
+        GdkWindow *t_actual_owner =
+            gdk_selection_owner_get_for_display(GetDisplay(), m_selection);
+        if (t_actual_owner != GetClipboardWindow())
+        {
+            LostSelection();
+        }
+    }
+
     if (IsOwned())
         return true;
     

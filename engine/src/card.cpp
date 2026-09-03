@@ -1397,9 +1397,22 @@ void MCCard::kfocusset(MCControl *target)
             MCscreen -> controllostfocus(getstack(), tkfocused -> getid());
 			// Mark card as unfocused
 			setstate(false, CS_KFOCUSED);
+            // MCField::kunfocus() is guarded by CS_KFOCUSED — it erases the
+            // caret and repaints only if the bit is set.  hxt_browser_took_focus
+            // may have already force-cleared CS_KFOCUSED on this control (to
+            // prevent re-entry from closeField scripts) without going through the
+            // normal kunfocus path, leaving the caret painted on screen.
+            // Restore the bit temporarily so kunfocus() runs its full erase path.
+            if (!tkfocused->getref()->getstate(CS_KFOCUSED))
+                tkfocused->getref()->setstate(true, CS_KFOCUSED);
 			tkfocused->getref()->kunfocus();
 		}
-		if (kfocused != NULL)
+		// Only early-return if the focused control is actually focused.
+		// If kfocused is set but CS_KFOCUSED was cleared externally (e.g. by
+		// hxt_browser_took_focus force-clearing the field state without going
+		// through the normal kunfocus→kfocusset path), we must fall through
+		// and re-focus the target so the card state stays consistent.
+		if (kfocused != NULL && kfocused->getref()->getstate(CS_KFOCUSED))
 			return;
 		kfocused = objptrs;
 		defbutton = NULL;
