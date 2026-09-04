@@ -85,6 +85,7 @@ private:
 	GtkWidget *gtkpix_offscreen;  // The offscreen window widget
 	GdkWindow *gtkpix;            // The GdkWindow from the offscreen window
 	gulong m_settings_signal_handler;
+	gulong m_settings_prefer_dark_signal_handler;
 	GtkSettings *m_settings;
 };
 

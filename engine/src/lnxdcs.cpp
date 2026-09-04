@@ -472,6 +472,11 @@ void MCScreenDC::backdrop_focus_lost()
 // MCpopoverstack must be nulled before calling so on_popover_closed() is a no-op.
 extern void MCLinuxPopoverClose(void);
 
+// Dark-mode colour helpers — strong definitions in lnxgtktheme.cpp.
+extern "C" bool MCplatformIsDarkMode(void);
+extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen);
+extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen);
+
 #include <langinfo.h>
 #include <fcntl.h>
 #include <sys/shm.h>
@@ -2774,6 +2779,18 @@ void MCScreenDC::getsystemappearance(MCSystemAppearance &r_appearance)
 	if (t_settings == NULL)
 		return;
 
+	// On modern GNOME (GTK 3.24.31+), dark mode is signalled via
+	// gtk-application-prefer-dark-theme rather than the theme name.
+	gboolean t_prefer_dark = FALSE;
+	g_object_get(t_settings, "gtk-application-prefer-dark-theme", &t_prefer_dark, NULL);
+	if (t_prefer_dark)
+	{
+		r_appearance = kMCSystemAppearanceDark;
+		return;
+	}
+
+	// Fall back to checking the theme name for "dark" — used by older distros
+	// that ship separate dark-theme packages (e.g. Yaru-dark, Adwaita-dark).
 	gchar *t_theme_name = NULL;
 	g_object_get(t_settings, "gtk-theme-name", &t_theme_name, NULL);
 	if (t_theme_name != NULL)
@@ -2787,6 +2804,20 @@ void MCScreenDC::getsystemappearance(MCSystemAppearance &r_appearance)
 		}
 		g_free(t_theme_name);
 	}
+}
+
+void MCScreenDC::getsystemwindowcolor(MCStringRef &r_color)
+{
+	char t_buf[8] = "#ffffff";
+	MCplatformGetWindowBackgroundColor(t_buf, sizeof(t_buf));
+	/* UNCHECKED */ MCStringCreateWithCString(t_buf, r_color);
+}
+
+void MCScreenDC::getsystemtextcolor(MCStringRef &r_color)
+{
+	char t_buf[8] = "#000000";
+	MCplatformGetLabelColor(t_buf, sizeof(t_buf));
+	/* UNCHECKED */ MCStringCreateWithCString(t_buf, r_color);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

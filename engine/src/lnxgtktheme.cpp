@@ -34,6 +34,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "lnxgtkthemedrawing.h"
 #include "lnxtheme.h"
 #include "lnximagecache.h"
+#include "card.h"
 
 #include <gdk/gdkx.h>
 #include <gtk/gtk.h>
@@ -242,6 +243,9 @@ static GtkWidgetState getpartandstate(const MCWidgetInfo &winfo, GtkThemeWidgetT
 	return state;
 }
 
+// Forward declaration — defined later in this file.
+void MCPlatformHandleSystemAppearanceChanged(void);
+
 static gboolean reload_theme(void)
 {
 	Boolean reload = True;
@@ -258,8 +262,108 @@ static gboolean reload_theme(void)
 
 		// MW-2011-08-17: [[ Redraw ]] The theme has changed so redraw everything.
 		MCRedrawDirtyScreen();
+
+		// Notify scripts that the system appearance may have changed.
+		MCPlatformHandleSystemAppearanceChanged();
 	}
 	return (TRUE);
+}
+
+// ── Linux dark-mode appearance helpers ────────────────────────────────────
+// These provide the strong definitions declared as extern "C" in desktop.cpp.
+// They are called from MCPlatformHandleSystemAppearanceChanged() to supply the
+// three parameters sent with the systemAppearanceChanged message.
+
+extern "C" bool MCplatformIsDarkMode(void)
+{
+	GtkSettings *t_settings = gtk_settings_get_default();
+	if (t_settings == NULL)
+		return false;
+
+	// On modern GNOME (GTK 3.24.31+), dark mode is controlled via
+	// org.freedesktop.portal.Settings, which GTK maps to the
+	// gtk-application-prefer-dark-theme property.  Check this first.
+	gboolean t_prefer_dark = FALSE;
+	g_object_get(t_settings, "gtk-application-prefer-dark-theme", &t_prefer_dark, NULL);
+	if (t_prefer_dark)
+		return true;
+
+	// Fall back to checking the theme name for "dark" — used by older distros
+	// that ship separate dark-theme packages (e.g. Yaru-dark, Adwaita-dark).
+	gchar *t_theme_name = NULL;
+	g_object_get(t_settings, "gtk-theme-name", &t_theme_name, NULL);
+	if (t_theme_name == NULL)
+		return false;
+
+	gchar *t_lower = g_ascii_strdown(t_theme_name, -1);
+	g_free(t_theme_name);
+	if (t_lower == NULL)
+		return false;
+
+	bool t_dark = g_strstr_len(t_lower, -1, "dark") != NULL;
+	g_free(t_lower);
+	return t_dark;
+}
+
+extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen)
+{
+	if (MCplatformIsDarkMode())
+		snprintf(p_buf, p_buflen, "#1e1e1e");
+	else
+		snprintf(p_buf, p_buflen, "#ffffff");
+}
+
+extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen)
+{
+	if (MCplatformIsDarkMode())
+		snprintf(p_buf, p_buflen, "#ffffff");
+	else
+		snprintf(p_buf, p_buflen, "#000000");
+}
+
+// Linux implementation of MCPlatformHandleSystemAppearanceChanged.
+// desktop.cpp is excluded from the Linux build, so we provide the function
+// here.  This mirrors the dispatch logic in desktop.cpp but omits the
+// updatesystemcolors() call (desktop-dc.cpp is also excluded on Linux — GTK
+// handles native widget colours itself) and the Mac HITheme cache flush.
+void MCPlatformHandleSystemAppearanceChanged(void)
+{
+	if (MCscreen == nil)
+		return;
+
+	char t_color_buf[8] = {};
+	char t_text_color_buf[8] = {};
+	MCplatformGetWindowBackgroundColor(t_color_buf, sizeof(t_color_buf));
+	MCplatformGetLabelColor(t_text_color_buf, sizeof(t_text_color_buf));
+	bool t_is_dark = MCplatformIsDarkMode();
+
+	MCStacknode *t_stack_node = MCstacks->topnode();
+	MCStacknode *t_first_node = t_stack_node;
+	while (t_stack_node != NULL)
+	{
+		MCStack *t_stack = t_stack_node->getstack();
+		if (t_stack != nil && t_stack->getcurcard() != nil)
+		{
+			t_stack->dirtyall();
+
+			MCStringRef t_color_str;
+			/* UNCHECKED */ MCStringCreateWithCString(t_color_buf, t_color_str);
+			MCStringRef t_text_color_str;
+			/* UNCHECKED */ MCStringCreateWithCString(t_text_color_buf, t_text_color_str);
+			MCscreen->delaymessage(t_stack->getcurcard(),
+			                       MCM_system_appearance_changed,
+			                       t_is_dark ? MCSTR("dark") : MCSTR("light"),
+			                       t_color_str,
+			                       t_text_color_str);
+			MCValueRelease(t_color_str);
+			MCValueRelease(t_text_color_str);
+		}
+		t_stack_node = t_stack_node->next();
+		if (t_stack_node == t_first_node)
+			break;
+	}
+
+	MCRedrawDirtyScreen();
 }
 
 
@@ -304,20 +408,30 @@ Boolean MCNativeTheme::load()
 	// Initialize member variables
 	m_settings = NULL;
 	m_settings_signal_handler = 0;
-	
+	m_settings_prefer_dark_signal_handler = 0;
+
 	if (!initialised)
 	{
 		gtk_init();
-		
 		initialised = True;
-		m_settings = gtk_settings_get_default();
-		if (m_settings)
-		{
-			// Store the signal handler ID so we can disconnect it later
-			m_settings_signal_handler = g_signal_connect_data(m_settings, "notify::gtk-theme-name", 
-			                                                    G_CALLBACK(reload_theme),
-			                                                    NULL, NULL, (GConnectFlags)0);
-		}
+	}
+
+	// Connect signals every time load() is called — they are disconnected by
+	// unload(), so they must be reconnected here on each reload_theme() cycle.
+	m_settings = gtk_settings_get_default();
+	if (m_settings)
+	{
+		// gtk-theme-name fires on distros that use separate dark-theme packages
+		// (e.g. Yaru-dark, Adwaita-dark).
+		m_settings_signal_handler = g_signal_connect_data(m_settings, "notify::gtk-theme-name",
+		                                                   G_CALLBACK(reload_theme),
+		                                                   NULL, NULL, (GConnectFlags)0);
+		// gtk-application-prefer-dark-theme fires on modern GNOME (GTK 3.24.31+)
+		// when the user toggles dark mode via Settings → Appearance.
+		m_settings_prefer_dark_signal_handler = g_signal_connect_data(m_settings,
+		                                                               "notify::gtk-application-prefer-dark-theme",
+		                                                               G_CALLBACK(reload_theme),
+		                                                               NULL, NULL, (GConnectFlags)0);
 	}
 	// -- tperry 15-11-2025: GTK3 - initialize offscreen window for theme rendering
 	gtkpix_offscreen = NULL;
@@ -345,11 +459,19 @@ Boolean MCNativeTheme::load()
 
 void MCNativeTheme::unload()
 {
-	// Disconnect the signal handler before cleanup to avoid the finalization warning
-	if (m_settings && m_settings_signal_handler != 0)
+	// Disconnect both signal handlers before cleanup.
+	if (m_settings)
 	{
-		g_signal_handler_disconnect(m_settings, m_settings_signal_handler);
-		m_settings_signal_handler = 0;
+		if (m_settings_signal_handler != 0)
+		{
+			g_signal_handler_disconnect(m_settings, m_settings_signal_handler);
+			m_settings_signal_handler = 0;
+		}
+		if (m_settings_prefer_dark_signal_handler != 0)
+		{
+			g_signal_handler_disconnect(m_settings, m_settings_prefer_dark_signal_handler);
+			m_settings_prefer_dark_signal_handler = 0;
+		}
 		m_settings = NULL;
 	}
 		
