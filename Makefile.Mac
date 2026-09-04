@@ -319,10 +319,8 @@ package-mac:
 	@# ----------------------------------------------------------------
 	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\nDatabase,revdb.bundle\n' \
 	    > "$(TOOLS_DIR)/Externals/Externals.txt"
-	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\n' \
+	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\nDatabase,revdb.bundle\n' \
 	    > "$(RUNTIME_ARM64)/Externals/Externals.txt"
-	@printf 'Database,revdb.bundle\n' \
-	    >> "$(RUNTIME_ARM64)/Externals/Externals.txt"
 	@printf 'MySQL,dbmysql.bundle\nODBC,dbodbc.bundle\nPostgreSQL,dbpostgresql.bundle\nSQLite,dbsqlite.bundle\n' \
 	    > "$(RUNTIME_ARM64)/Externals/Database Drivers/Database Drivers.txt"
 	@# ----------------------------------------------------------------
@@ -548,10 +546,8 @@ package-mac-bin:
 	@# ----------------------------------------------------------------
 	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\nDatabase,revdb.bundle\n' \
 	    > "$(MACBIN_TOOLS)/Externals/Externals.txt"
-	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\n' \
+	@printf 'Speech,revspeech.bundle\nXML,revxml.bundle\nRevolution Zip,revzip.bundle\nDatabase,revdb.bundle\n' \
 	    > "$(MACBIN_RT_ARM64)/Externals/Externals.txt"
-	@printf 'Database,revdb.bundle\n' \
-	    >> "$(MACBIN_RT_ARM64)/Externals/Externals.txt"
 	@printf 'MySQL,dbmysql.bundle\nODBC,dbodbc.bundle\nPostgreSQL,dbpostgresql.bundle\nSQLite,dbsqlite.bundle\n' \
 	    > "$(MACBIN_RT_ARM64)/Externals/Database Drivers/Database Drivers.txt"
 	@# ----------------------------------------------------------------
