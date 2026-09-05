@@ -545,6 +545,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #define WD_UTILITY            (1UL << 8)
 #define WD_LIVERESIZING        (1UL << 9)
 #define WD_FORCETASKBAR		  (1UL << 10)
+#define WD_TRANSPARENT_TITLEBAR (1UL << 11)
 #define WD_WDEF               (1UL << 15) // use Mac WDEF resource
 
 // Font styles

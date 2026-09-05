@@ -113,6 +113,7 @@ static const PropList stackprops[] =
         {"resizable", P_RESIZABLE},
         {"scalefactor", P_SCALE_FACTOR},
         {"shadow", P_SHADOW},
+        {"transparentTitlebar", P_TRANSPARENT_TITLEBAR},
         {"shadowColor", P_SHADOW_COLOR},
         {"shadowPattern", P_SHADOW_PATTERN},
         {"shadowOffset", P_SHADOW_OFFSET},

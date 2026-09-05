@@ -1857,6 +1857,7 @@ const LT factor_table[] =
 		{"traceuntil", TT_PROPERTY, P_TRACE_UNTIL},
         {"trackcount", TT_PROPERTY, P_TRACK_COUNT},
         {"tracks", TT_PROPERTY, P_TRACKS},
+        {"transparenttitlebar", TT_PROPERTY, P_TRANSPARENT_TITLEBAR},
         {"transpose", TT_FUNCTION, F_TRANSPOSE},
         {"traversalon", TT_PROPERTY, P_TRAVERSAL_ON},
         {"trueword", TT_CHUNK, CT_TRUEWORD},

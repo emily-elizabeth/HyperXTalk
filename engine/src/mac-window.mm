@@ -2225,7 +2225,7 @@ void MCMacPlatformWindow::DoRealize(void)
     }
 	else
 		m_window_handle = [[com_hyperxtalk_hyperxtalk_MCWindow alloc] initWithContentRect: t_cocoa_content styleMask: t_window_style backing: NSBackingStoreBuffered defer: NO];
-    
+
     // AL-2014-07-23: [[ Bug 12131 ]] Explicitly set frame, since initWithContentRect
     //  assumes content is on primary screen.
     NSRect t_cocoa_frame;
@@ -2258,6 +2258,12 @@ void MCMacPlatformWindow::DoRealize(void)
 	else
 		[m_window_handle setBackgroundColor: NSColor.clearColor];
 	[m_window_handle setHasShadow: m_has_shadow];
+    [m_window_handle setTitlebarAppearsTransparent: m_transparent_titlebar];
+    [m_window_handle setTitleVisibility: m_transparent_titlebar ? NSWindowTitleHidden : NSWindowTitleVisible];
+    if (m_transparent_titlebar)
+        m_window_handle.styleMask |= NSWindowStyleMaskFullSizeContentView;
+    else
+        m_window_handle.styleMask &= ~NSWindowStyleMaskFullSizeContentView;
 	if (!m_has_zoom_widget)
 		[[m_window_handle standardWindowButton: NSWindowZoomButton] setEnabled: NO];
 	[m_window_handle setAlphaValue: m_opacity];
@@ -2303,6 +2309,16 @@ void MCMacPlatformWindow::DoSynchronize(void)
 	
     if (m_changes . has_shadow_changed)
         [m_window_handle setHasShadow: m_has_shadow];
+
+    if (m_changes . has_transparent_titlebar_changed)
+    {
+        [m_window_handle setTitlebarAppearsTransparent: m_transparent_titlebar];
+        [m_window_handle setTitleVisibility: m_transparent_titlebar ? NSWindowTitleHidden : NSWindowTitleVisible];
+        if (m_transparent_titlebar)
+            m_window_handle.styleMask |= NSWindowStyleMaskFullSizeContentView;
+        else
+            m_window_handle.styleMask &= ~NSWindowStyleMaskFullSizeContentView;
+    }
     
 	if (m_changes . mask_changed || m_changes . is_opaque_changed)
 	{
