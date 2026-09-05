@@ -189,6 +189,142 @@ bool MCFiltersBase64Encode(MCDataRef p_src, MCStringRef& r_dst)
 	return buffer.CreateStringAndRelease(r_dst);
 }
 
+//////////
+
+// Quoted-Printable encoding (RFC 2045):
+//   - Printable ASCII (0x21-0x7E) except '=' passes through unchanged.
+//   - Space (0x20) and tab (0x09) pass through, except at end of line where
+//     they must be encoded.
+//   - Lines are wrapped at 76 characters using soft line breaks (=\r\n).
+//   - All other bytes are encoded as =XX (uppercase hex).
+bool MCFiltersQuotedPrintableEncode(MCDataRef p_src, MCStringRef& r_dst)
+{
+	const uint8_t *s = MCDataGetBytePtr(p_src);
+	uint32_t size = MCDataGetLength(p_src);
+
+	// Worst case: every byte becomes =XX (3 chars) plus soft line breaks.
+	MCAutoNativeCharArray buffer;
+	if (!buffer.New(size * 3 + (size / 76 + 1) * 3 + 1))
+		return false;
+
+	char_t *p = buffer.Chars();
+	uint32_t col = 0; // current column (0-based)
+
+	auto soft_break = [&]() {
+		*p++ = '=';
+		*p++ = '\r';
+		*p++ = '\n';
+		col = 0;
+	};
+
+	static const char_t hex[] = "0123456789ABCDEF";
+
+	for (uint32_t i = 0; i < size; i++)
+	{
+		uint8_t c = s[i];
+
+		// Check if this is whitespace that might be at end of line or end of data.
+		bool is_ws = (c == ' ' || c == '\t');
+		bool at_end = (i + 1 == size) ||
+		              (s[i + 1] == '\r') || (s[i + 1] == '\n');
+
+		if (c == '\r' || c == '\n')
+		{
+			// Pass through CRLF / LF as-is, reset column.
+			*p++ = c;
+			col = 0;
+			continue;
+		}
+
+		// Decide how many output chars this byte will take.
+		bool must_encode = (c == '=') || (is_ws && at_end) ||
+		                   (c < 0x20 && !is_ws) || c > 0x7e;
+		uint32_t needed = must_encode ? 3 : 1;
+
+		// If this output would exceed column 76, emit a soft line break first.
+		if (col + needed > 76)
+			soft_break();
+
+		if (must_encode)
+		{
+			*p++ = '=';
+			*p++ = hex[(c >> 4) & 0xf];
+			*p++ = hex[c & 0xf];
+			col += 3;
+		}
+		else
+		{
+			*p++ = (char_t)c;
+			col += 1;
+		}
+	}
+
+	buffer.Shrink(p - buffer.Chars());
+	return buffer.CreateStringAndRelease(r_dst);
+}
+
+// Quoted-Printable decoding (RFC 2045):
+//   - =XX sequences (case-insensitive hex) are decoded to the byte value.
+//   - Soft line breaks (=\r\n or =\n) are removed.
+//   - All other bytes pass through unchanged.
+bool MCFiltersQuotedPrintableDecode(MCStringRef p_src, MCDataRef& r_dst)
+{
+	MCAutoStringRefAsNativeChars t_native;
+	const char_t *s = nil;
+	uint32_t l = 0;
+	if (!t_native.Lock(p_src, s, l))
+		return false;
+
+	MCAutoByteArray buffer;
+	if (!buffer.New(l))
+		return false;
+
+	byte_t *p = buffer.Bytes();
+
+	auto hex_val = [](char_t c) -> int {
+		if (c >= '0' && c <= '9') return c - '0';
+		if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+		if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+		return -1;
+	};
+
+	uint32_t i = 0;
+	while (i < l)
+	{
+		if (s[i] == '=' && i + 1 < l)
+		{
+			// Soft line break: =\r\n or =\n
+			if (s[i + 1] == '\r' && i + 2 < l && s[i + 2] == '\n')
+			{
+				i += 3;
+				continue;
+			}
+			if (s[i + 1] == '\n')
+			{
+				i += 2;
+				continue;
+			}
+			// Encoded byte: =XX
+			if (i + 2 < l)
+			{
+				int hi = hex_val(s[i + 1]);
+				int lo = hex_val(s[i + 2]);
+				if (hi >= 0 && lo >= 0)
+				{
+					*p++ = (byte_t)((hi << 4) | lo);
+					i += 3;
+					continue;
+				}
+			}
+		}
+		// Pass through unchanged.
+		*p++ = (byte_t)s[i++];
+	}
+
+	buffer.Shrink(p - buffer.Bytes());
+	return buffer.CreateDataAndRelease(r_dst);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 #include "zlib.h"
