@@ -1507,6 +1507,8 @@ const LT factor_table[] =
 		{"qtidlerate", TT_PROPERTY, P_QT_IDLE_RATE},
         {"qtversion", TT_FUNCTION, F_QT_VERSION},
         {"queryregistry", TT_FUNCTION, F_QUERY_REGISTRY},
+        {"quotedprintabledecode", TT_FUNCTION, F_QUOTED_PRINTABLE_DECODE},
+        {"quotedprintableencode", TT_FUNCTION, F_QUOTED_PRINTABLE_ENCODE},
         {"radiobehavior", TT_PROPERTY, P_RADIO_BEHAVIOR},
         {"raisemenus", TT_PROPERTY, P_RAISE_MENUS},
         {"raisepalettes", TT_PROPERTY, P_RAISE_PALETTES},
