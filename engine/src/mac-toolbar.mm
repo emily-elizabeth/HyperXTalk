@@ -223,7 +223,8 @@ class MCToolbarMacBackend : public MCToolbarBackend
 {
 public:
     MCToolbarMacBackend(MCToolbar *p_owner)
-        : m_owner(p_owner), m_toolbar(nil), m_delegate(nil), m_window(nil)
+        : m_owner(p_owner), m_toolbar(nil), m_delegate(nil), m_window(nil),
+          m_toolbar_height(0)
     {
     }
 
@@ -266,10 +267,16 @@ public:
                 NSRect t_content = [m_window
                                     contentRectForFrameRect:t_frame_before];
                 m_window.toolbar = m_toolbar;
-                NSRect t_frame_after_attach = m_window.frame;
-                NSRect t_content_after_attach = [m_window contentRectForFrameRect:t_frame_after_attach];
+                // Compute the frame AppKit now needs to display the original
+                // content rect with the toolbar attached.  The difference in
+                // height from the pre-attachment frame is exactly the toolbar
+                // height — title-bar accounting cancels out because both
+                // measurements use the same content rect and the same window,
+                // so this is correct for standard, unified, and palette windows.
                 NSRect t_new_frame = [m_window
                                       frameRectForContentRect:t_content];
+                CGFloat t_delta = NSHeight(t_new_frame) - NSHeight(t_frame_before);
+                m_toolbar_height = (t_delta > 0) ? (int32_t)t_delta : 0;
                 [m_window setFrame:t_new_frame display:NO];
             }
         }
@@ -307,7 +314,8 @@ public:
                 NSRect t_new_frame = [m_window frameRectForContentRect:t_content];
                 [m_window setFrame:t_new_frame display:NO];
             }
-            m_window   = nil;
+            m_window         = nil;
+            m_toolbar_height = 0;
 #if !__has_feature(objc_arc)
             // In MRR mode __strong is a no-op, so nil-assignment below does not
             // release.  Balance the alloc/init retain from Create() explicitly.
@@ -500,14 +508,23 @@ public:
 
     int32_t GetHeight() override
     {
-        if (!m_window || !m_toolbar)
+        if (!m_toolbar || !m_toolbar.visible)
             return 0;
-        // The toolbar sits between the window frame and the content view.
-        // Its height is the difference between those two rect heights.
-        NSRect t_frame   = [m_window frame];
-        NSRect t_content = [m_window contentRectForFrameRect:t_frame];
-        int32_t t_height = (int32_t)(NSHeight(t_frame) - NSHeight(t_content));
-        return t_height > 0 ? t_height : 0;
+
+        // Ask the toolbar for its rendered view directly — this is the
+        // canonical approach and is correct for all window styles (standard,
+        // unified, palette) without any frame arithmetic.
+        // _toolbarView is private API but has been stable since 10.5 and is
+        // the standard way to measure toolbar height on macOS.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        NSView *t_view = [m_toolbar performSelector:NSSelectorFromString(@"_toolbarView")];
+#pragma clang diagnostic pop
+        if (t_view)
+            return (int32_t)NSHeight([t_view frame]);
+
+        // _toolbarView unavailable — fall back to the value cached at Create().
+        return m_toolbar_height;
     }
 
     // Called by the ObjC delegate when an item is clicked
@@ -526,6 +543,9 @@ private:
     __strong MCNSToolbarDelegate   *m_delegate;
     // m_window is owned by the engine — do not retain it.
     __unsafe_unretained NSWindow   *m_window;
+    // Toolbar height in points, captured at Create() as the frame delta before
+    // and after toolbar attachment.  Reset to 0 by Destroy().
+    int32_t                         m_toolbar_height;
 
     static NSString *_stringRefToNSString(MCStringRef p_str)
     {

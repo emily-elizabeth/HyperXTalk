@@ -228,6 +228,8 @@ public:
     void GetToolbarVisible(MCExecContext& ctxt, bool& r_visible);
     void SetToolbarVisible(MCExecContext& ctxt, bool p_visible);
 
+    void GetToolbarHeight(MCExecContext& ctxt, integer_t& r_height);
+
     void GetItemNames(MCExecContext& ctxt, MCStringRef& r_names);
     // Setting itemNames reorders/prunes the item list:
     // items not in the new list are removed; order is updated to match.
