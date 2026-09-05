@@ -538,6 +538,15 @@ public:
         return m_visible;
     }
 
+    int32_t GetHeight() override
+    {
+        if (!m_hwnd_toolbar)
+            return 0;
+        RECT t_tb = {};
+        GetWindowRect(m_hwnd_toolbar, &t_tb);
+        return (int32_t)(t_tb.bottom - t_tb.top);
+    }
+
     // Called from the parent window's WndProc when WM_COMMAND is received
     void HandleCommand(WPARAM wParam)
     {

@@ -498,6 +498,18 @@ public:
         return m_toolbar ? (m_toolbar.visible == YES) : false;
     }
 
+    int32_t GetHeight() override
+    {
+        if (!m_window || !m_toolbar)
+            return 0;
+        // The toolbar sits between the window frame and the content view.
+        // Its height is the difference between those two rect heights.
+        NSRect t_frame   = [m_window frame];
+        NSRect t_content = [m_window contentRectForFrameRect:t_frame];
+        int32_t t_height = (int32_t)(NSHeight(t_frame) - NSHeight(t_content));
+        return t_height > 0 ? t_height : 0;
+    }
+
     // Called by the ObjC delegate when an item is clicked
     void OnItemClicked(MCNameRef p_name)
     {

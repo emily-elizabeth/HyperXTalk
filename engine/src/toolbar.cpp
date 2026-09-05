@@ -706,6 +706,13 @@ IO_stat MCToolbar::extendedload(MCObjectInputStream& p_stream,
 ////////////////////////////////////////////////////////////////////////////////
 // Layout helpers
 
+int32_t MCToolbar::getToolbarHeight()
+{
+    if (m_backend == nil)
+        return 0;
+    return m_backend->GetHeight();
+}
+
 int32_t MCToolbar::getToolbarTopY()
 {
     MCStack *t_stack = getstack();
