@@ -1467,6 +1467,7 @@ enum Properties {
     // toolbar properties
     P_TOOLBAR_DISPLAY_MODE,
     P_TOOLBAR_VISIBLE,
+    P_TOOLBAR_HEIGHT,
     P_TOOLBAR_ITEM_NAMES,
     // toolbar item properties (per-item, indexed by name)
     P_TOOLBAR_ITEM_LABEL,
