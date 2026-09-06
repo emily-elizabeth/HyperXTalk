@@ -430,6 +430,9 @@ public:
 
     int32_t GetHeight() override
     {
+        if (!m_visible)
+            return 0;
+
         // Once the child window exists, its height is authoritative.
         if (m_window != NULL)
             return (int32_t)gdk_window_get_height(m_window);

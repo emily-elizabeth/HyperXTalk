@@ -540,7 +540,7 @@ public:
 
     int32_t GetHeight() override
     {
-        if (!m_hwnd_toolbar)
+        if (!m_hwnd_toolbar || !m_visible)
             return 0;
         RECT t_tb = {};
         GetWindowRect(m_hwnd_toolbar, &t_tb);
