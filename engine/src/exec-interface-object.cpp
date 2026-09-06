@@ -759,6 +759,7 @@ static const PropList toolbarprops[] =
         {"lockLoc",          P_LOCK_LOCATION},
         {"name",             P_SHORT_NAME},
         {"rect",             P_RECTANGLE},
+        {"toolbarHeight",    P_TOOLBAR_HEIGHT},
         {"toolbarVisible",   P_TOOLBAR_VISIBLE},
         {"visible",          P_VISIBLE}
     };
