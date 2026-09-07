@@ -73,8 +73,12 @@ private:
     
     // Updates the input mask for the widget (used to implement edit mode)
     void updateInputShape();
-    
-	void updateContainerGeometry();
+
+    void updateContainerGeometry();
+
+    // GtkSocket "plug-added" signal callback — fired when the XEMBED handshake
+    // completes so we can apply the correct size to the now-valid plug window.
+    static void OnPlugAdded(GtkSocket *socket, gpointer user_data);
 };
 
 #endif // ifndef __MC_NATIVE_LAYER_X11__
