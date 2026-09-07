@@ -145,8 +145,14 @@ void MCNativeLayerX11::doAttach()
                     (int)gtk_widget_get_realized(GTK_WIDGET(m_child_window)));
         }
 
-        if (stack_gdk != NULL && gtk_widget_get_realized(GTK_WIDGET(m_child_window)))
-            gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)), stack_gdk, t_rect.x, t_rect.y);
+        /* Do NOT reparent m_child_window under the stack window.  If the plug
+         * is a descendant of the engine's X window, XSetInputFocus(plug) sends
+         * FocusIn/Out(NotifyInferior) to the engine — GDK ignores NotifyInferior
+         * and the engine's focused widgets never see the focus transition.
+         * Keeping m_child_window as a root-window child means focus moves produce
+         * FocusIn/Out(NotifyNonlinear), which GDK does honour.
+         * We position the window in absolute screen coordinates in
+         * updateContainerGeometry() instead. */
 
         // Add the socket to the window
         gtk_container_add(GTK_CONTAINER(m_child_window), GTK_WIDGET(t_socket));
@@ -228,15 +234,19 @@ void MCNativeLayerX11::updateContainerGeometry()
 {
 	m_intersect_rect = MCU_intersect_rect(m_viewport_rect, m_rect);
 
-    // Clear any minimum size parameters for the GTK widgets
+    // m_child_window is a root-window child (not reparented under the stack
+    // window — see doAttach for the rationale), so its position must be given
+    // in absolute screen coordinates.  Add the stack window's origin.
+    gint stack_origin_x = 0, stack_origin_y = 0;
+    GdkWindow *stack_gdk = getStackGdkWindow();
+    if (stack_gdk != NULL)
+        gdk_window_get_origin(stack_gdk, &stack_origin_x, &stack_origin_y);
+
     gtk_widget_set_size_request(GTK_WIDGET(m_child_window), -1, -1);
-
-    // Resize by adjusting the widget's containing GtkWindow
-    gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)), m_intersect_rect.x, m_intersect_rect.y, m_intersect_rect.width, m_intersect_rect.height);
-
-    // We need to set the requested minimum size in order to get in-process GTK
-    // widgets to re-size automatically. Unfortunately, that is the only widget
-    // category that this works for... others need to do it themselves.
+    gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
+                           stack_origin_x + m_intersect_rect.x,
+                           stack_origin_y + m_intersect_rect.y,
+                           m_intersect_rect.width, m_intersect_rect.height);
     gtk_widget_set_size_request(GTK_WIDGET(m_child_window), m_intersect_rect.width, m_intersect_rect.height);
 }
 
