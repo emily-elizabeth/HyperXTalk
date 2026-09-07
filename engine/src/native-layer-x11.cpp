@@ -155,8 +155,14 @@ void MCNativeLayerX11::doAttach()
     // Attach the X11 window to this socket
     if (gtk_socket_get_plug_window(m_socket) == NULL)
     {
-        fprintf(stderr, "[XEMBED] socket_add_id called with XID: %lu\n", (unsigned long)m_widget_xid);
+        GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(m_socket));
+        fprintf(stderr, "[XEMBED] socket_add_id: XID=%lu, socket_realized=%d, anchored(has-toplevel-window)=%d\n",
+                (unsigned long)m_widget_xid,
+                (int)gtk_widget_get_realized(GTK_WIDGET(m_socket)),
+                (int)(toplevel != NULL && GTK_IS_WINDOW(toplevel)));
         gtk_socket_add_id(m_socket, (::Window)m_widget_xid);
+        GdkWindow *pw = gtk_socket_get_plug_window(m_socket);
+        fprintf(stderr, "[XEMBED] after add_id: plug_window=%p\n", (void*)pw);
     }
 
     // Act as if there were a re-layer to put the widget in the right place
@@ -212,6 +218,10 @@ void MCNativeLayerX11::doSetGeometry(const MCRectangle& p_rect)
 {
 	m_rect = p_rect;
 	updateContainerGeometry();
+    fprintf(stderr, "[XEMBED] doSetGeometry: rect=(%d,%d,%d,%d) intersect=(%d,%d,%d,%d) plug_window=%p\n",
+            m_rect.x, m_rect.y, m_rect.width, m_rect.height,
+            m_intersect_rect.x, m_intersect_rect.y, m_intersect_rect.width, m_intersect_rect.height,
+            (void*)gtk_socket_get_plug_window(m_socket));
 	
 	MCRectangle t_rect;
 	t_rect = m_rect;
@@ -240,6 +250,7 @@ void MCNativeLayerX11::doSetGeometry(const MCRectangle& p_rect)
 
 void MCNativeLayerX11::doSetVisible(bool p_visible)
 {
+    fprintf(stderr, "[XEMBED] doSetVisible: p_visible=%d\n", (int)p_visible);
     if (p_visible)
         gtk_widget_show(GTK_WIDGET(m_child_window));
     else
