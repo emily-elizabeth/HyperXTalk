@@ -103,8 +103,10 @@ void MCNativeLayerX11::updateInputShape()
  * is fully established.  At this point gtk_socket_get_plug_window() returns a
  * valid GdkWindow, so we can apply the correct geometry and visibility that
  * doAttach() could not apply earlier (the plug window didn't exist yet). */
-/*static*/ void MCNativeLayerX11::OnPlugAdded(GtkSocket * /*socket*/, gpointer user_data)
+/*static*/ void MCNativeLayerX11::OnPlugAdded(GtkSocket *socket, gpointer user_data)
 {
+    fprintf(stderr, "[XEMBED] plug-added fired; plug_window=%p\n",
+            (void*)gtk_socket_get_plug_window(socket));
     MCNativeLayerX11 *self = reinterpret_cast<MCNativeLayerX11 *>(user_data);
     self->doSetGeometry(self->m_rect);
     self->doSetVisible(self->ShouldShowLayer());
@@ -152,8 +154,10 @@ void MCNativeLayerX11::doAttach()
     // m_widget_xid is x11::Window, cast to ::Window to avoid namespace conflict
     // Attach the X11 window to this socket
     if (gtk_socket_get_plug_window(m_socket) == NULL)
+    {
+        fprintf(stderr, "[XEMBED] socket_add_id called with XID: %lu\n", (unsigned long)m_widget_xid);
         gtk_socket_add_id(m_socket, (::Window)m_widget_xid);
-    //fprintf(stderr, "XID: %u\n", gtk_socket_get_id(m_socket));
+    }
 
     // Act as if there were a re-layer to put the widget in the right place
     doRelayer();
