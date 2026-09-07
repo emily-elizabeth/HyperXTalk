@@ -126,14 +126,28 @@ void MCNativeLayerX11::doAttach()
         m_child_window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_POPUP));
 
         GdkWindow *stack_gdk = getStackGdkWindow();
-        fprintf(stderr, "[XEMBED] doAttach: stack_gdk_window=%p\n", (void*)stack_gdk);
+        GdkDisplay *gdk_display = gdk_display_get_default();
+        fprintf(stderr, "[XEMBED] doAttach: stack_gdk_window=%p is_x11_display=%d\n",
+                (void*)stack_gdk, (int)GDK_IS_X11_DISPLAY(gdk_display));
 
-        gtk_widget_set_parent_window(GTK_WIDGET(m_child_window), stack_gdk);
+        // Do NOT use gtk_widget_set_parent_window here — passing the stack's
+        // GdkWindow as the GTK parent_window prevents gtk_widget_realize from
+        // succeeding on GTK 3.24+.  Instead, realize the popup standalone and
+        // then reparent at the X level with gdk_window_reparent.
         gtk_widget_realize(GTK_WIDGET(m_child_window));
-        fprintf(stderr, "[XEMBED] doAttach: m_child_window realized=%d\n",
+        fprintf(stderr, "[XEMBED] doAttach: m_child_window realized=%d after standalone realize\n",
                 (int)gtk_widget_get_realized(GTK_WIDGET(m_child_window)));
 
-        if (stack_gdk != NULL)
+        // If standalone realize also fails, force it via show/hide
+        if (!gtk_widget_get_realized(GTK_WIDGET(m_child_window)))
+        {
+            gtk_widget_show(GTK_WIDGET(m_child_window));
+            gtk_widget_hide(GTK_WIDGET(m_child_window));
+            fprintf(stderr, "[XEMBED] doAttach: m_child_window realized=%d after show/hide\n",
+                    (int)gtk_widget_get_realized(GTK_WIDGET(m_child_window)));
+        }
+
+        if (stack_gdk != NULL && gtk_widget_get_realized(GTK_WIDGET(m_child_window)))
             gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)), stack_gdk, t_rect.x, t_rect.y);
 
         // Add the socket to the window
@@ -168,13 +182,13 @@ void MCNativeLayerX11::doAttach()
         // Ensure the socket is realized before calling gtk_socket_add_id.
         // gtk_socket_add_window (called internally) calls gdk_window_reparent on
         // gtk_widget_get_window(socket) — if that is NULL the reparent silently
-        // fails and plug_window is never set.  Showing and immediately hiding
-        // m_child_window forces the full widget tree to realize.
+        // fails and plug_window is never set.
         if (!gtk_widget_get_realized(GTK_WIDGET(m_socket)))
         {
             gtk_widget_show(GTK_WIDGET(m_child_window));
             gtk_widget_hide(GTK_WIDGET(m_child_window));
-            fprintf(stderr, "[XEMBED] forced realization via show/hide: socket_realized=%d\n",
+            fprintf(stderr, "[XEMBED] forced realization via show/hide: m_child_realized=%d socket_realized=%d\n",
+                    (int)gtk_widget_get_realized(GTK_WIDGET(m_child_window)),
                     (int)gtk_widget_get_realized(GTK_WIDGET(m_socket)));
         }
 
