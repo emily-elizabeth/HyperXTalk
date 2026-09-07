@@ -99,6 +99,17 @@ void MCNativeLayerX11::updateInputShape()
         gdk_window_input_shape_combine_region(gtk_widget_get_window(GTK_WIDGET(m_child_window)), NULL, 0, 0);
 }
 
+/* Called by GtkSocket when the XEMBED handshake completes and the plug window
+ * is fully established.  At this point gtk_socket_get_plug_window() returns a
+ * valid GdkWindow, so we can apply the correct geometry and visibility that
+ * doAttach() could not apply earlier (the plug window didn't exist yet). */
+/*static*/ void MCNativeLayerX11::OnPlugAdded(GtkSocket * /*socket*/, gpointer user_data)
+{
+    MCNativeLayerX11 *self = reinterpret_cast<MCNativeLayerX11 *>(user_data);
+    self->doSetGeometry(self->m_rect);
+    self->doSetVisible(self->ShouldShowLayer());
+}
+
 void MCNativeLayerX11::doAttach()
 {
     if (m_socket == NULL)
@@ -106,7 +117,7 @@ void MCNativeLayerX11::doAttach()
         // Create a new GTK socket to deal with the XEMBED protocol
         GtkSocket *t_socket;
 		t_socket = GTK_SOCKET(gtk_socket_new());
-        
+
         // Create a new GTK window to hold the socket
         MCRectangle t_rect;
         t_rect = m_object->getrect();
@@ -114,32 +125,36 @@ void MCNativeLayerX11::doAttach()
         gtk_widget_set_parent_window(GTK_WIDGET(m_child_window), getStackGdkWindow());
         gtk_widget_realize(GTK_WIDGET(m_child_window));
         gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)), getStackGdkWindow(), t_rect.x, t_rect.y);
-        
+
         // Add the socket to the window
         gtk_container_add(GTK_CONTAINER(m_child_window), GTK_WIDGET(t_socket));
-        
+
         // The socket needs to be realised before going any further or any
         // operations on it will fail.
         gtk_widget_realize(GTK_WIDGET(t_socket));
-        
+
         // Show the socket (we'll control visibility at the window level)
         gtk_widget_show(GTK_WIDGET(t_socket));
-        
+
         // Create an empty region to act as an input mask while in edit mode
         // -- tperry 12-11-2025: GTK3 uses cairo_region_create
         m_input_shape = cairo_region_create();
 
+        // When the XEMBED handshake completes the plug window becomes valid;
+        // re-apply geometry so the plug is sized correctly.
+        g_signal_connect(t_socket, "plug-added", G_CALLBACK(OnPlugAdded), this);
+
 		// Retain a reference to the socket
 		m_socket = GTK_SOCKET(g_object_ref(G_OBJECT(t_socket)));
     }
-    
+
     // -- tperry 13-11-2025: GTK3 - gtk_socket_add_id expects ::Window (XID from global namespace)
     // m_widget_xid is x11::Window, cast to ::Window to avoid namespace conflict
     // Attach the X11 window to this socket
     if (gtk_socket_get_plug_window(m_socket) == NULL)
         gtk_socket_add_id(m_socket, (::Window)m_widget_xid);
     //fprintf(stderr, "XID: %u\n", gtk_socket_get_id(m_socket));
-    
+
     // Act as if there were a re-layer to put the widget in the right place
     doRelayer();
     doSetViewportGeometry(m_viewport_rect);
