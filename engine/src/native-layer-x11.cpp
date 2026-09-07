@@ -124,9 +124,17 @@ void MCNativeLayerX11::doAttach()
         MCRectangle t_rect;
         t_rect = m_object->getrect();
         m_child_window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_POPUP));
-        gtk_widget_set_parent_window(GTK_WIDGET(m_child_window), getStackGdkWindow());
+
+        GdkWindow *stack_gdk = getStackGdkWindow();
+        fprintf(stderr, "[XEMBED] doAttach: stack_gdk_window=%p\n", (void*)stack_gdk);
+
+        gtk_widget_set_parent_window(GTK_WIDGET(m_child_window), stack_gdk);
         gtk_widget_realize(GTK_WIDGET(m_child_window));
-        gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)), getStackGdkWindow(), t_rect.x, t_rect.y);
+        fprintf(stderr, "[XEMBED] doAttach: m_child_window realized=%d\n",
+                (int)gtk_widget_get_realized(GTK_WIDGET(m_child_window)));
+
+        if (stack_gdk != NULL)
+            gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)), stack_gdk, t_rect.x, t_rect.y);
 
         // Add the socket to the window
         gtk_container_add(GTK_CONTAINER(m_child_window), GTK_WIDGET(t_socket));
@@ -134,6 +142,8 @@ void MCNativeLayerX11::doAttach()
         // The socket needs to be realised before going any further or any
         // operations on it will fail.
         gtk_widget_realize(GTK_WIDGET(t_socket));
+        fprintf(stderr, "[XEMBED] doAttach: socket realized after explicit realize=%d\n",
+                (int)gtk_widget_get_realized(GTK_WIDGET(t_socket)));
 
         // Show the socket (we'll control visibility at the window level)
         gtk_widget_show(GTK_WIDGET(t_socket));
@@ -155,8 +165,21 @@ void MCNativeLayerX11::doAttach()
     // Attach the X11 window to this socket
     if (gtk_socket_get_plug_window(m_socket) == NULL)
     {
+        // Ensure the socket is realized before calling gtk_socket_add_id.
+        // gtk_socket_add_window (called internally) calls gdk_window_reparent on
+        // gtk_widget_get_window(socket) — if that is NULL the reparent silently
+        // fails and plug_window is never set.  Showing and immediately hiding
+        // m_child_window forces the full widget tree to realize.
+        if (!gtk_widget_get_realized(GTK_WIDGET(m_socket)))
+        {
+            gtk_widget_show(GTK_WIDGET(m_child_window));
+            gtk_widget_hide(GTK_WIDGET(m_child_window));
+            fprintf(stderr, "[XEMBED] forced realization via show/hide: socket_realized=%d\n",
+                    (int)gtk_widget_get_realized(GTK_WIDGET(m_socket)));
+        }
+
         GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(m_socket));
-        fprintf(stderr, "[XEMBED] socket_add_id: XID=%lu, socket_realized=%d, anchored(has-toplevel-window)=%d\n",
+        fprintf(stderr, "[XEMBED] socket_add_id: XID=%lu, socket_realized=%d, anchored=%d\n",
                 (unsigned long)m_widget_xid,
                 (int)gtk_widget_get_realized(GTK_WIDGET(m_socket)),
                 (int)(toplevel != NULL && GTK_IS_WINDOW(toplevel)));
