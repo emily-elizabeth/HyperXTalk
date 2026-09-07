@@ -126,9 +126,7 @@ void MCNativeLayerX11::doAttach()
         m_child_window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_POPUP));
 
         GdkWindow *stack_gdk = getStackGdkWindow();
-        GdkDisplay *gdk_display = gdk_display_get_default();
-        fprintf(stderr, "[XEMBED] doAttach: stack_gdk_window=%p is_x11_display=%d\n",
-                (void*)stack_gdk, (int)GDK_IS_X11_DISPLAY(gdk_display));
+        fprintf(stderr, "[XEMBED] doAttach: stack_gdk_window=%p\n", (void*)stack_gdk);
 
         // Do NOT use gtk_widget_set_parent_window here — passing the stack's
         // GdkWindow as the GTK parent_window prevents gtk_widget_realize from
