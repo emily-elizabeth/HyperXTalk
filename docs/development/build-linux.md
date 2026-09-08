@@ -84,3 +84,9 @@ Use
     sudo apt-get install libpopt-dev libesd0-dev liblcms2-dev pkg-config libgtk2.0-dev zip
 
 or equivalent in order to assure all the necessary dependencies are installed on your machine.
+
+## Additions for HyperXTalk
+
+    sudo apt-get install openjdk-26-jdk libgtk-3-dev meson libcups2-dev
+    sudo apt-get install vlc libvlc-dev cmake mysql-client libmysqlclient-dev
+    sudo apt-get install libpq5 libpq-dev
