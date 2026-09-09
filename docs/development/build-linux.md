@@ -87,6 +87,6 @@ or equivalent in order to assure all the necessary dependencies are installed on
 
 ## Additions for HyperXTalk
 
-    sudo apt-get install openjdk-26-jdk libgtk-3-dev meson libcups2-dev
-    sudo apt-get install vlc libvlc-dev cmake mysql-client libmysqlclient-dev
-    sudo apt-get install libpq5 libpq-dev
+    sudo apt-get install openjdk-26-jdk libgtk-3-dev libcups2-dev
+    sudo apt-get install vlc libvlc-dev cmake meson ninja-build
+    sudo apt-get install libpq5 libpq-dev mysql-client libmysqlclient-dev
