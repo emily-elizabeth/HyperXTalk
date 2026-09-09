@@ -90,3 +90,7 @@ or equivalent in order to assure all the necessary dependencies are installed on
     sudo apt-get install openjdk-26-jdk libgtk-3-dev libcups2-dev
     sudo apt-get install vlc libvlc-dev cmake meson ninja-build
     sudo apt-get install libpq5 libpq-dev mysql-client libmysqlclient-dev
+
+**Note:** The OpenJDK version can change frequently.  If your distribution does not
+have the specific version listed, it should not be an issue to drop down to the
+latest one available.
