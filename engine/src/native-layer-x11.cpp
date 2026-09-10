@@ -99,6 +99,19 @@ void MCNativeLayerX11::updateInputShape()
         gdk_window_input_shape_combine_region(gtk_widget_get_window(GTK_WIDGET(m_child_window)), NULL, 0, 0);
 }
 
+/* Called by GtkSocket when the XEMBED handshake completes and the plug window
+ * is fully established.  At this point gtk_socket_get_plug_window() returns a
+ * valid GdkWindow, so we can apply the correct geometry and visibility that
+ * doAttach() could not apply earlier (the plug window didn't exist yet). */
+/*static*/ void MCNativeLayerX11::OnPlugAdded(GtkSocket *socket, gpointer user_data)
+{
+    fprintf(stderr, "[XEMBED] plug-added fired; plug_window=%p\n",
+            (void*)gtk_socket_get_plug_window(socket));
+    MCNativeLayerX11 *self = reinterpret_cast<MCNativeLayerX11 *>(user_data);
+    self->doSetGeometry(self->m_rect);
+    self->doSetVisible(self->ShouldShowLayer());
+}
+
 void MCNativeLayerX11::doAttach()
 {
     if (m_socket == NULL)
@@ -106,40 +119,93 @@ void MCNativeLayerX11::doAttach()
         // Create a new GTK socket to deal with the XEMBED protocol
         GtkSocket *t_socket;
 		t_socket = GTK_SOCKET(gtk_socket_new());
-        
+
         // Create a new GTK window to hold the socket
         MCRectangle t_rect;
         t_rect = m_object->getrect();
         m_child_window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_POPUP));
-        gtk_widget_set_parent_window(GTK_WIDGET(m_child_window), getStackGdkWindow());
+
+        GdkWindow *stack_gdk = getStackGdkWindow();
+        fprintf(stderr, "[XEMBED] doAttach: stack_gdk_window=%p\n", (void*)stack_gdk);
+
+        // Do NOT use gtk_widget_set_parent_window here — passing the stack's
+        // GdkWindow as the GTK parent_window prevents gtk_widget_realize from
+        // succeeding on GTK 3.24+.  Instead, realize the popup standalone and
+        // then reparent at the X level with gdk_window_reparent.
         gtk_widget_realize(GTK_WIDGET(m_child_window));
-        gdk_window_reparent(gtk_widget_get_window(GTK_WIDGET(m_child_window)), getStackGdkWindow(), t_rect.x, t_rect.y);
-        
+        fprintf(stderr, "[XEMBED] doAttach: m_child_window realized=%d after standalone realize\n",
+                (int)gtk_widget_get_realized(GTK_WIDGET(m_child_window)));
+
+        // If standalone realize also fails, force it via show/hide
+        if (!gtk_widget_get_realized(GTK_WIDGET(m_child_window)))
+        {
+            gtk_widget_show(GTK_WIDGET(m_child_window));
+            gtk_widget_hide(GTK_WIDGET(m_child_window));
+            fprintf(stderr, "[XEMBED] doAttach: m_child_window realized=%d after show/hide\n",
+                    (int)gtk_widget_get_realized(GTK_WIDGET(m_child_window)));
+        }
+
+        /* Do NOT reparent m_child_window under the stack window.  If the plug
+         * is a descendant of the engine's X window, XSetInputFocus(plug) sends
+         * FocusIn/Out(NotifyInferior) to the engine — GDK ignores NotifyInferior
+         * and the engine's focused widgets never see the focus transition.
+         * Keeping m_child_window as a root-window child means focus moves produce
+         * FocusIn/Out(NotifyNonlinear), which GDK does honour.
+         * We position the window in absolute screen coordinates in
+         * updateContainerGeometry() instead. */
+
         // Add the socket to the window
         gtk_container_add(GTK_CONTAINER(m_child_window), GTK_WIDGET(t_socket));
-        
+
         // The socket needs to be realised before going any further or any
         // operations on it will fail.
         gtk_widget_realize(GTK_WIDGET(t_socket));
-        
+        fprintf(stderr, "[XEMBED] doAttach: socket realized after explicit realize=%d\n",
+                (int)gtk_widget_get_realized(GTK_WIDGET(t_socket)));
+
         // Show the socket (we'll control visibility at the window level)
         gtk_widget_show(GTK_WIDGET(t_socket));
-        
+
         // Create an empty region to act as an input mask while in edit mode
         // -- tperry 12-11-2025: GTK3 uses cairo_region_create
         m_input_shape = cairo_region_create();
 
+        // When the XEMBED handshake completes the plug window becomes valid;
+        // re-apply geometry so the plug is sized correctly.
+        g_signal_connect(t_socket, "plug-added", G_CALLBACK(OnPlugAdded), this);
+
 		// Retain a reference to the socket
 		m_socket = GTK_SOCKET(g_object_ref(G_OBJECT(t_socket)));
     }
-    
+
     // -- tperry 13-11-2025: GTK3 - gtk_socket_add_id expects ::Window (XID from global namespace)
     // m_widget_xid is x11::Window, cast to ::Window to avoid namespace conflict
     // Attach the X11 window to this socket
     if (gtk_socket_get_plug_window(m_socket) == NULL)
+    {
+        // Ensure the socket is realized before calling gtk_socket_add_id.
+        // gtk_socket_add_window (called internally) calls gdk_window_reparent on
+        // gtk_widget_get_window(socket) — if that is NULL the reparent silently
+        // fails and plug_window is never set.
+        if (!gtk_widget_get_realized(GTK_WIDGET(m_socket)))
+        {
+            gtk_widget_show(GTK_WIDGET(m_child_window));
+            gtk_widget_hide(GTK_WIDGET(m_child_window));
+            fprintf(stderr, "[XEMBED] forced realization via show/hide: m_child_realized=%d socket_realized=%d\n",
+                    (int)gtk_widget_get_realized(GTK_WIDGET(m_child_window)),
+                    (int)gtk_widget_get_realized(GTK_WIDGET(m_socket)));
+        }
+
+        GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(m_socket));
+        fprintf(stderr, "[XEMBED] socket_add_id: XID=%lu, socket_realized=%d, anchored=%d\n",
+                (unsigned long)m_widget_xid,
+                (int)gtk_widget_get_realized(GTK_WIDGET(m_socket)),
+                (int)(toplevel != NULL && GTK_IS_WINDOW(toplevel)));
         gtk_socket_add_id(m_socket, (::Window)m_widget_xid);
-    //fprintf(stderr, "XID: %u\n", gtk_socket_get_id(m_socket));
-    
+        GdkWindow *pw = gtk_socket_get_plug_window(m_socket);
+        fprintf(stderr, "[XEMBED] after add_id: plug_window=%p\n", (void*)pw);
+    }
+
     // Act as if there were a re-layer to put the widget in the right place
     doRelayer();
     doSetViewportGeometry(m_viewport_rect);
@@ -168,15 +234,19 @@ void MCNativeLayerX11::updateContainerGeometry()
 {
 	m_intersect_rect = MCU_intersect_rect(m_viewport_rect, m_rect);
 
-    // Clear any minimum size parameters for the GTK widgets
+    // m_child_window is a root-window child (not reparented under the stack
+    // window — see doAttach for the rationale), so its position must be given
+    // in absolute screen coordinates.  Add the stack window's origin.
+    gint stack_origin_x = 0, stack_origin_y = 0;
+    GdkWindow *stack_gdk = getStackGdkWindow();
+    if (stack_gdk != NULL)
+        gdk_window_get_origin(stack_gdk, &stack_origin_x, &stack_origin_y);
+
     gtk_widget_set_size_request(GTK_WIDGET(m_child_window), -1, -1);
-
-    // Resize by adjusting the widget's containing GtkWindow
-    gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)), m_intersect_rect.x, m_intersect_rect.y, m_intersect_rect.width, m_intersect_rect.height);
-
-    // We need to set the requested minimum size in order to get in-process GTK
-    // widgets to re-size automatically. Unfortunately, that is the only widget
-    // category that this works for... others need to do it themselves.
+    gdk_window_move_resize(gtk_widget_get_window(GTK_WIDGET(m_child_window)),
+                           stack_origin_x + m_intersect_rect.x,
+                           stack_origin_y + m_intersect_rect.y,
+                           m_intersect_rect.width, m_intersect_rect.height);
     gtk_widget_set_size_request(GTK_WIDGET(m_child_window), m_intersect_rect.width, m_intersect_rect.height);
 }
 
@@ -193,6 +263,10 @@ void MCNativeLayerX11::doSetGeometry(const MCRectangle& p_rect)
 {
 	m_rect = p_rect;
 	updateContainerGeometry();
+    fprintf(stderr, "[XEMBED] doSetGeometry: rect=(%d,%d,%d,%d) intersect=(%d,%d,%d,%d) plug_window=%p\n",
+            m_rect.x, m_rect.y, m_rect.width, m_rect.height,
+            m_intersect_rect.x, m_intersect_rect.y, m_intersect_rect.width, m_intersect_rect.height,
+            (void*)gtk_socket_get_plug_window(m_socket));
 	
 	MCRectangle t_rect;
 	t_rect = m_rect;
@@ -221,6 +295,7 @@ void MCNativeLayerX11::doSetGeometry(const MCRectangle& p_rect)
 
 void MCNativeLayerX11::doSetVisible(bool p_visible)
 {
+    fprintf(stderr, "[XEMBED] doSetVisible: p_visible=%d\n", (int)p_visible);
     if (p_visible)
         gtk_widget_show(GTK_WIDGET(m_child_window));
     else
