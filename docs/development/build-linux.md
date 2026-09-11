@@ -59,14 +59,13 @@ the IDE, the process will be initiated.  It can also be completed via make:
 
 **Note:** The following information is provided for reference purposes.  It should be possible to build and run on any modern Linux desktop distribution.
 
-The x86-64 and x86 Linux build environments used for compiling are based on Ubuntu 26.04.1 LTS.
+The x86-64 Linux build environment used for compiling is based on Ubuntu 26.04.1 LTS.
 
 The following additional packages should be installed before building:
 
 * build-essential
 * automake
 * bison
-* cmake
 * curl
 * flex
 * gawk
@@ -92,14 +91,14 @@ The following additional packages should be installed before building:
 * meson
 * mysql-client
 * ninja-build
-* openjdk-26-jdk
+* openjdk-26-jdk (version 21 or later)
 * pkg-config
 * vlc
 * zip
 
 Use
 
-    sudo apt install -y build-essential automake cmake meson ninja-build \
+    sudo apt install -y build-essential automake meson ninja-build \
     libtool gawk git curl flex bison libx11-dev libxext-dev libxrender-dev \
     libxft-dev libxinerama-dev libxv-dev libxcursor-dev libfreetype-dev \
     libpopt-dev liblcms2-dev pkg-config libgtk2.0-dev zip vlc libvlc-dev \
@@ -108,6 +107,5 @@ Use
 
 or equivalent in order to assure all the necessary dependencies are installed on your machine.
 
-**Note:** The OpenJDK version can change frequently.  If your distribution does not
-have the specific version listed, it should not be an issue to drop down to the
-latest one available.
+**Note:** OpenJDK needs to be at least version 21.  If your distribution does not
+have the specific version listed above, use any version available with a minimum of 21 - `openjdk-21-jdk`.
