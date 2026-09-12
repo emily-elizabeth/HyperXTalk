@@ -87,6 +87,13 @@ private:
 	gulong m_settings_signal_handler;
 	gulong m_settings_prefer_dark_signal_handler;
 	GtkSettings *m_settings;
+	// GSettings watcher for org.gnome.desktop.interface color-scheme (Fedora /
+	// Debian GNOME 42+).  These distros toggle dark mode via GSettings rather
+	// than by changing the GTK theme name, so neither of the GtkSettings signals
+	// above fires.  m_gsettings is NULL when the schema is not present (KDE,
+	// older GNOME, non-GNOME desktops).
+	GSettings *m_gsettings;
+	gulong m_gsettings_signal_handler;
 };
 
 #endif
