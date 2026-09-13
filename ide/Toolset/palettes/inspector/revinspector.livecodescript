@@ -2,8 +2,6 @@
 constant kPropertyInspectorPrefix = "revPropertyInspector"
 on preOpenStack
    inspectorMessagesRegister
-   set the backgroundColor of me to (the systemWindowColor)
-   set the foregroundColor of me to (the systemTextColor)
 end preOpenStack
 
 on inspectorMessagesRegister
