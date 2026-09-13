@@ -491,6 +491,21 @@ private command __UpdateMessageFont
    dispatch "layoutCard" to card "Single Line" of me
 end __UpdateMessageFont
 
+
+private function isColorDark pColor
+   -- pColor: any LC color string "R,G,B" (0-255)
+   -- Returns true if the colour reads as dark
+   put item 1 of pColor into tRed
+   put item 2 of pColor into tGreen
+   put item 3 of pColor into tBlue
+   
+   -- ITU-R BT.709 perceived luminance, normalised 0–1
+   put (0.2126 * tRed + 0.7152 * tGreen + 0.0722 * tBlue) / 255 into tLuminance
+   
+   return (tLuminance < 0.5)
+end isColorDark
+
+
 private command __UpdateMessageColors
    local tBgColor, tFgColor, tCardBgColor
    // HXT dark mode: the script editor's backgroundcolor preference is a
@@ -500,16 +515,17 @@ private command __UpdateMessageColors
    // library (see issue #42 — script editor theming), so individual tokens
    // may still look off in dark mode; fixing that is out of scope here.
    // What we fix here is the chrome + each card's field backgrounds.
-   if the systemAppearance is "dark" then
+   if (isColorDark(the effective backgroundColor of this stack)) then
       put revIDEColor("dataView_rowColor") into tBgColor
       put revIDEColor("text_1") into tFgColor
       put tBgColor into tCardBgColor
    else
-      put revIDEGetPreference("cScriptEditor,editor,backgroundcolor") into tBgColor
+      --      put revIDEGetPreference("cScriptEditor,editor,backgroundcolor") into tBgColor
+      put EMPTY into tBgColor
       put empty into tFgColor
       put empty into tCardBgColor
    end if
-
+   
    // Iterate every card in the stack and paint its background + every
    // field on the card. The message box has 9 cards (Single Line,
    // Multiple Lines, Stacks in Use, Front Scripts, Back Scripts, Global
@@ -525,16 +541,16 @@ private command __UpdateMessageColors
    local tCardCount, tFieldCount, i, j
    put the number of cards of me into tCardCount
    repeat with i = 1 to tCardCount
-      set the backgroundColor of card i of me to tCardBgColor
+      set the backgroundColor of card i of me to EMPTY
       put the number of fields of card i of me into tFieldCount
       repeat with j = 1 to tFieldCount
-         set the backgroundColor of field j of card i of me to tBgColor
-         set the foregroundColor of field j of card i of me to tFgColor
+         set the backgroundColor of field j of card i of me to EMPTY
+         set the foregroundColor of field j of card i of me to EMPTY
          // HXT dark mode: per-character foreground colors set by the syntax colorizer
          // (which always uses light-mode values like 0,0,0) override the field-level
          // foregroundColor. Clearing them lets the field-level color take effect.
-         if the systemAppearance is "dark" and \
-               the number of chars of field j of card i of me > 0 then
+         --         if the systemAppearance is "dark" and \
+         if the number of chars of field j of card i of me > 0 then
             set the foregroundColor of char 1 to -1 of field j of card i of me to empty
          end if
       end repeat
@@ -557,9 +573,9 @@ end __UpdateMessageColors
 on SystemAppearanceChanged pMode, pWindowColor, pTextColor
    local tBgColor
    put revIDEColor("palette_background") into tBgColor
-   set the backgroundColor of me to tBgColor
-   set the backgroundColor of this card to tBgColor
-   set the foregroundColor of me to pTextColor
+   set the backgroundColor of me to EMPTY
+   set the backgroundColor of this card to EMPTY
+   set the foregroundColor of me to EMPTY
    __UpdateMessageColors
 end SystemAppearanceChanged
 

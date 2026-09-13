@@ -241,6 +241,7 @@ enum Export_format {
 	EX_RAW_INDEXED,
 	EX_BMP,
     EX_OBJECT,
+	EX_WEBP,
 };
 
 enum Factor_rank {
@@ -1499,6 +1500,9 @@ enum Properties {
     P_DONT_DITHER,
     P_CURRENT_FRAME,
     P_FRAME_COUNT,
+    P_FRAME_DURATION,
+    P_FRAME_IMAGE_DATA,
+    P_FRAME_TEXT,
     P_REPEAT_COUNT,
     P_PALINDROME_FRAMES,
     P_CONSTANT_MASK,

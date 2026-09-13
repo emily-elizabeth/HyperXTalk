@@ -364,13 +364,27 @@ bool MCWidgetBase::OnPaint(MCGContextRef p_gcontext)
     
 	if (t_widget->getNativeLayer() != nil)
 	{
-		// If the widget is not in edit mode, we trust it to paint itself
-		if (t_widget->isInRunMode())
+		if (t_widget->getNativeLayer()->GetCanRenderToContext())
+		{
+			// Layer composites directly into HXT's MCGContext (e.g. offscreen
+			// browser).  Call OnPaint() in BOTH run and edit mode.
+			// Returns true  → layer drew its content; skip widget OnPaint.
+			// Returns false → layer has nothing to draw (e.g. browser not yet
+			//                 ready, or edit mode); fall through to widget's
+			//                 OnPaint handler so the placeholder is shown.
+			// Importantly, a false return is not an error: t_success stays true
+			// so the fallthrough to DispatchRestricted actually runs.
+			if (t_widget->getNativeLayer()->OnPaint(p_gcontext))
+				t_view_rendered = true;
+		}
+		else if (t_widget->isInRunMode())
+		{
+			// Classic native-window overlay: the native view paints itself
+			// as a separate on-screen window.  Nothing to composite here.
 			t_view_rendered = true;
-		else if (t_widget->getNativeLayer()->GetCanRenderToContext())
-			t_success = t_view_rendered = t_widget->getNativeLayer()->OnPaint(p_gcontext);
+		}
 	}
-	
+
 	if (t_success && !t_view_rendered)
 		t_success = DispatchRestricted(MCNAME("OnPaint"));
     

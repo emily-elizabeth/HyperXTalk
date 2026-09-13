@@ -24,6 +24,10 @@ revXMLAttribute(2,"/","Timestamp")
 Example:
 put revXMLAttribute(currTree,currNode,the short name of field x) \
    into field x
+   
+Example:
+put revXMLAttribute(tTreeID,"/xmpmeta/RDF/Description/","HeadLine") into tValue
+put textdecode(tValue,"utf8") into tHeadline
 
 Parameters:
 treeID:
@@ -41,6 +45,8 @@ The <revXMLAttribute> <function> returns a <string>.
 
 Description:
 Use the <revXMLAttribute> <function> to get an attribute's value.
+
+N.B. The text data returned by this function is encoded in UTF-8 format.  Use the **textdecode()** function to correctly decode the UTF8 encoded text.
 
 If the <revXMLAttribute> <function> encounters an error, it
 <return|returns> an error message starting with "xmlerr".

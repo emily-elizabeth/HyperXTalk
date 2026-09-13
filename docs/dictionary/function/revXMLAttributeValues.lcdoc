@@ -24,6 +24,10 @@ revXMLAttributeValues(2,"/",,"Age",return,-1)
 Example:
 get revXMLAttributeValues(thisTree,thisNode,field "Type",comma,2)
 
+Example:
+put revXMLAttributeValues(treeID, startNode,childnode,"AttributeName",delimiter,processdepth) into tValueList
+put textdecode(tValuelist,"utf8") into tDecodedList
+
 Parameters:
 treeID:
 The number returned by the <revXMLCreateTree> or <revXMLCreateTreeFromFile>
@@ -56,6 +60,8 @@ Description:
 Use the <revXMLAttributeValues> <function> to list all the values an
 <attribute> has in an <XML tree> or a section of an <XML tree>, or to
 get the range of possible values.
+
+N.B. The text data returned by this function is encoded in UTF-8 format.  Use the **textdecode()** function to correctly decode the UTF8 text.
 
 If the <revXMLAttributeValues> <function> encounters an error, it
 <return|returns> an error message starting with "xmlerr".

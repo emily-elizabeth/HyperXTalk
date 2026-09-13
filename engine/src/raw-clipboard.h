@@ -49,6 +49,7 @@ enum MCRawClipboardKnownType
     kMCRawClipboardKnownTypeGIF,        // GIF image
     kMCRawClipboardKnownTypeJPEG,       // JPEG image
 	kMCRawClipboardKnownTypeTIFF,		// TIFF image
+    kMCRawClipboardKnownTypeWebP,       // WebP image
     kMCRawClipboardKnownTypeWinMF,      // Windows Metafile image
     kMCRawClipboardKnownTypeWinEMF,     // Windows Enhanced Metafile image
     kMCRawClipboardKnownTypeWinDIB,     // Windows BMP image

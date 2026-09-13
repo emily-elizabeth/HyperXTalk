@@ -44,6 +44,7 @@ MCWin32RawClipboardCommon::format_mapping MCWin32RawClipboardCommon::s_formats[]
 	{ 0, "GIF" },										// GIF image
 	{ 0, "JFIF" },										// JPEG image
 	{ 6, "CF_TIFF" },									// TIFF image
+	{ 0, "image/webp" },								// WebP image
 	{ CF_METAFILEPICT, "CF_METAFILEPICT" },				// Windows Metafile image
 	{ CF_ENHMETAFILE, "CF_ENHMETAFILE" },				// Windows Enhanced Metafile image
 	{ CF_DIB, "CF_DIB" },								// Windows bitmap image

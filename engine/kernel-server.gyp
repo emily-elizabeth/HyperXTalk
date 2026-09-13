@@ -61,6 +61,7 @@
 				'../thirdparty/libjpeg/libjpeg.gyp:libjpeg',
 				'../thirdparty/libgif/libgif.gyp:libgif',
 				'../thirdparty/libpng/libpng.gyp:libpng',
+				'../thirdparty/libwebp/libwebp.gyp:libwebp',
 		
 				'../thirdparty/libz/libz.gyp:libz',
 		
@@ -150,7 +151,7 @@
 
 						'include_dirs':
 						[
-							'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I[^ ]*libpng[^ ]*//g" | sed "s/-I//g")',
+							'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I[^ ]*libpng[^ ]*//g" | sed "s/-I[^ ]*webp[^ ]*//g" | sed "s/-I//g")',
 							'<!@(pkg-config --cflags-only-I dbus-1 2>/dev/null | sed "s/-I//g")',
 						],
 

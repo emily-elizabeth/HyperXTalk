@@ -370,6 +370,8 @@ public:
     
     // -- tperry 15-11-2025: System appearance detection for Linux
     virtual void getsystemappearance(MCSystemAppearance &r_appearance);
+    virtual void getsystemwindowcolor(MCStringRef &r_color);
+    virtual void getsystemtextcolor(MCStringRef &r_color);
 
 private:
     

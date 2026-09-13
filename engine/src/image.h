@@ -666,6 +666,9 @@ public:
 	void GetCurrentFrame(MCExecContext& ctxt, uinteger_t& r_frame);
 	void SetCurrentFrame(MCExecContext& ctxt, uinteger_t p_frame);
 	void GetFrameCount(MCExecContext& ctxt, integer_t& r_count);
+	void GetFrameDuration(MCExecContext& ctxt, uinteger_t& r_duration);
+	void GetFrameImageData(MCExecContext& ctxt, MCDataRef& r_data);
+	void GetFrameText(MCExecContext& ctxt, MCDataRef& r_data);
 	void GetPalindromeFrames(MCExecContext& ctxt, bool& r_setting);
 	void SetPalindromeFrames(MCExecContext& ctxt, bool setting);
 	void GetConstantMask(MCExecContext& ctxt, bool& r_setting);

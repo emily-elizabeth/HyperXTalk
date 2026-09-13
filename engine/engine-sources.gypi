@@ -296,6 +296,7 @@
 			'src/imageloader.cpp',
             'src/internal.cpp',
 			'src/ipng.cpp',
+			'src/iwebp.cpp',
 			'src/iquantization.cpp',
 			'src/iquantize_new.cpp',
 			'src/irle.cpp',

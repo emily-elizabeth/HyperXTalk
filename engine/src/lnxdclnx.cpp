@@ -48,10 +48,68 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 // widget so the dismiss check can walk the GdkWindow parent chain.
 extern GdkWindow *MCLinuxPopoverGetGdkWindow(void);
 
+// Declared in native-layer-x11.cpp — forward raw GDK key events to any
+// offscreen WebKitWebView that currently owns browser keyboard focus.
+// Called immediately after the normal HXT wkdown/wkup dispatch so the browser
+// receives keys even though HXT's own kfocus mechanism is not involved.
+extern bool hxt_browser_has_focus();
+extern void hxt_browser_clear_focus();
+extern void hxt_browser_reset_mousedown_flag();
+extern bool hxt_browser_mousedown_fired();
+extern void hxt_browser_key_down(unsigned int keyval, unsigned int state,
+                                  unsigned short hwcode, unsigned char group);
+extern void hxt_browser_key_up(unsigned int keyval, unsigned int state,
+                                unsigned short hwcode, unsigned char group);
+
+// Declared in native-layer-x11.cpp — forward GDK_MOTION_NOTIFY to the
+// focused offscreen WebKitWebView while a mouse button is held (drag).
+// p_x/p_y are in HXT's scaled stack-window coordinate space.  The function
+// is a no-op if no browser has a button currently pressed (m_pointer_button_down).
+extern void hxt_browser_forward_motion(int p_x, int p_y);
+
+// Declared in native-layer-x11.cpp — searches all attached native layers for
+// one whose rect contains (p_x, p_y) in stack-window coordinates.  Returns
+// true and fills r_widget/r_bx/r_by when found.  Supports multiple browsers.
+extern bool hxt_find_browser_at(int p_x, int p_y,
+                                 GtkWidget **r_widget,
+                                 int *r_bx, int *r_by);
+
+// Called from native-layer-x11.cpp::OnMouseDown when the browser widget
+// receives a click.  Closes any active HXT text field so that subsequent
+// key events route to WebKit instead of the field.
+// Defined here (not in native-layer-x11.cpp) to keep MCField/MCStack
+// headers out of the native layer.
+void hxt_browser_took_focus()
+{
+    if (!MCactivefield)
+        return;
+
+    MCactivefield->getstack()->kunfocus();
+
+    if (MCactivefield)
+    {
+        // Mirror what MCField::kunfocus() does for the visual repaint, but
+        // without firing scripts again (which would re-focus the field).
+        // Save gettransient() BEFORE clearing CS_KFOCUSED so the layer knows
+        // the rendering changed (focus ring gone) and repaints the whole field.
+        uint2 t_old_trans = MCactivefield->gettransient();
+        MCscreen->cancelmessageobject(MCactivefield, MCM_internal);      // cancel blink timer re-started by closeField's kfocus
+        MCactivefield->removecursor();                                    // erase cursor (removecursor clears cursoron/cursorfield)
+        MCactivefield->setstate(False, CS_KFOCUSED);                     // clear focus bit
+        MCactivefield->layer_transientchangedandredrawall(t_old_trans);  // repaint: no focus ring
+        MCactivefield = nil;
+    }
+}
+
 #define XK_Window_L 0xFF6C
 #define XK_Window_R 0xFF6D
 
 #include <gdk/gdkkeysyms.h>
+
+// Forward declarations for clipboard deadlock fix functions
+static void HXT_HandleSelectionRequest(GdkEvent *t_event);
+static GdkFilterReturn HXT_CtrlV_SelectionFilter(GdkXEvent*, GdkEvent*, gpointer);
+
 
 // Checks primary + all extra per-monitor backdrop windows (defined in lnxdcs.cpp).
 bool hxt_is_backdrop_window(GdkWindow *w);
@@ -521,9 +579,13 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 {
                     if (t_event->key.window != MCtracewindow)
                     {
-                        // Let the IME have the key event first
+                        // Let the IME have the key event first — but not when the
+                        // browser owns focus.  If kunfocus() left MCactivefield set
+                        // (e.g. closeField script re-opens the field), the IM must
+                        // not eat printable chars that should go to WebKit.
                         bool t_ignore = false;
-                        if (dispatch && MCactivefield && m_im_context != nil)
+                        if (dispatch && MCactivefield && m_im_context != nil
+                                && !hxt_browser_has_focus())
                         {
                             t_ignore = gtk_im_context_filter_keypress(m_im_context, &t_event->key);
                         }
@@ -544,10 +606,81 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             t_text = MCValueRetain(kMCEmptyString);
                         
                         MCeventtime = t_event->key.time;
+                        // Forward keys to the browser when it owns focus.
+                        // Browser focus is set in OnMouseDown and cleared in
+                        // hxt_browser_clear_focus() when wmdown() indicates the
+                        // user clicked an HXT text field instead.
+                        bool t_browser_active = hxt_browser_has_focus();
+
                         if (t_event->type == GDK_KEY_PRESS)
-                            MCdispatcher->wkdown(t_event->key.window, *t_text, t_keysym);
+                        {
+                            // When a browser widget owns keyboard focus, send ALL
+                            // keys directly to WebKit and skip wkdown entirely.
+                            // wkdown → MCObject::kdown calls kfocusnext for XK_Tab
+                            // which conflicts with WebKit's own focus traversal,
+                            // causing TAB to advance two elements instead of one.
+                            if (t_browser_active)
+                            {
+                                // Ctrl+V deadlock fix: if HXT owns X11 CLIPBOARD,
+                                // install a GDK event filter on the clipboard window
+                                // before dispatching the key to WebKit.
+                                //
+                                // On Fedora, WebKit's paste command calls
+                                // gtk_clipboard_wait_for_text() synchronously, which
+                                // runs a nested g_main_loop.  That nested loop processes
+                                // GDK events but does NOT call HXT's own SelectionRequest
+                                // handler — so WebKit's SelectionRequest to HXT is never
+                                // served and times out after ~15 seconds.
+                                //
+                                // The filter (HXT_CtrlV_SelectionFilter) handles
+                                // SelectionRequest events inline and runs in any event
+                                // loop, including WebKit's nested one.  Because clipboard
+                                // ownership stays with HXT, WebKit's subsequent copy
+                                // (Ctrl+C) is completely unaffected.
+                                GdkWindow *t_clip_win = NULL;
+                                {
+                                    MCLinuxRawClipboard *t_raw =
+                                        static_cast<MCLinuxRawClipboard*>(
+                                            MCclipboard->GetRawClipboard());
+                                    if (t_raw != NULL && t_raw->IsOwned() &&
+                                        t_event->key.keyval == GDK_KEY_v &&
+                                        (t_event->key.state & GDK_CONTROL_MASK))
+                                    {
+                                        t_clip_win = t_raw->GetClipboardWindow();
+                                        if (t_clip_win)
+                                            gdk_window_add_filter(t_clip_win,
+                                                HXT_CtrlV_SelectionFilter, NULL);
+                                    }
+                                }
+
+                                hxt_browser_key_down(t_event->key.keyval,
+                                                     (unsigned int)t_event->key.state,
+                                                     t_event->key.hardware_keycode,
+                                                     t_event->key.group);
+
+                                if (t_clip_win)
+                                    gdk_window_remove_filter(t_clip_win,
+                                        HXT_CtrlV_SelectionFilter, NULL);
+                            }
+                            else
+                            {
+                                MCdispatcher->wkdown(t_event->key.window, *t_text, t_keysym);
+                            }
+                        }
                         else
-                            MCdispatcher->wkup(t_event->key.window, *t_text, t_keysym);
+                        {
+                            if (t_browser_active)
+                            {
+                                hxt_browser_key_up(t_event->key.keyval,
+                                                   (unsigned int)t_event->key.state,
+                                                   t_event->key.hardware_keycode,
+                                                   t_event->key.group);
+                            }
+                            else
+                            {
+                                MCdispatcher->wkup(t_event->key.window, *t_text, t_keysym);
+                            }
+                        }
                     }
                 }
                 else
@@ -655,7 +788,13 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 
                 // IM-2013-10-09: [[ FullscreenMode ]] Update mouseloc with MCscreen getters & setters
                 MCscreen->setmouseloc(t_mousestack, t_mouseloc);
-                
+
+                // Forward motion to WebKit during a browser button-drag so
+                // text selection can be extended.  hxt_browser_forward_motion
+                // is a no-op unless m_pointer_button_down is set (i.e. a
+                // button was pressed inside the browser rect).
+                hxt_browser_forward_motion((int)t_mouseloc.x, (int)t_mouseloc.y);
+
                 // If this is a motion hint event, request the rest
                 if (t_event->motion.is_hint)
                     gdk_event_request_motions(&t_event->motion);
@@ -773,32 +912,122 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         MCeventtime = t_event->button.time;
                         
                         // Is this a mouse scroll event?
-                        if (MCmousestackptr && t_event->type == GDK_SCROLL)
+                        if (t_event->type == GDK_SCROLL)
                         {
-                            // Find the object that should receive the scroll
-                            MCObject *mfocused = MCmousestackptr->getcard()->getmfocused();
-                            if (mfocused == NULL)
-                                mfocused = MCmousestackptr->getcard();
-                            
-                            if (mfocused != NULL)
+                            // Determine if a native GTK widget (e.g. WebKitWebView)
+                            // should receive this scroll event.
+                            //
+                            // Scroll events from the trackpad arrive at the engine's
+                            // stack window (t_mousestack != NULL) because the stack
+                            // window holds GDK_ALL_EVENTS_MASK.  We must detect that
+                            // the focused object is a native-layer widget and redirect
+                            // the event to its own GdkWindow so GTK/WebKit handles it.
+                            //
+                            // If somehow the event arrived at a non-stack window
+                            // (t_mousestack == NULL) we still forward via GTK.
+                            GtkWidget *t_native_widget = nullptr;
+                            // Origin of the found browser rect in stack-window coords.
+                            // Set by hxt_find_browser_at; used when forwarding the event.
+                            int t_scroll_bx = 0, t_scroll_by = 0;
+
+                            if (!t_mousestack)
+                            {
+                                // Event window is not an engine stack — find the
+                                // GTK widget that owns the GdkWindow.
+                                // This path should normally be handled earlier in
+                                // EnqueueGdkEvents, but acts as a safety net.
+                                gpointer t_wdata = nullptr;
+                                gdk_window_get_user_data(t_event->scroll.window, &t_wdata);
+                                if (t_wdata != nullptr && GTK_IS_WIDGET(t_wdata))
+                                {
+                                    GtkWidget *t_w = GTK_WIDGET(t_wdata);
+                                    // If the owning widget is a container (e.g. our popup
+                                    // GtkWindow), the real scroll target is the first child
+                                    // (the WebKitWebView).  GTK event propagation goes UP the
+                                    // widget hierarchy, not down, so targeting the container
+                                    // never reaches the browser widget.
+                                    if (GTK_IS_CONTAINER(t_w))
+                                    {
+                                        GList *t_kids = gtk_container_get_children(GTK_CONTAINER(t_w));
+                                        if (t_kids != nullptr)
+                                        {
+                                            t_native_widget = GTK_WIDGET(t_kids->data);
+                                            g_list_free(t_kids);
+                                        }
+                                    }
+                                    if (t_native_widget == nullptr)
+                                        t_native_widget = t_w;
+                                }
+                            }
+                            else if (MCmousestackptr)
+                            {
+                                // Event arrived at the stack window.  Iterate all
+                                // attached browser layers to find whichever one the
+                                // pointer is actually over — using focus here would
+                                // wrongly redirect scrolls to the focused browser even
+                                // when the mouse is over a different one.
+                                GtkWidget *t_bw = nullptr;
+                                if (hxt_find_browser_at((int)t_event->scroll.x,
+                                                        (int)t_event->scroll.y,
+                                                        &t_bw,
+                                                        &t_scroll_bx, &t_scroll_by))
+                                {
+                                    t_native_widget = t_bw;
+                                }
+                            }
+
+                            if (t_native_widget != nullptr)
+                            {
+                                // Forward scroll to the browser widget using
+                                // g_signal_emit_by_name to avoid GTK's window-ancestry
+                                // check (the WebView's GdkWindow is non-native and
+                                // gtk_widget_event would trigger a GDK X11 warning).
+                                // Coordinates are adjusted to be browser-widget-relative.
+                                if (gtk_widget_get_realized(t_native_widget))
+                                {
+                                    GdkEvent *t_fwd = gdk_event_copy(t_event);
+                                    t_fwd->scroll.x -= t_scroll_bx;
+                                    t_fwd->scroll.y -= t_scroll_by;
+                                    gboolean t_ret = FALSE;
+                                    g_signal_emit_by_name(t_native_widget, "scroll-event", t_fwd, &t_ret);
+                                    gdk_event_free(t_fwd);
+                                }
+                                t_handled = true;
+                                break;
+                            }
+
+                            // No native widget — dispatch as key events for LiveCode
+                            // objects (existing behaviour).
+                            MCObject *mfocused = nullptr;
+                            if (MCmousestackptr)
+                            {
+                                mfocused = MCmousestackptr->getcard()->getmfocused();
+                                if (mfocused == nullptr)
+                                    mfocused = MCmousestackptr->getcard();
+                            }
+
+                            if (mfocused != nullptr)
                             {
                                 switch (t_event->scroll.direction)
                                 {
-                                    // GDK events are named for the 'natural scrolling' version and interpreted according to system settings
+                                    // GDK events are named for the 'natural scrolling' version
                                     case GDK_SCROLL_UP:
                                         mfocused->kdown(kMCEmptyString, XK_WheelDown);
                                         break;
-                                        
+
                                     case GDK_SCROLL_DOWN:
                                         mfocused->kdown(kMCEmptyString, XK_WheelUp);
                                         break;
-                                        
+
                                     case GDK_SCROLL_LEFT:
                                         mfocused->kdown(kMCEmptyString, XK_WheelRight);
                                         break;
-                                        
+
                                     case GDK_SCROLL_RIGHT:
                                         mfocused->kdown(kMCEmptyString, XK_WheelLeft);
+                                        break;
+
+                                    default:
                                         break;
                                 }
                             }
@@ -837,7 +1066,10 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                     {
                                         doubleclick = False;
                                         tripleclick = True;
+                                        hxt_browser_reset_mousedown_flag();
                                         MCdispatcher->wmdown(t_event->button.window, t_event->button.button);
+                                        if (MCactivefield && !hxt_browser_mousedown_fired())
+                                            hxt_browser_clear_focus();
                                     }
                                     else
                                     {
@@ -866,7 +1098,18 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                     if (!skip_click_focus)
                                         MCdispatcher->wmfocus(t_event->button.window, t_clickloc.x, t_clickloc.y);
                                     
+                                    hxt_browser_reset_mousedown_flag();
                                     MCdispatcher->wmdown(t_event->button.window, t_event->button.button);
+
+                                    // If wmdown() caused an HXT text field to take
+                                    // focus, clear browser keyboard focus so keys
+                                    // route to HXT rather than WebKit.
+                                    // Guard: if OnMouseDown fired during wmdown, the
+                                    // click was on the browser widget — don't undo it.
+                                    if (MCactivefield && !hxt_browser_mousedown_fired())
+                                    {
+                                        hxt_browser_clear_focus();
+                                    }
                                 }
                             }
                         }
@@ -876,11 +1119,11 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 {
                     t_queue = true;
                 }
-                
+
                 t_handled = true;
                 break;
             }
-                
+
             case GDK_BUTTON_RELEASE:
             {
                 // No longer in a drag-and-drop situation
@@ -1014,149 +1257,10 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 break;
                 
             case GDK_SELECTION_REQUEST:
-            {
-                // Get the clipboard associated with the requested selection
                 // Checking for ownership is unreliable in GDK so don't bother
                 // -- we just fulfil the request anyway.
-                MCLinuxRawClipboard* t_clipboard;
-				if (t_event->selection.selection == GDK_SELECTION_PRIMARY)
-                    t_clipboard = static_cast<MCLinuxRawClipboard*> (MCselection->GetRawClipboard());
-				else if (t_event->selection.selection == GDK_SELECTION_CLIPBOARD)
-                    t_clipboard = static_cast<MCLinuxRawClipboard*> (MCclipboard->GetRawClipboard());
-                else if (t_event->selection.selection == MCdndselectionatom)
-                    t_clipboard = static_cast<MCLinuxRawClipboard*> (MCdragboard->GetRawClipboard());
-                else
-                    t_clipboard = NULL;
-                
-                // Note: we don't use a secondary selection
-                if (t_clipboard != NULL)
-                {
-                    // -- tperry 13-11-2025: GTK3 - requestor is already a GdkWindow*, not an XID
-                    // Get the requestor window
-                    GdkWindow *t_requestor;
-                    t_requestor = t_event->selection.requestor;
-                    
-                    // -- tperry 16-11-2025: Check if requestor is valid (can be NULL or destroyed)
-                    if (t_requestor == NULL || !GDK_IS_WINDOW(t_requestor))
-                    {
-                        // Requestor window is invalid, ignore this selection request
-                        break;
-                    }
-                    
-                    // There is a backwards-compatibility issue with the way the
-                    // ICCCM deals with selections: older clients can request a
-                    // selection but not supply a property name. In that case,
-                    // the property set should be equal to the target name.
-                    //
-                    // The GDK manual does not say whether it works around this
-                    // wrinkle so we might as well check ourselves.
-                    GdkAtom t_property;
-                    if (t_event->selection.property != GDK_NONE)
-                        t_property = t_event->selection.property;
-                    else
-                        t_property = t_event->selection.target;
-                    
-                    // What type should the selection be converted to?
-                    static GdkAtom s_targets = gdk_atom_intern_static_string("TARGETS");
-                    static GdkAtom s_multiple = gdk_atom_intern_static_string("MULTIPLE");
-                    static GdkAtom s_timestamp = gdk_atom_intern_static_string("TIMESTAMP");
-                    if (t_event->selection.target == s_targets)
-                    {
-                        // Get the list of types we can convert to
-                        MCAutoDataRef t_targets(t_clipboard->CopyTargets());
-                        
-                        if (*t_targets != NULL)
-                        {
-                            // Set a property on the requestor containing the
-                            // list of targets we can convert to.
-                            uindex_t t_atom_count = MCDataGetLength(*t_targets)/sizeof(gulong);
-                            gdk_property_change(t_requestor, t_property,
-                                                GDK_SELECTION_TYPE_ATOM,
-                                                32,
-                                                GDK_PROP_MODE_REPLACE,
-                                                (const guchar*)MCDataGetBytePtr(*t_targets),
-                                                t_atom_count);
-                            
-                            // Notify the requestor that we have replied
-                            gdk_selection_send_notify(t_event->selection.requestor,
-                                                      t_event->selection.selection,
-                                                      t_event->selection.target,
-                                                      t_property,
-                                                      t_event->selection.time);
-                        }
-                        else
-                        {
-                            // We don't actually have anything to supply so
-                            // reject the request without supplying any data
-                            gdk_selection_send_notify(t_event->selection.requestor,
-                                                      t_event->selection.selection,
-                                                      t_event->selection.target,
-                                                      GDK_NONE,
-                                                      t_event->selection.time);
-                        }
-                    }
-                    else if (t_event->selection.target == s_multiple)
-                    {
-                        // This should be handled by GDK
-                        MCAssert(false);
-                    }
-                    else if (t_event->selection.target == s_timestamp)
-                    {
-                        // This should be handled by GDK
-                        MCAssert(false);
-                    }
-                    else
-                    {
-                        // Turn the requested selection into a string
-                        MCAutoStringRef t_atom_string(MCLinuxRawClipboard::CopyTypeForAtom(t_event->selection.target));
-                        
-                        // Get the requested representation of the data
-                        const MCRawClipboardItemRep* t_rep = NULL;
-                        MCAutoRefcounted<const MCLinuxRawClipboardItem> t_item = t_clipboard->GetSelectionItem();
-                        if (t_item != NULL)
-                            t_rep = t_item->FetchRepresentationByType(*t_atom_string);
-                        
-                        // Get the data in the requested form
-                        MCAutoDataRef t_data;
-                        if (t_rep != NULL)
-                            t_data.Give(t_rep->CopyData());
-                        
-                        if (*t_data != NULL)
-                        {
-                            // Transfer the data to the requestor via the
-                            // property that it specified
-                            gdk_property_change(t_requestor, t_property,
-                                                t_event->selection.target,
-                                                8,
-                                                GDK_PROP_MODE_REPLACE,
-                                                (const guchar*)MCDataGetBytePtr(*t_data),
-                                                MCDataGetLength(*t_data));
-                            
-                            // Notify the requestor that we have replied
-                            gdk_selection_send_notify(t_event->selection.requestor,
-                                                      t_event->selection.selection,
-                                                      t_event->selection.target,
-                                                      t_property,
-                                                      t_event->selection.time);
-                        }
-                        else
-                        {
-                            // Could not convert the data to the format that was
-                            // requested - reject the request.
-                            gdk_selection_send_notify(t_event->selection.requestor,
-                                                      t_event->selection.selection,
-                                                      t_event->selection.target,
-                                                      GDK_NONE,
-                                                      t_event->selection.time);
-                        }
-                    }
-                    
-                    // We don't need the requestor window handle any longer
-                    g_object_unref(t_requestor);
-                }
-                
+                HXT_HandleSelectionRequest(t_event);
                 break;
-            }
             
             case GDK_DRAG_ENTER:
             case GDK_DRAG_LEAVE:   
@@ -1204,6 +1308,147 @@ GdkAtom MCstrutpartialatom;
 GdkAtom MCclientlistatom;
 GdkAtom MCdndselectionatom;
 
+// ---------------------------------------------------------------------------
+// Clipboard SelectionRequest helper
+// ---------------------------------------------------------------------------
+// Handles a GDK_SELECTION_REQUEST event synchronously.  Used both by the
+// main event loop (case GDK_SELECTION_REQUEST) and by HXT_CtrlV_SelectionFilter
+// so that SelectionRequest events arriving inside WebKit's nested event loop
+// (e.g. from gtk_clipboard_wait_for_text) are also served without deadlock.
+// The function g_object_unref's t_event->selection.requestor on success.
+static void HXT_HandleSelectionRequest(GdkEvent *t_event)
+{
+    MCLinuxRawClipboard *t_clipboard;
+    if (t_event->selection.selection == GDK_SELECTION_PRIMARY)
+        t_clipboard = static_cast<MCLinuxRawClipboard*>(MCselection->GetRawClipboard());
+    else if (t_event->selection.selection == GDK_SELECTION_CLIPBOARD)
+        t_clipboard = static_cast<MCLinuxRawClipboard*>(MCclipboard->GetRawClipboard());
+    else if (t_event->selection.selection == MCdndselectionatom)
+        t_clipboard = static_cast<MCLinuxRawClipboard*>(MCdragboard->GetRawClipboard());
+    else
+        t_clipboard = NULL;
+
+    if (t_clipboard == NULL)
+        return;
+
+    GdkWindow *t_requestor = t_event->selection.requestor;
+    if (t_requestor == NULL || !GDK_IS_WINDOW(t_requestor))
+        return;
+
+    GdkAtom t_property = (t_event->selection.property != GDK_NONE)
+                          ? t_event->selection.property
+                          : t_event->selection.target;
+
+    static GdkAtom s_targets   = gdk_atom_intern_static_string("TARGETS");
+    static GdkAtom s_multiple  = gdk_atom_intern_static_string("MULTIPLE");
+    static GdkAtom s_timestamp = gdk_atom_intern_static_string("TIMESTAMP");
+
+    if (t_event->selection.target == s_targets)
+    {
+        MCAutoDataRef t_targets(t_clipboard->CopyTargets());
+        if (*t_targets != NULL)
+        {
+            uindex_t t_atom_count = MCDataGetLength(*t_targets) / sizeof(gulong);
+            gdk_property_change(t_requestor, t_property,
+                                GDK_SELECTION_TYPE_ATOM, 32,
+                                GDK_PROP_MODE_REPLACE,
+                                (const guchar*)MCDataGetBytePtr(*t_targets),
+                                t_atom_count);
+            gdk_selection_send_notify(t_event->selection.requestor,
+                                      t_event->selection.selection,
+                                      t_event->selection.target,
+                                      t_property,
+                                      t_event->selection.time);
+        }
+        else
+        {
+            gdk_selection_send_notify(t_event->selection.requestor,
+                                      t_event->selection.selection,
+                                      t_event->selection.target,
+                                      GDK_NONE,
+                                      t_event->selection.time);
+        }
+    }
+    else if (t_event->selection.target == s_multiple ||
+             t_event->selection.target == s_timestamp)
+    {
+        // Should be handled by GDK
+        MCAssert(false);
+    }
+    else
+    {
+        MCAutoStringRef t_atom_string(
+            MCLinuxRawClipboard::CopyTypeForAtom(t_event->selection.target));
+
+        const MCRawClipboardItemRep *t_rep = NULL;
+        MCAutoRefcounted<const MCLinuxRawClipboardItem> t_item =
+            t_clipboard->GetSelectionItem();
+        if (t_item != NULL)
+            t_rep = t_item->FetchRepresentationByType(*t_atom_string);
+
+        MCAutoDataRef t_data;
+        if (t_rep != NULL)
+            t_data.Give(t_rep->CopyData());
+
+        if (*t_data != NULL)
+        {
+            gdk_property_change(t_requestor, t_property,
+                                t_event->selection.target, 8,
+                                GDK_PROP_MODE_REPLACE,
+                                (const guchar*)MCDataGetBytePtr(*t_data),
+                                MCDataGetLength(*t_data));
+            gdk_selection_send_notify(t_event->selection.requestor,
+                                      t_event->selection.selection,
+                                      t_event->selection.target,
+                                      t_property,
+                                      t_event->selection.time);
+        }
+        else
+        {
+            gdk_selection_send_notify(t_event->selection.requestor,
+                                      t_event->selection.selection,
+                                      t_event->selection.target,
+                                      GDK_NONE,
+                                      t_event->selection.time);
+        }
+    }
+
+    g_object_unref(t_requestor);
+}
+
+// GDK event filter installed on HXT's clipboard window around Ctrl+V dispatch.
+// Intercepts X11 SelectionRequest events and serves them inline so they run
+// inside WebKit's nested event loop (gtk_clipboard_wait_for_text on Fedora
+// uses a synchronous nested g_main_loop, which processes GDK events but does
+// NOT call HXT's main event loop handler for those events).
+static GdkFilterReturn HXT_CtrlV_SelectionFilter(
+    GdkXEvent *p_xevent, GdkEvent * /*p_gdk_event*/, gpointer /*p_data*/)
+{
+    x11::XEvent *xe = static_cast<x11::XEvent*>(p_xevent);
+    if (xe->type != SelectionRequest)
+        return GDK_FILTER_CONTINUE;
+
+    x11::XSelectionRequestEvent *req = &xe->xselectionrequest;
+    GdkDisplay *t_dpy = gdk_display_get_default();
+
+    // Construct a GdkEvent so we can call the shared handler
+    GdkEvent t_fake = {};
+    t_fake.type = GDK_SELECTION_REQUEST;
+    t_fake.selection.requestor =
+        x11::gdk_x11_window_foreign_new_for_display(t_dpy, (x11::Window)req->requestor);
+    t_fake.selection.selection = x11::gdk_x11_xatom_to_atom(req->selection);
+    t_fake.selection.target    = x11::gdk_x11_xatom_to_atom(req->target);
+    t_fake.selection.property  = (req->property != 0)
+                                  ? x11::gdk_x11_xatom_to_atom(req->property)
+                                  : GDK_NONE;
+    t_fake.selection.time      = (guint32)req->time;
+
+    // HXT_HandleSelectionRequest g_object_unref's the requestor window
+    HXT_HandleSelectionRequest(&t_fake);
+
+    return GDK_FILTER_REMOVE;
+}
+
 
 void MCScreenDC::EnqueueGdkEvents(bool p_block)
 {
@@ -1214,15 +1459,153 @@ void MCScreenDC::EnqueueGdkEvents(bool p_block)
         while (g_main_context_iteration(NULL, p_block))
             p_block = false;
         //gdk_threads_enter();
-        
+
         // Enqueue any further GDK events
         GdkEvent *t_event = gdk_event_get();
         if (t_event == NULL)
             break;
-        
+
         // GTK hasn't had a chance at this event yet
         //gtk_main_do_event(t_event);
-        
+
+        // GDK_SCROLL events from embedded native widgets (e.g. WebKitWebView)
+        // arrive at a GdkWindow that is NOT an engine stack window.  Dispatch
+        // them directly through GTK rather than enqueueing for the engine.
+        //
+        // Important: the event window may be:
+        //   (a) WebKit's own sub-GdkWindow  → dispatch directly to that widget
+        //   (b) m_child_window (our popup GtkWindow) → GtkWindow does NOT
+        //       propagate scroll downward to children, so we must drill into
+        //       the first child (the browser widget) and target it explicitly.
+        if (t_event->type == GDK_SCROLL &&
+            MCdispatcher->findstackd(t_event->any.window) == NULL)
+        {
+            gpointer t_wd = nullptr;
+            gdk_window_get_user_data(t_event->any.window, &t_wd);
+
+            if (t_wd != nullptr && GTK_IS_WINDOW(t_wd))
+            {
+                // Case (b): event at a GtkWindow container.
+                // Target its first child (the browser widget) directly.
+                GList *t_kids = gtk_container_get_children(GTK_CONTAINER(t_wd));
+                if (t_kids != nullptr)
+                {
+                    GtkWidget  *t_child     = GTK_WIDGET(t_kids->data);
+                    GdkWindow  *t_child_win = gtk_widget_get_window(t_child);
+                    if (t_child_win != nullptr && gtk_widget_get_realized(t_child))
+                    {
+                        gint t_ox = 0, t_oy = 0, t_dx = 0, t_dy = 0;
+                        gdk_window_get_origin(t_event->any.window, &t_ox, &t_oy);
+                        gdk_window_get_origin(t_child_win,          &t_dx, &t_dy);
+                        GdkEvent *t_fwd = gdk_event_copy(t_event);
+                        t_fwd->scroll.x += t_ox - t_dx;
+                        t_fwd->scroll.y += t_oy - t_dy;
+                        g_object_ref(t_child_win);
+                        g_object_unref(t_fwd->any.window);
+                        t_fwd->any.window = t_child_win;
+                        gtk_widget_event(t_child, t_fwd);
+                        gdk_event_free(t_fwd);
+                    }
+                    else
+                    {
+                        // Child not yet realized; best-effort via GTK routing.
+                        gtk_main_do_event(t_event);
+                    }
+                    g_list_free(t_kids);
+                }
+                else
+                {
+                    gtk_main_do_event(t_event);
+                }
+            }
+            else if (t_wd != nullptr && GTK_IS_WIDGET(t_wd))
+            {
+                // Case (a): event window has its own GTK widget — dispatch directly.
+                gtk_widget_event(GTK_WIDGET(t_wd), t_event);
+            }
+            else
+            {
+                gtk_main_do_event(t_event);
+            }
+
+            gdk_event_free(t_event);
+            continue;
+        }
+
+        // X11 selection events (CLEAR, REQUEST, NOTIFY) must be enqueued for
+        // HXT's handle() switch even when they arrive on a non-stack window
+        // (e.g. s_clipboard_window).  If we let them fall through to the
+        // gtk_main_do_event path below, LostSelection() / HXT_HandleSelectionRequest
+        // are never called — meaning HXT never learns it lost clipboard ownership
+        // and stale data is pasted instead of fetching from the new owner.
+        bool t_is_selection_event =
+            (t_event->type == GDK_SELECTION_CLEAR  ||
+             t_event->type == GDK_SELECTION_REQUEST ||
+             t_event->type == GDK_SELECTION_NOTIFY);
+
+        // Route ALL other events for non-HXT windows (e.g. GtkMenu popup,
+        // GtkOffscreenWindow) via gtk_main_do_event so GTK can deliver them
+        // to the correct widget.  Without this, GDK_ENTER_NOTIFY /
+        // GDK_LEAVE_NOTIFY / GDK_MOTION_NOTIFY for the <select> popup menu
+        // are consumed by HXT's event processor (which finds no matching stack
+        // and drops them), leaving menu item hover highlights permanently stuck.
+        if (!t_is_selection_event &&
+            t_event->any.window != NULL &&
+            MCdispatcher->findstackd(t_event->any.window) == NULL)
+        {
+            gtk_main_do_event(t_event);
+            gdk_event_free(t_event);
+            continue;
+        }
+
+        // Redirect GDK_SCROLL events on HXT stack windows to whichever browser
+        // widget the scroll position falls within.  Iterates all attached native
+        // layers via hxt_find_browser_at so that multiple browsers are supported.
+        // This ensures WebKit receives scroll events even though it lives in an
+        // offscreen GtkOffscreenWindow that is not an X11 child of the stack window.
+        if (t_event->type == GDK_SCROLL && t_event->any.window != NULL)
+        {
+            GtkWidget *t_bw = NULL;
+            int t_sx = 0, t_sy = 0;
+            gdouble t_ex = t_event->scroll.x;
+            gdouble t_ey = t_event->scroll.y;
+            if (hxt_find_browser_at((int)t_ex, (int)t_ey, &t_bw, &t_sx, &t_sy))
+            {
+                if (gtk_widget_get_realized(t_bw))
+                {
+                    GdkEvent *t_fwd = gdk_event_copy(t_event);
+                    t_fwd->scroll.x = t_ex - t_sx;
+                    t_fwd->scroll.y = t_ey - t_sy;
+                    // Emit scroll-event directly on the browser widget rather than
+                    // going through gtk_widget_event(): the latter does a window-ancestry
+                    // check that fails here (the WebView's GdkWindow is a non-native
+                    // client-side window and GDK would warn "not a native X11 window"
+                    // if we tried to swap any.window to it).  Emitting the signal
+                    // directly bypasses that check while still delivering the event.
+                    gboolean t_handled = FALSE;
+                    g_signal_emit_by_name(t_bw, "scroll-event", t_fwd, &t_handled);
+                    gdk_event_free(t_fwd);
+                }
+                gdk_event_free(t_event);
+                continue;
+            }
+        }
+
+        // Skip synthetic key events that leaked back from our own dispatch.
+        // dispatchKeyEvent() in native-layer-x11.cpp creates GdkEventKey
+        // structs with send_event=TRUE and dispatches them via
+        // g_signal_emit_by_name().  GDK's offscreen-window event-routing
+        // machinery can re-inject these into the GDK queue with the event
+        // window set to the HXT stack window.  Without this guard they would
+        // be processed a second time, causing Tab to advance two DOM elements
+        // instead of one.  Real X11 keyboard events always have send_event=FALSE.
+        if ((t_event->type == GDK_KEY_PRESS || t_event->type == GDK_KEY_RELEASE)
+            && t_event->any.send_event)
+        {
+            gdk_event_free(t_event);
+            continue;
+        }
+
         MCEventnode *t_eventnode = new (nothrow) MCEventnode(t_event);
         t_eventnode->appendto(pendingevents);
     }

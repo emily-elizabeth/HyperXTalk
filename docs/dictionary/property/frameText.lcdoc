@@ -1,0 +1,62 @@
+Name: frameText
+
+Type: property
+
+Syntax: get the frameText of <image>
+
+Summary:
+Returns the current <frame> of an <animated GIF> encoded as PNG data.
+
+Associations: image
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+set the currentFrame of image "myGIF" to tFrame
+set the viewerImage of widget "imageViewer" to the frameText of image "myGIF"
+
+Value:
+The <frameText> of an <image> is binary data containing the current
+frame encoded as a PNG image.
+This property is read-only and cannot be set.
+
+Description:
+Use the <frameText> <property> to obtain an individual <frame> of an
+<animated GIF> as encoded PNG data. The result is suitable for passing
+directly to an LCB widget via a binary data property, or for setting on
+another image object using "set the text of image".
+
+Set <currentFrame> to the desired frame index before reading this
+property.
+
+> **Note:** Accessing this property stops the animation. If you want the
+> animation to continue after reading the data, you will need to restart it.
+
+Use <frameDuration> to obtain the display time for the frame in order to
+drive an animation loop:
+
+    on nextFrame
+        add 1 to sCurrentFrame
+        if sCurrentFrame > the frameCount of image "myGIF" then
+            put 1 into sCurrentFrame
+        end if
+        set the currentFrame of image "myGIF" to sCurrentFrame
+        set the viewerImage of widget "imageViewer" to \
+            the frameText of image "myGIF"
+        send "nextFrame" to me in \
+            (the frameDuration of image "myGIF") milliseconds
+    end nextFrame
+
+For non-animated images, <frameText> returns the same value as the
+<text> property.
+
+References: property (glossary), animated GIF (glossary),
+frame (glossary), image (keyword), currentFrame (property),
+frameCount (property), frameImageData (property),
+frameDuration (property), repeatCount (property)
+
+Tags: multimedia

@@ -261,6 +261,7 @@ command setCurrentTab pObject
    if not the cVisible of tControl then
       reorderTabs
    end if
+   send "checkFolding" to field "Script" group "Editor" of the owner of me in 10 milliseconds
 end setCurrentTab
 
 # Description

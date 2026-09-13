@@ -550,6 +550,7 @@ const static LT export_table[] =
         {"vc", TT_UNDEFINED, EX_VIDEO_CLIP},
         {"videoclip", TT_UNDEFINED, EX_VIDEO_CLIP},
         {"wave", TT_UNDEFINED, EX_WAVE},
+        {"webp", TT_UNDEFINED, EX_WEBP},
         {"xbm", TT_UNDEFINED, EX_XBM},
         {"xwd", TT_UNDEFINED, EX_XWD}
     };
@@ -1021,6 +1022,9 @@ const LT factor_table[] =
         {"fourthcolor", TT_PROPERTY, P_BORDER_COLOR},
         {"fourthpixel", TT_PROPERTY, P_BORDER_PIXEL},
         {"framecount", TT_PROPERTY, P_FRAME_COUNT},
+        {"frameduration", TT_PROPERTY, P_FRAME_DURATION},
+        {"frameimagedata", TT_PROPERTY, P_FRAME_IMAGE_DATA},
+        {"frametext", TT_PROPERTY, P_FRAME_TEXT},
         {"framerate", TT_PROPERTY, P_FRAME_RATE},
         {"freesize", TT_PROPERTY, P_FREE_SIZE},
         {"from", TT_FROM, PT_FROM},

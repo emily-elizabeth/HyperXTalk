@@ -19,6 +19,7 @@ set VCXPROJ_SECURITY_COMMUNITY=build-win-x86_64\hyperxtalk\engine\security-commu
 set VCXPROJ_LIBGIF=build-win-x86_64\hyperxtalk\thirdparty\libgif\libgif.vcxproj
 set VCXPROJ_LIBJPEG=build-win-x86_64\hyperxtalk\thirdparty\libjpeg\libjpeg.vcxproj
 set VCXPROJ_LIBPNG=build-win-x86_64\hyperxtalk\thirdparty\libpng\libpng.vcxproj
+set VCXPROJ_LIBWEBP=build-win-x86_64\hyperxtalk\thirdparty\libwebp\libwebp.vcxproj
 set VCXPROJ_LIBPCRE=build-win-x86_64\hyperxtalk\thirdparty\libpcre\libpcre.vcxproj
 set VCXPROJ_LIBEXPAT=build-win-x86_64\hyperxtalk\thirdparty\libexpat\libexpat.vcxproj
 set VCXPROJ_LIBSKIA=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia.vcxproj
@@ -743,6 +744,11 @@ echo Building libpng ...
 echo Building libpng ... >> "%LOGFILE%"
 "%MSBUILD%" %TOOLSET% %VCXPROJ_LIBPNG% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 ( echo ERROR: libpng failed. & exit /b 1 )
+
+echo Building libwebp ...
+echo Building libwebp ... >> "%LOGFILE%"
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBWEBP% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+if %ERRORLEVEL% NEQ 0 ( echo ERROR: libwebp failed. & exit /b 1 )
 
 echo Building libpcre ...
 echo Building libpcre ... >> "%LOGFILE%"
