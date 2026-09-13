@@ -459,10 +459,11 @@ command sePrefInit
       put "command p" into tPrefs["shortcuts,Print"]
    end if
    
-   # Load both light and dark colorization configs so switching appearance
-   # at runtime has both configs ready (seColorizationInit picks the right one).
-   seColorizationLoadScheme tPrefs["colorization,scheme"], tPrefs
-   seColorizationLoadScheme tPrefs["colorization,schemedark"], tPrefs
+   if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
+      seColorizationLoadScheme tPrefs["colorization,schemedark"], tPrefs
+   else
+      seColorizationLoadScheme tPrefs["colorization,scheme"], tPrefs
+   end if
    
    # Put the completed array into the script local sPrefs for use by the script editor.
    put tPrefs into sPrefs
@@ -570,8 +571,11 @@ command sePrefGetDefaults
    # Colorization preferences
    put "default" into tPrefs["colorization,scheme"]
    put "One Dark Pro" into tPrefs["colorization,schemedark"]
-   seColorizationLoadScheme "default", tPrefs
-   seColorizationLoadScheme "One Dark Pro", tPrefs
+   if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
+      seColorizationLoadScheme "One Dark Pro", tPrefs
+   else
+      seColorizationLoadScheme "default", tPrefs
+   end if
    
    # Editor preferences
    put 500 into tPrefs["editor,paneupdatedelay"]
@@ -1139,21 +1143,21 @@ end revSEColorizeField
    # Colorizes pScript and returns it as revHTML
 command revSEColorize pScript, pScheme
    local tOldScheme, tConfig
-   if (the systemAppearance is "light") then
-      if pScheme is not sePrefGet("colorization,scheme") then
-         put sePrefGet("colorization,scheme") into tOldScheme
-         seColorizationLoadScheme pScheme, tConfig
-         put tConfig["colorization,config"] into tConfig
-      else
-         put sePrefGet("colorization,config") into tConfig
-      end if
-   else
+   if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
       if pScheme is not sePrefGet("colorization,schemedark") then
          put sePrefGet("colorization,schemedark") into tOldScheme
          seColorizationLoadScheme pScheme, tConfig
          put tConfig["colorization,configdark"] into tConfig
       else
          put sePrefGet("colorization,configdark") into tConfig
+      end if
+   else
+      if pScheme is not sePrefGet("colorization,scheme") then
+         put sePrefGet("colorization,scheme") into tOldScheme
+         seColorizationLoadScheme pScheme, tConfig
+         put tConfig["colorization,config"] into tConfig
+      else
+         put sePrefGet("colorization,config") into tConfig
       end if
    end if
    
