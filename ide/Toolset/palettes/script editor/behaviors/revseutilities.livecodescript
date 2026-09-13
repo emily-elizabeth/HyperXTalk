@@ -461,8 +461,8 @@ command sePrefInit
    
    # Load both light and dark colorization configs so switching appearance
    # at runtime has both configs ready (seColorizationInit picks the right one).
-   seColorizationLoadScheme tPrefs["colorization,scheme"], tPrefs, "light"
-   seColorizationLoadScheme tPrefs["colorization,schemedark"], tPrefs, "dark"
+   seColorizationLoadScheme tPrefs["colorization,scheme"], tPrefs
+   seColorizationLoadScheme tPrefs["colorization,schemedark"], tPrefs
    
    # Put the completed array into the script local sPrefs for use by the script editor.
    put tPrefs into sPrefs
@@ -570,8 +570,8 @@ command sePrefGetDefaults
    # Colorization preferences
    put "default" into tPrefs["colorization,scheme"]
    put "One Dark Pro" into tPrefs["colorization,schemedark"]
-   seColorizationLoadScheme "default", tPrefs, "light"
-   seColorizationLoadScheme "One Dark Pro", tPrefs, "dark"
+   seColorizationLoadScheme "default", tPrefs
+   seColorizationLoadScheme "One Dark Pro", tPrefs
    
    # Editor preferences
    put 500 into tPrefs["editor,paneupdatedelay"]
@@ -718,10 +718,10 @@ local sColorizationKeywords
 #   Gets the current colorization settings from the preferences system, and builds
 #   them into two script local arrays for use by the editor group.
 command seColorizationInit
-   if (the systemAppearance is "light") then
-      colorizationBuildSettings sePrefGet("colorization,config"), sColorizationClasses, sColorizationKeywords
-   else
+   if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
       colorizationBuildSettings sePrefGet("colorization,configdark"), sColorizationClasses, sColorizationKeywords
+   else
+      colorizationBuildSettings sePrefGet("colorization,config"), sColorizationClasses, sColorizationKeywords   
    end if
 end seColorizationInit
 
@@ -732,8 +732,7 @@ end seColorizationInit
 #   Places the appropriate settings for the specified colorization scheme into 
 #   the sPrefs array. To apply the newly loaded scheme, call seColorizationInit
 #   after the scheme has been loaded.
-command seColorizationLoadScheme pScheme, @pPreferencesArray, pAppearance
-   if pAppearance is empty then put the systemAppearance into pAppearance
+command seColorizationLoadScheme pScheme, @pPreferencesArray
    local tPreferencesArray
    switch pScheme
       case "default"
@@ -768,11 +767,11 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray, pAppearance
                "keyword finally bold 0,0,0" & return & \
                "keyword next bold 0,0,0" & return & \
                "keyword exit bold 0,0,0" & return into tPreferencesArray
-               if pAppearance is "light" then
-                  put tPreferencesArray into pPreferencesArray["colorization,config"]
-               else
-                  put tPreferencesArray into pPreferencesArray["colorization,configdark"]
-               end if
+         if the systemAppearance is "dark" OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
+            put tPreferencesArray into pPreferencesArray["colorization,configdark"]
+         else
+            put tPreferencesArray into pPreferencesArray["colorization,config"]
+         end if
          break
          
       case "revolution classic"
@@ -805,11 +804,11 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray, pAppearance
                "keyword case none 152,5,23" & return & \
                "keyword default none 152,5,23" & return & \
                "keyword finally none 152,5,23" into tPreferencesArray
-               if pAppearance is "light" then
-                  put tPreferencesArray into pPreferencesArray["colorization,config"]
-               else
-                  put tPreferencesArray into pPreferencesArray["colorization,configdark"]
-               end if
+         if the systemAppearance is "dark" OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
+            put tPreferencesArray into pPreferencesArray["colorization,configdark"]
+         else
+            put tPreferencesArray into pPreferencesArray["colorization,config"]
+         end if
          break
          
       case "one dark pro"
@@ -843,13 +842,13 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray, pAppearance
                "keyword finally none 198,120,221" & return & \
                "keyword next none 198,120,221" & return & \
                "keyword exit none 255,38,0" into tPreferencesArray
-               if pAppearance is "light" then
-                  put tPreferencesArray into pPreferencesArray["colorization,config"]
-               else
-                  put tPreferencesArray into pPreferencesArray["colorization,configdark"]
-               end if
+         if the systemAppearance is "dark" OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
+            put tPreferencesArray into pPreferencesArray["colorization,configdark"]
+         else
+            put tPreferencesArray into pPreferencesArray["colorization,config"]
+         end if
          break
-
+         
       case "no colorization"
          put "group commands none 0,0,0" & return & \
                "group properties none 0,0,0" & return & \
@@ -877,11 +876,11 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray, pAppearance
                "keyword case none 0,0,0" & return & \
                "keyword default none 0,0,0" & return & \
                "keyword finally none 0,0,0" into tPreferencesArray
-               if pAppearance is "light" then
-                  put tPreferencesArray into pPreferencesArray["colorization,config"]
-               else
-                  put tPreferencesArray into pPreferencesArray["colorization,configdark"]
-               end if
+         if the systemAppearance is "dark" OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
+            put tPreferencesArray into pPreferencesArray["colorization,configdark"]
+         else
+            put tPreferencesArray into pPreferencesArray["colorization,config"]
+         end if
          break
    end switch
 end seColorizationLoadScheme
