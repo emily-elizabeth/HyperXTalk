@@ -755,15 +755,3 @@ on ideStyleTextRequest pWhich, pValue, pSelectedChunk, pSelectedObject
       end if
    end if
 end ideStyleTextRequest
-
-// HXT
-on systemAppearanceChanged pMode, pWindowColor, pTextColor
-   --   local tBgColor
-   --   put revIDEColor("palette_background") into tBgColor
-   --   set the cInspectorBackgroundColor of stack "revPreferences" to tBgColor
-   --   set the backgroundColor of this stack to tBgColor
-   --   set the backgroundColor of this card to tBgColor
-   --   set the foregroundColor of this stack to pTextColor
-   set the backgroundColor of this stack to pWindowColor
-   set the foregroundColor of this stack to pTextColor
-end systemAppearanceChanged
