@@ -459,12 +459,10 @@ command sePrefInit
       put "command p" into tPrefs["shortcuts,Print"]
    end if
    
-   # The colorization settings need to be loaded
-   if (the systemAppearance is "light") then
-      seColorizationLoadScheme tPrefs["colorization,scheme"], tPrefs
-   else
-      seColorizationLoadScheme tPrefs["colorization,schemedark"], tPrefs
-   end if
+   # Load both light and dark colorization configs so switching appearance
+   # at runtime has both configs ready (seColorizationInit picks the right one).
+   seColorizationLoadScheme tPrefs["colorization,scheme"], tPrefs, "light"
+   seColorizationLoadScheme tPrefs["colorization,schemedark"], tPrefs, "dark"
    
    # Put the completed array into the script local sPrefs for use by the script editor.
    put tPrefs into sPrefs
@@ -572,7 +570,8 @@ command sePrefGetDefaults
    # Colorization preferences
    put "default" into tPrefs["colorization,scheme"]
    put "One Dark Pro" into tPrefs["colorization,schemedark"]
-   seColorizationLoadScheme "default", tPrefs
+   seColorizationLoadScheme "default", tPrefs, "light"
+   seColorizationLoadScheme "One Dark Pro", tPrefs, "dark"
    
    # Editor preferences
    put 500 into tPrefs["editor,paneupdatedelay"]
@@ -733,7 +732,8 @@ end seColorizationInit
 #   Places the appropriate settings for the specified colorization scheme into 
 #   the sPrefs array. To apply the newly loaded scheme, call seColorizationInit
 #   after the scheme has been loaded.
-command seColorizationLoadScheme pScheme, @pPreferencesArray
+command seColorizationLoadScheme pScheme, @pPreferencesArray, pAppearance
+   if pAppearance is empty then put the systemAppearance into pAppearance
    local tPreferencesArray
    switch pScheme
       case "default"
@@ -768,7 +768,7 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword finally bold 0,0,0" & return & \
                "keyword next bold 0,0,0" & return & \
                "keyword exit bold 0,0,0" & return into tPreferencesArray
-               if (the systemAppearance is "light") then
+               if pAppearance is "light" then
                   put tPreferencesArray into pPreferencesArray["colorization,config"]
                else
                   put tPreferencesArray into pPreferencesArray["colorization,configdark"]
@@ -805,7 +805,7 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword case none 152,5,23" & return & \
                "keyword default none 152,5,23" & return & \
                "keyword finally none 152,5,23" into tPreferencesArray
-               if (the systemAppearance is "light") then
+               if pAppearance is "light" then
                   put tPreferencesArray into pPreferencesArray["colorization,config"]
                else
                   put tPreferencesArray into pPreferencesArray["colorization,configdark"]
@@ -843,7 +843,7 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword finally none 198,120,221" & return & \
                "keyword next none 198,120,221" & return & \
                "keyword exit none 255,38,0" into tPreferencesArray
-               if (the systemAppearance is "light") then
+               if pAppearance is "light" then
                   put tPreferencesArray into pPreferencesArray["colorization,config"]
                else
                   put tPreferencesArray into pPreferencesArray["colorization,configdark"]
@@ -877,7 +877,7 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword case none 0,0,0" & return & \
                "keyword default none 0,0,0" & return & \
                "keyword finally none 0,0,0" into tPreferencesArray
-               if (the systemAppearance is "light") then
+               if pAppearance is "light" then
                   put tPreferencesArray into pPreferencesArray["colorization,config"]
                else
                   put tPreferencesArray into pPreferencesArray["colorization,configdark"]
