@@ -1,4 +1,4 @@
-script "revSEEditorBehavior"
+﻿script "revSEEditorBehavior"
 # Stores the following mapping
 #  <handler name>,type   => string representing the handler type eg PF for private function
 # <handler name>,start  => line offset to start of handler
@@ -151,12 +151,12 @@ end initialize
 private command setHandlersFieldBackColor
    if there is a field "Handlers" of group "Left Handler List" of group "Left Bar" \
          of card "Main" of this stack then
-      if (the systemAppearance is "light") then
-         set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
-            of card "Main" of this stack to sePrefGet("editor,backgroundcolor")
-      else
+      if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
          set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
             of card "Main" of this stack to sePrefGet("editor,backgroundcolordark")
+      else
+         set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
+            of card "Main" of this stack to sePrefGet("editor,backgroundcolor")
       end if
    end if
 end setHandlersFieldBackColor
@@ -204,15 +204,15 @@ command reapplyPreferences
    if the lockText of field "Script" of me then
       scriptLock
    else
-      if (the systemAppearance is "light") then
-         set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
-      else
+      if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
          set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
+      else
+         set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
       end if
       setHandlersFieldBackColor
    end if
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
-
+   
    updateGutterRequest empty, empty, empty, empty, false, false, true
    resize
    unlock screen
