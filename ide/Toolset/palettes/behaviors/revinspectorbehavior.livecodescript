@@ -41,8 +41,6 @@ before openStack
    revIDEPopDefaultFolder
    put true into sStackIsInFront
    
-   set the backgroundColor of this stack to (the systemWindowColor)  // HXT
-   set the foregroundColor of this stack to (the systemTextColor)
 end openStack
 
 on resizeInspector
