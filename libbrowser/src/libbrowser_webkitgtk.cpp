@@ -50,6 +50,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include <dlfcn.h>
 #include <limits.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -210,6 +211,11 @@ static struct WKSymbols
     void     (*g_error_free)(GError*);
     gboolean (*g_main_context_iteration)(GMainContext*, gboolean);
     gboolean (*g_main_context_pending)(GMainContext*);
+    // Log writer — loaded from system GLib (via WebKit handle) so we can
+    // suppress GDK/GTK warnings on that GLib instance separately from the
+    // engine's statically-linked GLib.
+    void          (*g_log_set_writer_func)(GLogWriterFunc, gpointer, GDestroyNotify);
+    const gchar * (*g_type_name)(GType);
 
     // ---- GTK ----
     GtkWidget* (*gtk_window_new)(GtkWindowType);
@@ -304,6 +310,16 @@ static GLogWriterOutput hxt_log_writer(GLogLevelFlags log_level,
             if (strstr(msg, "gdk_window_get_origin") &&
                 strstr(msg, "GDK_IS_WINDOW"))
                 return G_LOG_WRITER_HANDLED;
+            // GdkX11Screen emits this when WebKit's settings-changed signal
+            // fires on an offscreen GdkScreen that has already been torn down.
+            if (strstr(msg, "setting-changed") &&
+                strstr(msg, "GdkX11Screen"))
+                return G_LOG_WRITER_HANDLED;
+            // JSC GC installs a SIGUSR1 handler; if something else already owns
+            // that signal it logs this informational notice.  Suppress it — the
+            // GC still works via its fallback path.
+            if (strstr(msg, "Overriding existing handler for signal"))
+                return G_LOG_WRITER_HANDLED;
         }
     }
     return g_log_writer_default(log_level, fields, n_fields, NULL);
@@ -317,8 +333,8 @@ static bool LoadWebKit(void)
     if (s_webkit_loaded)
         return true;
 
-    // Install the log writer before any WebKit initialisation so that warnings
-    // fired during gtk_widget_show_all() and WebKit's own startup are filtered.
+    // Install the log writer on the engine's statically-linked GLib before any
+    // WebKit initialisation so that warnings during startup are filtered.
     // GLib 2.82+ aborts if g_log_set_writer_func() is called more than once, so
     // guard with a static flag — LoadWebKit() may be called again after a failed
     // attempt (e.g. first browser creation fails, user tries a second time).
@@ -405,6 +421,19 @@ static bool LoadWebKit(void)
         "libjavascriptcoregtk-4.0.so",
         nil
     };
+
+    // Reset SIGUSR1 to SIG_DFL before dlopen()ing WebKit.  WebKit's JSC installs
+    // its GC signal handler via a global constructor that runs at dlopen time.
+    // If it finds an existing handler it prints "Overriding existing handler for
+    // signal 10" directly to stderr, bypassing GLib's log system.  WebKit
+    // replaces whatever was there regardless; we just pre-empt the noise by
+    // returning SIGUSR1 to its default first.
+    {
+        struct sigaction t_sa;
+        memset(&t_sa, 0, sizeof(t_sa));
+        t_sa.sa_handler = SIG_DFL;
+        sigaction(SIGUSR1, &t_sa, NULL);
+    }
 
     bool t_system = false;
     for (int i = 0; t_wk_names[i]; i++)
@@ -569,6 +598,8 @@ static bool LoadWebKit(void)
     LOAD_SYM(t_wk, g_error_free);
     LOAD_SYM(t_wk, g_main_context_iteration);
     LOAD_SYM(t_wk, g_main_context_pending);
+    LOAD_SYM(t_wk, g_log_set_writer_func);
+    LOAD_SYM(t_wk, g_type_name);
 
     // GTK — resolve from the already-loaded libgtk-3
     void *t_gtk = dlopen("libgtk-3.so.0", RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD);
@@ -641,6 +672,22 @@ static bool LoadWebKit(void)
                 unsetenv("LD_LIBRARY_PATH");
             else
                 setenv("LD_LIBRARY_PATH", t_filtered, 1);
+        }
+    }
+
+    // Install the writer on system GLib (via the wk handle) so GDK/GTK messages
+    // are suppressed too — they route through system libglib-2.0.so.0.
+    // On some configurations (static link against system GLib, or single shared
+    // GLib) the engine's g_log_set_writer_func and wk.g_log_set_writer_func
+    // resolve to the same symbol; calling it twice is fatal on GLib 2.82+.
+    // Guard by comparing function pointers: skip if it's the same instance.
+    {
+        static bool s_system_log_writer_installed = false;
+        if (!s_system_log_writer_installed && wk.g_log_set_writer_func &&
+            (void*)wk.g_log_set_writer_func != (void*)&g_log_set_writer_func)
+        {
+            wk.g_log_set_writer_func(hxt_log_writer, NULL, NULL);
+            s_system_log_writer_installed = true;
         }
     }
 
@@ -1218,6 +1265,23 @@ void MCWebKitGTKBrowser::SyncJavaScriptHandlers()
 ////////////////////////////////////////////////////////////////////////////////
 // Signal handlers
 
+// Runtime GObject type check: returns true if p is a live GObject whose GType
+// name contains "JSCValue".  This guards calls to jsc_value_is_string() etc.
+// against mismatched API versions where the signal may pass a different pointer
+// type (e.g. WebKitJavascriptResult* when is4_1 is incorrectly detected true).
+static bool IsJSCValue(void *p)
+{
+    if (!p)
+        return false;
+    GTypeInstance *inst = (GTypeInstance *)p;
+    if (!inst->g_class)
+        return false;
+    if (!wk.g_type_name)
+        return true; // can't verify; assume caller knows what it's doing
+    const gchar *tn = wk.g_type_name(inst->g_class->g_type);
+    return tn && strstr(tn, "JSCValue");
+}
+
 void MCWebKitGTKBrowser::on_load_changed(WebKitWebView *p_view, int p_event, gpointer p_data)
 {
     MCWebKitGTKBrowser *t_browser = (MCWebKitGTKBrowser*)p_data;
@@ -1728,10 +1792,14 @@ void MCWebKitGTKBrowser::on_nav_message(WebKitUserContentManager * /*p_mgr*/,
 {
     MCWebKitGTKBrowser *t_browser = (MCWebKitGTKBrowser*)p_data;
 
+    // In webkit2gtk 4.1 the signal passes JSCValue* directly.
+    // In 4.0 it passes WebKitJavascriptResult*; unwrap to JSCValue*.
+    // Guard with IsJSCValue() in case API version detection is wrong on a
+    // given system — fall back to the 4.0 unwrap path rather than crashing.
     JSCValue *t_value = nil;
-    if (wk.is4_1)
+    if (wk.is4_1 && IsJSCValue(p_js_result))
         t_value = (JSCValue*)p_js_result;
-    else if (wk.webkit_javascript_result_get_js_value)
+    else if (wk.webkit_javascript_result_get_js_value && !IsJSCValue(p_js_result))
         t_value = wk.webkit_javascript_result_get_js_value((WebKitJavascriptResult*)p_js_result);
 
     if (t_value == nil || !wk.jsc_value_is_string || !wk.jsc_value_to_string)
@@ -1751,17 +1819,14 @@ void MCWebKitGTKBrowser::on_script_message(WebKitUserContentManager * /*p_mgr*/,
 {
     MCWebKitGTKBrowser *t_browser = (MCWebKitGTKBrowser*)p_data;
 
-    // In webkit2gtk 4.1 the signal passes a JSCValue* directly.
-    // In webkit2gtk 4.0 it passes a WebKitJavascriptResult*; unwrap to JSCValue*.
+    // In webkit2gtk 4.1 the signal passes JSCValue* directly.
+    // In 4.0 it passes WebKitJavascriptResult*; unwrap to JSCValue*.
+    // Guard with IsJSCValue() so a mis-detected API version doesn't crash.
     JSCValue *t_value = nil;
-    if (wk.is4_1)
-    {
+    if (IsJSCValue(p_js_result))
         t_value = (JSCValue*)p_js_result;
-    }
     else if (wk.webkit_javascript_result_get_js_value)
-    {
         t_value = wk.webkit_javascript_result_get_js_value((WebKitJavascriptResult*)p_js_result);
-    }
 
     if (t_value == nil || !wk.jsc_value_is_string || !wk.jsc_value_to_string)
         return;
