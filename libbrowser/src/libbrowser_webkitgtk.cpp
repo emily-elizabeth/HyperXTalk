@@ -50,6 +50,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include <dlfcn.h>
 #include <limits.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -144,6 +145,11 @@ static struct WKSymbols
                                              GAsyncReadyCallback, gpointer);
     WebKitJavascriptResult* (*webkit_web_view_run_javascript_finish)(WebKitWebView*,
                                                                       GAsyncResult*, GError**);
+    // Snapshot (WebKit 2.8+) — Cairo fallback on WebKit 2.44+ (Fedora) where
+    // gtk_widget_draw() is a compositor no-op.
+    void             (*webkit_web_view_get_snapshot)(WebKitWebView*, int, int,
+                                                      GCancellable*, GAsyncReadyCallback, gpointer);
+    cairo_surface_t* (*webkit_web_view_get_snapshot_finish)(WebKitWebView*, GAsyncResult*, GError**);
 
     // ---- WebKitSettings ----
     WebKitSettings* (*webkit_settings_new)(void);
@@ -205,6 +211,11 @@ static struct WKSymbols
     void     (*g_error_free)(GError*);
     gboolean (*g_main_context_iteration)(GMainContext*, gboolean);
     gboolean (*g_main_context_pending)(GMainContext*);
+    // Log writer — loaded from system GLib (via WebKit handle) so we can
+    // suppress GDK/GTK warnings on that GLib instance separately from the
+    // engine's statically-linked GLib.
+    void          (*g_log_set_writer_func)(GLogWriterFunc, gpointer, GDestroyNotify);
+    const gchar * (*g_type_name)(GType);
 
     // ---- GTK ----
     GtkWidget* (*gtk_window_new)(GtkWindowType);
@@ -299,6 +310,16 @@ static GLogWriterOutput hxt_log_writer(GLogLevelFlags log_level,
             if (strstr(msg, "gdk_window_get_origin") &&
                 strstr(msg, "GDK_IS_WINDOW"))
                 return G_LOG_WRITER_HANDLED;
+            // GdkX11Screen emits this when WebKit's settings-changed signal
+            // fires on an offscreen GdkScreen that has already been torn down.
+            if (strstr(msg, "setting-changed") &&
+                strstr(msg, "GdkX11Screen"))
+                return G_LOG_WRITER_HANDLED;
+            // JSC GC installs a SIGUSR1 handler; if something else already owns
+            // that signal it logs this informational notice.  Suppress it — the
+            // GC still works via its fallback path.
+            if (strstr(msg, "Overriding existing handler for signal"))
+                return G_LOG_WRITER_HANDLED;
         }
     }
     return g_log_writer_default(log_level, fields, n_fields, NULL);
@@ -312,10 +333,8 @@ static bool LoadWebKit(void)
     if (s_webkit_loaded)
         return true;
 
-    fprintf(stderr, "HXT-LWK: enter\n"); fflush(stderr);
-
-    // Install the log writer before any WebKit initialisation so that warnings
-    // fired during gtk_widget_show_all() and WebKit's own startup are filtered.
+    // Install the log writer on the engine's statically-linked GLib before any
+    // WebKit initialisation so that warnings during startup are filtered.
     // GLib 2.82+ aborts if g_log_set_writer_func() is called more than once, so
     // guard with a static flag — LoadWebKit() may be called again after a failed
     // attempt (e.g. first browser creation fails, user tries a second time).
@@ -403,13 +422,23 @@ static bool LoadWebKit(void)
         nil
     };
 
+    // Reset SIGUSR1 to SIG_DFL before dlopen()ing WebKit.  WebKit's JSC installs
+    // its GC signal handler via a global constructor that runs at dlopen time.
+    // If it finds an existing handler it prints "Overriding existing handler for
+    // signal 10" directly to stderr, bypassing GLib's log system.  WebKit
+    // replaces whatever was there regardless; we just pre-empt the noise by
+    // returning SIGUSR1 to its default first.
+    {
+        struct sigaction t_sa;
+        memset(&t_sa, 0, sizeof(t_sa));
+        t_sa.sa_handler = SIG_DFL;
+        sigaction(SIGUSR1, &t_sa, NULL);
+    }
+
     bool t_system = false;
     for (int i = 0; t_wk_names[i]; i++)
     {
         wk.libwebkit = dlopen(t_wk_names[i], RTLD_LAZY | RTLD_LOCAL | RTLD_DEEPBIND);
-        fprintf(stderr, "HXT-LWK: dlopen(%s) -> %s\n",
-                t_wk_names[i], wk.libwebkit ? "OK" : dlerror());
-        fflush(stderr);
         if (wk.libwebkit)
         {
             t_system = true;
@@ -501,6 +530,9 @@ static bool LoadWebKit(void)
     // 4.0 JS eval API (fallback)
     LOAD_SYM(t_wk, webkit_web_view_run_javascript);
     LOAD_SYM(t_wk, webkit_web_view_run_javascript_finish);
+    // Snapshot API (WebKit 2.8+, optional — NULL-checked at call site)
+    LOAD_SYM(t_wk, webkit_web_view_get_snapshot);
+    LOAD_SYM(t_wk, webkit_web_view_get_snapshot_finish);
 
     wk.is4_1 = (wk.webkit_web_view_evaluate_javascript != nil);
 
@@ -566,6 +598,8 @@ static bool LoadWebKit(void)
     LOAD_SYM(t_wk, g_error_free);
     LOAD_SYM(t_wk, g_main_context_iteration);
     LOAD_SYM(t_wk, g_main_context_pending);
+    LOAD_SYM(t_wk, g_log_set_writer_func);
+    LOAD_SYM(t_wk, g_type_name);
 
     // GTK — resolve from the already-loaded libgtk-3
     void *t_gtk = dlopen("libgtk-3.so.0", RTLD_LAZY | RTLD_LOCAL | RTLD_NOLOAD);
@@ -604,23 +638,60 @@ static bool LoadWebKit(void)
         LOAD_SYM(t_gdk, gdk_x11_window_get_xid);
     }
 
-    fprintf(stderr, "HXT-LWK: webkit_web_view_load_uri=%p gtk_window_new=%p gdk_x11_window_get_xid=%p\n",
-            (void*)wk.webkit_web_view_load_uri,
-            (void*)wk.gtk_window_new,
-            (void*)wk.gdk_x11_window_get_xid); fflush(stderr);
-    fprintf(stderr, "HXT-LWK: webkit_user_content_manager_new=%p webkit_web_view_new_with_user_content_manager=%p\n",
-            (void*)wk.webkit_user_content_manager_new,
-            (void*)wk.webkit_web_view_new_with_user_content_manager); fflush(stderr);
-    fprintf(stderr, "HXT-LWK: webkit4.1=%d\n", wk.is4_1 ? 1 : 0); fflush(stderr);
-
     if (!wk.webkit_web_view_load_uri || !wk.gtk_window_new || !wk.gdk_x11_window_get_xid)
-    {
-        fprintf(stderr, "HXT-LWK: missing required symbols - FAIL\n"); fflush(stderr);
         return false;
+
+    // Strip AppImage mount paths from LD_LIBRARY_PATH so WebKit subprocesses
+    // (WebKitWebProcess, WebKitGPUProcess) find system EGL/GL libraries instead
+    // of AppImage-bundled ones.  AppImage libEGL returns EGL_BAD_PARAMETER from
+    // eglGetDisplay(), aborting the GPU process and leaving WebKit unable to render.
+    // Done after our own dlopen() calls so we don't break our own library loading.
+    {
+        const char *t_lp = getenv("LD_LIBRARY_PATH");
+        if (t_lp && strstr(t_lp, "/tmp/.mount_"))
+        {
+            char t_filtered[4096];
+            t_filtered[0] = '\0';
+            char t_copy[4096];
+            snprintf(t_copy, sizeof(t_copy), "%s", t_lp);
+            char *t_save = nil;
+            char *t_tok  = strtok_r(t_copy, ":", &t_save);
+            bool t_first = true;
+            while (t_tok)
+            {
+                if (!strstr(t_tok, "/tmp/.mount_"))
+                {
+                    if (!t_first)
+                        strncat(t_filtered, ":", sizeof(t_filtered) - strlen(t_filtered) - 1);
+                    strncat(t_filtered, t_tok, sizeof(t_filtered) - strlen(t_filtered) - 1);
+                    t_first = false;
+                }
+                t_tok = strtok_r(nil, ":", &t_save);
+            }
+            if (t_first)
+                unsetenv("LD_LIBRARY_PATH");
+            else
+                setenv("LD_LIBRARY_PATH", t_filtered, 1);
+        }
+    }
+
+    // Install the writer on system GLib (via the wk handle) so GDK/GTK messages
+    // are suppressed too — they route through system libglib-2.0.so.0.
+    // On some configurations (static link against system GLib, or single shared
+    // GLib) the engine's g_log_set_writer_func and wk.g_log_set_writer_func
+    // resolve to the same symbol; calling it twice is fatal on GLib 2.82+.
+    // Guard by comparing function pointers: skip if it's the same instance.
+    {
+        static bool s_system_log_writer_installed = false;
+        if (!s_system_log_writer_installed && wk.g_log_set_writer_func &&
+            (void*)wk.g_log_set_writer_func != (void*)&g_log_set_writer_func)
+        {
+            wk.g_log_set_writer_func(hxt_log_writer, NULL, NULL);
+            s_system_log_writer_installed = true;
+        }
     }
 
     s_webkit_loaded = true;
-    fprintf(stderr, "HXT-LWK: all OK\n"); fflush(stderr);
     return true;
 }
 
@@ -688,6 +759,13 @@ public:
     // reliably for off-screen / popup-hosted WebKitWebView instances.
     static void SimulateClick(void *ctx, int x, int y);
 
+    // Snapshot fallback for WebKit 2.44+ (Fedora) where gtk_widget_draw() is a
+    // compositor no-op.  doPaint() calls RequestSnapshot (via hxt-snap-fn bridge)
+    // when it detects a blank surface.  on_snapshot_done() stores the resulting
+    // cairo_surface_t as "hxt-snapshot" and triggers Redraw() via hxt-repaint-fn.
+    static void RequestSnapshot(void *ctx);
+    static void on_snapshot_done(GObject *source, GAsyncResult *result, gpointer user_data);
+
 private:
     GtkWidget                *m_plug;
     WebKitWebView            *m_web_view;
@@ -696,6 +774,7 @@ private:
     char *m_js_handlers;
     bool  m_allow_new_windows;
     bool  m_enable_context_menu;
+    bool  m_snapshot_pending;
 
     gulong m_load_changed_id;
     gulong m_load_failed_id;
@@ -737,6 +816,7 @@ MCWebKitGTKBrowser::MCWebKitGTKBrowser()
       m_script_message_id(0),
       m_nav_message_id(0),
       m_show_option_menu_id(0),
+      m_snapshot_pending(false),
       m_js_finished(false),
       m_js_result(nil)
 {
@@ -770,6 +850,15 @@ MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
         if (m_context_menu_id)       wk.g_signal_handler_disconnect(m_web_view, m_context_menu_id);
         if (m_progress_id)           wk.g_signal_handler_disconnect(m_web_view, m_progress_id);
         if (m_show_option_menu_id)   wk.g_signal_handler_disconnect(m_web_view, m_show_option_menu_id);
+
+        // Free any cached snapshot surface.
+        cairo_surface_t *t_snap =
+            (cairo_surface_t*)g_object_get_data(G_OBJECT(m_web_view), "hxt-snapshot");
+        if (t_snap)
+        {
+            g_object_set_data(G_OBJECT(m_web_view), "hxt-snapshot", nil);
+            cairo_surface_destroy(t_snap);
+        }
     }
 
     // m_web_view is owned by m_child_window in native-layer-x11; no destroy here.
@@ -780,35 +869,18 @@ MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
 
 bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
 {
-    fprintf(stderr, "HXT-INIT: enter (display=%p parent=%p)\n",
-            p_display, p_parent_window); fflush(stderr);
-
     if (!wk.webkit_user_content_manager_new)
-    {
-        fprintf(stderr, "HXT-INIT: no webkit_user_content_manager_new\n"); fflush(stderr);
         return false;
-    }
 
     // --- UserContentManager for JS→engine callbacks ---
-    fprintf(stderr, "HXT-INIT: creating UserContentManager\n"); fflush(stderr);
     m_content_manager = wk.webkit_user_content_manager_new();
     if (m_content_manager == nil)
-    {
-        fprintf(stderr, "HXT-INIT: UserContentManager is nil\n"); fflush(stderr);
         return false;
-    }
-    fprintf(stderr, "HXT-INIT: UserContentManager OK\n"); fflush(stderr);
 
     if (wk.webkit_user_content_manager_register_script_message_handler)
     {
-        fprintf(stderr, "HXT-INIT: registering liveCode handler\n"); fflush(stderr);
         wk.webkit_user_content_manager_register_script_message_handler(m_content_manager, "liveCode");
-        fprintf(stderr, "HXT-INIT: registering hxtNav handler\n"); fflush(stderr);
         wk.webkit_user_content_manager_register_script_message_handler(m_content_manager, "hxtNav");
-    }
-    else
-    {
-        fprintf(stderr, "HXT-INIT: register_script_message_handler not available\n"); fflush(stderr);
     }
 
     // Inject the click-interceptor at document start so it runs before any
@@ -843,14 +915,9 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     }
 
     // --- WebKitWebView ---
-    fprintf(stderr, "HXT-INIT: creating WebKitWebView\n"); fflush(stderr);
     m_web_view = (WebKitWebView*)wk.webkit_web_view_new_with_user_content_manager(m_content_manager);
     if (m_web_view == nil)
-    {
-        fprintf(stderr, "HXT-INIT: WebKitWebView is nil\n"); fflush(stderr);
         return false;
-    }
-    fprintf(stderr, "HXT-INIT: WebKitWebView OK (%p)\n", (void*)m_web_view); fflush(stderr);
 
     {
         WebKitSettings *t_settings = wk.webkit_web_view_get_settings(m_web_view);
@@ -892,8 +959,17 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
         (gpointer)(void(*)(void*, int, int))&MCWebKitGTKBrowser::SimulateClick);
     g_object_set_data(G_OBJECT(m_web_view), "hxt-sim-ctx", (gpointer)this);
 
+    // Publish snapshot trampoline for the doPaint() blank-surface fallback
+    // (WebKit 2.44+, Fedora).  doPaint() looks these up when gtk_widget_draw()
+    // produces only the white background.
+    if (wk.webkit_web_view_get_snapshot && wk.webkit_web_view_get_snapshot_finish)
+    {
+        g_object_set_data(G_OBJECT(m_web_view), "hxt-snap-fn",
+            (gpointer)(void(*)(void*))&MCWebKitGTKBrowser::RequestSnapshot);
+        g_object_set_data(G_OBJECT(m_web_view), "hxt-snap-ctx", (gpointer)this);
+    }
+
     // --- Connect signals ---
-    fprintf(stderr, "HXT-INIT: connecting signals\n"); fflush(stderr);
     m_load_changed_id = wk.g_signal_connect_data(m_web_view, "load-changed",
         G_CALLBACK(on_load_changed), this, nil, (GConnectFlags)0);
     m_load_failed_id = wk.g_signal_connect_data(m_web_view, "load-failed",
@@ -924,7 +1000,6 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     m_show_option_menu_id = wk.g_signal_connect_data(m_web_view, "show-option-menu",
         G_CALLBACK(on_show_option_menu), this, nil, (GConnectFlags)0);
 
-    fprintf(stderr, "HXT-INIT: done OK\n"); fflush(stderr);
     return true;
 }
 
@@ -1189,6 +1264,23 @@ void MCWebKitGTKBrowser::SyncJavaScriptHandlers()
 
 ////////////////////////////////////////////////////////////////////////////////
 // Signal handlers
+
+// Runtime GObject type check: returns true if p is a live GObject whose GType
+// name contains "JSCValue".  This guards calls to jsc_value_is_string() etc.
+// against mismatched API versions where the signal may pass a different pointer
+// type (e.g. WebKitJavascriptResult* when is4_1 is incorrectly detected true).
+static bool IsJSCValue(void *p)
+{
+    if (!p)
+        return false;
+    GTypeInstance *inst = (GTypeInstance *)p;
+    if (!inst->g_class)
+        return false;
+    if (!wk.g_type_name)
+        return true; // can't verify; assume caller knows what it's doing
+    const gchar *tn = wk.g_type_name(inst->g_class->g_type);
+    return tn && strstr(tn, "JSCValue");
+}
 
 void MCWebKitGTKBrowser::on_load_changed(WebKitWebView *p_view, int p_event, gpointer p_data)
 {
@@ -1490,6 +1582,55 @@ static void hxt_option_menu_deactivate(GtkMenuShell * /*shell*/, gpointer /*data
 }
 
 // static
+// Called by native-layer-x11::doPaint() (via hxt-snap-fn bridge) when
+// gtk_widget_draw() produces a blank surface — happens on WebKit 2.44+ (Fedora)
+// where the compositor bypasses Cairo.
+void MCWebKitGTKBrowser::RequestSnapshot(void *ctx)
+{
+    MCWebKitGTKBrowser *b = static_cast<MCWebKitGTKBrowser*>(ctx);
+    if (!b || !b->m_web_view) return;
+    if (b->m_snapshot_pending) return;
+    if (!wk.webkit_web_view_get_snapshot) return;
+
+    b->m_snapshot_pending = true;
+    // WEBKIT_SNAPSHOT_REGION_VISIBLE=0, WEBKIT_SNAPSHOT_OPTIONS_NONE=0
+    wk.webkit_web_view_get_snapshot(b->m_web_view, 0, 0, nil,
+        (GAsyncReadyCallback)on_snapshot_done, b);
+}
+
+// static
+// Async completion for webkit_web_view_get_snapshot().
+// Stores the surface as "hxt-snapshot" on the web view, then calls
+// hxt-repaint-fn to schedule an engine Redraw() so doPaint() blits it.
+void MCWebKitGTKBrowser::on_snapshot_done(GObject *source, GAsyncResult *result,
+                                           gpointer user_data)
+{
+    MCWebKitGTKBrowser *b = static_cast<MCWebKitGTKBrowser*>(user_data);
+    if (!b || !b->m_web_view) return;
+    b->m_snapshot_pending = false;
+
+    GError *t_error = nil;
+    cairo_surface_t *t_surf =
+        wk.webkit_web_view_get_snapshot_finish((WebKitWebView*)source, result, &t_error);
+    if (t_error) { wk.g_error_free(t_error); return; }
+    if (!t_surf) return;
+
+    // Replace any previously cached snapshot.
+    cairo_surface_t *t_old =
+        (cairo_surface_t*)g_object_get_data(G_OBJECT(b->m_web_view), "hxt-snapshot");
+    if (t_old)
+        cairo_surface_destroy(t_old);
+    g_object_set_data(G_OBJECT(b->m_web_view), "hxt-snapshot", (gpointer)t_surf);
+
+    // Wake the engine paint loop via the bridge registered by doAttach().
+    typedef void (*RepaintFn)(void*);
+    RepaintFn fn    = (RepaintFn)g_object_get_data(G_OBJECT(b->m_web_view), "hxt-repaint-fn");
+    void     *fn_ctx =           g_object_get_data(G_OBJECT(b->m_web_view), "hxt-repaint-ctx");
+    if (fn && fn_ctx)
+        fn(fn_ctx);
+}
+
+// static
 // Signal: "show-option-menu" on the WebKitWebView.
 // Fired when WebKit wants to display a native <select> dropdown.
 // p_rect is the bounding rect of the <select> element in WebView widget coords.
@@ -1651,10 +1792,14 @@ void MCWebKitGTKBrowser::on_nav_message(WebKitUserContentManager * /*p_mgr*/,
 {
     MCWebKitGTKBrowser *t_browser = (MCWebKitGTKBrowser*)p_data;
 
+    // In webkit2gtk 4.1 the signal passes JSCValue* directly.
+    // In 4.0 it passes WebKitJavascriptResult*; unwrap to JSCValue*.
+    // Guard with IsJSCValue() in case API version detection is wrong on a
+    // given system — fall back to the 4.0 unwrap path rather than crashing.
     JSCValue *t_value = nil;
-    if (wk.is4_1)
+    if (wk.is4_1 && IsJSCValue(p_js_result))
         t_value = (JSCValue*)p_js_result;
-    else if (wk.webkit_javascript_result_get_js_value)
+    else if (wk.webkit_javascript_result_get_js_value && !IsJSCValue(p_js_result))
         t_value = wk.webkit_javascript_result_get_js_value((WebKitJavascriptResult*)p_js_result);
 
     if (t_value == nil || !wk.jsc_value_is_string || !wk.jsc_value_to_string)
@@ -1674,17 +1819,14 @@ void MCWebKitGTKBrowser::on_script_message(WebKitUserContentManager * /*p_mgr*/,
 {
     MCWebKitGTKBrowser *t_browser = (MCWebKitGTKBrowser*)p_data;
 
-    // In webkit2gtk 4.1 the signal passes a JSCValue* directly.
-    // In webkit2gtk 4.0 it passes a WebKitJavascriptResult*; unwrap to JSCValue*.
+    // In webkit2gtk 4.1 the signal passes JSCValue* directly.
+    // In 4.0 it passes WebKitJavascriptResult*; unwrap to JSCValue*.
+    // Guard with IsJSCValue() so a mis-detected API version doesn't crash.
     JSCValue *t_value = nil;
-    if (wk.is4_1)
-    {
+    if (IsJSCValue(p_js_result))
         t_value = (JSCValue*)p_js_result;
-    }
     else if (wk.webkit_javascript_result_get_js_value)
-    {
         t_value = wk.webkit_javascript_result_get_js_value((WebKitJavascriptResult*)p_js_result);
-    }
 
     if (t_value == nil || !wk.jsc_value_is_string || !wk.jsc_value_to_string)
         return;
@@ -1971,13 +2113,8 @@ public:
 
 bool MCWebKitGTKBrowserFactoryCreate(MCBrowserFactoryRef &r_factory)
 {
-    fprintf(stderr, "HXT-FACTORY: enter\n"); fflush(stderr);
     if (!LoadWebKit())
-    {
-        fprintf(stderr, "HXT-FACTORY: LoadWebKit FAILED\n"); fflush(stderr);
         return false;
-    }
-    fprintf(stderr, "HXT-FACTORY: LoadWebKit OK\n"); fflush(stderr);
 
     MCWebKitGTKBrowserFactory *t_factory = new (nothrow) MCWebKitGTKBrowserFactory();
     if (t_factory == nil)
