@@ -1837,6 +1837,7 @@ const LT factor_table[] =
         {"tool", TT_PROPERTY, P_TOOL},
         {"toolbar", TT_CHUNK, CT_TOOLBAR},
         {"toolbars", TT_CLASS, CT_TOOLBAR},
+        {"toolbarheight",  TT_PROPERTY, P_TOOLBAR_HEIGHT},
         {"toolbarvisible", TT_PROPERTY, P_TOOLBAR_VISIBLE},
         {"tooltip", TT_PROPERTY, P_TOOL_TIP},
         {"tooltipdelay", TT_PROPERTY, P_TOOL_TIP_DELAY},
