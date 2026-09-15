@@ -254,6 +254,20 @@ public:
     virtual ~MCBase64Encode(){}
 };
 
+class MCQuotedPrintableDecode : public MCUnaryFunctionCtxt<MCStringRef, MCDataRef, MCFiltersEvalQuotedPrintableDecode, EE_QUOTEDPRINTABLEDECODE_BADSOURCE, PE_QUOTEDPRINTABLEDECODE_BADPARAM>
+{
+public:
+    MCQuotedPrintableDecode() {}
+    virtual ~MCQuotedPrintableDecode(){}
+};
+
+class MCQuotedPrintableEncode : public MCUnaryFunctionCtxt<MCDataRef, MCStringRef, MCFiltersEvalQuotedPrintableEncode, EE_QUOTEDPRINTABLEENCODE_BADSOURCE, PE_QUOTEDPRINTABLEENCODE_BADPARAM>
+{
+public:
+    MCQuotedPrintableEncode(){}
+    virtual ~MCQuotedPrintableEncode(){}
+};
+
 class MCBaseConvert : public MCFunction
 {
 	MCExpression *source;

@@ -757,6 +757,10 @@ MCExpression *MCN_new_function(int2 which)
 		t_new_function = new MCQTVersion; break;
 	case F_QUERY_REGISTRY:
 		t_new_function = new MCQueryRegistry; break;
+	case F_QUOTED_PRINTABLE_DECODE:
+		t_new_function = new MCQuotedPrintableDecode; break;
+	case F_QUOTED_PRINTABLE_ENCODE:
+		t_new_function = new MCQuotedPrintableEncode; break;
 	case F_RANDOM:
 		t_new_function = new MCRandom; break;
 	case F_RECORD_COMPRESSION_TYPES:
