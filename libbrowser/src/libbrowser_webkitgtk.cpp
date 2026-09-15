@@ -49,6 +49,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "libbrowser_internal.h"
 
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <signal.h>
 #include <stdio.h>
@@ -215,6 +216,8 @@ static struct WKSymbols
     // suppress GDK/GTK warnings on that GLib instance separately from the
     // engine's statically-linked GLib.
     void          (*g_log_set_writer_func)(GLogWriterFunc, gpointer, GDestroyNotify);
+    guint         (*g_log_set_handler)(const gchar*, GLogLevelFlags, GLogFunc, gpointer);
+    void          (*g_log_default_handler)(const gchar*, GLogLevelFlags, const gchar*, gpointer);
     const gchar * (*g_type_name)(GType);
 
     // ---- GTK ----
@@ -278,20 +281,53 @@ static void *LoadBundled(const char *p_exedir, const char *p_name)
 }
 
 // Suppress known-benign GLib/GDK warnings that arise from our offscreen-window
-// architecture and from WebKit's web-process lifecycle:
+// architecture and from WebKit's web-process lifecycle.
 //
-//  "drawable is not a native X11 window" — GDK emits this when it internally
-//  calls gdk_x11_window_get_xid() on the GtkOffscreenWindow backing the browser.
-//  Offscreen windows have no real X11 drawable; the warning is harmless.
+// Two interception points are used because GLib routes messages differently
+// depending on API version and whether a custom writer is installed:
 //
-//  "waitid(...) failed: No child processes" — GLib's child-watch source fires
-//  after WebKit has already reaped its web-process via its own SIGCHLD handler.
-//  The double-reap attempt is benign; GLib just can't find the child any more.
+//  hxt_domain_log_handler — installed via g_log_set_handler() on the system
+//  GLib instance (loaded through WebKit's dependency chain).  GDK uses old-
+//  style g_warning()/g_critical() which go through g_logv() → domain handlers
+//  before ever reaching the writer function.  This is the primary filter for
+//  GDK messages on all GLib versions.
 //
-// GLib 2.50+ routes log messages through g_log_structured(), which bypasses
-// g_log_set_handler() entirely.  We must use g_log_set_writer_func() instead.
-// The writer is process-wide and called for every log message, so we forward
-// everything we don't recognise to g_log_writer_default().
+//  hxt_log_writer — installed via g_log_set_writer_func() and catches new-
+//  style structured log messages (g_log_structured / g_log_structured_array).
+//  Also acts as a secondary filter on configurations where the engine's GLib
+//  and the system GLib are the same instance.
+
+// Helper used by both handlers below.
+static bool hxt_is_suppressed_message(const char *msg)
+{
+    if (!msg) return false;
+    if (strstr(msg, "drawable is not a native X11 window"))      return true;
+    if (strstr(msg, "waitid(") && strstr(msg, "No child processes")) return true;
+    if (strstr(msg, "gdk_window_get_origin") &&
+        strstr(msg, "GDK_IS_WINDOW"))                            return true;
+    if (strstr(msg, "setting-changed") &&
+        strstr(msg, "GdkX11Screen"))                             return true;
+    if (strstr(msg, "Overriding existing handler for signal"))    return true;
+    return false;
+}
+
+// Old-style domain handler (g_log_set_handler): intercepts g_warning() /
+// g_critical() calls from GDK and GLib-GObject.  Uses g_log_default_handler
+// directly (not via wk) so it works regardless of which GLib instance this
+// handler is registered on.
+static void hxt_domain_log_handler(const gchar    *log_domain,
+                                    GLogLevelFlags  log_level,
+                                    const gchar    *message,
+                                    gpointer       /*user_data*/)
+{
+    if (hxt_is_suppressed_message(message))
+        return;
+    g_log_default_handler(log_domain, log_level, message, NULL);
+}
+
+// New-style writer (g_log_set_writer_func): intercepts g_log_structured()
+// messages and acts as a secondary filter for old-style messages on
+// configurations where g_logv() routes through the writer.
 static GLogWriterOutput hxt_log_writer(GLogLevelFlags log_level,
                                         const GLogField *fields,
                                         gsize n_fields,
@@ -302,23 +338,7 @@ static GLogWriterOutput hxt_log_writer(GLogLevelFlags log_level,
         if (fields[i].key && strcmp(fields[i].key, "MESSAGE") == 0 &&
             fields[i].value)
         {
-            const char *msg = static_cast<const char*>(fields[i].value);
-            if (strstr(msg, "drawable is not a native X11 window"))
-                return G_LOG_WRITER_HANDLED;
-            if (strstr(msg, "waitid(") && strstr(msg, "No child processes"))
-                return G_LOG_WRITER_HANDLED;
-            if (strstr(msg, "gdk_window_get_origin") &&
-                strstr(msg, "GDK_IS_WINDOW"))
-                return G_LOG_WRITER_HANDLED;
-            // GdkX11Screen emits this when WebKit's settings-changed signal
-            // fires on an offscreen GdkScreen that has already been torn down.
-            if (strstr(msg, "setting-changed") &&
-                strstr(msg, "GdkX11Screen"))
-                return G_LOG_WRITER_HANDLED;
-            // JSC GC installs a SIGUSR1 handler; if something else already owns
-            // that signal it logs this informational notice.  Suppress it — the
-            // GC still works via its fallback path.
-            if (strstr(msg, "Overriding existing handler for signal"))
+            if (hxt_is_suppressed_message(static_cast<const char*>(fields[i].value)))
                 return G_LOG_WRITER_HANDLED;
         }
     }
@@ -328,10 +348,146 @@ static GLogWriterOutput hxt_log_writer(GLogLevelFlags log_level,
 #define LOAD_SYM(lib, name) \
     wk.name = (__typeof__(wk.name))dlsym(lib, #name)
 
+// ─── stderr filter ─────────────────────────────────────────────────────────
+//
+// All GLib log paths — old-style g_warning/g_critical, new-style
+// g_log_structured, and even WebKit's dataLog — ultimately write to fd 2
+// (stderr).  We redirect fd 2 through a pipe and drain it on every engine
+// runloop tick from MCLinuxWebKitGTKRunloopAction (which already calls
+// wk.g_main_context_iteration to pump the system GLib).
+//
+// Critically, the drain is done with raw POSIX read() — no GLib IO watches.
+// A GLib IO watch on the engine's static GLib context would never fire because
+// only the SYSTEM GLib's context (via wk.g_main_context_iteration) is iterated
+// by our runloop action.  By draining the pipe directly in the runloop we avoid
+// any dependency on which GLib instance is which.
+//
+// Both pipe ends are O_NONBLOCK:
+//  • writes to fd 2 never block (messages are silently dropped only if the
+//    64 KB pipe buffer fills, which cannot happen at the rates we see), and
+//  • reads in the drain function never stall the engine tick.
+
+struct HXTStderrFilter
+{
+    int  read_fd;
+    int  orig_stderr_fd;
+    char line[8192];
+    int  line_len;
+    bool overflow;
+    bool last_suppressed; // true if the previous line was dropped; used to
+                          // swallow the blank line GLib emits after each warning
+};
+
+// Accessed from hxt_install_stderr_filter() and hxt_drain_stderr_pipe().
+static HXTStderrFilter *s_stderr_filter = nullptr;
+
+// Called from MCLinuxWebKitGTKRunloopAction on every engine tick.
+static void hxt_drain_stderr_pipe(void)
+{
+    HXTStderrFilter *f = s_stderr_filter;
+    if (!f)
+        return;
+
+    char buf[4096];
+    ssize_t n;
+    while ((n = read(f->read_fd, buf, sizeof(buf))) > 0)
+    {
+        for (ssize_t i = 0; i < n; i++)
+        {
+            char c = buf[i];
+            if (c == '\n')
+            {
+                f->line[f->line_len] = '\0';
+                // Suppress the matched messages, plus any bare blank lines.
+                // GLib surrounds its warnings with blank lines (before and
+                // after), so we suppress all empty lines from the pipe rather
+                // than trying to do lookahead/lookbehind.  No legitimate
+                // HyperXTalk stderr output is a bare newline.
+                bool suppress = (f->line_len == 0) ||
+                                (!f->overflow && hxt_is_suppressed_message(f->line));
+                if (!suppress)
+                {
+                    if (f->line_len)
+                        (void)write(f->orig_stderr_fd, f->line, f->line_len);
+                    (void)write(f->orig_stderr_fd, "\n", 1);
+                }
+                f->last_suppressed = suppress;
+                f->line_len = 0;
+                f->overflow = false;
+            }
+            else
+            {
+                if (f->line_len < (int)(sizeof(f->line) - 1))
+                    f->line[f->line_len++] = c;
+                else
+                    f->overflow = true;
+            }
+        }
+    }
+}
+
+static void hxt_install_stderr_filter(void)
+{
+    if (s_stderr_filter)
+        return; // already installed
+
+    int pipefd[2];
+    if (pipe(pipefd) != 0)
+        return;
+
+    // Non-blocking on both ends.
+    fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
+    fcntl(pipefd[1], F_SETFL, O_NONBLOCK);
+
+    // Preserve the real stderr fd; the drain function writes passing lines here.
+    int orig = dup(STDERR_FILENO);
+    if (orig < 0)
+    {
+        close(pipefd[0]);
+        close(pipefd[1]);
+        return;
+    }
+
+    // Redirect stderr → write end of pipe.
+    if (dup2(pipefd[1], STDERR_FILENO) < 0)
+    {
+        close(orig);
+        close(pipefd[0]);
+        close(pipefd[1]);
+        return;
+    }
+    close(pipefd[1]); // STDERR_FILENO is now the write end; close the dup.
+
+    HXTStderrFilter *filter = new HXTStderrFilter{};
+    filter->read_fd         = pipefd[0];
+    filter->orig_stderr_fd  = orig;
+    filter->line_len        = 0;
+    filter->overflow        = false;
+
+    // Publish atomically (single pointer assignment is safe on all our targets).
+    s_stderr_filter = filter;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+// Library constructor: install the stderr pipe filter at the very moment
+// libbrowser.so is loaded (via dlopen), BEFORE any GTK/GDK code has run.
+// The engine's native-layer-x11 code generates GDK warnings from GTK socket
+// operations independently of WebKit, so we must be in place before that.
+__attribute__((constructor))
+static void hxt_library_init(void)
+{
+    hxt_install_stderr_filter();
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 static bool LoadWebKit(void)
 {
     if (s_webkit_loaded)
         return true;
+
+    // The stderr filter is already installed by hxt_library_init() above.
+    // Call again here as a no-op guard in case the constructor didn't fire
+    // (e.g. static linking scenarios).
+    hxt_install_stderr_filter();
 
     // Install the log writer on the engine's statically-linked GLib before any
     // WebKit initialisation so that warnings during startup are filtered.
@@ -344,6 +500,26 @@ static bool LoadWebKit(void)
         {
             g_log_set_writer_func(hxt_log_writer, NULL, NULL);
             s_log_writer_installed = true;
+        }
+    }
+
+    // Install old-style domain handlers on whatever GLib instance the direct
+    // symbol resolves to (may be the engine's statically-linked copy or the
+    // system shared library depending on the build).  This is a best-effort
+    // early installation; the definitive installation via the system
+    // libglib-2.0.so.0 handle happens later, after WebKit is loaded.
+    {
+        static bool s_domain_handlers_direct = false;
+        if (!s_domain_handlers_direct)
+        {
+            GLogLevelFlags t_levels = (GLogLevelFlags)(
+                G_LOG_LEVEL_WARNING | G_LOG_LEVEL_CRITICAL |
+                G_LOG_FLAG_RECURSION | G_LOG_FLAG_FATAL);
+            g_log_set_handler("Gdk",          t_levels, hxt_domain_log_handler, NULL);
+            g_log_set_handler("GLib-GObject", t_levels, hxt_domain_log_handler, NULL);
+            g_log_set_handler("GLib",         t_levels, hxt_domain_log_handler, NULL);
+            g_log_set_handler(NULL,           t_levels, hxt_domain_log_handler, NULL);
+            s_domain_handlers_direct = true;
         }
     }
 
@@ -599,6 +775,8 @@ static bool LoadWebKit(void)
     LOAD_SYM(t_wk, g_main_context_iteration);
     LOAD_SYM(t_wk, g_main_context_pending);
     LOAD_SYM(t_wk, g_log_set_writer_func);
+    LOAD_SYM(t_wk, g_log_set_handler);
+    LOAD_SYM(t_wk, g_log_default_handler);
     LOAD_SYM(t_wk, g_type_name);
 
     // GTK — resolve from the already-loaded libgtk-3
@@ -675,19 +853,72 @@ static bool LoadWebKit(void)
         }
     }
 
-    // Install the writer on system GLib (via the wk handle) so GDK/GTK messages
-    // are suppressed too — they route through system libglib-2.0.so.0.
-    // On some configurations (static link against system GLib, or single shared
-    // GLib) the engine's g_log_set_writer_func and wk.g_log_set_writer_func
-    // resolve to the same symbol; calling it twice is fatal on GLib 2.82+.
-    // Guard by comparing function pointers: skip if it's the same instance.
+    // Install handlers on the system libglib-2.0.so.0 instance.
+    //
+    // The engine statically links its own GLib, so direct g_log_set_handler()
+    // calls only reach the engine's private GLib state.  GDK (a shared library)
+    // depends on and routes through system libglib-2.0.so.0 — a completely
+    // separate instance with its own log-handler registry.  dlsym() via the
+    // WebKit handle may also resolve to the engine's copy if the engine's static
+    // symbols are visible in the global namespace.
+    //
+    // The only reliable way to install into the correct instance is to open
+    // libglib-2.0.so.0 by name with RTLD_NOLOAD (it must already be loaded as a
+    // transitive dependency of libgdk-3 or libwebkit2gtk) and dlsym from that
+    // exact handle.
     {
-        static bool s_system_log_writer_installed = false;
-        if (!s_system_log_writer_installed && wk.g_log_set_writer_func &&
-            (void*)wk.g_log_set_writer_func != (void*)&g_log_set_writer_func)
+        static bool s_syslib_handlers_installed = false;
+        if (!s_syslib_handlers_installed)
         {
-            wk.g_log_set_writer_func(hxt_log_writer, NULL, NULL);
-            s_system_log_writer_installed = true;
+            void *t_glib = dlopen("libglib-2.0.so.0",
+                                  RTLD_NOLOAD | RTLD_LAZY | RTLD_GLOBAL);
+            if (t_glib)
+            {
+                typedef guint (*g_log_set_handler_t)(const gchar *,
+                                                     GLogLevelFlags,
+                                                     GLogFunc,
+                                                     gpointer);
+                typedef void  (*g_log_set_writer_func_t)(GLogWriterFunc,
+                                                         gpointer,
+                                                         GDestroyNotify);
+
+                auto t_set_handler =
+                    (g_log_set_handler_t)dlsym(t_glib, "g_log_set_handler");
+                auto t_set_writer   =
+                    (g_log_set_writer_func_t)dlsym(t_glib, "g_log_set_writer_func");
+
+                if (t_set_handler)
+                {
+                    GLogLevelFlags t_levels = (GLogLevelFlags)(
+                        G_LOG_LEVEL_WARNING  | G_LOG_LEVEL_CRITICAL |
+                        G_LOG_FLAG_RECURSION | G_LOG_FLAG_FATAL);
+                    // Named domains for the specific messages we want to drop.
+                    t_set_handler("Gdk",          t_levels, hxt_domain_log_handler, NULL);
+                    t_set_handler("GLib-GObject", t_levels, hxt_domain_log_handler, NULL);
+                    t_set_handler("GLib",         t_levels, hxt_domain_log_handler, NULL);
+                    // Catch-all: NULL domain fires for any domain that has no
+                    // dedicated handler registered, so this covers any other
+                    // noisy domain we haven't named explicitly.
+                    t_set_handler(NULL,            t_levels, hxt_domain_log_handler, NULL);
+                }
+
+                // Also install the structured-log writer if it is a different
+                // function pointer than the engine's copy (GLib 2.82+ aborts on
+                // double installation of the same instance's writer).
+                if (t_set_writer &&
+                    (void*)t_set_writer != (void*)&g_log_set_writer_func)
+                {
+                    static bool s_syslib_writer_installed = false;
+                    if (!s_syslib_writer_installed)
+                    {
+                        t_set_writer(hxt_log_writer, NULL, NULL);
+                        s_syslib_writer_installed = true;
+                    }
+                }
+
+                dlclose(t_glib);
+            }
+            s_syslib_handlers_installed = true;
         }
     }
 
@@ -2053,10 +2284,17 @@ bool MCWebKitGTKBrowser::SetIntegerProperty(MCBrowserProperty /*p_property*/, in
 
 static void MCLinuxWebKitGTKRunloopAction(void * /*p_context*/)
 {
+    // Always drain the pipe — even if WebKit symbols aren't ready yet.
+    // hxt_drain_stderr_pipe() is a no-op when s_stderr_filter is NULL.
+    hxt_drain_stderr_pipe();
+
     if (!s_webkit_loaded || !wk.g_main_context_pending || !wk.g_main_context_iteration)
         return;
     while (wk.g_main_context_pending(nil))
         wk.g_main_context_iteration(nil, FALSE);
+    // Drain again after the GLib iteration: any messages written to fd 2
+    // during the iteration are now in the pipe buffer.
+    hxt_drain_stderr_pipe();
 }
 
 static bool    s_runloop_added = false;
