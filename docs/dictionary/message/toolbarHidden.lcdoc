@@ -1,0 +1,57 @@
+Name: toolbarHidden
+
+Type: message
+
+Syntax: toolbarHidden
+
+Summary:
+Sent to the current card when a toolbar becomes hidden.
+
+Associations: card
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+on toolbarHidden
+  set the height of card field "content" to the height of this card
+end toolbarHidden
+
+Example:
+-- Stack script: keep layout in sync with toolbar visibility
+on toolbarShown
+  updateLayout
+end toolbarShown
+
+on toolbarHidden
+  updateLayout
+end toolbarHidden
+
+on updateLayout
+  local tUsable
+  put the height of this card - the toolbarHeight into tUsable
+  set the height of card field "main" to tUsable
+end updateLayout
+
+Description:
+The <toolbarHidden> message is sent to the current card whenever the
+stack's toolbar becomes hidden — either because a script sets the
+<toolbarVisible> property to false, or because the stack is opened with
+the toolbar already hidden.
+
+On Mac the toolbar lives above the card area, so the card's usable height
+is unaffected. On Windows and Linux the toolbar occupies space inside the
+card area, so handlers should adjust the layout of controls accordingly.
+The <toolbarHeight> function returns the current height of the toolbar and
+returns 0 when it is hidden.
+
+The message is sent before any visual update, so changes made in the
+handler take effect in the same refresh cycle.
+
+References: toolbarShown (message), toolbarVisible (property),
+toolbarHeight (function), toolbar (object)
+
+Tags: ui

@@ -119,6 +119,11 @@ public:
     virtual void SetVisible(bool p_visible) = 0;
     virtual bool GetVisible() = 0;
 
+    // Returns the current height of the toolbar in pixels, or 0 if the toolbar
+    // has not yet been created.  Implementations must return the actual native
+    // height so that callers are not sensitive to platform or DPI differences.
+    virtual int32_t GetHeight() = 0;
+
     // Called by the platform backend when an item is clicked — routes to MCToolbar
     // via itemClicked() below.
 };
@@ -223,6 +228,8 @@ public:
     void GetToolbarVisible(MCExecContext& ctxt, bool& r_visible);
     void SetToolbarVisible(MCExecContext& ctxt, bool p_visible);
 
+    void GetToolbarHeight(MCExecContext& ctxt, integer_t& r_height);
+
     void GetItemNames(MCExecContext& ctxt, MCStringRef& r_names);
     // Setting itemNames reorders/prunes the item list:
     // items not in the new list are removed; order is updated to match.
@@ -278,6 +285,10 @@ public:
     // platform toolbar should appear.  If the stack has an in-window menu bar
     // group this is the group's bottom edge; otherwise it is 0.
     int32_t getToolbarTopY();
+
+    // Returns the height of the toolbar in pixels as reported by the platform
+    // backend, or 0 if no backend is active (toolbar not open).
+    int32_t getToolbarHeight();
 
 private:
     void _destroyItems();
