@@ -492,20 +492,6 @@ private command __UpdateMessageFont
 end __UpdateMessageFont
 
 
-private function isColorDark pColor
-   -- pColor: any LC color string "R,G,B" (0-255)
-   -- Returns true if the colour reads as dark
-   put item 1 of pColor into tRed
-   put item 2 of pColor into tGreen
-   put item 3 of pColor into tBlue
-   
-   -- ITU-R BT.709 perceived luminance, normalised 0–1
-   put (0.2126 * tRed + 0.7152 * tGreen + 0.0722 * tBlue) / 255 into tLuminance
-   
-   return (tLuminance < 0.5)
-end isColorDark
-
-
 private command __UpdateMessageColors
    local tBgColor, tFgColor, tCardBgColor
    // HXT dark mode: the script editor's backgroundcolor preference is a
@@ -573,9 +559,16 @@ end __UpdateMessageColors
 on SystemAppearanceChanged pMode, pWindowColor, pTextColor
    local tBgColor
    put revIDEColor("palette_background") into tBgColor
-   set the backgroundColor of me to EMPTY
-   set the backgroundColor of this card to EMPTY
-   set the foregroundColor of me to EMPTY
+   if (the platform = "macOS") then
+      set the backgroundColor of me to pWindowColor
+      set the backgroundColor of this card to pWindowColor
+      set the foregroundColor of me to pTextColor
+   else
+      set the backgroundColor of me to EMPTY
+      set the backgroundColor of this card to EMPTY
+      set the foregroundColor of me to EMPTY
+   end if
+   
    __UpdateMessageColors
 end SystemAppearanceChanged
 
