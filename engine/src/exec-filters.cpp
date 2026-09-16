@@ -267,6 +267,20 @@ void MCFiltersEvalBase64Encode(MCExecContext& ctxt, MCDataRef p_source, MCString
 
 //////////
 
+void MCFiltersEvalQuotedPrintableDecode(MCExecContext& ctxt, MCStringRef p_source, MCDataRef& r_result)
+{
+	if (!MCFiltersQuotedPrintableDecode(p_source, r_result))
+		ctxt.Throw();
+}
+
+void MCFiltersEvalQuotedPrintableEncode(MCExecContext& ctxt, MCDataRef p_source, MCStringRef& r_result)
+{
+	if (!MCFiltersQuotedPrintableEncode(p_source, r_result))
+		ctxt.Throw();
+}
+
+//////////
+
 void MCFiltersEvalIsoToMac(MCExecContext& ctxt, MCDataRef p_source, MCDataRef& r_result)
 {
 	if (!MCFiltersIsoToMac(p_source, r_result))
