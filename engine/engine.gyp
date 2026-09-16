@@ -4,7 +4,7 @@
 		'../common.gypi',
 		'engine-sources.gypi',
 	],
-	
+
 	'target_defaults':
 	{
 		'conditions':
@@ -18,7 +18,7 @@
 			],
 		],
 	},
-	
+
 	'targets':
 	[
 		{
@@ -63,11 +63,11 @@
 			],
 		},
 
-		
+
 		{
 			'target_name': 'descriptify_environment_stack',
 			'type': 'none',
-			
+
 			'sources':
 			[
 				'src/environment.livecode',
@@ -86,51 +86,51 @@
 				'src/environment/unlicensedbkgndbehavior.livecodescript',
 				'src/environment/unlicensedbuynowbuttonbehavior.livecodescript',
 			],
-			
+
 			'dependencies':
 			[
 				# Requires a working HyperXTalk engine
 				'host-server',
 			],
-			
+
 			'actions':
 			[
 				{
 					'action_name': 'descriptify_environment_stack',
 					'message': 'De-scriptifying the environment stack',
-					
+
 					'inputs':
 					[
 						'../util/descriptify_stack.livecodescript',
 						'<@(_sources)',
 					],
-					
+
 					'outputs':
 					[
 						'<(SHARED_INTERMEDIATE_DIR)/src/environment_descriptified.livecode',
 					],
-					
+
 					'action':
 					[
 						'>(engine)',
 						'../util/descriptify_stack.livecodescript',
 						'<(SHARED_INTERMEDIATE_DIR)/src/environment_descriptified.livecode',
 						'<@(_sources)',
-						
+
 					],
 				},
 			],
 		},
-		
+
 		{
 			'target_name': 'encode_environment_stack',
 			'type': 'none',
-			
+
 			'dependencies':
 			[
 				'descriptify_environment_stack',
 			],
-			
+
 			'actions':
 			[
 				{
@@ -144,7 +144,7 @@
 					[
 						'<(SHARED_INTERMEDIATE_DIR)/src/startupstack.cpp',
 					],
-					
+
 					'action':
 					[
 						'<@(perl)',
@@ -157,12 +157,12 @@
 				},
 			],
 		},
-				
+
 		{
 			'target_name': 'server',
 			'type': 'executable',
 			'product_name': 'server-community',
-			
+
 			'toolsets': ['host', 'target'],
 
 			'dependencies':
@@ -252,12 +252,12 @@
 			[
 				'app-bundle-template.gypi',
 			],
-			
+
 			'variables':
 			{
 				'app_plist': 'rsrc/Standalone-Info.plist',
 			},
-			
+
 			'dependencies':
 			[
 				'kernel-standalone.gyp:kernel-standalone',
@@ -308,10 +308,10 @@
 						'product_prefix': '',
 						'product_extension': 'lcext',
 						'app_plist': 'rsrc/standalone-mobile-Info.plist',
-						
+
 						# Forces all dependencies to be linked properly
 						'type': 'shared_library',
-                        
+
 						'conditions':
 						[
 							[
@@ -330,7 +330,7 @@
 								}
 							],
 						],
-						
+
 						'xcode_settings':
 						{
 							'DEAD_CODE_STRIPPING': 'NO',
@@ -369,7 +369,7 @@
 						'ldflags':
 						[
 							'-Wl,-T,$(abs_srcdir)/engine/linux.link',
-							'-Wl,--disable-new-dtags,-rpath,\$$ORIGIN/lib',
+							'-Wl,--disable-new-dtags,-rpath,\\$$ORIGIN/lib',
 						],
 					},
 				],
@@ -382,12 +382,12 @@
 						'product_extension': '',
 						'product_dir': '<(PRODUCT_DIR)',	# Shared libraries are not placed in PRODUCT_DIR by default
 						'type': 'loadable_module',		# Shared library imples --whole-archive
-						
+
 						'sources':
 						[
 							'engine/standalone-android.link',
 						],
-						
+
 						'ldflags':
 						[
 							# Helpful for catching build problems
@@ -400,7 +400,7 @@
 							{
 								'action_name': 'copy_manifest',
 								'message': 'Copying and update debuggable in manifest file',
-								
+
 								'inputs':
 								[
 									'rsrc/android-manifest.xml',
@@ -410,7 +410,7 @@
 								[
 									'<(PRODUCT_DIR)/Manifest.xml',
 								],
-								
+
 								'action':
 								[
 									'../util/set_android_debuggable.sh',
@@ -421,17 +421,17 @@
 							{
 								'action_name': 'copy_inputcontrol',
 								'message': 'Copying input control file',
-								
+
 								'inputs':
 								[
 									'rsrc/android-inputcontrol.xml',
 								],
-								
+
 								'outputs':
 								[
 									'<(PRODUCT_DIR)/livecode_inputcontrol.xml',
 								],
-								
+
 								'action':
 								[
 									'cp', '<@(_inputs)', '<@(_outputs)',
@@ -440,17 +440,17 @@
 							{
 								'action_name': 'copy_notify_icon',
 								'message': 'Copying notification icon',
-								
+
 								'inputs':
 								[
 									'rsrc/android-notify-icon.png'
 								],
-								
+
 								'outputs':
 								[
 									'<(PRODUCT_DIR)/notify_icon.png',
 								],
-								
+
 								'action':
 								[
 									'cp', '<@(_inputs)', '<@(_outputs)',
@@ -459,17 +459,17 @@
 							{
 								'action_name': 'copy_nfc_tech_filter',
 								'message': 'Copying NFC tech filter file',
-								
+
 								'inputs':
 								[
 									'rsrc/android-nfc_tech_filter.xml',
 								],
-								
+
 								'outputs':
 								[
 									'<(PRODUCT_DIR)/nfc_tech_filter.xml',
 								],
-								
+
 								'action':
 								[
 									'cp', '<@(_inputs)', '<@(_outputs)',
@@ -478,24 +478,24 @@
                             {
                                 'action_name': 'copy_file_provider_paths',
                                 'message': 'Copying file provider paths file',
-                                
+
                                 'inputs':
                                 [
                                 'rsrc/android-file_provider_paths.xml',
                                 ],
-                                
+
                                 'outputs':
                                 [
                                 '<(PRODUCT_DIR)/file_provider_paths.xml',
                                 ],
-                                
+
                                 'action':
                                 [
                                 'cp', '<@(_inputs)', '<@(_outputs)',
                                 ],
                             },
 						],
-						
+
 						'all_dependent_settings':
 						{
 							'variables':
@@ -579,7 +579,7 @@
 					},
 				],
 			],
-			
+
 			'all_dependent_settings':
 			{
 				'variables':
@@ -614,28 +614,28 @@
 				},
 			},
 		},
-		
+
 		{
 			'target_name': 'installer',
 			'product_name': 'installer',
-			
+
 			'includes':
 			[
 				'app-bundle-template.gypi',
 			],
-			
+
 			'variables':
 			{
 				'app_plist': 'rsrc/Installer-Info.plist',
 			},
-			
+
 			'dependencies':
 			[
 				'kernel-installer.gyp:kernel-installer',
 				'engine-common.gyp:security-community',
 				'lcb-modules.gyp:engine_lcb_modules',
 			],
-			
+
 			'sources':
 			[
 				'src/dummy.cpp',
@@ -686,7 +686,7 @@
 					},
 				],
 			],
-			
+
 			'msvs_settings':
 			{
 				'VCManifestTool':
@@ -694,7 +694,7 @@
 					'AdditionalManifestFiles': '$(ProjectDir)..\\..\\..\\engine\\src\\installer.manifest',
 				},
 			},
-			
+
 			'all_dependent_settings':
 			{
 				'variables':
@@ -712,12 +712,12 @@
 			[
 				'app-bundle-template.gypi',
 			],
-			
+
 			'variables':
 			{
 				'app_plist': 'rsrc/HyperXTalk-Info.plist',
 			},
-			
+
 			'dependencies':
             [
                 '../thirdparty/libopenssl/libopenssl.gyp:revsecurity_built',
@@ -733,7 +733,7 @@
 				# GYP's direct_dependent_settings do not propagate that far.
 				'engine-common.gyp:encode_version',
 			],
-			
+
 			'sources':
 			[
 				'<(SHARED_INTERMEDIATE_DIR)/src/startupstack.cpp',
@@ -764,7 +764,7 @@
 							'rsrc/HyperXTalk.icns',
 							'rsrc/HyperXTalkDoc.icns',
                         ],
-                        
+
                         'copies':
                         [
                             {
@@ -786,7 +786,7 @@
 					},
 				],
 			],
-			
+
 			'msvs_settings':
 			{
 				'VCManifestTool':
@@ -794,7 +794,7 @@
 					'AdditionalManifestFiles': '$(ProjectDir)..\\..\\..\\engine\\src\\engine.manifest',
 				},
 			},
-			
+
 			# Visual Studio debugging settings
 			'run_as':
 			{
@@ -804,7 +804,7 @@
 					'REV_TOOLS_PATH' : '$(ProjectDir)..\\..\\..\\ide',
 				},
 			},
-			
+
 			'all_dependent_settings':
 			{
 				'variables':
@@ -813,11 +813,11 @@
 				},
 			},
 		},
-		
+
 		{
 			'target_name': 'ios-standalone-executable',
 			'type': 'none',
-			
+
 			'dependencies':
 			[
 				'standalone',
@@ -846,17 +846,17 @@
 							{
 								'action_name': 'bind-output',
 								'message': 'Bind output',
-								
+
 								'inputs':
 								[
 									'<(PRODUCT_DIR)/standalone-mobile-lib-community.lcext',
 								],
-								
+
 								'outputs':
 								[
 									'<(PRODUCT_DIR)/standalone-mobile-community.ios-engine',
 								],
-								
+
 								'action':
 								[
 									'./bind-ios-standalone.sh',
@@ -870,7 +870,7 @@
 			],
 		},
 	],
-	
+
 	'conditions':
 	[
 		[
@@ -881,7 +881,7 @@
 					{
 						'target_name': 'create_linux_stubs',
 						'type': 'none',
-												
+
 						'actions':
 						[
 							{
@@ -895,7 +895,7 @@
 								[
 									'<(SHARED_INTERMEDIATE_DIR)/src/linux.stubs.cpp',
 								],
-								
+
 								'action':
 								[
 									'<@(python)',
