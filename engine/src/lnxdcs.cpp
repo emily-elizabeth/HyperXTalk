@@ -2812,7 +2812,7 @@ static const char *const kMCGtkFgColorNames[] = {
 
 static void s_rgba_to_rgb_string(const GdkRGBA &p_c, char *p_buf, size_t p_size)
 {
-    snprintf(p_buf, p_size, "%u,%u,%u",
+    snprintf(p_buf, p_size, "#%02x%02x%02x",
              s_clamp_to_byte(p_c.red),
              s_clamp_to_byte(p_c.green),
              s_clamp_to_byte(p_c.blue));
