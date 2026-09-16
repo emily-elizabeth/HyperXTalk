@@ -2776,58 +2776,107 @@ Bool MCScreenDC::is_composite_wm ( int screen_id )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// -- tperry 15-11-2025: GTK3 theme color and appearance detection for Linux
 
-// Linux implementation of system appearance detection.
-// MCPlatformGetSystemProperty is macOS-only; on Linux we detect dark mode
-// via the GTK theme name — if it contains "dark" (case-insensitive) we
-// report a dark appearance, otherwise light.
+static unsigned s_clamp_to_byte(double v)
+{
+    if (v <= 0.0) return 0;
+    unsigned u = (unsigned)(v * 255.0 + 0.5);
+    return u > 255 ? 255 : u;
+}
+
+static bool s_gtk_lookup_color(const char *p_name, GdkRGBA &r_rgba)
+{
+    GtkWidget *t_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_widget_realize(t_win);
+    GtkStyleContext *t_ctx = gtk_widget_get_style_context(t_win);
+    gboolean t_found = gtk_style_context_lookup_color(t_ctx, p_name, &r_rgba);
+    gtk_widget_destroy(t_win);
+    return t_found != FALSE;
+}
+
+static bool s_gtk_lookup_first(const char *const *p_names, GdkRGBA &r_rgba)
+{
+    for (; *p_names != NULL; p_names++)
+        if (s_gtk_lookup_color(*p_names, r_rgba))
+            return true;
+    return false;
+}
+
+static const char *const kMCGtkBgColorNames[] = {
+    "theme_bg_color", "window_bg_color", NULL
+};
+static const char *const kMCGtkFgColorNames[] = {
+    "theme_fg_color", "window_fg_color", NULL
+};
+
+static void s_rgba_to_rgb_string(const GdkRGBA &p_c, char *p_buf, size_t p_size)
+{
+    snprintf(p_buf, p_size, "%u,%u,%u",
+             s_clamp_to_byte(p_c.red),
+             s_clamp_to_byte(p_c.green),
+             s_clamp_to_byte(p_c.blue));
+}
+
 void MCScreenDC::getsystemappearance(MCSystemAppearance &r_appearance)
 {
-	r_appearance = kMCSystemAppearanceLight;
-
-	GtkSettings *t_settings = gtk_settings_get_default();
-	if (t_settings == NULL)
-		return;
-
-	// On modern GNOME (GTK 3.24.31+), dark mode is signalled via
-	// gtk-application-prefer-dark-theme rather than the theme name.
-	gboolean t_prefer_dark = FALSE;
-	g_object_get(t_settings, "gtk-application-prefer-dark-theme", &t_prefer_dark, NULL);
-	if (t_prefer_dark)
-	{
-		r_appearance = kMCSystemAppearanceDark;
-		return;
-	}
-
-	// Fall back to checking the theme name for "dark" — used by older distros
-	// that ship separate dark-theme packages (e.g. Yaru-dark, Adwaita-dark).
-	gchar *t_theme_name = NULL;
-	g_object_get(t_settings, "gtk-theme-name", &t_theme_name, NULL);
-	if (t_theme_name != NULL)
-	{
-		gchar *t_lower = g_ascii_strdown(t_theme_name, -1);
-		if (t_lower != NULL)
-		{
-			if (g_strstr_len(t_lower, -1, "dark") != NULL)
-				r_appearance = kMCSystemAppearanceDark;
-			g_free(t_lower);
-		}
-		g_free(t_theme_name);
-	}
+    // Check gtk-application-prefer-dark-theme first (GNOME 3.24.31+)
+    GtkSettings *t_settings = gtk_settings_get_default();
+    if (t_settings != NULL)
+    {
+        gboolean t_prefer_dark = FALSE;
+        g_object_get(t_settings, "gtk-application-prefer-dark-theme", &t_prefer_dark, NULL);
+        if (t_prefer_dark)
+        {
+            r_appearance = kMCSystemAppearanceDark;
+            return;
+        }
+    }
+    // Fall back to luminance of the GTK background color (works for MATE and others)
+    GdkRGBA t_bg = {1.0, 1.0, 1.0, 1.0};
+    s_gtk_lookup_first(kMCGtkBgColorNames, t_bg);
+    double t_lum = 0.2126 * t_bg.red + 0.7152 * t_bg.green + 0.0722 * t_bg.blue;
+    if (t_lum < 0.35)
+        r_appearance = kMCSystemAppearanceDark;
+    else if (t_lum > 0.65)
+        r_appearance = kMCSystemAppearanceLight;
+    else
+        r_appearance = kMCSystemAppearanceCustom;
 }
 
 void MCScreenDC::getsystemwindowcolor(MCStringRef &r_color)
 {
-	char t_buf[8] = "#ffffff";
-	MCplatformGetWindowBackgroundColor(t_buf, sizeof(t_buf));
-	/* UNCHECKED */ MCStringCreateWithCString(t_buf, r_color);
+    GdkRGBA t_bg = {1.0, 1.0, 1.0, 1.0};
+    s_gtk_lookup_first(kMCGtkBgColorNames, t_bg);
+    char t_buf[16];
+    s_rgba_to_rgb_string(t_bg, t_buf, sizeof(t_buf));
+    if (!MCStringCreateWithCString(t_buf, r_color))
+        r_color = MCValueRetain(kMCEmptyString);
 }
 
 void MCScreenDC::getsystemtextcolor(MCStringRef &r_color)
 {
-	char t_buf[8] = "#000000";
-	MCplatformGetLabelColor(t_buf, sizeof(t_buf));
-	/* UNCHECKED */ MCStringCreateWithCString(t_buf, r_color);
+    GdkRGBA t_fg = {0.0, 0.0, 0.0, 1.0};
+    s_gtk_lookup_first(kMCGtkFgColorNames, t_fg);
+    char t_buf[16];
+    s_rgba_to_rgb_string(t_fg, t_buf, sizeof(t_buf));
+    if (!MCStringCreateWithCString(t_buf, r_color))
+        r_color = MCValueRetain(kMCEmptyString);
+}
+
+void MCScreenDC::getsystemthemename(MCStringRef &r_theme)
+{
+    gchar *t_name = NULL;
+    GtkSettings *t_settings = gtk_settings_get_default();
+    if (t_settings != NULL)
+        g_object_get(t_settings, "gtk-theme-name", &t_name, NULL);
+    bool t_ok = false;
+    if (t_name != NULL && t_name[0] != '\0')
+        t_ok = MCStringCreateWithCString(t_name, r_theme);
+    if (t_name != NULL)
+        g_free(t_name);
+    if (!t_ok)
+        r_theme = MCValueRetain(kMCEmptyString);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
