@@ -301,13 +301,13 @@ static void *LoadBundled(const char *p_exedir, const char *p_name)
 static bool hxt_is_suppressed_message(const char *msg)
 {
     if (!msg) return false;
-    if (strstr(msg, "drawable is not a native X11 window"))      return true;
-    if (strstr(msg, "waitid(") && strstr(msg, "No child processes")) return true;
-    if (strstr(msg, "gdk_window_get_origin") &&
-        strstr(msg, "GDK_IS_WINDOW"))                            return true;
-    if (strstr(msg, "setting-changed") &&
-        strstr(msg, "GdkX11Screen"))                             return true;
-    if (strstr(msg, "Overriding existing handler for signal"))    return true;
+    if (nullptr != strstr(msg, "drawable is not a native X11 window"))      return true;
+    if (nullptr != strstr(msg, "waitid(") && nullptr != strstr(msg, "No child processes")) return true;
+    if (nullptr != strstr(msg, "gdk_window_get_origin") &&
+        nullptr != strstr(msg, "GDK_IS_WINDOW"))                            return true;
+    if (nullptr != strstr(msg, "setting-changed") &&
+        nullptr != strstr(msg, "GdkX11Screen"))                             return true;
+    if (nullptr != strstr(msg, "Overriding existing handler for signal"))    return true;
     return false;
 }
 
