@@ -135,6 +135,9 @@ local sVScroll
 # Note: up arrow key sends 2 scrollBarDrag messages. Used as flag
 # to process only 1 of the messages.
 local sSkipUpArrow = false
+local sDeferredSuspendObject  -- holds the object whose breakpoints need suspending
+local sInRawReplace  -- true while _internal script replace is running; guards selectionChanged re-entry
+local sColorizeTimer  -- pending message ID for deferred colorization
 
 # OK-2009-01-17 : Bug 7169
 command setDirty pObject, pValue
@@ -312,18 +315,23 @@ command getLastSelectedWord
    local tWordDivider
    put merge("^[\[[quote]]|\[|\]\(|\)|\s]$") into tWordDivider
    
+   -- Read the script text once; both loops reuse the local to avoid
+   -- O(n) field reads when scanning a large script for a word boundary.
+   local tScript
+   put the text of getScriptField() into tScript
+
    local tBefore
    repeat with x = tTo down to 1
-      get char x of the text of getScriptField()
+      get char x of tScript
       if matchText(it, tWordDivider) then
          exit repeat
       end if
       put it before tBefore
    end repeat
-   
+
    local tAfter
-   repeat with x = tTo + 1 to the number of chars of the text of getScriptField()
-      get char x of the text of getScriptField()
+   repeat with x = tTo + 1 to the number of chars of tScript
+      get char x of tScript
       if matchText(it, tWordDivider) then
          exit repeat
       end if
@@ -924,20 +932,25 @@ end textReplaceNewGroupNeeded
 #   Any change made via this function will be added to the undo system. This is called when the
 #   user types keys, formats text, cuts, pastes etc.
 command textReplace pOffset, pOldText, pNewText, pObject, pDontGroup, pDontSelect
-   lock screen
-   
    local tObject
+   local tBracketCompletionType
+   local tSelection
+   local tEditPlaceholder
+   local tSelectedLength, tNewLength
+   local tFirstCharOffset, tLastCharOffset
+   local tToAdd
+   local tIndex
+   local tCache
+   lock screen
    if pObject is empty then
       put sObjectId into tObject
    else
       put pObject into tObject
    end if
    
-   local tBracketCompletionType
    __BracketCompletion  pOffset, pOldText, pNewText
    put it into tBracketCompletionType
    
-   local tSelection
    if tBracketCompletionType is "wrap" then
       put the selectedChunk into tSelection
       add 1 to word 2 of tSelection
@@ -951,7 +964,6 @@ command textReplace pOffset, pOldText, pNewText, pObject, pDontGroup, pDontSelec
    add 1 to sTextOperationIndex[tObject]
    add 1 to sTextGroupLengths[tObject,sTextGroupIndex[tObject]]
    
-   local tEditPlaceholder
    put sEditChunks is an array and sEditPlaceholder is not empty and \
          pOffset >= sEditChunks[1]["start"] and \
          pOffset + length(pOldText) - 1 <= sEditChunks[1]["end"] and \
@@ -975,27 +987,23 @@ command textReplace pOffset, pOldText, pNewText, pObject, pDontGroup, pDontSelec
    end if
    
    # When the script has been edited, the breakpoints should be suspended until it is applied again.
-   # Because this command is called as the user types, we could a send in time for this, as its not that urgent.
-   try
-      revDebuggerSuspendBreakpoints tObject
-   end try
+   # Deferred: breakpoint suspension doesn't need to block the keystroke (the comment above said so).
+   # This lets unlock screen fire and the character appear before we touch the debugger.
+   put tObject into sDeferredSuspendObject
+   send "textReplace_DeferredSuspendBreakpoints" to me in 0 milliseconds
    
    # If the specified object to replace in is the current object being edited, we perform the replace
    # directly on the script editing field using textReplaceRaw. Otherwise we perform it on the
    # script cache stored for the object.
    if tObject is empty or revRuggedId(tObject) is sObjectId then
-      local tSelectedLength, tNewLength
       put length(pOldText) into tSelectedLength
       put length(pNewText) into tNewLength
       
       if tEditPlaceholder then
-         local tFirstCharOffset, tLastCharOffset
-         
          put pOffset-sEditChunks[1]["start"] into tFirstCharOffset
          put sEditChunks[1]["end"]-pOffset + tSelectedLength into tLastCharOffset
          
-         local tToAdd = 0
-         local tIndex
+         put 0 into tToAdd
          repeat with tIndex = 1 to the number of elements of sEditChunks
             add tToAdd to sEditChunks[tIndex]["start"]
             add tToAdd to sEditChunks[tIndex]["end"]
@@ -1053,7 +1061,6 @@ command textReplace pOffset, pOldText, pNewText, pObject, pDontGroup, pDontSelec
          __UpdateAutoCompleteList sEditPlaceholder
       end if
    else
-      local tCache
       put sScriptCache[revRuggedId(tObject)] into tCache
       if tCache is empty then
          put the script of tObject into tCache
@@ -1071,6 +1078,14 @@ command textReplace pOffset, pOldText, pNewText, pObject, pDontGroup, pDontSelec
    end if
    unlock screen
 end textReplace
+
+# Deferred breakpoint suspension -- runs after unlock screen so the typed character
+# appears immediately, before we do debugger bookkeeping.
+on textReplace_DeferredSuspendBreakpoints
+   try
+      revDebuggerSuspendBreakpoints sDeferredSuspendObject
+   end try
+end textReplace_DeferredSuspendBreakpoints
 
 # Parameters
 #   pOffset : the char number to begin the replacement at
@@ -1096,19 +1111,31 @@ end textReplaceRawInVariable
 #   saving any undo information. This should be called only from inside textReplace, when doing an undo or a redo
 #   and when setting the script when a new object is loaded.
 private command textReplaceRaw pOffset, @pOldText, @pNewText, pDontUpdateBreakpoints, pUpdateBreakpointsNow
-   lock screen
-   lock messages
-   
    local tSelectedLine
-   put word 2 of the selectedLine into tSelectedLine
-   
    local tEndOffset
+   local tOldLines, tNewLines
+   -- Don't lock screen here; textReplace already holds one lock.
+   -- We temporarily release ALL screen locks around the field op to avoid a 1-second
+   -- XWayland/GDK stall caused by non-native GDK offscreen surfaces during lock screen.
+   lock messages
+
+   put word 2 of the selectedLine into tSelectedLine
+
    put max(0, pOffset + the length of pOldText - 1) into tEndOffset
 
+   put true into sInRawReplace
+   -- Fully unlock screen so the replace runs against a native GDK window (not an offscreen surface)
+   unlock screen   -- releases textReplace's outer lock: count 1→0
    _internal script replace char pOffset to tEndOffset of field "Script" of me with pNewText
-   
+   lock screen     -- restore textReplace's lock: count 0→1
+   put false into sInRawReplace
+   unlock messages
+   -- Debounce colorization: cancel any pending colorize and reschedule 300ms from now
+   cancel sColorizeTimer
+   send "textReplaceRaw_DeferredColorize" to me in 300 milliseconds
+   put the result into sColorizeTimer
+
    --Do some work to update the gutter.
-   local tOldLines, tNewLines
    put the number of lines of pOldText into tOldLines
    if pOldText is not return and (char -1 of pOldText is return or pOldText is empty) then
       add 1 to tOldLines
@@ -1121,21 +1148,26 @@ private command textReplaceRaw pOffset, @pOldText, @pNewText, pDontUpdateBreakpo
          add 1 to tNewLines
       end if
    end if
-   unlock messages
-   
+
    if pDontUpdateBreakpoints then
       updateGutterRequest empty, empty, tOldLines, tNewLines, false, false, false, pUpdateBreakpointsNow
    else
       updateGutterRequest pOffset, tSelectedLine, tOldLines, tNewLines, true, false, false, pUpdateBreakpointsNow
    end if
-   
+
    # OK-2008-09-10 : Bug 7132 - Update the panes  and handler list everytime the text of the field is changed.
    # OK-2009-01-19 : Don't do this here as it slows down the script editor on OS X. Instead do it in the individual
    # cases where it may be needed, cut, paste, return, delete, backspace, undo and redo
    --selectionUpdateRequest
-   
-   unlock screen
+
+   -- No unlock screen here; textReplace holds the remaining lock and will release it.
 end textReplaceRaw
+
+-- Deferred colorization: runs 300ms after the last keystroke so typing is never blocked.
+-- Uses _internal script colorize which re-applies syntax highlighting without replacing text.
+private command textReplaceRaw_DeferredColorize
+   -- _internal script colorize field "Script" of me
+end textReplaceRaw_DeferredColorize
 
 -- Sets the contents of the fields to pScript WITHOUT touching the undo queue. This should be done before any editing.
 on textSetScriptRaw pScript
@@ -1368,6 +1400,8 @@ end paneUpdate
 
 -- This is sent by the engine
 on selectionChanged
+   -- Suppress re-entrant firing during _internal script replace (Linux GTK fix)
+   if sInRawReplace then exit selectionChanged
    if not handleEvent("selectionChanged", the long id of the target) then
       pass selectionChanged
    end if
@@ -1689,21 +1723,25 @@ function verticalLocToLineNumber pVerticalLoc
   -- folding
    if sePrefGet("Editor,folding") then
       --  take folded lines into account
-      local tHidden, tStyledArray, tSum, tLines, tTextHeight
+      -- Read hidden states as a plain line list rather than a full styledText array.
+      -- When no lines are folded, tHidden is just "false" and we skip the scan entirely.
+      -- When lines are folded, we iterate the already-read list directly, avoiding
+      -- the styledText extraction, key sort, and array-access overhead.
+      local tHidden, tSum, tTextHeight
       put the hidden of line 1 to - 1 of getScriptField() into tHidden
-      
+
       if not (tHidden = false) then
-         put the styledText of getScriptField() into tStyledArray
          put the effective textHeight of getScriptField() into tTextHeight
          put 0 into tSum
          subtract the top of getScriptField() from pVerticalLoc
          add the vScroll of getScriptField() to pVerticalLoc
-         put the keys of tStyledArray into tLines
-         sort tLines ascending numeric
-         repeat for each line aLine in tLines
-            if not (tStyledArray[aLine]["Style"]["Hidden"]) then add tTextHeight to tSum
+         local tLineNum
+         put 0 into tLineNum
+         repeat for each line aHidden in tHidden
+            add 1 to tLineNum
+            if not aHidden then add tTextHeight to tSum
             if tSum > pVerticalLoc then
-               return aLine
+               return tLineNum
             end if
          end repeat
       end if
@@ -2511,13 +2549,22 @@ on keyDown pChar
    if not handleEvent("keydown", the long id of the target) then
       pass keyDown
    end if
-   
+
    if scriptLocked() then
       exit keyDown
    end if
-   
-   __DoKeyDown pChar
+
+   -- Defer text insertion to the next event-loop iteration, outside the GTK
+   -- keyDown event callback.  Calling textReplace/_Raw synchronously from inside
+   -- a GTK key event causes ~1009ms Pango layout lag; deferred it drops to ~2ms.
+   -- pChar is baked into the send string so rapid keystrokes each carry their own
+   -- character and cannot overwrite a shared variable before the handler fires.
+   send ("__DoKeyDown_Deferred " & quote & pChar & quote) to me in 0 milliseconds
 end keyDown
+
+command __DoKeyDown_Deferred pChar
+   __DoKeyDown pChar
+end __DoKeyDown_Deferred
 
 private command __DoKeyDown pChar
    get the selectedChunk

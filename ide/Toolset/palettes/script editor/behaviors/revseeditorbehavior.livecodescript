@@ -719,20 +719,38 @@ end convertTypeCodeToSyntax
 #   stores a map of handler names to line numbers for later use.
 # Returns
 #   Empty if compilation suceeded, otherwise a list of errors.
+-- Cache the last compiled (script text, object) pair so that scriptCompile,
+-- which fires 200ms after every selection change, skips the expensive
+-- revAvailableHandlers / revScriptDescription reads when nothing has changed.
+local sLastCompiledScript
+local sLastCompiledObject
+
 command scriptCompile pObject
    lock screen
    lock messages
-   
+
    local tOldPreserveVariables, tOldExplicitVariables
    put the preserveVariables into tOldPreserveVariables
    put the explicitVariables into tOldExplicitVariables
    set the preserveVariables to sePrefGet("preserveVariables")
    set the explicitVariables to sePrefGet("explicitVariables")
-   
+
    local tScript
    scriptGet pObject
    put the result into tScript
-   
+
+   -- Early exit: if neither the script text nor the object has changed, the
+   -- handler list and autocomplete description are already current.
+   if tScript is sLastCompiledScript and pObject is sLastCompiledObject then
+      set the preserveVariables to tOldPreserveVariables
+      set the explicitVariables to tOldExplicitVariables
+      unlock messages
+      unlock screen
+      return empty
+   end if
+   put tScript into sLastCompiledScript
+   put pObject into sLastCompiledObject
+
    local tResult
    local tDoUpdateDescription
    set the script of button "revCompileObject" of me to tScript

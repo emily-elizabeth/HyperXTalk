@@ -30,10 +30,10 @@ class MCClipboard::AutoLock
 {
 public:
     
-    inline AutoLock(const MCClipboard* p_clipboard) :
+    inline AutoLock(const MCClipboard* p_clipboard, bool p_skip_pull = false) :
       m_clipboard(p_clipboard)
     {
-        m_clipboard->Lock();
+        m_clipboard->Lock(p_skip_pull);
     }
     
     inline ~AutoLock()
@@ -250,12 +250,15 @@ bool MCClipboard::AddFileList(MCStringRef p_file_names)
 
 bool MCClipboard::AddText(MCStringRef p_string)
 {
-    // [Bug 19206] Converting text to styled text was causing 
+    // [Bug 19206] Converting text to styled text was causing
     // presentation issues when attempting to paste into other
     // applications due to the HTML format being included.
     // Only add the plain text representations to the clipboard.
 
-    AutoLock t_lock(this);
+    // Skip PullUpdates: AddText is a write path that replaces clipboard
+    // contents. Fetching the existing selection first would invoke
+    // WaitForSelectionNotify(), causing a ~1s stall on XWayland.
+    AutoLock t_lock(this, /*p_skip_pull=*/true);
     
     // Clear contents if the clipboard contains external data
     if (m_clipboard->IsExternalData())

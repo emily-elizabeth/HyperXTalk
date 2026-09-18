@@ -49,6 +49,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "libbrowser_internal.h"
 
 #include <dlfcn.h>
+#include <execinfo.h>
 #include <limits.h>
 #include <signal.h>
 #include <stdio.h>
@@ -304,7 +305,9 @@ static GLogWriterOutput hxt_log_writer(GLogLevelFlags log_level,
         {
             const char *msg = static_cast<const char*>(fields[i].value);
             if (strstr(msg, "drawable is not a native X11 window"))
+            {
                 return G_LOG_WRITER_HANDLED;
+            }
             if (strstr(msg, "waitid(") && strstr(msg, "No child processes"))
                 return G_LOG_WRITER_HANDLED;
             if (strstr(msg, "gdk_window_get_origin") &&
@@ -325,6 +328,28 @@ static GLogWriterOutput hxt_log_writer(GLogLevelFlags log_level,
     return g_log_writer_default(log_level, fields, n_fields, NULL);
 }
 
+// Old-style GDK warning handler for GLib < 2.76.
+// In GLib < 2.76, g_warning() calls g_log() which dispatches through
+// g_log_set_handler(), NOT through g_log_set_writer_func().  We need both
+// hooks to cover all GLib versions.
+//
+// In GLib >= 2.76, g_warning() routes through g_log_structured_standard()
+// which hits g_log_set_writer_func() — the hxt_log_writer above handles it.
+// Installing this handler is harmless in that case (it just never fires for
+// structured logs).
+static void hxt_old_style_gdk_handler(const gchar * /*log_domain*/,
+                                       GLogLevelFlags /*log_level*/,
+                                       const gchar *message,
+                                       gpointer /*user_data*/)
+{
+    if (message && strstr(message, "drawable is not a native X11 window"))
+    {
+        return; // suppress the warning itself
+    }
+    // Forward anything else to the default handler
+    g_log_default_handler(NULL, G_LOG_LEVEL_WARNING, message, NULL);
+}
+
 #define LOAD_SYM(lib, name) \
     wk.name = (__typeof__(wk.name))dlsym(lib, #name)
 
@@ -343,6 +368,10 @@ static bool LoadWebKit(void)
         if (!s_log_writer_installed)
         {
             g_log_set_writer_func(hxt_log_writer, NULL, NULL);
+            // Also install the old-style handler for GLib < 2.76 where
+            // g_warning() routes through g_log() and bypasses the writer.
+            g_log_set_handler("Gdk", G_LOG_LEVEL_WARNING,
+                              hxt_old_style_gdk_handler, NULL);
             s_log_writer_installed = true;
         }
     }
@@ -350,6 +379,24 @@ static bool LoadWebKit(void)
     // Disable AT-SPI bridge to prevent crashes on systems where the D-Bus/ATK
     // bridge is incompatible with the dynamically loaded WebKit.
     setenv("NO_AT_BRIDGE", "1", 0);
+
+    // Prevent libcanberra-gtk-module from blocking on PulseAudio.
+    //
+    // libcanberra-gtk-module is a GTK input module that auto-loads at gtk_init()
+    // time and hooks into every GTK widget signal to play UI sound effects.
+    // When the engine calls g_main_context_iteration() from within operations
+    // like _internal script replace, canberra intercepts GTK signals fired by
+    // the WebKit GtkOffscreenWindow and calls ca_gtk_play_for_widget().  That
+    // opens a libcanberra PulseAudio context which can block for ~1 s on Wayland
+    // (XWayland) sessions — causing the per-keystroke ~1 s typing lag in the
+    // Script Editor.  This was not an issue with CEF (0.9.15) because CEF ran
+    // as a separate X11 process and never generated GTK widget signals.
+    //
+    // CANBERRA_DRIVER=null selects libcanberra's built-in no-op backend:
+    // ca_gtk_play_for_widget() returns immediately without touching audio.
+    // Users who need GTK UI sounds can override with CANBERRA_DRIVER=pulse
+    // in their environment before launching HyperXTalk (overwrite=0 here).
+    setenv("CANBERRA_DRIVER", "null", 0);
 
     // Disable the bubblewrap sandbox.  When WebKit is loaded via dlopen inside
     // another application's process (rather than as a direct dependency), the
@@ -2055,8 +2102,9 @@ static void MCLinuxWebKitGTKRunloopAction(void * /*p_context*/)
 {
     if (!s_webkit_loaded || !wk.g_main_context_pending || !wk.g_main_context_iteration)
         return;
-    while (wk.g_main_context_pending(nil))
-        wk.g_main_context_iteration(nil, FALSE);
+    // Drain pending GLib/WebKit events without blocking.
+    while (wk.g_main_context_pending(NULL))
+        wk.g_main_context_iteration(NULL, FALSE);
 }
 
 static bool    s_runloop_added = false;

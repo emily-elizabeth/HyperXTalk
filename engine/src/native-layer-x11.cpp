@@ -919,51 +919,55 @@ bool MCNativeLayerX11::doPaint(MCGContextRef p_context)
     // store captures physical pixels.
     cairo_surface_set_device_scale(t_surf, (double)t_scale, (double)t_scale);
 
-    // Paint the WebKit widget into the surface.
+    // FIX (typing lag): skip gtk_widget_draw() entirely.
     //
-    // • Fill white first so that the "loading" state looks like a blank browser
-    //   page rather than transparent / garbage pixels.
-    // • gtk_widget_draw() fires the "draw" signal on WebKitWebView; in
-    //   WEBKIT_HARDWARE_ACCELERATION_POLICY_NEVER mode the draw handler blits
-    //   WebKit's software-rendered tiles into our cairo_t.  With device_scale
-    //   set, WebKit renders the full CSS viewport at physical resolution.
-    cairo_t *t_cr = cairo_create(t_surf);
-    cairo_rectangle(t_cr, 0, 0, t_w, t_h);  // logical coords → physical t_pw×t_ph
-    cairo_clip(t_cr);
-    cairo_set_source_rgb(t_cr, 1.0, 1.0, 1.0);
-    cairo_paint(t_cr);
-    gtk_widget_draw(m_browser_widget, t_cr);
-    cairo_destroy(t_cr);
+    // On WebKit 2.44+ / Fedora / XWayland, gtk_widget_draw() is a compositor
+    // no-op for rendering, but the call travels through GDK's X11 backend which
+    // tries to resolve a native XID for the GtkOffscreenWindow.  That window has
+    // no real X11 window on XWayland; GDK blocks ~1 s waiting for a response
+    // that never arrives — producing the ~1018 ms per-keystroke lag.
+    // Go straight to the snapshot path instead.
+    {
+        cairo_t *t_cr = cairo_create(t_surf);
+        cairo_set_source_rgb(t_cr, 1.0, 1.0, 1.0);
+        cairo_paint(t_cr);
+        cairo_destroy(t_cr);
+    }
     cairo_surface_flush(t_surf);
 
-    // On WebKit 2.44+ (Fedora), gtk_widget_draw() is a compositor no-op and
-    // leaves the surface as our white fill.  Detect this and use the most
-    // recent async snapshot instead, requesting a fresh one for next frame.
+    // Blit cached snapshot if available; request a fresh one at most 4×/s
+    // (250 ms throttle) to avoid keeping a blocking snapshot callback
+    // perpetually queued in the GLib main context.
     {
-        unsigned char *d = cairo_image_surface_get_data(t_surf);
-        // Blank = all-white (our fill, no WebKit content) or all-zero
-        // (transparent — what we get when the draw handler is a no-op and
-        // never touches the surface).
-        bool t_blank = !d ||
-                       (d[0] == 0xFF && d[1] == 0xFF && d[2] == 0xFF) ||
-                       (d[0] == 0x00 && d[1] == 0x00 && d[2] == 0x00 && d[3] == 0x00);
-        if (t_blank)
+        cairo_surface_t *t_snap = (cairo_surface_t*)g_object_get_data(
+            G_OBJECT(m_browser_widget), "hxt-snapshot");
+        if (t_snap)
         {
-            cairo_surface_t *t_snap = (cairo_surface_t*)g_object_get_data(
-                G_OBJECT(m_browser_widget), "hxt-snapshot");
-            if (t_snap)
+            cairo_t *t_cr2 = cairo_create(t_surf);
+            cairo_set_source_surface(t_cr2, t_snap, 0, 0);
+            cairo_paint(t_cr2);
+            cairo_destroy(t_cr2);
+        }
+
+        typedef void (*SnapFn)(void*);
+        SnapFn snap_fn  = (SnapFn)g_object_get_data(G_OBJECT(m_browser_widget), "hxt-snap-fn");
+        void  *snap_ctx =         g_object_get_data(G_OBJECT(m_browser_widget), "hxt-snap-ctx");
+        if (snap_fn && snap_ctx)
+        {
+            gint64 *t_throttle = (gint64*)g_object_get_data(
+                G_OBJECT(m_browser_widget), "hxt-snap-throttle");
+            gint64 t_now = g_get_monotonic_time();
+            if (!t_throttle || t_now - *t_throttle >= 250000)  // 250 ms
             {
-                cairo_t *t_cr2 = cairo_create(t_surf);
-                cairo_set_source_surface(t_cr2, t_snap, 0, 0);
-                cairo_paint(t_cr2);
-                cairo_destroy(t_cr2);
-            }
-            // Request a fresh snapshot for the next frame.
-            typedef void (*SnapFn)(void*);
-            SnapFn snap_fn  = (SnapFn)g_object_get_data(G_OBJECT(m_browser_widget), "hxt-snap-fn");
-            void  *snap_ctx =         g_object_get_data(G_OBJECT(m_browser_widget), "hxt-snap-ctx");
-            if (snap_fn && snap_ctx)
+                if (!t_throttle)
+                {
+                    t_throttle = g_new0(gint64, 1);
+                    g_object_set_data_full(G_OBJECT(m_browser_widget),
+                                           "hxt-snap-throttle", t_throttle, g_free);
+                }
+                *t_throttle = t_now;
                 snap_fn(snap_ctx);
+            }
         }
     }
 

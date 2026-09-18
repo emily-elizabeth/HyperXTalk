@@ -776,10 +776,12 @@ static gboolean SelectionNotifyTimeout(gpointer)
 static bool WaitForSelectionNotify()
 {
     // Add a timeout that will be triggered if there is no reply. We will wait
-    // for a maximum of 1 second.
+    // for a maximum of 150ms. On XWayland, Wayland-native apps holding the
+    // PRIMARY selection never respond to X11 XConvertSelection requests, so
+    // the original 1000ms timeout caused a 1-second stall on every keypress.
     guint t_timeout_event;
     s_selection_timeout = false;
-    t_timeout_event = g_timeout_add(1000, &SelectionNotifyTimeout, NULL);
+    t_timeout_event = g_timeout_add(150, &SelectionNotifyTimeout, NULL);
     
     // Loop until a selection notify event is received
     MCScreenDC *dc = (MCScreenDC*)MCscreen;

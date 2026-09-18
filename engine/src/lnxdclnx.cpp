@@ -1461,9 +1461,23 @@ void MCScreenDC::EnqueueGdkEvents(bool p_block)
     while (true)
     {
         // Run the GLib main loop. We only block for the first iteration.
+        // FIX (typing lag): cap the per-call budget to 4 ms so a slow WebKit
+        // GLib source (e.g. an IPC timeout on XWayland) cannot freeze the
+        // engine on every event-pump cycle.  A single iteration that is
+        // already executing will still run to completion; the deadline only
+        // prevents looping back for additional slow sources afterwards.
         //gdk_threads_leave();
-        while (g_main_context_iteration(NULL, p_block))
-            p_block = false;
+        {
+            gint64 t_deadline = g_get_monotonic_time() + 4000;  // 4 ms
+            // Always pass FALSE: never block waiting for a GLib source.
+            // Passing p_block=TRUE on the first call could block for up to ~1 s
+            // if a GTK input module (e.g. libcanberra-gtk-module) fires a slow
+            // callback.  CANBERRA_DRIVER=null (set in LoadWebKit) is the primary
+            // fix; this is defense-in-depth.
+            while (g_get_monotonic_time() < t_deadline &&
+                   g_main_context_iteration(NULL, FALSE))
+                ;
+        }
         //gdk_threads_enter();
 
         // Enqueue any further GDK events
