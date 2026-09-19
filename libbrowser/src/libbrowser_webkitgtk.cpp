@@ -816,7 +816,9 @@ static bool LoadWebKit(void)
         LOAD_SYM(t_gdk, gdk_x11_window_get_xid);
     }
 
+
     if (!wk.webkit_web_view_load_uri || !wk.gtk_window_new || !wk.gdk_x11_window_get_xid)
+    {
         return false;
 
     // Strip AppImage mount paths from LD_LIBRARY_PATH so WebKit subprocesses
@@ -1100,7 +1102,9 @@ MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
 
 bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
 {
+
     if (!wk.webkit_user_content_manager_new)
+    {
         return false;
 
     // --- UserContentManager for JS→engine callbacks ---
