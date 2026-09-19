@@ -109,6 +109,10 @@ private:
     // Idle callback: calls m_object->Redraw() and clears m_redraw_pending.
     static gboolean onRedrawIdle(gpointer user_data);
 
+    // Called by libbrowser's on_snapshot_done() via the hxt-repaint-fn bridge
+    // to schedule a Redraw() after a new snapshot surface is ready.
+    static void TriggerRedraw(void *ctx);
+
     // GDK event filter on the stack window.  Intercepts pointer and keyboard
     // events that fall within m_rect and forwards them to the offscreen browser
     // via gtk_main_do_event(), keeping the browser interactive.
