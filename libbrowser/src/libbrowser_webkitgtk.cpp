@@ -312,7 +312,6 @@ static bool LoadWebKit(void)
     if (s_webkit_loaded)
         return true;
 
-    fprintf(stderr, "HXT-LWK: enter\n"); fflush(stderr);
 
     // Install the log writer before any WebKit initialisation so that warnings
     // fired during gtk_widget_show_all() and WebKit's own startup are filtered.
@@ -407,9 +406,6 @@ static bool LoadWebKit(void)
     for (int i = 0; t_wk_names[i]; i++)
     {
         wk.libwebkit = dlopen(t_wk_names[i], RTLD_LAZY | RTLD_LOCAL | RTLD_DEEPBIND);
-        fprintf(stderr, "HXT-LWK: dlopen(%s) -> %s\n",
-                t_wk_names[i], wk.libwebkit ? "OK" : dlerror());
-        fflush(stderr);
         if (wk.libwebkit)
         {
             t_system = true;
@@ -604,23 +600,13 @@ static bool LoadWebKit(void)
         LOAD_SYM(t_gdk, gdk_x11_window_get_xid);
     }
 
-    fprintf(stderr, "HXT-LWK: webkit_web_view_load_uri=%p gtk_window_new=%p gdk_x11_window_get_xid=%p\n",
-            (void*)wk.webkit_web_view_load_uri,
-            (void*)wk.gtk_window_new,
-            (void*)wk.gdk_x11_window_get_xid); fflush(stderr);
-    fprintf(stderr, "HXT-LWK: webkit_user_content_manager_new=%p webkit_web_view_new_with_user_content_manager=%p\n",
-            (void*)wk.webkit_user_content_manager_new,
-            (void*)wk.webkit_web_view_new_with_user_content_manager); fflush(stderr);
-    fprintf(stderr, "HXT-LWK: webkit4.1=%d\n", wk.is4_1 ? 1 : 0); fflush(stderr);
 
     if (!wk.webkit_web_view_load_uri || !wk.gtk_window_new || !wk.gdk_x11_window_get_xid)
     {
-        fprintf(stderr, "HXT-LWK: missing required symbols - FAIL\n"); fflush(stderr);
         return false;
     }
 
     s_webkit_loaded = true;
-    fprintf(stderr, "HXT-LWK: all OK\n"); fflush(stderr);
     return true;
 }
 
@@ -780,35 +766,26 @@ MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
 
 bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
 {
-    fprintf(stderr, "HXT-INIT: enter (display=%p parent=%p)\n",
-            p_display, p_parent_window); fflush(stderr);
 
     if (!wk.webkit_user_content_manager_new)
     {
-        fprintf(stderr, "HXT-INIT: no webkit_user_content_manager_new\n"); fflush(stderr);
         return false;
     }
 
     // --- UserContentManager for JS→engine callbacks ---
-    fprintf(stderr, "HXT-INIT: creating UserContentManager\n"); fflush(stderr);
     m_content_manager = wk.webkit_user_content_manager_new();
     if (m_content_manager == nil)
     {
-        fprintf(stderr, "HXT-INIT: UserContentManager is nil\n"); fflush(stderr);
         return false;
     }
-    fprintf(stderr, "HXT-INIT: UserContentManager OK\n"); fflush(stderr);
 
     if (wk.webkit_user_content_manager_register_script_message_handler)
     {
-        fprintf(stderr, "HXT-INIT: registering liveCode handler\n"); fflush(stderr);
         wk.webkit_user_content_manager_register_script_message_handler(m_content_manager, "liveCode");
-        fprintf(stderr, "HXT-INIT: registering hxtNav handler\n"); fflush(stderr);
         wk.webkit_user_content_manager_register_script_message_handler(m_content_manager, "hxtNav");
     }
     else
     {
-        fprintf(stderr, "HXT-INIT: register_script_message_handler not available\n"); fflush(stderr);
     }
 
     // Inject the click-interceptor at document start so it runs before any
@@ -843,14 +820,11 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     }
 
     // --- WebKitWebView ---
-    fprintf(stderr, "HXT-INIT: creating WebKitWebView\n"); fflush(stderr);
     m_web_view = (WebKitWebView*)wk.webkit_web_view_new_with_user_content_manager(m_content_manager);
     if (m_web_view == nil)
     {
-        fprintf(stderr, "HXT-INIT: WebKitWebView is nil\n"); fflush(stderr);
         return false;
     }
-    fprintf(stderr, "HXT-INIT: WebKitWebView OK (%p)\n", (void*)m_web_view); fflush(stderr);
 
     {
         WebKitSettings *t_settings = wk.webkit_web_view_get_settings(m_web_view);
@@ -893,7 +867,6 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     g_object_set_data(G_OBJECT(m_web_view), "hxt-sim-ctx", (gpointer)this);
 
     // --- Connect signals ---
-    fprintf(stderr, "HXT-INIT: connecting signals\n"); fflush(stderr);
     m_load_changed_id = wk.g_signal_connect_data(m_web_view, "load-changed",
         G_CALLBACK(on_load_changed), this, nil, (GConnectFlags)0);
     m_load_failed_id = wk.g_signal_connect_data(m_web_view, "load-failed",
@@ -924,7 +897,6 @@ bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
     m_show_option_menu_id = wk.g_signal_connect_data(m_web_view, "show-option-menu",
         G_CALLBACK(on_show_option_menu), this, nil, (GConnectFlags)0);
 
-    fprintf(stderr, "HXT-INIT: done OK\n"); fflush(stderr);
     return true;
 }
 
@@ -1971,13 +1943,10 @@ public:
 
 bool MCWebKitGTKBrowserFactoryCreate(MCBrowserFactoryRef &r_factory)
 {
-    fprintf(stderr, "HXT-FACTORY: enter\n"); fflush(stderr);
     if (!LoadWebKit())
     {
-        fprintf(stderr, "HXT-FACTORY: LoadWebKit FAILED\n"); fflush(stderr);
         return false;
     }
-    fprintf(stderr, "HXT-FACTORY: LoadWebKit OK\n"); fflush(stderr);
 
     MCWebKitGTKBrowserFactory *t_factory = new (nothrow) MCWebKitGTKBrowserFactory();
     if (t_factory == nil)
