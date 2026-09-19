@@ -10,7 +10,7 @@ Version: 1.0.0
 
 Description:
 Animates a control with a horizontal shake that mimics the macOS password
-rejection animation ‚Äî a short, damped oscillation that draws the user's
+rejection animation â a short, damped oscillation that draws the user's
 attention to the control without moving it from its original position.
 
 Name: stopShakeControl

@@ -402,6 +402,7 @@ static MCPropertyInfo kMCPropertyInfoTable[] =
 	DEFINE_RO_ENUM_PROPERTY(P_SYSTEM_APPEARANCE, InterfaceSystemAppearance, Interface, SystemAppearance)
 	DEFINE_RO_PROPERTY(P_SYSTEM_WINDOW_COLOR, String, Interface, SystemWindowColor)
 	DEFINE_RO_PROPERTY(P_SYSTEM_TEXT_COLOR, String, Interface, SystemTextColor)
+	DEFINE_RO_PROPERTY(P_SYSTEM_THEME_NAME, String, Interface, SystemThemeName)
 };
 
 static bool MCPropertyInfoTableLookup(Properties p_which, Boolean p_effective, const MCPropertyInfo*& r_info, bool p_is_array_prop)
@@ -946,6 +947,7 @@ Parse_stat MCProperty::parse(MCScriptPoint &sp, Boolean the)
 	case P_SYSTEM_APPEARANCE:
 	case P_SYSTEM_WINDOW_COLOR:
 	case P_SYSTEM_TEXT_COLOR:
+	case P_SYSTEM_THEME_NAME:
         break;
     
     case P_REV_LIBRARY_MAPPING:
