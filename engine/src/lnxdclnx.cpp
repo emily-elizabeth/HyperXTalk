@@ -317,6 +317,14 @@ void gtk_main_do_event(GdkEvent*);
 gboolean gdk_event_is_allocated(const GdkEvent *event);
 }
 
+// XDG_CURRENT_DESKTOP never changes at runtime, so cache the XFCE check once.
+// Replaces five getenv()+strstr() calls that were firing on every keypress,
+// focus change, mouse enter/leave, and button press.
+static const bool s_is_xfce = []() {
+    const char *d = getenv("XDG_CURRENT_DESKTOP");
+    return d != nullptr && (strstr(d, "XFCE") != nullptr || strstr(d, "xfce") != nullptr);
+}();
+
 static bool motion_event_filter_fn(GdkEvent *p_event, void*)
 {
     return p_event->type == GDK_MOTION_NOTIFY;
@@ -469,8 +477,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                             // XFCE workaround: Limit focus event dispatching on XFCE
                             // XFCE has severe focus management issues with all window types
                             bool skip_focus = false;
-                            const char *desktop = getenv("XDG_CURRENT_DESKTOP");
-                            if (desktop && (strstr(desktop, "XFCE") || strstr(desktop, "xfce")))
+                            if (s_is_xfce)
                             {
                                 MCStack *t_stack = MCdispatcher->findstackd(t_event->focus_change.window);
                                 // Only dispatch focus for top-level windows, skip palettes and modeless
@@ -533,8 +540,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                         {
                             // XFCE workaround: Limit unfocus event dispatching on XFCE
                             bool skip_unfocus = false;
-                            const char *desktop = getenv("XDG_CURRENT_DESKTOP");
-                            if (desktop && (strstr(desktop, "XFCE") || strstr(desktop, "xfce")))
+                            if (s_is_xfce)
                             {
                                 MCStack *t_stack = MCdispatcher->findstackd(t_event->focus_change.window);
                                 // Only dispatch unfocus for top-level windows
@@ -713,8 +719,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                     {
                         // XFCE workaround: Limit mouse focus events on XFCE
                         bool skip_mouse_focus = false;
-                        const char *desktop = getenv("XDG_CURRENT_DESKTOP");
-                        if (desktop && (strstr(desktop, "XFCE") || strstr(desktop, "xfce")))
+                        if (s_is_xfce)
                         {
                             MCStack *t_stack = MCdispatcher->findstackd(t_event->crossing.window);
                             // Only dispatch mouse focus for top-level windows
@@ -1086,8 +1091,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                                     
                                     // XFCE workaround: Limit wmfocus on button press on XFCE
                                     bool skip_click_focus = false;
-                                    const char *desktop = getenv("XDG_CURRENT_DESKTOP");
-                                    if (desktop && (strstr(desktop, "XFCE") || strstr(desktop, "xfce")))
+                                    if (s_is_xfce)
                                     {
                                         MCStack *t_stack = MCdispatcher->findstackd(t_event->button.window);
                                         // Only send wmfocus for top-level windows
@@ -1275,10 +1279,7 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
                 // Any other event types are ignored
                 break;
         }
-        
-        // Flush all pending messages to X11
-        gdk_display_flush(dpy);
-        
+
         // Queue the message if required. Otherwise, dispose of it
         if (t_queue)
         {
@@ -1293,7 +1294,12 @@ Boolean MCScreenDC::handle(Boolean dispatch, Boolean anyevent, Boolean& abort, B
             t_event = NULL;
         }
     }
-    
+
+    // Flush all pending messages to X11 once per handle() call, not per event.
+    // Previously this was inside the event loop, causing a full X11 socket flush
+    // after every keypress, click, and motion event — serialising rapid input.
+    gdk_display_flush(dpy);
+
     return t_handled;
 }
 
@@ -1455,9 +1461,23 @@ void MCScreenDC::EnqueueGdkEvents(bool p_block)
     while (true)
     {
         // Run the GLib main loop. We only block for the first iteration.
+        // FIX (typing lag): cap the per-call budget to 4 ms so a slow WebKit
+        // GLib source (e.g. an IPC timeout on XWayland) cannot freeze the
+        // engine on every event-pump cycle.  A single iteration that is
+        // already executing will still run to completion; the deadline only
+        // prevents looping back for additional slow sources afterwards.
         //gdk_threads_leave();
-        while (g_main_context_iteration(NULL, p_block))
-            p_block = false;
+        {
+            gint64 t_deadline = g_get_monotonic_time() + 4000;  // 4 ms
+            // Always pass FALSE: never block waiting for a GLib source.
+            // Passing p_block=TRUE on the first call could block for up to ~1 s
+            // if a GTK input module (e.g. libcanberra-gtk-module) fires a slow
+            // callback.  CANBERRA_DRIVER=null (set in LoadWebKit) is the primary
+            // fix; this is defense-in-depth.
+            while (g_get_monotonic_time() < t_deadline &&
+                   g_main_context_iteration(NULL, FALSE))
+                ;
+        }
         //gdk_threads_enter();
 
         // Enqueue any further GDK events
