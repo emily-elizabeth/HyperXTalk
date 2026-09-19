@@ -3,7 +3,6 @@
 	'variables':
 	{
 		'use_system_libcairo%':		0,
-		'use_system_libcef%':		0,
 		'use_system_libcurl%':		0,
 		'use_system_libexpat%':		0,
 		'use_system_libfreetype%':	0,

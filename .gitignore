@@ -26,7 +26,6 @@ util/perfect/perfect.linux-*
 **/extensions/*/*/*.lce
 **/extensions/*/*/api.lcdoc
 */src/.lci/*
-/thirdparty/libcef
 /Installer/output
 
 # Compiled source and intermediates #
