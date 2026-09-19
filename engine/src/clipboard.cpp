@@ -258,7 +258,7 @@ bool MCClipboard::AddText(MCStringRef p_string)
     // Skip PullUpdates: AddText is a write path that replaces clipboard
     // contents. Fetching the existing selection first would invoke
     // WaitForSelectionNotify(), causing a ~1s stall on XWayland.
-    AutoLock t_lock(this, /*p_skip_pull=*/true);
+    AutoLock t_lock(this);
     
     // Clear contents if the clipboard contains external data
     if (m_clipboard->IsExternalData())
