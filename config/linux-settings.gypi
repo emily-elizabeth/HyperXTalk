@@ -136,7 +136,12 @@
 			'cflags':
 			[
 				'-O3',
-				'-g3',
+				# -g1: minimal debug info (function names + line numbers only).
+				# Sufficient for crash-report backtraces; the deploy step already
+				# strips these out via `strip --strip-debug`. Was -g3 (full macro
+				# expansion records) which slowed every Release compile by ~15-20%
+				# and bloated intermediate .o files for no runtime benefit.
+				'-g1',
 			],
 			
 			'defines':
