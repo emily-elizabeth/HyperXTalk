@@ -191,7 +191,11 @@ static bool MCFocusOutFilter(GdkEvent *e, void *)
 void MCScreenDC::waitfocus()
 {
 	GdkEvent *e;
-    gdk_display_sync(dpy);
+    // Use flush (non-blocking) instead of sync (full round-trip) here.
+    // By the time waitfocus() is called X has already determined and sent the
+    // focus-out event; we only need to drain our own outgoing request queue.
+    // gdk_display_sync() was blocking for 1-5ms on every click into a field.
+    gdk_display_flush(dpy);
     if (GetFilteredEvent(&MCFocusOutFilter, e, NULL))
     {
         MCdispatcher->wkunfocus(((GdkEventFocus*)e)->window);
@@ -419,11 +423,14 @@ Boolean MCScreenDC::wait(real8 duration, Boolean dispatch, Boolean anyevent)
 
 		if (curtime < eventtime)
         {
-            // If there are run loop actions, ensure they are run occasionally
+            // If there are run loop actions, ensure they are run occasionally.
+            // 16ms (~60 fps) is sufficient for browser-widget frame pumping;
+            // the previous 10ms (100 Hz) caused ~100 redundant wakeups/second
+            // any time a browser widget was alive, even with no user input.
             real64_t t_sleep;
             t_sleep = eventtime - curtime;
             if (HasRunloopActions())
-                t_sleep = MCMin(t_sleep, 0.01);
+                t_sleep = MCMin(t_sleep, 0.016);
             
             // Use gdk_display_flush (non-blocking XFlush) instead of
             // gdk_display_sync (blocking XSync round-trip). XSync blocks

@@ -11,8 +11,8 @@ ARCHS_emscripten=( js )
 LIBS_android=( OpenSSL ICU )
 LIBS_mac=( OpenSSL ICU )
 LIBS_ios=( OpenSSL ICU )
-LIBS_win32=( OpenSSL Curl ICU CEF )
-LIBS_linux=( OpenSSL Curl ICU CEF )
+LIBS_win32=( OpenSSL Curl ICU )
+LIBS_linux=( OpenSSL Curl ICU )
 LIBS_emscripten=( ICU )
 
 SUBPLATFORMS_ios=(iPhoneSimulator11.2 iPhoneSimulator12.1 iPhoneSimulator13.2 iPhoneSimulator14.4 iPhoneSimulator14.5 iPhoneOS11.2 iPhoneOS12.1 iPhoneOS13.2 iPhoneOS14.4 iPhoneOS14.5)
@@ -39,7 +39,6 @@ WIN32_EXTRACT_DIR="${SCRIPT_DIR}/unpacked"
 URLCURL="https://github.com/curl/curl/archive/refs/heads/master.zip"
 URLOPENSSL="https://github.com/openssl/openssl/archive/refs/heads/master.zip"
 URLICU="https://github.com/unicode-org/icu/archive/refs/heads/main.zip"
-URLCEF="https://github.com/chromiumembedded/cef/archive/refs/heads/master.zip"
 # the sqlite url is unfortunately pegged to release year and version
 URLSQLITE="https://sqlite.org/2023/sqlite-amalgamation-3420000.zip"
 

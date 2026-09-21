@@ -1554,6 +1554,7 @@ void MCX11PutImage(GdkDisplay *p_dpy, GdkWindow* d, cairo_region_t* p_clip_regio
 
     // Begin a draw frame to get a cairo context
     t_drawing_context = gdk_window_begin_draw_frame(d, p_clip_region);
+
     if (t_drawing_context != NULL)
     {
         t_cr = gdk_drawing_context_get_cairo_context(t_drawing_context);
