@@ -2557,13 +2557,13 @@ on keyDown pChar
    -- Defer text insertion to the next event-loop iteration, outside the GTK
    -- keyDown event callback.  Calling textReplace/_Raw synchronously from inside
    -- a GTK key event causes ~1009ms Pango layout lag; deferred it drops to ~2ms.
-   -- pChar is baked into the send string so rapid keystrokes each carry their own
-   -- character and cannot overwrite a shared variable before the handler fires.
-   send ("__DoKeyDown_Deferred " & quote & pChar & quote) to me in 0 milliseconds
+   -- pChar is passed as its Unicode code point so that special characters such as
+   -- quote, parentheses, and emoji survive the send string without quoting issues.
+   send ("__DoKeyDown_Deferred " & charToNum(pChar)) to me in 0 milliseconds
 end keyDown
 
-command __DoKeyDown_Deferred pChar
-   __DoKeyDown pChar
+command __DoKeyDown_Deferred pCharCode
+   __DoKeyDown numToChar(pCharCode)
 end __DoKeyDown_Deferred
 
 private command __DoKeyDown pChar
