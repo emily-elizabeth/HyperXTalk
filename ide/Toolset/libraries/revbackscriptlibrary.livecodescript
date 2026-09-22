@@ -518,23 +518,32 @@ on appleEvent p1, p2, p3
       local tData
       request AppleEvent data
       put it into tData
-      
-      local tExists
+
       local tCanonical
       repeat for each line l in tData
          lock messages
          put utilityCanonicalizePath(l) into tCanonical
-         put (there is a stack tCanonical) into tExists
          unlock messages
-         // AL-2014-10-27: [[ Bug 12558 ]] Stack opened in apple event should report correct error
-         if not tExists then 
-            answer error "Unable to open stack:" && the result
-         else 
-            go stack tCanonical
-            ideMessageSend "ideOpenStack", the long id of stack tCanonical
+         -- Route .hyperxtalk_project bundles to the project loader;
+         -- 'there is a stack' returns false for folder-bundles so we must
+         -- handle this before the normal stack-file check.
+         if tCanonical ends with ".hyperxtalk_project" then
+            revIDELoadFromProject tCanonical
+         else
+            local tExists
+            lock messages
+            put (there is a stack tCanonical) into tExists
+            unlock messages
+            // AL-2014-10-27: [[ Bug 12558 ]] Stack opened in apple event should report correct error
+            if not tExists then
+               answer error "Unable to open stack:" && the result
+            else
+               go stack tCanonical
+               ideMessageSend "ideOpenStack", the long id of stack tCanonical
+            end if
          end if
       end repeat
-      
+
       exit appleEvent
    end if
    pass appleEvent

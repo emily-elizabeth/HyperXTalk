@@ -237,7 +237,7 @@ on preOpenStack
    
    local tScaleFactor
    put the cREVGeneral["scalefactor"] of this stack into tScaleFactor
-   if tScaleFactor is a number and tScaleFactor is not 1 then
+   if tScaleFactor is a number and tScaleFactor is not 1 AND tScaleFactor > 0 then
       set the scalefactor of this stack to tScaleFactor
    end if 
    

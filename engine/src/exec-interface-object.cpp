@@ -782,7 +782,6 @@ static const PropList widgetprops[] =
         {"disabled", P_DISABLED},
         {"id", P_ID},
         {"ink", P_INK},
-        {"label", P_LABEL},
         {"layer", P_LAYER},
         {"layerMode", P_LAYER_MODE},
         {"lockLoc", P_LOCK_LOCATION},
@@ -3450,6 +3449,8 @@ void MCObject::DoGetProperties(MCExecContext& ctxt, uint32_t part, bool p_effect
 
             if (!ctxt . HasError())
                 MCArrayStoreValue(*t_array, false, MCNAME(t_token), *t_value);
+
+            ctxt . IgnoreLastError();
 		}
 		MCerrorlock--;
 		t_success = MCArrayCopy(*t_array, r_props);

@@ -174,9 +174,29 @@ public handler OnSave(out rProperties as Array)
 end handler
 
 public handler OnLoad(in pProperties as Array)
+    -- Restore persisted properties
     put pProperties["showNames"] into mShowNames
-    put pProperties["iconSize"] into mIconSize
+    if pProperties["iconSize"] > 0 then
+        put pProperties["iconSize"] into mIconSize
+    else
+        put kDefaultIconSize into mIconSize
+    end if
     put pProperties["showFrameBorder"] into mFrameBorder
+
+    -- Initialize runtime-only state (OnCreate is not called on import/load,
+    -- so we must set up everything that OnCreate would have done).
+    -- Without this, mDataList is empty, mDataHeight is 0, and updateScrollbar
+    -- divides by zero, causing an infinite paint error loop (lockup).
+    put "" into mFilterString
+    put the empty array into mPaths
+    put 1 into mFirstDataItem
+    put true into mRecalculateGeometry
+    put false into mRecalculate
+    put 0 into mHoverRow
+    put 0 into mViewTopPosition
+    put true into mShowSelectedElement
+    initialiseScrollbar()
+    SetDataList()
 end handler
 
 handler SetDataList()
@@ -766,6 +786,10 @@ private handler updateScrollbar(in pViewWidth as Real, in pViewHeight as Real, i
 		put 0 into tScrollableHeight
 	end if	
 
+	if pDataHeight is 0 then
+		put 0 into mScrollbarHeight
+		return
+	end if
 	put pViewHeight / pDataHeight into tScrollbarRatio
 	
 	if tScrollbarRatio >= 1 or tScrollbarRatio <= 0 then 
