@@ -22,7 +22,7 @@ IF "%2"=="" (
 	SET ARCH=%2
 )
 
-SET PREBUILT_LIBS=OpenSSL Curl ICU CEF libz libzip libgif libjpeg libpng libfreetype
+SET PREBUILT_LIBS=OpenSSL Curl ICU libz libzip libgif libjpeg libpng libfreetype
 
 ECHO Building Libs %PREBUILT_LIBS%
 

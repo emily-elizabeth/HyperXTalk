@@ -3345,3 +3345,37 @@ on msgChanged pHandler, pLine
    end if
 end msgChanged
 
+
+function isColorDark pColor
+   if (char 1 of pColor = "#") then
+      put hexToRgb(pColor) into pColor
+   end if
+   
+   -- pColor: any LC color string "R,G,B" (0-255)
+   -- Returns true if the colour reads as dark
+   local tRed, tGreen, tBlue
+   put item 1 of pColor into tRed
+   put item 2 of pColor into tGreen
+   put item 3 of pColor into tBlue
+   
+   -- ITU-R BT.709 perceived luminance, normalised 0–1
+   local tLuminance
+   put ((0.2126 * tRed )+ (0.7152 * tGreen) + (0.0722 * tBlue)) / 255 into tLuminance
+   
+   return (tLuminance < 0.5)
+end isColorDark
+
+
+private function hexToRgb hex
+   local tRedHex, tGreenHex, tBlueHex
+   put char 2 to 3 of hex into tRedHex
+   put char 4 to 5 of hex into tGreenHex
+   put char 6 to 7 of hex into tBlueHex
+   
+   local tRed, tGreen, tBlue
+   put baseConvert(tRedHex, 16, 10) into tRed
+   put baseConvert(tGreenHex, 16, 10) into tGreen
+   put baseConvert(tBlueHex, 16, 10) into tBlue
+   
+   return tRed, tGreen, tBlue
+end hexToRgb

@@ -151,7 +151,7 @@
 
 						'include_dirs':
 						[
-							'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I[^ ]*libpng[^ ]*//g" | sed "s/-I//g")',
+							'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I[^ ]*libpng[^ ]*//g" | sed "s/-I[^ ]*webp[^ ]*//g" | sed "s/-I//g")',
 							'<!@(pkg-config --cflags-only-I dbus-1 2>/dev/null | sed "s/-I//g")',
 						],
 

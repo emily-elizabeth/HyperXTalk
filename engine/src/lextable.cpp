@@ -1762,6 +1762,7 @@ const LT factor_table[] =
 		{"systempixelscale", TT_PROPERTY, P_SYSTEM_PIXEL_SCALE},
 		{"systemprintselector", TT_PROPERTY, P_SYSTEM_PS},
 		{"systemtextcolor", TT_PROPERTY, P_SYSTEM_TEXT_COLOR},
+		{"systemthemename", TT_PROPERTY, P_SYSTEM_THEME_NAME},
         {"systemversion", TT_FUNCTION, F_SYSTEM_VERSION},
         {"systemwindow", TT_PROPERTY, P_SYSTEM_WINDOW},
 		{"systemwindowcolor", TT_PROPERTY, P_SYSTEM_WINDOW_COLOR},

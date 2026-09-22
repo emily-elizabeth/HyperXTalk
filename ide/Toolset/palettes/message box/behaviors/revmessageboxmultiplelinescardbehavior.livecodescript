@@ -68,6 +68,8 @@ end mouseDown
 
 on mouseUp
    put false into lMoving
+   set the lockText of field "Script" to false
+   set the lockText of field "results" to false
    pass mouseUp
 end mouseUp
 
@@ -78,7 +80,9 @@ end mouseRelease
 on mouseMove pMouseH, pMouseV
    local tLineYLoc
    put item 2 of the loc of graphic "line" into tLineYLoc
-   if pMouseV <= (tLineYLoc + kSeparatorSize/2) and pMouseV >= (tLineYLoc - kSeparatorSize/2) then 
+   if pMouseV <= (tLineYLoc + kSeparatorSize/2) and pMouseV >= (tLineYLoc - kSeparatorSize/2) then
+      set the lockText of field "Script" to true
+      set the lockText of field "results" to true
       set the cursor to 30
       lock cursor
    else

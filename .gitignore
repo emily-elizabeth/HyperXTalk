@@ -26,6 +26,7 @@ util/perfect/perfect.linux-*
 **/extensions/*/*/*.lce
 **/extensions/*/*/api.lcdoc
 */src/.lci/*
+/Installer/output
 
 # Compiled source and intermediates #
 ###################
@@ -34,10 +35,6 @@ util/perfect/perfect.linux-*
 *.com
 *.class
 *.dll
-# Allow the Windows Runtime DLLs needed for building standalones on Mac
-!ide/Runtime/Windows/x86-64/Support/*.dll
-!ide/Runtime/Windows/x86-64/Externals/*.dll
-!ide/Runtime/Windows/x86-64/Externals/Database Drivers/*.dll
 *.exe
 *.o
 *.so
@@ -45,6 +42,11 @@ util/perfect/perfect.linux-*
 *.pyc
 *.d
 *.stamp
+
+# Allow the Windows Runtime DLLs needed for building standalones on Mac
+!ide/Runtime/Windows/x86-64/Support/*.dll
+!ide/Runtime/Windows/x86-64/Externals/*.dll
+!ide/Runtime/Windows/x86-64/Externals/Database Drivers/*.dll
 
 # Packages #
 ############
@@ -110,7 +112,6 @@ _cache/
 build/
 /_tests/
 *-bin/
-mac-bin
 build-*/
 *.gn
 engine/obj/
@@ -126,7 +127,6 @@ prebuilt/bin
 prebuilt/share
 prebuilt/build
 prebuilt/fetched
-prebuilt/include/zconf.h
 
 # Windows build artefacts
 *.idb
@@ -139,12 +139,3 @@ prebuilt/include/zconf.h
 *.cer
 *.mobileprovision
 codesign.cfg
-build-win-x86_64/livecode/Debug/lib/libcef_library_wrapper.lib
-build-win-x86_64/livecode/Debug/lib/libcef_library_wrapper.lib
-build-win-x86_64/livecode/thirdparty/libcef/Debug/lib/libcef_library_wrapper.lib
-build-win-x86_64/livecode/Debug/Externals/CEF/libcef.dll
-build/engine/Debug/Externals/CEF
-build/engine/Release/Externals/CEF
-/thirdparty/libcef
-/thirdparty/libjpeg/src/jconfig.h
-/Installer/output

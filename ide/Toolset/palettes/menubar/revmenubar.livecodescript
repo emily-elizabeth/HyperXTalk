@@ -18,8 +18,8 @@ on preOpenStack
    revIDEPositionPalette the short name of me
    
    // HXT
-   set the backColor of me to (the systemWindowColor)
-   set the foregroundColor of me to (the systemTextColor)
+   --   set the backColor of me to (the systemWindowColor)
+   --   set the foregroundColor of me to (the systemTextColor)
    
    dispatch "revIDEPositionPaletteDefault" to stack "revIDElibrary" with "revMenubar"
    
@@ -3402,13 +3402,13 @@ end revMenubarHelpMenuPick
 
 // HXT
 on systemAppearanceChanged pMode, pWindowColor, pTextColor
-   set the backgroundColor of this stack to pWindowColor
-   set the foregroundColor of this stack to pTextColor
+   set the backgroundColor of this stack to EMPTY
+   set the foregroundColor of this stack to EMPTY
    local tDividerCounter
    put 1 into tDividerCounter
    repeat for each item tItem in revMenubarItems()
       local tModeIsLight, tModeIsDark
-      if (pMode is "light") then
+      if NOT (IsColorDark(the effective backgroundColor of this stack)) then
          put TRUE into tModeIsLight
          put FALSE into tModeIsDark
       else
@@ -3425,3 +3425,17 @@ on systemAppearanceChanged pMode, pWindowColor, pTextColor
       end if
    end repeat
 end systemAppearanceChanged
+
+
+private function isColorDark pColor
+   -- pColor: any LC color string "R,G,B" (0-255)
+   -- Returns true if the colour reads as dark
+   put item 1 of pColor into tRed
+   put item 2 of pColor into tGreen
+   put item 3 of pColor into tBlue
+   
+   -- ITU-R BT.709 perceived luminance, normalised 0–1
+   put (0.2126 * tRed + 0.7152 * tGreen + 0.0722 * tBlue) / 255 into tLuminance
+   
+   return (tLuminance < 0.5)
+end isColorDark

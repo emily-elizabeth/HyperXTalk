@@ -874,6 +874,19 @@ void MCStack::sethints()
         gdk_window_set_focus_on_map(window, FALSE);
     }
 
+    // Palette windows must always float above the main stack and above any
+    // native browser layers (which live in separate GTK_WINDOW_TOPLEVEL
+    // windows in Mutter's NORMAL layer).
+    //
+    // Under XWayland + Mutter, gdk_window_restack() is ignored for managed
+    // windows, so client-requested Z-order changes have no effect.  The only
+    // reliable mechanism is _NET_WM_STATE_ABOVE, which places the window in
+    // Mutter's TOP layer (above all NORMAL/UTILITY windows).  This matches
+    // macOS/Windows palette behaviour where tool panels float above all
+    // application content windows.
+    if (mode == WM_PALETTE)
+        gdk_window_set_keep_above(window, TRUE);
+
     // All popup/menu modes (including WM_POPOVER) use override-redirect so the
     // WM does not intercept positioning or add decorations.
     if (mode >= WM_PULLDOWN && mode <= WM_LICENSE)
@@ -1541,6 +1554,7 @@ void MCX11PutImage(GdkDisplay *p_dpy, GdkWindow* d, cairo_region_t* p_clip_regio
 
     // Begin a draw frame to get a cairo context
     t_drawing_context = gdk_window_begin_draw_frame(d, p_clip_region);
+
     if (t_drawing_context != NULL)
     {
         t_cr = gdk_drawing_context_get_cairo_context(t_drawing_context);

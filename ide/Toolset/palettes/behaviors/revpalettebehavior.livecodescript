@@ -590,9 +590,9 @@ on systemAppearanceChanged pMode, pWindowColor, pTextColor
    -- explicitly, which overrides the stack background if not also updated.
    local tBgColor
    put revIDEColor("palette_background") into tBgColor
-   set the backgroundColor of this stack to pWindowColor  //tBgColor
-   set the backgroundColor of this card to pWindowColor  //tBgColor
-   set the foregroundColor of this stack to pTextColor  //revIDEColor("text_1")
+   --   set the backgroundColor of this stack to pWindowColor  //tBgColor
+   --   set the backgroundColor of this card to pWindowColor  //tBgColor
+   --   set the foregroundColor of this stack to pTextColor  //revIDEColor("text_1")
    
    -- HXT: LCB widgets (e.g. paletteactions) hold their own explicit
    -- foregroundColor and do not inherit the stack-level foreground.
@@ -617,6 +617,21 @@ on systemAppearanceChanged pMode, pWindowColor, pTextColor
          end if
       end repeat
    end repeat
+   
+   -- HXT: The paletteActions widget draws the selected nav tab using "my background paint"
+   -- (the widget's backgroundColor). The foregroundColor loop above handles icon colours,
+   -- but backgroundColor is not inherited from the stack and must be explicitly refreshed
+   -- here so the selected-tab highlight switches correctly between light and dark mode.
+   if sHideFrame is not true then
+      if there is a widget "header_background" of group "background" of me then
+         set the backgroundColor of widget "header_background" of group "background" of me to tBgColor
+         set the hiliteColor of widget "header_background" of group "background" of me to revIDEColor("edition_color")
+      end if
+      if there is a widget "footer_background" of group "background" of me then
+         set the backgroundColor of widget "footer_background" of group "background" of me to tBgColor
+         set the hiliteColor of widget "footer_background" of group "background" of me to revIDEColor("edition_color")
+      end if
+   end if
    
    pass systemAppearanceChanged
 end systemAppearanceChanged

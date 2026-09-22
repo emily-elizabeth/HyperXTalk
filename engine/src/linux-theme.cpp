@@ -42,6 +42,49 @@ static GtkWidget* s_widgets[kMCPlatformControlTypeMessageBox+1];
 // Container for widgets
 static GtkWidget* s_widget_container = NULL;
 
+// Font description cache, keyed by MCPlatformControlType.
+//
+// gtk_style_context_get(GTK_STYLE_PROPERTY_FONT) traverses the full CSS
+// cascade on every call.  Under libwebkit2gtk (0.9.16+) WebKit registers
+// its own CSS providers into the default GtkStyleContext, making each
+// traversal ~100x slower than under CEF 74.  The Script Editor's syntax-
+// highlight loop calls textHeight hundreds of times per keypress, which
+// accumulates to ~1 s of main-thread stall.
+//
+// The theme font for a given control type never changes unless the user
+// switches their GTK theme.  We cache one PangoFontDescription* per
+// control type and invalidate the whole cache in MCLinuxThemeFlushCache()
+// (which is already called on GTK theme changes).
+//
+// The cache OWNS the stored PangoFontDescription* pointers.
+// getCachedFontDesc() callers must NOT free the returned pointer.
+static PangoFontDescription* s_font_desc_cache[kMCPlatformControlTypeMessageBox+1];
+static bool s_font_cache_valid = false;
+
+// Returns a PangoFontDescription for p_type from the cache, calling
+// gtk_style_context_get() only on a cold miss.  Returns NULL on failure.
+// The returned pointer is owned by the cache -- the caller must NOT free it.
+static PangoFontDescription* getCachedFontDesc(GtkStyleContext* t_ctx,
+                                                MCPlatformControlType p_type)
+{
+    int idx = (int)p_type;
+    if (idx < 0 || idx > (int)kMCPlatformControlTypeMessageBox)
+        return NULL;
+
+    if (s_font_cache_valid && s_font_desc_cache[idx] != NULL)
+        return s_font_desc_cache[idx];
+
+    // Cold miss -- fetch from GTK (expensive under WebKit CSS providers).
+    PangoFontDescription* t_desc = NULL;
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    gtk_style_context_get(t_ctx, GTK_STATE_FLAG_NORMAL,
+                          GTK_STYLE_PROPERTY_FONT, &t_desc, NULL);
+G_GNUC_END_IGNORE_DEPRECATIONS
+    s_font_desc_cache[idx] = t_desc;
+    s_font_cache_valid = true;
+    return t_desc;
+}
+
 extern "C" int initialise_weak_link_gtk(void);
 extern "C" int initialise_weak_link_X11(void);
 
@@ -242,6 +285,14 @@ void MCLinuxThemeFlushCache(void)
 
     if (t_window != NULL)
         gtk_widget_destroy(t_window);
+
+    // Also flush the font description cache so it is rebuilt with the new theme.
+    for (int i = 0; i <= (int)kMCPlatformControlTypeMessageBox; i++)
+    {
+        pango_font_description_free(s_font_desc_cache[i]);
+        s_font_desc_cache[i] = NULL;
+    }
+    s_font_cache_valid = false;
 }
 
 
@@ -261,18 +312,15 @@ bool MCPlatformGetControlThemePropInteger(MCPlatformControlType p_type, MCPlatfo
     if (t_ctx == NULL)
         return false;
 
-    // gtk_style_context_get() with GTK_STYLE_PROPERTY_FONT gives us the theme
-    // font description without the deprecated GtkStyle.font_desc field.
-    PangoFontDescription *t_desc = NULL;
-G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-    gtk_style_context_get(t_ctx, GTK_STATE_FLAG_NORMAL,
-                          GTK_STYLE_PROPERTY_FONT, &t_desc, NULL);
-G_GNUC_END_IGNORE_DEPRECATIONS
+    // Use the cache: gtk_style_context_get(GTK_STYLE_PROPERTY_FONT) is
+    // expensive under libwebkit2gtk because WebKit registers CSS providers
+    // into the global style context.  getCachedFontDesc() calls it only once
+    // per theme epoch.  Do NOT free the returned pointer -- the cache owns it.
+    PangoFontDescription *t_desc = getCachedFontDesc(t_ctx, p_type);
     if (t_desc == NULL)
         return false;
 
     int t_size = pango_font_description_get_size(t_desc) / PANGO_SCALE;
-    pango_font_description_free(t_desc);
 
     if (t_size <= 0)
         return false;
