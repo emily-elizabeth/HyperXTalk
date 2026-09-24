@@ -517,7 +517,9 @@ MCNameRef MCM_start_up;
 MCNameRef MCM_suspend;
 MCNameRef MCM_suspend_stack;
 MCNameRef MCM_tab_key;
+MCNameRef MCM_toolbar_hidden;
 MCNameRef MCM_toolbar_item_clicked;
+MCNameRef MCM_toolbar_shown;
 MCNameRef MCM_text_changed;
 MCNameRef MCM_trace;
 MCNameRef MCM_trace_break;
@@ -967,7 +969,9 @@ const struct { const char *cstring; MCNameRef *name_var; } kInitialNames[] =
 	{ "suspendStack", &MCM_suspend_stack },
 	{ "tabKey", &MCM_tab_key },
 	{ "textChanged", &MCM_text_changed },
+	{ "toolbarHidden", &MCM_toolbar_hidden },
 	{ "toolbarItemClicked", &MCM_toolbar_item_clicked },
+	{ "toolbarShown", &MCM_toolbar_shown },
 	{ "trace", &MCM_trace },
 	{ "traceBreak", &MCM_trace_break },
 	{ "traceDone", &MCM_trace_done },
