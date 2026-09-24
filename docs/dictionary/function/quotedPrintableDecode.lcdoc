@@ -1,0 +1,56 @@
+Name: quotedPrintableDecode
+
+Type: function
+
+Syntax: the quotedPrintableDecode of <encodedData>
+
+Syntax: quotedPrintableDecode(<encodedData>)
+
+Summary:
+<return|Returns> the original data from a Quoted-Printable-<encode|encoded>
+<string>.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+put quotedPrintableDecode(receivedBody) into decodedMessage
+
+Example:
+quotedPrintableDecode(quotedPrintableEncode(myData))
+
+Parameters:
+encodedData (string):
+A Quoted-Printable encoded string of any length. =XX sequences
+(case-insensitive hex) are decoded to the corresponding byte. Soft line
+breaks (=\r\n or =\n) are removed. All other characters pass through
+unchanged.
+
+Returns:
+The <quotedPrintableDecode> <function> <return|returns> the original
+<binary file|binary data>.
+
+Description:
+Use the <quotedPrintableDecode> <function> to take a
+Quoted-Printable-<encode|encoded> <string> and transform it back into
+the original <binary file|binary data>.
+
+The <quotedPrintableDecode> <function> is the <inverse> of the
+<quotedPrintableEncode> <function>.
+
+Quoted-Printable encoding is commonly used in MIME email to allow
+mostly-ASCII text to survive transmission through gateways that may
+alter or drop non-ASCII bytes.
+
+For technical information about Quoted-Printable encoding, see
+[RFC 2045, section 6.7](https://tools.ietf.org/html/rfc2045#section-6.7).
+
+References: function (control structure), base64Decode (function),
+quotedPrintableEncode (function), encode (glossary),
+return (glossary), binary file (glossary), string (keyword),
+inverse (keyword)
+
+Tags: text processing
