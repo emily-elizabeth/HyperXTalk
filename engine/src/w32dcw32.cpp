@@ -1565,9 +1565,16 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 		}
 		break;
 	case WM_CLOSE:
+		// HXT-0.9.16: Return 0 after wclose() so that DefWindowProc is NOT called
+		// for WM_CLOSE. Prior to the global-hotkeys refactor (0.9.15) all explicitly
+		// handled messages returned 0; now the fall-through at the end of MCWindowProc
+		// calls DefWindowProc for every case. For WM_CLOSE that means DestroyWindow is
+		// always called even when the script cancelled the close via closeStackRequest,
+		// so IDE palette windows are destroyed and cannot be reopened. wclose() already
+		// handles the full close-or-cancel logic; we must not let DefWindowProc override it.
 		MCdispatcher->wclose(dw);
 		curinfo->handled = True;
-		break;
+		return 0;
 	case WM_GETMINMAXINFO:
 		target = MCdispatcher->findstackd(dw);
 		if (target != NULL)
