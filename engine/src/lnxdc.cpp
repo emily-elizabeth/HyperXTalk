@@ -638,6 +638,6 @@ bool MCScreenDC::unloadfont(MCStringRef p_path, bool p_globally, void *r_loaded_
     
     if (!FcConfigBuildFonts(t_config))
         return false;
-    
+
     return true;
 }

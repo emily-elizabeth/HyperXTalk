@@ -25,7 +25,7 @@
 		# whose pnglibconf.h was built against system zlib 1.3.1, but our bundled
 		# libz is 1.3.2 — causing a version-check #error in pngpriv.h.  The
 		# bundled thirdparty/libpng/include (PNG_ZLIB_VERNUM=0, no check) must win.
-		'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I[^ ]*libpng[^ ]*//g" | sed "s/-I//g")',
+		'<!@(pkg-config --cflags-only-I gtk+-3.0 2>/dev/null | sed "s/-I[^ ]*libpng[^ ]*//g" | sed "s/-I[^ ]*webp[^ ]*//g" | sed "s/-I//g")',
 		'../thirdparty/headers/linux/include',
 		'../thirdparty/libcairo/src',			# Required by the GDK headers
 		'../thirdparty/libfreetype/include',	# Required by the Pango headers
@@ -136,7 +136,12 @@
 			'cflags':
 			[
 				'-O3',
-				'-g3',
+				# -g1: minimal debug info (function names + line numbers only).
+				# Sufficient for crash-report backtraces; the deploy step already
+				# strips these out via `strip --strip-debug`. Was -g3 (full macro
+				# expansion records) which slowed every Release compile by ~15-20%
+				# and bloated intermediate .o files for no runtime benefit.
+				'-g1',
 			],
 			
 			'defines':

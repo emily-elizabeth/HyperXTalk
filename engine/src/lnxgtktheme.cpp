@@ -34,9 +34,11 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "lnxgtkthemedrawing.h"
 #include "lnxtheme.h"
 #include "lnximagecache.h"
+#include "card.h"
 
 #include <gdk/gdkx.h>
 #include <gtk/gtk.h>
+#include <gio/gio.h>   // GDBusConnection, GSettings, g_bus_get_sync
 
 #define FIXED_THUMB_SIZE 17
 
@@ -242,8 +244,315 @@ static GtkWidgetState getpartandstate(const MCWidgetInfo &winfo, GtkThemeWidgetT
 	return state;
 }
 
+// ── XDG Desktop Portal dark-mode connection ───────────────────────────────────
+// s_portal_bus is opened once by InitPortalDarkMode().  The portal works inside
+// AppImages because it uses D-Bus directly, bypassing GLib's schema registry.
+// We do a *live* synchronous Read in MCplatformIsDarkMode() rather than caching
+// the result: any cached bool risks being stale when a live-switch signal
+// arrives and triggers a reload before all other sources have been updated.
+// The SettingChanged subscription is still kept so appearance changes are
+// noticed promptly (it calls reload_theme, which calls MCplatformIsDarkMode).
+static GDBusConnection *s_portal_bus       = NULL;
+static guint            s_portal_signal_id = 0;
+
+// Luminance-based fallback for desktops (MATE, XFCE, …) that have no
+// dark-mode API.  Set at the end of MCNativeTheme::load() from the actual GTK
+// theme background colour; read by check #5 in MCplatformIsDarkMode().
+static bool s_luminance_dark  = false;
+static bool s_luminance_valid = false;
+
+// Polling-based fallback trigger for desktops (MATE, XFCE, …) where neither
+// the portal SettingChanged signal nor notify::gtk-theme-name fires reliably.
+// A GLib timer samples moz_gtk's hidden-widget background colour every 2 s;
+// if the RGB values change, reload_theme() is called.  GTK automatically
+// re-styles moz_gtk's hidden widgets on any theme switch (the same mechanism
+// that redraws stack windows), so this catches theme changes on ANY desktop
+// regardless of how the switch was initiated — even when GtkSettings properties
+// and D-Bus signals are silent.  Overhead is negligible: one GTK style query
+// per tick.
+static uint16_t s_polled_r           = 0;
+static uint16_t s_polled_g           = 0;
+static uint16_t s_polled_b           = 0;
+static bool     s_polled_color_valid = false;
+static guint    s_poll_id            = 0;
+
+// GdkScreen::setting-changed subscription — fires whenever an XSETTINGS value
+// changes (same event stream that triggers GTK to restyle realized windows).
+// This is the exact signal path that causes stack windows to update on MATE.
+static gulong   s_screen_setting_signal = 0;
+
+// Offscreen probe window used to sample the actual GTK CSS background colour.
+// moz_gtk_get_widget_color() uses the old GTK 2 RC-style API and returns
+// #ffffff on GTK 3 CSS themes (Debian MATE, etc.), making all luminance-based
+// dark mode checks fail.  gtk_render_background() on a GtkOffscreenWindow runs
+// the full CSS pipeline and gives the colour the user actually sees.
+static GtkWidget *s_probe_window = NULL;
+
+// Forward declarations — defined later in this file.
+void MCPlatformHandleSystemAppearanceChanged(void);
+static gboolean reload_theme(void);
+
+// ── XDG Desktop Portal callbacks and helpers ─────────────────────────────────
+
+// Called by the GLib main loop whenever org.freedesktop.portal.Settings emits
+// SettingChanged.  We only care about org.freedesktop.appearance / color-scheme;
+// for everything else we return early.  No cache update is needed here because
+// MCplatformIsDarkMode() always does a fresh synchronous Read.
+static void on_portal_setting_changed(GDBusConnection * /*connection*/,
+                                       const gchar     * /*sender*/,
+                                       const gchar     * /*object_path*/,
+                                       const gchar     * /*interface_name*/,
+                                       const gchar     * /*signal_name*/,
+                                       GVariant        *parameters,
+                                       gpointer         /*user_data*/)
+{
+	const gchar *t_ns  = NULL;
+	const gchar *t_key = NULL;
+	GVariant    *t_val = NULL;
+	g_variant_get(parameters, "(&s&sv)", &t_ns, &t_key, &t_val);
+	bool t_relevant = (g_strcmp0(t_ns,  "org.freedesktop.appearance") == 0 &&
+	                   g_strcmp0(t_key, "color-scheme") == 0);
+	if (t_val) g_variant_unref(t_val);
+	if (t_relevant)
+		reload_theme();
+}
+
+// Reads the current color-scheme from the XDG Desktop Portal via synchronous
+// D-Bus call.  Returns true and sets r_dark when the portal is reachable.
+static bool ReadPortalColorScheme(GDBusConnection *bus, bool &r_dark)
+{
+	GError   *t_err   = NULL;
+	GVariant *t_reply = g_dbus_connection_call_sync(
+	    bus,
+	    "org.freedesktop.portal.Desktop",
+	    "/org/freedesktop/portal/desktop",
+	    "org.freedesktop.portal.Settings",
+	    "Read",
+	    g_variant_new("(ss)", "org.freedesktop.appearance", "color-scheme"),
+	    G_VARIANT_TYPE("(v)"),
+	    G_DBUS_CALL_FLAGS_NONE,
+	    1000,   // 1 s timeout — portal should always be fast
+	    NULL,
+	    &t_err);
+	if (t_reply == NULL)
+	{
+		if (t_err) g_error_free(t_err);
+		return false;
+	}
+
+	// Reply is (v) wrapping a variant; the inner variant is a uint32.
+	GVariant *t_outer = NULL;
+	g_variant_get(t_reply, "(v)", &t_outer);
+	guint32 t_scheme = 0;
+	if (t_outer != NULL)
+	{
+		GVariant *t_inner = g_variant_is_of_type(t_outer, G_VARIANT_TYPE_VARIANT)
+		    ? g_variant_get_variant(t_outer)
+		    : g_variant_ref(t_outer);
+		if (t_inner != NULL)
+		{
+			if (g_variant_is_of_type(t_inner, G_VARIANT_TYPE_UINT32))
+				g_variant_get(t_inner, "u", &t_scheme);
+			g_variant_unref(t_inner);
+		}
+		g_variant_unref(t_outer);
+	}
+	g_variant_unref(t_reply);
+
+	// 1 = prefer-dark, 0 = no preference, 2 = prefer-light
+	r_dark = (t_scheme == 1);
+	return true;
+}
+
+// Opens a D-Bus session connection and subscribes to SettingChanged so live
+// dark-mode changes are noticed.  The actual colour-scheme value is always read
+// fresh in MCplatformIsDarkMode() via ReadPortalColorScheme() — no initial cache
+// is seeded here.  Safe to call multiple times; subsequent calls are no-ops.
+static void InitPortalDarkMode(void)
+{
+	if (s_portal_bus != NULL)
+		return;   // already initialised — idempotent
+
+	GError *t_err = NULL;
+	s_portal_bus = g_bus_get_sync(G_BUS_TYPE_SESSION, NULL, &t_err);
+	if (s_portal_bus == NULL)
+	{
+		if (t_err) g_error_free(t_err);
+		return;
+	}
+
+	// Subscribe to live changes.  The callback calls reload_theme(), which
+	// calls MCplatformIsDarkMode(), which does a fresh synchronous Read.
+	s_portal_signal_id = g_dbus_connection_signal_subscribe(
+	    s_portal_bus,
+	    NULL,                                         // any sender
+	    "org.freedesktop.portal.Settings",            // interface
+	    "SettingChanged",                             // signal
+	    "/org/freedesktop/portal/desktop",            // object path
+	    NULL,                                         // arg0 filter
+	    G_DBUS_SIGNAL_FLAGS_NONE,
+	    on_portal_setting_changed,
+	    NULL,
+	    NULL);
+}
+
+// Sample the rendered background colour of the current GTK theme.
+// Unlike moz_gtk_get_widget_color() which reads the deprecated GTK 2 RC-style
+// bg[] array (always #ffffff on GTK 3 CSS themes), this calls
+// gtk_render_background() which runs the full CSS pipeline — the same path
+// that paints stack window backgrounds.  Returns true on success; r/g/b are
+// in the 0–65535 range used by MCColor.
+static bool SampleGtkWindowBackground(uint16_t &r_r, uint16_t &r_g, uint16_t &r_b)
+{
+    if (s_probe_window == NULL)
+        return false;
+
+    GtkStyleContext *ctx = gtk_widget_get_style_context(s_probe_window);
+
+    // Force recompute so we see the new theme, not a stale cached value.
+    gtk_style_context_invalidate(ctx);
+
+    // Render background to a 1×1 ARGB32 surface.  Fill with a mid-grey
+    // sentinel first so a fully-transparent CSS background gives a
+    // deterministic neutral value rather than uninitialised bytes.
+    cairo_surface_t *surf =
+        cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1);
+    cairo_t *cr = cairo_create(surf);
+    cairo_set_source_rgba(cr, 0.5, 0.5, 0.5, 1.0);
+    cairo_paint(cr);
+    gtk_render_background(ctx, cr, 0, 0, 1, 1);
+    cairo_surface_flush(surf);
+    cairo_destroy(cr);
+
+    // CAIRO_FORMAT_ARGB32 stores premultiplied [B G R A] on little-endian.
+    uint32_t pixel = *(uint32_t *)cairo_image_surface_get_data(surf);
+    cairo_surface_destroy(surf);
+
+    uint8_t a  = (pixel >> 24) & 0xFF;
+    uint8_t rv = (pixel >> 16) & 0xFF;
+    uint8_t gv = (pixel >>  8) & 0xFF;
+    uint8_t bv =  pixel        & 0xFF;
+
+    double fr, fg, fb;
+    if (a == 0)
+    {
+        fr = fg = fb = 0.5;   // fully transparent — fall back to grey sentinel
+    }
+    else
+    {
+        // Un-premultiply, then composite over the grey sentinel.
+        double fa = a / 255.0;
+        fr = (rv / 255.0) / fa;
+        fg = (gv / 255.0) / fa;
+        fb = (bv / 255.0) / fa;
+        fr = fr * fa + 0.5 * (1.0 - fa);
+        fg = fg * fa + 0.5 * (1.0 - fa);
+        fb = fb * fa + 0.5 * (1.0 - fa);
+    }
+
+    // Clamp and convert to 0–65535.
+    auto clamp01 = [](double v){ return v < 0.0 ? 0.0 : v > 1.0 ? 1.0 : v; };
+    r_r = (uint16_t)(clamp01(fr) * 65535.0 + 0.5);
+    r_g = (uint16_t)(clamp01(fg) * 65535.0 + 0.5);
+    r_b = (uint16_t)(clamp01(fb) * 65535.0 + 0.5);
+    return true;
+}
+
+// GdkScreen::setting-changed fires whenever any XSETTINGS property changes —
+// "Net/ThemeName" when MATE/XFCE switch the GTK theme, "Net/IconThemeName" for
+// icons, etc.  This is precisely the event that GTK's internal machinery uses to
+// restyle all realized widgets (the same mechanism that causes stack windows to
+// update their appearance without any code from us).  By connecting here we hook
+// into the exact same event stream and call reload_theme() at the same moment GTK
+// restyles everything else.
+static void on_screen_setting_changed(GdkScreen   * /*screen*/,
+                                      const gchar  *setting_name,
+                                      gpointer      /*data*/)
+{
+    // Reload only on theme or colour changes; skip font, cursor, sound, etc.
+    if (g_strstr_len(setting_name, -1, "Theme")  != NULL ||
+        g_strstr_len(setting_name, -1, "theme")  != NULL ||
+        g_strstr_len(setting_name, -1, "Color")  != NULL ||
+        g_strstr_len(setting_name, -1, "colour") != NULL)
+    {
+        if (MCcurtheme && MCcurtheme->getthemeid() == LF_NATIVEGTK)
+            reload_theme();
+    }
+}
+
+// Adapter so the GSettings "changed::<key>" signal (which passes settings +
+// key + user_data) can call the no-argument reload_theme() directly.
+static void on_gsettings_color_scheme_changed(GSettings * /*settings*/,
+                                               const gchar * /*key*/,
+                                               gpointer /*user_data*/)
+{
+	reload_theme();
+}
+
+// 2-second timer that detects GTK theme changes on desktops (MATE, XFCE) where
+// portal and GtkSettings notify signals don't fire reliably.
+// We sample the background colour from moz_gtk's hidden (unrealised) widgets
+// rather than the theme name: GTK re-styles those widgets on ANY theme switch
+// (same internal propagation that redraws stack windows), so we catch the
+// change even when gtk-theme-name doesn't update in GtkSettings.
+static gboolean theme_poll_cb(gpointer /*data*/)
+{
+	// Use the CSS-rendered probe rather than moz_gtk_get_widget_color(), which
+	// always returns #ffffff on GTK 3 CSS themes and would never detect a change.
+	uint16_t t_r = 0, t_g = 0, t_b = 0;
+	if (!SampleGtkWindowBackground(t_r, t_g, t_b))
+		return G_SOURCE_CONTINUE;
+
+	if (s_polled_color_valid &&
+	    (t_r != s_polled_r || t_g != s_polled_g || t_b != s_polled_b))
+	{
+		// Colour changed — update cached values first so a re-entrant tick
+		// (if reload_theme() somehow pumps the main loop) sees the new values.
+		s_polled_r = t_r;
+		s_polled_g = t_g;
+		s_polled_b = t_b;
+
+		if (MCcurtheme && MCcurtheme->getthemeid() == LF_NATIVEGTK)
+			reload_theme();
+	}
+	else if (!s_polled_color_valid)
+	{
+		// Initialise on first tick in case load() ran before probe was ready.
+		s_polled_r           = t_r;
+		s_polled_g           = t_g;
+		s_polled_b           = t_b;
+		s_polled_color_valid = true;
+	}
+
+	return G_SOURCE_CONTINUE;
+}
+
 static gboolean reload_theme(void)
 {
+	// Guard against re-entrant calls.  Setting gtk-application-prefer-dark-theme
+	// in load() (below) can trigger this function again via the GtkSettings
+	// notify signal before the first call has finished — the guard makes it a
+	// no-op so the outer call completes cleanly.
+	static bool s_reload_in_progress = false;
+	if (s_reload_in_progress)
+		return TRUE;
+	s_reload_in_progress = true;
+
+	// Keep the colour poll in sync: snapshot the probe colour NOW so that
+	// the 2-second timer doesn't fire a duplicate reload for the change we're
+	// already handling.  load() (called below) re-seeds these again after
+	// moz_gtk_invalidate_caches() has been called.
+	{
+		uint16_t t_r = 0, t_g = 0, t_b = 0;
+		if (SampleGtkWindowBackground(t_r, t_g, t_b))
+		{
+			s_polled_r           = t_r;
+			s_polled_g           = t_g;
+			s_polled_b           = t_b;
+			s_polled_color_valid = true;
+		}
+	}
+
 	Boolean reload = True;
 	if (MCcurtheme && MCcurtheme->getthemeid() == LF_NATIVEGTK)
 	{
@@ -258,8 +567,204 @@ static gboolean reload_theme(void)
 
 		// MW-2011-08-17: [[ Redraw ]] The theme has changed so redraw everything.
 		MCRedrawDirtyScreen();
+
+		// Notify scripts that the system appearance may have changed.
+		MCPlatformHandleSystemAppearanceChanged();
 	}
+	s_reload_in_progress = false;
 	return (TRUE);
+}
+
+// ── Linux dark-mode appearance helpers ────────────────────────────────────
+// These provide the strong definitions declared as extern "C" in desktop.cpp.
+// They are called from MCPlatformHandleSystemAppearanceChanged() to supply the
+// three parameters sent with the systemAppearanceChanged message.
+
+extern "C" bool MCplatformIsDarkMode(void)
+{
+	// ── 1. XDG Desktop Portal — live synchronous read ─────────────────────────
+	// Always read fresh from the portal rather than from a cached bool.  A
+	// cached value is inherently stale during live switches: the portal
+	// SettingChanged signal, the GtkSettings XSETTINGS notify, and the GTK
+	// theme-name notify all arrive in non-deterministic order, so whichever
+	// triggers this call first would see the wrong cached state.  A fresh
+	// synchronous D-Bus call to the local portal service is < 1 ms and gives
+	// the unambiguous current truth with no feedback-loop risk.
+	//
+	// IMPORTANT: we do NOT read gtk-application-prefer-dark-theme from GtkSettings
+	// here.  That property is our own *output* (we set it in load()); reading
+	// it back would lock dark mode on permanently once set.
+	if (s_portal_bus != NULL)
+	{
+		bool t_dark = false;
+		if (ReadPortalColorScheme(s_portal_bus, t_dark))
+			return t_dark;
+		// Portal reachable but returned an error — fall through.
+	}
+
+	// ── 2. GSettings org.gnome.desktop.interface color-scheme ─────────────────
+	// Covers GNOME sessions where the portal is absent (AppImage without a
+	// running portal service, or schema not compiled into the AppImage).
+	{
+		GSettingsSchemaSource *t_src = g_settings_schema_source_get_default();
+		GSettingsSchema *t_schema = t_src
+		    ? g_settings_schema_source_lookup(t_src, "org.gnome.desktop.interface", TRUE)
+		    : NULL;
+		if (t_schema != NULL)
+		{
+			g_settings_schema_unref(t_schema);
+			GSettings *t_iface = g_settings_new("org.gnome.desktop.interface");
+			if (t_iface != NULL)
+			{
+				gchar *t_scheme = g_settings_get_string(t_iface, "color-scheme");
+				g_object_unref(t_iface);
+				if (t_scheme != NULL)
+				{
+					bool t_dark = (g_strcmp0(t_scheme, "prefer-dark") == 0);
+					g_free(t_scheme);
+					if (t_dark)
+						return true;
+				}
+			}
+		}
+	}
+
+	// ── 3. GtkSettings gtk-application-prefer-dark-theme ────────────────────
+	// On MATE, KDE, and other non-GNOME-42+ desktops, the desktop settings
+	// daemon (e.g. mate-settings-daemon) propagates the current theme's
+	// dark/light nature to GTK via XSETTINGS → gtk-application-prefer-dark-theme.
+	// This is the settings daemon's own authoritative output, NOT our output,
+	// because we only reach here when the portal and GSettings checks above have
+	// already failed — which means we are NOT on a GNOME 42+ session where we
+	// ourselves set this property.  Reading it here is therefore safe: if the
+	// property is TRUE it was set by the desktop environment, not by our load().
+	//
+	// (On GNOME 42+, the portal at check #1 returns the correct value and we
+	// never fall through to here, so the GNOME feedback-loop risk does not apply.)
+	{
+		GtkSettings *t_settings_pref = gtk_settings_get_default();
+		if (t_settings_pref != NULL)
+		{
+			gboolean t_prefer_dark = FALSE;
+			g_object_get(t_settings_pref, "gtk-application-prefer-dark-theme", &t_prefer_dark, NULL);
+			if (t_prefer_dark)
+				return true;
+		}
+	}
+
+	// ── 4. Theme-name heuristic ───────────────────────────────────────────────
+	// Distros that ship separate dark-theme packages (Yaru-dark on Ubuntu,
+	// Mint-Y-Dark on Linux Mint) change the GTK theme name when dark mode is
+	// enabled.  This is also the signal source on those distros — the
+	// notify::gtk-theme-name handler calls reload_theme() which then reaches
+	// this check with the updated name already in place.
+	{
+		GtkSettings *t_settings = gtk_settings_get_default();
+		if (t_settings != NULL)
+		{
+			gchar *t_theme_name = NULL;
+			g_object_get(t_settings, "gtk-theme-name", &t_theme_name, NULL);
+			if (t_theme_name != NULL)
+			{
+				gchar *t_lower = g_ascii_strdown(t_theme_name, -1);
+				g_free(t_theme_name);
+				if (t_lower != NULL)
+				{
+					bool t_dark = g_strstr_len(t_lower, -1, "dark") != NULL;
+					g_free(t_lower);
+					if (t_dark)
+						return true;
+				}
+			}
+		}
+	}
+
+	// ── 5. Background colour luminance ────────────────────────────────────────
+	// Final fallback for MATE, XFCE, and other desktops that have no dark-mode
+	// API and whose dark themes have arbitrary names.  load() calls
+	// SampleGtkWindowBackground() (gtk_render_background on a GtkOffscreenWindow)
+	// after every theme change and stores the computed luminance here (ITU-R
+	// BT.709 coefficients, 0–65535 per channel).  A theme whose normal
+	// background luminance is < 0.5 is dark — this works for any GTK CSS theme
+	// regardless of name or desktop-environment metadata.
+	// s_luminance_valid is false until the first load() completes so we never
+	// mistake an uninitialised value for dark mode.
+	if (s_luminance_valid)
+		return s_luminance_dark;
+
+	return false;
+}
+
+extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen)
+{
+	if (MCplatformIsDarkMode())
+		snprintf(p_buf, p_buflen, "#1e1e1e");
+	else
+		snprintf(p_buf, p_buflen, "#ffffff");
+}
+
+extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen)
+{
+	if (MCplatformIsDarkMode())
+		snprintf(p_buf, p_buflen, "#ffffff");
+	else
+		snprintf(p_buf, p_buflen, "#000000");
+}
+
+// Linux implementation of MCPlatformHandleSystemAppearanceChanged.
+// desktop.cpp is excluded from the Linux build, so we provide the function
+// here.  This mirrors the dispatch logic in desktop.cpp but omits the
+// updatesystemcolors() call (desktop-dc.cpp is also excluded on Linux — GTK
+// handles native widget colours itself) and the Mac HITheme cache flush.
+void MCPlatformHandleSystemAppearanceChanged(void)
+{
+	if (MCscreen == nil)
+		return;
+
+	// Use the MCscreen getters — they query GTK style context directly and
+	// work correctly on all desktops including Debian MATE (unlike the old
+	// MCplatformGetWindowBackgroundColor / MCplatformGetLabelColor helpers
+	// which returned #ffffff / #000000 on MATE regardless of actual theme).
+	MCSystemAppearance t_appearance = kMCSystemAppearanceLight;
+	MCscreen->getsystemappearance(t_appearance);
+
+	MCStringRef t_color_str = kMCEmptyString;
+	MCscreen->getsystemwindowcolor(t_color_str);
+
+	MCStringRef t_text_color_str = kMCEmptyString;
+	MCscreen->getsystemtextcolor(t_text_color_str);
+
+	MCStringRef t_mode_str;
+	switch (t_appearance)
+	{
+		case kMCSystemAppearanceDark:   t_mode_str = MCSTR("dark");   break;
+		case kMCSystemAppearanceCustom: t_mode_str = MCSTR("custom"); break;
+		default:                        t_mode_str = MCSTR("light");  break;
+	}
+
+	MCStacknode *t_stack_node = MCstacks->topnode();
+	MCStacknode *t_first_node = t_stack_node;
+	while (t_stack_node != NULL)
+	{
+		MCStack *t_stack = t_stack_node->getstack();
+		if (t_stack != nil && t_stack->getcurcard() != nil)
+		{
+			t_stack->dirtyall();
+			MCscreen->delaymessage(t_stack->getcurcard(),
+			                       MCM_system_appearance_changed,
+			                       t_mode_str,
+			                       t_color_str,
+			                       t_text_color_str);
+		}
+		t_stack_node = t_stack_node->next();
+		if (t_stack_node == t_first_node)
+			break;
+	}
+
+	MCValueRelease(t_color_str);
+	MCValueRelease(t_text_color_str);
+
+	MCRedrawDirtyScreen();
 }
 
 
@@ -304,19 +809,136 @@ Boolean MCNativeTheme::load()
 	// Initialize member variables
 	m_settings = NULL;
 	m_settings_signal_handler = 0;
-	
+	m_settings_prefer_dark_signal_handler = 0;
+	m_gsettings = NULL;
+	m_gsettings_signal_handler = 0;
+
 	if (!initialised)
 	{
 		gtk_init();
-		
 		initialised = True;
-		m_settings = gtk_settings_get_default();
-		if (m_settings)
+	}
+
+	// Initialise XDG Desktop Portal dark-mode detection.  This is idempotent —
+	// it only opens the D-Bus connection and subscribes to SettingChanged once.
+	// Must be called before MCplatformIsDarkMode() so the portal cache is warm.
+	InitPortalDarkMode();
+
+	// Create the offscreen probe window once for the app lifetime.
+	// GtkOffscreenWindow is realized and participates in GTK's style machinery
+	// but never appears as a real window on the user's desktop.
+	if (s_probe_window == NULL)
+	{
+		s_probe_window = gtk_offscreen_window_new();
+		gtk_widget_show(s_probe_window);  // must show for rendering to work
+	}
+
+	// ── Primary XSETTINGS hook — mirrors what stack windows do ──────────────────
+	// GdkScreen::setting-changed is the signal GTK fires when any XSETTINGS
+	// property changes (theme name, colour scheme, icon theme, …).  It is the
+	// event source GTK uses internally to restyle all realized windows — i.e. the
+	// exact mechanism that causes stack windows to repaint when the user switches
+	// themes on MATE/XFCE.  We subscribe once for the app lifetime (GdkScreen
+	// persists) and call reload_theme() whenever a theme/colour setting changes.
+	if (s_screen_setting_signal == 0)
+	{
+		GdkScreen *t_screen = gdk_screen_get_default();
+		if (t_screen != NULL)
+			s_screen_setting_signal = g_signal_connect(
+			    t_screen, "setting-changed",
+			    G_CALLBACK(on_screen_setting_changed), NULL);
+	}
+
+	// ── Polling fallback timer (backstop only) ────────────────────────────────
+	// Samples moz_gtk background colour every 2 s as a last resort in case
+	// GdkScreen::setting-changed is somehow not dispatched.  The polled colour
+	// is seeded below (after SampleGtkWindowBackground) so the first tick
+	// doesn't trigger a spurious reload.
+	if (s_poll_id == 0)
+		s_poll_id = g_timeout_add(2000, theme_poll_cb, NULL);
+
+	// Connect signals every time load() is called — they are disconnected by
+	// unload(), so they must be reconnected here on each reload_theme() cycle.
+	m_settings = gtk_settings_get_default();
+	if (m_settings)
+	{
+		// Apply the correct dark/light variant to GTK 3 BEFORE connecting the
+		// notify::gtk-application-prefer-dark-theme signal.  If we connected the
+		// signal first and then set the property, the property change would fire
+		// the signal and call reload_theme() recursively mid-load().  Setting it
+		// first means there is no connected handler yet, so the notify is a no-op.
+		// GTK 3 does not honour the portal or dconf setting on its own — it only
+		// acts on this GtkSettings property, so this call is what makes the whole
+		// GTK widget stack (scrollbars, menus, dialogs) render in the right colour
+		// variant on Fedora and Debian GNOME 42+.
+		g_object_set(m_settings,
+		             "gtk-application-prefer-dark-theme",
+		             MCplatformIsDarkMode() ? TRUE : FALSE,
+		             NULL);
+
+		// gtk-theme-name fires on distros that ship separate dark-theme packages
+		// (e.g. Yaru-dark on Ubuntu, Mint-Y-Dark on Linux Mint).
+		m_settings_signal_handler = g_signal_connect_data(m_settings, "notify::gtk-theme-name",
+		                                                   G_CALLBACK(reload_theme),
+		                                                   NULL, NULL, (GConnectFlags)0);
+		// gtk-application-prefer-dark-theme fires on GNOME 42+ when XSETTINGS
+		// (propagated by gnome-settings-daemon from dconf) updates the property.
+		// Also fires on some Ubuntu setups.
+		m_settings_prefer_dark_signal_handler = g_signal_connect_data(m_settings,
+		                                                               "notify::gtk-application-prefer-dark-theme",
+		                                                               G_CALLBACK(reload_theme),
+		                                                               NULL, NULL, (GConnectFlags)0);
+	}
+
+	// Watch org.gnome.desktop.interface color-scheme via GSettings.
+	// Fedora and Debian GNOME 42+ toggle dark mode through this key rather than
+	// by changing the GTK theme name, so neither GtkSettings signal above fires.
+	// Guard with a schema lookup so we don't crash on KDE or older GNOME that
+	// doesn't have this schema installed.
+	{
+		GSettingsSchemaSource *t_src = g_settings_schema_source_get_default();
+		GSettingsSchema *t_schema = t_src
+		    ? g_settings_schema_source_lookup(t_src, "org.gnome.desktop.interface", TRUE)
+		    : NULL;
+		if (t_schema != NULL)
 		{
-			// Store the signal handler ID so we can disconnect it later
-			m_settings_signal_handler = g_signal_connect_data(m_settings, "notify::gtk-theme-name", 
-			                                                    G_CALLBACK(reload_theme),
-			                                                    NULL, NULL, (GConnectFlags)0);
+			g_settings_schema_unref(t_schema);
+			m_gsettings = g_settings_new("org.gnome.desktop.interface");
+			if (m_gsettings != NULL)
+			{
+				m_gsettings_signal_handler = g_signal_connect(
+				    m_gsettings, "changed::color-scheme",
+				    G_CALLBACK(on_gsettings_color_scheme_changed), NULL);
+			}
+		}
+	}
+
+	// Watch org.mate.desktop.interface gtk-theme via GSettings (MATE desktops).
+	// On MATE, the settings daemon writes theme changes to this GSettings key.
+	// The notify::gtk-theme-name GtkSettings signal may not fire on MATE because
+	// mate-settings-daemon can apply theme changes through a path that doesn't
+	// round-trip through the XSETTINGS GtkSettings property notification.
+	// Subscribing here ensures reload_theme() is called on MATE theme switches,
+	// which in turn triggers MCRedrawDirtyScreen() (IDE redraws like stack windows)
+	// and MCPlatformHandleSystemAppearanceChanged() (systemAppearanceChanged fires).
+	// Only subscribe if the GNOME schema wasn't found — m_gsettings is reused since
+	// unload() cleans it up generically regardless of which schema it wraps.
+	if (m_gsettings == NULL)
+	{
+		GSettingsSchemaSource *t_src = g_settings_schema_source_get_default();
+		GSettingsSchema *t_schema = t_src
+		    ? g_settings_schema_source_lookup(t_src, "org.mate.desktop.interface", TRUE)
+		    : NULL;
+		if (t_schema != NULL)
+		{
+			g_settings_schema_unref(t_schema);
+			m_gsettings = g_settings_new("org.mate.desktop.interface");
+			if (m_gsettings != NULL)
+			{
+				m_gsettings_signal_handler = g_signal_connect(
+				    m_gsettings, "changed::gtk-theme",
+				    G_CALLBACK(on_gsettings_color_scheme_changed), NULL);
+			}
 		}
 	}
 	// -- tperry 15-11-2025: GTK3 - initialize offscreen window for theme rendering
@@ -330,7 +952,55 @@ Boolean MCNativeTheme::load()
 		moz_gtk_get_widget_color(GTK_STATE_NORMAL,
 		                         tbackcolor.red,tbackcolor.green,tbackcolor.blue) ;
 		MCscreen->background_pixel = tbackcolor;//tcolor = zcolor;
-		
+
+		// Update the luminance-based dark-mode indicator (check #5 in
+		// MCplatformIsDarkMode) and seed the colour poll using the CSS-rendered
+		// probe.  We do NOT use tbackcolor (from moz_gtk_get_widget_color) here
+		// because on GTK 3 CSS themes (Debian MATE, etc.) that function returns
+		// the deprecated RC-style default (#ffffff) regardless of the active theme.
+		// SampleGtkWindowBackground() runs gtk_render_background() through the full
+		// CSS pipeline and returns the colour the user actually sees.
+		// ITU-R BT.709 perceived luminance; luminance < 0.5 → dark theme.
+		{
+			uint16_t t_pr = 0, t_pg = 0, t_pb = 0;
+			if (SampleGtkWindowBackground(t_pr, t_pg, t_pb))
+			{
+				double t_lum = (0.2126 * t_pr
+				              + 0.7152 * t_pg
+				              + 0.0722 * t_pb) / 65535.0;
+				s_luminance_dark  = (t_lum < 0.5);
+				s_luminance_valid = true;
+
+				// Also update MCscreen->background_pixel from the probe so that
+				// systemWindowColor reflects the real theme colour, not the moz_gtk
+				// default.  Keep tbackcolor (from moz_gtk) for MChilitecolor below
+				// since GTK_STATE_SELECTED is a different query.
+				MCscreen->background_pixel.red   = t_pr;
+				MCscreen->background_pixel.green = t_pg;
+				MCscreen->background_pixel.blue  = t_pb;
+
+				s_polled_r           = t_pr;
+				s_polled_g           = t_pg;
+				s_polled_b           = t_pb;
+				s_polled_color_valid = true;
+			}
+			else
+			{
+				// Probe not ready yet — fall back to moz_gtk luminance so we
+				// at least have a valid flag set.
+				double t_lum = (0.2126 * tbackcolor.red
+				              + 0.7152 * tbackcolor.green
+				              + 0.0722 * tbackcolor.blue) / 65535.0;
+				s_luminance_dark  = (t_lum < 0.5);
+				s_luminance_valid = true;
+
+				s_polled_r           = tbackcolor.red;
+				s_polled_g           = tbackcolor.green;
+				s_polled_b           = tbackcolor.blue;
+				s_polled_color_valid = true;
+			}
+		}
+
 		// MW-2012-01-27: [[ Bug 9511 ]] Set the hilite color based on the current GTK theme.
 		MCColor thilitecolor;
 		moz_gtk_get_widget_color(GTK_STATE_SELECTED, thilitecolor.red, thilitecolor.green, thilitecolor.blue);
@@ -345,12 +1015,32 @@ Boolean MCNativeTheme::load()
 
 void MCNativeTheme::unload()
 {
-	// Disconnect the signal handler before cleanup to avoid the finalization warning
-	if (m_settings && m_settings_signal_handler != 0)
+	// Disconnect all signal handlers before cleanup.
+	if (m_settings)
 	{
-		g_signal_handler_disconnect(m_settings, m_settings_signal_handler);
-		m_settings_signal_handler = 0;
+		if (m_settings_signal_handler != 0)
+		{
+			g_signal_handler_disconnect(m_settings, m_settings_signal_handler);
+			m_settings_signal_handler = 0;
+		}
+		if (m_settings_prefer_dark_signal_handler != 0)
+		{
+			g_signal_handler_disconnect(m_settings, m_settings_prefer_dark_signal_handler);
+			m_settings_prefer_dark_signal_handler = 0;
+		}
 		m_settings = NULL;
+	}
+
+	// GSettings watcher (Fedora / Debian GNOME dark-mode via color-scheme key).
+	if (m_gsettings != NULL)
+	{
+		if (m_gsettings_signal_handler != 0)
+		{
+			g_signal_handler_disconnect(m_gsettings, m_gsettings_signal_handler);
+			m_gsettings_signal_handler = 0;
+		}
+		g_object_unref(m_gsettings);
+		m_gsettings = NULL;
 	}
 		
 	//unload gtk libraries at runtime and do deinit stuff

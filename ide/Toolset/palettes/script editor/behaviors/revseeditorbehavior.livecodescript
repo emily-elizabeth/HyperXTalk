@@ -1,4 +1,4 @@
-script "revSEEditorBehavior"
+﻿script "revSEEditorBehavior"
 # Stores the following mapping
 #  <handler name>,type   => string representing the handler type eg PF for private function
 # <handler name>,start  => line offset to start of handler
@@ -119,8 +119,12 @@ command initialize
    lock screen
    textInitialize
    call "initialize" to group "Gutter" of me
-   
-   set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+
+   if (the systemAppearance is "light") then
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+   else
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
+   end if
    setHandlersFieldBackColor
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
    
@@ -147,8 +151,13 @@ end initialize
 private command setHandlersFieldBackColor
    if there is a field "Handlers" of group "Left Handler List" of group "Left Bar" \
          of card "Main" of this stack then
-      set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
+      if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
+         set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
+            of card "Main" of this stack to sePrefGet("editor,backgroundcolordark")
+      else
+         set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
             of card "Main" of this stack to sePrefGet("editor,backgroundcolor")
+      end if
    end if
 end setHandlersFieldBackColor
 
@@ -192,8 +201,16 @@ command reapplyPreferences
    colorizationUpdate
    scriptColorize "script"
    
-   set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
-   setHandlersFieldBackColor
+   if the lockText of field "Script" of me then
+      scriptLock
+   else
+      if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
+         set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
+      else
+         set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+      end if
+      setHandlersFieldBackColor
+   end if
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
    
    updateGutterRequest empty, empty, empty, empty, false, false, true
@@ -557,17 +574,27 @@ end clearCache
 # Description
 #   Locks the script to prevent the uesr from editing it. Used by the debugger.
 command scriptLock
+   local tDebugBGColor
+   if (the systemAppearance is "light") then
+      put sePrefGet("editor,debugBackgroundcolor") into tDebugBGColor
+   else
+      put sePrefGet("editor,debugBackgroundcolordark") into tDebugBGColor
+   end if
    set the lockText of field "Script" of me to true
-   set the backgroundColor of field "Script" of me to sePrefGet("editor,debugBackgroundcolor")
-   set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
-         of card "Main" of this stack to sePrefGet("editor,debugBackgroundcolor")
+   set the backgroundColor of field "Script" of me to tDebugBGColor
+   set the backgroundColor of field "Handlers" of group "Left Handler List" of group "Left Bar" \
+         of card "Main" of this stack to tDebugBGColor
 end scriptLock
 
 # Description
 #   Unlocks the script, allowing the user to edit it.
 command scriptUnlock
    set the lockText of field "Script" of me to false
-   set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundColor")
+   if (the systemAppearance is "light") then
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
+   else
+      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
+   end if
    setHandlersFieldBackColor
 end scriptUnlock
 
@@ -692,20 +719,38 @@ end convertTypeCodeToSyntax
 #   stores a map of handler names to line numbers for later use.
 # Returns
 #   Empty if compilation suceeded, otherwise a list of errors.
+-- Cache the last compiled (script text, object) pair so that scriptCompile,
+-- which fires 200ms after every selection change, skips the expensive
+-- revAvailableHandlers / revScriptDescription reads when nothing has changed.
+local sLastCompiledScript
+local sLastCompiledObject
+
 command scriptCompile pObject
    lock screen
    lock messages
-   
+
    local tOldPreserveVariables, tOldExplicitVariables
    put the preserveVariables into tOldPreserveVariables
    put the explicitVariables into tOldExplicitVariables
    set the preserveVariables to sePrefGet("preserveVariables")
    set the explicitVariables to sePrefGet("explicitVariables")
-   
+
    local tScript
    scriptGet pObject
    put the result into tScript
-   
+
+   -- Early exit: if neither the script text nor the object has changed, the
+   -- handler list and autocomplete description are already current.
+   if tScript is sLastCompiledScript and pObject is sLastCompiledObject then
+      set the preserveVariables to tOldPreserveVariables
+      set the explicitVariables to tOldExplicitVariables
+      unlock messages
+      unlock screen
+      return empty
+   end if
+   put tScript into sLastCompiledScript
+   put pObject into sLastCompiledObject
+
    local tResult
    local tDoUpdateDescription
    set the script of button "revCompileObject" of me to tScript
@@ -4455,3 +4500,8 @@ on parseStructs pStartLine
    
 end parseStructs
 
+on systemAppearanceChanged
+   seColorizationInit
+   reapplyPreferences
+   pass systemAppearanceChanged
+end systemAppearanceChanged

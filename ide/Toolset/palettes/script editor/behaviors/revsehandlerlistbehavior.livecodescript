@@ -266,11 +266,13 @@ end update
 
 private function contrastingTextColor pBackgroundColor
    set the itemDelimiter to comma
+   local tR, tG, tB
    put item 1 of pBackgroundColor into tR
    put item 2 of pBackgroundColor into tG
    put item 3 of pBackgroundColor into tB
    
    -- Perceived luminance (fast approximation)
+   local tLuminance
    put (0.299 * tR + 0.587 * tG + 0.114 * tB) into tLuminance
    
    if tLuminance > 128 then

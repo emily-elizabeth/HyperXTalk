@@ -109,7 +109,11 @@ function mesonBinary
 			echo "running meson and ninja"
 			mkdir -p ${BUILDDIR}/${ARCHIVE_DESTINATION}/build
 			pushd "${BUILDDIR}/${ARCHIVE_DESTINATION}"
-			meson setup --wipe build
+			if [ -e "build/build.ninja" ] ; then
+				meson setup --wipe build
+			else
+				meson setup build
+			fi
 			if [ -e "build/build.ninja" ] ; then
 				echo "launching ninja"
 				ninja -C build

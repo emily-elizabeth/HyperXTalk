@@ -261,7 +261,7 @@ command setCurrentTab pObject
    if not the cVisible of tControl then
       reorderTabs
    end if
-   send "checkFolding" to field "Script" group "Editor" of the owner of me in 10 milliseconds
+   
 end setCurrentTab
 
 # Description
@@ -932,6 +932,7 @@ on mouseUp pButtonNumber
          revSESetCurrentObject sTabMap[tClickedTabNumber]
       end if
    end if
+   send "checkFolding" to field "Script" of group "Editor" of the owner of me
    unlock screen
 end mouseUp
 

@@ -27,14 +27,15 @@ on enterInField
 end enterInField
 
 local sColorizeMsg
+local sAutoCompleteMsg
 
 on textChanged
-   --   cancel sColorizeMsg
-   // HXT dark mode: use __msgBoxColorize which does colorize then clears the
-   // light-mode per-char colors so the field's dark foregroundColor shows.
-   --   send "__msgBoxColorize" to me in 100 milliseconds
-   --   put the result into sColorizeMsg
-   revDisplayAutoComplete(the text of me)
+   -- Debounce: cancel any pending autocomplete call and reschedule 80ms out.
+   -- revIDEAutoComplete scans the full history list on every invocation;
+   -- firing once per burst of keystrokes is sufficient.
+   cancel sAutoCompleteMsg
+   send "revDisplayAutoComplete (the text of me)" to me in 80 milliseconds
+   put the result into sAutoCompleteMsg
 end textChanged
 
 on __msgBoxColorize

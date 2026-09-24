@@ -588,7 +588,7 @@ private command revStandaloneCopyInclusions pStack, pStackFileList, pStackSource
       local tExternalsFolder
       set the itemDelimiter to "/"
       put item 1 to -5 of pEngineSourceFile & "/Externals" into tExternalsFolder
-      revCopyModule "MacOSX", "revdb", "revdb.bundle", tExternalsFolder, pDirectory & "/Externals", "", TRUE
+      revCopyModule "MacOSX", "revdb", "revdb.bundle", tExternalsFolder, pDirectory, "Externals", TRUE
       local tStackExternals
       put the externals of stack pStack into tStackExternals
       put LF & "Externals/revdb.bundle" after tStackExternals

@@ -208,6 +208,14 @@ Boolean MCWidget::mdown(uint2 p_which)
 	case T_BROWSE:
         if (m_widget != nil)
             MCwidgeteventmanager->event_mdown(this, p_which);
+        // Forward to native layer so offscreen-rendered views (e.g. browser)
+        // receive mouse events — they never see raw X11 button events because
+        // HXT's event loop consumes them before GDK can.
+        if (getNativeLayer() != nil && p_which == 1 /*Button1*/)
+        {
+            MCRectangle r = getrect();
+            getNativeLayer()->OnMouseDown(MCmousex - r.x, MCmousey - r.y);
+        }
 		break;
 
 	case T_POINTER:
@@ -238,6 +246,12 @@ Boolean MCWidget::mup(uint2 p_which, bool p_release)
 	case T_BROWSE:
         if (m_widget != nil)
             MCwidgeteventmanager->event_mup(this, p_which, p_release);
+        // Forward to native layer (same reason as mdown above).
+        if (getNativeLayer() != nil && p_which == 1 /*Button1*/ && !p_release)
+        {
+            MCRectangle r = getrect();
+            getNativeLayer()->OnMouseUp(MCmousex - r.x, MCmousey - r.y);
+        }
 		break;
 
 	case T_POINTER:
@@ -273,10 +287,12 @@ Boolean MCWidget::mfocus(int2 p_x, int2 p_y)
 	// Update the mouse loc.
 	mx = p_x;
 	my = p_y;
-    
+
     if (m_widget != nil)
+    {
         return MCwidgeteventmanager->event_mfocus(this, p_x, p_y);
-    
+    }
+
     return False;
 }
 

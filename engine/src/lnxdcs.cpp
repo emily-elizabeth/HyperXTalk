@@ -60,6 +60,12 @@ static std::vector<GdkWindow*> s_extra_backdrops;
 // check it without needing a full MCScreenDC* cast.
 static GdkWindow *s_primary_backdrop = nullptr;
 
+// XDG_CURRENT_DESKTOP never changes at runtime — cache the XFCE check once.
+static const bool s_is_xfce = []() {
+    const char *d = getenv("XDG_CURRENT_DESKTOP");
+    return d != nullptr && (strstr(d, "XFCE") != nullptr || strstr(d, "xfce") != nullptr);
+}();
+
 // Some WMs treat _NET_WM_STATE_ABOVE ClientMessages as "aggressively re-raise
 // above everything on every click-to-raise event", which pushes HXT stacks
 // behind the backdrop.  Known offenders: Muffin (Cinnamon) and Marco (MATE /
@@ -158,6 +164,17 @@ static bool hxt_overlaps_extra_backdrop(GdkWindow *p_win)
     return false;
 }
 
+// Cached X11 atoms — intern'd once on first use, never change for a given display.
+// Declared here so hxt_raise_above_backdrops(), hxt_check_stacking(),
+// openwindow(), and the backdrop creation path can all share them.
+static x11::Atom s_net_wm_state_atom              = None;
+static x11::Atom s_net_wm_state_above_atom        = None;
+static x11::Atom s_net_restack_window_atom        = None;
+static x11::Atom s_net_wm_window_type_atom        = None;
+static x11::Atom s_net_wm_window_type_normal_atom = None;
+static x11::Atom s_net_moveresize_window_atom     = None;
+static x11::Atom s_net_client_list_stacking_atom  = None;
+
 // Raises p_win above any extra backdrop on Muffin (Cinnamon) by sending
 // _NET_RESTACK_WINDOW to root.  Only triggers when p_win overlaps an extra
 // backdrop (external monitor) to avoid unnecessary restacks on the primary.
@@ -173,9 +190,12 @@ void hxt_raise_above_backdrops(GdkWindow *p_win)
     x11::Window   t_root = x11::gdk_x11_window_get_xid(
         gdk_screen_get_root_window(gdk_display_get_default_screen(MCdpy)));
     x11::Window   t_xwin = x11::gdk_x11_window_get_xid(p_win);
-    x11::Atom t_wm_state = x11::XInternAtom(t_xdpy, "_NET_WM_STATE", False);
-    x11::Atom t_above    = x11::XInternAtom(t_xdpy, "_NET_WM_STATE_ABOVE", False);
-    x11::Atom t_restack  = x11::XInternAtom(t_xdpy, "_NET_RESTACK_WINDOW", False);
+    if (!s_net_wm_state_atom)       s_net_wm_state_atom       = x11::XInternAtom(t_xdpy, "_NET_WM_STATE",        False);
+    if (!s_net_wm_state_above_atom) s_net_wm_state_above_atom = x11::XInternAtom(t_xdpy, "_NET_WM_STATE_ABOVE",  False);
+    if (!s_net_restack_window_atom) s_net_restack_window_atom = x11::XInternAtom(t_xdpy, "_NET_RESTACK_WINDOW",  False);
+    x11::Atom t_wm_state = s_net_wm_state_atom;
+    x11::Atom t_above    = s_net_wm_state_above_atom;
+    x11::Atom t_restack  = s_net_restack_window_atom;
 
     // Step 1: ADD _NET_WM_STATE_ABOVE via raw X11 so it arrives at Marco
     // in the same X11 stream as step 2 and is processed first.
@@ -225,18 +245,23 @@ static gboolean hxt_check_stacking(gpointer)
         gdk_screen_get_root_window(gdk_display_get_default_screen(MCdpy)));
 
     // Skip during active drag (any mouse button held).
+    // Use GDK's seat pointer rather than a synchronous XQueryPointer round-trip:
+    // gdk_device_get_state() reads GDK's cached event-stream state, avoiding a
+    // 1-3ms X11 stall every 250ms.
     {
-        x11::Window t_qroot, t_qchild;
-        int t_qrx = 0, t_qry = 0, t_qwx = 0, t_qwy = 0;
-        unsigned int t_qmask = 0;
-        x11::XQueryPointer(t_xdpy, t_root, &t_qroot, &t_qchild,
-                           &t_qrx, &t_qry, &t_qwx, &t_qwy, &t_qmask);
-        if (t_qmask & ((1u<<8)|(1u<<9)|(1u<<10)))
+        GdkDevice *t_ptr = gdk_seat_get_pointer(gdk_display_get_default_seat(MCdpy));
+        GdkModifierType t_state = (GdkModifierType)0;
+        GdkWindow *t_root_win = gdk_screen_get_root_window(
+            gdk_display_get_default_screen(MCdpy));
+        gdk_device_get_state(t_ptr, t_root_win, NULL, &t_state);
+        if (t_state & (GDK_BUTTON1_MASK | GDK_BUTTON2_MASK | GDK_BUTTON3_MASK))
             return G_SOURCE_CONTINUE;
     }
 
     // Read bottom-to-top client stacking order.
-    x11::Atom t_prop = x11::XInternAtom(t_xdpy, "_NET_CLIENT_LIST_STACKING", False);
+    if (!s_net_client_list_stacking_atom)
+        s_net_client_list_stacking_atom = x11::XInternAtom(t_xdpy, "_NET_CLIENT_LIST_STACKING", False);
+    x11::Atom t_prop = s_net_client_list_stacking_atom;
     x11::Atom t_actual_type;
     int t_fmt;
     unsigned long t_nitems = 0, t_after = 0;
@@ -263,8 +288,8 @@ static gboolean hxt_check_stacking(gpointer)
 
     if (t_max_bd_idx >= 0 && t_top_bd_win)
     {
-        static x11::Atom s_restack_atom = 0;
-        if (!s_restack_atom) s_restack_atom = x11::XInternAtom(t_xdpy, "_NET_RESTACK_WINDOW", False);
+        if (!s_net_restack_window_atom) s_net_restack_window_atom = x11::XInternAtom(t_xdpy, "_NET_RESTACK_WINDOW", False);
+        x11::Atom s_restack_atom = s_net_restack_window_atom;
 
         // Find the lowest-indexed HXT stack buried under the extra backdrop.
         x11::Window t_first_buried = 0;
@@ -471,6 +496,11 @@ void MCScreenDC::backdrop_focus_lost()
 // Tears down the native GtkPopover hierarchy created in lnxstack.cpp::realize().
 // MCpopoverstack must be nulled before calling so on_popover_closed() is a no-op.
 extern void MCLinuxPopoverClose(void);
+
+// Dark-mode colour helpers — strong definitions in lnxgtktheme.cpp.
+extern "C" bool MCplatformIsDarkMode(void);
+extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen);
+extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen);
 
 #include <langinfo.h>
 #include <fcntl.h>
@@ -1276,8 +1306,10 @@ void MCScreenDC::openwindow(Window window, Boolean override)
         {
             x11::Display *t_xdpy = x11::gdk_x11_display_get_xdisplay(MCdpy);
             x11::Window   t_xwin = x11::gdk_x11_window_get_xid(window);
-            x11::Atom t_state = x11::XInternAtom(t_xdpy, "_NET_WM_STATE", False);
-            x11::Atom t_above = x11::XInternAtom(t_xdpy, "_NET_WM_STATE_ABOVE", False);
+            if (!s_net_wm_state_atom)       s_net_wm_state_atom       = x11::XInternAtom(t_xdpy, "_NET_WM_STATE",       False);
+            if (!s_net_wm_state_above_atom) s_net_wm_state_above_atom = x11::XInternAtom(t_xdpy, "_NET_WM_STATE_ABOVE", False);
+            x11::Atom t_state = s_net_wm_state_atom;
+            x11::Atom t_above = s_net_wm_state_above_atom;
             x11::XChangeProperty(t_xdpy, t_xwin, t_state,
                                  (x11::Atom)4, 32, PropModeReplace,
                                  (unsigned char*)&t_above, 1);
@@ -1288,17 +1320,23 @@ void MCScreenDC::openwindow(Window window, Boolean override)
 	{
 		// XFCE workaround: Use show_unraised for palette windows to prevent focus stealing
 		bool use_unraised = false;
-		if (target && target->getrealmode() == WM_PALETTE)
-		{
-			const char *desktop = getenv("XDG_CURRENT_DESKTOP");
-			if (desktop && (strstr(desktop, "XFCE") || strstr(desktop, "xfce")))
-				use_unraised = true;
-		}
+		if (target && target->getrealmode() == WM_PALETTE && s_is_xfce)
+			use_unraised = true;
 
 		if (use_unraised)
 			gdk_window_show_unraised(window);
 		else
 			gdk_window_show(window);
+
+        // Post-map: (re-)apply _NET_WM_STATE_ABOVE for palette windows.
+        // sethints() sets it pre-map, but Mutter/XWayland may reset
+        // _NET_WM_STATE properties at first-map time.  Sending the client
+        // message here, after the window is mapped, is always honoured.
+        // Note: browser Z-order relative to palette is now moot — the browser
+        // is rendered offscreen (GtkOffscreenWindow) and has no compositor
+        // surface.
+        if (target && target->getrealmode() == WM_PALETTE)
+            gdk_window_set_keep_above(window, TRUE);
 	}
 
     // Send ClientMessage form of _NET_WM_STATE_ABOVE and set WM_TRANSIENT_FOR
@@ -1783,7 +1821,11 @@ MCImageBitmap *MCScreenDC::snapshot(MCRectangle &r, uint4 window, MCStringRef di
         // Minature event loop for handling mouse and key events while selecting
         while (!t_done)
         {
-            gdk_display_sync(t_display);
+            // NOTE: gdk_display_sync() was removed from here. It caused a full
+            // blocking X round-trip on every loop iteration (1-5ms each under
+            // XWayland/Mutter), making drag-selection visibly laggy. The loop
+            // already blocks correctly via g_main_context_iteration(NULL, TRUE)
+            // below when the event queue is empty, so the sync was redundant.
 
             // Place all events onto the pending event queue
             EnqueueGdkEvents();
@@ -2300,8 +2342,10 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             // from the no-decoration Motif hints.
             if (s_wm_is_muffin)
             {
-                x11::Atom t_wm_type   = x11::XInternAtom(t_xdpy, "_NET_WM_WINDOW_TYPE", False);
-                x11::Atom t_wm_normal = x11::XInternAtom(t_xdpy, "_NET_WM_WINDOW_TYPE_NORMAL", False);
+                if (!s_net_wm_window_type_atom)        s_net_wm_window_type_atom        = x11::XInternAtom(t_xdpy, "_NET_WM_WINDOW_TYPE",        False);
+                if (!s_net_wm_window_type_normal_atom) s_net_wm_window_type_normal_atom = x11::XInternAtom(t_xdpy, "_NET_WM_WINDOW_TYPE_NORMAL", False);
+                x11::Atom t_wm_type   = s_net_wm_window_type_atom;
+                x11::Atom t_wm_normal = s_net_wm_window_type_normal_atom;
                 x11::XChangeProperty(t_xdpy, t_xwin, t_wm_type,
                                      (x11::Atom)4 /*XA_ATOM*/, 32,
                                      PropModeReplace,
@@ -2480,8 +2524,8 @@ void MCScreenDC::enablebackdrop(bool p_hard)
             +[](gpointer p) -> gboolean {
                 auto *d = static_cast<BackdropDiag*>(p);
 
-                x11::Atom t_mra = x11::XInternAtom(d->xdpy,
-                                                    "_NET_MOVERESIZE_WINDOW", False);
+                if (!s_net_moveresize_window_atom) s_net_moveresize_window_atom = x11::XInternAtom(d->xdpy, "_NET_MOVERESIZE_WINDOW", False);
+                x11::Atom t_mra = s_net_moveresize_window_atom;
                 for (int i = 0; i < d->count; i++)
                 {
                     // Check actual position; send corrective move if Mutter shifted it.
@@ -2761,32 +2805,107 @@ Bool MCScreenDC::is_composite_wm ( int screen_id )
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// -- tperry 15-11-2025: GTK3 theme color and appearance detection for Linux
 
-// Linux implementation of system appearance detection.
-// MCPlatformGetSystemProperty is macOS-only; on Linux we detect dark mode
-// via the GTK theme name — if it contains "dark" (case-insensitive) we
-// report a dark appearance, otherwise light.
+static unsigned s_clamp_to_byte(double v)
+{
+    if (v <= 0.0) return 0;
+    unsigned u = (unsigned)(v * 255.0 + 0.5);
+    return u > 255 ? 255 : u;
+}
+
+static bool s_gtk_lookup_color(const char *p_name, GdkRGBA &r_rgba)
+{
+    GtkWidget *t_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_widget_realize(t_win);
+    GtkStyleContext *t_ctx = gtk_widget_get_style_context(t_win);
+    gboolean t_found = gtk_style_context_lookup_color(t_ctx, p_name, &r_rgba);
+    gtk_widget_destroy(t_win);
+    return t_found != FALSE;
+}
+
+static bool s_gtk_lookup_first(const char *const *p_names, GdkRGBA &r_rgba)
+{
+    for (; *p_names != NULL; p_names++)
+        if (s_gtk_lookup_color(*p_names, r_rgba))
+            return true;
+    return false;
+}
+
+static const char *const kMCGtkBgColorNames[] = {
+    "theme_bg_color", "window_bg_color", NULL
+};
+static const char *const kMCGtkFgColorNames[] = {
+    "theme_fg_color", "window_fg_color", NULL
+};
+
+static void s_rgba_to_rgb_string(const GdkRGBA &p_c, char *p_buf, size_t p_size)
+{
+    snprintf(p_buf, p_size, "#%02x%02x%02x",
+             s_clamp_to_byte(p_c.red),
+             s_clamp_to_byte(p_c.green),
+             s_clamp_to_byte(p_c.blue));
+}
+
 void MCScreenDC::getsystemappearance(MCSystemAppearance &r_appearance)
 {
-	r_appearance = kMCSystemAppearanceLight;
+    // Check gtk-application-prefer-dark-theme first (GNOME 3.24.31+)
+    GtkSettings *t_settings = gtk_settings_get_default();
+    if (t_settings != NULL)
+    {
+        gboolean t_prefer_dark = FALSE;
+        g_object_get(t_settings, "gtk-application-prefer-dark-theme", &t_prefer_dark, NULL);
+        if (t_prefer_dark)
+        {
+            r_appearance = kMCSystemAppearanceDark;
+            return;
+        }
+    }
+    // Fall back to luminance of the GTK background color (works for MATE and others)
+    GdkRGBA t_bg = {1.0, 1.0, 1.0, 1.0};
+    s_gtk_lookup_first(kMCGtkBgColorNames, t_bg);
+    double t_lum = 0.2126 * t_bg.red + 0.7152 * t_bg.green + 0.0722 * t_bg.blue;
+    if (t_lum < 0.35)
+        r_appearance = kMCSystemAppearanceDark;
+    else if (t_lum > 0.65)
+        r_appearance = kMCSystemAppearanceLight;
+    else
+        r_appearance = kMCSystemAppearanceCustom;
+}
 
-	GtkSettings *t_settings = gtk_settings_get_default();
-	if (t_settings == NULL)
-		return;
+void MCScreenDC::getsystemwindowcolor(MCStringRef &r_color)
+{
+    GdkRGBA t_bg = {1.0, 1.0, 1.0, 1.0};
+    s_gtk_lookup_first(kMCGtkBgColorNames, t_bg);
+    char t_buf[16];
+    s_rgba_to_rgb_string(t_bg, t_buf, sizeof(t_buf));
+    if (!MCStringCreateWithCString(t_buf, r_color))
+        r_color = MCValueRetain(kMCEmptyString);
+}
 
-	gchar *t_theme_name = NULL;
-	g_object_get(t_settings, "gtk-theme-name", &t_theme_name, NULL);
-	if (t_theme_name != NULL)
-	{
-		gchar *t_lower = g_ascii_strdown(t_theme_name, -1);
-		if (t_lower != NULL)
-		{
-			if (g_strstr_len(t_lower, -1, "dark") != NULL)
-				r_appearance = kMCSystemAppearanceDark;
-			g_free(t_lower);
-		}
-		g_free(t_theme_name);
-	}
+void MCScreenDC::getsystemtextcolor(MCStringRef &r_color)
+{
+    GdkRGBA t_fg = {0.0, 0.0, 0.0, 1.0};
+    s_gtk_lookup_first(kMCGtkFgColorNames, t_fg);
+    char t_buf[16];
+    s_rgba_to_rgb_string(t_fg, t_buf, sizeof(t_buf));
+    if (!MCStringCreateWithCString(t_buf, r_color))
+        r_color = MCValueRetain(kMCEmptyString);
+}
+
+void MCScreenDC::getsystemthemename(MCStringRef &r_theme)
+{
+    gchar *t_name = NULL;
+    GtkSettings *t_settings = gtk_settings_get_default();
+    if (t_settings != NULL)
+        g_object_get(t_settings, "gtk-theme-name", &t_name, NULL);
+    bool t_ok = false;
+    if (t_name != NULL && t_name[0] != '\0')
+        t_ok = MCStringCreateWithCString(t_name, r_theme);
+    if (t_name != NULL)
+        g_free(t_name);
+    if (!t_ok)
+        r_theme = MCValueRetain(kMCEmptyString);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

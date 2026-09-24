@@ -34,6 +34,11 @@ public:
     virtual void OnVisibilityChanged(bool p_visible);
     virtual void OnToolChanged(Tool p_new_tool);
     virtual void OnLayerChanged();
+    // Mouse event forwarding — called by MCWidget::mdown/mup in T_BROWSE mode
+    // so that offscreen-rendered native layers (which never see raw X11 button
+    // events) can still respond to user clicks.  Default: no-op.
+    virtual void OnMouseDown(int p_x, int p_y) {}
+    virtual void OnMouseUp(int p_x, int p_y) {}
     
     virtual ~MCNativeLayer() = 0;
     

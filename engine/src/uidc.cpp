@@ -2061,4 +2061,9 @@ void MCUIDC::getsystemtextcolor(MCStringRef &r_color)
 	r_color = MCValueRetain(kMCEmptyString);
 }
 
+void MCUIDC::getsystemthemename(MCStringRef &r_theme)
+{
+	r_theme = MCValueRetain(kMCEmptyString);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
