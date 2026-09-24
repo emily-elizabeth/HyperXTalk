@@ -68,6 +68,11 @@ void MCToolbar::GetToolbarVisible(MCExecContext& ctxt, bool& r_visible)
     r_visible = m_toolbar_visible;
 }
 
+void MCToolbar::GetToolbarHeight(MCExecContext& ctxt, integer_t& r_height)
+{
+    r_height = (integer_t)getToolbarHeight();
+}
+
 void MCToolbar::SetToolbarVisible(MCExecContext& ctxt, bool p_visible)
 {
     m_toolbar_visible = p_visible;

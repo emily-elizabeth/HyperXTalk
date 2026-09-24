@@ -197,7 +197,7 @@ public:
         t_attr.x           = 0;
         t_attr.y           = m_top_y;
         t_attr.width       = m_parent_width > 0 ? m_parent_width : 1;
-        t_attr.height      = kToolbarHeight;
+        t_attr.height      = GetHeight();
         // Match the parent's visual exactly.  The engine may use an RGBA
         // composite visual; if the child window uses a different visual the
         // compositor treats it as transparent.
@@ -427,6 +427,27 @@ public:
     }
 
     bool GetVisible() override { return m_visible; }
+
+    int32_t GetHeight() override
+    {
+        if (!m_visible)
+            return 0;
+
+        // Once the child window exists, its height is authoritative.
+        if (m_window != NULL)
+            return (int32_t)gdk_window_get_height(m_window);
+
+        // Pre-creation: probe a temporary GtkToolbar so we get the height
+        // the active GTK theme actually produces (KDE, XFCE, GNOME, HiDPI, …).
+        GtkWidget *t_probe = gtk_toolbar_new();
+        gint t_min = 0, t_nat = 0;
+        gtk_widget_get_preferred_height(t_probe, &t_min, &t_nat);
+        gtk_widget_destroy(t_probe);
+        if (t_nat > 0)
+            return (int32_t)t_nat;
+
+        return kToolbarHeight;   // last resort: compile-time default
+    }
 
 private:
     MCToolbar           *m_owner;
@@ -774,7 +795,8 @@ private:
             if (t_new_w != self->m_parent_width)
             {
                 self->m_parent_width = t_new_w;
-                gdk_window_resize(self->m_window, t_new_w, kToolbarHeight);
+                gdk_window_resize(self->m_window, t_new_w,
+                                  gdk_window_get_height(self->m_window));
                 self->_relayout();
                 self->_redraw();
             }

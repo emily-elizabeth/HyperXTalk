@@ -1,0 +1,65 @@
+Name: toolbarHeight
+
+Type: property
+
+Syntax: get the toolbarHeight of <toolbar>
+
+Summary:
+The height of a toolbar in pixels, as reported by the platform.
+
+Associations: toolbar
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- Position card content below the toolbar
+set the top of group "content" to the toolbarHeight of toolbar 1
+
+Example:
+-- Store the height for later use
+put the toolbarHeight of toolbar "mainBar" into tBarHeight
+
+Example:
+-- Guard against the toolbar not yet being open
+if the toolbarHeight of toolbar 1 > 0 then
+   set the top of field "body" to the toolbarHeight of toolbar 1
+end if
+
+Value:
+An integer giving the toolbar's current height in pixels. Returns 0 if
+the toolbar has not yet been opened (i.e. its stack is not open).
+
+Description:
+Use <toolbarHeight> to determine how many pixels the toolbar occupies at
+the top of the stack window so that card content can be positioned below
+it without overlap.
+
+The value is read-only and is derived directly from the platform layer:
+
+**macOS** — the gap between the window frame rect and the content rect,
+which AppKit computes automatically based on the unified toolbar height.
+
+**Windows** — the height of the toolbar HWND as calculated by
+`TB_AUTOSIZE`, which accounts for the current button size, icon size,
+and system DPI.
+
+**Linux** — once the toolbar is open, the height of the underlying
+GdkWindow child. Before the first open, the value is obtained by querying
+a temporary GtkToolbar widget for its natural height in the active GTK
+theme. This means the result reflects per-desktop-environment
+customisation (KDE, XFCE, GNOME) and HiDPI scale factors automatically,
+rather than returning a fixed default.
+
+Because the height is platform-determined it may change if the user
+switches desktop themes or display scale while the application is running.
+Re-read the property after a `resizeStack` or theme-change notification
+rather than caching it indefinitely.
+
+References: toolbar (object), toolbarVisible (property),
+toolbarDisplayMode (property), getToolbarTopY (glossary)
+
+Tags: ui
