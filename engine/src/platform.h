@@ -848,6 +848,7 @@ enum MCPlatformWindowProperty
 	kMCPlatformWindowPropertyHasSizeWidget,
 	
 	kMCPlatformWindowPropertyHasShadow,
+	kMCPlatformWindowPropertyTransparentTitlebar,
 	
 	kMCPlatformWindowPropertyHasModifiedMark,
 

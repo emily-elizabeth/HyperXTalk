@@ -193,6 +193,11 @@ static void MCInterfaceDecorationParse(MCExecContext& ctxt, MCStringRef p_input,
 					decorations |= WD_FORCETASKBAR;
 					continue;
 				}
+				if (MCStringSubstringIsEqualTo(p_input, t_range, MCSTR(MCtransparenttitlebarstring), kMCCompareCaseless))
+				{
+					decorations |= WD_TRANSPARENT_TITLEBAR;
+					continue;
+				}
 				ctxt . LegacyThrow(EE_STACK_BADDECORATION);
 				return;
             }
@@ -241,7 +246,10 @@ static void MCInterfaceDecorationFormat(MCExecContext& ctxt, const MCInterfaceDe
 				
             if (p_input . decorations & WD_FORCETASKBAR)
 				/* UNCHECKED */ MCListAppendCString(t_output, MCforcetaskbarstring);
-				
+
+            if (p_input . decorations & WD_TRANSPARENT_TITLEBAR)
+				/* UNCHECKED */ MCListAppendCString(t_output, MCtransparenttitlebarstring);
+
             /* UNCHECKED */ MCListCopyAsStringAndRelease(t_output, r_output);
 			return;
         }
@@ -842,6 +850,9 @@ void MCStack::SetDecoration(Properties which, bool setting)
 		setting = !setting;
 		bflags = WD_NOSHADOW;
 		break;
+	case P_TRANSPARENT_TITLEBAR:
+		bflags = WD_TRANSPARENT_TITLEBAR;
+		break;
 	default:
 		bflags = 0;
 		break;
@@ -922,6 +933,16 @@ void MCStack::GetMetal(MCExecContext& ctxt, bool& r_setting)
 void MCStack::SetMetal(MCExecContext& ctxt, bool setting)
 {
 	SetDecoration(P_METAL, setting);
+}
+
+void MCStack::GetTransparentTitlebar(MCExecContext& ctxt, bool& r_setting)
+{
+	r_setting = getflag(F_DECORATIONS) && (decorations & WD_TRANSPARENT_TITLEBAR) != 0;
+}
+
+void MCStack::SetTransparentTitlebar(MCExecContext& ctxt, bool setting)
+{
+	SetDecoration(P_TRANSPARENT_TITLEBAR, setting);
 }
 
 void MCStack::GetWindowShadow(MCExecContext& ctxt, bool& r_setting)

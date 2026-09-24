@@ -100,6 +100,7 @@ MCPropertyInfo MCStack::kProperties[] =
 	DEFINE_RW_OBJ_PROPERTY(P_SYSTEM_WINDOW, Bool, MCStack, SystemWindow)
 	DEFINE_RW_OBJ_PROPERTY(P_METAL, Bool, MCStack, Metal)
 	DEFINE_RW_OBJ_PROPERTY(P_SHADOW, Bool, MCStack, WindowShadow)
+	DEFINE_RW_OBJ_PROPERTY(P_TRANSPARENT_TITLEBAR, Bool, MCStack, TransparentTitlebar)
 	DEFINE_RW_OBJ_PROPERTY(P_RESIZABLE, Bool, MCStack, Resizable)
 
     // AL-2014-05-26: [[ Bug 12510 ]] Stack decoration synonyms not implemented in 7.0

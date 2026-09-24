@@ -140,6 +140,7 @@ const char * const MCutilitystring = "system";
 const char * const MCnoshadowstring = "noshadow";
 const char * const MCbackgroundstring = "background";
 const char * const MCforcetaskbarstring = "forcetaskbar";
+const char * const MCtransparenttitlebarstring = "transparenttitlebar";
 const char * const MCunicodestring = "unicode";
 const char * const MCnativestring = "native";
 
