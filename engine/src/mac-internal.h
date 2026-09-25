@@ -635,6 +635,9 @@ void MCMacPlatformHandleMouseForResizeEnd(void);
 
 void MCMacPlatformSyncMouseBeforeDragging(void);
 void MCMacPlatformSyncMouseAfterTracking(void);
+// [[ Bug 525 ]] Resync mouse window/cursor after a native modal panel closes.
+void MCMacPlatformSyncMouseAfterModal(void);
+void MCMacPlatformHandleMouseResync(void);
 
 void MCMacPlatformSyncUpdateAfterDraw(NSInteger windowNumber);
 bool MCMacPlatformIsDrawSyncEvent(NSEvent *event);
