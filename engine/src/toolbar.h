@@ -64,7 +64,7 @@ public:
     void              SetTooltip(MCStringRef p_tooltip);
 
     // The icon name.  When the name matches a stack image object the raw image
-    // data (PNG bytes from the image's "text" property) is also cached in
+    // data (always PNG — see MCToolbarCopyImageAsPNG) is also cached in
     // m_image_data so the platform backend can create a native image without
     // needing to reach back into the engine object hierarchy.
     MCStringRef       GetIcon()      const { return m_icon; }
@@ -305,6 +305,15 @@ private:
 // lnx-toolbar.cpp
 
 MCToolbarBackend *MCToolbarCreatePlatformBackend(MCToolbar *p_owner);
+
+// Return PNG-encoded bytes for a stack image, whatever format it was imported
+// in.  PNG images pass their text through unchanged; anything else (WebP,
+// BMP, GIF, JPEG, RLE, vector) is decoded by the engine and re-encoded as PNG
+// so every platform backend only ever has to decode PNG.  (Bug #480: GDI+
+// cannot decode WebP, and GdkPixbuf only can with an optional loader.)
+class MCImage;
+bool MCToolbarCopyImageAsPNG(MCImage *p_image, MCExecContext& ctxt,
+                             MCDataRef& r_data);
 
 // Notify all currently-open MCToolbar objects that the platform theme has
 // changed so they can reload dark-/light-mode icon variants.

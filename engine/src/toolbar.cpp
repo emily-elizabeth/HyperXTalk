@@ -47,6 +47,37 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 extern "C" bool MCplatformIsDarkMode(void);
 
 ////////////////////////////////////////////////////////////////////////////////
+// Icon data normalisation
+
+bool MCToolbarCopyImageAsPNG(MCImage *p_image, MCExecContext& ctxt,
+                             MCDataRef& r_data)
+{
+    if (p_image == nil)
+        return false;
+
+    // Already PNG: hand the original bytes through untouched.
+    if (p_image->getcompression() == F_PNG)
+    {
+        MCAutoDataRef t_text;
+        p_image->GetText(ctxt, &t_text);
+        if (*t_text == nil || MCDataIsEmpty(*t_text))
+            return false;
+        r_data = MCValueRetain(*t_text);
+        return true;
+    }
+
+    // Any other format: decode with the engine's own decoders (which include
+    // WebP) and re-encode as PNG, preserving the alpha channel.
+    MCImageBitmap *t_bitmap = nil;
+    if (!p_image->lockbitmap(t_bitmap, false))
+        return false;
+
+    bool t_success = MCImageCreateClipboardData(t_bitmap, r_data);
+    p_image->unlockbitmap(t_bitmap);
+    return t_success;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Property table
 
 MCPropertyInfo MCToolbar::kProperties[] =
@@ -777,8 +808,7 @@ void MCToolbar::_resolveItemImageData()
             continue;
 
         MCAutoDataRef t_data;
-        t_image->GetText(t_ctxt, &t_data);
-        if (*t_data != nil && !MCDataIsEmpty(*t_data))
+        if (MCToolbarCopyImageAsPNG(t_image, t_ctxt, &t_data))
             t_item->SetImageData(*t_data);
         else
             t_item->SetImageData(nil);
