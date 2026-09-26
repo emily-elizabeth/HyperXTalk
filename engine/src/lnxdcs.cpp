@@ -54,6 +54,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 // rebuild of all TUs that include lnxdc.h).
 #include <vector>
 #include <algorithm>
+#include <unordered_set>
 
 static std::vector<GdkWindow*> s_extra_backdrops;
 // Mirror of MCScreenDC::backdrop kept in sync so hxt_is_backdrop_window can
@@ -1454,11 +1455,71 @@ void MCScreenDC::setinputfocus(Window window)
 	gdk_window_focus(window, MCeventtime);
 }
 
+// -- GTK3: `Window` is a GdkWindow*, but `Pixmap`/`Drawable` are integer
+// XID-shaped typedefs that createpixmap() actually stuffs a cairo_surface_t*
+// into.  Nothing in the type system distinguishes the two, so entry points
+// taking a Drawable cannot blindly cast to GdkWindow*: gdk_cairo_create()
+// g_return_val_if_fail()s to NULL for a non-window, and the next cairo_* call
+// then segfaults (e.g. cairo_set_operator).  Keep a registry of the surfaces we
+// hand out as Pixmaps so those entry points can tell which kind they were given.
+static std::unordered_set<uintptr_t> s_pixmap_surfaces;
+
+static bool hxt_drawable_is_pixmap(Drawable d)
+{
+	return d != DNULL &&
+	       s_pixmap_surfaces.find((uintptr_t)d) != s_pixmap_surfaces.end();
+}
+
+// Create a cairo context for either a GdkWindow or a pixmap surface.
+// Returns nullptr instead of crashing when handed something unusable.
+static cairo_t *hxt_cairo_create_for_drawable(Drawable d)
+{
+	if (d == DNULL)
+		return nullptr;
+
+	if (hxt_drawable_is_pixmap(d))
+		return cairo_create((cairo_surface_t*)d);
+
+	if (!GDK_IS_WINDOW((gpointer)d))
+		return nullptr;
+
+	return gdk_cairo_create((GdkWindow*)d);
+}
+
+// Set the source of p_cr from either a GdkWindow or a pixmap surface.
+static bool hxt_cairo_set_source_drawable(cairo_t *p_cr, Drawable s,
+                                         double p_x, double p_y)
+{
+	if (p_cr == nullptr || s == DNULL)
+		return false;
+
+	if (hxt_drawable_is_pixmap(s))
+	{
+		cairo_set_source_surface(p_cr, (cairo_surface_t*)s, p_x, p_y);
+		return true;
+	}
+
+	if (!GDK_IS_WINDOW((gpointer)s))
+		return false;
+
+	gdk_cairo_set_source_window(p_cr, (GdkWindow*)s, p_x, p_y);
+	return true;
+}
+
+// Flush pending cairo drawing when the destination was an image surface, so
+// later direct pixel access (cairo_image_surface_get_data) sees it.
+static void hxt_drawable_flush(Drawable d)
+{
+	if (hxt_drawable_is_pixmap(d))
+		cairo_surface_flush((cairo_surface_t*)d);
+}
+
 // -- tperry 15-11-2025: GTK3 - pixmaps are now cairo surfaces
 void MCScreenDC::freepixmap(Pixmap &pixmap)
 {
 	if (pixmap != DNULL)
 	{
+		s_pixmap_surfaces.erase((uintptr_t)pixmap);
 		cairo_surface_destroy((cairo_surface_t*)pixmap);
 		pixmap = DNULL;
 	}
@@ -1489,6 +1550,9 @@ Pixmap MCScreenDC::createpixmap(uint2 width, uint2 height,
 
 	cairo_surface_t *pm = cairo_image_surface_create(format, width, height);
 	assert(pm != DNULL);
+
+	// Register so hxt_drawable_is_pixmap() can recognise it later.
+	s_pixmap_surfaces.insert((uintptr_t)pm);
 
 	return (Pixmap)pm;
 }
@@ -1605,8 +1669,10 @@ void MCScreenDC::copyarea(Drawable s, Drawable d, int2 depth,
 
     assert(rop <= GXset);
 
-    // Create Cairo context for destination
-    cairo_t *cr = gdk_cairo_create((GdkWindow*)d);
+    // Create Cairo context for destination (window OR pixmap surface)
+    cairo_t *cr = hxt_cairo_create_for_drawable(d);
+    if (cr == nullptr)
+        return;
 
     // Set the operator based on rop
     if (rop != GXcopy)
@@ -1614,14 +1680,16 @@ void MCScreenDC::copyarea(Drawable s, Drawable d, int2 depth,
     else
         cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
 
-    // Set source from the source drawable
-    gdk_cairo_set_source_window(cr, (GdkWindow*)s, dx - sx, dy - sy);
-
-    // Paint the rectangle
-    cairo_rectangle(cr, dx, dy, sw, sh);
-    cairo_fill(cr);
+    // Set source from the source drawable (window OR pixmap surface)
+    if (hxt_cairo_set_source_drawable(cr, s, dx - sx, dy - sy))
+    {
+        // Paint the rectangle
+        cairo_rectangle(cr, dx, dy, sw, sh);
+        cairo_fill(cr);
+    }
 
     cairo_destroy(cr);
+    hxt_drawable_flush(d);
 }
 
 MCBitmap *MCScreenDC::createimage(uint16_t depth, uint16_t width, uint16_t height, bool set, uint8_t value)
@@ -1655,19 +1723,34 @@ void MCScreenDC::putimage(Drawable d, MCBitmap *source, int2 sx, int2 sy,
     // If we use gdk_draw_pixbuf, the pixbuf gets blended with the existing
     // contents of the window - something that we definitely do not want. We
     // need to use Cairo directly to do the drawing to the window surface.
-    cairo_t *t_cr = gdk_cairo_create((GdkWindow*)d);
+    // The destination may be a pixmap (cairo_surface_t) rather than a window --
+    // MCX11BitmapToX11Pixmap() calls us with a freshly created pixmap.
+    cairo_t *t_cr = hxt_cairo_create_for_drawable(d);
+    if (t_cr == nullptr)
+        return;
     cairo_set_operator(t_cr, CAIRO_OPERATOR_SOURCE);
     cairo_rectangle(t_cr, dx, dy, w, h);
     cairo_clip(t_cr);
     gdk_cairo_set_source_pixbuf(t_cr, source, dx-sx, dy-sy);
     cairo_paint(t_cr);
     cairo_destroy(t_cr);
+    hxt_drawable_flush(d);
 }
 
 // -- tperry 15-11-2025: GTK3 - gdk_pixbuf_get_from_drawable replaced with gdk_pixbuf_get_from_window
 MCBitmap *MCScreenDC::getimage(Drawable d, int2 x, int2 y, uint2 w, uint2 h)
 {
 	GdkPixbuf *t_image;
+    if (d == DNULL)
+        return nil;
+    if (hxt_drawable_is_pixmap(d))
+    {
+        cairo_surface_flush((cairo_surface_t*)d);
+        t_image = gdk_pixbuf_get_from_surface((cairo_surface_t*)d, x, y, w, h);
+        return (MCBitmap*)t_image;
+    }
+    if (!GDK_IS_WINDOW((gpointer)d))
+        return nil;
     t_image = gdk_pixbuf_get_from_window((GdkWindow*)d, x, y, w, h);
     return (MCBitmap*)t_image;
 }
@@ -2151,6 +2234,10 @@ static void paint_backdrop_gdk_window(GdkWindow *p_win,
     cairo_rectangle(cr, 0, 0, (double)p_w, (double)p_h);
     cairo_clip(cr);
     cairo_set_source_surface(cr, (cairo_surface_t *)p_pixmap, 0, 0);
+    // Backdrop patterns tile across the whole window (GTK2 got this from
+    // gdk_window_set_back_pixmap); cairo's default EXTEND_NONE would paint a
+    // single tile in the top-left corner and leave the rest unpainted.
+    cairo_pattern_set_extend(cairo_get_source(cr), CAIRO_EXTEND_REPEAT);
     cairo_paint(cr);
     cairo_destroy(cr);
 }
