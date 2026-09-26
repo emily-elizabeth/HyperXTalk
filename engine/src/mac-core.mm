@@ -180,23 +180,17 @@ NSWindow *MCMacPlatformApplicationPseudoModalFor(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// HXT: AppKit calls viewDidChangeEffectiveAppearance on NSView instances
-// (not NSApplication) when the system appearance changes.  A small hidden
-// view attached to the dummy window receives this call for both transitions
-// (light→dark and dark→light), making it more reliable than the private
-// AppleInterfaceThemeChangedNotification which misses the return to light.
-@interface MCAppearanceObserverView : NSView
-@end
-
-@implementation MCAppearanceObserverView
-- (void)viewDidChangeEffectiveAppearance
-{
-    [super viewDidChangeEffectiveAppearance];
-    // Call the platform callback directly to handle appearance changes
-    extern void MCPlatformHandleSystemAppearanceChanged(void);
-    MCPlatformHandleSystemAppearanceChanged();
-}
-@end
+// HXT: System appearance changes (light <-> dark, and high-contrast variants)
+// are detected by observing NSApp.effectiveAppearance with KVO.  AppKit updates
+// that property on the main thread whenever the app's appearance changes, so
+// no hidden helper windows or views are needed.
+//
+// The observer is registered once the engine has started (so MCscreen exists)
+// and removed at termination.  s_last_appearance_name suppresses duplicate
+// notifications where the resolved appearance hasn't actually changed.
+static void *kMCAppearanceKVOContext = &kMCAppearanceKVOContext;
+static bool s_appearance_observer_registered = false;
+static NSString *s_last_appearance_name = nil;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -237,6 +231,44 @@ NSWindow *MCMacPlatformApplicationPseudoModalFor(void)
     MCPlatformFinalizeMenu();
 	MCPlatformFinalizeAbortKey();
 	MCPlatformFinalizeColorTransform();
+}
+
+//////////
+
+- (void)observeValueForKeyPath:(NSString *)keyPath
+                      ofObject:(id)object
+                        change:(NSDictionary *)change
+                       context:(void *)context
+{
+    if (context != kMCAppearanceKVOContext)
+    {
+        [super observeValueForKeyPath: keyPath ofObject: object change: change context: context];
+        return;
+    }
+
+    NSString *t_name = [[NSApp effectiveAppearance] name];
+    if (t_name != nil && s_last_appearance_name != nil &&
+        [t_name isEqualToString: s_last_appearance_name])
+        return;
+
+    [s_last_appearance_name release];
+    s_last_appearance_name = [t_name copy];
+
+    MCPlatformCallbackSendSystemAppearanceChanged();
+}
+
+- (void)stopObservingAppearance
+{
+    if (!s_appearance_observer_registered)
+        return;
+
+    [NSApp removeObserver: self
+               forKeyPath: @"effectiveAppearance"
+                  context: kMCAppearanceKVOContext];
+    s_appearance_observer_registered = false;
+
+    [s_last_appearance_name release];
+    s_last_appearance_name = nil;
 }
 
 //////////
@@ -330,24 +362,6 @@ static OSErr preDispatchAppleEvent(const AppleEvent *p_event, AppleEvent *p_repl
     t_dummy_window = [[NSWindow alloc] initWithContentRect: NSZeroRect styleMask: NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:YES];
     [t_dummy_window orderFront: nil];
 
-    // HXT: Create a dedicated off-screen window (non-zero size, defer:NO) to
-    // host the appearance observer view.  AppKit skips viewDidChangeEffectiveAppearance
-    // propagation for zero-size or deferred windows, so the dummy window above
-    // cannot be used for this purpose.  The window is positioned off-screen and
-    // given alpha 0 so it is never visible.
-    NSRect t_obs_rect = NSMakeRect(-10, -10, 1, 1);
-    NSWindow *t_obs_window = [[NSWindow alloc]
-                               initWithContentRect:t_obs_rect
-                                         styleMask:NSBorderlessWindowMask
-                                           backing:NSBackingStoreBuffered
-                                             defer:NO];
-    [t_obs_window setAlphaValue:0.0];
-    [t_obs_window orderFront:nil];
-    MCAppearanceObserverView *t_appearance_view =
-        [[MCAppearanceObserverView alloc] initWithFrame:NSMakeRect(0, 0, 1, 1)];
-    [[t_obs_window contentView] addSubview:t_appearance_view];
-    [t_appearance_view release];
-    
 	// Dispatch the startup callback.
 	int t_error_code;
 	MCAutoStringRef t_error_message;
@@ -374,6 +388,16 @@ static OSErr preDispatchAppleEvent(const AppleEvent *p_event, AppleEvent *p_repl
 	}
     
     m_running = true;
+
+    // HXT: Start observing system appearance changes now that the engine
+    //   (and MCscreen) is up.  Record the current appearance first so the
+    //   first real change is compared against the launch state.
+    s_last_appearance_name = [[[NSApp effectiveAppearance] name] copy];
+    [NSApp addObserver: self
+            forKeyPath: @"effectiveAppearance"
+               options: NSKeyValueObservingOptionNew
+               context: kMCAppearanceKVOContext];
+    s_appearance_observer_registered = true;
 
     // Dispatch pending apple events
     while([m_pending_apple_events count] > 0)
@@ -456,6 +480,9 @@ static OSErr preDispatchAppleEvent(const AppleEvent *p_event, AppleEvent *p_repl
 
 - (void)applicationWillTerminate:(NSNotification *)notification
 {
+	// Stop appearance notifications before the engine is torn down.
+	[self stopObservingAppearance];
+
 	// Dispatch the shutdown callback.
 	int t_exit_code;
 	MCPlatformCallbackSendApplicationShutdown(t_exit_code);

@@ -25,6 +25,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "exec-interface.h"
 #include "toolbar.h"
 #include "image.h"
+#include "globals.h"
+#include "mcstring.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Display mode enum type
@@ -68,11 +70,25 @@ void MCToolbar::GetToolbarVisible(MCExecContext& ctxt, bool& r_visible)
     r_visible = m_toolbar_visible;
 }
 
+void MCToolbar::GetToolbarHeight(MCExecContext& ctxt, integer_t& r_height)
+{
+    r_height = (integer_t)getToolbarHeight();
+}
+
 void MCToolbar::SetToolbarVisible(MCExecContext& ctxt, bool p_visible)
 {
+    if (p_visible == m_toolbar_visible)
+        return;
+
     m_toolbar_visible = p_visible;
     if (m_backend != nil)
         m_backend->SetVisible(p_visible);
+
+    // Dispatch toolbarShown / toolbarHidden through the current card so the
+    // message follows the normal card → stack path that scripts expect.
+    MCObject *t_target = MCdefaultstackptr->getcurcard();
+    if (t_target != nil)
+        t_target->message(p_visible ? MCM_toolbar_shown : MCM_toolbar_hidden);
 }
 
 void MCToolbar::GetItemNames(MCExecContext& ctxt, MCStringRef& r_names)

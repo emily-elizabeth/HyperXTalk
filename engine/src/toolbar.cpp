@@ -53,6 +53,7 @@ MCPropertyInfo MCToolbar::kProperties[] =
 {
     DEFINE_RW_OBJ_ENUM_PROPERTY(P_TOOLBAR_DISPLAY_MODE, InterfaceToolbarDisplayMode, MCToolbar, DisplayMode)
     DEFINE_RW_OBJ_PROPERTY(P_TOOLBAR_VISIBLE, Bool, MCToolbar, ToolbarVisible)
+    DEFINE_RO_OBJ_PROPERTY(P_TOOLBAR_HEIGHT,  Int32, MCToolbar, ToolbarHeight)
     // itemNames is now read-write: setting it reorders/removes items.
     DEFINE_RW_OBJ_PROPERTY(P_TOOLBAR_ITEM_NAMES, String, MCToolbar, ItemNames)
     // Per-item array properties: indexed by item name.
@@ -705,6 +706,13 @@ IO_stat MCToolbar::extendedload(MCObjectInputStream& p_stream,
 
 ////////////////////////////////////////////////////////////////////////////////
 // Layout helpers
+
+int32_t MCToolbar::getToolbarHeight()
+{
+    if (m_backend == nil)
+        return 0;
+    return m_backend->GetHeight();
+}
 
 int32_t MCToolbar::getToolbarTopY()
 {
