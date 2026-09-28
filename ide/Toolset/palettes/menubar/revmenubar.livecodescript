@@ -1525,7 +1525,7 @@ private function revMenubarFileMenu pContext
    put "!i:square.and.arrow.down " before line -1 of tFile  -- added RK 7.4.26
    put enableMenuItem("Save &As...", tCanSaveStack) & return after tFile
    put "!i:square.and.arrow.down.on.square " before line -1 of tFile  -- added RK 7.4.26
-   put enableMenuItem("Save as &Project...", tCanSaveStack) & return after tFile
+   put enableMenuItem("Save as &Project (Beta)...", tCanSaveStack) & return after tFile
    put "!i:square.and.arrow.down.fill " before line -1 of tFile  -- added RK 7.4.26
    put enableMenuItem("Move S&ubstack to File...", tIsUserTarget and the short name of the topStack is not the mainStack of the topStack) & return after tFile
    put "!i:square.badge.plus " before line -1 of tFile  -- added RK 7.4.26
@@ -2915,7 +2915,7 @@ on revMenubarFileMenuPick pWhich
       case "Save As..."
          revIDEActionSaveStackAs the long id of the topStack
          break
-      case "Save as Project..."
+      case "Save as Project (Beta)..."
          revIDEActionSaveAsProject the long id of the topStack
          break
       case "Save As Standalone Application..."
