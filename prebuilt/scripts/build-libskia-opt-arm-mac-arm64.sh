@@ -44,7 +44,7 @@ done
 # libjpeg
 INCLUDES="${INCLUDES} -I${REPO_ROOT}/thirdparty/libjpeg/src"
 
-CFLAGS="-arch arm64 -mmacosx-version-min=11.0 -isysroot ${SDK_PATH} \
+CFLAGS="-arch arm64 -mmacosx-version-min=12.0 -isysroot ${SDK_PATH} \
         -O2 -fPIC -std=c++11 \
         -DSK_BUILD_FOR_MAC \
         -x c++"
