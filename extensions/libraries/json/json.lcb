@@ -340,14 +340,16 @@ Tags: JSON
 */
 public handler lcb_PrettyJson(in pJson as String, in pNumSpaces as optional Integer, in pShouldExpandBraces as optional Boolean) returns optional String
 	variable tIndentLevel as Integer
-	variable tInString as Boolean
+	variable tIsInString as Boolean
+	variable tIsBeforeChars as Boolean
 	variable tEscape as Boolean
 	variable tOut as String
 	variable tCh as String
 	variable tSpaces as String
 
 	put 0 into tIndentLevel
-	put false into tInString
+	put false into tIsInString
+	put true into tIsBeforeChars
 	put false into tEscape
 	put "" into tOut
    
@@ -356,23 +358,25 @@ public handler lcb_PrettyJson(in pJson as String, in pNumSpaces as optional Inte
 	-- iterate characters
 	repeat for each char tCh in pJson
    
-		if tInString then
+		if tIsInString then
 			put tCh after tOut
 			if tEscape then
 				put false into tEscape
 			else if tCh is "\" then
 				put true into tEscape
 			else if tCh is QUOTE then
-				put false into tInString
+				put false into tIsInString
 			end if
 	   
 		else
 			-- ignore whitespace outside strings
-			if tCh is SPACE then
+			if tCh is SPACE and tIsBeforeChars then
 				next repeat
+			else
+				put false into tIsBeforeChars
 			end if
 	   
-			if tCh is "{" or tCh is "[" then
+			if tCh is in "{[" then
 				if pShouldExpandBraces and tIndentLevel > 0 then
 					put repeatString(tSpaces, tIndentLevel) after tOut
 				end if
@@ -380,11 +384,11 @@ public handler lcb_PrettyJson(in pJson as String, in pNumSpaces as optional Inte
 		        put tCh after tOut
 		        put repeatString(tSpaces, tIndentLevel) after tOut
 	   
-			else if tCh is "}" or tCh is "]" then
+			else if tCh is in "}]" then
 		        subtract 1 from tIndentLevel
 		        put repeatString(tSpaces, tIndentLevel) & tCh after tOut
 	   
-			else if tCh is"," then
+			else if tCh is "," then
 				put tCh after tOut
 				put repeatString(tSpaces, tIndentLevel) after tOut
 	   
@@ -394,13 +398,14 @@ public handler lcb_PrettyJson(in pJson as String, in pNumSpaces as optional Inte
 	   
 			else if tCh is QUOTE then
 				put tCh after tOut
-				put true into tInString
+				put true into tIsInString
 	   
 			else if tCh is CRLF then
+				put true into tIsBeforeChars
 			else
 				put tCh after tOut
 			end if
-		end if -- tInString
+		end if -- tIsInString
 	end repeat -- for each char tCh in pJson
    
 	return tOut
