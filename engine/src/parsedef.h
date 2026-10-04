@@ -2265,7 +2265,8 @@ enum There_mode {
     TM_FILE,
     TM_PROCESS,
     TM_URL,
-    TM_WORKER
+    TM_WORKER,
+    TM_TRASH
 };
 
 // types returned from lex

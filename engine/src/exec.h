@@ -3220,6 +3220,7 @@ void MCFilesEvalThereIsNotAProcess(MCExecContext& ctxt, MCStringRef p_path, bool
 void MCFilesEvalShell(MCExecContext& ctxt, MCStringRef command, MCStringRef& r_output);
 
 void MCFilesExecDeleteFile(MCExecContext& ctxt, MCStringRef p_target);
+void MCFilesExecMoveFileToTrash(MCExecContext& ctxt, MCStringRef p_target);
 
 void MCFilesExecCloseFile(MCExecContext& ctxt, MCNameRef p_filename);
 void MCFilesExecCloseDriver(MCExecContext& ctxt, MCNameRef p_device);
