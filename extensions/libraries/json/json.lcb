@@ -241,6 +241,7 @@ private handler JsonExportList(in pValue as List) returns String
 	return tResult
 end handler
 
+// updated 2026.10.03 mwieder@ahsoftware.net to handle JSON Lists
 private handler JsonExportArray(in pValue as Array) returns String
 	variable tTokens as List
 	put [] into tTokens
@@ -248,7 +249,25 @@ private handler JsonExportArray(in pValue as Array) returns String
 	variable tFirst as Boolean
 	put true into tFirst
 
-	push "{" onto tTokens
+	variable tKeys as List
+	put the keys of pValue into tKeys
+	variable tKeyList as optional any
+	combine tKeys with "" into tKeyList
+
+	variable tIsList as Boolean
+	variable tNum as optional Number
+	parse tKeyList as number into tNum
+	if tNum is nothing then
+		put false into tIsList
+	else
+		put true into tIsList
+	end if
+
+	if tIsList then
+		push "[" onto tTokens
+	else
+		push "{" onto tTokens
+	end if
 
 	variable tKey as String
 	repeat for each key tKey in pValue
@@ -258,12 +277,18 @@ private handler JsonExportArray(in pValue as Array) returns String
 			push "," onto tTokens
 		end if
 
-		push lcb_JsonExport(tKey) onto tTokens
-		push ": " onto tTokens
+		if not tIsList then
+			push lcb_JsonExport(tKey) onto tTokens
+			push ": " onto tTokens
+		end if
 		push lcb_JsonExport(pValue[tKey]) onto tTokens
 	end repeat
 
-	push "}" onto tTokens
+	if tIsList then
+		push "]" onto tTokens
+	else
+		push "}" onto tTokens
+	end if
 
 	variable tResult as String
 	combine tTokens with "" into tResult
