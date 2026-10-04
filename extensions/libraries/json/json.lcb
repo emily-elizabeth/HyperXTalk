@@ -241,6 +241,7 @@ private handler JsonExportList(in pValue as List) returns String
 	return tResult
 end handler
 
+// updated 2026.10.03 mwieder@ahsoftware.net to handle JSON Lists
 private handler JsonExportArray(in pValue as Array) returns String
 	variable tTokens as List
 	put [] into tTokens
@@ -254,10 +255,12 @@ private handler JsonExportArray(in pValue as Array) returns String
 	combine tKeys with "" into tKeyList
 
 	variable tIsList as Boolean
-	if tKeyList begins with "1" then
-		put true into tIsList
-	else
+	variable tNum as optional Number
+	parse tKeyList as number into tNum
+	if tNum is nothing then
 		put false into tIsList
+	else
+		put true into tIsList
 	end if
 
 	if tIsList then
