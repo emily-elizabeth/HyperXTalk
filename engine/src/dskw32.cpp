@@ -3893,8 +3893,16 @@ bool MCS_get_browsers(MCStringRef &r_browsers)
 }
 void MCS_show_in_finder(MCExecContext &ctxt, MCStringRef p_path)
 {
+    // HyperXTalk paths use forward slashes; convert to native backslash path
+    MCAutoStringRef t_native_path;
+    if (!MCS_pathtonative(p_path, &t_native_path))
+    {
+        ctxt.SetTheResultToStaticCString("could not convert path");
+        return;
+    }
+
     MCAutoStringRefAsWString t_path_wstr;
-    /* UNCHECKED */ t_path_wstr.Lock(p_path);
+    /* UNCHECKED */ t_path_wstr.Lock(*t_native_path);
 
     // Parse the path into an PIDL so SHOpenFolderAndSelectItems can use it
     PIDLIST_ABSOLUTE t_pidl = nullptr;
