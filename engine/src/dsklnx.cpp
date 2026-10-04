@@ -2474,3 +2474,64 @@ bool MCS_get_browsers(MCStringRef &r_browsers)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+#include <limits.h>
+#include <string.h>
+#include <stdlib.h>
+
+void MCS_show_in_finder(MCExecContext &ctxt, MCStringRef p_path)
+{
+    MCAutoStringRefAsSysString t_path_sys;
+    /* UNCHECKED */ t_path_sys.Lock(p_path);
+
+    const char *t_path = *t_path_sys;
+
+    // Derive the parent directory for fallback
+    char t_parent[PATH_MAX];
+    strncpy(t_parent, t_path, PATH_MAX - 1);
+    t_parent[PATH_MAX - 1] = '\0';
+    char *t_sep = strrchr(t_parent, '/');
+    if (t_sep != nullptr)
+        *t_sep = '\0';
+    else
+        strncpy(t_parent, ".", PATH_MAX - 1);
+
+    // Check which desktop environment we're on
+    const char *t_de = getenv("XDG_CURRENT_DESKTOP");
+    if (t_de == nullptr)
+        t_de = "";
+
+    bool t_launched = false;
+    char t_cmd[PATH_MAX * 2 + 64];
+
+    // Try DE-specific file managers that support --select / reveal
+    if ((strcasestr(t_de, "GNOME") != nullptr || strcasestr(t_de, "Unity") != nullptr || strcasestr(t_de, "Budgie") != nullptr)
+        && system("which nautilus > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "nautilus --select \"%s\" &", t_path);
+        t_launched = (system(t_cmd) == 0);
+    }
+    else if (strcasestr(t_de, "KDE") != nullptr && system("which dolphin > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "dolphin --select \"%s\" &", t_path);
+        t_launched = (system(t_cmd) == 0);
+    }
+    else if ((strcasestr(t_de, "X-Cinnamon") != nullptr || strcasestr(t_de, "MATE") != nullptr)
+             && system("which nemo > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "nemo \"%s\" &", t_path);
+        t_launched = (system(t_cmd) == 0);
+    }
+    else if (strcasestr(t_de, "XFCE") != nullptr && system("which thunar > /dev/null 2>&1") == 0)
+    {
+        // Thunar opens the folder but doesn't select the file — best we can do
+        snprintf(t_cmd, sizeof(t_cmd), "thunar \"%s\" &", t_parent);
+        t_launched = (system(t_cmd) == 0);
+    }
+
+    // Generic fallback: xdg-open on the parent folder
+    if (!t_launched && system("which xdg-open > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "xdg-open \"%s\" &", t_parent);
+        system(t_cmd);
+    }
+}

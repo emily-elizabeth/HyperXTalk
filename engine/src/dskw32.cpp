@@ -16,6 +16,7 @@
 
 #include "prefix.h"
 #include <AclAPI.h>
+#include <shlobj.h>
 
 #ifdef DeleteFile
 #undef DeleteFile
@@ -3889,4 +3890,22 @@ uint2 MCS_charsettolangid(uint1 charset)
 bool MCS_get_browsers(MCStringRef &r_browsers)
 {
 	return false;
+}
+void MCS_show_in_finder(MCExecContext &ctxt, MCStringRef p_path)
+{
+    MCAutoStringRefAsWString t_path_wstr;
+    /* UNCHECKED */ t_path_wstr.Lock(p_path);
+
+    // Parse the path into an PIDL so SHOpenFolderAndSelectItems can use it
+    PIDLIST_ABSOLUTE t_pidl = nullptr;
+    SFGAOF t_attrs = 0;
+    HRESULT hr = SHParseDisplayName(*t_path_wstr, nullptr, &t_pidl, 0, &t_attrs);
+    if (FAILED(hr))
+    {
+        ctxt.SetTheResultToStaticCString("file not found");
+        return;
+    }
+
+    SHOpenFolderAndSelectItems(t_pidl, 0, nullptr, 0);
+    CoTaskMemFree(t_pidl);
 }

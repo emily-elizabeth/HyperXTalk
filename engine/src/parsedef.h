@@ -1946,7 +1946,8 @@ enum Show_object {
     SO_PICTURE,
     SO_TASKBAR,
     SO_TITLEBAR,
-    SO_WINDOW
+    SO_WINDOW,
+    SO_IN_FINDER
 };
 
 enum Sort_type {
