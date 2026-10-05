@@ -2500,15 +2500,16 @@ void MCS_show_in_finder(MCExecContext &ctxt, MCStringRef p_path)
     // Primary: org.freedesktop.FileManager1 D-Bus interface.
     // Nautilus (GNOME 43+), Dolphin, Nemo, Thunar all implement it.
     // Requires dbus-send and a running session bus — works on both X11 and Wayland.
+    // No & — we need the real exit code to know if the D-Bus call succeeded.
     if (system("which dbus-send > /dev/null 2>&1") == 0)
     {
         snprintf(t_cmd, sizeof(t_cmd),
-            "dbus-send --session --print-reply "
+            "dbus-send --session --print-reply --reply-timeout=2000 "
             "--dest=org.freedesktop.FileManager1 "
             "/org/freedesktop/FileManager1 "
             "org.freedesktop.FileManager1.ShowItems "
-            "array:string:\"file://%s\" string:\"\""
-            " > /dev/null 2>&1 &",
+            "array:string:\"file://%s\" string:\"\" "
+            "> /dev/null 2>&1",
             t_path);
         if (system(t_cmd) == 0)
             return;
