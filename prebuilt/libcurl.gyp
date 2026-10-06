@@ -68,6 +68,8 @@
 							[
 								'-lcurl',
 								'-lrt',
+								'-lbrotlicommon',
+								'-lbrotlidec',
 							],
 						},
 					],
