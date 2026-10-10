@@ -50,6 +50,7 @@ enum
 	kMCMacPlatformBreakEvent = 0,
 	kMCMacPlatformMouseSyncEvent = 1,
 	kMCMacPlatformDrawSyncEvent = 2,
+	kMCMacPlatformMouseResyncEvent = 3,
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -72,6 +73,14 @@ bool MCMacPlatformApplicationSendEvent(NSEvent *p_event)
         [p_event subtype] == kMCMacPlatformMouseSyncEvent)
 	{
         MCMacPlatformHandleMouseSync();
+		return true;
+	}
+
+    // [[ Bug 525 ]] Non-destructive re-entry check posted after native modals.
+    if ([p_event type] == NSApplicationDefined &&
+        [p_event subtype] == kMCMacPlatformMouseResyncEvent)
+	{
+        MCMacPlatformHandleMouseResync();
 		return true;
 	}
 
@@ -2460,6 +2469,92 @@ void MCMacPlatformSyncMouseAfterTracking(void)
 	[NSApp postEvent: t_event atStart: YES];
 }
 
+// [[ Bug 525 ]] Native modal panels (NSOpenPanel/NSSavePanel, NSAlert, print
+//   panels) keep their window on screen for a short while after runModal
+//   returns - the close animation is still running. A single mouse sync
+//   posted at that point asks the window server what is under the pointer,
+//   gets the still-fading panel back and so leaves s_mouse_window nil until
+//   the user physically moves the mouse. How long the panel lingers depends
+//   on how it was dismissed and on how quickly the engine gets back to the
+//   event loop, so we retry for a short period until the mouse window is
+//   re-established.
+static NSTimer *s_mouse_resync_timer = nil;
+static uint32_t s_mouse_resync_attempts = 0;
+
+static const NSTimeInterval kMCMacPlatformMouseResyncInterval = 0.05;
+static const uint32_t kMCMacPlatformMouseResyncMaxAttempts = 20; // ~1s
+
+static void MCMacPlatformStopMouseResync(void)
+{
+    if (s_mouse_resync_timer != nil)
+    {
+        [s_mouse_resync_timer invalidate];
+        [s_mouse_resync_timer release];
+        s_mouse_resync_timer = nil;
+    }
+    s_mouse_resync_attempts = 0;
+}
+
+static void MCMacPlatformPostMouseResyncEvent(void)
+{
+	NSEvent *t_event;
+	t_event = [NSEvent otherEventWithType:NSApplicationDefined
+								 location:NSMakePoint(0, 0)
+							modifierFlags:0
+								timestamp:0
+							 windowNumber:0
+								  context:NULL
+								  subtype:kMCMacPlatformMouseResyncEvent
+									data1:0
+									data2:0];
+	[NSApp postEvent: t_event atStart: NO];
+}
+
+void MCMacPlatformHandleMouseResync(void)
+{
+    // Only step in while no mouse window has been established and the user
+    // isn't in the middle of a press - a real mouse event has already done
+    // the job (or is about to), and we must never disturb button state.
+    if (s_mouse_window != nil || s_mouse_buttons != 0 || s_mouse_grabbed)
+    {
+        MCMacPlatformStopMouseResync();
+        return;
+    }
+
+	MCPoint t_location;
+	MCMacPlatformMapScreenNSPointToMCPoint([NSEvent mouseLocation], t_location);
+
+    // Force the move to be processed even if the pointer hasn't moved.
+	MCMacPlatformHandleMouseMove(t_location);
+
+    if (s_mouse_window != nil)
+        MCMacPlatformStopMouseResync();
+}
+
+void MCMacPlatformSyncMouseAfterModal(void)
+{
+    // Do the normal (destructive) sync first - this releases any button that
+    // was down when the modal started, exactly as after menu tracking.
+    MCMacPlatformSyncMouseAfterTracking();
+
+    // Then keep checking until the panel's window has actually gone.
+    MCMacPlatformStopMouseResync();
+    s_mouse_resync_timer = [[NSTimer timerWithTimeInterval: kMCMacPlatformMouseResyncInterval
+                                                   repeats: YES
+                                                     block: ^(NSTimer *p_timer) {
+        s_mouse_resync_attempts += 1;
+        if (s_mouse_resync_attempts > kMCMacPlatformMouseResyncMaxAttempts)
+        {
+            MCMacPlatformStopMouseResync();
+            return;
+        }
+        // Post rather than handle directly so the resulting mouseEnter /
+        // mouseMove messages are dispatched from the normal event path.
+        MCMacPlatformPostMouseResyncEvent();
+    }] retain];
+    [[NSRunLoop currentRunLoop] addTimer: s_mouse_resync_timer forMode: NSRunLoopCommonModes];
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 void MCMacPlatformHandleModifiersChanged(MCPlatformModifiers p_modifiers)
@@ -2548,6 +2643,10 @@ void MCMacPlatformShowMessageDialog(MCStringRef p_title,
     [t_alert setInformativeText: MCStringConvertToAutoreleasedNSString(p_message)];
     [t_alert setAlertStyle:NSInformationalAlertStyle];
     [t_alert runModal];
+    [t_alert release];
+
+    // [[ Bug 525 ]] Resync the mouse window after the modal alert closes.
+    MCMacPlatformSyncMouseAfterModal();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
