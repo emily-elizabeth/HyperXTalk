@@ -2474,3 +2474,84 @@ bool MCS_get_browsers(MCStringRef &r_browsers)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+#include <limits.h>
+#include <string.h>
+#include <stdlib.h>
+
+void MCS_show_in_finder(MCExecContext &ctxt, MCStringRef p_path)
+{
+    MCAutoStringRefAsSysString t_path_sys;
+    /* UNCHECKED */ t_path_sys.Lock(p_path);
+
+    const char *t_path = *t_path_sys;
+
+    // Derive the parent directory for fallback
+    char t_parent[PATH_MAX];
+    strncpy(t_parent, t_path, PATH_MAX - 1);
+    t_parent[PATH_MAX - 1] = '\0';
+    char *t_sep = strrchr(t_parent, '/');
+    if (t_sep != nullptr)
+        *t_sep = '\0';
+    else
+        strncpy(t_parent, ".", PATH_MAX - 1);
+
+    char t_cmd[PATH_MAX * 2 + 256];
+
+    // Primary: org.freedesktop.FileManager1 D-Bus interface.
+    // Nautilus (GNOME 43+), Dolphin, Nemo, Thunar all implement it.
+    // Requires dbus-send and a running session bus — works on both X11 and Wayland.
+    // No & — we need the real exit code to know if the D-Bus call succeeded.
+    if (system("which dbus-send > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd),
+            "dbus-send --session --print-reply --reply-timeout=2000 "
+            "--dest=org.freedesktop.FileManager1 "
+            "/org/freedesktop/FileManager1 "
+            "org.freedesktop.FileManager1.ShowItems "
+            "array:string:\"file://%s\" string:\"\" "
+            "> /dev/null 2>&1",
+            t_path);
+        if (system(t_cmd) == 0)
+            return;
+    }
+
+    // Secondary: DE-specific CLI flags (older installs / DEs without D-Bus support)
+    const char *t_de = getenv("XDG_CURRENT_DESKTOP");
+    if (t_de == nullptr)
+        t_de = "";
+
+    if ((strcasestr(t_de, "GNOME") != nullptr || strcasestr(t_de, "Unity") != nullptr || strcasestr(t_de, "Budgie") != nullptr)
+        && system("which nautilus > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "nautilus --select \"%s\" > /dev/null 2>&1 &", t_path);
+        if (system(t_cmd) == 0)
+            return;
+    }
+    else if (strcasestr(t_de, "KDE") != nullptr && system("which dolphin > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "dolphin --select \"%s\" > /dev/null 2>&1 &", t_path);
+        if (system(t_cmd) == 0)
+            return;
+    }
+    else if ((strcasestr(t_de, "X-Cinnamon") != nullptr || strcasestr(t_de, "MATE") != nullptr)
+             && system("which nemo > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "nemo \"%s\" > /dev/null 2>&1 &", t_path);
+        if (system(t_cmd) == 0)
+            return;
+    }
+    else if (strcasestr(t_de, "XFCE") != nullptr && system("which thunar > /dev/null 2>&1") == 0)
+    {
+        // Thunar opens the folder but doesn't select the file — best we can do
+        snprintf(t_cmd, sizeof(t_cmd), "thunar \"%s\" > /dev/null 2>&1 &", t_parent);
+        if (system(t_cmd) == 0)
+            return;
+    }
+
+    // Last resort: xdg-open on the parent folder
+    if (system("which xdg-open > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "xdg-open \"%s\" > /dev/null 2>&1 &", t_parent);
+        system(t_cmd);
+    }
+}

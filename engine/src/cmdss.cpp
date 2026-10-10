@@ -47,6 +47,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "exec.h"
 #include "variable.h"
 #include "stackfileformat.h"
+#include "osspec.h"
 
 MCCompact::~MCCompact()
 {
@@ -1319,6 +1320,10 @@ Parse_stat MCShow::parse(MCScriptPoint &sp)
 			case SO_PICTURE:
 				sp.skip_token(SP_FACTOR, TT_OF);
 				break;
+			case SO_IN_FINDER:
+				// 'finder'/'explorer' must be preceded by a file expression
+				MCperror->add(PE_SHOW_BADTARGET, sp);
+				return PS_ERROR;
 			case SO_WINDOW:
 				sp.backup();
 				which = SO_OBJECT;
@@ -1352,6 +1357,15 @@ Parse_stat MCShow::parse(MCScriptPoint &sp)
 		MCperror->add
 		(PE_SHOW_BADTARGET, sp);
 		return PS_ERROR;
+	}
+	if (sp.skip_token(SP_FACTOR, TT_IN, PT_IN) == PS_NORMAL)
+	{
+		if (sp.skip_token(SP_SHOW, TT_UNDEFINED, SO_IN_FINDER) == PS_NORMAL)
+		{
+			which = SO_IN_FINDER;
+			return PS_NORMAL;
+		}
+		sp.backup(); // back up the 'in' if not followed by finder/explorer
 	}
 	if (sp.skip_token(SP_FACTOR, TT_PREP, PT_AT) == PS_NORMAL)
 	{
@@ -1437,6 +1451,19 @@ void MCShow::exec_ctxt(MCExecContext &ctxt)
 		break;
 	case SO_MESSAGE:
 		MCIdeExecShowMessageBox(ctxt);
+		break;
+	case SO_IN_FINDER:
+	{
+		MCAutoStringRef t_path;
+		if (!ctxt.EvalExprAsStringRef(ton, EE_SHOW_NOOBJ, &t_path))
+			return;
+		if (!MCS_exists(*t_path, True) && !MCS_exists(*t_path, False))
+		{
+			ctxt.SetTheResultToStaticCString("file not found");
+			return;
+		}
+		MCS_show_in_finder(ctxt, *t_path);
+	}
 		break;
 	default:
 		break;
