@@ -39,7 +39,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>LSMinimumSystemVersion</key>
-    <string>11.0</string>
+    <string>12.0</string>
     <key>NSHumanReadableCopyright</key>
     <string>Copyright © 2024 HyperXTalk contributors.</string>
 </dict>
