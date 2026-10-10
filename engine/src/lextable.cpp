@@ -2290,6 +2290,7 @@ const static LT there_table[] =
         {"file", TT_UNDEFINED, TM_FILE},
         {"folder", TT_UNDEFINED, TM_DIRECTORY},
         {"process", TT_UNDEFINED, TM_PROCESS},
+        {"trash", TT_UNDEFINED, TM_TRASH},
         {"url", TT_UNDEFINED, TM_URL},
         {"worker", TT_UNDEFINED, TM_WORKER}
     };
