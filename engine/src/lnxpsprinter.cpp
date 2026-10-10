@@ -106,13 +106,13 @@ void MCPSPrinter::DoFinalize(void)
     delete m_pdf_printer;
 
     /* Allocated by MCStringConvertToCString() */
-	if ( m_printersettings . printername != NULL )
+	if ( NULL != m_printersettings . printername )
 		MCMemoryDeleteArray(m_printersettings . printername);
 
-	if ( m_printersettings . outputfilename != NULL ) 
-		delete (m_printersettings . outputfilename -7);	// Need to subtract 7 here as we added 7 to skip the "file://" part
+//	if ( m_printersettings . outputfilename != NULL ) 
+//		delete (m_printersettings . outputfilename -7);	// Need to subtract 7 here as we added 7 to skip the "file://" part
 	
-	if ( m_printersettings . page_ranges != NULL)
+	if ( NULL != m_printersettings . page_ranges )
 		delete m_printersettings . page_ranges ;
 }
 
@@ -157,7 +157,7 @@ void MCPSPrinter::DoFetchSettings(void*& r_buffer, uint4& r_length)
 {
 	MCDictionary t_dictionary;
 	
-	if ( m_printersettings . printername != NULL ) 
+	if ( NULL != m_printersettings . printername ) 
 		t_dictionary . Set('NMEA', MCString(m_printersettings . printername , strlen(m_printersettings . printername ) + 1 ) );
 
 	t_dictionary . Pickle(r_buffer, r_length);
@@ -201,7 +201,7 @@ void MCPSPrinter::FlushSettings ( void )
 	SetJobCopies ( m_printersettings . copies ) ;
 	SetJobCollate ( m_printersettings . collate ) ;
 	
-    if ( m_printersettings . outputfilename != NULL )
+    if ( NULL != m_printersettings . outputfilename )
     {
         MCAutoStringRef t_string;
         /* UNCHECKED */ MCStringCreateWithSysString(m_printersettings.outputfilename, &t_string);
@@ -275,7 +275,7 @@ MCPrinterResult MCPSPrinter::DoEndPrint(MCPrinterDevice* p_device)
 	ipp_status_t status;
 
     // If we have no PDF printer, then we can't do anything.
-    if (m_pdf_printer == nil)
+    if (nil == m_pdf_printer)
         return PRINTER_RESULT_ERROR;
     
     // Get the PDF printer to finish.
