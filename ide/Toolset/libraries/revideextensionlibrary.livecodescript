@@ -1068,7 +1068,7 @@ private command __MapCodeLibraryForIDE pFolder
          filter tCodeFolders with "*-mac*"
          break
       case "Win32"
-         filter tCodeFolders with "*-win32*"
+         filter tCodeFolders with "*-win*"
          break
       default
          filter tCodeFolders with "*-"& toLower(the platform) & "*"

@@ -67,9 +67,23 @@ public:
             return false;
         }
 
-        m_handle = LoadLibraryExW(*t_wstring_path,
+        // Normalize forward slashes to backslashes so that
+        // LOAD_WITH_ALTERED_SEARCH_PATH fires correctly. Windows only treats
+        // the path as directory-qualified (and therefore searches the DLL's own
+        // directory for its dependencies) when the path contains at least one
+        // backslash. LiveCode-style native paths use forward slashes, which
+        // causes the flag to be silently ignored and the DLL to be sought only
+        // in the standard search order (application folder, PATH, System32).
+        // operator*() returns const, so take a mutable copy to normalise in-place.
+        wchar_t *t_mutable_path = _wcsdup(reinterpret_cast<const wchar_t *>(*t_wstring_path));
+        for (wchar_t *p = t_mutable_path; p && *p; ++p)
+            if (*p == L'/') *p = L'\\';
+
+        m_handle = LoadLibraryExW(t_mutable_path ? t_mutable_path
+                                                  : reinterpret_cast<const wchar_t *>(*t_wstring_path),
                                   NULL,
                                   LOAD_WITH_ALTERED_SEARCH_PATH);
+        free(t_mutable_path);
         
         if (m_handle == NULL)
         {
