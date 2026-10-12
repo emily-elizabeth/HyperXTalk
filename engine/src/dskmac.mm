@@ -5331,3 +5331,17 @@ bool MCS_get_browsers(MCStringRef &r_browsers)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+void MCS_show_in_finder(MCExecContext &ctxt, MCStringRef p_path)
+{
+    MCAutoStringRefAsCFString t_cf_path;
+    /* UNCHECKED */ t_cf_path.Lock(p_path);
+
+    NSURL *t_url = [NSURL fileURLWithPath:(NSString *)*t_cf_path];
+    if (t_url == nil)
+    {
+        ctxt.SetTheResultToStaticCString("could not create URL");
+        return;
+    }
+
+    [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:@[t_url]];
+}

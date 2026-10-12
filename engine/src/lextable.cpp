@@ -2154,6 +2154,8 @@ const static LT show_table[] =
         {"cards", TT_UNDEFINED, SO_CARD},
         {"cd", TT_UNDEFINED, SO_CARD},
         {"cds", TT_UNDEFINED, SO_CARD},
+        {"explorer", TT_UNDEFINED, SO_IN_FINDER},
+        {"finder", TT_UNDEFINED, SO_IN_FINDER},
         {"groups", TT_UNDEFINED, SO_GROUPS},
         {"marked", TT_UNDEFINED, SO_MARKED},
         {"menubar", TT_UNDEFINED, SO_MENU},
