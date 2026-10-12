@@ -1457,12 +1457,15 @@ void MCShow::exec_ctxt(MCExecContext &ctxt)
 		MCAutoStringRef t_path;
 		if (!ctxt.EvalExprAsStringRef(ton, EE_SHOW_NOOBJ, &t_path))
 			return;
-		if (!MCS_exists(*t_path, True) && !MCS_exists(*t_path, False))
+		MCAutoStringRef t_resolved_path;
+		if (!MCS_resolvepath(*t_path, &t_resolved_path))
+			t_resolved_path.Reset(*t_path);
+		if (!MCS_exists(*t_resolved_path, True) && !MCS_exists(*t_resolved_path, False))
 		{
 			ctxt.SetTheResultToStaticCString("file not found");
 			return;
 		}
-		MCS_show_in_finder(ctxt, *t_path);
+		MCS_show_in_finder(ctxt, *t_resolved_path);
 	}
 		break;
 	default:
