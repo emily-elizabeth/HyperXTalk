@@ -24,6 +24,7 @@ function buildSrcLibrary {
 #	rm ${THIRD_PARTY_FILE_DIRECTORY}/zip_dirent.c
 	cp -r  ${THIRD_PARTY_FILE_DIRECTORY}/hxt_zip_dirent.c ${THIRD_PARTY_FILE_DIRECTORY}/zip_dirent.c
 	cp -r  ${THIRD_PARTY_FILE_DIRECTORY}/hxt_zip_hash.c ${THIRD_PARTY_FILE_DIRECTORY}/zip_hash.c
+	cp -r  ${THIRD_PARTY_FILE_DIRECTORY}/hxt_config.h ${THIRD_PARTY_FILE_DIRECTORY}/config.h
 
 	cp ${BUILDDIR}/${ARCHIVE_DESTINATION}/build/*.h ../../revzip/src
 	cp ${BUILDDIR}/${ARCHIVE_DESTINATION}/lib/zip.h ../../revzip/src
