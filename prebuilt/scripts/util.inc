@@ -5,6 +5,8 @@ function fetchUrl {
 	URL=$1
 	SAVEPATH=$2
 
+	DOWNLOADED=0
+
 	# Download using an HTTP client of some variety
 	if $(which curl 1>/dev/null 2>/dev/null) ; then
 		curl --fail -L "${URL}" -o "${SAVEPATH}"
@@ -14,9 +16,10 @@ function fetchUrl {
 		# Perl as a last resort (useful for Cygwin)
 		perl -MLWP::Simple -e "getstore('${URL}', '${SAVEPATH}') == 200 or exit 1"
 	fi
+	if [ $? == 0 ] ; then
+		DOWNLOADED=1
+	fi
 }
-
-DOWNLOADED=0
 
 function fetchBinary
 {
@@ -41,7 +44,7 @@ function fetchBinary
 			fi
 			DOWNLOADED=1
 		fi # check for already downloaded source
-	fi # check for destination directory
+	fi # check for existence of destination directory
 }
 
 function untarBinary
@@ -75,6 +78,7 @@ function unxzBinary
 	fi
 }
 
+# run make in the ${ARCHIVE_DESTINATION} directory
 function makeBinary
 {
 	if [ ${DOWNLOADED} == 1 ] ; then
@@ -88,6 +92,7 @@ function makeBinary
 	fi
 }
 
+# run cmake and make in the proper directories
 function cmakeBinary
 {
 	if [ ${DOWNLOADED} == 1 ] ; then
@@ -102,6 +107,7 @@ function cmakeBinary
 	fi
 }
 
+# run meson in the ${ARCHIVE_DESTINATION} directory
 function mesonBinary
 {
 	if [ ${DOWNLOADED} == 1 ] ; then
@@ -123,7 +129,7 @@ function mesonBinary
 	fi
 }
 
-# run cmake
+# run cmake and make
 # copy files if we have a newer version
 function buildLibrary {
 	if [ ${DOWNLOADED} == 1 ] ; then
