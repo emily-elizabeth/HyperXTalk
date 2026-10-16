@@ -260,6 +260,26 @@ Boolean MCScrollbar::mfocus(int2 x, int2 y)
 			t_movement = x - mx;
 		}
 
+		// For reversed ranges (startvalue > endvalue) the native platform theme may
+		// return thumb rects in visual/pixel-ascending order rather than logical
+		// order, which yields a negative bar length.  Detect this and swap so that
+		// t_bar_start always refers to the visual top (vertical) or left (horizontal)
+		// of the draggable region.  The newpos formula already handles the reversed
+		// direction via t_forward, so swapping only the geometry is sufficient.
+		if (t_bar_length < 0)
+		{
+			if (getstyleint(flags) == F_VERTICAL)
+			{
+				t_bar_start  = t_thumb_end_rect.y;
+				t_bar_length = t_thumb_start_rect.y + t_thumb_start_rect.height - t_bar_start;
+			}
+			else
+			{
+				t_bar_start  = t_thumb_end_rect.x;
+				t_bar_length = t_thumb_start_rect.x + t_thumb_start_rect.width - t_bar_start;
+			}
+		}
+
 		t_bar_start += t_thumb_length / 2;
 		t_bar_length -= t_thumb_length;
 
