@@ -950,9 +950,21 @@ void MCScrollbar::update(real8 newpos, MCNameRef mess)
 {
 	real8 oldpos = thumbpos;
 	real8 ts = thumbsize;
-	if (thumbsize > fabs(endvalue - startvalue))
-		ts = thumbsize = fabs(endvalue - startvalue);
-	if (flags & F_SB_STYLE)
+	if (ts > fabs(endvalue - startvalue))
+	{
+		ts = fabs(endvalue - startvalue);
+		// AL-2026: [[ Bug ]] Do not permanently shrink thumbsize for sliders (F_SCALE).
+		// Doing so triggers issbdisabled() (which tests fabs(range)==thumbsize on
+		// non-Motif platforms), silently disabling the slider and blocking all
+		// subsequent mouse events so the thumb cannot be dragged.
+		if (!(flags & F_SCALE))
+			thumbsize = ts;
+	}
+	// For scrollbars (F_SB_STYLE) the thumb represents a viewport page and the
+	// position clamp is handled elsewhere.  For sliders (F_SCALE) thumbsize has
+	// no page-size meaning: use ts=0 so any value in [startvalue,endvalue] is
+	// valid without clamping it back to a boundary.
+	if (flags & F_SB_STYLE || flags & F_SCALE)
 		ts = 0;
 	if (startvalue < endvalue)
 		if (newpos < startvalue)
