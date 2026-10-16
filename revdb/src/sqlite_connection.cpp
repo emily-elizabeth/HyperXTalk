@@ -72,11 +72,10 @@ Bool DBConnection_SQLITE::connect(char **args, int numargs)
 		string bhash;
 		string mash;
 
-		// MW-2008-07-29: [[ Bug 6429 ]] Can't connect to databases with accents in the path.
-		//   This occurs because the SQLite functions expect UTF-8 and we are currently passing
-		//   then native encoded strings. The os_path_to_native_utf8 function returns a native
-		//   path encoded as UTF-8.
-		fname = os_path_to_native_utf8(args[0]);
+		// args[0] arrives as UTF-8 from the engine (revdb is registered with the _UTF8
+		// function/command variants), so pass it directly to sqlite3_open without any
+		// re-encoding.
+		fname = strdup(args[0]);
 		
         bool t_use_uri = false;
         
