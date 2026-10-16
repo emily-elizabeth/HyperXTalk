@@ -458,7 +458,7 @@ Boolean MCScrollbar::mdown(uint2 which)
 			switch (mode)
 			{
 			case SM_BEGINNING:
-				update(0, MCM_scrollbar_beginning);
+				update(startvalue, MCM_scrollbar_beginning);
 				break;
 			case SM_END:
 				update(endvalue, MCM_scrollbar_end);
