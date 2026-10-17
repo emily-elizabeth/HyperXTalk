@@ -398,15 +398,22 @@ public:
                 
                 double t_range = sb->endvalue - sb->startvalue;
                 
-                if (t_range > 0.0)
+                // Sliders support reversed ranges (startvalue > endvalue); scrollbars require
+                // a positive range, so split the guard accordingly.
+                if (t_is_slider ? (t_range != 0.0) : (t_range > 0.0))
                 {
                     // For sliders, use fixed thumb size; for scrollbars, use thumbsize from info
                     CGFloat t_norm;
                     CGFloat t_thumb_len;
                     if (t_is_slider)
                     {
-                        // Slider: position is fraction of total range, fixed thumb size
+                        // Slider: position is fraction of total range, fixed thumb size.
+                        // t_range may be negative for a reversed slider; the formula
+                        // (thumbpos - startvalue) / (endvalue - startvalue) maps
+                        // startvalue → 0 and endvalue → 1 correctly for both directions.
                         t_norm = (CGFloat)((sb->thumbpos - sb->startvalue) / t_range);
+                        if (t_norm < 0.0f) t_norm = 0.0f;
+                        if (t_norm > 1.0f) t_norm = 1.0f;
                         t_thumb_len = 28.0f; // Fixed slider thumb size
                     }
                     else
@@ -1200,7 +1207,10 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
         {
             double t_range = p_info->scrollbar.endvalue - p_info->scrollbar.startvalue;
             CGFloat t_value = 0.0f;
-            if (t_range > 0.0)
+            // Support reversed sliders (startvalue > endvalue): t_range is negative
+            // but the formula (thumbpos - startvalue) / (endvalue - startvalue) still maps
+            // startvalue → 0 and endvalue → 1 correctly for both positive and negative ranges.
+            if (t_range != 0.0)
             {
                 t_value = (CGFloat)((p_info->scrollbar.thumbpos - p_info->scrollbar.startvalue) / t_range);
                 if (t_value < 0.0f) t_value = 0.0f;
