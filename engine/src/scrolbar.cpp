@@ -1032,6 +1032,14 @@ void MCScrollbar::update(real8 newpos, MCNameRef mess)
 		ts = thumbsize = fabs(endvalue - startvalue);
 	if (flags & F_SB_STYLE)
 		ts = 0;
+	// AL-2026: [[ Bug 548 ]] For scale (slider) widgets thumbsize is a UI artifact
+	// (defaults to 8192) and has no semantic meaning -- the thumb represents a point,
+	// not a page. When thumbsize > range, the clamping above sets ts = range, and
+	// for a reversed slider the guard "newpos - ts < endvalue" fires for every valid
+	// position, permanently forcing thumbpos back to startvalue. Mirror the
+	// t_thumbsize = 0 logic already present in mfocus() drag handling.
+	if (flags & F_SCALE)
+		ts = 0;
 	if (startvalue < endvalue)
 		if (newpos < startvalue)
 			thumbpos = startvalue;
