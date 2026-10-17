@@ -260,26 +260,6 @@ Boolean MCScrollbar::mfocus(int2 x, int2 y)
 			t_movement = x - mx;
 		}
 
-		// For reversed ranges (startvalue > endvalue) the native platform theme may
-		// return thumb rects in visual/pixel-ascending order rather than logical
-		// order, which yields a negative bar length.  Detect this and swap so that
-		// t_bar_start always refers to the visual top (vertical) or left (horizontal)
-		// of the draggable region.  The newpos formula already handles the reversed
-		// direction via t_forward, so swapping only the geometry is sufficient.
-		if (t_bar_length < 0)
-		{
-			if (getstyleint(flags) == F_VERTICAL)
-			{
-				t_bar_start  = t_thumb_end_rect.y;
-				t_bar_length = t_thumb_start_rect.y + t_thumb_start_rect.height - t_bar_start;
-			}
-			else
-			{
-				t_bar_start  = t_thumb_end_rect.x;
-				t_bar_length = t_thumb_start_rect.x + t_thumb_start_rect.width - t_bar_start;
-			}
-		}
-
 		t_bar_start += t_thumb_length / 2;
 		t_bar_length -= t_thumb_length;
 
@@ -289,7 +269,15 @@ Boolean MCScrollbar::mfocus(int2 x, int2 y)
         
 		int32_t t_new_position;
 		t_new_position = t_thumb_start + t_thumb_length / 2 + t_movement;
-		t_new_position = MCU_min(t_bar_start + t_bar_length, MCU_max(t_bar_start, t_new_position));
+		// AL-2026: [[ Bug ]] For reversed ranges (startvalue > endvalue) the theme
+		// returns thumb rects in descending-y order, giving a negative t_bar_length.
+		// Clamp to the actual pixel range [min,max] of the endpoints so the drag
+		// formula (which handles negative bar length correctly) can work unchanged.
+		{
+			int32_t t_bar_lo = MCU_min(t_bar_start, t_bar_start + t_bar_length);
+			int32_t t_bar_hi = MCU_max(t_bar_start, t_bar_start + t_bar_length);
+			t_new_position = MCU_min(t_bar_hi, MCU_max(t_bar_lo, t_new_position));
+		}
 		
 		if (t_forward)
 			newpos = startvalue + ((t_new_position - t_bar_start) / (double)t_bar_length) * (fabs(endvalue - startvalue) - t_thumbsize);
@@ -697,8 +685,13 @@ void MCScrollbar::timer(MCNameRef mptr, MCParameter *params)
 						t_bar_start  += t_thumb_len / 2;
 						t_bar_length -= t_thumb_len;
 						if (t_bar_length == 0) t_bar_length = 1;
-						t_click = MCU_max(t_bar_start,
-						                  MCU_min(t_bar_start + t_bar_length, t_click));
+						// AL-2026: [[ Bug ]] For reversed ranges t_bar_length is negative;
+						// clamp to the actual pixel range [min,max] of the endpoints.
+						{
+							int32_t t_lo = MCU_min(t_bar_start, t_bar_start + t_bar_length);
+							int32_t t_hi = MCU_max(t_bar_start, t_bar_start + t_bar_length);
+							t_click = MCU_min(t_hi, MCU_max(t_lo, t_click));
+						}
 						real8 t_ratio  = (double)(t_click - t_bar_start) / t_bar_length;
 						real8 t_target;
 						if (endvalue > startvalue)
@@ -750,8 +743,13 @@ void MCScrollbar::timer(MCNameRef mptr, MCParameter *params)
 						t_bar_start  += t_thumb_len / 2;
 						t_bar_length -= t_thumb_len;
 						if (t_bar_length == 0) t_bar_length = 1;
-						t_click = MCU_max(t_bar_start,
-						                  MCU_min(t_bar_start + t_bar_length, t_click));
+						// AL-2026: [[ Bug ]] For reversed ranges t_bar_length is negative;
+						// clamp to the actual pixel range [min,max] of the endpoints.
+						{
+							int32_t t_lo = MCU_min(t_bar_start, t_bar_start + t_bar_length);
+							int32_t t_hi = MCU_max(t_bar_start, t_bar_start + t_bar_length);
+							t_click = MCU_min(t_hi, MCU_max(t_lo, t_click));
+						}
 						real8 t_ratio  = (double)(t_click - t_bar_start) / t_bar_length;
 						real8 t_target;
 						if (endvalue > startvalue)
