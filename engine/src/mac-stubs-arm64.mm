@@ -1241,14 +1241,29 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                     [t_track_color setFill];
                     [t_track_path fill];
                     
-                    // Draw filled portion (accent - dynamically changes with system appearance)
-                    CGFloat t_fill_w = t_track_w * t_value;
-                    if (t_fill_w > 0.0f)
+                    // Draw filled portion (accent) from the lower-value end to the thumb.
+                    // For a normal slider (t_range >= 0) the lower value is at the left edge.
+                    // For a reversed slider (t_range < 0) the lower value is at the right edge,
+                    // so the fill runs from the thumb rightward.
                     {
-                        NSRect t_fill_rect = NSMakeRect(t_track_x, t_track_y, t_fill_w, t_track_thickness);
-                        NSBezierPath *t_fill_path = [NSBezierPath bezierPathWithRoundedRect:t_fill_rect xRadius:2.0 yRadius:2.0];
-                        [t_accent setFill];
-                        [t_fill_path fill];
+                        CGFloat t_fill_x, t_fill_w;
+                        if (t_range >= 0.0)
+                        {
+                            t_fill_x = t_track_x;
+                            t_fill_w = t_track_w * t_value;
+                        }
+                        else
+                        {
+                            t_fill_x = t_track_x + t_track_w * t_value;
+                            t_fill_w = t_track_w * (1.0f - t_value);
+                        }
+                        if (t_fill_w > 0.0f)
+                        {
+                            NSRect t_fill_rect = NSMakeRect(t_fill_x, t_track_y, t_fill_w, t_track_thickness);
+                            NSBezierPath *t_fill_path = [NSBezierPath bezierPathWithRoundedRect:t_fill_rect xRadius:2.0 yRadius:2.0];
+                            [t_accent setFill];
+                            [t_fill_path fill];
+                        }
                     }
                     
                     // Draw thumb
@@ -1275,14 +1290,29 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                     [t_track_color setFill];
                     [t_track_path fill];
                     
-                    // Draw filled portion (accent - dynamically changes with system appearance)
-                    CGFloat t_fill_h = t_track_h * t_value;
-                    if (t_fill_h > 0.0f)
+                    // Draw filled portion (accent) from the lower-value end to the thumb.
+                    // For a normal slider (t_range >= 0) the lower value is at the top edge.
+                    // For a reversed slider (t_range < 0) the lower value is at the bottom edge,
+                    // so the fill runs from the thumb downward.
                     {
-                        NSRect t_fill_rect = NSMakeRect(t_track_x, t_track_y, t_track_thickness, t_fill_h);
-                        NSBezierPath *t_fill_path = [NSBezierPath bezierPathWithRoundedRect:t_fill_rect xRadius:2.0 yRadius:2.0];
-                        [t_accent setFill];
-                        [t_fill_path fill];
+                        CGFloat t_fill_y, t_fill_h;
+                        if (t_range >= 0.0)
+                        {
+                            t_fill_y = t_track_y;
+                            t_fill_h = t_track_h * t_value;
+                        }
+                        else
+                        {
+                            t_fill_y = t_track_y + t_track_h * t_value;
+                            t_fill_h = t_track_h * (1.0f - t_value);
+                        }
+                        if (t_fill_h > 0.0f)
+                        {
+                            NSRect t_fill_rect = NSMakeRect(t_track_x, t_fill_y, t_track_thickness, t_fill_h);
+                            NSBezierPath *t_fill_path = [NSBezierPath bezierPathWithRoundedRect:t_fill_rect xRadius:2.0 yRadius:2.0];
+                            [t_accent setFill];
+                            [t_fill_path fill];
+                        }
                     }
                     
                     // Draw thumb
