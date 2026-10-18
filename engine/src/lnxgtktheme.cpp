@@ -1834,7 +1834,6 @@ void MCNativeTheme::drawSlider(MCDC *dc, const MCWidgetInfo &winfo,
 	        winfo.type != WTHEME_TYPE_SMALLSCROLLBAR)
 		return;
 
-	//draw arrows
 	MCWidgetInfo twinfo = winfo;
 	MCRectangle sbincarrowrect, sbdecarrowrect, sbthumbrect,
 	sbinctrackrect, sbdectrackrect;
@@ -1845,20 +1844,65 @@ void MCNativeTheme::drawSlider(MCDC *dc, const MCWidgetInfo &winfo,
 	                  sbinctrackrect, sbdectrackrect);
 	getwidgetrect(winfo, WTHEME_METRIC_DRAWSIZE, drect, rangerect);
 	uint4 sbpartdefaultstate = winfo.state & WTHEME_STATE_DISABLED ? WTHEME_STATE_DISABLED : WTHEME_STATE_CLEAR;
-	memset(&twinfo, 0, sizeof(MCWidgetInfo));	//clear widget info
-	twinfo.type = winfo.attributes & WTHEME_ATT_SBVERTICAL
-	              ? WTHEME_TYPE_SLIDER_TRACK_VERTICAL
-	              : WTHEME_TYPE_SLIDER_TRACK_HORIZONTAL;
+
+	// For a reversed slider (startvalue > endvalue), swap dec/inc so the
+	// accent fill always covers the low-value side of the track.
+	if (winfo.data != nil)
+	{
+		MCWidgetScrollBarInfo *t_sb = (MCWidgetScrollBarInfo *)winfo.data;
+		if (t_sb->startvalue > t_sb->endvalue)
+		{
+			MCRectangle t_tmp = sbdectrackrect;
+			sbdectrackrect = sbinctrackrect;
+			sbinctrackrect = t_tmp;
+		}
+	}
+
+	memset(&twinfo, 0, sizeof(MCWidgetInfo));
+	bool t_vertical = (winfo.attributes & WTHEME_ATT_SBVERTICAL) != 0;
+	bool t_disabled = (winfo.state & WTHEME_STATE_DISABLED) != 0;
+
+	// Draw the full GTK trough (neutral colour).
+	twinfo.type  = t_vertical ? WTHEME_TYPE_SLIDER_TRACK_VERTICAL
+	                           : WTHEME_TYPE_SLIDER_TRACK_HORIZONTAL;
 	twinfo.state = sbpartdefaultstate;
 	if (winfo.part == WTHEME_PART_TRACK_DEC)
 		twinfo.state = winfo.state;
 	drawwidget(dc, twinfo, rangerect);
-	if(sbthumbrect.height && sbthumbrect.width)
+
+	// Overlay the accent colour on the low-value side of the track.
+	// Confine the fill rect to the GTK track band (sbthumbrect carries
+	// the band width/height from the GTK slider metrics).
+	if (!t_disabled && sbdectrackrect.width > 0 && sbdectrackrect.height > 0)
 	{
-		//draw thumb - use slider thumb, not scrollbar thumb!
-		twinfo.type = winfo.attributes & WTHEME_ATT_SBVERTICAL
-		              ? WTHEME_TYPE_SLIDER_THUMB_VERTICAL
-		              : WTHEME_TYPE_SLIDER_THUMB_HORIZONTAL;
+		MCRectangle t_fill;
+		if (t_vertical)
+		{
+			t_fill.x      = sbthumbrect.x;
+			t_fill.width  = sbthumbrect.width;
+			t_fill.y      = sbdectrackrect.y;
+			t_fill.height = sbdectrackrect.height;
+		}
+		else
+		{
+			t_fill.x      = sbdectrackrect.x;
+			t_fill.width  = sbdectrackrect.width;
+			t_fill.y      = sbthumbrect.y;
+			t_fill.height = sbthumbrect.height;
+		}
+		if (t_fill.width > 0 && t_fill.height > 0)
+		{
+			dc->setforeground(MCaccentcolor);
+			dc->setfillstyle(FillSolid, nil, 0, 0);
+			dc->fillrect(t_fill);
+		}
+	}
+
+	// Draw the GTK thumb on top.
+	if (sbthumbrect.height && sbthumbrect.width)
+	{
+		twinfo.type  = t_vertical ? WTHEME_TYPE_SLIDER_THUMB_VERTICAL
+		                           : WTHEME_TYPE_SLIDER_THUMB_HORIZONTAL;
 		twinfo.state = sbpartdefaultstate;
 		if (winfo.part == WTHEME_PART_THUMB)
 			twinfo.state = winfo.state;
