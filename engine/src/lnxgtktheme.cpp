@@ -1194,7 +1194,9 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 					if (range != 0.0 && fabs(sbinfo->endvalue - sbinfo->startvalue) != sbinfo->thumbsize)
 					{
 						int2 miny = sbthumbrect.y;
-
+						// Normalised 0→1 position (0=top/startvalue, 1=bottom/endvalue).
+						// Computed before fabs(range) so direction is preserved for reversed sliders.
+						real8 t_fraction = (sbinfo->thumbpos - sbinfo->startvalue) / range;
 
 						real8 offset = height * (sbinfo->thumbpos - sbinfo->startvalue);
 						sbthumbrect.y += (int2) (offset / range);
@@ -1207,15 +1209,7 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 								minsize -
 								sbthumbrect.height;
 							sbthumbrect.height = minsize;
-							sbthumbrect.y -=
-								(int2) (diff *
-										(sbinfo->
-										 thumbpos +
-										 sbinfo->
-										 thumbsize -
-										 sbinfo->
-										 startvalue) /
-										range);
+							sbthumbrect.y -= (int2)(diff * t_fraction);
 							if (sbthumbrect.y < miny)
 								sbthumbrect.y = miny;
 						}
@@ -1281,6 +1275,9 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 					{
 
 						int2 minx = sbthumbrect.x;
+						// Normalised 0→1 position (0=left/startvalue, 1=right/endvalue).
+						// Computed before fabs(range) so direction is preserved for reversed sliders.
+						real8 t_fraction = (sbinfo->thumbpos - sbinfo->startvalue) / range;
 						real8 offset = (width * (sbinfo->thumbpos - sbinfo->startvalue));
 						sbthumbrect.x += (int2)(offset / range);
 						range = fabs(range);
@@ -1292,15 +1289,7 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 								minsize -
 								sbthumbrect.width;
 							sbthumbrect.width = minsize;
-							sbthumbrect.x -=
-								(int2) (diff *
-										(sbinfo->
-										 thumbpos +
-										 (slider?0:sbinfo->
-										  thumbsize) -
-										 sbinfo->
-										 startvalue) /
-										range);
+							sbthumbrect.x -= (int2)(diff * t_fraction);
 							if (sbthumbrect.x < minx)
 								sbthumbrect.x = minx;
 						}
