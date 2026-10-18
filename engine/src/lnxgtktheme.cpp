@@ -1193,11 +1193,6 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 					real8 height = srect.height - (sbdecarrowrect.height + sbincarrowrect.height) - (troughBorder * 2);
 					if (range != 0.0 && fabs(sbinfo->endvalue - sbinfo->startvalue) != sbinfo->thumbsize)
 					{
-						int2 miny = sbthumbrect.y;
-						// Normalised 0→1 position (0=top/startvalue, 1=bottom/endvalue).
-						// Computed before fabs(range) so direction is preserved for reversed sliders.
-						real8 t_fraction = (sbinfo->thumbpos - sbinfo->startvalue) / range;
-
 						real8 offset = height * (sbinfo->thumbpos - sbinfo->startvalue);
 						sbthumbrect.y += (int2) (offset / range);
 						range = fabs(range);
@@ -1205,13 +1200,11 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 						uint2 minsize = srect.width;
 						if (sbthumbrect.height < minsize)
 						{
-							uint2 diff =
-								minsize -
-								sbthumbrect.height;
+							// Centre the thumb on its natural position (matching Windows
+							// behaviour).  Half the thumb may extend past the track ends
+							// at the extremes; the draw context clips it to the widget bounds.
 							sbthumbrect.height = minsize;
-							sbthumbrect.y -= (int2)(diff * t_fraction);
-							if (sbthumbrect.y < miny)
-								sbthumbrect.y = miny;
+							sbthumbrect.y -= (int2)(minsize / 2);
 						}
 					}
 					else
@@ -1274,10 +1267,6 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 					if (range != 0.0 && fabs(sbinfo->endvalue - sbinfo->startvalue) != sbinfo->thumbsize)
 					{
 
-						int2 minx = sbthumbrect.x;
-						// Normalised 0→1 position (0=left/startvalue, 1=right/endvalue).
-						// Computed before fabs(range) so direction is preserved for reversed sliders.
-						real8 t_fraction = (sbinfo->thumbpos - sbinfo->startvalue) / range;
 						real8 offset = (width * (sbinfo->thumbpos - sbinfo->startvalue));
 						sbthumbrect.x += (int2)(offset / range);
 						range = fabs(range);
@@ -1285,13 +1274,11 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 						uint2 minsize = srect.height;
 						if (sbthumbrect.width < minsize)
 						{
-							uint2 diff =
-								minsize -
-								sbthumbrect.width;
+							// Centre the thumb on its natural position (matching Windows
+							// behaviour).  Half the thumb may extend past the track ends
+							// at the extremes; the draw context clips it to the widget bounds.
 							sbthumbrect.width = minsize;
-							sbthumbrect.x -= (int2)(diff * t_fraction);
-							if (sbthumbrect.x < minx)
-								sbthumbrect.x = minx;
+							sbthumbrect.x -= (int2)(minsize / 2);
 						}
 
 					}
