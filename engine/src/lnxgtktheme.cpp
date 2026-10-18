@@ -226,6 +226,12 @@ static GtkWidgetState getpartandstate(const MCWidgetInfo &winfo, GtkThemeWidgetT
 	case WTHEME_TYPE_MENUITEMHIGHLIGHT:
 		moztype = MOZ_GTK_MENUITEMHIGHLIGHT;
 		break;
+	case WTHEME_TYPE_SLIDER_FILL_VERTICAL:
+		moztype = MOZ_GTK_SCALE_FILL_VERTICAL;
+		break;
+	case WTHEME_TYPE_SLIDER_FILL_HORIZONTAL:
+		moztype = MOZ_GTK_SCALE_FILL_HORIZONTAL;
+		break;
 	case WTHEME_TYPE_SLIDER_TRACK_VERTICAL:
 		moztype = MOZ_GTK_SCALE_TRACK_VERTICAL;
 		break;
@@ -1870,32 +1876,13 @@ void MCNativeTheme::drawSlider(MCDC *dc, const MCWidgetInfo &winfo,
 		twinfo.state = winfo.state;
 	drawwidget(dc, twinfo, rangerect);
 
-	// Overlay the accent colour on the low-value side of the track.
-	// Confine the fill rect to the GTK track band (sbthumbrect carries
-	// the band width/height from the GTK slider metrics).
+	// Draw the GTK accent fill on the low-value side of the track.
 	if (!t_disabled && sbdectrackrect.width > 0 && sbdectrackrect.height > 0)
 	{
-		MCRectangle t_fill;
-		if (t_vertical)
-		{
-			t_fill.x      = sbthumbrect.x;
-			t_fill.width  = sbthumbrect.width;
-			t_fill.y      = sbdectrackrect.y;
-			t_fill.height = sbdectrackrect.height;
-		}
-		else
-		{
-			t_fill.x      = sbdectrackrect.x;
-			t_fill.width  = sbdectrackrect.width;
-			t_fill.y      = sbthumbrect.y;
-			t_fill.height = sbthumbrect.height;
-		}
-		if (t_fill.width > 0 && t_fill.height > 0)
-		{
-			dc->setforeground(MCaccentcolor);
-			dc->setfillstyle(FillSolid, nil, 0, 0);
-			dc->fillrect(t_fill);
-		}
+		twinfo.type  = t_vertical ? WTHEME_TYPE_SLIDER_FILL_VERTICAL
+		                           : WTHEME_TYPE_SLIDER_FILL_HORIZONTAL;
+		twinfo.state = sbpartdefaultstate;
+		drawwidget(dc, twinfo, sbdectrackrect);
 	}
 
 	// Draw the GTK thumb on top.
@@ -2427,6 +2414,12 @@ static GdkPixbuf* drawtheme_gtk3_direct(MCThemeDrawInfo &p_info)
 		surface = moz_gtk_scale_thumb_paint_to_surface(
 			p_info.moztype, &p_info.drect, &p_info.state, &widget_width, &widget_height);
 	}
+	else if (p_info.moztype == MOZ_GTK_SCALE_FILL_HORIZONTAL ||
+	         p_info.moztype == MOZ_GTK_SCALE_FILL_VERTICAL)
+	{
+		surface = moz_gtk_scale_fill_paint_to_surface(
+			p_info.moztype, &p_info.drect, &widget_width, &widget_height);
+	}
 	else if (p_info.moztype == MOZ_GTK_SCROLLBAR_THUMB_HORIZONTAL || 
 	         p_info.moztype == MOZ_GTK_SCROLLBAR_THUMB_VERTICAL)
 	{
@@ -2764,6 +2757,8 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 		    p_info->moztype == MOZ_GTK_SCALE_TRACK_VERTICAL ||
 		    p_info->moztype == MOZ_GTK_SCALE_THUMB_HORIZONTAL ||
 		    p_info->moztype == MOZ_GTK_SCALE_THUMB_VERTICAL ||
+		    p_info->moztype == MOZ_GTK_SCALE_FILL_HORIZONTAL ||
+		    p_info->moztype == MOZ_GTK_SCALE_FILL_VERTICAL ||
 		    p_info->moztype == MOZ_GTK_SCROLLBAR_THUMB_HORIZONTAL ||
 		    p_info->moztype == MOZ_GTK_SCROLLBAR_THUMB_VERTICAL ||
 		    p_info->moztype == MOZ_GTK_SCROLLBAR_TRACK_HORIZONTAL ||
