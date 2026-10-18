@@ -1464,9 +1464,9 @@ void MCNativeTheme::getsliderrects(const MCWidgetInfo &winfo, const MCRectangle 
 		t_thumb_offset = t_thumb_size / 2 + (int4)floor((t_track_size - t_thumb_size) * (sbinfo -> thumbpos - sbinfo -> startvalue) / (sbinfo -> endvalue - sbinfo -> startvalue));
 
 		if (t_vertical)
-			MCU_set_rect(sbthumbrect, srect . x, srect . y + t_thumb_offset - sbthumbrect . height / 2, sbthumbrect . width, sbthumbrect . height);
+			MCU_set_rect(sbthumbrect, srect . x, srect . y + t_thumb_offset - sbthumbrect . height / 2, srect . width, sbthumbrect . height);
 		else
-			MCU_set_rect(sbthumbrect, srect . x + t_thumb_offset - sbthumbrect . width / 2, srect . y, sbthumbrect . width, sbthumbrect . height);
+			MCU_set_rect(sbthumbrect, srect . x + t_thumb_offset - sbthumbrect . width / 2, srect . y, sbthumbrect . width, srect . height);
 	}
 	else
 	{
