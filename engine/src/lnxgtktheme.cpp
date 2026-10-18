@@ -1193,18 +1193,27 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 					real8 height = srect.height - (sbdecarrowrect.height + sbincarrowrect.height) - (troughBorder * 2);
 					if (range != 0.0 && fabs(sbinfo->endvalue - sbinfo->startvalue) != sbinfo->thumbsize)
 					{
+						// Normalised 0→1 fraction before fabs so direction is preserved
+						// for reversed sliders (startValue > endValue).
+						real8 t_fraction = (sbinfo->thumbpos - sbinfo->startvalue) / range;
+						int2 miny = sbthumbrect.y;
+
 						real8 offset = height * (sbinfo->thumbpos - sbinfo->startvalue);
 						sbthumbrect.y += (int2) (offset / range);
 						range = fabs(range);
 						sbthumbrect.height = (uint2)(sbinfo->thumbsize * height / range);
-						uint2 minsize = srect.width;
+						// Minimum thumb height = GTK-metric track width (sbthumbrect.width,
+						// already set to trackwidth above), not srect.width.  This keeps
+						// the thumb proportional to the GTK theme regardless of widget size
+						// and keeps sbthumbrect strictly within the track.
+						uint2 minsize = (uint2)sbthumbrect.width;
 						if (sbthumbrect.height < minsize)
 						{
-							// Centre the thumb on its natural position (matching Windows
-							// behaviour).  Half the thumb may extend past the track ends
-							// at the extremes; the draw context clips it to the widget bounds.
+							uint2 diff = minsize - sbthumbrect.height;
 							sbthumbrect.height = minsize;
-							sbthumbrect.y -= (int2)(minsize / 2);
+							sbthumbrect.y -= (int2)(diff * t_fraction);
+							if (sbthumbrect.y < miny)
+								sbthumbrect.y = miny;
 						}
 					}
 					else
@@ -1267,18 +1276,25 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 					if (range != 0.0 && fabs(sbinfo->endvalue - sbinfo->startvalue) != sbinfo->thumbsize)
 					{
 
+						// Normalised 0→1 fraction before fabs so direction is preserved
+						// for reversed sliders (startValue > endValue).
+						real8 t_fraction = (sbinfo->thumbpos - sbinfo->startvalue) / range;
+						int2 minx = sbthumbrect.x;
+
 						real8 offset = (width * (sbinfo->thumbpos - sbinfo->startvalue));
 						sbthumbrect.x += (int2)(offset / range);
 						range = fabs(range);
 						sbthumbrect.width = (uint2) ((slider?0:sbinfo->thumbsize) * width / range);
-						uint2 minsize = srect.height;
+						// Minimum thumb width = GTK-metric track height (sbthumbrect.height,
+						// already set to trackheight above), not srect.height.
+						uint2 minsize = (uint2)sbthumbrect.height;
 						if (sbthumbrect.width < minsize)
 						{
-							// Centre the thumb on its natural position (matching Windows
-							// behaviour).  Half the thumb may extend past the track ends
-							// at the extremes; the draw context clips it to the widget bounds.
+							uint2 diff = minsize - sbthumbrect.width;
 							sbthumbrect.width = minsize;
-							sbthumbrect.x -= (int2)(minsize / 2);
+							sbthumbrect.x -= (int2)(diff * t_fraction);
+							if (sbthumbrect.x < minx)
+								sbthumbrect.x = minx;
 						}
 
 					}
