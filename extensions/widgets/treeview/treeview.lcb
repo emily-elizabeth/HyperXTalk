@@ -742,7 +742,125 @@ constant kIconHeight is 10
 --
 --------------------------------------------------------------------------------
 
+
+-- HXT dark mode -------------------------------------------------------------
+-- The IDE writes the metadata default colours onto a new widget as explicit
+-- properties, so "my ... paint" never follows the system appearance. The IDE
+-- pushes "dark" or "light" into hxtAppearance (when a stack opens, when a
+-- widget is created and when the appearance changes; a standalone's own
+-- systemAppearanceChanged handler should do the same). While dark, a colour
+-- that is unset or still the light default is swapped for a dark default; a
+-- colour the developer chose is kept. Widgets cannot run script and may only
+-- read their own properties from handlers the engine dispatches unrestricted
+-- (OnOpen, OnTimer), never from OnPaint, OnCreate, OnLoad, OnSave or a
+-- property handler, so the state below is cached.
+private variable mIsDark as Boolean
+private variable mBackgroundIsDefault as Boolean
+private variable mForegroundIsDefault as Boolean
+private variable mBorderIsDefault as Boolean
+
+constant kHXTLightBackgroundColor is "244,244,244"
+constant kHXTDarkBackgroundColor is [0.1725, 0.1725, 0.1804]
+constant kHXTLightForegroundColor is "50,50,50"
+constant kHXTDarkForegroundColor is [0.9020, 0.9020, 0.9020]
+constant kHXTLightBorderColor is "109,109,109"
+constant kHXTDarkBorderColor is [0.3529, 0.3529, 0.3608]
+
+-- "dark" or "light"; set by the IDE (see above). Not saved with the widget.
+property hxtAppearance get getHxtAppearance set setHxtAppearance
+metadata hxtAppearance.user_visible is "false"
+
+-- Module variables start unassigned and reading one throws a runtime error,
+-- so give the appearance state safe values before anything can paint.
+private handler resetAppearanceState() returns nothing
+	put false into mIsDark
+	put true into mBackgroundIsDefault
+	put true into mForegroundIsDefault
+	put true into mBorderIsDefault
+end handler
+
+-- Re-read whether this widget's own colours are still the defaults. Touches
+-- the script object: only call from OnOpen / OnTimer.
+private handler updateAppearance() returns nothing
+	put isDefaultColor("backgroundColor", kHXTLightBackgroundColor) into mBackgroundIsDefault
+	put isDefaultColor("foregroundColor", kHXTLightForegroundColor) into mForegroundIsDefault
+	put isDefaultColor("borderColor", kHXTLightBorderColor) into mBorderIsDefault
+end handler
+
+-- True if the widget's own (explicit) colour property is unset or still equal
+-- to the light-mode default written by the IDE on creation.
+private handler isDefaultColor(in pProperty as String, in pLightDefault as String) returns Boolean
+	variable tExplicit as optional any
+	put property pProperty of my script object into tExplicit
+	if tExplicit is nothing then
+		return true
+	end if
+	if tExplicit is a string then
+		variable tValue as String
+		put tExplicit into tValue
+		return tValue is "" or tValue is pLightDefault
+	end if
+	return false
+end handler
+
+-- The paint to use for a colour role, substituting a dark default in dark
+-- mode where the developer chose nothing. Safe to call from OnPaint: it only
+-- uses the cached flags.
+private handler appearancePaint(in pWhich as String) returns Paint
+	if mIsDark then
+		if pWhich is "background" and mBackgroundIsDefault then
+			return solid paint with color kHXTDarkBackgroundColor
+		else if pWhich is "foreground" and mForegroundIsDefault then
+			return solid paint with color kHXTDarkForegroundColor
+		else if pWhich is "border" and mBorderIsDefault then
+			return solid paint with color kHXTDarkBorderColor
+		end if
+	end if
+
+	if pWhich is "background" then
+		return my background paint
+	else if pWhich is "foreground" then
+		return my foreground paint
+	else if pWhich is "border" then
+		return my border paint
+	end if
+	return my border paint
+end handler
+
+public handler OnOpen()
+	updateAppearance()
+end handler
+
+-- Sent when a group, card or stack property above the widget changes. May
+-- arrive inside a restricted dispatch, so defer the re-read to OnTimer.
+public handler OnParentPropertyChanged()
+	schedule timer in 0 seconds
+end handler
+
+-- Deferred refresh (see setHxtAppearance / OnParentPropertyChanged).
+public handler OnTimer()
+	updateAppearance()
+	redraw all
+end handler
+
+private handler getHxtAppearance() returns String
+	if mIsDark then
+		return "dark"
+	end if
+	return "light"
+end handler
+
+private handler setHxtAppearance(in pMode as String) returns nothing
+	put pMode is "dark" into mIsDark
+	-- Repaint now with the cached flags (the engine defers the timer while the
+	-- pointer tool is active), then refresh the flags from OnTimer.
+	redraw all
+	schedule timer in 0 seconds
+end handler
+-- end HXT dark mode ---------------------------------------------------------
+
 public handler OnCreate() returns nothing
+	resetAppearanceState()
 	put 21 into mRowHeight
 	put kIconHeight into mIconHeight
 	UpdateIconRects()
@@ -817,6 +935,7 @@ public handler OnSave(out rProperties as Array)
 end handler
 
 public handler OnLoad(in pProperties as Array)
+	resetAppearanceState()
 	put pProperties["read only"] into mReadOnly
 
 	if "array style" is among the keys of pProperties then
@@ -995,7 +1114,7 @@ end handler
 // Utility for painting the separator
 private handler paintSeparator()
 	set the stroke width of this canvas to kStrokeWidth
-	set the paint of this canvas to my border paint
+	set the paint of this canvas to appearancePaint("border")
 
 	variable tPath as Path
 	
@@ -1668,7 +1787,7 @@ end handler
 constant kOverlayOpacity is 0.1
 private handler paintIcon(in pPath as Path, in pHover as Boolean, in pSelected as Boolean)
 	if pSelected is pHover then
-		set the paint of this canvas to my foreground paint	
+		set the paint of this canvas to appearancePaint("foreground")
 	else if pSelected then
 		set the paint of this canvas to my background paint
 	else if pHover then
@@ -1679,13 +1798,13 @@ private handler paintIcon(in pPath as Path, in pHover as Boolean, in pSelected a
 end handler
 
 private handler paintBackground(in pPath as Path)
-	set the paint of this canvas to my background paint
+	set the paint of this canvas to appearancePaint("background")
 	fill pPath on this canvas
 end handler
 
 private handler paintBorder(in pPath as Path)
 	set the stroke width of this canvas to kStrokeWidth
-	set the paint of this canvas to my border paint
+	set the paint of this canvas to appearancePaint("border")
 	stroke pPath on this canvas
 end handler
 
@@ -1694,7 +1813,7 @@ private handler paintRow(in pPath as Path, in pHover as Boolean, in pSelected as
 	if pSelected then
 		set the paint of this canvas to my highlight paint
 	else
-		set the paint of this canvas to my background paint
+		set the paint of this canvas to appearancePaint("background")
 	end if
 	fill pPath on this canvas
 	
@@ -1710,7 +1829,7 @@ private handler paintRow(in pPath as Path, in pHover as Boolean, in pSelected as
 		end if
 		
 		if pAlternate then
-			set the paint of this canvas to my foreground paint
+			set the paint of this canvas to appearancePaint("foreground")
 			set the opacity of this canvas to kOverlayOpacity
 			fill pPath on this canvas
 		end if
@@ -1727,7 +1846,7 @@ private handler paintText(in pText as String, in pAlignment as String, in pRect 
 	if pSelected then
 		set the paint of this canvas to my background paint
 	else
-		set the paint of this canvas to my foreground paint
+		set the paint of this canvas to appearancePaint("foreground")
 	end if
 	if pAlignment is "left" then
 		fill text pText at left of pRect on this canvas
@@ -2791,7 +2910,7 @@ end handler
 public handler paintScrollbar(in pCanvas as Canvas)
 	// Draw scrollbar if there is any need
 	if mScrollbarHeight > 0 then
-		set the paint of pCanvas to my border paint
+		set the paint of pCanvas to appearancePaint("border")
 		fill mScrollbarPath on pCanvas	
 	end if
 end handler
