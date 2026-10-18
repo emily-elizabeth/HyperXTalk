@@ -1212,8 +1212,12 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 							uint2 diff = minsize - sbthumbrect.height;
 							sbthumbrect.height = minsize;
 							sbthumbrect.y -= (int2)(diff * t_fraction);
+							// Clamp so thumb stays strictly inside the track.
+							int2 maxy = miny + (int2)height - (int2)minsize;
 							if (sbthumbrect.y < miny)
 								sbthumbrect.y = miny;
+							if (sbthumbrect.y > maxy)
+								sbthumbrect.y = maxy;
 						}
 					}
 					else
@@ -1293,8 +1297,12 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 							uint2 diff = minsize - sbthumbrect.width;
 							sbthumbrect.width = minsize;
 							sbthumbrect.x -= (int2)(diff * t_fraction);
+							// Clamp so thumb stays strictly inside the track.
+							int2 maxx = minx + (int2)width - (int2)minsize;
 							if (sbthumbrect.x < minx)
 								sbthumbrect.x = minx;
+							if (sbthumbrect.x > maxx)
+								sbthumbrect.x = maxx;
 						}
 
 					}
