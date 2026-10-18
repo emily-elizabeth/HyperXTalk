@@ -1251,6 +1251,21 @@ Boolean MCNativeTheme::drawslider(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 	MCWidgetInfo twinfo = winfo;
 	MCRectangle sbincarrowrect, sbdecarrowrect, sbthumbrect, sbinctrackrect, sbdectrackrect;
 	getscrollbarrects(winfo, drect, sbincarrowrect, sbdecarrowrect, sbthumbrect, sbinctrackrect, sbdectrackrect);
+
+	// For a reversed slider (startvalue > endvalue) the dec-rect is physically
+	// above/left of the thumb but represents the HIGHER-value side.
+	// Swap dec and inc so the accent always fills from the lower-value end.
+	if (winfo.data != nil)
+	{
+		MCWidgetScrollBarInfo *t_sb = (MCWidgetScrollBarInfo *)winfo.data;
+		if (t_sb->startvalue > t_sb->endvalue)
+		{
+			MCRectangle t_tmp = sbdectrackrect;
+			sbdectrackrect = sbinctrackrect;
+			sbinctrackrect = t_tmp;
+		}
+	}
+
 	memset(&twinfo, 0, sizeof(MCWidgetInfo));
 
 	bool t_dark     = MCplatformIsDarkMode();
