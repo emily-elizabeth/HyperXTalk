@@ -149,6 +149,26 @@ metadata borderColor.section is "Colors"
 metadata borderColor.label is "Border color"
 
 /**
+Summary: The appearance the widget draws in: "dark" or "light".
+
+Syntax: set the hxtAppearance of <widget> to <pMode>
+Syntax: get the hxtAppearance of <widget>
+
+Parameters:
+pMode (string): "dark" or "light"
+
+Description:
+The <hxtAppearance> property tells the widget which appearance to draw its
+built-in default colours in. It is not saved with the widget and is not shown
+in the property inspector. The IDE sets it when a stack opens, when a widget
+is created and when the system appearance changes; in a standalone the
+developer's <systemAppearanceChanged> handler should set it. Colours the
+developer has changed from their defaults are not affected.
+**/
+property hxtAppearance get getHxtAppearance set setHxtAppearance
+metadata hxtAppearance.user_visible is "false"
+
+/**
 Syntax: set the hilitedTextColor of <widget> to <pColor>
 Syntax: get the hilitedTextColor of <widget>
 
@@ -160,12 +180,6 @@ segments' labels or icons when they are highlighted.
 
 Related: foreColor (property)
 **/
--- HXT dark mode: "dark" or "light". The IDE sets it when a stack opens, when
--- a widget is created and when the system appearance changes; in a standalone
--- the developer's systemAppearanceChanged handler should set it.
-property hxtAppearance get getHxtAppearance set setHxtAppearance
-metadata hxtAppearance.user_visible is "false"
-
 property hilitedTextColor get getSelectedLabelColor set setSelectedLabelColor
 metadata hilitedTextColor.editor is "com.livecode.pi.color"
 metadata hilitedTextColor.default is "255,255,255"

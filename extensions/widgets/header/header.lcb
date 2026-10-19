@@ -534,7 +534,23 @@ constant kHXTDarkForegroundColor is [0.9020, 0.9020, 0.9020]
 constant kHXTLightBorderColor is "109,109,109"
 constant kHXTDarkBorderColor is [0.3529, 0.3529, 0.3608]
 
--- "dark" or "light"; set by the IDE (see above). Not saved with the widget.
+/**
+Summary: The appearance the widget draws in: "dark" or "light".
+
+Syntax: set the hxtAppearance of <widget> to <pMode>
+Syntax: get the hxtAppearance of <widget>
+
+Parameters:
+pMode (string): "dark" or "light"
+
+Description:
+The <hxtAppearance> property tells the widget which appearance to draw its
+built-in default colours in. It is not saved with the widget and is not shown
+in the property inspector. The IDE sets it when a stack opens, when a widget
+is created and when the system appearance changes; in a standalone the
+developer's <systemAppearanceChanged> handler should set it. Colours the
+developer has changed from their defaults are not affected.
+**/
 property hxtAppearance get getHxtAppearance set setHxtAppearance
 metadata hxtAppearance.user_visible is "false"
 
