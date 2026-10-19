@@ -63,7 +63,10 @@ fi
 
 echo ""
 echo "=== Copying outputs into prebuilt/lib/mac ==="
-for OUT in libcairo.a libxslt.a libiodbc.a libxml.a libzip.a libsqlite.a; do
+# (libcairo.a deliberately NOT in this list: copying the stale Xcode-built
+#  archive here would overwrite the meson build, which is the only one that
+#  contains the PDF interchange/tag objects revpdfprinter links against.)
+for OUT in libxslt.a libiodbc.a libxml.a libzip.a libsqlite.a; do
     if [ -f "${BUILD_OUT}/${OUT}" ]; then
         cp "${BUILD_OUT}/${OUT}" "${PREBUILT_LIB}/${OUT}"
     else
