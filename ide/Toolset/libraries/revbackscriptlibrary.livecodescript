@@ -87,10 +87,30 @@ private command __HXTPushAppearanceToWidget pWidget, pMode
    end try
 end __HXTPushAppearanceToWidget
 
+local sHXTNewWidgets
+
 on newWidget
-   __HXTPushAppearanceToWidget the long id of the target, the systemAppearance
+   -- Deferred on purpose: for a cloned widget (Duplicate, option-drag,
+   -- paste) the engine sends newWidget while attaching the copy, before it
+   -- has bound the LCB instance and recorded the kind. Reading "the kind"
+   -- at that point dereferences a nil kind in the engine and crashes the
+   -- IDE (segfault, no dialog). By the next event-loop turn the clone is
+   -- fully bound.
+   put the long id of the target & return after sHXTNewWidgets
+   send "__HXTPushAppearanceToNewWidgets" to me in 0 milliseconds
    pass newWidget
 end newWidget
+
+on __HXTPushAppearanceToNewWidgets
+   local tWidgets, tWidget
+   put sHXTNewWidgets into tWidgets
+   put empty into sHXTNewWidgets
+   repeat for each line tWidget in tWidgets
+      if exists(tWidget) then
+         __HXTPushAppearanceToWidget tWidget, the systemAppearance
+      end if
+   end repeat
+end __HXTPushAppearanceToNewWidgets
 
 global gREVSuppressMessages
 
