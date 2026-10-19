@@ -192,6 +192,55 @@ static void *kMCAppearanceKVOContext = &kMCAppearanceKVOContext;
 static bool s_appearance_observer_registered = false;
 static NSString *s_last_appearance_name = nil;
 
+// HXT: the preferredAppearance override (0 system, 1 light, 2 dark).
+// AppKit resolves NSApp.effectiveAppearance lazily, so during the synchronous
+// script that sets the preference (the IDE does it at startup, before any
+// palette opens) the effective appearance can still report the OS value.
+// Every appearance query in the engine therefore goes through
+// MCMacEffectiveAppearance(), which returns the forced appearance directly.
+// The override state and MCMacEffectiveAppearance() live in mac-theme.mm,
+// which every macOS target links (this file is desktop-only).
+NSAppearance *MCMacEffectiveAppearance(void);
+void MCMacSetPreferredAppearanceMode(int p_mode);
+
+void MCPlatformCallbackSendSystemAppearanceChanged(void);
+
+// HXT: implementation of the preferredAppearance global property (see
+// MCInterfaceSetPreferredAppearance). NSApp.appearance is set so AppKit's own
+// windows, menus and cells follow; the engine's own queries use the override
+// above. The appearance-changed processing is run immediately rather than
+// waiting for the KVO observer, whose notification AppKit may deliver later.
+extern "C" void MCplatformSetPreferredAppearance(int p_mode)
+{
+    if (p_mode < 0 || p_mode > 2)
+        p_mode = 0;
+    MCMacSetPreferredAppearanceMode(p_mode);
+
+    if (NSApp == nil)
+        return;
+
+    NSAppearance *t_appearance = nil;
+    switch (p_mode)
+    {
+        case 1:
+            t_appearance = [NSAppearance appearanceNamed: NSAppearanceNameAqua];
+            break;
+        case 2:
+            t_appearance = [NSAppearance appearanceNamed: NSAppearanceNameDarkAqua];
+            break;
+        default:
+            t_appearance = nil; // follow the system
+            break;
+    }
+    [NSApp setAppearance: t_appearance];
+
+    // Record the resulting appearance so the deferred KVO notification for
+    // this same change is treated as already handled, then process it now.
+    [s_last_appearance_name release];
+    s_last_appearance_name = [[MCMacEffectiveAppearance() name] copy];
+    MCPlatformCallbackSendSystemAppearanceChanged();
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 @implementation com_hyperxtalk_hyperxtalk_MCApplicationDelegate
@@ -246,7 +295,7 @@ static NSString *s_last_appearance_name = nil;
         return;
     }
 
-    NSString *t_name = [[NSApp effectiveAppearance] name];
+    NSString *t_name = [MCMacEffectiveAppearance() name];
     if (t_name != nil && s_last_appearance_name != nil &&
         [t_name isEqualToString: s_last_appearance_name])
         return;
@@ -392,7 +441,7 @@ static OSErr preDispatchAppleEvent(const AppleEvent *p_event, AppleEvent *p_repl
     // HXT: Start observing system appearance changes now that the engine
     //   (and MCscreen) is up.  Record the current appearance first so the
     //   first real change is compared against the launch state.
-    s_last_appearance_name = [[[NSApp effectiveAppearance] name] copy];
+    s_last_appearance_name = [[MCMacEffectiveAppearance() name] copy];
     [NSApp addObserver: self
             forKeyPath: @"effectiveAppearance"
                options: NSKeyValueObservingOptionNew
@@ -710,16 +759,15 @@ void MCPlatformGetSystemProperty(MCPlatformSystemProperty p_property, MCPlatform
 		
 		case kMCPlatformSystemPropertySystemAppearance:
 		{
-			NSUserDefaults *t_defaults = [NSUserDefaults standardUserDefaults];
-			NSString *t_appearance = [t_defaults stringForKey:@"AppleInterfaceStyle"];
-			if (t_appearance == nil || ![t_appearance isEqualToString:@"Dark"])
-			{
-				*(int16_t *)r_value = kMCPlatformSystemAppearanceLight;
-			}
-			else
-			{
+			// HXT: report the appearance the app actually draws in. Reading the
+			// AppleInterfaceStyle user default gives the OS setting only, which
+			// ignores the preferredAppearance override (and NSApp.appearance).
+			NSAppearanceName t_best = [MCMacEffectiveAppearance()
+				bestMatchFromAppearancesWithNames: @[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]];
+			if ([t_best isEqualToString: NSAppearanceNameDarkAqua])
 				*(int16_t *)r_value = kMCPlatformSystemAppearanceDark;
-			}
+			else
+				*(int16_t *)r_value = kMCPlatformSystemAppearanceLight;
 		}
 			break;
 		default:

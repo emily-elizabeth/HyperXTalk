@@ -33,10 +33,14 @@
 // Returns true when the app is currently running in dark Aqua.
 // Exposed as extern "C" so that C++ translation units (e.g. buttondraw.cpp)
 // can call it without Objective-C includes.
+// HXT: appearance the engine should draw in (honours the preferredAppearance
+// override); defined in mac-theme.mm.
+NSAppearance *MCMacEffectiveAppearance(void);
+
 extern "C" bool MCplatformIsDarkMode(void)
 {
     NSAppearanceName t_best =
-        [[NSApp effectiveAppearance]
+        [MCMacEffectiveAppearance()
             bestMatchFromAppearancesWithNames:
                 @[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]];
     return [t_best isEqualToString:NSAppearanceNameDarkAqua];
@@ -52,7 +56,7 @@ extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen)
         return;
 
     __block CGFloat r = 0.0, g = 0.0, b = 0.0;
-    [[NSApp effectiveAppearance] performAsCurrentDrawingAppearance:^{
+    [MCMacEffectiveAppearance() performAsCurrentDrawingAppearance:^{
         NSColor *t_color =
             [[NSColor windowBackgroundColor]
                 colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
@@ -77,7 +81,7 @@ extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen)
         return;
 
     __block CGFloat r = 0.0, g = 0.0, b = 0.0;
-    [[NSApp effectiveAppearance] performAsCurrentDrawingAppearance:^{
+    [MCMacEffectiveAppearance() performAsCurrentDrawingAppearance:^{
         NSColor *t_color =
             [[NSColor labelColor]
                 colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
@@ -166,6 +170,10 @@ public:
 
     // Tell the metacontext how large to make the per-draw buffer.
     virtual uint32_t getthemedrawinfosize() { return sizeof(MCThemeDrawInfo); }
+
+    // HXT dark mode: lets the generic drawing code (buttondraw.cpp etc.) pick
+    // dark-aware colours on macOS, as the Windows and GTK themes already can.
+    virtual bool isdarkmodeactive() { return MCplatformIsDarkMode(); }
 
     virtual Boolean getthemepropbool(Widget_ThemeProps p)
     {
@@ -772,7 +780,7 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
     // to choose rendering style — not only the current drawing appearance.
     // Sync the dummy window's appearance here so NSCell rendering uses the
     // modern flat style instead of falling back to the old Aqua gradient.
-    NSAppearance *t_appearance = [NSApp effectiveAppearance];
+    NSAppearance *t_appearance = MCMacEffectiveAppearance();
     if (t_appearance == nil)
         t_appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
     [t_view.window setAppearance:t_appearance];
@@ -838,9 +846,13 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                     // Draw combo box - just white background with separator and arrow
                     NSRect t_main_rect = NSInsetRect(t_frame, 4, 4);
                     
-                    // White background
+                    // Field background (HXT dark mode: opaque colour per appearance)
                     NSBezierPath *t_bg = [NSBezierPath bezierPathWithRoundedRect:t_main_rect xRadius:4.0 yRadius:4.0];
-                    [[NSColor whiteColor] setFill];
+                    NSAppearanceName t_combo_best = [t_appearance
+                        bestMatchFromAppearancesWithNames:@[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]];
+                    bool t_combo_dark = [t_combo_best isEqualToString:NSAppearanceNameDarkAqua];
+                    [(t_combo_dark ? [NSColor colorWithCalibratedWhite:0.12f alpha:1.0f]
+                                   : [NSColor whiteColor]) setFill];
                     [t_bg fill];
                     
                     // Separator between text and dropdown
@@ -880,12 +892,22 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                     CGFloat t_radius = t_r.size.height / 2.0;
                     
                     [t_appearance performAsCurrentDrawingAppearance:^{
-                        // Standard button background
+                        // Standard button background.
+                        // HXT dark mode: controlColor is a translucent white in
+                        // dark mode and composites to a washed-out grey over the
+                        // engine's pre-filled background, so use an opaque fill
+                        // there (same reasoning as the tab drawing below).
+                        NSAppearanceName t_pd_best = [t_appearance
+                            bestMatchFromAppearancesWithNames:@[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]];
+                        bool t_pd_dark = [t_pd_best isEqualToString:NSAppearanceNameDarkAqua];
+                        NSColor *t_base = t_pd_dark
+                            ? [NSColor colorWithCalibratedWhite:0.34f alpha:1.0f]
+                            : [NSColor controlColor];
                         NSColor *t_fill;
                         if (t_disabled) {
-                            t_fill = [[NSColor controlColor] colorWithAlphaComponent:0.5];
+                            t_fill = [t_base colorWithAlphaComponent:0.5];
                         } else {
-                            t_fill = [NSColor controlColor];
+                            t_fill = t_base;
                         }
                         
                         NSBezierPath *t_path = [NSBezierPath bezierPathWithRoundedRect:t_r xRadius:t_radius yRadius:t_radius];
@@ -1449,7 +1471,7 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
             [t_appearance performAsCurrentDrawingAppearance:^{
                 // Determine if we're in dark mode
                 NSAppearanceName t_best =
-                    [[NSApp effectiveAppearance]
+                    [MCMacEffectiveAppearance()
                         bestMatchFromAppearancesWithNames:
                             @[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]];
                 bool t_is_dark = [t_best isEqualToString:NSAppearanceNameDarkAqua];

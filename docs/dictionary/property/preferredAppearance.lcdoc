@@ -1,0 +1,54 @@
+Name: preferredAppearance
+
+Type: property
+
+Syntax: set the preferredAppearance to {system | light | dark}
+Syntax: get the preferredAppearance
+
+Summary:
+Forces the application to use a light or dark appearance, or lets it follow
+the operating system.
+
+Introduced: 0.9.16
+
+OS: mac
+
+Platforms: desktop
+
+Example:
+-- in the mainstack of an application that should always be dark
+on preOpenStack
+   set the preferredAppearance to "dark"
+end preOpenStack
+
+Example:
+set the preferredAppearance to "system"
+
+Description:
+Use the <preferredAppearance> property to decide which appearance the
+application draws in. The value is one of:
+
+- "system": follow the operating system's light or dark setting (the default)
+- "light": always draw in light mode
+- "dark": always draw in dark mode
+
+The property is global to the running process and is never saved in a stack
+file. A standalone starts in "system" unless its own script sets the
+property, typically in the mainstack's <preOpenStack> handler. The IDE sets
+it from its Appearance preference.
+
+Setting the property changes the application's effective appearance, so
+everything that depends on it follows: the default colors of objects that
+have no explicit colors, native controls such as scrollbars and menu
+buttons, the <systemAppearance> property and the <systemAppearanceChanged>
+message. Scripts that test `the systemAppearance is "dark"` therefore keep
+working when the appearance is forced.
+
+Because the IDE runs stacks in its own process, a stack that sets the
+<preferredAppearance> while open in the IDE changes the IDE's appearance too,
+in the same way as setting the <lookAndFeel> does.
+
+On platforms other than macOS the value is stored but has no effect yet.
+
+References: systemAppearance (property), systemAppearanceChanged (message),
+lookAndFeel (property), preOpenStack (message)

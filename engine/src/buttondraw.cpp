@@ -1333,15 +1333,17 @@ void MCButton::drawcombo(MCDC *dc, MCRectangle &srect)
 	case LF_MAC:
 		{
 			uint2 radius = 5;
-			// White background fill for the whole control.
+			// HXT dark mode: the hard-coded light palette below has a dark twin.
+			bool t_dark = MCcurtheme != NULL && MCcurtheme->isdarkmodeactive();
+			// Field background fill for the whole control (white / near-black).
 			MCColor white_col;
-			white_col.red = white_col.green = white_col.blue = 0xFFFF;
+			white_col.red = white_col.green = white_col.blue = t_dark ? 0x1E1E : 0xFFFF;
 			dc->setforeground(white_col);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
 			dc->fillroundrect(srect, radius);
-			// Light gray outer border.
+			// Outer border (light gray / mid gray).
 			MCColor border_col;
-			border_col.red = border_col.green = border_col.blue = 0xCBCB;
+			border_col.red = border_col.green = border_col.blue = t_dark ? 0x5A5A : 0xCBCB;
 			dc->setforeground(border_col);
 			dc->drawroundrect(srect, radius, true);
 			// Small rounded pill button inset on the right.
@@ -1351,9 +1353,16 @@ void MCButton::drawcombo(MCDC *dc, MCRectangle &srect)
 			trect.width = srect.height - btn_margin * 2;
 			trect.height = srect.height - btn_margin * 2;
 			uint2 btn_radius = 4;
-			// Fill button with light gray.
+			// Fill button with light gray (dark gray when dark).
 			MCColor btn_col;
-			btn_col.red = 0xE5E5; btn_col.green = 0xE5E5; btn_col.blue = 0xEAEA;
+			if (t_dark)
+			{
+				btn_col.red = 0x4A4A; btn_col.green = 0x4A4A; btn_col.blue = 0x4E4E;
+			}
+			else
+			{
+				btn_col.red = 0xE5E5; btn_col.green = 0xE5E5; btn_col.blue = 0xEAEA;
+			}
 			dc->setforeground(btn_col);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
 			dc->fillroundrect(trect, btn_radius);
@@ -1373,8 +1382,12 @@ void MCButton::drawcombo(MCDC *dc, MCRectangle &srect)
 				ap[1].x = ax + aw / 2; ap[1].y = ay + ah;
 				ap[2].x = ax + aw;     ap[2].y = ay;
 				MCColor chevron_col;
-				chevron_col.red = chevron_col.green = chevron_col.blue =
-				    (flags & F_DISABLED) ? 0xAAAA : 0x3333;
+				if (t_dark)
+					chevron_col.red = chevron_col.green = chevron_col.blue =
+					    (flags & F_DISABLED) ? 0x7777 : 0xDDDD;
+				else
+					chevron_col.red = chevron_col.green = chevron_col.blue =
+					    (flags & F_DISABLED) ? 0xAAAA : 0x3333;
 				dc->setforeground(chevron_col);
 				// Draw with 2px round-capped line for a clean stroke chevron.
 				uint2 t_lsize, t_lstyle, t_lcap, t_ljoin;
