@@ -31,21 +31,21 @@ Type: library
 Version: 1.0.2
 
 Description:
-  Generic smooth-scroll library for HyperXTalk.
+Generic smooth-scroll library for HyperXTalk.
 
-  Intercepts precise trackpad scroll events application-wide via a C
-  NSEvent monitor and applies accumulated pixel deltas to whichever
-  scrollable HyperXTalk control is currently under the mouse - fields,
-  groups with scrollbars, DataGrids, etc.
+Intercepts precise trackpad scroll events application-wide via a C
+NSEvent monitor and applies accumulated pixel deltas to whichever
+scrollable HyperXTalk control is currently under the mouse - fields,
+groups with scrollbars, DataGrids, etc.
 
-  Call seScrollEnhancementEnable from any openStack handler that should
-  benefit from smooth scrolling. Call seScrollEnhancementDisable from the
-  matching closeStack. Reference-counted - the poll keeps running until
-  every caller has disabled it.
+Call seScrollEnhancementEnable from any openStack handler that should
+benefit from smooth scrolling. Call seScrollEnhancementDisable from the
+matching closeStack. Reference-counted - the poll keeps running until
+every caller has disabled it.
 
-  1.0.2: DataGrids are scrolled through their own dgVScroll property, and
-  the engine's wheel keys are swallowed by a front script while a grid is
-  the smooth-scroll target, so grids are not scrolled twice.
+1.0.2: DataGrids are scrolled through their own dgVScroll property, and
+the engine's wheel keys are swallowed by a front script while a grid is
+the smooth-scroll target, so grids are not scrolled twice.
 */
 
 -- ---------------------------------------------------------------------------
@@ -55,23 +55,6 @@ Description:
 local sRefCount         -- number of active callers; poll runs while > 0
 local sMonitorInstalled -- true when the C NSEvent monitor is active
 constant kGridScrollFactor = 0.3
--- ---------------------------------------------------------------------------
--- Front-script: while smooth scrolling is driving a DataGrid, swallow the
--- engine's wheel keys so the grid is not scrolled twice.
--- ---------------------------------------------------------------------------
-
-on rawKeyDown pKey
-   if sMonitorInstalled and (pKey is 65308 or pKey is 65309) then
-      local tGrid
-      try
-         put the dgControl of the target into tGrid
-      catch tError
-         put empty into tGrid
-      end try
-      if tGrid is not empty then exit rawKeyDown
-   end if
-   pass rawKeyDown
-end rawKeyDown
 
 -- ---------------------------------------------------------------------------
 -- Public API
@@ -357,3 +340,21 @@ on seScrollPoll
 
    send "seScrollPoll" to me in 16 milliseconds
 end seScrollPoll
+
+-- ---------------------------------------------------------------------------
+-- Front-script: while smooth scrolling is driving a DataGrid, swallow the
+-- engine's wheel keys so the grid is not scrolled twice.
+-- ---------------------------------------------------------------------------
+
+on rawKeyDown pKey
+   if sMonitorInstalled and (pKey is 65308 or pKey is 65309) then
+      local tGrid
+      try
+         put the dgControl of the target into tGrid
+      catch tError
+         put empty into tGrid
+      end try
+      if tGrid is not empty then exit rawKeyDown
+   end if
+   pass rawKeyDown
+end rawKeyDown
