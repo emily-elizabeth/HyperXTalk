@@ -3014,8 +3014,27 @@ static void s_rgba_to_rgb_string(const GdkRGBA &p_c, char *p_buf, size_t p_size)
              s_clamp_to_byte(p_c.blue));
 }
 
+// HXT: the preferredAppearance override (0 system, 1 light, 2 dark), kept in
+// lnxgtktheme.cpp.
+int MCLinuxPreferredAppearanceMode(void);
+
 void MCScreenDC::getsystemappearance(MCSystemAppearance &r_appearance)
 {
+    // HXT: report the appearance the app actually draws in when the
+    // preferredAppearance forces one (as macOS and Windows do), so scripts
+    // testing `the systemAppearance is "dark"` follow the forced value.
+    switch (MCLinuxPreferredAppearanceMode())
+    {
+        case 1:
+            r_appearance = kMCSystemAppearanceLight;
+            return;
+        case 2:
+            r_appearance = kMCSystemAppearanceDark;
+            return;
+        default:
+            break;
+    }
+
     // Check gtk-application-prefer-dark-theme first (GNOME 3.24.31+)
     GtkSettings *t_settings = gtk_settings_get_default();
     if (t_settings != NULL)
