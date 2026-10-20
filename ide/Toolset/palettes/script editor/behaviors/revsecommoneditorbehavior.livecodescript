@@ -785,7 +785,7 @@ private function textFormatSelection pText
       put return & tTextLines[tIndex] after tResult
    end repeat
    
-   if line -1 of pText = "" then put cr after tResult
+   if char -1 of pText = cr then put cr after tResult
    
    return tResult
 end textFormatSelection
@@ -1660,7 +1660,7 @@ function lineNumberToVerticalLoc pLineNumber
 
    -- Folding
    if sePrefGet("Editor,folding") then
-      put the formattedTop of line pLineNumber of tField + the vScroll of tField - the top of tField - 4 into tHeight
+      put the formattedTop of line pLineNumber of tField + the vScroll of tField - the top of tField - 2 into tHeight
    else
       put (pLineNumber - 1) * the effective textHeight of getScriptField() into tHeight
    end if
