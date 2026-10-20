@@ -1747,14 +1747,23 @@ void MCInterfaceGetSystemAppearance(MCExecContext& ctxt, intenum_t& r_value)
 }
 
 // HXT: preferredAppearance. The value is process-wide and never saved in a
-// stack. The platform hook applies it to the app (macOS: NSApp.appearance,
-// which raises the same appearance-changed notification the OS would).
+// stack. The platform hook applies it to the app:
+//   macOS   - mac-core.mm: NSApp.appearance, every engine appearance query
+//             goes through MCMacEffectiveAppearance().
+//   Windows - w32dcs.cpp: MCplatformIsDarkMode() honours the override, the
+//             uxtheme app mode and DWM title-bar attribute follow it.
+// Both run the appearance-changed processing immediately, so
+// systemAppearanceChanged is sent to the open stacks.
 #if defined(_MACOSX)
 // The strong definition lives in mac-core.mm (desktop engine only). This weak
 // no-op keeps the non-GUI targets that also compile this file (server,
 // standalone builders) linking, in the same way as the MCplatformIsDarkMode
 // fallback in desktop.cpp.
 extern "C" __attribute__((weak)) void MCplatformSetPreferredAppearance(int p_mode) {}
+#elif defined(_WINDOWS)
+// MSVC has no weak symbols: the desktop engine defines this in w32dcs.cpp and
+// the server in srvwindows.cpp, as for MCplatformIsDarkMode.
+extern "C" void MCplatformSetPreferredAppearance(int p_mode);
 #else
 static inline void MCplatformSetPreferredAppearance(int p_mode) { /* not yet supported on this platform */ }
 #endif
