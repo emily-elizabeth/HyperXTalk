@@ -903,6 +903,12 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray, pSlot
                "editor gutterbackground 40,44,52" & return & \
                "editor gutterforeground 73,81,98" & return & \
                "editor foldingbackground 44,49,60" & return & \
+               "editor selection 62,68,81" & return & \
+               "editor findhighlight 66,85,123" & return & \
+               "editor brackethighlight 81,90,107" & return & \
+               "editor placeholder 44,49,60" & return & \
+               "editor executionline 44,49,60" & return & \
+               "editor defaulthandlertext 127,132,142" & return & \
                "editor appearance dark" into tPreferencesArray
          break
          
@@ -984,7 +990,9 @@ end seColorizationLoadScheme
 #
 #   "editor" lines have the format <editor> <name> <color> (no attributes) and set the
 #   colour of a part of the editor rather than of a token class. Recognised names are
-#   background, debugbackground, gutterbackground, gutterforeground and foldingbackground.
+#   background, debugbackground, gutterbackground, gutterforeground, foldingbackground,
+#   selection, findhighlight, brackethighlight, placeholder, executionline,
+#   handlerlisttext and defaulthandlertext.
 #   "editor appearance light|dark" declares which appearance the scheme is designed
 #   for, so the Preferences dialog can list it in the matching menu only.
 #   Unrecognised names are stored but ignored.

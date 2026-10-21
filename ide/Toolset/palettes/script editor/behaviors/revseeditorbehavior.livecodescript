@@ -131,7 +131,8 @@ command initialize
    # OK-2009-03-11 : Bug 7499 - The hilite color was previously not being reset to empty on OS X.
    # At the same time as fixing this issue, I've made the hilite color a preference in case we decide
    # to allow users to configure it in the future.
-   set the hiliteColor of field "Script" of me to sePrefGet("editor,hilitecolor")
+   set the hiliteColor of field "Script" of me to \
+         seColorizationEditorColor("selection", sePrefGet("editor,hilitecolor"))
    
    # OK-2008-07-07 : Bug 6748 - Interactive find not remembering last search
    if sePrefGet("editor,findvisible") then
@@ -222,6 +223,8 @@ command reapplyPreferences
       setHandlersFieldBackColor
    end if
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
+   set the hiliteColor of field "Script" of me to \
+         seColorizationEditorColor("selection", sePrefGet("editor,hilitecolor"))
    
    updateGutterRequest empty, empty, empty, empty, false, false, true
    # The colorization scheme may have changed the gutter colours
@@ -995,7 +998,8 @@ command goLine pLine, pHighlightMode, pPosition
       get the selectedChunk
       put word 2 of it & comma & word 4 of it into sLastSelectedGoneToChunk
    else if pHighlightMode is "color" then
-      set the backgroundColor of line pLine of field "Script" of me to sePrefGet("editor,selectbackgroundcolor")
+      set the backgroundColor of line pLine of field "Script" of me to \
+            seColorizationEditorColor("executionline", sePrefGet("editor,selectbackgroundcolor"))
       local tStart
       put the number of chars of line 1 to (pLine - 1) of field "Script" of me + 1 into tStart
       put tStart & comma & tStart + the number of chars of line pLine of field "Script" of me into sLastSelectedGoneToChunk
@@ -1534,11 +1538,12 @@ command findMarkResult pStart, pEnd, pInteractive
    -- HXT: Use the dark-mode find colour when in dark mode so that light-coloured
    -- syntax tokens remain readable against the highlight background.
    local tFindColor
-   if the systemAppearance is "dark" then
+   if seIsDarkAppearance() then
       put sePrefGet("editor,darkFindColor") into tFindColor
    else
       put sePrefGet("editor,findcolor") into tFindColor
    end if
+   put seColorizationEditorColor("findhighlight", tFindColor) into tFindColor
    set the backgroundColor of char pStart to pEnd of field "Script" of me to tFindColor
    
    # If using interactive search, we can't select the find text, because doing so will take the 

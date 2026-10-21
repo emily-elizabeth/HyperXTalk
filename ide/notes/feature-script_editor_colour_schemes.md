@@ -36,6 +36,16 @@ setting per line:
 * `debugbackground` - the script field while the debugger has it locked.
 * `gutterbackground` and `gutterforeground` - the line number gutter.
 * `foldingbackground` - the code folding column.
+* `selection` - the selection highlight in the script field.
+* `findhighlight` - the background of text found by Find.
+* `brackethighlight` - the background of a matched bracket pair.
+* `placeholder` - the background of an unfilled completion placeholder.
+* `executionline` - the line highlight used when jumping to an error or
+  execution point.
+* `handlerlisttext` - the text of the handler list. When absent, a colour
+  contrasting with the list's background is used.
+* `defaulthandlertext` - the dimmed text of default handlers not yet in
+  the script.
 
 A scheme may also declare which appearance it is designed for:
 

@@ -34,4 +34,10 @@ editor debugbackground 24,24,37
 editor gutterbackground 30,30,46
 editor gutterforeground 108,112,134
 editor foldingbackground 49,50,68
+editor selection 49,50,68
+editor findhighlight 250,179,135
+editor brackethighlight 108,112,134
+editor placeholder 49,50,68
+editor executionline 49,50,68
+editor defaulthandlertext 108,112,134
 editor appearance dark
