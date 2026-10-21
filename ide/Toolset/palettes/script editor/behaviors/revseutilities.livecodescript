@@ -459,11 +459,10 @@ command sePrefInit
       put "command p" into tPrefs["shortcuts,Print"]
    end if
    
-   if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
-      seColorizationLoadScheme tPrefs["colorization,schemedark"], tPrefs
-   else
-      seColorizationLoadScheme tPrefs["colorization,scheme"], tPrefs
-   end if
+   # Load both colorization slots, whatever the current appearance, so that the
+   # preferences saved back by sePrefSave are always coherent for both.
+   seColorizationLoadScheme tPrefs["colorization,scheme"], tPrefs, "light"
+   seColorizationLoadScheme tPrefs["colorization,schemedark"], tPrefs, "dark"
    
    # Put the completed array into the script local sPrefs for use by the script editor.
    put tPrefs into sPrefs
@@ -571,11 +570,8 @@ command sePrefGetDefaults
    # Colorization preferences
    put "default" into tPrefs["colorization,scheme"]
    put "One Dark Pro" into tPrefs["colorization,schemedark"]
-   if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
-      seColorizationLoadScheme "One Dark Pro", tPrefs
-   else
-      seColorizationLoadScheme "default", tPrefs
-   end if
+   seColorizationLoadScheme "default", tPrefs, "light"
+   seColorizationLoadScheme "One Dark Pro", tPrefs, "dark"
    
    # Editor preferences
    put 500 into tPrefs["editor,paneupdatedelay"]
@@ -782,6 +778,8 @@ end seColorizationInit
 # Parameters
 #   pScheme : the name of the colorization scheme to load
 #   pPreferencesArray : reference to the preferences array to set the scheme on.
+#   pSlot : "light" or "dark", the slot to place the scheme in. If empty, the
+#           slot for the current appearance is used.
 # Description
 #   Places the appropriate settings for the specified colorization scheme into 
 #   the sPrefs array. To apply the newly loaded scheme, call seColorizationInit
@@ -790,7 +788,15 @@ end seColorizationInit
 #   pScheme is either one of the built-in schemes below, or the name of a
 #   "<name>.scheme" file (see seColorizationSchemeFile). If the scheme cannot
 #   be found the preferences array is left unchanged.
-command seColorizationLoadScheme pScheme, @pPreferencesArray
+command seColorizationLoadScheme pScheme, @pPreferencesArray, pSlot
+   if pSlot is empty then
+      if seIsDarkAppearance() then
+         put "dark" into pSlot
+      else
+         put "light" into pSlot
+      end if
+   end if
+   
    local tPreferencesArray
    switch pScheme
       case "default"
@@ -824,7 +830,8 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword default bold 0,0,0" & return & \
                "keyword finally bold 0,0,0" & return & \
                "keyword next bold 0,0,0" & return & \
-               "keyword exit bold 0,0,0" & return into tPreferencesArray
+               "keyword exit bold 0,0,0" & return & \
+               "editor appearance light" into tPreferencesArray
          break
          
       case "revolution classic"
@@ -856,7 +863,8 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword catch none 152,5,23" & return & \
                "keyword case none 152,5,23" & return & \
                "keyword default none 152,5,23" & return & \
-               "keyword finally none 152,5,23" into tPreferencesArray
+               "keyword finally none 152,5,23" & return & \
+               "editor appearance light" into tPreferencesArray
          break
          
       case "one dark pro"
@@ -894,7 +902,8 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "editor debugbackground 33,37,43" & return & \
                "editor gutterbackground 40,44,52" & return & \
                "editor gutterforeground 73,81,98" & return & \
-               "editor foldingbackground 44,49,60" into tPreferencesArray
+               "editor foldingbackground 44,49,60" & return & \
+               "editor appearance dark" into tPreferencesArray
          break
          
       case "no colorization"
@@ -941,7 +950,7 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
          break
    end switch
    
-   if seIsDarkAppearance() then
+   if pSlot is "dark" then
       put tPreferencesArray into pPreferencesArray["colorization,configdark"]
    else
       put tPreferencesArray into pPreferencesArray["colorization,config"]
@@ -968,6 +977,8 @@ end seColorizationLoadScheme
 #   "editor" lines have the format <editor> <name> <color> (no attributes) and set the
 #   colour of a part of the editor rather than of a token class. Recognised names are
 #   background, debugbackground, gutterbackground, gutterforeground and foldingbackground.
+#   "editor appearance light|dark" declares which appearance the scheme is designed
+#   for, so the Preferences dialog can list it in the matching menu only.
 #   Unrecognised names are stored but ignored.
 private command colorizationBuildSettings pSettingsString, @rClasses, @rKeywords, @rEditor
   local tClasses, tKeywords, tEditor

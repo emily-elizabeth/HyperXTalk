@@ -34,3 +34,4 @@ editor debugbackground 238,232,213
 editor gutterbackground 238,232,213
 editor gutterforeground 147,161,161
 editor foldingbackground 238,232,213
+editor appearance light

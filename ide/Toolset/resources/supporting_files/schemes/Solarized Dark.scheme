@@ -34,3 +34,4 @@ editor debugbackground 7,54,66
 editor gutterbackground 7,54,66
 editor gutterforeground 88,110,117
 editor foldingbackground 7,54,66
+editor appearance dark

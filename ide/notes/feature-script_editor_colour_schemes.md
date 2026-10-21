@@ -37,6 +37,14 @@ setting per line:
 * `gutterbackground` and `gutterforeground` - the line number gutter.
 * `foldingbackground` - the code folding column.
 
+A scheme may also declare which appearance it is designed for:
+
+    editor appearance dark
+
+The value is `light` or `dark`. The Preferences dialog uses it to list
+the scheme only in the matching Colorization Scheme menu. A scheme with
+no `appearance` line is listed in both.
+
 Scheme files are looked up first in the `Schemes` folder of the user's
 customisation folder, then in `Toolset/resources/supporting_files/schemes`
 in the IDE. Three example schemes ship with the IDE: `Dracula`,
