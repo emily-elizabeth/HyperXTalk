@@ -2611,6 +2611,13 @@ function revIDEColor pTag
       case "palette_background"
          if the platform is "Win32" then
             return "240,240,240"
+         else if the systemWindowColor is a color then
+            // HXT dark mode: use the live system window colour. The effective
+            // backgroundColor of "this stack" is unreliable while an appearance
+            // change is being processed - the stack may still carry the explicit
+            // dark colour it was given in dark mode, which left the property
+            // inspector dark with dark text after switching back to light.
+            return the systemWindowColor
          else
             return the effective backgroundColor of this stack
          end if

@@ -147,7 +147,87 @@ constant kIconPaddingRatio is 0.25
 constant kMinCols is 3
 constant kMinRows is 3
 
+
+-- HXT dark mode -------------------------------------------------------------
+-- The IDE writes the metadata default colours onto a new widget as explicit
+-- properties, so "my ... paint" never follows the system appearance. The IDE
+-- pushes "dark" or "light" into hxtAppearance (when a stack opens, when a
+-- widget is created and when the appearance changes; a standalone's own
+-- systemAppearanceChanged handler should do the same). While dark, a colour
+-- that is unset or still the light default is swapped for a dark default; a
+-- colour the developer chose is kept. Widgets cannot run script and may only
+-- read their own properties from handlers the engine dispatches unrestricted
+-- (OnOpen, OnTimer), never from OnPaint, OnCreate, OnLoad, OnSave or a
+-- property handler, so the state below is cached.
+private variable mIsDark as Boolean
+
+
+/**
+Summary: The appearance the widget draws in: "dark" or "light".
+
+Syntax: set the hxtAppearance of <widget> to <pMode>
+Syntax: get the hxtAppearance of <widget>
+
+Parameters:
+pMode (string): "dark" or "light"
+
+Description:
+The <hxtAppearance> property tells the widget which appearance to draw its
+built-in default colours in. It is not saved with the widget and is not shown
+in the property inspector. The IDE sets it when a stack opens, when a widget
+is created and when the system appearance changes; in a standalone the
+developer's <systemAppearanceChanged> handler should set it. Colours the
+developer has changed from their defaults are not affected.
+**/
+property hxtAppearance get getHxtAppearance set setHxtAppearance
+metadata hxtAppearance.user_visible is "false"
+
+-- Module variables start unassigned and reading one throws a runtime error,
+-- so give the appearance state safe values before anything can paint.
+private handler resetAppearanceState() returns nothing
+	put false into mIsDark
+end handler
+
+-- Re-read whether this widget's own colours are still the defaults. Touches
+-- the script object: only call from OnOpen / OnTimer.
+private handler updateAppearance() returns nothing
+	-- this widget has no colour properties; nothing to refresh
+end handler
+
+public handler OnOpen()
+	updateAppearance()
+end handler
+
+-- Sent when a group, card or stack property above the widget changes. May
+-- arrive inside a restricted dispatch, so defer the re-read to OnTimer.
+public handler OnParentPropertyChanged()
+	schedule timer in 0 seconds
+end handler
+
+-- Deferred refresh (see setHxtAppearance / OnParentPropertyChanged).
+public handler OnTimer()
+	updateAppearance()
+	redraw all
+end handler
+
+private handler getHxtAppearance() returns String
+	if mIsDark then
+		return "dark"
+	end if
+	return "light"
+end handler
+
+private handler setHxtAppearance(in pMode as String) returns nothing
+	put pMode is "dark" into mIsDark
+	-- Repaint now with the cached flags (the engine defers the timer while the
+	-- pointer tool is active), then refresh the flags from OnTimer.
+	redraw all
+	schedule timer in 0 seconds
+end handler
+-- end HXT dark mode ---------------------------------------------------------
+
 public handler OnCreate()
+	resetAppearanceState()
 	put "" into mFilterString
 	SetDataList()
 	put the empty array into mPaths
@@ -174,6 +254,7 @@ public handler OnSave(out rProperties as Array)
 end handler
 
 public handler OnLoad(in pProperties as Array)
+	resetAppearanceState()
     -- Restore persisted properties
     put pProperties["showNames"] into mShowNames
     if pProperties["iconSize"] > 0 then
@@ -278,7 +359,7 @@ private handler drawTitleBar()
 	
 	// Draw the selected text and icon
 	variable tTextRect as Rectangle
-	set the paint of this canvas to solid paint with color kIconColor
+	set the paint of this canvas to iconPaint()
 
     variable tFont as Font
     put my font into tFont
@@ -302,7 +383,7 @@ private handler drawTitleBar()
 			put mPaths[mSelectedElement] into tPath
 		end if
 		constrainPathToRect(tIconRect, tPath)
-		set the paint of this canvas to solid paint with color kIconColor
+		set the paint of this canvas to iconPaint()
 		fill tPath on this canvas
 	end if
 end handler
@@ -327,7 +408,7 @@ private handler drawIcon(in pIcon as Integer)
 		
 	constrainPathToRect(mIconRects[pIcon], tPath)
 	
-	set the paint of this canvas to solid paint with color kIconColor
+	set the paint of this canvas to iconPaint()
 	fill tPath on this canvas
 	
 	if mShowNames then
@@ -614,6 +695,14 @@ end handler
 --
 --------------------------------------------------------------------------------
 
+-- HXT dark mode: icon and label colour for the current appearance
+private handler iconPaint() returns Paint
+	if mIsDark then
+		return solid paint with color [230/255, 230/255, 230/255]
+	end if
+	return solid paint with color kIconColor
+end handler
+
 private handler getPaint(pLocation, pType) returns Paint
 	if pLocation is "background" then
 		if pType is "popup" then
@@ -625,6 +714,9 @@ private handler getPaint(pLocation, pType) returns Paint
 		end if
 	else if pLocation is "scrollbar" then
 		if pType is "fill" then
+			if mIsDark then
+				return solid paint with stringToColor("255,255,255,70")
+			end if
 			return solid paint with stringToColor("0,0,0,50")
 		end if
 	else if pLocation is "frame" then

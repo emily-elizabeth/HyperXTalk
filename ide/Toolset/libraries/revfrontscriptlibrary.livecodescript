@@ -281,6 +281,17 @@ on openStack
       end if
    end if
 
+   -- HXT dark mode: widgets cannot read the system appearance themselves, so
+   -- push it to the widgets of every non-IDE stack as it opens.
+   local tHXTStack
+   put revTargetStack() into tHXTStack
+   if tHXTStack is not empty and not revIDEStackNameIsIDEStack(tHXTStack) then
+      try
+         revHXTPushAppearanceToWidgets the long id of stack tHXTStack, the systemAppearance
+      catch tHXTError
+      end try
+   end if
+
    if not gREVSuppressMessages or (gREVSuppressMessages and revOKTarget()) then pass openStack
 end openStack
 
