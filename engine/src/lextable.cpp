@@ -1449,6 +1449,7 @@ const LT factor_table[] =
         {"postscript", TT_PROPERTY, P_POSTSCRIPT},
         {"powerkeys", TT_PROPERTY, P_POWER_KEYS},
         {"powersource", TT_FUNCTION, F_POWER_SOURCE},
+		{"preferredappearance", TT_PROPERTY, P_PREFERRED_APPEARANCE},
 		{"preservevariables", TT_PROPERTY, P_PRESERVE_VARIABLES},
 		{"preservevars", TT_PROPERTY, P_PRESERVE_VARIABLES},
         {"prev", TT_CHUNK, CT_PREV},

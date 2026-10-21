@@ -36,6 +36,10 @@
 
 #include "osspec.h"
 
+// HXT: appearance the engine should draw in (honours the preferredAppearance
+// override); defined in mac-theme.mm.
+NSAppearance *MCMacEffectiveAppearance(void);
+
 ///////////////////////////////////////////////////////////////////////////
 
 static bool s_inside_focus_event = false;
@@ -2221,7 +2225,7 @@ void MCMacPlatformWindow::DoRealize(void)
         [m_panel_handle setWorksWhenModal: YES];
         // Inherit the app appearance so the combo box dropdown renders correctly
         // in dark mode — NSPanel does not automatically adopt effectiveAppearance.
-        [m_panel_handle setAppearance: [NSApp effectiveAppearance]];
+        [m_panel_handle setAppearance: MCMacEffectiveAppearance()];
     }
 	else
 		m_window_handle = [[com_hyperxtalk_hyperxtalk_MCWindow alloc] initWithContentRect: t_cocoa_content styleMask: t_window_style backing: NSBackingStoreBuffered defer: NO];

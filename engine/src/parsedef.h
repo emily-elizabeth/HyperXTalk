@@ -1809,6 +1809,9 @@ enum Properties {
 	
 	P_SYSTEM_APPEARANCE,
 
+	// HXT: global override of the app's appearance (system / light / dark)
+	P_PREFERRED_APPEARANCE,
+
 	P_SYSTEM_WINDOW_COLOR,
 
 	P_SYSTEM_TEXT_COLOR,

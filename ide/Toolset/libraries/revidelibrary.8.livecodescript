@@ -2329,6 +2329,28 @@ tags: preferences
 Example: set the textsize of field 1 to revIDEGetPreference("text size")
 Returns (Any): The value of the preference
 */
+/**
+Applies the IDE's Appearance preference to the engine
+
+Description:
+Reads the "cAppearance" preference ("system", "light" or "dark") and sets the
+engine's preferredAppearance to it. The property is set through "do" so this
+library still compiles and runs on engines that do not have it; on those the
+preference has no effect.
+**/
+command revIDEApplyAppearancePreference
+   local tAppearance
+   put revIDEGetPreference("cAppearance") into tAppearance
+   if tAppearance is not among the items of "system,light,dark" then
+      put "system" into tAppearance
+   end if
+   try
+      do "set the preferredAppearance to" && quote & tAppearance & quote
+   catch tError
+      -- engine without the preferredAppearance property
+   end try
+end revIDEApplyAppearancePreference
+
 function revIDEGetPreference pPreferenceName
    local tValue
    
