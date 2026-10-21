@@ -51,8 +51,8 @@ in the IDE. The IDE ships these schemes, each tagged for its appearance:
 
 * Dark: Catppuccin Mocha, Dracula, GitHub Dark, Gruvbox Dark, Monokai,
   Nord, Solarized Dark, Tomorrow Night.
-* Light: Catppuccin Latte, GitHub Light, Gruvbox Light, Solarized Light,
-  Tomorrow.
+* Light: Atom One Light, Catppuccin Latte, GitHub Light, Gruvbox Light,
+  Selenized Light, Solarized Light, Tomorrow, Xcode Light.
 
 ## Trying a scheme
 
