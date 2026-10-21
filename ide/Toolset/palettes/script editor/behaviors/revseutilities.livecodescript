@@ -915,32 +915,32 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray, pSlot
          else
             put "0,0,0" into tTextColor
          end if
-         put "group commands none " & tTextColor & " & return & \
-               "group properties none " & tTextColor & " & return & \
-               "group functions none " & tTextColor & " & return & \
-               "class error none " & tTextColor & " & return & \
-               "class singlecomment none " & tTextColor & " & return & \
-               "class multicomment none " & tTextColor & " & return & \
-               "class identifier none " & tTextColor & " & return & \
-               "class literal none " & tTextColor & " & return & \
-               "class number none " & tTextColor & " & return & \
-               "class keyword none " & tTextColor & " & return & \
-               "class operator none " & tTextColor & " & return & \
-               "keyword on none " & tTextColor & " & return & \
-               "keyword end none " & tTextColor & " & return & \
-               "keyword if none " & tTextColor & " & return & \
-               "keyword then none " & tTextColor & " & return & \
-               "keyword else none " & tTextColor & " & return & \
-               "keyword function none " & tTextColor & " & return & \
-               "keyword setprop none " & tTextColor & " & return & \
-               "keyword getprop none " & tTextColor & " & return & \
-               "keyword repeat none " & tTextColor & " & return & \
-               "keyword switch none " & tTextColor & " & return & \
-               "keyword try none " & tTextColor & " & return & \
-               "keyword catch none " & tTextColor & " & return & \
-               "keyword case none " & tTextColor & " & return & \
-               "keyword default none " & tTextColor & " & return & \
-               "keyword finally none " & tTextColor & " into tPreferencesArray
+         put "group commands none " & tTextColor & return & \
+               "group properties none " & tTextColor & return & \
+               "group functions none " & tTextColor & return & \
+               "class error none " & tTextColor & return & \
+               "class singlecomment none " & tTextColor & return & \
+               "class multicomment none " & tTextColor & return & \
+               "class identifier none " & tTextColor & return & \
+               "class literal none " & tTextColor & return & \
+               "class number none " & tTextColor & return & \
+               "class keyword none " & tTextColor & return & \
+               "class operator none " & tTextColor & return & \
+               "keyword on none " & tTextColor & return & \
+               "keyword end none " & tTextColor & return & \
+               "keyword if none " & tTextColor & return & \
+               "keyword then none " & tTextColor & return & \
+               "keyword else none " & tTextColor & return & \
+               "keyword function none " & tTextColor & return & \
+               "keyword setprop none " & tTextColor & return & \
+               "keyword getprop none " & tTextColor & return & \
+               "keyword repeat none " & tTextColor & return & \
+               "keyword switch none " & tTextColor & return & \
+               "keyword try none " & tTextColor & return & \
+               "keyword catch none " & tTextColor & return & \
+               "keyword case none " & tTextColor & return & \
+               "keyword default none " & tTextColor & return & \
+               "keyword finally none " & tTextColor into tPreferencesArray
          break
          
       default
