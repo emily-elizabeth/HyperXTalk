@@ -603,23 +603,31 @@ static gboolean reload_theme(void)
 // dark-mode decision in the Linux engine follows the forced appearance.
 static int s_preferred_appearance_mode = 0;
 
-// The value gtk-application-prefer-dark-theme had before the first override
-// was applied.  Setting a GtkSettings property from the application makes GTK
-// stop tracking XSETTINGS for it, so going back to "system" restores this value
-// rather than reading the property back (which would only return our own
-// output).
-static gboolean s_saved_prefer_dark       = FALSE;
-static bool     s_saved_prefer_dark_valid = false;
-// The gtk-theme-name before the first override, for the same reason. A desktop
-// whose theme is itself the dark variant (Omarchy and GNOME set Adwaita-dark,
-// Ubuntu Yaru-dark) does not go light by clearing prefer-dark, because that
-// flag only picks the dark variant of the named theme; forcing "light" then
-// also switches to the base theme name, and "system" / "dark" put it back.
-static gchar   *s_saved_theme_name        = NULL;
+// Whether MCplatformSetPreferredAppearance() has installed application-level
+// values for gtk-theme-name / gtk-application-prefer-dark-theme.  GTK ranks
+// such values above XSETTINGS and the session's theme, so while they are in
+// place the desktop's own theme changes no longer reach this process; they are
+// undone with gtk_settings_reset_property() before every mode change.
+static bool s_override_applied = false;
+
+// Whether the probe window currently renders a dark background (ITU-R BT.709
+// luminance below 0.5).  False when the probe is not available yet.
+static bool MCLinuxProbeIsDark(bool &r_dark)
+{
+	uint16_t t_r = 0, t_g = 0, t_b = 0;
+	if (!SampleGtkWindowBackground(t_r, t_g, t_b))
+		return false;
+	double t_lum = (0.2126 * t_r + 0.7152 * t_g + 0.0722 * t_b) / 65535.0;
+	r_dark = (t_lum < 0.5);
+	return true;
+}
 
 // The base (light) name of a dark theme variant: "Adwaita-dark" -> "Adwaita",
 // "Yaru-dark" -> "Yaru", "Mint-Y-Dark" -> "Mint-Y". NULL when the name has no
-// dark suffix. The caller frees the result.
+// dark suffix. The caller frees the result.  A desktop whose theme is itself
+// the dark variant (Omarchy and GNOME set Adwaita-dark, Ubuntu Yaru-dark)
+// does not go light by clearing prefer-dark, because that flag only picks the
+// dark variant of the named theme; forcing "light" switches to this name.
 static gchar *MCLinuxLightThemeName(const gchar *p_name)
 {
 	if (p_name == NULL)
@@ -797,15 +805,20 @@ extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen)
 // then run the appearance-changed processing immediately.
 //
 // GTK 3 has one switch for this: the gtk-application-prefer-dark-theme
-// GtkSettings property, which selects the theme's dark variant (Adwaita-dark,
-// Yaru-dark, ...).  A theme that has no light or dark variant keeps its own
-// colours, so on such a theme the override only changes what the engine itself
-// draws and reports.
+// GtkSettings property, which selects the dark variant (gtk-dark.css) of the
+// named theme.  Two kinds of desktop theme defeat it on their own:
+//   - a theme that is itself the dark variant (Adwaita-dark, Yaru-dark): for
+//     "light" the base theme name is used instead (MCLinuxLightThemeName);
+//   - a theme with no variant for the requested appearance (Debian MATE's
+//     Menta has no gtk-dark.css; BlackMATE has no light base): the probe
+//     window shows the switch had no effect, and GTK's built-in Adwaita, which
+//     has both variants, is used for the override instead.
+// "system" resets both properties so the desktop's theme, and its later
+// changes, apply again.
 extern "C" void MCplatformSetPreferredAppearance(int p_mode)
 {
 	if (p_mode < 0 || p_mode > 2)
 		p_mode = 0;
-	int t_old_mode = s_preferred_appearance_mode;
 	s_preferred_appearance_mode = p_mode;
 
 	// Headless (-ui) or not yet open: nothing to apply.  The override is still
@@ -817,68 +830,62 @@ extern "C" void MCplatformSetPreferredAppearance(int p_mode)
 	if (t_settings == NULL)
 		return;
 
-	// Setting gtk-application-prefer-dark-theme fires its notify signal, which
+	// Setting these properties fires their notify signals, which
 	// MCNativeTheme::load() connects to reload_theme().  Hold the re-entrancy
-	// guard while setting it and run the reload ourselves below, so it happens
-	// exactly once whatever signals are connected.
+	// guard while setting them and run the reload ourselves below, so it
+	// happens exactly once whatever signals are connected.
 	s_reload_in_progress = true;
 
-	gboolean t_prefer_dark;
+	// Undo the previous override's application-level values first: GTK then
+	// re-reads the session's theme name and prefer-dark flag (XSETTINGS,
+	// settings.ini or the portal), so "system" follows the desktop again and
+	// a new override starts from the desktop's current theme.
+	if (s_override_applied)
+	{
+		gtk_settings_reset_property(t_settings, "gtk-theme-name");
+		gtk_settings_reset_property(t_settings, "gtk-application-prefer-dark-theme");
+		s_override_applied = false;
+	}
+
 	if (p_mode == 0)
 	{
-		// Back to the desktop's setting: put the properties back to what the
-		// desktop had set before our first override, then re-sample the probe
-		// so the luminance fallback (check #5 in MCLinuxSystemIsDarkMode)
-		// reflects the desktop's theme rather than the variant we forced.
-		if (s_saved_prefer_dark_valid)
+		// Re-sample the probe so the luminance fallback (check #5 in
+		// MCLinuxSystemIsDarkMode) reflects the desktop's theme rather than the
+		// variant that was forced, then apply the desktop's dark/light setting
+		// the way MCNativeTheme::load() does.
+		bool t_dark = false;
+		if (MCLinuxProbeIsDark(t_dark))
 		{
-			if (s_saved_theme_name != NULL)
-			{
-				g_object_set(t_settings, "gtk-theme-name", s_saved_theme_name, NULL);
-				g_free(s_saved_theme_name);
-				s_saved_theme_name = NULL;
-			}
-			g_object_set(t_settings, "gtk-application-prefer-dark-theme",
-			             s_saved_prefer_dark, NULL);
-			s_saved_prefer_dark_valid = false;
-
-			uint16_t t_r = 0, t_g = 0, t_b = 0;
-			if (SampleGtkWindowBackground(t_r, t_g, t_b))
-			{
-				double t_lum = (0.2126 * t_r + 0.7152 * t_g + 0.0722 * t_b) / 65535.0;
-				s_luminance_dark  = (t_lum < 0.5);
-				s_luminance_valid = true;
-			}
+			s_luminance_dark  = t_dark;
+			s_luminance_valid = true;
 		}
-		t_prefer_dark = MCLinuxSystemIsDarkMode() ? TRUE : FALSE;
+		g_object_set(t_settings, "gtk-application-prefer-dark-theme",
+		             MCLinuxSystemIsDarkMode() ? TRUE : FALSE, NULL);
 	}
 	else
 	{
-		if (t_old_mode == 0)
-		{
-			gboolean t_current = FALSE;
-			g_object_get(t_settings, "gtk-application-prefer-dark-theme", &t_current, NULL);
-			s_saved_prefer_dark       = t_current;
-			s_saved_prefer_dark_valid = true;
-			g_free(s_saved_theme_name);
-			s_saved_theme_name = NULL;
-			g_object_get(t_settings, "gtk-theme-name", &s_saved_theme_name, NULL);
-		}
+		bool t_want_dark = (p_mode == 2);
 
-		// Theme name: the desktop's own name for "dark" (prefer-dark picks its
-		// dark variant); for "light" the base name when the desktop's theme is
-		// itself a dark variant, since clearing prefer-dark alone would leave
-		// "Adwaita-dark" dark.
-		gchar *t_light_name = (p_mode == 1) ? MCLinuxLightThemeName(s_saved_theme_name) : NULL;
-		const gchar *t_theme_name = (t_light_name != NULL) ? t_light_name : s_saved_theme_name;
+		gchar *t_desktop_name = NULL;
+		g_object_get(t_settings, "gtk-theme-name", &t_desktop_name, NULL);
+		gchar *t_light_name = t_want_dark ? NULL : MCLinuxLightThemeName(t_desktop_name);
+		const gchar *t_theme_name = (t_light_name != NULL) ? t_light_name : t_desktop_name;
 		if (t_theme_name != NULL)
 			g_object_set(t_settings, "gtk-theme-name", t_theme_name, NULL);
+		g_object_set(t_settings, "gtk-application-prefer-dark-theme",
+		             t_want_dark ? TRUE : FALSE, NULL);
+
+		// Did the toolkit produce the requested variant?  If the theme has no
+		// such variant it keeps its own colours; use Adwaita for the override,
+		// which GTK 3 always carries, in both variants.
+		bool t_probe_dark = false;
+		if (MCLinuxProbeIsDark(t_probe_dark) && t_probe_dark != t_want_dark)
+			g_object_set(t_settings, "gtk-theme-name", "Adwaita", NULL);
+
 		g_free(t_light_name);
-
-		t_prefer_dark = (p_mode == 2) ? TRUE : FALSE;
+		g_free(t_desktop_name);
+		s_override_applied = true;
 	}
-
-	g_object_set(t_settings, "gtk-application-prefer-dark-theme", t_prefer_dark, NULL);
 
 	s_reload_in_progress = false;
 

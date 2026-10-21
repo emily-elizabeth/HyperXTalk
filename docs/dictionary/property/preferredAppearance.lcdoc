@@ -62,9 +62,10 @@ What the forced appearance covers depends on the platform:
   theme's dark or light variant is used for the engine's native controls and
   the engine's own drawing follows the forced value. When the desktop's theme
   is itself a dark variant (Adwaita-dark, Yaru-dark), "light" uses the base
-  theme (Adwaita, Yaru) and "system" puts the desktop's theme back. A GTK
-  theme that has no dark or light variant keeps its own colors; only what the
-  engine draws and reports changes.
+  theme (Adwaita, Yaru). When the desktop's theme has no variant for the
+  forced appearance at all (Debian MATE's Menta has no dark variant), the
+  application uses GTK's built-in Adwaita theme in that appearance instead.
+  "system" puts the desktop's theme back and follows its later changes.
 
 Setting the property always sends <systemAppearanceChanged> to the open
 stacks, even when the effective appearance did not change, so handlers can
