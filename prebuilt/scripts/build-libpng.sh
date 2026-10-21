@@ -25,7 +25,8 @@ function unxzBinary
 	echo "Untarring ${THIS}.tar"
 	unzip -o "${THIS}.tar" -d "lpng"
 	# retrieve the latest version number (1659)
-	PNG_LATEST=$(echo `ls lpng` | sed 's/[^0-9]//g') # 1659
+	#PNG_LATEST=$(echo `ls lpng` | sed 's/[^0-9]//g') # 1659
+	PNG_LATEST=$(ls lpng | sort -V | tail -1 | sed 's/[^0-9]//g') # 1659
 	ARCHIVE_DESTINATION="${THIS}${PNG_LATEST}/lpng${PNG_LATEST}"
 	mv "libpng.tar" "libpng${PNG_LATEST}.tar"
 	echo "ARCHIVE_DESTINATION= ${ARCHIVE_DESTINATION}"
