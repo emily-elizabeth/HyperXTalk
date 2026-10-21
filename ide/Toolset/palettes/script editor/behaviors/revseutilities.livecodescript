@@ -889,7 +889,12 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword default none 198,120,221" & return & \
                "keyword finally none 198,120,221" & return & \
                "keyword next none 198,120,221" & return & \
-               "keyword exit none 255,38,0" into tPreferencesArray
+               "keyword exit none 255,38,0" & return & \
+               "editor background 40,44,52" & return & \
+               "editor debugbackground 33,37,43" & return & \
+               "editor gutterbackground 40,44,52" & return & \
+               "editor gutterforeground 73,81,98" & return & \
+               "editor foldingbackground 44,49,60" into tPreferencesArray
          break
          
       case "no colorization"
