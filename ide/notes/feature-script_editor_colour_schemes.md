@@ -47,8 +47,12 @@ no `appearance` line is listed in both.
 
 Scheme files are looked up first in the `Schemes` folder of the user's
 customisation folder, then in `Toolset/resources/supporting_files/schemes`
-in the IDE. Three example schemes ship with the IDE: `Dracula`,
-`Solarized Dark` and `Solarized Light`.
+in the IDE. The IDE ships these schemes, each tagged for its appearance:
+
+* Dark: Catppuccin Mocha, Dracula, GitHub Dark, Gruvbox Dark, Monokai,
+  Nord, Solarized Dark, Tomorrow Night.
+* Light: Catppuccin Latte, GitHub Light, Gruvbox Light, Solarized Light,
+  Tomorrow.
 
 ## Trying a scheme
 

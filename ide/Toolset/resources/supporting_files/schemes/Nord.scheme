@@ -1,0 +1,37 @@
+group commands none 129,161,193
+group properties none 143,188,187
+group functions none 136,192,208
+class error none 191,97,106
+class singlecomment italic 106,118,143
+class multicomment italic 106,118,143
+class identifier none 216,222,233
+class literal none 163,190,140
+class number none 180,142,173
+class keyword none 129,161,193
+class operator none 129,161,193
+class continuation none 106,118,143
+keyword command none 129,161,193
+keyword private none 129,161,193
+keyword on none 129,161,193
+keyword end none 129,161,193
+keyword if none 129,161,193
+keyword then none 129,161,193
+keyword else none 129,161,193
+keyword function none 129,161,193
+keyword setprop none 129,161,193
+keyword getprop none 129,161,193
+keyword repeat none 129,161,193
+keyword switch none 129,161,193
+keyword try none 129,161,193
+keyword catch none 129,161,193
+keyword case none 129,161,193
+keyword default none 129,161,193
+keyword finally none 129,161,193
+keyword next none 129,161,193
+keyword exit none 129,161,193
+editor background 46,52,64
+editor debugbackground 41,46,57
+editor gutterbackground 46,52,64
+editor gutterforeground 76,86,106
+editor foldingbackground 59,66,82
+editor appearance dark
