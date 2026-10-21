@@ -213,6 +213,7 @@ command reapplyPreferences
    textFormatInitialize
    colorizationUpdate
    scriptColorize "script"
+   EditorFieldCacheRecolorize
    
    if the lockText of field "Script" of me then
       scriptLock
@@ -2752,6 +2753,24 @@ private command EditorFieldCacheFlushAll
       __EditorFieldCacheFlush tRuggedObjectId
    end repeat
 end EditorFieldCacheFlushAll
+
+/*
+Re-apply syntax colouring to every cached editor field. A cached field keeps
+the per-character colours it was given when its tab was last shown, and
+restoring a tab does not reload the text when it is unchanged, so after the
+colorization scheme or the system appearance changes the cached fields must
+be recoloured here or their tabs come back in the old colours.
+*/
+private command EditorFieldCacheRecolorize
+   local tRuggedObjectId, tField
+   repeat for each key tRuggedObjectId in sScriptEditorFieldCache
+      put sScriptEditorFieldCache[tRuggedObjectId] into tField
+      if there is no field tField of me then
+         next repeat
+      end if
+      _internal script colorize char 1 to (the number of chars of field tField of me) of field tField of me
+   end repeat
+end EditorFieldCacheRecolorize
 
 /*
 If there are too many editor fields cached, randomly purge one of
