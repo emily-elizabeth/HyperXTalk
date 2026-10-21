@@ -715,17 +715,67 @@ end revSEGetPrintTemplate
  
 local sColorizationClasses
 local sColorizationKeywords
- 
+local sColorizationEditor
+
+# Returns
+#   True if the script editor should use its dark appearance. This is the case
+#   when the system appearance is dark, or when the IDE itself is drawn dark
+#   (some Linux desktops report no usable system appearance).
+function seIsDarkAppearance
+   return (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar"))
+end seIsDarkAppearance
+
+# Parameters
+#   pScheme : the name of a colorization scheme
+# Returns
+#   The path of the "<pScheme>.scheme" file for the named scheme, or empty if
+#   there is no such file. The user's Schemes folder is searched first, then
+#   the schemes bundled with the IDE in Toolset/resources/supporting_files/schemes.
+function seColorizationSchemeFile pScheme
+   if pScheme is empty then
+      return empty
+   end if
+   
+   local tFile
+   put revEnvironmentUserColorSchemesPath() & slash & pScheme & ".scheme" into tFile
+   if there is a file tFile then
+      return tFile
+   end if
+   
+   put revIDESpecialFolderPath("Toolset") & "/resources/supporting_files/schemes/" & pScheme & ".scheme" into tFile
+   if there is a file tFile then
+      return tFile
+   end if
+   
+   return empty
+end seColorizationSchemeFile
+
+# Parameters
+#   pKey : the name of an editor colour, e.g. "background", "gutterbackground"
+#   pDefault : the colour to use if the current scheme does not define pKey
+# Returns
+#   The colour the current colorization scheme specifies for pKey via an
+#   "editor <key> <color>" line, or pDefault if the scheme has no such line.
+function seColorizationEditorColor pKey, pDefault
+   local tColor
+   put sColorizationEditor[toLower(pKey)] into tColor
+   if tColor is empty then
+      return pDefault
+   end if
+   return tColor
+end seColorizationEditorColor
+
 # Description
 #   Called when the colorization needs to be initialized. This can happen
 #   when the script editor is opened, or when a colorization preference has changed.
 #   Gets the current colorization settings from the preferences system, and builds
-#   them into two script local arrays for use by the editor group.
+#   them into three script local arrays for use by the editor group: the token
+#   classes and keywords for the engine colorizer, and the editor colours.
 command seColorizationInit
-   if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
-      colorizationBuildSettings sePrefGet("colorization,configdark"), sColorizationClasses, sColorizationKeywords
+   if seIsDarkAppearance() then
+      colorizationBuildSettings sePrefGet("colorization,configdark"), sColorizationClasses, sColorizationKeywords, sColorizationEditor
    else
-      colorizationBuildSettings sePrefGet("colorization,config"), sColorizationClasses, sColorizationKeywords   
+      colorizationBuildSettings sePrefGet("colorization,config"), sColorizationClasses, sColorizationKeywords, sColorizationEditor
    end if
 end seColorizationInit
 
@@ -736,6 +786,10 @@ end seColorizationInit
 #   Places the appropriate settings for the specified colorization scheme into 
 #   the sPrefs array. To apply the newly loaded scheme, call seColorizationInit
 #   after the scheme has been loaded.
+#
+#   pScheme is either one of the built-in schemes below, or the name of a
+#   "<name>.scheme" file (see seColorizationSchemeFile). If the scheme cannot
+#   be found the preferences array is left unchanged.
 command seColorizationLoadScheme pScheme, @pPreferencesArray
    local tPreferencesArray
    switch pScheme
@@ -771,11 +825,6 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword finally bold 0,0,0" & return & \
                "keyword next bold 0,0,0" & return & \
                "keyword exit bold 0,0,0" & return into tPreferencesArray
-         if the systemAppearance is "dark" OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
-            put tPreferencesArray into pPreferencesArray["colorization,configdark"]
-         else
-            put tPreferencesArray into pPreferencesArray["colorization,config"]
-         end if
          break
          
       case "revolution classic"
@@ -808,11 +857,6 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword case none 152,5,23" & return & \
                "keyword default none 152,5,23" & return & \
                "keyword finally none 152,5,23" into tPreferencesArray
-         if the systemAppearance is "dark" OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
-            put tPreferencesArray into pPreferencesArray["colorization,configdark"]
-         else
-            put tPreferencesArray into pPreferencesArray["colorization,config"]
-         end if
          break
          
       case "one dark pro"
@@ -846,11 +890,6 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword finally none 198,120,221" & return & \
                "keyword next none 198,120,221" & return & \
                "keyword exit none 255,38,0" into tPreferencesArray
-         if the systemAppearance is "dark" OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
-            put tPreferencesArray into pPreferencesArray["colorization,configdark"]
-         else
-            put tPreferencesArray into pPreferencesArray["colorization,config"]
-         end if
          break
          
       case "no colorization"
@@ -880,32 +919,57 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray
                "keyword case none 0,0,0" & return & \
                "keyword default none 0,0,0" & return & \
                "keyword finally none 0,0,0" into tPreferencesArray
-         if the systemAppearance is "dark" OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
-            put tPreferencesArray into pPreferencesArray["colorization,configdark"]
-         else
-            put tPreferencesArray into pPreferencesArray["colorization,config"]
+         break
+         
+      default
+         # Not a built-in scheme: look for a "<name>.scheme" file in the user's
+         # Schemes folder, or among the schemes bundled with the IDE.
+         local tSchemeFile
+         put seColorizationSchemeFile(pScheme) into tSchemeFile
+         if tSchemeFile is empty then
+            exit seColorizationLoadScheme
          end if
+         
+         put URL ("file:" & tSchemeFile) into tPreferencesArray
+         replace CRLF with LF in tPreferencesArray
+         replace CR with LF in tPreferencesArray
          break
    end switch
+   
+   if seIsDarkAppearance() then
+      put tPreferencesArray into pPreferencesArray["colorization,configdark"]
+   else
+      put tPreferencesArray into pPreferencesArray["colorization,config"]
+   end if
 end seColorizationLoadScheme
 
 # Parameters
 #   pSettingsString : a string describing the colorization settings, format outlined below.
 # Returns
-#   Two arrays are placed into the rClasses and rKeywords parameters, these are in the 
-#   format required by the _internal script configure classes command and the _internal script configure keywords command.
+#   Three arrays are placed into the rClasses, rKeywords and rEditor parameters. The
+#   first two are in the format required by the _internal script configure classes
+#   command and the _internal script configure keywords command. rEditor maps editor
+#   colour names to colours, for use by the editor and gutter (see seColorizationEditorColor).
 # Description
 #   The settings string is a list of settings, one per line. Each setting has the following format.
 #   <type> <name> <attributes> <color>
 #   
-#   type - either "group", "class" or "keyword"
+#   type - either "group", "class", "keyword" or "editor"
 #   name - the name of the group, class or keyword
-#   attributes - a list of text styles, eg bold,italic,none etc (I think)
-#   color - in RGB format, comma delimited.
-private command colorizationBuildSettings pSettingsString, @rClasses, @rKeywords
-  local tClasses, tKeywords
+#   attributes - a comma-delimited list of text styles: bold, italic, oblique, box, raised,
+#                underline, strikeout, or none
+#   color - in RGB format, comma delimited, with no spaces.
+#
+#   "editor" lines have the format <editor> <name> <color> (no attributes) and set the
+#   colour of a part of the editor rather than of a token class. Recognised names are
+#   background, debugbackground, gutterbackground, gutterforeground and foldingbackground.
+#   Unrecognised names are stored but ignored.
+private command colorizationBuildSettings pSettingsString, @rClasses, @rKeywords, @rEditor
+  local tClasses, tKeywords, tEditor
   repeat for each line tLine in pSettingsString
-    if word 1 of tLine is "class" then
+    if word 1 of tLine is "editor" then
+      put word 3 of tLine into tEditor[toLower(word 2 of tLine)]
+    else if word 1 of tLine is "class" then
       put word 3 of tLine into tClasses[word 2 of tLine && "attributes"]
       put word 4 of tLine into tClasses[word 2 of tLine && "color"]
     else if word 1 of tLine is "keyword" then
@@ -943,6 +1007,7 @@ private command colorizationBuildSettings pSettingsString, @rClasses, @rKeywords
   
   put tClasses into rClasses
   put tKeywords into rKeywords
+  put tEditor into rEditor
 end colorizationBuildSettings
 
 
@@ -1161,8 +1226,8 @@ command revSEColorize pScript, pScheme
       end if
    end if
    
-   local tClasses, tKeywords
-   colorizationBuildSettings tConfig, tClasses, tKeywords
+   local tClasses, tKeywords, tEditor
+   colorizationBuildSettings tConfig, tClasses, tKeywords, tEditor
    
    _internal script configure classes tClasses
    _internal script configure keywords tKeywords

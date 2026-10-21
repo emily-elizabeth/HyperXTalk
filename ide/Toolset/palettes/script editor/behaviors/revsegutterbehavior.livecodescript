@@ -6,6 +6,9 @@ constant kInitialLineStore = 3000
 # This controls how many lines are added to the lines field if the script exceeds the current line count.
 constant kLineAdd = 1000
 
+# The background colour of the code folding field when the colorization scheme does not specify one.
+constant kDefaultFoldingBackground = "227,227,227"
+
 # The current number of line numbers stored
 local sCurrentLineStore
 
@@ -244,7 +247,8 @@ private command initializeFoldingField
    
    clone field "Numbers Template" of me as "Folding"
    set the width of field "Folding" of me to sePrefGet("editor,foldingwidth")
-   set the backgroundColor of field "Folding" of me to "227,227,227"
+   set the backgroundColor of field "Folding" of me to \
+         seColorizationEditorColor("foldingbackground", kDefaultFoldingBackground)
    set the margins of field "Folding" of me to 2,9,2,8
    set the textAlign of field "Folding" of me to "center"
    put "" into field "Folding" of me
@@ -274,10 +278,38 @@ private command initializeLineNumbers
    applyGutterAppearance
 end initializeLineNumbers
 
+# Description
+#   Applies the gutter colours. The current colorization scheme may supply
+#   these with "editor gutterbackground", "editor gutterforeground" and
+#   "editor foldingbackground" lines; otherwise the built-in light or dark
+#   colours are used.
 private command applyGutterAppearance
-   set the backgroundColor of field "Numbers" of me to iff(the systemAppearance = "dark", "128,128,128", "217,217,217")
-   set the foregroundColor of field "Numbers" of me to iff(the systemAppearance = "dark", "217,217,217", "128,128,128")
+   local tBackground, tForeground
+   if seIsDarkAppearance() then
+      put "128,128,128" into tBackground
+      put "217,217,217" into tForeground
+   else
+      put "217,217,217" into tBackground
+      put "128,128,128" into tForeground
+   end if
+   
+   set the backgroundColor of field "Numbers" of me to \
+         seColorizationEditorColor("gutterbackground", tBackground)
+   set the foregroundColor of field "Numbers" of me to \
+         seColorizationEditorColor("gutterforeground", tForeground)
+   
+   if there is a field "Folding" of me then
+      set the backgroundColor of field "Folding" of me to \
+            seColorizationEditorColor("foldingbackground", kDefaultFoldingBackground)
+   end if
 end applyGutterAppearance
+
+# Description
+#   Sent by the editor group when the preferences (and so possibly the
+#   colorization scheme) have been reapplied.
+command reapplyAppearance
+   applyGutterAppearance
+end reapplyAppearance
 
 on systemAppearanceChanged
    applyGutterAppearance

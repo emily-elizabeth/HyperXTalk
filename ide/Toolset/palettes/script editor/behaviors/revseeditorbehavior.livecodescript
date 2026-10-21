@@ -120,11 +120,7 @@ command initialize
    textInitialize
    call "initialize" to group "Gutter" of me
 
-   if (the systemAppearance is "light") then
-      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
-   else
-      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
-   end if
+   set the backgroundColor of field "Script" of me to editorBackgroundColor()
    setHandlersFieldBackColor
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
    
@@ -151,15 +147,32 @@ end initialize
 private command setHandlersFieldBackColor
    if there is a field "Handlers" of group "Left Handler List" of group "Left Bar" \
          of card "Main" of this stack then
-      if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
-         set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
-            of card "Main" of this stack to sePrefGet("editor,backgroundcolordark")
-      else
-         set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
-            of card "Main" of this stack to sePrefGet("editor,backgroundcolor")
-      end if
+      set the backgroundColor of field "Handlers" of group "Left Handler List" of group "Left Bar" \
+            of card "Main" of this stack to editorBackgroundColor()
    end if
 end setHandlersFieldBackColor
+
+# Returns
+#   The background colour of the script field (and handler list) while editing.
+#   The current colorization scheme may supply this with an "editor background"
+#   line; otherwise the light or dark editor background preference is used.
+private function editorBackgroundColor
+   if seIsDarkAppearance() then
+      return seColorizationEditorColor("background", sePrefGet("editor,backgroundcolordark"))
+   end if
+   return seColorizationEditorColor("background", sePrefGet("editor,backgroundcolor"))
+end editorBackgroundColor
+
+# Returns
+#   The background colour of the script field while locked by the debugger.
+#   The current colorization scheme may supply this with an "editor debugbackground"
+#   line; otherwise the light or dark debug background preference is used.
+private function debugBackgroundColor
+   if seIsDarkAppearance() then
+      return seColorizationEditorColor("debugbackground", sePrefGet("editor,debugBackgroundcolordark"))
+   end if
+   return seColorizationEditorColor("debugbackground", sePrefGet("editor,debugBackgroundcolor"))
+end debugBackgroundColor
 
 private command initializeFonts
    local tFont, tFontSize
@@ -204,16 +217,14 @@ command reapplyPreferences
    if the lockText of field "Script" of me then
       scriptLock
    else
-      if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
-         set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
-      else
-         set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
-      end if
+      set the backgroundColor of field "Script" of me to editorBackgroundColor()
       setHandlersFieldBackColor
    end if
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
    
    updateGutterRequest empty, empty, empty, empty, false, false, true
+   # The colorization scheme may have changed the gutter colours
+   send "reapplyAppearance" to group "Gutter" of me
    resize
    unlock screen
 end reapplyPreferences
@@ -577,11 +588,7 @@ command scriptLock
    local tDebugBGColor
    set the lockText of field "Script" of me to true
    
-   if (the systemAppearance is "light") then
-      put sePrefGet("editor,debugBackgroundcolor") into tDebugBGColor
-   else
-      put sePrefGet("editor,debugBackgroundcolordark") into tDebugBGColor
-   end if
+   put debugBackgroundColor() into tDebugBGColor
    
    set the backgroundColor of field "Script" of me to tDebugBGColor
    set the backgroundColor of field "Handlers" of group "Left Handler List" of group "Left Bar" \
@@ -592,11 +599,7 @@ end scriptLock
 #   Unlocks the script, allowing the user to edit it.
 command scriptUnlock
    set the lockText of field "Script" of me to false
-   if (the systemAppearance is "light") then
-      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
-   else
-      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
-   end if
+   set the backgroundColor of field "Script" of me to editorBackgroundColor()
    setHandlersFieldBackColor
 end scriptUnlock
 
