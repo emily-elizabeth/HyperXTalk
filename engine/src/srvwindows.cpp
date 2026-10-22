@@ -1327,6 +1327,13 @@ extern "C" bool MCplatformIsDarkMode(void)
 	return false;
 }
 
+// HXT: the preferredAppearance property (see exec-interface2.cpp). No UI in
+// server mode, so there is nothing to apply; the desktop engine's version is
+// in w32dcs.cpp.
+extern "C" void MCplatformSetPreferredAppearance(int /*p_mode*/)
+{
+}
+
 void MCPlatformSetJumpList(MCStringRef /*p_tasks*/, MCStringRef /*p_category*/)
 {
 	// Not applicable in server mode.

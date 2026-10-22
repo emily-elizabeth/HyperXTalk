@@ -1331,12 +1331,15 @@ void MCScreenDC::settaskbarstate(bool p_visible)
 //
 // A value of 0 means dark; 1 (or absent) means light.
 //
-// We treat dark mode as active if EITHER key is 0, so that:
-//   - toggling the "Windows mode" slider (SystemUsesLightTheme) is detected, AND
-//   - toggling the "App mode" slider (AppsUseLightTheme) is detected.
-// On Windows 11 22H2+ there is a single combined slider that writes both keys,
-// so the behaviour is unchanged there.
-extern "C" bool MCplatformIsDarkMode(void)
+// Applications follow the app mode (AppsUseLightTheme): that is what Windows
+// itself uses for the apps it draws dark, and what uxtheme's AllowDark mode
+// keys off. The Windows mode (SystemUsesLightTheme) only colours the taskbar
+// and Start menu; with the "Custom" colour setting a user can have a dark
+// taskbar and light apps, and treating either value as dark made the engine
+// draw dark on such a machine. It is consulted only when the app-mode value
+// is absent (very old Windows 10 builds). On Windows 11 22H2+ the single
+// slider writes both values, so nothing changes there.
+static bool MCWin32SystemIsDarkMode(void)
 {
     static const LPCWSTR k_subkey =
         L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
@@ -1344,18 +1347,110 @@ extern "C" bool MCplatformIsDarkMode(void)
     DWORD t_value = 1;
     DWORD t_size  = sizeof(t_value);
 
-    // Check app mode first (most widely used).
-    RegGetValueW(HKEY_CURRENT_USER, k_subkey, L"AppsUseLightTheme",
-                 RRF_RT_REG_DWORD, nullptr, &t_value, &t_size);
-    if (t_value == 0)
-        return true;
+    if (RegGetValueW(HKEY_CURRENT_USER, k_subkey, L"AppsUseLightTheme",
+                     RRF_RT_REG_DWORD, nullptr, &t_value, &t_size) == ERROR_SUCCESS)
+        return t_value == 0;
 
-    // Check system/Windows mode as a fallback.
+    // No app-mode value: fall back to the Windows mode.
     t_value = 1;
     t_size  = sizeof(t_value);
-    RegGetValueW(HKEY_CURRENT_USER, k_subkey, L"SystemUsesLightTheme",
-                 RRF_RT_REG_DWORD, nullptr, &t_value, &t_size);
-    return t_value == 0;
+    if (RegGetValueW(HKEY_CURRENT_USER, k_subkey, L"SystemUsesLightTheme",
+                     RRF_RT_REG_DWORD, nullptr, &t_value, &t_size) == ERROR_SUCCESS)
+        return t_value == 0;
+
+    return false;
+}
+
+// ── preferredAppearance override ──────────────────────────────────────────────
+// HXT: the preferredAppearance global property (0 system, 1 light, 2 dark), set
+// by MCInterfaceSetPreferredAppearance in exec-interface2.cpp through
+// MCplatformSetPreferredAppearance below. Every dark-mode decision in the
+// Windows engine goes through MCplatformIsDarkMode(), so honouring the override
+// here is what makes default colours, the custom menu bar, the uxtheme-drawn
+// controls, the systemAppearance property and the systemAppearanceChanged
+// message all follow the forced appearance.
+static int s_preferred_appearance_mode = 0;
+
+// The uxtheme SetPreferredAppMode value matching the override: Windows then
+// draws its own context menus, scrollbars and tooltips in the forced
+// appearance instead of following the OS setting.
+//   0 Default, 1 AllowDark (follow the OS), 2 ForceDark, 3 ForceLight
+static int MCWin32PreferredAppMode(void)
+{
+	switch (s_preferred_appearance_mode)
+	{
+	case 1:
+		return 3; // ForceLight
+	case 2:
+		return 2; // ForceDark
+	default:
+		return 1; // AllowDark
+	}
+}
+
+// The appearance the engine draws in: the override when one is set, otherwise
+// the OS setting.
+extern "C" bool MCplatformIsDarkMode(void)
+{
+	switch (s_preferred_appearance_mode)
+	{
+	case 1:
+		return false;
+	case 2:
+		return true;
+	default:
+		return MCWin32SystemIsDarkMode();
+	}
+}
+
+// Last effective appearance seen by processdesktopchanged(); it sends
+// systemAppearanceChanged when the value differs. File scope so the setter
+// below can tell whether the refresh it triggers will send the message.
+static bool s_appearance_initialised = false;
+static bool s_last_dark_mode         = false;
+
+// Defined in w32dcw32.cpp: re-seeds the 500 ms registry poll so it does not
+// report the override as a second appearance change.
+void MCWin32SyncDarkModePollState(void);
+
+void MCPlatformHandleSystemAppearanceChanged(void);
+
+// Implementation of the preferredAppearance property for the Windows desktop
+// engine (the server stub is in srvwindows.cpp). Mirrors mac-core.mm: store
+// the override, make the OS draw its own chrome accordingly, then run the
+// appearance-changed processing immediately.
+extern "C" void MCplatformSetPreferredAppearance(int p_mode)
+{
+	if (p_mode < 0 || p_mode > 2)
+		p_mode = 0;
+	s_preferred_appearance_mode = p_mode;
+
+	// Headless (-ui) or not yet open: MCscreen is a plain MCUIDC, or nil. The
+	// override is still honoured by MCplatformIsDarkMode() from now on.
+	if (MCscreen == nil || MCnoui)
+		return;
+
+	// Process-wide uxtheme preference: Force* makes Windows ignore the OS
+	// setting for everything it draws for us (context menus, tooltips, the
+	// dark "Menu" theme handle used by the custom menu bar).
+	if (s_ensure_uxtheme_dark())
+		s_set_preferred_app_mode(MCWin32PreferredAppMode());
+
+	// processdesktopchanged() is the same refresh a WM_SETTINGCHANGE triggers:
+	// systemAppearanceChanged when the effective appearance differs from the
+	// last one seen, system colours, DWMWA_USE_IMMERSIVE_DARK_MODE and
+	// AllowDarkModeForWindow on every open stack window, a flush of uxtheme's
+	// menu theme cache, a reload of the native theme and a repaint.
+	bool t_will_notify = !s_appearance_initialised ||
+	                     MCplatformIsDarkMode() != s_last_dark_mode;
+	static_cast<MCScreenDC *>(MCscreen)->processdesktopchanged(false, false);
+
+	// macOS always sends systemAppearanceChanged when the property is set, even
+	// when the effective appearance is unchanged; do the same here.
+	if (!t_will_notify)
+		MCPlatformHandleSystemAppearanceChanged();
+
+	MCWin32SyncDarkModePollState();
 }
 
 static void s_colorref_to_hex(COLORREF p_color, char *p_buf, size_t p_buflen)
@@ -1463,9 +1558,9 @@ void MCScreenDC::processdesktopchanged(bool p_notify, bool p_update_fonts)
 	// overriding all the WM_SETTINGCHANGE "ImmersiveColorSet" string-matching
 	// attempts which are fragile due to ANSI/Unicode thunking.
 	{
-		static bool s_appearance_initialised = false;
-		static bool s_last_dark_mode         = false;
-
+		// s_appearance_initialised / s_last_dark_mode are file-scope statics
+		// (defined above MCplatformSetPreferredAppearance), so the
+		// preferredAppearance setter can share them.
 		bool t_dark = MCplatformIsDarkMode();
 
 		if (!s_appearance_initialised || t_dark != s_last_dark_mode)
@@ -1562,8 +1657,9 @@ void MCScreenDC::processdesktopchanged(bool p_notify, bool p_update_fonts)
 	//  5. Repaint everything.
 	if (s_ensure_uxtheme_dark())
 	{
-		// 1. Process-level preference: allow dark mode when the system requests it.
-		s_set_preferred_app_mode(1 /* AllowDark */);
+		// 1. Process-level preference: allow dark mode when the system requests
+		//    it, or force light/dark when the preferredAppearance says so.
+		s_set_preferred_app_mode(MCWin32PreferredAppMode());
 
 		// 2. Mark the invisible window so OpenThemeData(invisiblehwnd, "Menu")
 		//    returns the dark HTHEME.  MCNativeTheme::load() will use this hwnd.

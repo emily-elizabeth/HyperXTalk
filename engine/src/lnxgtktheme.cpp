@@ -25,6 +25,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "mcstring.h"
 #include "util.h"
 #include "globals.h"
+
+#include <string.h>
 #include "stack.h"
 #include "stacklst.h"
 #include "redraw.h"
@@ -292,6 +294,14 @@ static GtkWidget *s_probe_window = NULL;
 void MCPlatformHandleSystemAppearanceChanged(void);
 static gboolean reload_theme(void);
 
+// linux-theme.cpp: destroys the hidden sample widgets whose style contexts
+// supply the themed text, background and border colours (and the cached
+// fonts). GTK restyles realized widgets lazily on the next frame, so without
+// this the repaint that follows a theme change reads the previous theme's
+// colours, and only controls repainted later (hover, click) pick up the new
+// ones. Fresh widgets are styled against the current theme on creation.
+void MCLinuxThemeFlushCache(void);
+
 // ── XDG Desktop Portal callbacks and helpers ─────────────────────────────────
 
 // Called by the GLib main loop whenever org.freedesktop.portal.Settings emits
@@ -527,13 +537,15 @@ static gboolean theme_poll_cb(gpointer /*data*/)
 	return G_SOURCE_CONTINUE;
 }
 
+// Guard against re-entrant reload_theme() calls.  Setting
+// gtk-application-prefer-dark-theme in load() (below) can trigger reload_theme()
+// again via the GtkSettings notify signal before the first call has finished —
+// the guard makes it a no-op so the outer call completes cleanly.  File scope so
+// MCplatformSetPreferredAppearance() can hold it while it sets the same property.
+static bool s_reload_in_progress = false;
+
 static gboolean reload_theme(void)
 {
-	// Guard against re-entrant calls.  Setting gtk-application-prefer-dark-theme
-	// in load() (below) can trigger this function again via the GtkSettings
-	// notify signal before the first call has finished — the guard makes it a
-	// no-op so the outer call completes cleanly.
-	static bool s_reload_in_progress = false;
 	if (s_reload_in_progress)
 		return TRUE;
 	s_reload_in_progress = true;
@@ -552,6 +564,10 @@ static gboolean reload_theme(void)
 			s_polled_color_valid = true;
 		}
 	}
+
+	// Drop the cached sample widgets so the colours read during the repaint
+	// below come from the new theme (see the declaration above).
+	MCLinuxThemeFlushCache();
 
 	Boolean reload = True;
 	if (MCcurtheme && MCcurtheme->getthemeid() == LF_NATIVEGTK)
@@ -580,7 +596,79 @@ static gboolean reload_theme(void)
 // They are called from MCPlatformHandleSystemAppearanceChanged() to supply the
 // three parameters sent with the systemAppearanceChanged message.
 
+// HXT: the preferredAppearance global property (0 system, 1 light, 2 dark), set
+// by MCInterfaceSetPreferredAppearance in exec-interface2.cpp through
+// MCplatformSetPreferredAppearance() below.  MCplatformIsDarkMode() returns the
+// override when one is set and the desktop's setting otherwise, so every
+// dark-mode decision in the Linux engine follows the forced appearance.
+static int s_preferred_appearance_mode = 0;
+
+// Whether MCplatformSetPreferredAppearance() has installed application-level
+// values for gtk-theme-name / gtk-application-prefer-dark-theme.  GTK ranks
+// such values above XSETTINGS and the session's theme, so while they are in
+// place the desktop's own theme changes no longer reach this process; they are
+// undone with gtk_settings_reset_property() before every mode change.
+static bool s_override_applied = false;
+
+// Whether the probe window currently renders a dark background (ITU-R BT.709
+// luminance below 0.5).  False when the probe is not available yet.
+static bool MCLinuxProbeIsDark(bool &r_dark)
+{
+	uint16_t t_r = 0, t_g = 0, t_b = 0;
+	if (!SampleGtkWindowBackground(t_r, t_g, t_b))
+		return false;
+	double t_lum = (0.2126 * t_r + 0.7152 * t_g + 0.0722 * t_b) / 65535.0;
+	r_dark = (t_lum < 0.5);
+	return true;
+}
+
+// The base (light) name of a dark theme variant: "Adwaita-dark" -> "Adwaita",
+// "Yaru-dark" -> "Yaru", "Mint-Y-Dark" -> "Mint-Y". NULL when the name has no
+// dark suffix. The caller frees the result.  A desktop whose theme is itself
+// the dark variant (Omarchy and GNOME set Adwaita-dark, Ubuntu Yaru-dark)
+// does not go light by clearing prefer-dark, because that flag only picks the
+// dark variant of the named theme; forcing "light" switches to this name.
+static gchar *MCLinuxLightThemeName(const gchar *p_name)
+{
+	if (p_name == NULL)
+		return NULL;
+	static const char *k_suffixes[] = { "-dark", "_dark" };
+	size_t t_len = strlen(p_name);
+	for (size_t i = 0; i < sizeof(k_suffixes) / sizeof(k_suffixes[0]); i++)
+	{
+		size_t t_slen = strlen(k_suffixes[i]);
+		if (t_len > t_slen &&
+		    g_ascii_strcasecmp(p_name + t_len - t_slen, k_suffixes[i]) == 0)
+			return g_strndup(p_name, t_len - t_slen);
+	}
+	return NULL;
+}
+
+// Read by MCScreenDC::getsystemappearance() in lnxdcs.cpp.
+int MCLinuxPreferredAppearanceMode(void)
+{
+	return s_preferred_appearance_mode;
+}
+
+// The appearance the engine draws in: the override when one is set, otherwise
+// the desktop's dark-mode setting (MCLinuxSystemIsDarkMode below).
+static bool MCLinuxSystemIsDarkMode(void);
+
 extern "C" bool MCplatformIsDarkMode(void)
+{
+	switch (s_preferred_appearance_mode)
+	{
+		case 1:
+			return false;
+		case 2:
+			return true;
+		default:
+			return MCLinuxSystemIsDarkMode();
+	}
+}
+
+// The desktop's own dark-mode setting, ignoring the preferredAppearance.
+static bool MCLinuxSystemIsDarkMode(void)
 {
 	// ── 1. XDG Desktop Portal — live synchronous read ─────────────────────────
 	// Always read fresh from the portal rather than from a cached bool.  A
@@ -709,6 +797,112 @@ extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen)
 		snprintf(p_buf, p_buflen, "#ffffff");
 	else
 		snprintf(p_buf, p_buflen, "#000000");
+}
+
+// Implementation of the preferredAppearance property for the Linux desktop
+// engine (exec-interface2.cpp carries a weak no-op for the non-GUI targets).
+// Mirrors mac-core.mm: store the override, make the toolkit draw accordingly,
+// then run the appearance-changed processing immediately.
+//
+// GTK 3 has one switch for this: the gtk-application-prefer-dark-theme
+// GtkSettings property, which selects the dark variant (gtk-dark.css) of the
+// named theme.  Two kinds of desktop theme defeat it on their own:
+//   - a theme that is itself the dark variant (Adwaita-dark, Yaru-dark): for
+//     "light" the base theme name is used instead (MCLinuxLightThemeName);
+//   - a theme with no variant for the requested appearance (Debian MATE's
+//     Menta has no gtk-dark.css; BlackMATE has no light base): the probe
+//     window shows the switch had no effect, and GTK's built-in Adwaita, which
+//     has both variants, is used for the override instead.
+// "system" resets both properties so the desktop's theme, and its later
+// changes, apply again.
+extern "C" void MCplatformSetPreferredAppearance(int p_mode)
+{
+	if (p_mode < 0 || p_mode > 2)
+		p_mode = 0;
+	s_preferred_appearance_mode = p_mode;
+
+	// Headless (-ui) or not yet open: nothing to apply.  The override is still
+	// honoured by MCplatformIsDarkMode() from now on, and MCNativeTheme::load()
+	// sets gtk-application-prefer-dark-theme from it when the theme loads.
+	if (MCscreen == nil || MCnoui)
+		return;
+	GtkSettings *t_settings = gtk_settings_get_default();
+	if (t_settings == NULL)
+		return;
+
+	// Setting these properties fires their notify signals, which
+	// MCNativeTheme::load() connects to reload_theme().  Hold the re-entrancy
+	// guard while setting them and run the reload ourselves below, so it
+	// happens exactly once whatever signals are connected.
+	s_reload_in_progress = true;
+
+	// Undo the previous override's application-level values first: GTK then
+	// re-reads the session's theme name and prefer-dark flag (XSETTINGS,
+	// settings.ini or the portal), so "system" follows the desktop again and
+	// a new override starts from the desktop's current theme.
+	if (s_override_applied)
+	{
+		gtk_settings_reset_property(t_settings, "gtk-theme-name");
+		gtk_settings_reset_property(t_settings, "gtk-application-prefer-dark-theme");
+		s_override_applied = false;
+	}
+
+	if (p_mode == 0)
+	{
+		// Re-sample the probe so the luminance fallback (check #5 in
+		// MCLinuxSystemIsDarkMode) reflects the desktop's theme rather than the
+		// variant that was forced, then apply the desktop's dark/light setting
+		// the way MCNativeTheme::load() does.
+		bool t_dark = false;
+		if (MCLinuxProbeIsDark(t_dark))
+		{
+			s_luminance_dark  = t_dark;
+			s_luminance_valid = true;
+		}
+		g_object_set(t_settings, "gtk-application-prefer-dark-theme",
+		             MCLinuxSystemIsDarkMode() ? TRUE : FALSE, NULL);
+	}
+	else
+	{
+		bool t_want_dark = (p_mode == 2);
+
+		gchar *t_desktop_name = NULL;
+		g_object_get(t_settings, "gtk-theme-name", &t_desktop_name, NULL);
+		gchar *t_light_name = t_want_dark ? NULL : MCLinuxLightThemeName(t_desktop_name);
+		const gchar *t_theme_name = (t_light_name != NULL) ? t_light_name : t_desktop_name;
+		if (t_theme_name != NULL)
+			g_object_set(t_settings, "gtk-theme-name", t_theme_name, NULL);
+		g_object_set(t_settings, "gtk-application-prefer-dark-theme",
+		             t_want_dark ? TRUE : FALSE, NULL);
+
+		// Did the toolkit produce the requested variant?  If the theme has no
+		// such variant it keeps its own colours; use Adwaita for the override,
+		// which GTK 3 always carries, in both variants.
+		bool t_probe_dark = false;
+		if (MCLinuxProbeIsDark(t_probe_dark) && t_probe_dark != t_want_dark)
+			g_object_set(t_settings, "gtk-theme-name", "Adwaita", NULL);
+
+		g_free(t_light_name);
+		g_free(t_desktop_name);
+		s_override_applied = true;
+	}
+
+	s_reload_in_progress = false;
+
+	if (MCcurtheme != NULL && MCcurtheme->getthemeid() == LF_NATIVEGTK)
+	{
+		// Re-opens the GTK theme against the new variant, repaints everything
+		// and sends systemAppearanceChanged to the open stacks.
+		reload_theme();
+	}
+	else
+	{
+		// Not using the GTK theme: nothing to reload, but the themed colours,
+		// the engine's own dark-mode drawing and the systemAppearance property
+		// have changed.
+		MCLinuxThemeFlushCache();
+		MCPlatformHandleSystemAppearanceChanged();
+	}
 }
 
 // Linux implementation of MCPlatformHandleSystemAppearanceChanged.
@@ -1060,6 +1254,13 @@ void MCNativeTheme::unload()
 uint2 MCNativeTheme::getthemeid()
 {
 	return LF_NATIVEGTK; //it's a native windows theme
+}
+
+// HXT dark mode: lets buttondraw.cpp pick the dark palette for the combobox
+// and the themed menu text.  Honours the preferredAppearance override.
+bool MCNativeTheme::isdarkmodeactive(void)
+{
+	return MCplatformIsDarkMode();
 }
 
 uint2 MCNativeTheme::getthemefamilyid()
