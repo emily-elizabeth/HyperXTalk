@@ -4,8 +4,8 @@ source "${BASEDIR}/scripts/platform.inc"
 source "${BASEDIR}/scripts/lib_versions.inc"
 source "${BASEDIR}/scripts/util.inc"
 
-# 2024.07.22 currently ${libgif_VERSION} is 6.1.2
-#giflib-6.1.2.tar
+# 2026.10.06 currently ${libgif_VERSION} is 6.1.3
+#giflib-6.1.3.tar
 
 THIS="giflib"
 URL_ROOT="https://sourceforge.net/projects/${THIS}/files/latest/download"

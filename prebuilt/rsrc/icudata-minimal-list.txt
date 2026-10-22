@@ -16,7 +16,11 @@ brkitr/laodict.dict
 brkitr/line.brk
 brkitr/line_fi.brk
 brkitr/line_loose.brk
+brkitr/line_cj.brk
 brkitr/line_loose_cj.brk
+brkitr/line_normal_phrase_cj.brk
+brkitr/line_loose_phrase_cj.brk
+brkitr/line_phrase_cj.brk
 brkitr/line_loose_fi.brk
 brkitr/line_normal.brk
 brkitr/line_normal_cj.brk

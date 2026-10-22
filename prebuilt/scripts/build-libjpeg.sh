@@ -6,6 +6,8 @@ source "${BASEDIR}/scripts/util.inc"
 
 # 2024.11.26 currently ${libjpeg_VERSION} is 9f
 #https://ijg.org/files/jpegsrc.v9b.tar.gz
+# 2026.10.06 currently ${libjpeg_VERSION} is 10
+#https://ijg.org/files/jpegsrc.v10.tar.gz
 
 SHORT_THIS="jpeg"
 THIS="libjpeg"
