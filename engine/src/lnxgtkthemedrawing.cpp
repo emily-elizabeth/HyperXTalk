@@ -1037,6 +1037,7 @@ moz_gtk_progress_chunk_paint_to_surface(GdkRectangle * rect,
 static cairo_surface_t* make_transparent_surface(int width, int height, cairo_t **cr_out);
 static GtkStyleContext* build_scale_trough_context(bool is_horizontal, GtkStateFlags state_flags);
 static GtkStyleContext* build_scale_slider_context(bool is_horizontal, GtkStateFlags state_flags);
+static GtkStyleContext* build_scale_fill_context(bool is_horizontal, GtkStateFlags state_flags);
 
 // -- tperry 16-11-2025 / 20-06-2026: Render scale track.
 // Uses a standalone CSS node path context (scale > trough) so GTK3.20+ CSS
@@ -1142,6 +1143,57 @@ moz_gtk_scale_thumb_paint_to_surface(GtkThemeWidgetType type,
 
     g_object_unref(ctx);
 
+    cairo_destroy(cr);
+    return surface;
+}
+
+// -- tperry 2026-10-18: Render the filled (accent-colour) portion of a GtkScale track.
+// CSS node path: scale.{horizontal|vertical} > trough > highlight
+cairo_surface_t*
+moz_gtk_scale_fill_paint_to_surface(GtkThemeWidgetType type,
+                                     GdkRectangle * rect,
+                                     int *out_width, int *out_height)
+{
+    int width  = rect->width;
+    int height = rect->height;
+    if (out_width)  *out_width  = width;
+    if (out_height) *out_height = height;
+
+    bool is_horizontal = (type == MOZ_GTK_SCALE_FILL_HORIZONTAL);
+    ensure_scale_widget();
+
+    GtkStyleContext *ctx = build_scale_fill_context(is_horizontal, GTK_STATE_FLAG_NORMAL);
+    gtk_style_context_set_parent(ctx,
+        gtk_widget_get_style_context(is_horizontal ? gHScaleWidget : gVScaleWidget));
+
+    gint trough_thick = 0;
+    {
+        GtkStyleContext *tctx = build_scale_trough_context(is_horizontal, GTK_STATE_FLAG_NORMAL);
+        gtk_style_context_set_parent(tctx,
+            gtk_widget_get_style_context(is_horizontal ? gHScaleWidget : gVScaleWidget));
+        gtk_style_context_get(tctx, GTK_STATE_FLAG_NORMAL,
+            is_horizontal ? "min-height" : "min-width", &trough_thick, NULL);
+        g_object_unref(tctx);
+    }
+    if (trough_thick < 2) trough_thick = 4;
+
+    cairo_t *cr;
+    cairo_surface_t *surface = make_transparent_surface(width, height, &cr);
+
+    double tx, ty, tw, th;
+    if (is_horizontal) {
+        tx = 0;       tw = width;
+        ty = (height - trough_thick) / 2.0;
+        th = trough_thick;
+    } else {
+        ty = 0;       th = height;
+        tx = (width  - trough_thick) / 2.0;
+        tw = trough_thick;
+    }
+
+    gtk_render_background(ctx, cr, tx, ty, tw, th);
+    gtk_render_frame    (ctx, cr, tx, ty, tw, th);
+    g_object_unref(ctx);
     cairo_destroy(cr);
     return surface;
 }
@@ -2895,6 +2947,32 @@ build_scale_slider_context(bool is_horizontal, GtkStateFlags state_flags)
 
     gint p2 = gtk_widget_path_append_type(path, GTK_TYPE_WIDGET);
     gtk_widget_path_iter_set_object_name(path, p2, "slider");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+    gtk_style_context_set_state(ctx, state_flags);
+    gtk_widget_path_free(path);
+    return ctx;
+}
+
+// -- tperry 2026-10-18: Build a style context for the filled (accent-colour)
+// portion of a GtkScale trough.
+// GTK3 CSS node path: scale.{horizontal|vertical} > trough > highlight
+static GtkStyleContext*
+build_scale_fill_context(bool is_horizontal, GtkStateFlags state_flags)
+{
+    GtkWidgetPath *path = gtk_widget_path_new();
+
+    gint p0 = gtk_widget_path_append_type(path, GTK_TYPE_SCALE);
+    gtk_widget_path_iter_set_object_name(path, p0, "scale");
+    gtk_widget_path_iter_add_class(path, p0, is_horizontal ? "horizontal" : "vertical");
+
+    gint p1 = gtk_widget_path_append_type(path, GTK_TYPE_WIDGET);
+    gtk_widget_path_iter_set_object_name(path, p1, "trough");
+
+    gint p2 = gtk_widget_path_append_type(path, GTK_TYPE_WIDGET);
+    gtk_widget_path_iter_set_object_name(path, p2, "highlight");
 
     GtkStyleContext *ctx = gtk_style_context_new();
     gtk_style_context_set_path(ctx, path);
