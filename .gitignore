@@ -139,3 +139,4 @@ prebuilt/fetched
 *.cer
 *.mobileprovision
 codesign.cfg
+/thirdparty

@@ -15,6 +15,7 @@
 					{
 # change this value if you change the versions/icu file contents
 						'icu_version': '58',
+#						'icu_version': '78',
 					},
 				},
 			],
@@ -98,6 +99,7 @@
 				[
 					# Ensure that symbols are referenced in the right way for a static lib
 					'U_STATIC_IMPLEMENTATION=1',
+					'U_FORCE_HIDE_INTERNAL_API=1',
 				],
 
 				'conditions':

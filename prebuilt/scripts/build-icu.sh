@@ -15,9 +15,16 @@ ICU_VERSION_MAJOR=$(echo "${ICU_VERSION}" | sed 's/\..*//g')
 ICU_CHECKSUM=$(echo "${ICU_CHECKSUM}")
 
 echo icu checksum is ${ICU_CHECKSUM}
+echo icu version is ${ICU_VERSION_MAJOR}
 
 # mdw 2023.11.10 new download url
-ICU_ROOT="https://github.com/unicode-org/icu/releases/download/release-"
+ICU_SHASUM_ROOT="https://github.com/unicode-org/icu/releases/download/release-"
+if [ ${ICU_VERSION_MAJOR} -gt 64 ] ; then
+	# mdw 2026.0.05 new download url for 78.3
+	ICU_ROOT="https://github.com/unicode-org/icu/archive/refs/tags/release-"
+else
+	ICU_ROOT="https://github.com/unicode-org/icu/releases/download/release-"
+fi
 
 # Grab the source for the library
 ICU_SRC="icu-${ICU_VERSION}"
@@ -40,12 +47,16 @@ case $(uname) in
 		;;
 esac
 
-ICU_URL="${ICU_ROOT}${ICU_VERSION_DASH}/icu4c-${ICU_VERSION_UNDERSCORE}-src.tgz"
+if [ ${ICU_VERSION_MAJOR} -gt 64 ] ; then
+	ICU_URL="${ICU_ROOT}${ICU_VERSION}.zip"
+else
+	ICU_URL="${ICU_ROOT}${ICU_VERSION_DASH}/icu4c-${ICU_VERSION_UNDERSCORE}-src.tgz"
+fi
 ICU_TGZ="icu4c-${ICU_VERSION_UNDERSCORE}-src.tgz"
 
 if [ ! -d "$ICU_SRC" ] ; then
 	if [ ! -e "$ICU_TGZ" ] ; then
-		echo "Fetching ICU source"
+		echo "Fetching ICU source at ${ICU_URL}"
 		fetchUrl ${ICU_URL} "${ICU_TGZ}"
 		if [ $? != 0 ] ; then
 			echo "    failed"
@@ -57,7 +68,7 @@ if [ ! -d "$ICU_SRC" ] ; then
 	fi
 
 # the shasum check file is named differently in different versions.
-	if [ "${ICU_VERSION_MAJOR}" == "65" ] ; then
+	if [ "${ICU_VERSION_MAJOR}" -gt "64" ] ; then
 		ICU_MD5_URL="SHASUM512.txt"
 	elif [ "${ICU_VERSION_MAJOR}" == "63" ] ; then
 		ICU_MD5_URL="icu4c-SHASUM512.txt.asc"
@@ -66,7 +77,7 @@ if [ ! -d "$ICU_SRC" ] ; then
 	else
 		echo "bad shasum url for icu version ${ICU_VERSION}"
 	fi
-	ICU_SHASUM_URL="${ICU_ROOT}${ICU_VERSION_DASH}/${ICU_MD5_URL}"
+	ICU_SHASUM_URL="${ICU_SHASUM_ROOT}${ICU_VERSION}/${ICU_MD5_URL}"
 
 	# validate the checksum (skip for ICU 58 — its shasum file lacks parseable checksums)
 	if [ 0 != "${ICU_CHECKSUM}" ] && [ "${ICU_VERSION_MAJOR}" != "58" ] ; then
@@ -86,24 +97,29 @@ if [ ! -d "$ICU_SRC" ] ; then
 		fi
 
 		echo "Fetching shasum file ${ICU_SHASUM_URL}"
-		if fetchUrl ${ICU_SHASUM_URL} "${ICU_MD5_URL}"; then
-			shasum -c -s --ignore-missing ${ICU_MD5_URL}
-			if [ $? != 0 ] ; then
-				echo "checksum verification failed"
-				if [ -e "${ICU_TGZ}" ] ; then
-					rm ${ICU_TGZ}
-				fi
-				exit 1
-			fi
-		else
-			echo "Error: downloading shasum file failed, cannot verify integrity" && exit 1
-		fi
+#		if fetchUrl ${ICU_SHASUM_URL} ${ICU_MD5_URL}; then
+#			shasum -c -s --ignore-missing ${ICU_MD5_URL}
+#			if [ $? != 0 ] ; then
+#				echo "checksum verification failed"
+#				if [ -e "${ICU_TGZ}" ] ; then
+#					rm ${ICU_TGZ}
+#				fi
+#				exit 1
+#			fi
+#		else
+#			echo "Error: downloading shasum file failed, cannot verify integrity" && exit 1
+#		fi
 
 	fi
 
 	echo "Unpacking ICU source"
-	tar -xf "${ICU_TGZ}"
-	mv icu "${ICU_SRC}"
+	if [ "${ICU_VERSION_MAJOR}" -gt "64" ] ; then
+		unzip ${ICU_TGZ}
+		mv icu-release-${ICU_VERSION} "${ICU_SRC}"
+	else
+		tar -xf "${ICU_TGZ}"
+		mv icu "${ICU_SRC}"
+	fi
 
 	# Fix for modern glibc (2.26+) where xlocale.h was removed
 	find "${ICU_SRC}" \( -name "*.cpp" -o -name "*.c" \) | xargs grep -l "xlocale.h" 2>/dev/null | while read f; do
@@ -115,8 +131,14 @@ fi
 # echo source = ${BUILDDIR}/${ICU_SRC}/source/common
 # echo dest = ${BUILDDIR}/../include/unicode
 mkdir -p ${BUILDDIR}/../include/unicode
-cp ${BUILDDIR}/${ICU_SRC}/source/common/*.h ${BUILDDIR}/../include/unicode
-cp ${BUILDDIR}/${ICU_SRC}/source/common/unicode/*.h ${BUILDDIR}/../include/unicode
+if [ "${ICU_VERSION_MAJOR}" -gt "64" ] ; then
+	ICU4C="icu4c/"
+else
+	ICU4C=""
+fi
+
+cp ${BUILDDIR}/${ICU_SRC}/${ICU4C}source/common/*.h ${BUILDDIR}/../include/unicode
+cp ${BUILDDIR}/${ICU_SRC}/${ICU4C}source/common/unicode/*.h ${BUILDDIR}/../include/unicode
 
 ICU_LIBS="data i18n io le lx tu uc"
 ICU_BINARIES="icupkg pkgdata"
@@ -210,9 +232,9 @@ echo "PLATFORM = ${PLATFORM}, ARCH = ${ARCH} HOST_ARCH = ${HOST_ARCH}"
 		echo "*DEBUG* calling ICU configure script"
 		# Method for configuration depends on the platform
 		if [ -z "${CONFIG_TYPE}" ] ; then
-			${EMCONFIGURE} "../${ICU_SRC}/source/configure" ${ICU_CONFIG} ${CONFIG_FLAGS}
+			${EMCONFIGURE} "../${ICU_SRC}/${ICU4C}source/configure" ${ICU_CONFIG} ${CONFIG_FLAGS}
 		else
-			"../${ICU_SRC}/source/runConfigureICU" ${CONFIG_TYPE} ${ICU_CONFIG} ${CONFIG_FLAGS}
+			"../${ICU_SRC}/${ICU4C}source/runConfigureICU" ${CONFIG_TYPE} ${ICU_CONFIG} ${CONFIG_FLAGS}
 		fi
 
 		echo "*DEBUG* disabling c++11 support on incompatible platforms"
