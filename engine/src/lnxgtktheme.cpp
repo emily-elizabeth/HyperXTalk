@@ -693,6 +693,12 @@ static bool MCLinuxSystemIsDarkMode(void)
 	// ── 2. GSettings org.gnome.desktop.interface color-scheme ─────────────────
 	// Covers GNOME sessions where the portal is absent (AppImage without a
 	// running portal service, or schema not compiled into the AppImage).
+	// The key answers both ways: "prefer-dark" is dark, "default" and
+	// "prefer-light" are light. Falling through on a light answer, as this
+	// once did, reached check #3 below, which reads back the prefer-dark flag
+	// the engine itself set during its last dark reload, so a GNOME session
+	// that had been dark never read as light again (systemAppearanceChanged
+	// kept saying "dark" after the user switched back).
 	{
 		GSettingsSchemaSource *t_src = g_settings_schema_source_get_default();
 		GSettingsSchema *t_schema = t_src
@@ -710,8 +716,7 @@ static bool MCLinuxSystemIsDarkMode(void)
 				{
 					bool t_dark = (g_strcmp0(t_scheme, "prefer-dark") == 0);
 					g_free(t_scheme);
-					if (t_dark)
-						return true;
+					return t_dark;
 				}
 			}
 		}
