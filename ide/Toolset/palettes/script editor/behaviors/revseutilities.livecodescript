@@ -868,7 +868,7 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray, pSlot
          break
          
       case "one dark pro"
-         put "group commands none 225,108,117" & return & \
+         put "group commands bold 225,108,117" & return & \
                "group properties none 97,175,239" & return & \
                "group functions none 198,120,221" & return & \
                "class error none 255,38,0" & return & \
@@ -879,25 +879,25 @@ command seColorizationLoadScheme pScheme, @pPreferencesArray, pSlot
                "class number none 243,57,2" & return & \
                "class keyword none 229,192,123" & return & \
                "class operator none 198,120,221" & return & \
-               "keyword command none 198,120,221" & return & \
-               "keyword private none 198,120,221" & return & \
-               "keyword on none 198,120,221" & return & \
-               "keyword end none 198,120,221" & return & \
-               "keyword if none 198,120,221" & return & \
-               "keyword then none 198,120,221" & return & \
-               "keyword else none 198,120,221" & return & \
-               "keyword function none 198,120,221" & return & \
-               "keyword setprop none 198,120,221" & return & \
-               "keyword getprop none 198,120,221" & return & \
-               "keyword repeat none 198,120,221" & return & \
-               "keyword switch none 198,120,221" & return & \
-               "keyword try none 198,120,221" & return & \
-               "keyword catch none 198,120,221" & return & \
-               "keyword case none 198,120,221" & return & \
-               "keyword default none 198,120,221" & return & \
-               "keyword finally none 198,120,221" & return & \
-               "keyword next none 198,120,221" & return & \
-               "keyword exit none 255,38,0" & return & \
+               "keyword command bold 198,120,221" & return & \
+               "keyword private bold 198,120,221" & return & \
+               "keyword on bold 198,120,221" & return & \
+               "keyword end bold 198,120,221" & return & \
+               "keyword if bold 198,120,221" & return & \
+               "keyword then bold 198,120,221" & return & \
+               "keyword else bold 198,120,221" & return & \
+               "keyword function bold 198,120,221" & return & \
+               "keyword setprop bold 198,120,221" & return & \
+               "keyword getprop bold 198,120,221" & return & \
+               "keyword repeat bold 198,120,221" & return & \
+               "keyword switch bold 198,120,221" & return & \
+               "keyword try bold 198,120,221" & return & \
+               "keyword catch bold 198,120,221" & return & \
+               "keyword case bold 198,120,221" & return & \
+               "keyword default bold 198,120,221" & return & \
+               "keyword finally bold 198,120,221" & return & \
+               "keyword next bold 198,120,221" & return & \
+               "keyword exit bold 255,38,0" & return & \
                "editor background 40,44,52" & return & \
                "editor debugbackground 33,37,43" & return & \
                "editor gutterbackground 40,44,52" & return & \
