@@ -329,7 +329,7 @@ static void on_portal_setting_changed(GDBusConnection * /*connection*/,
 
 // Reads the current color-scheme from the XDG Desktop Portal via synchronous
 // D-Bus call.  Returns true and sets r_dark when the portal is reachable.
-static bool ReadPortalColorScheme(GDBusConnection *bus, bool &r_dark)
+static bool ReadPortalColorScheme(GDBusConnection *bus, guint32 &r_scheme)
 {
 	GError   *t_err   = NULL;
 	GVariant *t_reply = g_dbus_connection_call_sync(
@@ -370,7 +370,7 @@ static bool ReadPortalColorScheme(GDBusConnection *bus, bool &r_dark)
 	g_variant_unref(t_reply);
 
 	// 1 = prefer-dark, 0 = no preference, 2 = prefer-light
-	r_dark = (t_scheme == 1);
+	r_scheme = t_scheme;
 	return true;
 }
 
@@ -667,9 +667,43 @@ extern "C" bool MCplatformIsDarkMode(void)
 	}
 }
 
+// True on desktops whose light/dark switch is the freedesktop colour scheme
+// (org.gnome.desktop.interface color-scheme, mirrored by the settings portal):
+// GNOME and the sessions built on it. There "default" means light. Elsewhere
+// (MATE, XFCE, Hyprland, ...) the key may exist because the GNOME schemas are
+// installed, but the desktop never sets it, so "default" carries no
+// information and the theme-based checks below decide.
+static bool MCLinuxDesktopUsesColorScheme(void)
+{
+	const char *t_desktop = g_getenv("XDG_CURRENT_DESKTOP");
+	if (t_desktop == NULL)
+		return false;
+	gchar *t_lower = g_ascii_strdown(t_desktop, -1);
+	bool t_gnome = g_strstr_len(t_lower, -1, "gnome") != NULL;
+	g_free(t_lower);
+	return t_gnome;
+}
+
+// gtk-application-prefer-dark-theme as it was before the engine first wrote
+// it (see MCNativeTheme::load): the value from settings.ini or the session.
+// After that first write the live property only returns the engine's own
+// output, so check #3 below uses this snapshot instead.
+static gboolean s_session_prefer_dark       = FALSE;
+static bool     s_session_prefer_dark_valid = false;
+
+static void MCLinuxNoteSessionPreferDark(GtkSettings *p_settings)
+{
+	if (s_session_prefer_dark_valid || p_settings == NULL)
+		return;
+	g_object_get(p_settings, "gtk-application-prefer-dark-theme", &s_session_prefer_dark, NULL);
+	s_session_prefer_dark_valid = true;
+}
+
 // The desktop's own dark-mode setting, ignoring the preferredAppearance.
 static bool MCLinuxSystemIsDarkMode(void)
 {
+	bool t_gnome = MCLinuxDesktopUsesColorScheme();
+
 	// ── 1. XDG Desktop Portal — live synchronous read ─────────────────────────
 	// Always read fresh from the portal rather than from a cached bool.  A
 	// cached value is inherently stale during live switches: the portal
@@ -679,26 +713,31 @@ static bool MCLinuxSystemIsDarkMode(void)
 	// synchronous D-Bus call to the local portal service is < 1 ms and gives
 	// the unambiguous current truth with no feedback-loop risk.
 	//
-	// IMPORTANT: we do NOT read gtk-application-prefer-dark-theme from GtkSettings
-	// here.  That property is our own *output* (we set it in load()); reading
-	// it back would lock dark mode on permanently once set.
+	// "prefer-dark" and "prefer-light" are answers on every desktop; "no
+	// preference" is an answer (light) only where the colour scheme is the
+	// desktop's switch (GNOME). On MATE the portal backend reads the same
+	// GNOME key, which MATE never sets, so there it is no information.
 	if (s_portal_bus != NULL)
 	{
-		bool t_dark = false;
-		if (ReadPortalColorScheme(s_portal_bus, t_dark))
-			return t_dark;
-		// Portal reachable but returned an error — fall through.
+		guint32 t_scheme = 0;
+		if (ReadPortalColorScheme(s_portal_bus, t_scheme))
+		{
+			if (t_scheme == 1)
+				return true;
+			if (t_scheme == 2 || t_gnome)
+				return false;
+		}
+		// Portal unreachable, or no preference on a non-GNOME desktop: fall through.
 	}
 
 	// ── 2. GSettings org.gnome.desktop.interface color-scheme ─────────────────
 	// Covers GNOME sessions where the portal is absent (AppImage without a
 	// running portal service, or schema not compiled into the AppImage).
-	// The key answers both ways: "prefer-dark" is dark, "default" and
-	// "prefer-light" are light. Falling through on a light answer, as this
-	// once did, reached check #3 below, which reads back the prefer-dark flag
-	// the engine itself set during its last dark reload, so a GNOME session
-	// that had been dark never read as light again (systemAppearanceChanged
-	// kept saying "dark" after the user switched back).
+	// Same reading of the three values as for the portal. Falling through on
+	// "default" everywhere, as this once did, reached the engine's own
+	// prefer-dark output in check #3, so a GNOME session that had been dark
+	// never read as light again; answering light for "default" everywhere,
+	// as the next version did, made MATE read light whatever its theme.
 	{
 		GSettingsSchemaSource *t_src = g_settings_schema_source_get_default();
 		GSettingsSchema *t_schema = t_src
@@ -714,36 +753,26 @@ static bool MCLinuxSystemIsDarkMode(void)
 				g_object_unref(t_iface);
 				if (t_scheme != NULL)
 				{
-					bool t_dark = (g_strcmp0(t_scheme, "prefer-dark") == 0);
+					bool t_dark  = (g_strcmp0(t_scheme, "prefer-dark") == 0);
+					bool t_light = (g_strcmp0(t_scheme, "prefer-light") == 0);
 					g_free(t_scheme);
-					return t_dark;
+					if (t_dark)
+						return true;
+					if (t_light || t_gnome)
+						return false;
 				}
 			}
 		}
 	}
 
-	// ── 3. GtkSettings gtk-application-prefer-dark-theme ────────────────────
-	// On MATE, KDE, and other non-GNOME-42+ desktops, the desktop settings
-	// daemon (e.g. mate-settings-daemon) propagates the current theme's
-	// dark/light nature to GTK via XSETTINGS → gtk-application-prefer-dark-theme.
-	// This is the settings daemon's own authoritative output, NOT our output,
-	// because we only reach here when the portal and GSettings checks above have
-	// already failed — which means we are NOT on a GNOME 42+ session where we
-	// ourselves set this property.  Reading it here is therefore safe: if the
-	// property is TRUE it was set by the desktop environment, not by our load().
-	//
-	// (On GNOME 42+, the portal at check #1 returns the correct value and we
-	// never fall through to here, so the GNOME feedback-loop risk does not apply.)
-	{
-		GtkSettings *t_settings_pref = gtk_settings_get_default();
-		if (t_settings_pref != NULL)
-		{
-			gboolean t_prefer_dark = FALSE;
-			g_object_get(t_settings_pref, "gtk-application-prefer-dark-theme", &t_prefer_dark, NULL);
-			if (t_prefer_dark)
-				return true;
-		}
-	}
+	// ── 3. gtk-application-prefer-dark-theme from settings.ini / the session ──
+	// A user or desktop can ask for the dark variant of the GTK theme in
+	// ~/.config/gtk-3.0/settings.ini. The live GtkSettings property cannot be
+	// read for this: MCNativeTheme::load() writes it from this very function
+	// on every reload, so it only ever returns the engine's previous answer.
+	// The value as it was before the engine's first write is used instead.
+	if (s_session_prefer_dark_valid && s_session_prefer_dark)
+		return true;
 
 	// ── 4. Theme-name heuristic ───────────────────────────────────────────────
 	// Distros that ship separate dark-theme packages (Yaru-dark on Ubuntu,
@@ -1070,6 +1099,7 @@ Boolean MCNativeTheme::load()
 		// acts on this GtkSettings property, so this call is what makes the whole
 		// GTK widget stack (scrollbars, menus, dialogs) render in the right colour
 		// variant on Fedora and Debian GNOME 42+.
+		MCLinuxNoteSessionPreferDark(m_settings);
 		g_object_set(m_settings,
 		             "gtk-application-prefer-dark-theme",
 		             MCplatformIsDarkMode() ? TRUE : FALSE,
