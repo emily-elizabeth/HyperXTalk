@@ -35,7 +35,8 @@ setting per line:
   absent, the light or dark editor background preference is used.
 * `debugbackground` - the script field while the debugger has it locked.
 * `gutterbackground` and `gutterforeground` - the line number gutter.
-* `foldingbackground` - the code folding column.
+* `foldingbackground` and `foldingforeground` - the code folding column and
+  its fold glyphs. The glyphs default to the gutter's text colour.
 * `selection` - the selection highlight in the script field.
 * `findhighlight` - the background of text found by Find.
 * `brackethighlight` - the background of a matched bracket pair.

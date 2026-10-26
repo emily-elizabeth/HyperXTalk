@@ -33,6 +33,7 @@ editor debugbackground 33,37,43
 editor gutterbackground 40,44,52
 editor gutterforeground 73,81,98
 editor foldingbackground 44,49,60
+editor foldingforeground 73,81,98
 editor selection 62,68,81
 editor findhighlight 66,85,123
 editor brackethighlight 81,90,107

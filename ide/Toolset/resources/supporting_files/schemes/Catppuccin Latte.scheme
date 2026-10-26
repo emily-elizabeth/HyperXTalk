@@ -34,6 +34,7 @@ editor debugbackground 230,233,239
 editor gutterbackground 239,241,245
 editor gutterforeground 156,160,176
 editor foldingbackground 204,208,218
+editor foldingforeground 156,160,176
 editor selection 204,208,218
 editor findhighlight 254,100,11
 editor brackethighlight 156,160,176

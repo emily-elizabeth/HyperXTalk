@@ -247,13 +247,13 @@ private command initializeFoldingField
    
    clone field "Numbers Template" of me as "Folding"
    set the width of field "Folding" of me to sePrefGet("editor,foldingwidth")
-   set the backgroundColor of field "Folding" of me to \
-         seColorizationEditorColor("foldingbackground", kDefaultFoldingBackground)
    set the margins of field "Folding" of me to 2,9,2,8
    set the textAlign of field "Folding" of me to "center"
    put "" into field "Folding" of me
    put empty into line kInitialLineStore of field "Folding" of me
    unlock messages
+   
+   applyGutterAppearance
 end initializeFoldingField
 
 private command initializeCurrentLine
@@ -280,9 +280,10 @@ end initializeLineNumbers
 
 # Description
 #   Applies the gutter colours. The current colorization scheme may supply
-#   these with "editor gutterbackground", "editor gutterforeground" and
-#   "editor foldingbackground" lines; otherwise the built-in light or dark
-#   colours are used.
+#   these with "editor gutterbackground", "editor gutterforeground",
+#   "editor foldingbackground" and "editor foldingforeground" lines; otherwise
+#   the built-in light or dark colours are used. The folding glyphs default
+#   to the same colour as the line numbers.
 private command applyGutterAppearance
    local tBackground, tForeground
    if seIsDarkAppearance() then
@@ -301,6 +302,8 @@ private command applyGutterAppearance
    if there is a field "Folding" of me then
       set the backgroundColor of field "Folding" of me to \
             seColorizationEditorColor("foldingbackground", kDefaultFoldingBackground)
+      set the foregroundColor of field "Folding" of me to \
+            seColorizationEditorColor("foldingforeground", tForeground)
    end if
 end applyGutterAppearance
 
