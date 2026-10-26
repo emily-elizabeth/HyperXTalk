@@ -85,11 +85,22 @@
 				'script-libraries/httpd/httpd.livecodescript',
 				'script-libraries/qr/qr.livecodescript',
 				'script-libraries/shakecontrol/shakecontrol.livecodescript',
-				'script-libraries/macscrollenhancement2/macscrollenhancement2.livecodescript',
 				'script-libraries/hxtpm/hxtpm.livecodescript',
 				'script-libraries/jsonexport/jsonexport.livecodescript',
 			],
-			
+			'conditions':
+			[
+				[
+	                'OS == "mac"',
+	                {
+						'sources':
+	                    [
+							'script-libraries/macscrollenhancement2/macscrollenhancement2.livecodescript',
+	                    ],	 
+	                },
+	            ],
+			],
+
 			'dependencies':
 		    [
         		# Requires a working HyperXTalk engine
