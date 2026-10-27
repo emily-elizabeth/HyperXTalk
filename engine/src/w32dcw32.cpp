@@ -293,30 +293,39 @@ void MCPlatformHandleSystemAppearanceChanged(void);
 // at most every 500 ms from MCScreenDC::handle() to poll the registry directly
 // and trigger MCPlatformHandleSystemAppearanceChanged() when the mode changes.
 // It acts as a guaranteed fallback that works regardless of message delivery.
+static bool      s_poll_dark_init = false;
+static bool      s_poll_dark      = false;
+static ULONGLONG s_poll_last_tick = 0;
+
+// HXT: called by MCplatformSetPreferredAppearance (w32dcs.cpp) after it has
+// applied the preferredAppearance override and already run the appearance
+// change processing, so the next poll does not report the same change again.
+void MCWin32SyncDarkModePollState(void)
+{
+    s_poll_dark      = MCplatformIsDarkMode();
+    s_poll_dark_init = true;
+}
+
 static void MCWin32PollDarkMode(void)
 {
-    static bool s_init   = false;
-    static bool s_dark   = false;
-    static ULONGLONG s_last_tick = 0;
-
     ULONGLONG t_now = GetTickCount64();
-    if (t_now - s_last_tick < 500)   // at most every 500 ms
+    if (t_now - s_poll_last_tick < 500)   // at most every 500 ms
         return;
-    s_last_tick = t_now;
+    s_poll_last_tick = t_now;
 
     bool t_dark = MCplatformIsDarkMode();
 
-    if (!s_init)
+    if (!s_poll_dark_init)
     {
         // First call: record the current state without triggering a change.
-        s_dark = t_dark;
-        s_init = true;
+        s_poll_dark      = t_dark;
+        s_poll_dark_init = true;
         return;
     }
 
-    if (t_dark != s_dark)
+    if (t_dark != s_poll_dark)
     {
-        s_dark = t_dark;
+        s_poll_dark = t_dark;
         MCPlatformHandleSystemAppearanceChanged();
 
         // Belt-and-suspenders: MCPlatformHandleSystemAppearanceChanged() already
