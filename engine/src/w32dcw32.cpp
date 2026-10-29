@@ -281,25 +281,30 @@ bool MCScreenDC::getkeysdown(MCListRef& r_list)
 extern HANDLE g_notify_wakeup;
 
 // Forward declarations for the dark-mode polling helper.
-// MCplatformIsDarkMode is an extern "C" function defined in w32dcs.cpp.
-// MCPlatformHandleSystemAppearanceChanged is a C++ function in desktop.cpp.
+// MCplatformIsDarkMode and MCWin32NotifySystemAppearanceChanged are defined
+// in w32dcs.cpp. The latter is the single gate through which every Windows
+// trigger delivers systemAppearanceChanged: it runs the shared handler in
+// desktop.cpp only when the effective appearance differs from the last one
+// delivered, so the several announcements Windows makes of one toggle
+// (WM_SETTINGCHANGE, WM_THEMECHANGED, WM_SYSCOLORCHANGE, one per top-level
+// window, plus the poll below) produce one message (upstream issue #567).
 extern "C" bool MCplatformIsDarkMode(void);
-void MCPlatformHandleSystemAppearanceChanged(void);
+bool MCWin32NotifySystemAppearanceChanged(bool p_force);
 
 // ── Dark/light mode polling fallback ─────────────────────────────────────────
 // Windows broadcasts WM_SETTINGCHANGE "ImmersiveColorSet" when the user
 // toggles dark mode, but delivery can be missed on elevated processes or on
 // Windows builds where the broadcast is unreliable.  This function is called
 // at most every 500 ms from MCScreenDC::handle() to poll the registry directly
-// and trigger MCPlatformHandleSystemAppearanceChanged() when the mode changes.
-// It acts as a guaranteed fallback that works regardless of message delivery.
+// and deliver the appearance change when the mode changes.  It acts as a
+// guaranteed fallback that works regardless of message delivery.
 static bool      s_poll_dark_init = false;
 static bool      s_poll_dark      = false;
 static ULONGLONG s_poll_last_tick = 0;
 
-// HXT: called by MCplatformSetPreferredAppearance (w32dcs.cpp) after it has
-// applied the preferredAppearance override and already run the appearance
-// change processing, so the next poll does not report the same change again.
+// HXT: called by MCWin32NotifySystemAppearanceChanged (w32dcs.cpp) after it
+// has delivered an appearance change, so the next poll does not report the
+// same change again.
 void MCWin32SyncDarkModePollState(void)
 {
     s_poll_dark      = MCplatformIsDarkMode();
@@ -326,7 +331,7 @@ static void MCWin32PollDarkMode(void)
     if (t_dark != s_poll_dark)
     {
         s_poll_dark = t_dark;
-        MCPlatformHandleSystemAppearanceChanged();
+        MCWin32NotifySystemAppearanceChanged(false);
 
         // Belt-and-suspenders: MCPlatformHandleSystemAppearanceChanged() already
         // calls dirtyall() + MCRedrawDirtyScreen() which schedules a repaint via
@@ -799,8 +804,9 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 		// — often a visible stack window, not the invisible window — so gating on
 		// getinvisiblewindow() would silently swallow the notification.
 		//
-		// A static flag prevents double-processing when multiple windows each
-		// receive the same broadcast in the same event-loop turn.
+		// A static flag prevents re-entrant processing; the gate in
+		// MCWin32NotifySystemAppearanceChanged drops the copies of the
+		// broadcast that every other top-level window receives.
 		//
 		// ANSI vs Unicode lParam note:
 		//   Stack windows (t_foreign_window = false) are dispatched by calling
@@ -825,9 +831,7 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 			if (!s_appearance_change_pending)
 			{
 				s_appearance_change_pending = true;
-				// Forward declaration — defined in desktop.cpp.
-				void MCPlatformHandleSystemAppearanceChanged(void);
-				MCPlatformHandleSystemAppearanceChanged();
+				MCWin32NotifySystemAppearanceChanged(false);
 				s_appearance_change_pending = false;
 			}
 		}
@@ -1727,27 +1731,21 @@ LRESULT CALLBACK MCWindowProc(HWND hwnd, UINT msg, WPARAM wParam,
 		// updated, so MCplatformIsDarkMode() is guaranteed to return the new value.
 		//
 		// Handle from ANY window (not just the invisible one) because there is no
-		// guarantee which window's message is processed first.  A static flag
-		// prevents double-processing within the same event-loop turn.
+		// guarantee which window's message is processed first.
 		//
 		// This is the most reliable trigger for dark/light mode on Windows 10/11
 		// and serves as a fallback when WM_SETTINGCHANGE "ImmersiveColorSet" is
 		// missed (e.g. due to ANSI/Unicode thunking in the invisible-window path).
-		// MCPlatformHandleSystemAppearanceChanged already calls updatesystemcolors()
-		// and MCRedrawDirtyScreen() internally, so this single call is sufficient.
-		// It is safe to call multiple times (once per window that receives the
-		// broadcast) since it is idempotent: colours are re-sampled, stacks are
-		// re-dirtied, and the delaymessage queue may accumulate a few copies of
-		// systemAppearanceChanged — but scripts setting the same colour twice is
-		// harmless.
-		void MCPlatformHandleSystemAppearanceChanged(void);
-		MCPlatformHandleSystemAppearanceChanged();
+		// Every window receives the broadcast, and WM_SETTINGCHANGE usually
+		// arrives for the same toggle as well; the gate delivers the change
+		// once and drops the rest, so scripts see one systemAppearanceChanged.
+		MCWin32NotifySystemAppearanceChanged(false);
 
 		// The native-theme cycle (HTHEME handle refresh) and MCRedrawDirtyScreen
 		// are only needed once, from the invisible window, where the theme was
-		// initialised.  MCPlatformHandleSystemAppearanceChanged() above already
-		// calls MCRedrawDirtyScreen() unconditionally, so this block handles only
-		// the theme-handle cycling.
+		// initialised.  When the gate above delivers a change it already calls
+		// MCRedrawDirtyScreen(), so this block handles only the theme-handle
+		// cycling.
 		if (hwnd == pms->getinvisiblewindow() && MCcurtheme && MCcurtheme->getthemeid() == LF_NATIVEWIN)
 		{
 			MCcurtheme->unload();
