@@ -321,3 +321,53 @@ MCPlatformControlType MCScrollbar::getcontroltype()
     
     return t_type;
 }
+
+// ── scrollbarForeColor / scrollbarBackColor for standalone MCScrollbar ────────
+
+void MCScrollbar::GetScrollbarForeColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color)
+{
+    if (m_custom_fore_set)
+    {
+        r_color.color = m_custom_fore_color;
+        r_color.name  = nil;
+        ctxt.FormatLegacyColor(m_custom_fore_color, r_color.name);
+    }
+    else
+        MCInterfaceNamedColorInit(ctxt, r_color);
+}
+
+void MCScrollbar::SetScrollbarForeColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color)
+{
+    if (p_color.name != nil && MCStringIsEmpty(p_color.name))
+        m_custom_fore_set = false;
+    else
+    {
+        m_custom_fore_color = p_color.color;
+        m_custom_fore_set   = true;
+    }
+    layer_redrawall();
+}
+
+void MCScrollbar::GetScrollbarBackColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color)
+{
+    if (m_custom_back_set)
+    {
+        r_color.color = m_custom_back_color;
+        r_color.name  = nil;
+        ctxt.FormatLegacyColor(m_custom_back_color, r_color.name);
+    }
+    else
+        MCInterfaceNamedColorInit(ctxt, r_color);
+}
+
+void MCScrollbar::SetScrollbarBackColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color)
+{
+    if (p_color.name != nil && MCStringIsEmpty(p_color.name))
+        m_custom_back_set = false;
+    else
+    {
+        m_custom_back_color = p_color.color;
+        m_custom_back_set   = true;
+    }
+    layer_redrawall();
+}

@@ -72,6 +72,12 @@ private:
     
     // MM-2014-07-31: [[ ThreadedRendering ]] Used to ensure the progress bar animate message is only posted from a single thread.
     bool m_animate_posted : 1;
+
+    // Custom scrollbar colours (for standalone scrollbar controls).
+    MCColor m_custom_fore_color;
+    bool    m_custom_fore_set;
+    MCColor m_custom_back_color;
+    bool    m_custom_back_set;
 	
 	static MCPropertyInfo kProperties[];
 	static MCObjectPropertyTable kPropertyTable;
@@ -161,6 +167,22 @@ public:
 	void SetEndValue(MCExecContext& ctxt, MCStringRef p_value);
 	void GetShowValue(MCExecContext& ctxt, bool& r_setting);
 	void SetShowValue(MCExecContext& ctxt, bool setting);
+	void GetScrollbarForeColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color);
+	void SetScrollbarForeColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color);
+	void GetScrollbarBackColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color);
+	void SetScrollbarBackColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color);
+
+	// Inline accessors for scrollbardraw.cpp.
+	bool getCustomForeColor(MCColor& r_color) const
+	{
+		if (m_custom_fore_set) { r_color = m_custom_fore_color; return true; }
+		return false;
+	}
+	bool getCustomBackColor(MCColor& r_color) const
+	{
+		if (m_custom_back_set) { r_color = m_custom_back_color; return true; }
+		return false;
+	}
     
 protected:
     
