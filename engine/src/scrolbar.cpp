@@ -269,7 +269,15 @@ Boolean MCScrollbar::mfocus(int2 x, int2 y)
         
 		int32_t t_new_position;
 		t_new_position = t_thumb_start + t_thumb_length / 2 + t_movement;
-		t_new_position = MCU_min(t_bar_start + t_bar_length, MCU_max(t_bar_start, t_new_position));
+		// AL-2026: [[ Bug ]] For reversed ranges (startvalue > endvalue) the theme
+		// returns thumb rects in descending-y order, giving a negative t_bar_length.
+		// Clamp to the actual pixel range [min,max] of the endpoints so the drag
+		// formula (which handles negative bar length correctly) can work unchanged.
+		{
+			int32_t t_bar_lo = MCU_min(t_bar_start, t_bar_start + t_bar_length);
+			int32_t t_bar_hi = MCU_max(t_bar_start, t_bar_start + t_bar_length);
+			t_new_position = MCU_min(t_bar_hi, MCU_max(t_bar_lo, t_new_position));
+		}
 		
 		if (t_forward)
 			newpos = startvalue + ((t_new_position - t_bar_start) / (double)t_bar_length) * (fabs(endvalue - startvalue) - t_thumbsize);
@@ -438,7 +446,7 @@ Boolean MCScrollbar::mdown(uint2 which)
 			switch (mode)
 			{
 			case SM_BEGINNING:
-				update(0, MCM_scrollbar_beginning);
+				update(startvalue, MCM_scrollbar_beginning);
 				break;
 			case SM_END:
 				update(endvalue, MCM_scrollbar_end);
@@ -642,40 +650,130 @@ void MCScrollbar::timer(MCNameRef mptr, MCParameter *params)
 				update(thumbpos + lineinc, MCM_scrollbar_line_inc);
 				break;
 			case SM_PAGEDEC:
-				if ( flags & F_SCALE )	
-					update(thumbpos - pageinc, MCM_scrollbar_page_dec);
+				if (flags & F_SCALE)
+				{
+					// AL-2026: [[ Bug ]] For sliders (F_SCALE), track-clicks must jump the
+					// thumb to the clicked position (native macOS behaviour) rather than
+					// stepping by pageinc.  The default pageinc (thumbsize = 8192) vastly
+					// exceeds any normal range, causing two failure modes:
+					//   * Before pageinc sign fix: thumb jumped to the wrong extreme and the
+					//     stop-condition (thumb.y+H < my) was never satisfied, so the timer
+					//     looped indefinitely with the thumb frozen at endvalue.
+					//   * After pageinc sign fix: one massive single jump to startvalue/
+					//     endvalue made the slider effectively binary (only two positions).
+					// Fix: compute the target value from the actual click coordinates
+					// (my / mx), identical to the inverse of the mfocus() drag formula.
+					// Fire once, then clear mode so the timer does not repeat.
+					{
+						MCRectangle t_start_rect = compute_thumb(startvalue);
+						MCRectangle t_end_rect   = compute_thumb(endvalue);
+						int32_t t_bar_start, t_bar_length, t_thumb_len, t_click;
+						if (getstyleint(flags) == F_VERTICAL)
+						{
+							t_bar_start  = t_start_rect.y;
+							t_bar_length = t_end_rect.y + t_end_rect.height - t_bar_start;
+							t_thumb_len  = t_start_rect.height;
+							t_click      = my;
+						}
+						else
+						{
+							t_bar_start  = t_start_rect.x;
+							t_bar_length = t_end_rect.x + t_end_rect.width - t_bar_start;
+							t_thumb_len  = t_start_rect.width;
+							t_click      = mx;
+						}
+						t_bar_start  += t_thumb_len / 2;
+						t_bar_length -= t_thumb_len;
+						if (t_bar_length == 0) t_bar_length = 1;
+						// AL-2026: [[ Bug ]] For reversed ranges t_bar_length is negative;
+						// clamp to the actual pixel range [min,max] of the endpoints.
+						{
+							int32_t t_lo = MCU_min(t_bar_start, t_bar_start + t_bar_length);
+							int32_t t_hi = MCU_max(t_bar_start, t_bar_start + t_bar_length);
+							t_click = MCU_min(t_hi, MCU_max(t_lo, t_click));
+						}
+						real8 t_ratio  = (double)(t_click - t_bar_start) / t_bar_length;
+						real8 t_target;
+						if (endvalue > startvalue)
+							t_target = startvalue + t_ratio * (endvalue - startvalue);
+						else
+							t_target = startvalue - t_ratio * (startvalue - endvalue);
+						update(t_target, MCM_scrollbar_page_dec);
+					}
+					mode = SM_CLEARED;
+				}
 				else 
 				{
 					// TH-2008-01-23. Previously was pageinc - lineinc which appeared to be wrong
 					update(thumbpos - (pageinc - lineinc), MCM_scrollbar_page_dec);
+					thumb = compute_thumb(thumbpos);
+					if (getstyleint(flags) == F_VERTICAL)
+					{
+						if (thumb.y + thumb.height < my)
+							mode = SM_CLEARED;
+					}
+					else
+						if (thumb.x + thumb.height < mx)
+							mode = SM_CLEARED;
 				}
-				thumb = compute_thumb(thumbpos);
-				if (getstyleint(flags) == F_VERTICAL)
-				{
-					if (thumb.y + thumb.height < my)
-						mode = SM_CLEARED;
-				}
-				else
-					if (thumb.x + thumb.height < mx)
-						mode = SM_CLEARED;
 				break;
 			case SM_PAGEINC:
 				if (flags & F_SCALE)
-					update(thumbpos + pageinc, MCM_scrollbar_page_inc);
+				{
+					// AL-2026: [[ Bug ]] Same fix as SM_PAGEDEC above -- jump to click
+					// position in one step rather than using the oversized pageinc.
+					{
+						MCRectangle t_start_rect = compute_thumb(startvalue);
+						MCRectangle t_end_rect   = compute_thumb(endvalue);
+						int32_t t_bar_start, t_bar_length, t_thumb_len, t_click;
+						if (getstyleint(flags) == F_VERTICAL)
+						{
+							t_bar_start  = t_start_rect.y;
+							t_bar_length = t_end_rect.y + t_end_rect.height - t_bar_start;
+							t_thumb_len  = t_start_rect.height;
+							t_click      = my;
+						}
+						else
+						{
+							t_bar_start  = t_start_rect.x;
+							t_bar_length = t_end_rect.x + t_end_rect.width - t_bar_start;
+							t_thumb_len  = t_start_rect.width;
+							t_click      = mx;
+						}
+						t_bar_start  += t_thumb_len / 2;
+						t_bar_length -= t_thumb_len;
+						if (t_bar_length == 0) t_bar_length = 1;
+						// AL-2026: [[ Bug ]] For reversed ranges t_bar_length is negative;
+						// clamp to the actual pixel range [min,max] of the endpoints.
+						{
+							int32_t t_lo = MCU_min(t_bar_start, t_bar_start + t_bar_length);
+							int32_t t_hi = MCU_max(t_bar_start, t_bar_start + t_bar_length);
+							t_click = MCU_min(t_hi, MCU_max(t_lo, t_click));
+						}
+						real8 t_ratio  = (double)(t_click - t_bar_start) / t_bar_length;
+						real8 t_target;
+						if (endvalue > startvalue)
+							t_target = startvalue + t_ratio * (endvalue - startvalue);
+						else
+							t_target = startvalue - t_ratio * (startvalue - endvalue);
+						update(t_target, MCM_scrollbar_page_inc);
+					}
+					mode = SM_CLEARED;
+				}
 				else
 				{
 					// TH-2008-01-23. Previously was pageinc + lineinc which appeared to be wrong.
 					update(thumbpos + (pageinc - lineinc), MCM_scrollbar_page_inc);
+					thumb = compute_thumb(thumbpos);
+					if (getstyleint(flags) == F_VERTICAL)
+					{
+						if (thumb.y > my)
+							mode = SM_CLEARED;
+					}
+					else
+						if (thumb.x > mx)
+							mode = SM_CLEARED;
 				}
-				thumb = compute_thumb(thumbpos);
-				if (getstyleint(flags) == F_VERTICAL)
-				{
-					if (thumb.y > my)
-						mode = SM_CLEARED;
-				}
-				else
-					if (thumb.x > mx)
-						mode = SM_CLEARED;
 				break;
 			}
 			if (parent->gettype() != CT_CARD)
@@ -930,9 +1028,19 @@ void MCScrollbar::update(real8 newpos, MCNameRef mess)
 {
 	real8 oldpos = thumbpos;
 	real8 ts = thumbsize;
-	if (thumbsize > fabs(endvalue - startvalue))
+	// AL-2026: [[ Bug 548 ]] For slider (F_SCALE) widgets thumbsize is a point-thumb
+	// default (8192) with no page-size meaning.  The old unconditional
+	//     ts = thumbsize = fabs(endvalue - startvalue)
+	// permanently mutated thumbsize to equal the range on the first update() call.
+	// issbdisabled() then returned true (fabs(range) == thumbsize on non-Motif,
+	// non-scrollbar widgets) and mfocus() bailed out immediately, making the thumb
+	// impossible to drag.  Guard the write-back so thumbsize is only clamped for
+	// scrollbars; for sliders, just zero ts so the position clamp is a no-op.
+	if (!(flags & F_SCALE) && thumbsize > fabs(endvalue - startvalue))
 		ts = thumbsize = fabs(endvalue - startvalue);
 	if (flags & F_SB_STYLE)
+		ts = 0;
+	if (flags & F_SCALE)
 		ts = 0;
 	if (startvalue < endvalue)
 		if (newpos < startvalue)

@@ -152,7 +152,9 @@ extern "C"
 	    MOZ_GTK_SCALE_TRACK_VERTICAL,
 	    MOZ_GTK_SCALE_TRACK_HORIZONTAL,
 	    MOZ_GTK_SCALE_THUMB_VERTICAL,
-	    MOZ_GTK_SCALE_THUMB_HORIZONTAL
+	    MOZ_GTK_SCALE_THUMB_HORIZONTAL,
+	    MOZ_GTK_SCALE_FILL_VERTICAL,
+	    MOZ_GTK_SCALE_FILL_HORIZONTAL
 	} GtkThemeWidgetType;
 
 	/*** General library functions ***/
@@ -229,6 +231,10 @@ extern "C"
 	cairo_surface_t*
 	moz_gtk_scale_thumb_paint_to_surface(GtkThemeWidgetType type, GdkRectangle* rect,
 	                                      GtkWidgetState* state, int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_scale_fill_paint_to_surface(GtkThemeWidgetType type, GdkRectangle* rect,
+	                                     int *out_width, int *out_height);
 	
 	cairo_surface_t*
 	moz_gtk_toggle_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state,

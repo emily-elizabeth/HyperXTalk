@@ -226,6 +226,12 @@ static GtkWidgetState getpartandstate(const MCWidgetInfo &winfo, GtkThemeWidgetT
 	case WTHEME_TYPE_MENUITEMHIGHLIGHT:
 		moztype = MOZ_GTK_MENUITEMHIGHLIGHT;
 		break;
+	case WTHEME_TYPE_SLIDER_FILL_VERTICAL:
+		moztype = MOZ_GTK_SCALE_FILL_VERTICAL;
+		break;
+	case WTHEME_TYPE_SLIDER_FILL_HORIZONTAL:
+		moztype = MOZ_GTK_SCALE_FILL_HORIZONTAL;
+		break;
 	case WTHEME_TYPE_SLIDER_TRACK_VERTICAL:
 		moztype = MOZ_GTK_SCALE_TRACK_VERTICAL;
 		break;
@@ -1193,31 +1199,31 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 					real8 height = srect.height - (sbdecarrowrect.height + sbincarrowrect.height) - (troughBorder * 2);
 					if (range != 0.0 && fabs(sbinfo->endvalue - sbinfo->startvalue) != sbinfo->thumbsize)
 					{
+						// Normalised 0→1 fraction before fabs so direction is preserved
+						// for reversed sliders (startValue > endValue).
+						real8 t_fraction = (sbinfo->thumbpos - sbinfo->startvalue) / range;
 						int2 miny = sbthumbrect.y;
-
 
 						real8 offset = height * (sbinfo->thumbpos - sbinfo->startvalue);
 						sbthumbrect.y += (int2) (offset / range);
 						range = fabs(range);
 						sbthumbrect.height = (uint2)(sbinfo->thumbsize * height / range);
-						uint2 minsize = srect.width;
+						// Minimum thumb height = GTK-metric track width (sbthumbrect.width,
+						// already set to trackwidth above), not srect.width.  This keeps
+						// the thumb proportional to the GTK theme regardless of widget size
+						// and keeps sbthumbrect strictly within the track.
+						uint2 minsize = (uint2)sbthumbrect.width;
 						if (sbthumbrect.height < minsize)
 						{
-							uint2 diff =
-								minsize -
-								sbthumbrect.height;
+							uint2 diff = minsize - sbthumbrect.height;
 							sbthumbrect.height = minsize;
-							sbthumbrect.y -=
-								(int2) (diff *
-										(sbinfo->
-										 thumbpos +
-										 sbinfo->
-										 thumbsize -
-										 sbinfo->
-										 startvalue) /
-										range);
+							sbthumbrect.y -= (int2)(diff * t_fraction);
+							// Clamp so thumb stays strictly inside the track.
+							int2 maxy = miny + (int2)height - (int2)minsize;
 							if (sbthumbrect.y < miny)
 								sbthumbrect.y = miny;
+							if (sbthumbrect.y > maxy)
+								sbthumbrect.y = maxy;
 						}
 					}
 					else
@@ -1280,29 +1286,29 @@ void MCNativeTheme::getscrollbarrects(const MCWidgetInfo & winfo,
 					if (range != 0.0 && fabs(sbinfo->endvalue - sbinfo->startvalue) != sbinfo->thumbsize)
 					{
 
+						// Normalised 0→1 fraction before fabs so direction is preserved
+						// for reversed sliders (startValue > endValue).
+						real8 t_fraction = (sbinfo->thumbpos - sbinfo->startvalue) / range;
 						int2 minx = sbthumbrect.x;
+
 						real8 offset = (width * (sbinfo->thumbpos - sbinfo->startvalue));
 						sbthumbrect.x += (int2)(offset / range);
 						range = fabs(range);
 						sbthumbrect.width = (uint2) ((slider?0:sbinfo->thumbsize) * width / range);
-						uint2 minsize = srect.height;
+						// Minimum thumb width = GTK-metric track height (sbthumbrect.height,
+						// already set to trackheight above), not srect.height.
+						uint2 minsize = (uint2)sbthumbrect.height;
 						if (sbthumbrect.width < minsize)
 						{
-							uint2 diff =
-								minsize -
-								sbthumbrect.width;
+							uint2 diff = minsize - sbthumbrect.width;
 							sbthumbrect.width = minsize;
-							sbthumbrect.x -=
-								(int2) (diff *
-										(sbinfo->
-										 thumbpos +
-										 (slider?0:sbinfo->
-										  thumbsize) -
-										 sbinfo->
-										 startvalue) /
-										range);
+							sbthumbrect.x -= (int2)(diff * t_fraction);
+							// Clamp so thumb stays strictly inside the track.
+							int2 maxx = minx + (int2)width - (int2)minsize;
 							if (sbthumbrect.x < minx)
 								sbthumbrect.x = minx;
+							if (sbthumbrect.x > maxx)
+								sbthumbrect.x = maxx;
 						}
 
 					}
@@ -1834,7 +1840,6 @@ void MCNativeTheme::drawSlider(MCDC *dc, const MCWidgetInfo &winfo,
 	        winfo.type != WTHEME_TYPE_SMALLSCROLLBAR)
 		return;
 
-	//draw arrows
 	MCWidgetInfo twinfo = winfo;
 	MCRectangle sbincarrowrect, sbdecarrowrect, sbthumbrect,
 	sbinctrackrect, sbdectrackrect;
@@ -1845,20 +1850,46 @@ void MCNativeTheme::drawSlider(MCDC *dc, const MCWidgetInfo &winfo,
 	                  sbinctrackrect, sbdectrackrect);
 	getwidgetrect(winfo, WTHEME_METRIC_DRAWSIZE, drect, rangerect);
 	uint4 sbpartdefaultstate = winfo.state & WTHEME_STATE_DISABLED ? WTHEME_STATE_DISABLED : WTHEME_STATE_CLEAR;
-	memset(&twinfo, 0, sizeof(MCWidgetInfo));	//clear widget info
-	twinfo.type = winfo.attributes & WTHEME_ATT_SBVERTICAL
-	              ? WTHEME_TYPE_SLIDER_TRACK_VERTICAL
-	              : WTHEME_TYPE_SLIDER_TRACK_HORIZONTAL;
+
+	// For a reversed slider (startvalue > endvalue), swap dec/inc so the
+	// accent fill always covers the low-value side of the track.
+	if (winfo.data != nil)
+	{
+		MCWidgetScrollBarInfo *t_sb = (MCWidgetScrollBarInfo *)winfo.data;
+		if (t_sb->startvalue > t_sb->endvalue)
+		{
+			MCRectangle t_tmp = sbdectrackrect;
+			sbdectrackrect = sbinctrackrect;
+			sbinctrackrect = t_tmp;
+		}
+	}
+
+	memset(&twinfo, 0, sizeof(MCWidgetInfo));
+	bool t_vertical = (winfo.attributes & WTHEME_ATT_SBVERTICAL) != 0;
+	bool t_disabled = (winfo.state & WTHEME_STATE_DISABLED) != 0;
+
+	// Draw the full GTK trough (neutral colour).
+	twinfo.type  = t_vertical ? WTHEME_TYPE_SLIDER_TRACK_VERTICAL
+	                           : WTHEME_TYPE_SLIDER_TRACK_HORIZONTAL;
 	twinfo.state = sbpartdefaultstate;
 	if (winfo.part == WTHEME_PART_TRACK_DEC)
 		twinfo.state = winfo.state;
 	drawwidget(dc, twinfo, rangerect);
-	if(sbthumbrect.height && sbthumbrect.width)
+
+	// Draw the GTK accent fill on the low-value side of the track.
+	if (!t_disabled && sbdectrackrect.width > 0 && sbdectrackrect.height > 0)
 	{
-		//draw thumb - use slider thumb, not scrollbar thumb!
-		twinfo.type = winfo.attributes & WTHEME_ATT_SBVERTICAL
-		              ? WTHEME_TYPE_SLIDER_THUMB_VERTICAL
-		              : WTHEME_TYPE_SLIDER_THUMB_HORIZONTAL;
+		twinfo.type  = t_vertical ? WTHEME_TYPE_SLIDER_FILL_VERTICAL
+		                           : WTHEME_TYPE_SLIDER_FILL_HORIZONTAL;
+		twinfo.state = sbpartdefaultstate;
+		drawwidget(dc, twinfo, sbdectrackrect);
+	}
+
+	// Draw the GTK thumb on top.
+	if (sbthumbrect.height && sbthumbrect.width)
+	{
+		twinfo.type  = t_vertical ? WTHEME_TYPE_SLIDER_THUMB_VERTICAL
+		                           : WTHEME_TYPE_SLIDER_THUMB_HORIZONTAL;
 		twinfo.state = sbpartdefaultstate;
 		if (winfo.part == WTHEME_PART_THUMB)
 			twinfo.state = winfo.state;
@@ -2383,6 +2414,12 @@ static GdkPixbuf* drawtheme_gtk3_direct(MCThemeDrawInfo &p_info)
 		surface = moz_gtk_scale_thumb_paint_to_surface(
 			p_info.moztype, &p_info.drect, &p_info.state, &widget_width, &widget_height);
 	}
+	else if (p_info.moztype == MOZ_GTK_SCALE_FILL_HORIZONTAL ||
+	         p_info.moztype == MOZ_GTK_SCALE_FILL_VERTICAL)
+	{
+		surface = moz_gtk_scale_fill_paint_to_surface(
+			p_info.moztype, &p_info.drect, &widget_width, &widget_height);
+	}
 	else if (p_info.moztype == MOZ_GTK_SCROLLBAR_THUMB_HORIZONTAL || 
 	         p_info.moztype == MOZ_GTK_SCROLLBAR_THUMB_VERTICAL)
 	{
@@ -2720,6 +2757,8 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 		    p_info->moztype == MOZ_GTK_SCALE_TRACK_VERTICAL ||
 		    p_info->moztype == MOZ_GTK_SCALE_THUMB_HORIZONTAL ||
 		    p_info->moztype == MOZ_GTK_SCALE_THUMB_VERTICAL ||
+		    p_info->moztype == MOZ_GTK_SCALE_FILL_HORIZONTAL ||
+		    p_info->moztype == MOZ_GTK_SCALE_FILL_VERTICAL ||
 		    p_info->moztype == MOZ_GTK_SCROLLBAR_THUMB_HORIZONTAL ||
 		    p_info->moztype == MOZ_GTK_SCROLLBAR_THUMB_VERTICAL ||
 		    p_info->moztype == MOZ_GTK_SCROLLBAR_TRACK_HORIZONTAL ||
