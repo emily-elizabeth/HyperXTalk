@@ -218,6 +218,13 @@ MCPlatformPrintDialogResult MCPlatformEndPrintDialog(void)
     
 	MCMemoryDelete(t_nest);
 	
+    // [[ Bug 525 ]] See MCPlatformEndOpenSaveDialog. While a native modal panel is up the mouse window receives
+    //   mouseExited (so s_mouse_window is cleared and mouseLeave sent), but when
+    //   the panel closes nothing re-enters it until the pointer moves, since
+    //   mouseEntered is deliberately ignored. Resync so the mouseControl, cursor
+    //   and scroll-wheel routing are restored immediately.
+    MCMacPlatformSyncMouseAfterModal();
+
 	return t_result;
 }
 
