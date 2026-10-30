@@ -1,0 +1,2 @@
+this is text that will replace other text in a zip archive.
+

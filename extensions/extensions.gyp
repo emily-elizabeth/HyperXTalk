@@ -85,11 +85,22 @@
 				'script-libraries/httpd/httpd.livecodescript',
 				'script-libraries/qr/qr.livecodescript',
 				'script-libraries/shakecontrol/shakecontrol.livecodescript',
-				'script-libraries/macscrollenhancement2/macscrollenhancement2.livecodescript',
 				'script-libraries/hxtpm/hxtpm.livecodescript',
 				'script-libraries/jsonexport/jsonexport.livecodescript',
 			],
-			
+			'conditions':
+			[
+				[
+	                'OS == "mac"',
+	                {
+						'sources':
+	                    [
+							'script-libraries/macscrollenhancement2/macscrollenhancement2.livecodescript',
+	                    ],	 
+	                },
+	            ],
+			],
+
 			'dependencies':
 		    [
         		# Requires a working HyperXTalk engine
@@ -149,7 +160,6 @@
 			'sources':
 			[
 				'modules/widget-utils/widget-utils.lcb',
-				#'modules/android-utils/android-utils.lcb',				
 				'modules/scriptitems/scriptitems.lcb',
 
 				'libraries/canvas/canvas.lcb',
@@ -158,33 +168,24 @@
 				'libraries/objectrepository/objectrepository.lcb',
 				'libraries/ini/ini.lcb',
 				'libraries/timezone/timezone.lcb',
-				'libraries/macstatusmenu/macstatusmenu.lcb',
-				'libraries/macoswindowresizeanimation/macoswindowresizeanimation.lcb',
-				'libraries/macscrollenhancement/macscrollenhancement.lcb',
 
-				#'widgets/androidbutton/androidbutton.lcb',  # Android-only, no androidutils on macOS
-				#'widgets/androidfield/androidfield.lcb',    # Android-only
-				#'widgets/html5button/html5button.lcb',
-				'widgets/macbutton/macbutton.lcb',
-				'widgets/mactextfield/mactextfield.lcb',
 				#'widgets/iosbutton/iosbutton.lcb',
 				'widgets/browser/browser.lcb',
-				#’widgets/chart/chart.lcb',
-				#'widgets/checkbox/checkbox.lcb',
+				'widgets/chart/chart.lcb',
+				'widgets/checkbox/checkbox.lcb',
 				'widgets/clock/clock.lcb',
 				'widgets/graph/graph.lcb',
 				'widgets/header/header.lcb',
 				'widgets/iconpicker/iconpicker.lcb',
-				#’widgets/list/list.lcb',
-				#’widgets/multilist/multilist.lcb',
+				'widgets/list/list.lcb',
+				#'widgets/multilist/multilist.lcb',	# ios only
 				'widgets/navbar/navbar.lcb',
 				'widgets/paletteactions/paletteactions.lcb',
 				#’widgets/pinkcircle/pinkcircle.lcb',
-				#'widgets/progressbar/progressbar.lcb',
-				#'widgets/pushbutton/pushbutton.lcb',
-				#'widgets/radiobutton/radiobutton.lcb',
+				'widgets/progressbar/progressbar.lcb',
+				'widgets/pushbutton/pushbutton.lcb',
 				'widgets/segmented/segmented.lcb',
-				#'widgets/selector/selector.lcb',
+				'widgets/selector/selector.lcb',
 				'widgets/svgpath/svgpath.lcb',
 				'widgets/switchbutton/switchbutton.lcb',
 				'widgets/treeview/treeview.lcb',
@@ -192,6 +193,52 @@
 				'widgets/gradientrampeditor/gradientrampeditor.lcb',
 				'widgets/tile/tile.lcb',
 				'widgets/spinner/spinner.lcb',
+			],
+
+			'conditions':
+			[
+				[
+	                'OS == "android"',
+	                {
+						'sources':
+	                    [
+							'modules/android-utils/android-utils.lcb',				
+							'widgets/androidbutton/androidbutton.lcb',  # Android-only, no androidutils on macOS
+							'widgets/androidfield/androidfield.lcb',    # Android-only
+	                    ],	 
+	                },
+	            ],
+			],
+
+			'conditions':
+			[
+				[
+	                'OS == "emscripten"',
+	                {
+						'sources':
+	                    [
+							'widgets/html5button/html5button.lcb',
+	                    ],	 
+	                },
+	            ],
+			],
+
+			'conditions':
+			[
+				[
+	                'OS == "mac"',
+	                {
+						'sources':
+	                    [
+							'widgets/macbutton/macbutton.lcb',
+							'widgets/mactextfield/mactextfield.lcb',
+							'libraries/macstatusmenu/macstatusmenu.lcb',
+							'libraries/macoswindowresizeanimation/macoswindowresizeanimation.lcb',
+							'libraries/macscrollenhancement/macscrollenhancement.lcb',
+							'widgets/radiobutton/radiobutton.lcb',
+	                    ],	 
+	                },
+	            ],
 			],
 
 			'actions':
