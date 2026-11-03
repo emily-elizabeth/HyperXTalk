@@ -108,6 +108,30 @@ Description: Use this property to determine whether the switch button displays a
 
 
 
+Name: hxtAppearance
+
+Type: property
+
+Syntax: get the hxtAppearance of <widget>
+
+Syntax: set the hxtAppearance of <widget> to <pMode>
+
+Summary: The appearance the widget draws in: "dark" or "light".
+
+Parameters: 
+
+pMode: "dark" or "light"
+
+Description:
+The <hxtAppearance> property tells the widget which appearance to draw its
+built-in default colours in. It is not saved with the widget and is not shown
+in the property inspector. The IDE sets it when a stack opens, when a widget
+is created and when the system appearance changes; in a standalone the
+developer's <systemAppearanceChanged> handler should set it. Colours the
+developer has changed from their defaults are not affected.
+
+
+
 Name: showBorder
 
 Type: property

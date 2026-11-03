@@ -3014,30 +3014,38 @@ static void s_rgba_to_rgb_string(const GdkRGBA &p_c, char *p_buf, size_t p_size)
              s_clamp_to_byte(p_c.blue));
 }
 
+// HXT: the preferredAppearance override (0 system, 1 light, 2 dark), kept in
+// lnxgtktheme.cpp.
+int MCLinuxPreferredAppearanceMode(void);
+
 void MCScreenDC::getsystemappearance(MCSystemAppearance &r_appearance)
 {
-    // Check gtk-application-prefer-dark-theme first (GNOME 3.24.31+)
-    GtkSettings *t_settings = gtk_settings_get_default();
-    if (t_settings != NULL)
+    // HXT: report the appearance the app actually draws in when the
+    // preferredAppearance forces one (as macOS and Windows do), so scripts
+    // testing `the systemAppearance is "dark"` follow the forced value.
+    switch (MCLinuxPreferredAppearanceMode())
     {
-        gboolean t_prefer_dark = FALSE;
-        g_object_get(t_settings, "gtk-application-prefer-dark-theme", &t_prefer_dark, NULL);
-        if (t_prefer_dark)
-        {
+        case 1:
+            r_appearance = kMCSystemAppearanceLight;
+            return;
+        case 2:
             r_appearance = kMCSystemAppearanceDark;
             return;
-        }
+        default:
+            break;
     }
-    // Fall back to luminance of the GTK background color (works for MATE and others)
-    GdkRGBA t_bg = {1.0, 1.0, 1.0, 1.0};
-    s_gtk_lookup_first(kMCGtkBgColorNames, t_bg);
-    double t_lum = 0.2126 * t_bg.red + 0.7152 * t_bg.green + 0.0722 * t_bg.blue;
-    if (t_lum < 0.35)
-        r_appearance = kMCSystemAppearanceDark;
-    else if (t_lum > 0.65)
-        r_appearance = kMCSystemAppearanceLight;
-    else
-        r_appearance = kMCSystemAppearanceCustom;
+
+    // HXT: under "system", report the engine's own dark-mode detection
+    // (portal, GSettings, theme name, luminance; see MCplatformIsDarkMode in
+    // lnxgtktheme.cpp), as Windows and macOS do. This used to read GTK's
+    // prefer-dark flag, which the theme loader itself sets, and then the
+    // luminance of the theme currently loaded. On GNOME the desktop's
+    // light/dark switch changes the colour scheme and the theme name as two
+    // separate signals, so on the first one the scheme already said light
+    // while GTK still had the dark theme loaded, and the
+    // systemAppearanceChanged message reported "dark" for a light desktop.
+    r_appearance = MCplatformIsDarkMode() ? kMCSystemAppearanceDark
+                                          : kMCSystemAppearanceLight;
 }
 
 void MCScreenDC::getsystemwindowcolor(MCStringRef &r_color)

@@ -720,6 +720,7 @@ command revInternal__ResetPreferences
    put "100" into tPropsArray["cMacOSScrollbarWidth"]
    put "1,2,3,4,5,7" into tPropsArray["cControlTabs"]
    put "500" into tPropsArray["cREVToolTipDelay"]
+   put "system" into tPropsArray["cAppearance"]
    put "250" into tPropsArray["cTabButtonwidth"]
    put "true" into tPropsArray["cGoAlign"]
    put "0" into tPropsArray["cREVRotatePrev2"]
@@ -1131,6 +1132,21 @@ command revInternal__InitialiseSystem
    revInternal__Log "Message", "Configuring crash log output to" && tCrashSettings["filename"]
    do "set the revCrashReportSettings to tCrashSettings"
    // HXT end if
+   
+   -- HXT dark mode: apply the Appearance preference (system / light / dark)
+   -- before any palette opens. Older engines have no preferredAppearance
+   -- property, so the set goes through "do" inside try and is simply skipped.
+   local tAppearance
+   put the cAppearance of stack "revPreferences" into tAppearance
+   if tAppearance is not among the items of "system,light,dark" then
+      put "system" into tAppearance
+   end if
+   try
+      do "set the preferredAppearance to" && quote & tAppearance & quote
+      revInternal__Log "Message", "Preferred appearance:" && tAppearance
+   catch tAppearanceError
+      revInternal__Log "Message", "preferredAppearance not supported by this engine"
+   end try
    
    revInternal__Log "Leave", "System Initialisation"
    

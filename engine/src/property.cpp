@@ -400,6 +400,8 @@ static MCPropertyInfo kMCPropertyInfoTable[] =
     DEFINE_RO_PROPERTY(P_LOADED_EXTENSIONS, ProperLinesOfString, Engine, LoadedExtensions)
 	
 	DEFINE_RO_ENUM_PROPERTY(P_SYSTEM_APPEARANCE, InterfaceSystemAppearance, Interface, SystemAppearance)
+	// HXT: the preferredAppearance (system / light / dark) overrides the OS appearance for this process
+	DEFINE_RW_ENUM_PROPERTY(P_PREFERRED_APPEARANCE, InterfacePreferredAppearance, Interface, PreferredAppearance)
 	DEFINE_RO_PROPERTY(P_SYSTEM_WINDOW_COLOR, String, Interface, SystemWindowColor)
 	DEFINE_RO_PROPERTY(P_SYSTEM_TEXT_COLOR, String, Interface, SystemTextColor)
 	DEFINE_RO_PROPERTY(P_SYSTEM_THEME_NAME, String, Interface, SystemThemeName)
@@ -945,6 +947,7 @@ Parse_stat MCProperty::parse(MCScriptPoint &sp, Boolean the)
     // MW-2014-12-10: [[ Extensions ]] Add support for global loadedExtensions property.
     case P_LOADED_EXTENSIONS:
 	case P_SYSTEM_APPEARANCE:
+	case P_PREFERRED_APPEARANCE:
 	case P_SYSTEM_WINDOW_COLOR:
 	case P_SYSTEM_TEXT_COLOR:
 	case P_SYSTEM_THEME_NAME:

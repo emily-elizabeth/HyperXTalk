@@ -18,6 +18,19 @@ constant kDefaultTableColWidth = 100
 constant kDefaultRowHeight = 21
 constant kDefaultRowColor = "255,255,255"
 constant kDefaultCornerColor = "232,232,232"
+
+## HXT dark mode: built-in defaults used when the system appearance is dark
+## and the developer has not chosen an explicit colour (see _DefaultColor).
+constant kDarkRowColor = "36,36,38"
+constant kDarkAlternateRowColor = "44,44,46"
+constant kDarkDimmedHiliteColor = "82,82,86"
+constant kDarkHeaderBkgrndStartColor = "72,72,74"
+constant kDarkHeaderBkgrndEndColor = "52,52,54"
+constant kDarkHeaderBkgrndHiliteStartColor = "70,84,100"
+constant kDarkHeaderBkgrndHiliteEndColor = "46,58,72"
+constant kDarkHeaderDividerColor = "28,28,30"
+constant kDarkHeaderDividerThreeDColor = "90,90,92"
+constant kDarkCornerColor = "44,44,46"
 constant kAlternatingRowModValue = 0 -- 0 to have first color be first, 1 to have first color be alternating color
 constant kSortTypes = "text,international,numeric,datetime,system datetime"
 
@@ -323,17 +336,23 @@ private command _Initialize
       end if
       
       ## Set props which didn't come with original Data Grid
-      if the dgProps["header divider color"] of me is not a color then
-         set the dgProps["header divider color"] of me to kHeaderDividerColor
+      ## HXT dark mode: a stored built-in default is treated as "not set" so
+      ## that it follows the current appearance.
+      if _IsDefaultColorValue("header divider color", the dgProps["header divider color"] of me) then
+         set the dgProps["header divider color"] of me to _DefaultColor("header divider color")
       end if
-      if the dgProps["header divider threeD color"] of me is not a color then
-         set the dgProps["header divider threeD color"] of me to kHeaderDividerThreeDColor
+      if _IsDefaultColorValue("header divider threed color", the dgProps["header divider threeD color"] of me) then
+         set the dgProps["header divider threeD color"] of me to _DefaultColor("header divider threed color")
       end if
-      
+
       if _ControlType() is "table" then
          _table.CreateColumns
       end if
-      
+
+      ## HXT dark mode: header, dividers and corner piece are painted once
+      ## rather than at layout time, so bring them in line with the appearance.
+      _ApplyAppearanceDefaults
+
       _ResetTemplateFieldEditor
       
       ## Make sure rect is as it started
@@ -4862,8 +4881,8 @@ private command _table.CreateDefaultHeaderGroup pColumn, pHeaderRect
    create graphic "Background" in theGroup
    set the rect of it to theRect
    
-   _table.HiliteHeaderBackground theGroup, the dgProps["header background hilite color"] of me
-   
+   _table.HiliteHeaderBackground theGroup, _EffectiveHeaderColor("header background hilite color")
+
    ## Field
    set the width of the templatefield to item 3 of theRect - item 1 of theRect
    create field "HeaderLabel" in theGroup
@@ -5766,8 +5785,8 @@ setprop dgProps [pProp] pValue
          else if pValue is a color then
             set the backgroundColor of theGraphic to pValue
          else
-            set the backgroundColor of theGraphic to kDefaultCornerColor
-            put kDefaultCornerColor into pValue
+            put _DefaultColor("corner color") into pValue
+            set the backgroundColor of theGraphic to pValue
          end if
          lock messages
          set the dgProps[pProp] of me to pValue
@@ -5793,8 +5812,8 @@ setprop dgProps [pProp] pValue
          else if pValue is a color then
             set the backgroundColor of theGraphic to pValue
          else
-            _table.SetHeaderBkgrndGradient kHeaderBkgrndStartColor, kHeaderBkgrndEndColor
-            put kHeaderBkgrndStartColor & cr & kHeaderBkgrndEndColor into pValue
+            put _DefaultColor("header background color") into pValue
+            _table.SetHeaderBkgrndGradient line 1 of pValue, line 2 of pValue
          end if
          lock messages
          set the dgProps[pProp] of me to pValue
@@ -5807,7 +5826,7 @@ setprop dgProps [pProp] pValue
          if pValue is not an array and \
                (line 1 of pValue is not a color and line 2 of pValue is not a color) and \
                pValue is not a color then
-            put kHeaderBkgrndHiliteStartColor & cr & kHeaderBkgrndHiliteEndColor into pValue
+            put _DefaultColor("header background hilite color") into pValue
          end if
          _table.SetHeaderBkgrndHiliteColor pValue
          lock messages
@@ -5820,11 +5839,7 @@ setprop dgProps [pProp] pValue
       case "header divider threed color"
          lock screen
          if pValue is not a color then
-            if pProp is "header divider color" then
-               put kHeaderDividerColor into pValue
-            else
-               put kHeaderDividerThreeDColor into pValue
-            end if
+            put _DefaultColor(pProp) into pValue
          else
             put _ColorToRGB(pValue) into pValue
          end if
@@ -8691,32 +8706,207 @@ private command _HiliteControl pControl, pBoolean
 end _HiliteControl
 
 
+## ---------------------------------------------------------------------------
+## HXT dark mode
+##
+## The engine makes every object without an explicit colour follow the system
+## appearance, but the Data Grid paints row backgrounds, the header gradient,
+## dividers and the corner piece with explicit light colours. In dark mode that
+## produced white text on white rows. The helpers below resolve the built-in
+## defaults per appearance; colours chosen by the developer are respected.
+## ---------------------------------------------------------------------------
+
+private function _AppearanceIsDark
+   return the systemAppearance is "dark"
+end _AppearanceIsDark
+
+
+## Returns "light default" & tab & "dark default" for a colour property,
+## or empty if the property has no appearance-dependent default.
+private function _DefaultColorPair pProperty
+   switch pProperty
+      case "row color"
+         return kRowColor & tab & kDarkRowColor
+      case "alternate row color"
+         return kAlternateRowColor & tab & kDarkAlternateRowColor
+      case "dimmed hilite color"
+         return kDefaultDimmedHiliteColor & tab & kDarkDimmedHiliteColor
+      case "header background color"
+         return (kHeaderBkgrndStartColor & cr & kHeaderBkgrndEndColor) & tab & \
+               (kDarkHeaderBkgrndStartColor & cr & kDarkHeaderBkgrndEndColor)
+      case "header background hilite color"
+         return (kHeaderBkgrndHiliteStartColor & cr & kHeaderBkgrndHiliteEndColor) & tab & \
+               (kDarkHeaderBkgrndHiliteStartColor & cr & kDarkHeaderBkgrndHiliteEndColor)
+      case "header divider color"
+         return kHeaderDividerColor & tab & kDarkHeaderDividerColor
+      case "header divider threed color"
+         return kHeaderDividerThreeDColor & tab & kDarkHeaderDividerThreeDColor
+      case "corner color"
+         return kDefaultCornerColor & tab & kDarkCornerColor
+   end switch
+   return empty
+end _DefaultColorPair
+
+
+## The built-in default for a colour property in the current appearance.
+private function _DefaultColor pProperty
+   local tPair
+   put _DefaultColorPair(pProperty) into tPair
+   set the itemDelimiter to tab
+   if _AppearanceIsDark() then
+      return item 2 of tPair
+   else
+      return item 1 of tPair
+   end if
+end _DefaultColor
+
+
+## True if pValue is empty, not usable as a colour, or equal to one of the
+## built-in defaults (light or dark) - i.e. the developer never chose it.
+private function _IsDefaultColorValue pProperty, pValue
+   if pValue is an array then return false
+   if pValue is empty then return true
+
+   local tPair
+   put _DefaultColorPair(pProperty) into tPair
+   set the itemDelimiter to tab
+   if pValue is item 1 of tPair or pValue is item 2 of tPair then return true
+   if the number of lines of pValue is 1 and pValue is not a color then return true
+   return false
+end _IsDefaultColorValue
+
+
+## Explicit developer value, or the appearance default, for a header/corner
+## colour property (these may hold a 2-line gradient or a fillGradient array).
+private function _EffectiveHeaderColor pProperty
+   local tValue
+   put the dgProps[pProperty] of me into tValue
+   if _IsDefaultColorValue(pProperty, tValue) then
+      return _DefaultColor(pProperty)
+   end if
+   return tValue
+end _EffectiveHeaderColor
+
+
+## (Re)apply the appearance defaults to the parts of the grid that are painted
+## once rather than at layout time. Explicit developer colours are left alone.
+private command _ApplyAppearanceDefaults
+   lock screen
+   local tValue, tProp
+
+   if _ControlType() is "table" then
+      put the dgProps["header background color"] of me into tValue
+      if _IsDefaultColorValue("header background color", tValue) then
+         if there is a graphic "dgBackground" of group "dgHeaderMask" of group "dgHeaderComponents" of me then
+            put _DefaultColor("header background color") into tValue
+            _table.SetHeaderBkgrndGradient line 1 of tValue, line 2 of tValue
+         end if
+      end if
+
+      put the dgProps["header background hilite color"] of me into tValue
+      if _IsDefaultColorValue("header background hilite color", tValue) then
+         _table.SetHeaderBkgrndHiliteColor _DefaultColor("header background hilite color")
+      end if
+
+      repeat for each item tProp in "header divider color,header divider threed color"
+         if _IsDefaultColorValue(tProp, the dgProps[tProp] of me) then
+            lock messages
+            set the dgProps[tProp] of me to _DefaultColor(tProp)
+            unlock messages
+         end if
+      end repeat
+      _table.UpdateHeaderDividerColors
+
+      put the dgProps["corner color"] of me into tValue
+      if _IsDefaultColorValue("corner color", tValue) then
+         if there is a graphic "dgCornerPiece" of group "dgHorizontalComponents" of me then
+            set the backgroundColor of graphic "dgCornerPiece" of group "dgHorizontalComponents" of me \
+                  to _DefaultColor("corner color")
+         end if
+      end if
+   end if
+   
+   ## Backdrop behind the rows and underneath the scrollbars (graphic
+   ## "dgBackground"). The native scrollbars are composited over it, so a
+   ## light backdrop leaves them looking washed out in dark mode. Only a
+   ## backdrop the developer never coloured (no "background color" dgProp)
+   ## is touched, and its light-mode value is remembered so it can be
+   ## restored when the appearance switches back.
+   if there is a graphic "dgBackground" of me then
+      local tBackdrop, tCurrent, tStored
+      put the long id of graphic "dgBackground" of me into tBackdrop
+      put the backgroundColor of tBackdrop into tCurrent
+      lock messages
+      put the dgProps["background color"] of me into tStored
+      unlock messages
+      if tStored is not a color then
+         if _AppearanceIsDark() then
+            if tCurrent is empty or tCurrent is kDefaultRowColor then
+               set the cHXTLightBackgroundColor of tBackdrop to tCurrent
+               set the backgroundColor of tBackdrop to kDarkRowColor
+            end if
+         else if tCurrent is kDarkRowColor then
+            set the backgroundColor of tBackdrop to the cHXTLightBackgroundColor of tBackdrop
+         end if
+      end if
+   end if
+   
+   unlock screen
+end _ApplyAppearanceDefaults
+
+
+## Sent (via dispatch) by the IDE back script - or by a developer's own
+## systemAppearanceChanged handler in a standalone - when the OS switches
+## between light and dark. Re-applies the built-in defaults for the new
+## appearance and redraws the rows.
+on systemAppearanceChanged pMode, pWindowColor, pTextColor
+   if not sInit then exit systemAppearanceChanged
+   lock screen
+   _ApplyAppearanceDefaults
+   ## RefreshList only recolours a row it re-lays out, so rows that did not
+   ## move would keep the previous appearance's colour. Do what setting the
+   ## "row color" property does: repaint the alternating-row graphic and
+   ## every visible row, then redraw (which also re-applies the hilites).
+   _DrawAlternatingRows
+   _ShowAlternatingRows
+   _list.UpdateAlternatingRowColors
+   RefreshList
+   unlock screen
+end systemAppearanceChanged
+
+
 private function _GetEffectiveColor pProperty
    local msgsAreLocked
    put the lockMessages into msgsAreLocked
    lock messages
-   
+
    local theColor
    put the dgProps[pProperty] of me into theColor
    set the lockMessages to msgsAreLocked
-   
+
+   ## HXT dark mode: a stored built-in default is treated as "not set" so that
+   ## it resolves to the default for the current appearance.
+   if _DefaultColorPair(pProperty) is not empty and _IsDefaultColorValue(pProperty, theColor) then
+      put empty into theColor
+   end if
+
    if theColor is not a color then
       switch pProperty
          case "column divider color"
-            return the effective borderColor of me 
+            return the effective borderColor of me
             break
          case "row color"
-            return kRowColor
+            return _DefaultColor("row color")
             break
          case "alternate row color"
             if the dgProps["alternate row colors"] of me then
-               return kAlternateRowColor
+               return _DefaultColor("alternate row color")
             else
                return _GetEffectiveColor("row color")
             end if
             break
          case "dimmed hilite color"
-            return kDefaultDimmedHiliteColor
+            return _DefaultColor("dimmed hilite color")
             break
          case "hilite color"
             return the hiliteColor
@@ -8750,10 +8940,6 @@ private function _GetHiliteColor
    if the long ID of me is not in the long ID of the focusedObject and the dgProps["dim on focusOut"] of me is not false then
       local theColor
       put _GetEffectiveColor("dimmed hilite color") into theColor
-      put the dgProps["dimmed hilite color"] of me into theColor
-      if theColor is empty then
-         put kDefaultDimmedHiliteColor into theColor
-      end if
    else
       put the dgProps["hilite color"] of me into theColor
       if theColor is empty then
