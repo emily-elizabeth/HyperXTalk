@@ -9665,6 +9665,10 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    if tName begins with "__binary__:" then
       put base64Decode(char 12 to -1 of tName) into tName
    end if
+   -- Messages are locked before the stack is created: the engine creates it
+   -- under a temporary name, opens it and only then names it, and the IDE's
+   -- deferred ideOpenStack would otherwise look for the temporary name.
+   lock messages
    create stack tName
    local tNewStackName
    put the short name of it into tNewStackName
