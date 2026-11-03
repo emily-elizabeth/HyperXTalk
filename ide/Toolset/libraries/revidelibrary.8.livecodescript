@@ -8335,7 +8335,12 @@ on revIDESaveAsProject pStackID, pFolderPath
    put "---- save " & pFolderPath & return after url "file:/tmp/hxt-project-timing.log"
    revIDEProjectTimingReset
    put the openStacks into tStacksOpenBefore
+   -- The serialiser reads the stored state of every object; with messages
+   -- locked no getProp handler (the datagrid behaviors have costly ones)
+   -- runs on those reads, which is both faster and what a saved file wants.
+   lock messages
    revIDEProjectBuildTree pStackID, tMediaFolder, tScriptsFolder, tTree
+   unlock messages
    revIDEProjectTimingLog "build tree", tTimer
    revIDEProjectTimingDump
    repeat for each line tOpenStack in the openStacks
