@@ -8255,6 +8255,9 @@ on revIDEActionSaveAsProject pStackID
 
    set the cursor to watch
    revIDESaveAsProject pStackID, tFolderPath
+   if the result is not "Error" then
+      answer revIDELocalise("Project saved:") & return & tFolderPath
+   end if
 end revIDEActionSaveAsProject
 
 on revIDESaveAsProject pStackID, pFolderPath
@@ -8325,7 +8328,16 @@ on revIDESaveAsProject pStackID, pFolderPath
    
    -- Build the full object tree as a LiveCode array
    local tTree
+   -- Serialising visits every card of every stack (substacks included), which
+   -- opens them; remember what was open so those can be closed again after.
+   local tStacksOpenBefore, tOpenStack
+   put the openStacks into tStacksOpenBefore
    revIDEProjectBuildTree pStackID, tMediaFolder, tScriptsFolder, tTree
+   repeat for each line tOpenStack in the openStacks
+      if tOpenStack is not among the lines of tStacksOpenBefore then
+         close stack tOpenStack
+      end if
+   end repeat
    
    -- Sanitize the tree: convert all leaf values to plain strings so that
    -- boolean and data typed values don't trip up the JSON encoder.
@@ -8790,7 +8802,8 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
    -- has a name of its own.
    put the id of this card of stack pStackName into tBGFTPrevCardID
    lock screen
-   go card id pCardIDNum of stack pStackName
+   -- "go invisible" so that a stack not already open does not show a window
+   go invisible card id pCardIDNum of stack pStackName
    local tBGFTCardCtrlCt
    put the number of controls of card id pCardIDNum of stack pStackName into tBGFTCardCtrlCt
    -- Seed the BFS queue with background groups found among the card's top-level controls.
@@ -8850,7 +8863,7 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
       end repeat
    end repeat
    if tBGFTPrevCardID is not empty then
-      go card id tBGFTPrevCardID of stack pStackName
+      go invisible card id tBGFTPrevCardID of stack pStackName
    end if
    unlock screen
    set the defaultStack to tBGFTOldDefault
