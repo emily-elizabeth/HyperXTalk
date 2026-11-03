@@ -1,0 +1,203 @@
+Library: community.ferruslogic.library.photonjson
+
+Type: library
+
+Title: PhotonJSON
+
+Version: 1.2.5
+
+Author: DTByte-Ltd
+
+Description: LiveCode script library for working with JSON, written in livecode-script and without the use of external.
+
+
+Name: JSONParser
+
+Type: function
+
+Syntax: JSONParser(<pJsonString>)
+
+Summary: Parse JSON text into a LiveCode array.
+
+Parameters: 
+
+pJsonString: String containing UTF-8 encoded JSON text
+
+Returns: A LiveCode array (Array).
+
+Synonyms: JSONToArray, arrayFromJson
+
+Description:
+<JSONParser> is used to convert data encoded in JSON format into a LiveCode
+array. It parses <pJsonString> and returns resulting array.
+
+
+
+Name: minifyJSON
+
+Type: function
+
+Syntax: minifyJSON(<pJsonString>)
+
+Summary: Remove unnecessary spaces from JSON string.
+
+Parameters: 
+
+pJsonString: The UTF-8 encoded JSON data to be minified.
+
+Returns: Minified JSON data.
+
+Description: Remove unnecessary characters from JSON data.
+
+
+
+
+Name: beautifyJSON
+
+Type: function
+
+Syntax: beautifyJSON(<pJsonString>,<pIndentSize>)
+
+Summary: JSON string formatted in a more visually pleasing way.
+
+Parameters: 
+
+pJsonString: The UTF-8 encoded JSON data to be beautify.
+
+Returns: UTF-8 JSON string.
+
+Description: JSON string formatted in a more visually pleasing way.
+
+
+
+
+Name: ArrayToJSON
+
+Type: function
+
+Syntax: ArrayToJSON(<pArray>,<pForceRootType>,<pPretty>)
+
+Summary: Format a LC array into UTF-8 encoded json data.
+
+Parameters: 
+
+pArray: The array to be formatted
+
+pForceRootType: The type to force values to.
+
+pPretty: Set to true to format the resulting JSON data nicely.
+
+Returns: JSON data.
+
+Synonyms: JSONStringify
+
+Description: Format a LC array into UTF-8 encoded json data.
+
+
+
+
+Name: jsonFromArray
+
+Type: function
+
+Syntax: jsonFromArray(<pArray>)
+
+Summary: Format a LC array into UTF-8 encoded json data.
+
+Parameters: 
+
+pArray: The array to be formatted
+
+Returns: JSON data.
+
+Description: Format a LC array into UTF-8 encoded json data.
+
+
+
+
+Name: JSONToArray
+
+Type: function
+
+Syntax: JSONToArray(<pJsonString>)
+
+Summary: Parse JSON text into a LiveCode array.
+
+Parameters: 
+
+pJsonString: String containing UTF-8 encoded JSON text
+
+Returns: A LiveCode array (Array).
+
+Synonyms: JSONParser, arrayFromJson
+
+Description:
+<JSONParser> is used to convert data encoded in JSON format into a LiveCode
+array. It parses <pJsonString> and returns resulting array.
+
+
+
+Name: validateJSON
+
+Type: function
+
+Syntax: validateJSON(<pJsonString>)
+
+Summary: Validate if a string is a valid JSON.
+
+Parameters: 
+
+pJsonString: The UTF-8 encoded JSON data to be verified.
+
+Returns: A Boolean.
+
+Description: Validate if a string is a valid JSON.
+
+
+
+
+Name: JSONStringify
+
+Type: function
+
+Syntax: JSONStringify(<pArray>,<pForceRootType>,<pPretty>)
+
+Summary: Format a LC array into UTF-8 encoded json data.
+
+Parameters: 
+
+pArray: The array to be formatted
+
+pForceRootType: The type to force values to.
+
+pPretty: Set to true to format the resulting JSON data nicely.
+
+Returns: JSON data.
+
+Description: Format a LC array into UTF-8 encoded json data.
+
+
+
+
+Name: arrayFromJson
+
+Type: function
+
+Syntax: arrayFromJson(<pJsonString>)
+
+Summary: Parse JSON text into a LiveCode array.
+
+Parameters: 
+
+pJsonString: String containing UTF-8 encoded JSON text
+
+Returns: A LiveCode array (Array).
+
+Synonyms: JSONParser, JSONToArray
+
+Description:
+<arrayFromJson> is used to convert data encoded in JSON format into a LiveCode
+array. It parses <pJsonString> and returns resulting array.
+
+
+
