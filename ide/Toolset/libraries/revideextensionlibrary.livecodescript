@@ -911,8 +911,8 @@ the Extension Builder use produce its api.lcdoc from the doc comments and
 its manifest.xml from the library-level block. A folder that already has a
 manifest, holds no script, more than one, or an LCB source, is left alone.
 A folder with one of the two files but not the other is left alone as well,
-and named in the result, so the developer can delete both and have them
-regenerated.
+and named in the result, so the developer can delete the one present and
+have both regenerated.
 */
 command revIDEExtensionPackageBareScriptLibrary pFolder
    local tHasManifest, tHasDocs
@@ -931,8 +931,9 @@ command revIDEExtensionPackageBareScriptLibrary pFolder
          put "manifest.xml" into tMissing
       end if
       return "The script library folder" && pFolder && "has" && tPresent && \
-            "but no" && tMissing & ". Delete both files and they will be" && \
-            "regenerated from the script at the next launch."
+            "but no" && tMissing & ". Delete" && tPresent && "(keep the script)" && \
+            "and both" && tPresent && "and" && tMissing && "will be regenerated" && \
+            "from the script at the next launch."
    end if
    local tFiles, tScripts, tModules
    put files(pFolder) into tFiles
