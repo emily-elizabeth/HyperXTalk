@@ -8330,9 +8330,12 @@ on revIDESaveAsProject pStackID, pFolderPath
    local tTree
    -- Serialising visits every card of every stack (substacks included), which
    -- opens them; remember what was open so those can be closed again after.
-   local tStacksOpenBefore, tOpenStack
+   local tStacksOpenBefore, tOpenStack, tTimer
+   put the milliseconds into tTimer
+   put "---- save " & pFolderPath & return after url "file:/tmp/hxt-project-timing.log"
    put the openStacks into tStacksOpenBefore
    revIDEProjectBuildTree pStackID, tMediaFolder, tScriptsFolder, tTree
+   revIDEProjectTimingLog "build tree", tTimer
    repeat for each line tOpenStack in the openStacks
       if tOpenStack is the short name of pStackID then next repeat
       if tOpenStack is not among the lines of tStacksOpenBefore then
@@ -8343,6 +8346,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- Sanitize the tree: convert all leaf values to plain strings so that
    -- boolean and data typed values don't trip up the JSON encoder.
    revIDEProjectSanitizeArray tTree
+   revIDEProjectTimingLog "sanitize", tTimer
    
    -- Encode to JSON with PhotonJSON (community.ferruslogic.library.photonjson),
    -- pretty-printed for readable diffs in version control. Its pretty output
@@ -8355,6 +8359,7 @@ on revIDESaveAsProject pStackID, pFolderPath
       return "Error"
    end if
    put JSONStringify(tTree, empty, true) into tJSON
+   revIDEProjectTimingLog "pretty stringify", tTimer
    if tJSON is empty then
       close stack "revSaving"
       answer error revIDELocalise("Could not encode project data as JSON. The project was not saved.")
@@ -8371,6 +8376,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    end if
    write textEncode(tJSON, "UTF-8") to file tMainFilePath
    close file tMainFilePath
+   revIDEProjectTimingLog "write json", tTimer
    
    -- Export first-card preview as preview.png inside the bundle.
    -- Being part of the package it travels with the file automatically.
@@ -8378,6 +8384,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    put the short name of pStackID into tStackName
    put pFolderPath & "/preview.png" into tPreviewPath
    export snapshot from card 1 of stack tStackName to file tPreviewPath as PNG
+   revIDEProjectTimingLog "preview snapshot", tTimer
    
    -- Record the project path so subsequent Cmd+S saves route back here
    -- instead of falling through to the binary stack saver.
@@ -8386,6 +8393,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- Mark the stack as saved and update recent files
    revIDESetUnedited the short name of pStackID
    revUpdateRecentFiles the short name of pStackID
+   revIDEProjectTimingLog "set unedited + recent files", tTimer
    
    -- Show "Save complete" in the dialog, then close it after a brief pause
    -- (mirrors the binary stack save behaviour in revIDESaveStack)
@@ -8564,6 +8572,13 @@ private function revIDEProjectEnsureJSONLibrary
    end if
    return "The PhotonJSON library could not be loaded from:" & return & tPath
 end revIDEProjectEnsureJSONLibrary
+
+-- TEMPORARY timing log for the project format (to be removed): appends a
+-- line to /tmp/hxt-project-timing.log
+on revIDEProjectTimingLog pLabel, @xStart
+   put the long time & tab & pLabel & tab & (the milliseconds - xStart) & " ms" & return after url "file:/tmp/hxt-project-timing.log"
+   put the milliseconds into xStart
+end revIDEProjectTimingLog
 
 on revIDEProjectBuildTree pStackID, pMediaFolder, pScriptsFolder, @rTree
    put "hyperxtalk-project" into rTree["format"]
@@ -9434,9 +9449,13 @@ on revIDELoadFromProject pFilePath
       answer revIDELocalise("Could not read project file:") & return & the result
       return "Error"
    end if
+   local tTimer
+   put the milliseconds into tTimer
+   put "---- load " & pFilePath & return after url "file:/tmp/hxt-project-timing.log"
    read from file pFilePath until end
    put it into tJSON
    close file pFilePath
+   revIDEProjectTimingLog "read file", tTimer
    local tTree, tLibError
    put revIDEProjectEnsureJSONLibrary() into tLibError
    if tLibError is not empty then
@@ -9445,6 +9464,7 @@ on revIDELoadFromProject pFilePath
    end if
    -- PhotonJSON takes the UTF-8 bytes of the file directly
    put JSONParser(tJSON) into tTree
+   revIDEProjectTimingLog "parse", tTimer
    if tTree is not an array then
       answer revIDELocalise("Invalid project file format.")
       return "Error"
@@ -9503,6 +9523,7 @@ on revIDELoadFromProject pFilePath
    local tDeferredBehaviors, tDeferredIcons, tDeferredDgData
    revIDEProjectReconstructStack tStackNode, tFolderPath, empty, tDeferredBehaviors, tDeferredIcons, tDeferredDgData
    put the result into tNewStackName
+   revIDEProjectTimingLog "reconstruct", tTimer
    -- Resolve all deferred behaviors now that every stack and control exists
    local bi, tLoadWarnings
    put empty into tLoadWarnings
@@ -9538,6 +9559,7 @@ on revIDELoadFromProject pFilePath
          put tBehWarn & return after tLoadWarnings
       end if
    end repeat
+   revIDEProjectTimingLog "wire behaviors", tTimer
    -- Dispatch RefreshList to all datagrids now that behaviors are wired up.
    -- Datagrids are groups with a "dgProps" custom property set.
    -- Iterate the main stack and any substacks produced by the reconstruction.
@@ -9632,6 +9654,7 @@ on revIDELoadFromProject pFilePath
          end if
       end repeat
    end repeat
+   revIDEProjectTimingLog "datagrid refresh + icons", tTimer
    -- Show a single warning dialog if any behaviors could not be resolved
    if tLoadWarnings is not empty then
       answer warning "Some behaviors could not be restored after loading the project:" & return & return & \
@@ -9653,6 +9676,7 @@ on revIDELoadFromProject pFilePath
       send "openStack" to card 1 of stack tNewStackName
       send "openCard" to card 1 of stack tNewStackName
       unlock error dialogs
+      revIDEProjectTimingLog "go stack + open messages", tTimer
    else
       unlock screen
    end if
