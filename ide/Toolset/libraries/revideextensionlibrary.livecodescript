@@ -1544,13 +1544,14 @@ end __TypeToAPI
 function revIDEExtensionDocsData pForAPI
    local tExtensionsA
    put revIDEExtensions("", "installed", true) into tExtensionsA
-   local tDataA, tCount
+   local tDataA, tCount, tListedA
    repeat for each element tExtension in tExtensionsA
       if pForAPI is not empty and \
             __TypeToAPI(tExtension["type"]) is not pForAPI then
          next repeat
       end if
       add 1 to tCount
+      put true into tListedA[tExtension["name"]]
       put tExtension["install_path"] into tDataA[tCount]["folder"]
       put tExtension["title"] into tDataA[tCount]["title"]
       put tExtension["author"] into tDataA[tCount]["author"]
@@ -1560,6 +1561,9 @@ function revIDEExtensionDocsData pForAPI
    end repeat
    if pForAPI is empty or pForAPI is "script" then
       repeat for each element tUserScript in __revIDEUserScriptDocsData()
+         -- a copy of an installed extension (the same library in the
+         -- user libraries folder, say) would be documented twice
+         if tListedA[tUserScript["name"]] then next repeat
          add 1 to tCount
          put tUserScript into tDataA[tCount]
       end repeat
