@@ -8331,14 +8331,11 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- boolean and data typed values don't trip up the JSON encoder.
    revIDEProjectSanitizeArray tTree
    
-   -- Encode to JSON (pretty-printed for readable diffs in version control).
-   -- Use lcb_JsonExport + lcb_prettyJson directly instead of jsonExport() to bypass
-   -- _cleaningNonPrintableChars, which maps numToChar(128-159) via Mac Roman and
-   -- corrupts accented characters (e.g. É →  → ƒ on re-import).
-   -- The project JSON is written as UTF-8, so Unicode text is valid as-is.
+   -- Encode to JSON with PhotonJSON (community.ferruslogic.library.photonjson),
+   -- pretty-printed for readable diffs in version control. Its pretty output
+   -- is text, which is written below as UTF-8.
    local tJSON
-   put lcb_JsonExport(tTree) into tJSON
-   put lcb_prettyJson(tJSON, 4, true) into tJSON
+   put JSONStringify(tTree, empty, true) into tJSON
    if tJSON is empty then
       close stack "revSaving"
       answer error revIDELocalise("Could not encode project data as JSON. The project was not saved.")
@@ -9264,22 +9261,6 @@ on revIDEProjectSerializeCustomProps pObjRef, @rObj
       local tSetProps
       put the customProperties[tSetName] of pObjRef into tSetProps
       if tSetProps is an array then
-         -- Preserve full integer precision for revUniqueID: the JSON float representation
-         -- (e.g. 1.78707e+12) loses digits for 13-digit timestamps.  Storing as a quoted
-         -- string keeps full precision so UID scans at load time can match correctly.
-         if tSetProps["revUniqueID"] is not empty then
-            put tSetProps["revUniqueID"] & "" into tSetProps["revUniqueID"]
-         end if
-         -- Workaround: lcb_JsonExport strips spaces from string values that contain
-         -- embedded double-quote characters (e.g. long ids like stack "My Stack").
-         -- Replace the quote char with a safe placeholder before JSON encoding;
-         -- revIDEProjectReconstructCustomProps restores it after loading.
-         local tQKey
-         repeat for each key tQKey in tSetProps
-            if tSetProps[tQKey] is not an array and quote is in tSetProps[tQKey] then
-               replace quote with "__LCQUOTE__" in tSetProps[tQKey]
-            end if
-         end repeat
          put tSetProps into rObj["customPropertySets"][tSetName]
       end if
    end repeat
@@ -9299,14 +9280,6 @@ on revIDEProjectReconstructCustomProps pNode, pObjRef
       repeat for each key tSetName in pNode["customPropertySets"]
          local tSetProps
          put pNode["customPropertySets"][tSetName] into tSetProps
-         -- Restore double-quote chars that were placeholdered during serialization
-         -- to work around the lcb_JsonExport space-stripping bug.
-         local tQKey
-         repeat for each key tQKey in tSetProps
-            if tSetProps[tQKey] is not an array and "__LCQUOTE__" is in tSetProps[tQKey] then
-               replace "__LCQUOTE__" with quote in tSetProps[tQKey]
-            end if
-         end repeat
          revIDEProjectDecodeBinaryProps tSetProps
          set the customProperties[tSetName] of pObjRef to tSetProps
       end repeat
@@ -9331,21 +9304,24 @@ end revIDEProjectDecodeBinaryProps
 
 -- Recursively converts every leaf value in an array to a plain string,
 -- so that livecode.lang.boolean and livecode.lang.data typed values do not
--- cause type errors inside jsonExport.
--- Binary values (those containing null bytes or other control characters that
--- jsonExport cannot safely represent) are base64-encoded with a "__binary__:"
+-- reach the JSON encoder as text.
+-- Binary values (those containing null bytes or other control characters)
+-- are base64-encoded with a "__binary__:"
 -- prefix so they survive the JSON round-trip intact.
 on revIDEProjectSanitizeArray @pArray
    local tKey, tSubArray
+   -- Numbers are converted to text with full precision (the default
+   -- numberFormat rounds to six decimals, which would truncate values such
+   -- as a scrollbar's thumbSize).
+   set the numberFormat to "0.###############"
    repeat for each key tKey in pArray
       if pArray[tKey] is an array then
          put pArray[tKey] into tSubArray
          revIDEProjectSanitizeArray tSubArray
          put tSubArray into pArray[tKey]
       else
-         -- Preserve booleans and numbers so jsonExport emits the correct JSON types.
-         -- LCB widget properties require proper types; stringifying breaks them.
-         if pArray[tKey] is a boolean or pArray[tKey] is a number then
+         -- Booleans pass through as they are; the encoder writes them bare.
+         if pArray[tKey] is a boolean then
             next repeat
          end if
          local tLeaf
@@ -9405,10 +9381,11 @@ on revIDELoadFromProject pFilePath
       return "Error"
    end if
    read from file pFilePath until end
-   put textDecode(it, "UTF-8") into tJSON
+   put it into tJSON
    close file pFilePath
    local tTree
-   put jsonImport(tJSON) into tTree
+   -- PhotonJSON takes the UTF-8 bytes of the file directly
+   put JSONParser(tJSON) into tTree
    if tTree is not an array then
       answer revIDELocalise("Invalid project file format.")
       return "Error"
