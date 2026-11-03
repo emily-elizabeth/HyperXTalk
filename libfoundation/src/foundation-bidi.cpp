@@ -556,6 +556,9 @@ bool MCBidiResolveTextDirection(MCStringRef p_string, intenum_t p_base_level, ui
     /* UNCHECKED */ t_stack.New(256);
     uindex_t t_depth = 0;
     t_stack[t_depth].clear();
+    // The bottom stack entry carries the paragraph embedding level so that
+    // popping back to it (PDI/PDF) restores the base level rather than 0.
+    t_stack[t_depth].level = t_base_level;
     
     // Counters
     const uindex_t MAX_DEPTH = 125;
@@ -712,10 +715,19 @@ bool MCBidiResolveTextDirection(MCStringRef p_string, intenum_t p_base_level, ui
                 t_overflow_isolates--;
             else if (t_valid_isolates != 0)
             {
+                // Pop the directional status stack back to, and including, the
+                // most recent isolate entry. The valid isolate count must be
+                // decremented so that a subsequent PDI with no matching
+                // initiator (e.g. "FSI PDI PDI") is ignored instead of
+                // popping past the bottom of the stack and reading out of
+                // bounds, which crashed the engine.
                 t_overflow_embedding = 0;
-                while (t_stack[t_depth].isolate == false)
-                    t_current_level = t_stack[--t_depth].level;
-                t_current_level = t_stack[--t_depth].level;
+                while (t_depth > 0 && !t_stack[t_depth].isolate)
+                    t_depth--;
+                if (t_depth > 0)
+                    t_depth--;
+                t_current_level = t_stack[t_depth].level;
+                t_valid_isolates--;
             }
             
             t_levels[i] = t_current_level;
