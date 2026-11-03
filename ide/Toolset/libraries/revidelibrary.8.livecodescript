@@ -8333,9 +8333,14 @@ on revIDESaveAsProject pStackID, pFolderPath
    local tStacksOpenBefore, tOpenStack, tTimer
    put the milliseconds into tTimer
    put "---- save " & pFolderPath & return after url "file:/tmp/hxt-project-timing.log"
+   put empty into sProjT
    put the openStacks into tStacksOpenBefore
    revIDEProjectBuildTree pStackID, tMediaFolder, tScriptsFolder, tTree
    revIDEProjectTimingLog "build tree", tTimer
+   local tPK
+   repeat for each key tPK in sProjT
+      put tab & "  " & tPK & tab & sProjT[tPK] & return after url "file:/tmp/hxt-project-timing.log"
+   end repeat
    repeat for each line tOpenStack in the openStacks
       if tOpenStack is the short name of pStackID then next repeat
       if tOpenStack is not among the lines of tStacksOpenBefore then
@@ -8580,7 +8585,7 @@ on revIDEProjectTimingLog pLabel, @xStart
    put the milliseconds into xStart
 end revIDEProjectTimingLog
 
-local sProjectLoadStart
+local sProjectLoadStart, sProjT
 on revIDEProjectTimingIdle
    put the long time & tab & "IDE idle after load (total)" & tab & (the milliseconds - sProjectLoadStart) & " ms" & return after url "file:/tmp/hxt-project-timing.log"
 end revIDEProjectTimingIdle
@@ -8894,6 +8899,7 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
 end revIDEProjectSerializeCard
 
 on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
+   local tPT
    -- Derive type from word 1 of the long id (e.g. "image id 3 of ...").
    -- Unplaced background groups have long ids starting with "background" rather than
    -- "group" (because their parent is the stack, not a card). Normalise both the type
@@ -8910,6 +8916,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    end if
    put tType into rObj["type"]
    local tControlScriptFile
+   put the milliseconds into tPT
    put revIDEProjectWriteScript(the script of pControlID, pScriptsFolder, \
          revIDEProjectControlScriptFilename(pControlID), \
          tType && quote & the short name of pControlID & quote && "in" && pControlID) \
@@ -8919,6 +8926,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    else
       put the script of pControlID into rObj["script"]
    end if
+   add the milliseconds - tPT to sProjT["script files"]
    
    -- Save the short name explicitly so it can be reliably restored even if
    -- set the properties does not set the name in this engine version.
@@ -8926,7 +8934,10 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    put the id of pControlID into rObj["origID"]
    -- Capture all properties at once; remove read-only/handled ones
    local tProps
+   put the milliseconds into tPT
    put the properties of pControlID into tProps
+   add the milliseconds - tPT to sProjT["the properties"]
+   add 1 to sProjT["count " & tType]
    -- For unplaced background groups, explicitly save sharedBehavior so it survives
    -- the JSON round-trip and can be used to verify the group was correctly unplaced
    -- during reconstruction.
@@ -9098,6 +9109,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    -- the behavior is wired up. Identified by the dgProps custom property set.
    -- Also save the row template reference by group name + stack name (not long id)
    -- so it can be re-resolved after reconstruction (group/card ids change on rebuild).
+   put the milliseconds into tPT
    if tType is "group" and "dgProps" is among the lines of the customPropertySets of pControlID then
       put the dgData of pControlID into rObj["dgData"]
       local tRowTplRef
@@ -9289,8 +9301,11 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
          end if
       end repeat
    end if
+   add the milliseconds - tPT to sProjT["datagrid"]
    -- Custom properties
+   put the milliseconds into tPT
    revIDEProjectSerializeCustomProps pControlID, rObj
+   add the milliseconds - tPT to sProjT["custom props"]
    -- Group: recurse into direct child controls only
    if tType is "group" then
       local tChildCount, k, tChildIndex
