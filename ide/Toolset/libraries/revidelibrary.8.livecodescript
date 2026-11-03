@@ -9437,23 +9437,11 @@ end revIDEProjectSanitizeArray
 -- (which cannot be guaranteed to form valid UTF-8 sequences — e.g. raw MD5
 -- checksums stored in custom properties).
 private function revIDEProjectValueIsBinary pValue
-   local i
-   -- Chars 0x00–0x08 (null through backspace)
-   repeat with i = 0 to 8
-      if pValue contains numToChar(i) then return true
-   end repeat
-   -- 0x0B (vertical tab) and 0x0C (form feed)
-   if pValue contains numToChar(11) then return true
-   if pValue contains numToChar(12) then return true
-   -- 0x0E–0x1F (shift-out through unit separator)
-   repeat with i = 14 to 31
-      if pValue contains numToChar(i) then return true
-   end repeat
-   -- Note: bytes 0x80–0xFF are NOT treated as binary here. The project JSON file
-   -- is written/read as explicit UTF-8, so Unicode text strings (including names
-   -- with non-ASCII characters) are stored as readable UTF-8 in the JSON rather
-   -- than being base64-encoded. Only genuine control-character binary data is flagged.
-   return false
+   -- One regex for the control characters that mark binary data: 0x00-0x08,
+   -- 0x0B, 0x0C and 0x0E-0x1F (tab, LF and CR are text). Bytes 0x80-0xFF are
+   -- not treated as binary: the project JSON is written and read as UTF-8,
+   -- so text with non-ASCII characters is stored readably.
+   return matchText(pValue, "[\x{0}-\x{8}\x{B}\x{C}\x{E}-\x{1F}]")
 end revIDEProjectValueIsBinary
 
 -- ---------------------------------------------------------------------------
