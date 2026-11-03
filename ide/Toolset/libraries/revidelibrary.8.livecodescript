@@ -8330,10 +8330,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    local tTree
    -- Serialising visits every card of every stack (substacks included), which
    -- opens them; remember what was open so those can be closed again after.
-   local tStacksOpenBefore, tOpenStack, tTimer
-   put the milliseconds into tTimer
-   put "---- save " & pFolderPath & return after url "file:/tmp/hxt-project-timing.log"
-   revIDEProjectTimingReset
+   local tStacksOpenBefore, tOpenStack
    put the openStacks into tStacksOpenBefore
    -- The serialiser reads the stored state of every object; with messages
    -- locked no getProp handler (the datagrid behaviors have costly ones)
@@ -8341,8 +8338,6 @@ on revIDESaveAsProject pStackID, pFolderPath
    lock messages
    revIDEProjectBuildTree pStackID, tMediaFolder, tScriptsFolder, tTree
    unlock messages
-   revIDEProjectTimingLog "build tree", tTimer
-   revIDEProjectTimingDump
    repeat for each line tOpenStack in the openStacks
       if tOpenStack is the short name of pStackID then next repeat
       if tOpenStack is not among the lines of tStacksOpenBefore then
@@ -8353,7 +8348,6 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- Sanitize the tree: convert all leaf values to plain strings so that
    -- boolean and data typed values don't trip up the JSON encoder.
    revIDEProjectSanitizeArray tTree
-   revIDEProjectTimingLog "sanitize", tTimer
    
    -- Encode to JSON with PhotonJSON (community.ferruslogic.library.photonjson),
    -- pretty-printed for readable diffs in version control. Its pretty output
@@ -8366,7 +8360,6 @@ on revIDESaveAsProject pStackID, pFolderPath
       return "Error"
    end if
    put JSONStringify(tTree, empty, true) into tJSON
-   revIDEProjectTimingLog "pretty stringify", tTimer
    if tJSON is empty then
       close stack "revSaving"
       answer error revIDELocalise("Could not encode project data as JSON. The project was not saved.")
@@ -8383,7 +8376,6 @@ on revIDESaveAsProject pStackID, pFolderPath
    end if
    write textEncode(tJSON, "UTF-8") to file tMainFilePath
    close file tMainFilePath
-   revIDEProjectTimingLog "write json", tTimer
    
    -- Export first-card preview as preview.png inside the bundle.
    -- Being part of the package it travels with the file automatically.
@@ -8391,7 +8383,6 @@ on revIDESaveAsProject pStackID, pFolderPath
    put the short name of pStackID into tStackName
    put pFolderPath & "/preview.png" into tPreviewPath
    export snapshot from card 1 of stack tStackName to file tPreviewPath as PNG
-   revIDEProjectTimingLog "preview snapshot", tTimer
    
    -- Record the project path so subsequent Cmd+S saves route back here
    -- instead of falling through to the binary stack saver.
@@ -8400,7 +8391,6 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- Mark the stack as saved and update recent files
    revIDESetUnedited the short name of pStackID
    revUpdateRecentFiles the short name of pStackID
-   revIDEProjectTimingLog "set unedited + recent files", tTimer
    
    -- Show "Save complete" in the dialog, then close it after a brief pause
    -- (mirrors the binary stack save behaviour in revIDESaveStack)
@@ -8580,28 +8570,6 @@ private function revIDEProjectEnsureJSONLibrary
    return "The PhotonJSON library could not be loaded from:" & return & tPath
 end revIDEProjectEnsureJSONLibrary
 
--- TEMPORARY timing log for the project format (to be removed): appends a
--- line to /tmp/hxt-project-timing.log
-on revIDEProjectTimingLog pLabel, @xStart
-   put the long time & tab & pLabel & tab & (the milliseconds - xStart) & " ms" & return after url "file:/tmp/hxt-project-timing.log"
-   put the milliseconds into xStart
-end revIDEProjectTimingLog
-
-local sProjectLoadStart, sProjT
-on revIDEProjectTimingReset
-   put empty into sProjT
-end revIDEProjectTimingReset
-on revIDEProjectTimingDump
-   local tPK, tKeys
-   put the keys of sProjT into tKeys
-   sort lines of tKeys
-   repeat for each line tPK in tKeys
-      put tab & "  " & tPK & tab & sProjT[tPK] & return after url "file:/tmp/hxt-project-timing.log"
-   end repeat
-end revIDEProjectTimingDump
-on revIDEProjectTimingIdle
-   put the long time & tab & "IDE idle after load (total)" & tab & (the milliseconds - sProjectLoadStart) & " ms" & return after url "file:/tmp/hxt-project-timing.log"
-end revIDEProjectTimingIdle
 
 on revIDEProjectBuildTree pStackID, pMediaFolder, pScriptsFolder, @rTree
    put "hyperxtalk-project" into rTree["format"]
@@ -8912,7 +8880,6 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
 end revIDEProjectSerializeCard
 
 on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
-   local tPT
    -- Derive type from word 1 of the long id (e.g. "image id 3 of ...").
    -- Unplaced background groups have long ids starting with "background" rather than
    -- "group" (because their parent is the stack, not a card). Normalise both the type
@@ -8929,7 +8896,6 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    end if
    put tType into rObj["type"]
    local tControlScriptFile
-   put the milliseconds into tPT
    put revIDEProjectWriteScript(the script of pControlID, pScriptsFolder, \
          revIDEProjectControlScriptFilename(pControlID), \
          tType && quote & the short name of pControlID & quote && "in" && pControlID) \
@@ -8939,7 +8905,6 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    else
       put the script of pControlID into rObj["script"]
    end if
-   add the milliseconds - tPT to sProjT["script files"]
    
    -- Save the short name explicitly so it can be reliably restored even if
    -- set the properties does not set the name in this engine version.
@@ -8947,10 +8912,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    put the id of pControlID into rObj["origID"]
    -- Capture all properties at once; remove read-only/handled ones
    local tProps
-   put the milliseconds into tPT
    put the properties of pControlID into tProps
-   add the milliseconds - tPT to sProjT["the properties"]
-   add 1 to sProjT["count " & tType]
    -- For unplaced background groups, explicitly save sharedBehavior so it survives
    -- the JSON round-trip and can be used to verify the group was correctly unplaced
    -- during reconstruction.
@@ -9122,7 +9084,6 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    -- the behavior is wired up. Identified by the dgProps custom property set.
    -- Also save the row template reference by group name + stack name (not long id)
    -- so it can be re-resolved after reconstruction (group/card ids change on rebuild).
-   put the milliseconds into tPT
    if tType is "group" and "dgProps" is among the lines of the customPropertySets of pControlID then
       put the dgData of pControlID into rObj["dgData"]
       local tRowTplRef
@@ -9314,11 +9275,8 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
          end if
       end repeat
    end if
-   add the milliseconds - tPT to sProjT["datagrid"]
    -- Custom properties
-   put the milliseconds into tPT
    revIDEProjectSerializeCustomProps pControlID, rObj
-   add the milliseconds - tPT to sProjT["custom props"]
    -- Group: recurse into direct child controls only
    if tType is "group" then
       local tChildCount, k, tChildIndex
@@ -9474,14 +9432,9 @@ on revIDELoadFromProject pFilePath
       answer revIDELocalise("Could not read project file:") & return & the result
       return "Error"
    end if
-   local tTimer
-   put the milliseconds into tTimer
-   put the milliseconds into sProjectLoadStart
-   put "---- load " & pFilePath & return after url "file:/tmp/hxt-project-timing.log"
    read from file pFilePath until end
    put it into tJSON
    close file pFilePath
-   revIDEProjectTimingLog "read file", tTimer
    local tTree, tLibError
    put revIDEProjectEnsureJSONLibrary() into tLibError
    if tLibError is not empty then
@@ -9490,7 +9443,6 @@ on revIDELoadFromProject pFilePath
    end if
    -- PhotonJSON takes the UTF-8 bytes of the file directly
    put JSONParser(tJSON) into tTree
-   revIDEProjectTimingLog "parse", tTimer
    if tTree is not an array then
       answer revIDELocalise("Invalid project file format.")
       return "Error"
@@ -9549,7 +9501,6 @@ on revIDELoadFromProject pFilePath
    local tDeferredBehaviors, tDeferredIcons, tDeferredDgData
    revIDEProjectReconstructStack tStackNode, tFolderPath, empty, tDeferredBehaviors, tDeferredIcons, tDeferredDgData
    put the result into tNewStackName
-   revIDEProjectTimingLog "reconstruct", tTimer
    -- Resolve all deferred behaviors now that every stack and control exists
    local bi, tLoadWarnings
    put empty into tLoadWarnings
@@ -9585,7 +9536,6 @@ on revIDELoadFromProject pFilePath
          put tBehWarn & return after tLoadWarnings
       end if
    end repeat
-   revIDEProjectTimingLog "wire behaviors", tTimer
    -- Dispatch RefreshList to all datagrids now that behaviors are wired up.
    -- Datagrids are groups with a "dgProps" custom property set.
    -- Iterate the main stack and any substacks produced by the reconstruction.
@@ -9680,7 +9630,6 @@ on revIDELoadFromProject pFilePath
          end if
       end repeat
    end repeat
-   revIDEProjectTimingLog "datagrid refresh + icons", tTimer
    -- Show a single warning dialog if any behaviors could not be resolved
    if tLoadWarnings is not empty then
       answer warning "Some behaviors could not be restored after loading the project:" & return & return & \
@@ -9703,8 +9652,6 @@ on revIDELoadFromProject pFilePath
       send "openStack" to card 1 of stack tNewStackName
       send "openCard" to card 1 of stack tNewStackName
       unlock error dialogs
-      revIDEProjectTimingLog "go stack + open messages", tTimer
-      send "revIDEProjectTimingIdle" to me in 0 milliseconds
    else
       unlock screen
    end if
