@@ -894,6 +894,68 @@ private command addToList pElement, @xArray
    put pElement into xArray[the number of elements in xArray + 1]
 end addToList
 
+/**
+Summary: Generates the manifest.xml and api.lcdoc of a script library that was
+copied into the user extensions folder as a bare script file.
+
+Parameters:
+pFolder: The extension folder.
+
+Returns: Empty, or an error message.
+
+Description:
+A folder in the user extensions folder that holds one script-only stack
+(.livecodescript or .hyperxtalkscript) and no manifest is treated as a
+script library in the raw: the same generators the build and the Extension
+Builder use produce its api.lcdoc from the doc comments and its
+manifest.xml from the library-level block. A folder that already has a
+manifest, holds no script, more than one, or an LCB source, is left alone.
+*/
+command revIDEExtensionPackageBareScriptLibrary pFolder
+   if there is a file (pFolder & slash & "manifest.xml") then
+      return empty
+   end if
+   local tFiles, tScripts, tModules
+   put files(pFolder) into tFiles
+   put tFiles into tScripts
+   filter tScripts with regex pattern "^.*\.(hyperxtalk|livecode)(script)?$"
+   put tFiles into tModules
+   filter tModules with regex pattern "^.*\.lcb$"
+   if the number of lines in tScripts is not 1 or tModules is not empty then
+      return empty
+   end if
+   __revIDEEnsureDocsParser
+   if there is no stack "revDocsParser" then
+      return "The docs parser is not available"
+   end if
+   try
+      extensionExtractDocs "revDocsParser", pFolder, pFolder & slash & tScripts
+      extensionGenerateManifestForLCSExtension "revDocsParser", pFolder
+   catch tError
+      return tError
+   end try
+   return empty
+end revIDEExtensionPackageBareScriptLibrary
+
+-- Loads the docs parser stack if it is not loaded yet (the same locations
+-- revIDERegenerateBuiltAPIs uses).
+private command __revIDEEnsureDocsParser
+   if there is a stack "revDocsParser" then
+      exit __revIDEEnsureDocsParser
+   end if
+   local tSavedItemDelim, tParserPath
+   put the itemDelimiter into tSavedItemDelim
+   if revEnvironmentIsInstalled() then
+      put revIDESpecialFolderPath("Toolset") & "/libraries/revdocsparser.livecodescript" into tParserPath
+   else
+      put revEnvironmentRepositoryPath() & slash & "ide-support" & slash & "revdocsparser.livecodescript" into tParserPath
+   end if
+   set the itemDelimiter to tSavedItemDelim
+   if there is a file tParserPath then
+      start using stack tParserPath
+   end if
+end __revIDEEnsureDocsParser
+
 on __extensionsLoad
    local tDataA   
    # Fetch all the available data about extensions in the search paths
@@ -906,6 +968,11 @@ on __extensionsLoad
          if tFolder is among the items of "downloading,temp,uninstalled" then next repeat
          local tExtFolder
          put tExtensionFolder & slash & tFolder into tExtFolder
+         if tKey is "user" then
+            -- a script library dropped in as a bare file gets its manifest
+            -- and api.lcdoc generated, so it loads and is documented
+            revIDEExtensionPackageBareScriptLibrary tExtFolder
+         end if
          extensionFindInFolder tExtFolder, tKey is "user", true, tDataA
       end repeat
    end repeat
