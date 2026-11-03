@@ -8334,6 +8334,7 @@ on revIDESaveAsProject pStackID, pFolderPath
    put the openStacks into tStacksOpenBefore
    revIDEProjectBuildTree pStackID, tMediaFolder, tScriptsFolder, tTree
    repeat for each line tOpenStack in the openStacks
+      if tOpenStack is the short name of pStackID then next repeat
       if tOpenStack is not among the lines of tStacksOpenBefore then
          close stack tOpenStack
       end if
@@ -8802,8 +8803,7 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
    -- has a name of its own.
    put the id of this card of stack pStackName into tBGFTPrevCardID
    lock screen
-   -- "go invisible" so that a stack not already open does not show a window
-   go invisible card id pCardIDNum of stack pStackName
+   go card id pCardIDNum of stack pStackName
    local tBGFTCardCtrlCt
    put the number of controls of card id pCardIDNum of stack pStackName into tBGFTCardCtrlCt
    -- Seed the BFS queue with background groups found among the card's top-level controls.
@@ -8863,7 +8863,7 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
       end repeat
    end repeat
    if tBGFTPrevCardID is not empty then
-      go invisible card id tBGFTPrevCardID of stack pStackName
+      go card id tBGFTPrevCardID of stack pStackName
    end if
    unlock screen
    set the defaultStack to tBGFTOldDefault
@@ -9445,6 +9445,29 @@ on revIDELoadFromProject pFilePath
    end if
    local tStackNode, tNewStackName
    put tTree["stack"] into tStackNode
+   -- A stack of this name is already open: if it is this project, just bring
+   -- it to the front; otherwise the names would collide, so ask.
+   local tExistingName
+   put tStackNode["name"] into tExistingName
+   if tExistingName begins with "__binary__:" then
+      put base64Decode(char 12 to -1 of tExistingName) into tExistingName
+   end if
+   if there is a stack tExistingName then
+      if the cRevProjectFilePath of stack tExistingName is tFolderPath then
+         go stack tExistingName
+         return empty
+      end if
+      local tReplaceParams
+      put tExistingName into tReplaceParams[1]
+      answer revIDELocalise("A stack named '%1' is already open. Close it and load the project?", tReplaceParams) \
+            with revIDELocalise("Close and load") and revIDELocalise("Cancel")
+      if it is revIDELocalise("Cancel") then
+         return "Error"
+      end if
+      lock messages
+      delete stack tExistingName
+      unlock messages
+   end if
    lock screen
    -- tDeferredBehaviors collects {controlRef, behaviorName, behaviorStack} entries
    -- tDeferredIcons collects {controlRef, stackName, iconNames} entries for buttons
@@ -9619,13 +9642,15 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    put the short name of it into tNewStackName
    -- Restore the stack's original ID immediately so its fresh auto-assigned ID
    -- cannot collide with any control's origID during reconstruction.
-   if pStackNode["id"] is not empty then
+   -- The engine only lets an id be raised, so a saved id below the fresh
+   -- one cannot be restored; leave it in that case.
+   if pStackNode["id"] is not empty and pStackNode["id"] > the id of stack tNewStackName then
       set the id of stack tNewStackName to pStackNode["id"]
    end if
    -- Restore card 1's original ID for the same reason.
    local tEarlyCard1ID
    put the id of card 1 of stack tNewStackName into tEarlyCard1ID
-   if pStackNode["cards"][1]["id"] is not empty then
+   if pStackNode["cards"][1]["id"] is not empty and pStackNode["cards"][1]["id"] > tEarlyCard1ID then
       set the id of card id tEarlyCard1ID of stack tNewStackName to pStackNode["cards"][1]["id"]
    end if
    lock screen
