@@ -943,14 +943,12 @@ private command __revIDEEnsureDocsParser
    if there is a stack "revDocsParser" then
       exit __revIDEEnsureDocsParser
    end if
-   local tSavedItemDelim, tParserPath
-   put the itemDelimiter into tSavedItemDelim
+   local tParserPath
    if revEnvironmentIsInstalled() then
       put revIDESpecialFolderPath("Toolset") & "/libraries/revdocsparser.livecodescript" into tParserPath
    else
       put revEnvironmentRepositoryPath() & slash & "ide-support" & slash & "revdocsparser.livecodescript" into tParserPath
    end if
-   set the itemDelimiter to tSavedItemDelim
    if there is a file tParserPath then
       start using stack tParserPath
    end if
