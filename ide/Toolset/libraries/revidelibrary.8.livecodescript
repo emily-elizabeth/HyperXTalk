@@ -8333,14 +8333,11 @@ on revIDESaveAsProject pStackID, pFolderPath
    local tStacksOpenBefore, tOpenStack, tTimer
    put the milliseconds into tTimer
    put "---- save " & pFolderPath & return after url "file:/tmp/hxt-project-timing.log"
-   put empty into sProjT
+   revIDEProjectTimingReset
    put the openStacks into tStacksOpenBefore
    revIDEProjectBuildTree pStackID, tMediaFolder, tScriptsFolder, tTree
    revIDEProjectTimingLog "build tree", tTimer
-   local tPK
-   repeat for each key tPK in sProjT
-      put tab & "  " & tPK & tab & sProjT[tPK] & return after url "file:/tmp/hxt-project-timing.log"
-   end repeat
+   revIDEProjectTimingDump
    repeat for each line tOpenStack in the openStacks
       if tOpenStack is the short name of pStackID then next repeat
       if tOpenStack is not among the lines of tStacksOpenBefore then
@@ -8586,6 +8583,17 @@ on revIDEProjectTimingLog pLabel, @xStart
 end revIDEProjectTimingLog
 
 local sProjectLoadStart, sProjT
+on revIDEProjectTimingReset
+   put empty into sProjT
+end revIDEProjectTimingReset
+on revIDEProjectTimingDump
+   local tPK, tKeys
+   put the keys of sProjT into tKeys
+   sort lines of tKeys
+   repeat for each line tPK in tKeys
+      put tab & "  " & tPK & tab & sProjT[tPK] & return after url "file:/tmp/hxt-project-timing.log"
+   end repeat
+end revIDEProjectTimingDump
 on revIDEProjectTimingIdle
    put the long time & tab & "IDE idle after load (total)" & tab & (the milliseconds - sProjectLoadStart) & " ms" & return after url "file:/tmp/hxt-project-timing.log"
 end revIDEProjectTimingIdle
