@@ -9,6 +9,25 @@ Note: PhotonJSON follows JSON's standards presented
 in https://www.json.org/json-en.html
 */
 
+
+on extensionInitialize
+   if the target is not me then
+      pass extensionInitialize
+   end if
+
+   if the environment contains "development" then
+      set the _ideOverride of me to true
+   end if
+
+   insert the script of me into back
+end extensionInitialize
+
+
+on extensionFinalize
+   if the target is not me then pass extensionFinalize
+   remove the script of me from back
+end extensionFinalize
+
 /**
 Type: library
 Title: PhotonJSON
@@ -126,24 +145,6 @@ Platforms: desktop, mobile, web
 Description:
 LiveCode script library for working with JSON, written in livecode-script and without the use of external.
 */
-
-on extensionInitialize
-   if the target is not me then
-      pass extensionInitialize
-   end if
-
-   if the environment contains "development" then
-      set the _ideOverride of me to true
-   end if
-
-   insert the script of me into back
-end extensionInitialize
-
-
-on extensionFinalize
-   if the target is not me then pass extensionFinalize
-   remove the script of me from back
-end extensionFinalize
 
 
 /* Declare script local variables */
