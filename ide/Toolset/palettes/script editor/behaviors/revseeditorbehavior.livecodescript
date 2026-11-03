@@ -120,11 +120,7 @@ command initialize
    textInitialize
    call "initialize" to group "Gutter" of me
 
-   if (the systemAppearance is "light") then
-      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
-   else
-      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
-   end if
+   set the backgroundColor of field "Script" of me to editorBackgroundColor()
    setHandlersFieldBackColor
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
    
@@ -135,7 +131,8 @@ command initialize
    # OK-2009-03-11 : Bug 7499 - The hilite color was previously not being reset to empty on OS X.
    # At the same time as fixing this issue, I've made the hilite color a preference in case we decide
    # to allow users to configure it in the future.
-   set the hiliteColor of field "Script" of me to sePrefGet("editor,hilitecolor")
+   set the hiliteColor of field "Script" of me to \
+         seColorizationEditorColor("selection", sePrefGet("editor,hilitecolor"))
    
    # OK-2008-07-07 : Bug 6748 - Interactive find not remembering last search
    if sePrefGet("editor,findvisible") then
@@ -151,15 +148,32 @@ end initialize
 private command setHandlersFieldBackColor
    if there is a field "Handlers" of group "Left Handler List" of group "Left Bar" \
          of card "Main" of this stack then
-      if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
-         set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
-            of card "Main" of this stack to sePrefGet("editor,backgroundcolordark")
-      else
-         set the backgroundColor of  field "Handlers" of group "Left Handler List" of group "Left Bar" \
-            of card "Main" of this stack to sePrefGet("editor,backgroundcolor")
-      end if
+      set the backgroundColor of field "Handlers" of group "Left Handler List" of group "Left Bar" \
+            of card "Main" of this stack to editorBackgroundColor()
    end if
 end setHandlersFieldBackColor
+
+# Returns
+#   The background colour of the script field (and handler list) while editing.
+#   The current colorization scheme may supply this with an "editor background"
+#   line; otherwise the light or dark editor background preference is used.
+private function editorBackgroundColor
+   if seIsDarkAppearance() then
+      return seColorizationEditorColor("background", sePrefGet("editor,backgroundcolordark"))
+   end if
+   return seColorizationEditorColor("background", sePrefGet("editor,backgroundcolor"))
+end editorBackgroundColor
+
+# Returns
+#   The background colour of the script field while locked by the debugger.
+#   The current colorization scheme may supply this with an "editor debugbackground"
+#   line; otherwise the light or dark debug background preference is used.
+private function debugBackgroundColor
+   if seIsDarkAppearance() then
+      return seColorizationEditorColor("debugbackground", sePrefGet("editor,debugBackgroundcolordark"))
+   end if
+   return seColorizationEditorColor("debugbackground", sePrefGet("editor,debugBackgroundcolor"))
+end debugBackgroundColor
 
 private command initializeFonts
    local tFont, tFontSize
@@ -200,20 +214,21 @@ command reapplyPreferences
    textFormatInitialize
    colorizationUpdate
    scriptColorize "script"
+   EditorFieldCacheRecolorize
    
    if the lockText of field "Script" of me then
       scriptLock
    else
-      if (the systemAppearance is "dark") OR (IsColorDark(the effective backgroundColor of stack "revMenubar")) then
-         set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
-      else
-         set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
-      end if
+      set the backgroundColor of field "Script" of me to editorBackgroundColor()
       setHandlersFieldBackColor
    end if
    set the hScrollbar of field "Script" of me to (sePrefGet("editor,hscrollbar") is "true")
+   set the hiliteColor of field "Script" of me to \
+         seColorizationEditorColor("selection", sePrefGet("editor,hilitecolor"))
    
    updateGutterRequest empty, empty, empty, empty, false, false, true
+   # The colorization scheme may have changed the gutter colours
+   send "reapplyAppearance" to group "Gutter" of me
    resize
    unlock screen
 end reapplyPreferences
@@ -577,11 +592,7 @@ command scriptLock
    local tDebugBGColor
    set the lockText of field "Script" of me to true
    
-   if (the systemAppearance is "light") then
-      put sePrefGet("editor,debugBackgroundcolor") into tDebugBGColor
-   else
-      put sePrefGet("editor,debugBackgroundcolordark") into tDebugBGColor
-   end if
+   put debugBackgroundColor() into tDebugBGColor
    
    set the backgroundColor of field "Script" of me to tDebugBGColor
    set the backgroundColor of field "Handlers" of group "Left Handler List" of group "Left Bar" \
@@ -592,11 +603,7 @@ end scriptLock
 #   Unlocks the script, allowing the user to edit it.
 command scriptUnlock
    set the lockText of field "Script" of me to false
-   if (the systemAppearance is "light") then
-      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolor")
-   else
-      set the backgroundColor of field "Script" of me to sePrefGet("editor,backgroundcolordark")
-   end if
+   set the backgroundColor of field "Script" of me to editorBackgroundColor()
    setHandlersFieldBackColor
 end scriptUnlock
 
@@ -991,7 +998,8 @@ command goLine pLine, pHighlightMode, pPosition
       get the selectedChunk
       put word 2 of it & comma & word 4 of it into sLastSelectedGoneToChunk
    else if pHighlightMode is "color" then
-      set the backgroundColor of line pLine of field "Script" of me to sePrefGet("editor,selectbackgroundcolor")
+      set the backgroundColor of line pLine of field "Script" of me to \
+            seColorizationEditorColor("executionline", sePrefGet("editor,selectbackgroundcolor"))
       local tStart
       put the number of chars of line 1 to (pLine - 1) of field "Script" of me + 1 into tStart
       put tStart & comma & tStart + the number of chars of line pLine of field "Script" of me into sLastSelectedGoneToChunk
@@ -1530,11 +1538,12 @@ command findMarkResult pStart, pEnd, pInteractive
    -- HXT: Use the dark-mode find colour when in dark mode so that light-coloured
    -- syntax tokens remain readable against the highlight background.
    local tFindColor
-   if the systemAppearance is "dark" then
+   if seIsDarkAppearance() then
       put sePrefGet("editor,darkFindColor") into tFindColor
    else
       put sePrefGet("editor,findcolor") into tFindColor
    end if
+   put seColorizationEditorColor("findhighlight", tFindColor) into tFindColor
    set the backgroundColor of char pStart to pEnd of field "Script" of me to tFindColor
    
    # If using interactive search, we can't select the find text, because doing so will take the 
@@ -2749,6 +2758,24 @@ private command EditorFieldCacheFlushAll
       __EditorFieldCacheFlush tRuggedObjectId
    end repeat
 end EditorFieldCacheFlushAll
+
+/*
+Re-apply syntax colouring to every cached editor field. A cached field keeps
+the per-character colours it was given when its tab was last shown, and
+restoring a tab does not reload the text when it is unchanged, so after the
+colorization scheme or the system appearance changes the cached fields must
+be recoloured here or their tabs come back in the old colours.
+*/
+private command EditorFieldCacheRecolorize
+   local tRuggedObjectId, tField
+   repeat for each key tRuggedObjectId in sScriptEditorFieldCache
+      put sScriptEditorFieldCache[tRuggedObjectId] into tField
+      if there is no field tField of me then
+         next repeat
+      end if
+      _internal script colorize char 1 to (the number of chars of field tField of me) of field tField of me
+   end repeat
+end EditorFieldCacheRecolorize
 
 /*
 If there are too many editor fields cached, randomly purge one of
