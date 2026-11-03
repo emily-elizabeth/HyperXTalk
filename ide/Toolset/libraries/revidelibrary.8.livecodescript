@@ -9408,6 +9408,16 @@ end revIDEProjectValueIsBinary
 -- Project format loading (commented out for incremental testing)
 -- ---------------------------------------------------------------------------
 
+-- The name stored in a stack node, decoded if it was base64-wrapped.
+private function revIDEProjectNodeName pNode
+   local tName
+   put pNode["name"] into tName
+   if tName begins with "__binary__:" then
+      put base64Decode(char 12 to -1 of tName) into tName
+   end if
+   return tName
+end revIDEProjectNodeName
+
 on revIDELoadFromProject pFilePath
    local tFolderPath, tSavedItemDelim
    put the itemDelimiter into tSavedItemDelim
@@ -9445,29 +9455,47 @@ on revIDELoadFromProject pFilePath
    end if
    local tStackNode, tNewStackName
    put tTree["stack"] into tStackNode
-   -- A stack of this name is already open: if it is this project, just bring
-   -- it to the front; otherwise the names would collide, so ask.
-   local tExistingName
-   put tStackNode["name"] into tExistingName
-   if tExistingName begins with "__binary__:" then
-      put base64Decode(char 12 to -1 of tExistingName) into tExistingName
+   -- Stacks of this project (main stack and substacks) that are already in
+   -- memory would make "create stack" fall back to an auto-generated name.
+   -- If the project's main stack is open, bring it to the front; if another
+   -- stack of the same name is open, ask; then discard what is in memory,
+   -- substacks first (deleting a main stack does not remove its substacks).
+   local tProjectNames, tProjectName, tMainName, tOpenName, si
+   put revIDEProjectNodeName(tStackNode) into tMainName
+   put tMainName into tProjectNames
+   if tStackNode["substacks"] is an array then
+      repeat with si = 1 to the number of elements of tStackNode["substacks"]
+         put return & revIDEProjectNodeName(tStackNode["substacks"][si]) after tProjectNames
+      end repeat
    end if
-   if there is a stack tExistingName then
-      if the cRevProjectFilePath of stack tExistingName is tFolderPath then
-         go stack tExistingName
+   put empty into tOpenName
+   repeat for each line tProjectName in tProjectNames
+      if tProjectName is among the lines of the openStacks then
+         put tProjectName into tOpenName
+         exit repeat
+      end if
+   end repeat
+   if tOpenName is not empty then
+      if tMainName is among the lines of the openStacks and \
+            the cRevProjectFilePath of stack tMainName is tFolderPath then
+         go stack tMainName
          return empty
       end if
       local tReplaceParams
-      put tExistingName into tReplaceParams[1]
+      put tOpenName into tReplaceParams[1]
       answer revIDELocalise("A stack named '%1' is already open. Close it and load the project?", tReplaceParams) \
             with revIDELocalise("Close and load") and revIDELocalise("Cancel")
       if it is revIDELocalise("Cancel") then
          return "Error"
       end if
-      lock messages
-      delete stack tExistingName
-      unlock messages
    end if
+   lock messages
+   repeat with si = the number of lines in tProjectNames down to 1
+      if there is a stack (line si of tProjectNames) then
+         delete stack (line si of tProjectNames)
+      end if
+   end repeat
+   unlock messages
    lock screen
    -- tDeferredBehaviors collects {controlRef, behaviorName, behaviorStack} entries
    -- tDeferredIcons collects {controlRef, stackName, iconNames} entries for buttons
@@ -9955,15 +9983,12 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                end if
             end repeat
             set the mainStack of stack tSubName to tNewStackName
-            if tIsRowTplStack then
-               -- Keep DataGridTemplates stack in memory (hidden) so datagrid behavior
-               -- can access the row template group. Hiding is fine; the datagrid behavior
-               -- works with hidden template stacks (same as normal LC IDE workflow).
-               set the destroyStack of stack tSubName to false
-               hide stack tSubName
-            else
-               close stack tSubName
-            end if
+            -- A closed substack stays in memory with its mainstack, so the
+            -- datagrid behavior can still reach the row template group. It
+            -- used to be left open but hidden, which kept the whole stack in
+            -- memory after the user closed it (destroyStack could not purge
+            -- it) and made the next load of the project collide on the name.
+            close stack tSubName
          end if
       end repeat
    end if
