@@ -910,10 +910,29 @@ treated as a script library in the raw: the same generators the build and
 the Extension Builder use produce its api.lcdoc from the doc comments and
 its manifest.xml from the library-level block. A folder that already has a
 manifest, holds no script, more than one, or an LCB source, is left alone.
+A folder with one of the two files but not the other is left alone as well,
+and named in the result, so the developer can delete both and have them
+regenerated.
 */
 command revIDEExtensionPackageBareScriptLibrary pFolder
-   if there is a file (pFolder & slash & "manifest.xml") then
+   local tHasManifest, tHasDocs
+   put there is a file (pFolder & slash & "manifest.xml") into tHasManifest
+   put there is a file (pFolder & slash & "api.lcdoc") into tHasDocs
+   if tHasManifest and tHasDocs then
       return empty
+   end if
+   if tHasManifest or tHasDocs then
+      local tPresent, tMissing
+      if tHasManifest then
+         put "manifest.xml" into tPresent
+         put "api.lcdoc" into tMissing
+      else
+         put "api.lcdoc" into tPresent
+         put "manifest.xml" into tMissing
+      end if
+      return "The script library folder" && pFolder && "has" && tPresent && \
+            "but no" && tMissing & ". Delete both files and they will be" && \
+            "regenerated from the script at the next launch."
    end if
    local tFiles, tScripts, tModules
    put files(pFolder) into tFiles
@@ -954,6 +973,32 @@ private command __revIDEEnsureDocsParser
    end if
 end __revIDEEnsureDocsParser
 
+-- Warnings from packaging bare script libraries are gathered while the
+-- extensions and user libraries load, and shown in one dialog once
+-- startup is over and the IDE can put one up.
+local sBareLibraryWarnings
+
+private command __revIDEBareLibraryWarn pWarning
+   if pWarning is empty then
+      exit __revIDEBareLibraryWarn
+   end if
+   if sBareLibraryWarnings is empty then
+      send "__revIDEBareLibraryWarningsShow" to me in 0 milliseconds
+   else
+      put return & return after sBareLibraryWarnings
+   end if
+   put pWarning after sBareLibraryWarnings
+end __revIDEBareLibraryWarn
+
+on __revIDEBareLibraryWarningsShow
+   local tWarnings
+   put sBareLibraryWarnings into tWarnings
+   put empty into sBareLibraryWarnings
+   if tWarnings is not empty then
+      answer warning tWarnings with "OK"
+   end if
+end __revIDEBareLibraryWarningsShow
+
 on __extensionsLoad
    local tDataA   
    # Fetch all the available data about extensions in the search paths
@@ -970,6 +1015,7 @@ on __extensionsLoad
             -- a script library dropped in as a bare file gets its manifest
             -- and api.lcdoc generated, so it loads and is documented
             revIDEExtensionPackageBareScriptLibrary tExtFolder
+            __revIDEBareLibraryWarn the result
          end if
          extensionFindInFolder tExtFolder, tKey is "user", true, tDataA
       end repeat
@@ -1036,6 +1082,7 @@ private command __userLibrariesLoad
       -- a library installed as a bare script gets its manifest and
       -- api.lcdoc generated, so the Dictionary can document it
       revIDEExtensionPackageBareScriptLibrary tPackagePath
+      __revIDEBareLibraryWarn the result
 
       repeat for each line tFile in files(tPackagePath)
          if tFile ends with ".livecodescript" then
@@ -1564,6 +1611,7 @@ function revIDEExtensionDocsData pForAPI
          -- a copy of an installed extension (the same library in the
          -- user libraries folder, say) would be documented twice
          if tListedA[tUserScript["name"]] then next repeat
+         put true into tListedA[tUserScript["name"]]
          add 1 to tCount
          put tUserScript into tDataA[tCount]
       end repeat
