@@ -896,19 +896,19 @@ end addToList
 
 /**
 Summary: Generates the manifest.xml and api.lcdoc of a script library that was
-copied into the user extensions folder as a bare script file.
+copied into the user extensions or user libraries folder as a bare script file.
 
 Parameters:
-pFolder: The extension folder.
+pFolder: The folder holding the script.
 
 Returns: Empty, or an error message.
 
 Description:
-A folder in the user extensions folder that holds one script-only stack
-(.livecodescript or .hyperxtalkscript) and no manifest is treated as a
-script library in the raw: the same generators the build and the Extension
-Builder use produce its api.lcdoc from the doc comments and its
-manifest.xml from the library-level block. A folder that already has a
+A folder in the user extensions or user libraries folder that holds one
+script-only stack (.livecodescript or .hyperxtalkscript) and no manifest is
+treated as a script library in the raw: the same generators the build and
+the Extension Builder use produce its api.lcdoc from the doc comments and
+its manifest.xml from the library-level block. A folder that already has a
 manifest, holds no script, more than one, or an LCB source, is left alone.
 */
 command revIDEExtensionPackageBareScriptLibrary pFolder
@@ -1032,6 +1032,10 @@ private command __userLibrariesLoad
 
       local tPackagePath
       put tLibrariesFolder & slash & tPackageFolder into tPackagePath
+
+      -- a library installed as a bare script gets its manifest and
+      -- api.lcdoc generated, so the Dictionary can document it
+      revIDEExtensionPackageBareScriptLibrary tPackagePath
 
       repeat for each line tFile in files(tPackagePath)
          if tFile ends with ".livecodescript" then
@@ -1554,8 +1558,78 @@ function revIDEExtensionDocsData pForAPI
       put tExtension["source_type"] into tDataA[tCount]["source_type"]
       put tExtension["name"] into tDataA[tCount]["name"]
    end repeat
+   if pForAPI is empty or pForAPI is "script" then
+      repeat for each element tUserScript in __revIDEUserScriptDocsData()
+         add 1 to tCount
+         put tUserScript into tDataA[tCount]
+      end repeat
+   end if
    return tDataA
 end revIDEExtensionDocsData
+
+-- Libraries in the user libraries folder and script plugins in the user
+-- plugins folder are not extensions, so the Dictionary knows nothing of
+-- them. This lists them in the shape revIDEExtensionDocsData returns, so
+-- their doc comments are built into the Script dictionary alongside the
+-- extensions. A library takes its name, title and author from the manifest
+-- generated at startup, or falls back to its folder name; a plugin is
+-- listed under its file name, and only when its script has doc comments.
+private function __revIDEUserScriptDocsData
+   local tDataA, tCount
+   put 0 into tCount
+
+   local tLibrariesFolder
+   put revIDESpecialFolderPath("user libraries") into tLibrariesFolder
+   if tLibrariesFolder is not empty then
+      repeat for each line tPackageFolder in folders(tLibrariesFolder)
+         if tPackageFolder begins with "." then next repeat
+         local tPackagePath, tFoundA, tLibraryA
+         put tLibrariesFolder & slash & tPackageFolder into tPackagePath
+         put empty into tFoundA
+         extensionFindInFolder tPackagePath, true, false, tFoundA
+         if tFoundA is not an array then next repeat
+         put tFoundA[line 1 of the keys of tFoundA][tPackagePath] into tLibraryA
+         if tLibraryA["source_type"] is not "lcs" then next repeat
+         add 1 to tCount
+         put tPackagePath into tDataA[tCount]["folder"]
+         put tLibraryA["source_file"] into tDataA[tCount]["source_file"]
+         put "lcs" into tDataA[tCount]["source_type"]
+         put tLibraryA["author"] into tDataA[tCount]["author"]
+         if tLibraryA["name"] is not empty then
+            put tLibraryA["name"] into tDataA[tCount]["name"]
+         else
+            put "library." & tPackageFolder into tDataA[tCount]["name"]
+         end if
+         if tLibraryA["title"] is not empty then
+            put tLibraryA["title"] into tDataA[tCount]["title"]
+         else
+            put tPackageFolder into tDataA[tCount]["title"]
+         end if
+      end repeat
+   end if
+
+   local tPluginsFolder, tPlugins
+   put revIDESpecialFolderPath("user plugins") into tPluginsFolder
+   if tPluginsFolder is not empty then
+      put files(tPluginsFolder) into tPlugins
+      filter tPlugins with regex pattern "^.*\.(hyperxtalk|livecode)(script)?$"
+      set the itemDelimiter to "."
+      repeat for each line tPlugin in tPlugins
+         local tPluginPath
+         put tPluginsFolder & slash & tPlugin into tPluginPath
+         if there is no stack tPluginPath then next repeat
+         if "/**" is not in the script of stack tPluginPath then next repeat
+         add 1 to tCount
+         put tPluginsFolder into tDataA[tCount]["folder"]
+         put tPlugin into tDataA[tCount]["source_file"]
+         put "lcs" into tDataA[tCount]["source_type"]
+         put empty into tDataA[tCount]["author"]
+         put "plugin." & item 1 to -2 of tPlugin into tDataA[tCount]["name"]
+         put item 1 to -2 of tPlugin into tDataA[tCount]["title"]
+      end repeat
+   end if
+   return tDataA
+end __revIDEUserScriptDocsData
 
 on revIDEExtensionUpdateAPI pFolder, pExtensionSource
    if pExtensionSource is empty then
