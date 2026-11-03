@@ -8334,7 +8334,13 @@ on revIDESaveAsProject pStackID, pFolderPath
    -- Encode to JSON with PhotonJSON (community.ferruslogic.library.photonjson),
    -- pretty-printed for readable diffs in version control. Its pretty output
    -- is text, which is written below as UTF-8.
-   local tJSON
+   local tJSON, tLibError
+   put revIDEProjectEnsureJSONLibrary() into tLibError
+   if tLibError is not empty then
+      close stack "revSaving"
+      answer error tLibError
+      return "Error"
+   end if
    put JSONStringify(tTree, empty, true) into tJSON
    if tJSON is empty then
       close stack "revSaving"
@@ -8523,6 +8529,28 @@ private function revIDEProjectReadScript pScriptFile, pFolderPath
    end if
    return tContent
 end revIDEProjectReadScript
+
+-- Makes sure PhotonJSON (community.ferruslogic.library.photonjson) is
+-- available. It is a script library extension and is normally loaded with
+-- the other extensions at startup; this covers a layout where it is not.
+-- Returns empty when the library is available, else an error message.
+private function revIDEProjectEnsureJSONLibrary
+   if there is a stack "community.ferruslogic.library.photonjson" then
+      return empty
+   end if
+   local tSavedItemDelim, tPath
+   put the itemDelimiter into tSavedItemDelim
+   put revIDESpecialFolderPath("extensions") & "/community.ferruslogic.library.photonjson/photonjson.livecodescript" into tPath
+   set the itemDelimiter to tSavedItemDelim
+   if there is not a file tPath then
+      return "The PhotonJSON library was not found at:" & return & tPath
+   end if
+   start using stack tPath
+   if there is a stack "community.ferruslogic.library.photonjson" then
+      return empty
+   end if
+   return "The PhotonJSON library could not be loaded from:" & return & tPath
+end revIDEProjectEnsureJSONLibrary
 
 on revIDEProjectBuildTree pStackID, pMediaFolder, pScriptsFolder, @rTree
    put "hyperxtalk-project" into rTree["format"]
@@ -9383,7 +9411,12 @@ on revIDELoadFromProject pFilePath
    read from file pFilePath until end
    put it into tJSON
    close file pFilePath
-   local tTree
+   local tTree, tLibError
+   put revIDEProjectEnsureJSONLibrary() into tLibError
+   if tLibError is not empty then
+      answer error tLibError
+      return "Error"
+   end if
    -- PhotonJSON takes the UTF-8 bytes of the file directly
    put JSONParser(tJSON) into tTree
    if tTree is not an array then
