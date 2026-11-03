@@ -1617,8 +1617,7 @@ private function __revIDEUserScriptDocsData
       repeat for each line tPlugin in tPlugins
          local tPluginPath
          put tPluginsFolder & slash & tPlugin into tPluginPath
-         if there is no stack tPluginPath then next repeat
-         if "/**" is not in the script of stack tPluginPath then next repeat
+         if not __revIDEScriptHasDocComments(tPluginPath) then next repeat
          add 1 to tCount
          put tPluginsFolder into tDataA[tCount]["folder"]
          put tPlugin into tDataA[tCount]["source_file"]
@@ -1630,6 +1629,26 @@ private function __revIDEUserScriptDocsData
    end if
    return tDataA
 end __revIDEUserScriptDocsData
+
+-- True when the stack file's script holds a doc comment. A script-only
+-- stack is read as text; a binary stack has to be loaded, and is taken
+-- out of memory again if it was not open, as revIDEUpdatePlugins does.
+private function __revIDEScriptHasDocComments pStackFile
+   local tScript
+   if pStackFile ends with "script" then
+      put textDecode(url("binfile:" & pStackFile), "utf-8") into tScript
+      return "/**" is in tScript
+   end if
+   if there is no stack pStackFile then
+      return false
+   end if
+   put the script of stack pStackFile into tScript
+   if the mode of stack pStackFile is 0 then
+      set the cantDelete of stack pStackFile to false
+      delete stack pStackFile
+   end if
+   return "/**" is in tScript
+end __revIDEScriptHasDocComments
 
 on revIDEExtensionUpdateAPI pFolder, pExtensionSource
    if pExtensionSource is empty then
