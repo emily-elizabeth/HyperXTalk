@@ -9697,6 +9697,7 @@ on revIDELoadFromProject pFilePath
       go card 1 of stack tNewStackName
       send "preOpenStack" to card 1 of stack tNewStackName
       send "preOpenCard" to card 1 of stack tNewStackName
+      set the visible of stack tNewStackName to true
       go stack tNewStackName
       send "openStack" to card 1 of stack tNewStackName
       send "openCard" to card 1 of stack tNewStackName
@@ -9719,7 +9720,9 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    -- under a temporary name, opens it and only then names it, and the IDE's
    -- deferred ideOpenStack would otherwise look for the temporary name.
    lock messages
-   create stack tName
+   -- invisible, so that the default-size window does not flash before the
+   -- rect and the controls are applied; the load shows it at the end
+   create invisible stack tName
    local tNewStackName
    put the short name of it into tNewStackName
    -- Restore the stack's original ID immediately so its fresh auto-assigned ID
