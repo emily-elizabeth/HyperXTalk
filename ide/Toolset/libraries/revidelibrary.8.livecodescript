@@ -8785,7 +8785,10 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
    local tBGFTOldDefault, tBGFTPrevCardID
    put the defaultStack into tBGFTOldDefault
    set the defaultStack to pStackName
-   put the id of the currentCard of stack pStackName into tBGFTPrevCardID
+   -- "this card of stack" is an object reference; "the currentCard of stack"
+   -- is only the card's name, so "the id of" it fails as soon as the card
+   -- has a name of its own.
+   put the id of this card of stack pStackName into tBGFTPrevCardID
    lock screen
    go card id pCardIDNum of stack pStackName
    local tBGFTCardCtrlCt

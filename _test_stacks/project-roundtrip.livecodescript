@@ -13,6 +13,9 @@ Environment variables:
    HXT_LIB     path to ide/Toolset/libraries/revidelibrary.8.livecodescript
    RT_STACK    the stack file to round-trip
    RT_OUT      an empty output folder
+   HXT_LIBS    optional newline-separated paths of further IDE library stacks to
+               put in use first, e.g. ide/Toolset/palettes/revdatagridlibrary.rev
+               for stacks that contain Data Grids
    RT_MODULES  newline-separated .lcm module paths to load first (widget kinds
                used by the stack and their library dependencies)
 
@@ -46,6 +49,10 @@ on startup
    try
       start using stack $PJ_LIB
       start using stack $HXT_LIB
+      -- further IDE library stacks the serialiser may need (e.g. the Data Grid library)
+      repeat for each line tLine in $HXT_LIBS
+         if tLine is not empty then start using stack tLine
+      end repeat
    catch e
       put "library load error: " & e & return
       quit
@@ -71,7 +78,12 @@ on startup
       put diffArrays(tTree, tTree2, "", 0)
    end if
 
-   -- rebuild the stack from the parsed tree, then serialise it again
+   -- rebuild the stack from the parsed tree, then serialise it again;
+   -- the original and its substacks go first so the names are free
+   local tSub
+   repeat for each line tSub in the substacks of stack tName
+      delete stack tSub
+   end repeat
    delete stack tName
    try
       revIDEProjectReconstructStack tTree2["stack"], tOut & "/a", empty, tDB, tDI, tDG

@@ -592,7 +592,7 @@ function JSONParser pJsonString
          case "-"; case "+"
             # The token chunk splits "1e-5" into "1e", "-" and "5": a sign right
             # after a value that ends in "e" belongs to that number's exponent.
-            if tOldToken is empty and matchText(tLastValue, "^-?[0-9.]+[eE]$") then
+            if tOldToken is empty and matchText(tLastValue, "^-?[0-9.]+[eE]\z") then
                put tToken into tExponentSign
                next repeat
             end if
@@ -728,8 +728,10 @@ private function _jsonValue pValue, pNoReplace
          # Write a value bare only when it already is a number in its canonical
          # form: an optional minus, no leading zeros, no trailing zeros in the
          # fraction, no exponent. "007", "3.10" and "1e5" are text that happens
-         # to evaluate as a number, and are written as strings.
-         if matchText(pValue, "^-?(0|[1-9][0-9]*)(\.[0-9]*[1-9])?$") then
+         # to evaluate as a number, and are written as strings. \z rather than
+         # $, which in a regex also matches before a final newline: "6" & LF
+         # is a string.
+         if matchText(pValue, "^-?(0|[1-9][0-9]*)(\.[0-9]*[1-9])?\z") then
             return pValue
          end if
 
