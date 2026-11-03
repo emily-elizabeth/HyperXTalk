@@ -8580,6 +8580,11 @@ on revIDEProjectTimingLog pLabel, @xStart
    put the milliseconds into xStart
 end revIDEProjectTimingLog
 
+local sProjectLoadStart
+on revIDEProjectTimingIdle
+   put the long time & tab & "IDE idle after load (total)" & tab & (the milliseconds - sProjectLoadStart) & " ms" & return after url "file:/tmp/hxt-project-timing.log"
+end revIDEProjectTimingIdle
+
 on revIDEProjectBuildTree pStackID, pMediaFolder, pScriptsFolder, @rTree
    put "hyperxtalk-project" into rTree["format"]
    put 1 into rTree["version"]
@@ -8818,6 +8823,9 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
    -- has a name of its own.
    put the id of this card of stack pStackName into tBGFTPrevCardID
    lock screen
+   -- no preOpenCard/openCard handlers (datagrid refreshes and the like) while
+   -- the serialiser moves between cards; it only reads properties
+   lock messages
    go card id pCardIDNum of stack pStackName
    local tBGFTCardCtrlCt
    put the number of controls of card id pCardIDNum of stack pStackName into tBGFTCardCtrlCt
@@ -8880,6 +8888,7 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
    if tBGFTPrevCardID is not empty then
       go card id tBGFTPrevCardID of stack pStackName
    end if
+   unlock messages
    unlock screen
    set the defaultStack to tBGFTOldDefault
 end revIDEProjectSerializeCard
@@ -9451,6 +9460,7 @@ on revIDELoadFromProject pFilePath
    end if
    local tTimer
    put the milliseconds into tTimer
+   put the milliseconds into sProjectLoadStart
    put "---- load " & pFilePath & return after url "file:/tmp/hxt-project-timing.log"
    read from file pFilePath until end
    put it into tJSON
@@ -9677,6 +9687,7 @@ on revIDELoadFromProject pFilePath
       send "openCard" to card 1 of stack tNewStackName
       unlock error dialogs
       revIDEProjectTimingLog "go stack + open messages", tTimer
+      send "revIDEProjectTimingIdle" to me in 0 milliseconds
    else
       unlock screen
    end if
