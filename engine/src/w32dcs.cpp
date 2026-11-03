@@ -1403,17 +1403,62 @@ extern "C" bool MCplatformIsDarkMode(void)
 	}
 }
 
-// Last effective appearance seen by processdesktopchanged(); it sends
-// systemAppearanceChanged when the value differs. File scope so the setter
-// below can tell whether the refresh it triggers will send the message.
-static bool s_appearance_initialised = false;
-static bool s_last_dark_mode         = false;
-
 // Defined in w32dcw32.cpp: re-seeds the 500 ms registry poll so it does not
-// report the override as a second appearance change.
+// report a change that has already been handled.
 void MCWin32SyncDarkModePollState(void);
 
 void MCPlatformHandleSystemAppearanceChanged(void);
+extern "C" void MCplatformGetWindowBackgroundColor(char *p_buf, size_t p_buflen);
+extern "C" void MCplatformGetLabelColor(char *p_buf, size_t p_buflen);
+
+// ── Single gate for systemAppearanceChanged ───────────────────────────────────
+// Windows announces one dark/light toggle several times over: WM_SETTINGCHANGE
+// "ImmersiveColorSet" (often more than once), WM_THEMECHANGED and
+// WM_SYSCOLORCHANGE, each broadcast to every top-level window, plus the
+// registry poll in w32dcw32.cpp. MCPlatformHandleSystemAppearanceChanged()
+// queues systemAppearanceChanged to every open stack each time it is called,
+// so routing every trigger straight into it delivered the message to scripts
+// four or more times per toggle (upstream issue #567).
+//
+// All triggers now come through here instead. The handler runs only when the
+// effective appearance - the three values the message carries: dark flag,
+// window colour, text colour - differs from what was last delivered, or when
+// p_force is set (the preferredAppearance setter, which like macOS always
+// notifies). Repeated announcements of the same state are dropped.
+static bool s_appearance_initialised  = false;
+static bool s_last_dark_mode          = false;
+static char s_last_window_color[8]    = "";
+static char s_last_text_color[8]      = "";
+static unsigned s_appearance_notified = 0;
+
+bool MCWin32NotifySystemAppearanceChanged(bool p_force)
+{
+	bool t_dark = MCplatformIsDarkMode();
+	char t_window_color[8] = {};
+	char t_text_color[8]   = {};
+	MCplatformGetWindowBackgroundColor(t_window_color, sizeof(t_window_color));
+	MCplatformGetLabelColor(t_text_color, sizeof(t_text_color));
+
+	bool t_changed = !s_appearance_initialised ||
+	                 t_dark != s_last_dark_mode ||
+	                 strcmp(t_window_color, s_last_window_color) != 0 ||
+	                 strcmp(t_text_color, s_last_text_color) != 0;
+	if (!t_changed && !p_force)
+		return false;
+
+	s_appearance_initialised = true;
+	s_last_dark_mode         = t_dark;
+	strncpy(s_last_window_color, t_window_color, sizeof(s_last_window_color) - 1);
+	strncpy(s_last_text_color, t_text_color, sizeof(s_last_text_color) - 1);
+	s_appearance_notified++;
+
+	MCPlatformHandleSystemAppearanceChanged();
+
+	// The registry poll compares against its own last-seen value; keep it in
+	// step so it does not report this change a second time.
+	MCWin32SyncDarkModePollState();
+	return true;
+}
 
 // Implementation of the preferredAppearance property for the Windows desktop
 // engine (the server stub is in srvwindows.cpp). Mirrors mac-core.mm: store
@@ -1438,19 +1483,16 @@ extern "C" void MCplatformSetPreferredAppearance(int p_mode)
 
 	// processdesktopchanged() is the same refresh a WM_SETTINGCHANGE triggers:
 	// systemAppearanceChanged when the effective appearance differs from the
-	// last one seen, system colours, DWMWA_USE_IMMERSIVE_DARK_MODE and
+	// last one delivered, system colours, DWMWA_USE_IMMERSIVE_DARK_MODE and
 	// AllowDarkModeForWindow on every open stack window, a flush of uxtheme's
 	// menu theme cache, a reload of the native theme and a repaint.
-	bool t_will_notify = !s_appearance_initialised ||
-	                     MCplatformIsDarkMode() != s_last_dark_mode;
+	unsigned t_notified_before = s_appearance_notified;
 	static_cast<MCScreenDC *>(MCscreen)->processdesktopchanged(false, false);
 
 	// macOS always sends systemAppearanceChanged when the property is set, even
 	// when the effective appearance is unchanged; do the same here.
-	if (!t_will_notify)
-		MCPlatformHandleSystemAppearanceChanged();
-
-	MCWin32SyncDarkModePollState();
+	if (s_appearance_notified == t_notified_before)
+		MCWin32NotifySystemAppearanceChanged(true);
 }
 
 static void s_colorref_to_hex(COLORREF p_color, char *p_buf, size_t p_buflen)
@@ -1549,29 +1591,12 @@ void MCScreenDC::processdesktopchanged(bool p_notify, bool p_update_fonts)
 {
 	// ── Dark / light mode change detection ───────────────────────────────────
 	// This is called whenever the invisible window receives WM_SETTINGCHANGE or
-	// WM_DISPLAYCHANGE.  We compare the current dark-mode state against the last
-	// known state.  If it has changed (or if this is the first call), we call
-	// MCPlatformHandleSystemAppearanceChanged() directly — no string matching,
-	// no ANSI/Unicode ambiguity.
-	//
-	// This acts as the DEFINITIVE trigger for appearance changes on Windows,
-	// overriding all the WM_SETTINGCHANGE "ImmersiveColorSet" string-matching
-	// attempts which are fragile due to ANSI/Unicode thunking.
-	{
-		// s_appearance_initialised / s_last_dark_mode are file-scope statics
-		// (defined above MCplatformSetPreferredAppearance), so the
-		// preferredAppearance setter can share them.
-		bool t_dark = MCplatformIsDarkMode();
-
-		if (!s_appearance_initialised || t_dark != s_last_dark_mode)
-		{
-			s_last_dark_mode         = t_dark;
-			s_appearance_initialised = true;
-
-			void MCPlatformHandleSystemAppearanceChanged(void);
-			MCPlatformHandleSystemAppearanceChanged();
-		}
-	}
+	// WM_DISPLAYCHANGE, and from the preferredAppearance setter. The gate
+	// delivers systemAppearanceChanged only when the effective appearance
+	// differs from the last one delivered - no string matching, no
+	// ANSI/Unicode ambiguity, and no repeats for the other announcements of
+	// the same toggle.
+	MCWin32NotifySystemAppearanceChanged(false);
 
 	// Refresh background_pixel / system_fore_pixel for any non-appearance
 	// desktop changes (DPI, display count, etc.) — MCPlatformHandleSystemAppearanceChanged
