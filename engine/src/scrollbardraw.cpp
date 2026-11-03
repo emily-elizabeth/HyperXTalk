@@ -803,7 +803,14 @@ void MCScrollbar::drawvalue(MCDC *dc, MCRectangle &thumb)
 	int32_t fascent, fdescent;
 	fascent = MCFontGetAscent(m_font);
 	fdescent = MCFontGetDescent(m_font);
-	if (rect.height - thumb.height > fascent)
+	// For vertical scrollbars the value label sits to the right of the track, so
+	// the relevant free space is the height not occupied by the thumb.  For
+	// horizontal the label sits below/above the track and the relevant free space
+	// is the width not occupied by the thumb.
+	int32_t t_free_space = (getstyleint(flags) == F_VERTICAL)
+	    ? (rect.height - thumb.height)
+	    : (rect.width  - thumb.width);
+	if (t_free_space > fascent)
 	{
 		MCAutoStringRef t_data;
 		/* UNCHECKED */ MCU_r8tos(thumbpos, nffw, nftrailing, nfforce, &t_data);
@@ -811,7 +818,17 @@ void MCScrollbar::drawvalue(MCDC *dc, MCRectangle &thumb)
         uint2 tw = MCFontMeasureText(m_font, *t_data, getstack() -> getdevicetransform());
 		if (getstyleint(flags) == F_VERTICAL)
 		{
-			uint2 sx = thumb.x + thumb.width + ((rect.width - thumb.width - tw) >> 1);
+			// Centre the label in the text-area column that sits to the right of the
+			// bar track.  Use signed 32-bit arithmetic throughout: if the text is
+			// wider than the reserved column the expression would otherwise underflow
+			// when stored in uint2, silently placing the text far off-screen.
+			int32_t t_text_x = (int32_t)(thumb.x + thumb.width);
+			int32_t t_text_w = (int32_t)(rect.x + rect.width) - t_text_x;
+			int32_t sx = t_text_x + ((t_text_w - (int32_t)tw) / 2);
+			if (sx < t_text_x)
+				sx = t_text_x;
+			if (sx + (int32_t)tw > (int32_t)(rect.x + rect.width))
+				sx = (int32_t)(rect.x + rect.width) - (int32_t)tw;
 			uint2 sy = thumb.y + ((thumb.height + fascent) >> 1);
 			setforeground(dc, DI_FORE, False);
             dc -> drawtext(sx, sy, *t_data, m_font, false, kMCDrawTextNoBreak);

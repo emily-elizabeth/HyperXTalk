@@ -1251,6 +1251,21 @@ Boolean MCNativeTheme::drawslider(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 	MCWidgetInfo twinfo = winfo;
 	MCRectangle sbincarrowrect, sbdecarrowrect, sbthumbrect, sbinctrackrect, sbdectrackrect;
 	getscrollbarrects(winfo, drect, sbincarrowrect, sbdecarrowrect, sbthumbrect, sbinctrackrect, sbdectrackrect);
+
+	// For a reversed slider (startvalue > endvalue) the dec-rect is physically
+	// above/left of the thumb but represents the HIGHER-value side.
+	// Swap dec and inc so the accent always fills from the lower-value end.
+	if (winfo.data != nil)
+	{
+		MCWidgetScrollBarInfo *t_sb = (MCWidgetScrollBarInfo *)winfo.data;
+		if (t_sb->startvalue > t_sb->endvalue)
+		{
+			MCRectangle t_tmp = sbdectrackrect;
+			sbdectrackrect = sbinctrackrect;
+			sbinctrackrect = t_tmp;
+		}
+	}
+
 	memset(&twinfo, 0, sizeof(MCWidgetInfo));
 
 	bool t_dark     = MCplatformIsDarkMode();
@@ -1449,9 +1464,9 @@ void MCNativeTheme::getsliderrects(const MCWidgetInfo &winfo, const MCRectangle 
 		t_thumb_offset = t_thumb_size / 2 + (int4)floor((t_track_size - t_thumb_size) * (sbinfo -> thumbpos - sbinfo -> startvalue) / (sbinfo -> endvalue - sbinfo -> startvalue));
 
 		if (t_vertical)
-			MCU_set_rect(sbthumbrect, srect . x, srect . y + t_thumb_offset - sbthumbrect . height / 2, sbthumbrect . width, sbthumbrect . height);
+			MCU_set_rect(sbthumbrect, srect . x, srect . y + t_thumb_offset - sbthumbrect . height / 2, srect . width, sbthumbrect . height);
 		else
-			MCU_set_rect(sbthumbrect, srect . x + t_thumb_offset - sbthumbrect . width / 2, srect . y, sbthumbrect . width, sbthumbrect . height);
+			MCU_set_rect(sbthumbrect, srect . x + t_thumb_offset - sbthumbrect . width / 2, srect . y, sbthumbrect . width, srect . height);
 	}
 	else
 	{
