@@ -47,6 +47,8 @@ protected:
 	
 	// MM-2012-11-05: [[ Object selection started/ended message ]]
 	bool m_selecting_objects : 1;
+	// dragEnter tracking: true when card itself (not a control) is the drag destination
+	bool m_card_drag_dest : 1;
 
 	static MCRectangle selrect;
 	static int2 startx;
