@@ -13202,8 +13202,12 @@ private function revIDEGetExtensionDocsData pAPI
       put tFolder & slash & "api.lcdoc" into tSourceAPI
       if there is a file tSourceAPI then
          if tSource is empty then
+            # With no source to regenerate it from, the api.lcdoc is the
+            # source: copy it across when the cached copy is missing or
+            # older than it (an external in a folder ships its docs this way)
             put false into tNeedUpdate
-            if there is no file tAPIDoc then
+            if there is no file tAPIDoc or \
+                  revIDEIsFilesetStale(tSourceAPI, tAPIDoc, false, tError) is true then
                revIDESetUTF8FileContents tAPIDoc, revIDEUTF8FileContents(tSourceAPI)
             end if
          else if tNeedUpdate then

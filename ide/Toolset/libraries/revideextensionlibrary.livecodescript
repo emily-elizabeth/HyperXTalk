@@ -1616,6 +1616,14 @@ function revIDEExtensionDocsData pForAPI
          add 1 to tCount
          put tUserScript into tDataA[tCount]
       end repeat
+      repeat for each element tExternal in __revIDEExternalDocsData()
+         -- the same external in both externals folders, or one sharing
+         -- its name with an extension, would be documented twice
+         if tListedA[tExternal["name"]] then next repeat
+         put true into tListedA[tExternal["name"]]
+         add 1 to tCount
+         put tExternal into tDataA[tCount]
+      end repeat
    end if
    return tDataA
 end revIDEExtensionDocsData
@@ -1702,6 +1710,56 @@ private function __revIDEScriptHasDocComments pStackFile
    end if
    return "/**" is in tScript
 end __revIDEScriptHasDocComments
+
+-- An external in a folder of its own (see revEnvironmentExternalFolders in
+-- the home stack) may carry an api.lcdoc beside its binaries, as an
+-- extension does. This lists such externals in the shape
+-- revIDEExtensionDocsData returns, so the Dictionary builds their entries
+-- into the Script API alongside the extensions. An external has no
+-- manifest, so it is listed under its folder name, with the title and
+-- author of the api.lcdoc's library header when it has one; with no source
+-- file to regenerate it from, the api.lcdoc is taken as it is.
+private function __revIDEExternalDocsData
+   local tDataA, tCount
+   put 0 into tCount
+   set the itemDelimiter to slash
+   repeat for each line tFolder in revEnvironmentExternalFolders()
+      local tAPIDoc
+      put tFolder & slash & "api.lcdoc" into tAPIDoc
+      if there is no file tAPIDoc then next repeat
+      add 1 to tCount
+      put tFolder into tDataA[tCount]["folder"]
+      put empty into tDataA[tCount]["source_file"]
+      put empty into tDataA[tCount]["source_type"]
+      put "external." & item -1 of tFolder into tDataA[tCount]["name"]
+      put __revIDELcdocHeaderElement(tAPIDoc, "Title") into tDataA[tCount]["title"]
+      if tDataA[tCount]["title"] is empty then
+         put item -1 of tFolder into tDataA[tCount]["title"]
+      end if
+      put __revIDELcdocHeaderElement(tAPIDoc, "Author") into tDataA[tCount]["author"]
+   end repeat
+   return tDataA
+end __revIDEExternalDocsData
+
+-- The content of a one-line element (Title or Author, say) in the library
+-- header of an lcdoc file: the elements before its first "Name:" entry.
+private function __revIDELcdocHeaderElement pFile, pElement
+   local tText
+   put revIDEUTF8FileContents(pFile) into tText
+   local tOffset
+   put lineOffset(cr & "Name:", cr & tText) into tOffset
+   if tOffset > 0 then
+      delete line tOffset to -1 of tText
+   end if
+   put lineOffset(cr & pElement & ":", cr & tText) into tOffset
+   if tOffset is 0 then
+      return empty
+   end if
+   local tLine
+   put line tOffset of tText into tLine
+   delete char 1 to (length(pElement) + 1) of tLine
+   return word 1 to -1 of tLine
+end __revIDELcdocHeaderElement
 
 on revIDEExtensionUpdateAPI pFolder, pExtensionSource
    if pExtensionSource is empty then
