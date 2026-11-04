@@ -161,19 +161,19 @@ private function errorTextColor pDimmed
 end errorTextColor
 
 -- The Mac theme paints a field without an explicit backgroundColor white in
--- both appearances, so give the error field dark-mode colours explicitly and
--- clear them again in light mode so that path stays as it was.
+-- both appearances, so give the error field a dark background and border
+-- explicitly and clear them again in light mode so that path stays as it
+-- was. The selection colour is left to the engine: it already follows the
+-- appearance (and the theme accent on Linux).
 private command applyAppearanceToField
    local tField
    put the long id of fld "Error" of group "errorDisplay" of me into tField
    if the systemAppearance is "dark" then
       set the backgroundColor of tField to revIDEColor("dataView_rowColor")
       set the borderColor of tField to "70,70,70"
-      set the hiliteColor of tField to revIDEColor("dataView_hiliteColor")
    else
       set the backgroundColor of tField to empty
       set the borderColor of tField to "220,220,220"
-      set the hiliteColor of tField to empty
    end if
 end applyAppearanceToField
 
