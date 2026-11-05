@@ -710,6 +710,10 @@ Boolean MCCard::mfocus(int2 x, int2 y)
 			mfocused->getref()->mfocus(x, y);
 		mgrabbed = False;
         
+        // Note on message ordering: mfocus_control calls enter() on the
+        // control before we return, so the control's dragEnter fires BEFORE
+        // the card's dragLeave.  A card dragLeave handler that sets dragAction
+        // will therefore clobber what the control's dragEnter handler set.
         if (mfocus_control(x, y, true))
         {
             if (MCdispatcher->isdragtarget() && m_card_drag_dest)
@@ -782,6 +786,13 @@ void MCCard::munfocus()
 {
 	MCtooltip->cleartip();
 	state &= ~CS_INSIDE;
+	// Always clear the card-is-drag-dest flag on any focus loss, regardless
+	// of whether a drag is currently active.  Without this, a plain
+	// mouseLeave after a completed drop (where isdragtarget() is already
+	// false) leaves m_card_drag_dest true, causing the next dragEnter to
+	// be silently skipped.  The flag is re-set in mfocus whenever the card
+	// becomes the drag destination again.
+	m_card_drag_dest = false;
 	if (mfocused != NULL && !mgrabbed)
 	{
 		MCControl *oldfocused = mfocused->getref();
@@ -792,8 +803,12 @@ void MCCard::munfocus()
 	{
 		if (MCdispatcher -> isdragtarget())
 		{
-			m_card_drag_dest = false;
 			message(MCM_drag_leave);
+			// Mirror MCControl::leave(): clear the drag-destination globals so
+			// that a later dodrop() does not dispatch dragDrop to a stale dest,
+			// and so dragEnd reaches the source on internal drag-and-drop.
+			MCdragaction = DRAG_ACTION_NONE;
+			MCdragdest = nil;
 		}
 		else
 			message(MCM_mouse_leave);
