@@ -1037,6 +1037,9 @@ moz_gtk_progress_chunk_paint_to_surface(GdkRectangle * rect,
 static cairo_surface_t* make_transparent_surface(int width, int height, cairo_t **cr_out);
 static GtkStyleContext* build_scale_trough_context(bool is_horizontal, GtkStateFlags state_flags);
 static GtkStyleContext* build_scale_slider_context(bool is_horizontal, GtkStateFlags state_flags);
+static GtkStyleContext* build_combo_button_context(GtkStateFlags state_flags);
+static void render_optionbutton(cairo_t *cr, gint x, gint y, gint width, gint height,
+                                GtkWidgetState *state);
 
 // -- tperry 16-11-2025 / 20-06-2026: Render scale track.
 // Uses a standalone CSS node path context (scale > trough) so GTK3.20+ CSS
@@ -1236,6 +1239,9 @@ moz_gtk_dropdown_arrow_paint_to_surface(GdkRectangle * rect,
 }
 
 // -- tperry 15-11-2025: New function to render option button to cairo surface
+// -- 2026-11-05 [issue 566]: frame and arrow now come from render_optionbutton();
+//    the previous version rendered only the bare "combobox" CSS node, which has
+//    no background, border or indicator in Adwaita and most GTK3 themes.
 cairo_surface_t*
 moz_gtk_optionbutton_paint_to_surface(GdkRectangle * rect,
                                        GtkWidgetState * state,
@@ -1243,64 +1249,30 @@ moz_gtk_optionbutton_paint_to_surface(GdkRectangle * rect,
 {
     ensure_optionbutton_widget();
     GtkWidget *widget = gOptionbuttonWidget;
-    
+
     int width = rect->width;
     int height = rect->height;
-    
+
     if (out_width) *out_width = width;
     if (out_height) *out_height = height;
-    
+
     // Get border width
     gint border_width = gtk_container_get_border_width(GTK_CONTAINER(widget));
-    
-    GdkRectangle button_area;
-    button_area.x = border_width;
-    button_area.y = border_width;
-    button_area.width = width - 2 * border_width;
-    button_area.height = height - 2 * border_width;
-    
-    GtkStyleContext *context = gtk_widget_get_style_context(widget);
-    gtk_style_context_save(context);
-    
-    // Convert state
-    GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
-    if (state) {
-        if (state->disabled)
-            state_flags = GTK_STATE_FLAG_INSENSITIVE;
-        else if (state->active)
-            state_flags = GTK_STATE_FLAG_ACTIVE;
-        else if (state->inHover)
-            state_flags = GTK_STATE_FLAG_PRELIGHT;
-        if (state->focused)
-            state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_FOCUSED);
-    }
-    
-    gtk_style_context_set_state(context, state_flags);
-    
+
     // Create surface for rendering
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
     cairo_t *cr = cairo_create(surface);
-    
+
     // Clear to transparent
     cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
     cairo_paint(cr);
     cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-    
-    // Render combobox button
-    gtk_render_background(context, cr, button_area.x, button_area.y,
-                          button_area.width, button_area.height);
-    gtk_render_frame(context, cr, button_area.x, button_area.y,
-                     button_area.width, button_area.height);
-    
-    // Render focus if needed
-    if (state && state->focused)
-    {
-        gtk_render_focus(context, cr, 0, 0, width, height);
-    }
-    
+
+    render_optionbutton(cr, border_width, border_width,
+                        width - 2 * border_width, height - 2 * border_width, state);
+
     cairo_destroy(cr);
-    gtk_style_context_restore(context);
-    
+
     return surface;
 }
 
@@ -2791,6 +2763,7 @@ gtk_option_menu_get_props (GtkOptionMenu       *option_menu,
 */
 
 // -- tperry 13-11-2025: GTK3 - rewrite for GtkComboBox instead of GtkOptionMenu
+// -- 2026-11-05 [issue 566]: shares render_optionbutton() with the surface painter
 static gint
 moz_gtk_optionbutton_paint(GdkWindow * drawable, GdkRectangle * area,
                            GdkRectangle * cliprect, GtkWidgetState *state)
@@ -2801,48 +2774,17 @@ moz_gtk_optionbutton_paint(GdkWindow * drawable, GdkRectangle * area,
 	// Get border width using GTK3 API
 	gint border_width = gtk_container_get_border_width(GTK_CONTAINER(widget));
 
-	GdkRectangle button_area;
-	button_area.x = cliprect->x + border_width;
-	button_area.y = cliprect->y + border_width;
-	button_area.width = cliprect->width - 2 * border_width;
-	button_area.height = cliprect->height - 2 * border_width;
-
-	GtkStyleContext *context = gtk_widget_get_style_context(widget);
 	cairo_t *cr = moz_gdk_create_cairo_context(drawable);
-	
+
 	// Set clip region
 	if (area) {
 		// cairo_rectangle(cr, area->x, area->y, area->width, area->height);
 		// cairo_clip(cr); // -- tperry 15-11-2025: Disabled - system Cairo 1.16.0 crashes
 	}
-	
-	// Convert state
-	GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
-	if (state) {
-		if (state->disabled)
-			state_flags = GTK_STATE_FLAG_INSENSITIVE;
-		else if (state->active)
-			state_flags = GTK_STATE_FLAG_ACTIVE;
-		else if (state->inHover)
-			state_flags = GTK_STATE_FLAG_PRELIGHT;
-		if (state->focused)
-			state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_FOCUSED);
-	}
-	
-	gtk_style_context_set_state(context, state_flags);
-	
-	// Render combobox button
-	gtk_render_background(context, cr, button_area.x, button_area.y,
-	                      button_area.width, button_area.height);
-	gtk_render_frame(context, cr, button_area.x, button_area.y,
-	                 button_area.width, button_area.height);
 
-	// Render focus if needed
-	if(state && state->focused)
-	{
-		gtk_render_focus(context, cr, cliprect->x, cliprect->y,
-		                 cliprect->width, cliprect->height);
-	}
+	render_optionbutton(cr, cliprect->x + border_width, cliprect->y + border_width,
+	                    cliprect->width - 2 * border_width,
+	                    cliprect->height - 2 * border_width, state);
 
 	cairo_destroy(cr);
 	return MOZ_GTK_SUCCESS;
@@ -2902,6 +2844,135 @@ build_scale_slider_context(bool is_horizontal, GtkStateFlags state_flags)
     gtk_style_context_set_state(ctx, state_flags);
     gtk_widget_path_free(path);
     return ctx;
+}
+
+// -- 2026-11-05 [issue 566]: Build a style context for the visible button of an
+// option menu (a GtkComboBox without an entry).
+// GTK3 CSS node path: combobox > box.horizontal > button.combo
+// gtk_widget_get_style_context(gOptionbuttonWidget) returns the "combobox" node,
+// which Adwaita and most themes leave without background, border or indicator:
+// the visible frame belongs to the child "button.combo" node.
+static GtkStyleContext*
+build_combo_button_context(GtkStateFlags state_flags)
+{
+    GtkWidgetPath *path = gtk_widget_path_new();
+
+    // Level 1: combobox
+    gint p0 = gtk_widget_path_append_type(path, GTK_TYPE_COMBO_BOX);
+    gtk_widget_path_iter_set_object_name(path, p0, "combobox");
+
+    // Level 2: box.horizontal
+    gint p1 = gtk_widget_path_append_type(path, GTK_TYPE_BOX);
+    gtk_widget_path_iter_set_object_name(path, p1, "box");
+    gtk_widget_path_iter_add_class(path, p1, "horizontal");
+
+    // Level 3: button.combo
+    gint p2 = gtk_widget_path_append_type(path, GTK_TYPE_BUTTON);
+    gtk_widget_path_iter_set_object_name(path, p2, "button");
+    gtk_widget_path_iter_add_class(path, p2, "combo");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+    gtk_style_context_set_state(ctx, state_flags);
+
+    gtk_widget_path_free(path);
+    return ctx;
+}
+
+// -- 2026-11-05 [issue 566]: The area at the right edge of an option menu that
+// holds the disclosure arrow.  Same arrow size as the combobox dropdown button
+// (moz_gtk_get_dropdown_arrow_size), inset by the combo button's own right
+// border and padding, so that the text area the engine reserves through
+// WTHEME_METRIC_OPTIONBUTTONARROWSIZE matches what is drawn.
+static void
+optionbutton_arrow_area(GtkStyleContext *button_context, GtkStateFlags state_flags,
+                        gint width, gint height, GdkRectangle *r_area)
+{
+    gint arrow_w = 0, arrow_h = 0;
+    moz_gtk_get_dropdown_arrow_size(&arrow_w, &arrow_h);
+
+    GtkBorder border, padding;
+    gtk_style_context_get_border(button_context, state_flags, &border);
+    gtk_style_context_get_padding(button_context, state_flags, &padding);
+    gint inset = border.right + padding.right;
+
+    r_area->width = MIN(arrow_w, width);
+    r_area->height = MIN(arrow_h, height);
+    r_area->x = MAX(0, width - inset - r_area->width);
+    r_area->y = (height - r_area->height) / 2;
+}
+
+gint moz_gtk_get_optionbutton_arrow_size(gint *width)
+{
+    ensure_arrow_widget();
+
+    GtkStyleContext *ctx = build_combo_button_context(GTK_STATE_FLAG_NORMAL);
+    GdkRectangle area;
+    // Measure against a rect wide enough that nothing is clamped
+    optionbutton_arrow_area(ctx, GTK_STATE_FLAG_NORMAL, 1000, 1000, &area);
+    g_object_unref(ctx);
+
+    if (width)
+        *width = 1000 - area.x;
+    return MOZ_GTK_SUCCESS;
+}
+
+// -- 2026-11-05 [issue 566]: Draw an option menu: the combo button frame and
+// its disclosure arrow.  Shared by the surface and the drawable painters.
+// GtkOptionMenu used to draw the arrow with gtk_paint_tab("optionmenutab");
+// the GTK3 rewrite rendered only the bare combobox node, which has neither.
+static void
+render_optionbutton(cairo_t *cr, gint x, gint y, gint width, gint height,
+                    GtkWidgetState *state)
+{
+    ensure_arrow_widget();
+
+    GtkStateFlags state_flags = GTK_STATE_FLAG_NORMAL;
+    if (state) {
+        if (state->disabled)
+            state_flags = GTK_STATE_FLAG_INSENSITIVE;
+        else if (state->active)
+            state_flags = GTK_STATE_FLAG_ACTIVE;
+        else if (state->inHover)
+            state_flags = GTK_STATE_FLAG_PRELIGHT;
+        if (state->focused)
+            state_flags = (GtkStateFlags)(state_flags | GTK_STATE_FLAG_FOCUSED);
+    }
+
+    // Frame: the theme's combo button, which follows light/dark mode
+    GtkStyleContext *button_context = build_combo_button_context(state_flags);
+    gtk_render_background(button_context, cr, x, y, width, height);
+    gtk_render_frame(button_context, cr, x, y, width, height);
+    if (state && state->focused)
+        gtk_render_focus(button_context, cr, x, y, width, height);
+
+    // Arrow: positioned like the combobox dropdown arrow so both match
+    GdkRectangle arrow_area, inner, arrow_rect;
+    optionbutton_arrow_area(button_context, state_flags, width, height, &arrow_area);
+    g_object_unref(button_context);
+
+    gint tx = 1 + XTHICKNESS(gDropdownButtonWidget);
+    gint ty = 1 + YTHICKNESS(gDropdownButtonWidget);
+    inner.x = arrow_area.x + tx;
+    inner.y = arrow_area.y + ty;
+    inner.width = MAX(1, arrow_area.width - 2 * tx);
+    inner.height = MAX(1, arrow_area.height - 2 * ty);
+
+    calculate_arrow_dimensions(&inner, &arrow_rect);
+    gint arrow_size = (gint)(MIN(arrow_rect.width, arrow_rect.height) * 0.9);
+    if (arrow_size > 0)
+    {
+        gdouble ax = x + arrow_rect.x + (arrow_rect.width - arrow_size) / 2.0;
+        gdouble ay = y + arrow_rect.y + (arrow_rect.height - arrow_size) / 2.0;
+
+        GtkStyleContext *arrow_context = gtk_widget_get_style_context(gArrowWidget);
+        gtk_style_context_save(arrow_context);
+        gtk_style_context_set_state(arrow_context, state_flags);
+        gtk_render_arrow(arrow_context, cr, G_PI, // Down arrow
+                         ax, ay, arrow_size);
+        gtk_style_context_restore(arrow_context);
+    }
 }
 
 // -- tperry 20-06-2026: Build a style context for one half of a GtkSpinButton.
