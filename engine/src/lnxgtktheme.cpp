@@ -1981,6 +1981,11 @@ int4 MCNativeTheme::getmetric(Widget_Metric wmetric)
         case WTHEME_METRIC_RADIOBUTTON_INDICATORSPACING:
         moz_gtk_radiobutton_get_metrics(0, &ret);
 		break;
+	case WTHEME_METRIC_OPTIONBUTTONARROWSIZE:
+		// -- 2026-11-05 [issue 566]: reserve the arrow area so the label is not
+		// drawn under the disclosure arrow
+		moz_gtk_get_optionbutton_arrow_size(&ret);
+		break;
 	default:
 		break;
 	}
