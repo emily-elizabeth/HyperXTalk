@@ -88,6 +88,7 @@
 				'script-libraries/macscrollenhancement2/macscrollenhancement2.livecodescript',
 				'script-libraries/hxtpm/hxtpm.livecodescript',
 				'script-libraries/jsonexport/jsonexport.livecodescript',
+				'script-libraries/photonjson/photonjson.livecodescript',
 			],
 			
 			'dependencies':

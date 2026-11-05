@@ -8255,6 +8255,9 @@ on revIDEActionSaveAsProject pStackID
 
    set the cursor to watch
    revIDESaveAsProject pStackID, tFolderPath
+   if the result is not "Error" then
+      answer revIDELocalise("Project saved:") & return & tFolderPath
+   end if
 end revIDEActionSaveAsProject
 
 on revIDESaveAsProject pStackID, pFolderPath
@@ -8325,20 +8328,38 @@ on revIDESaveAsProject pStackID, pFolderPath
    
    -- Build the full object tree as a LiveCode array
    local tTree
+   -- Serialising visits every card of every stack (substacks included), which
+   -- opens them; remember what was open so those can be closed again after.
+   local tStacksOpenBefore, tOpenStack
+   put the openStacks into tStacksOpenBefore
+   -- The serialiser reads the stored state of every object; with messages
+   -- locked no getProp handler (the datagrid behaviors have costly ones)
+   -- runs on those reads, which is both faster and what a saved file wants.
+   lock messages
    revIDEProjectBuildTree pStackID, tMediaFolder, tScriptsFolder, tTree
+   unlock messages
+   repeat for each line tOpenStack in the openStacks
+      if tOpenStack is the short name of pStackID then next repeat
+      if tOpenStack is not among the lines of tStacksOpenBefore then
+         close stack tOpenStack
+      end if
+   end repeat
    
    -- Sanitize the tree: convert all leaf values to plain strings so that
    -- boolean and data typed values don't trip up the JSON encoder.
    revIDEProjectSanitizeArray tTree
    
-   -- Encode to JSON (pretty-printed for readable diffs in version control).
-   -- Use lcb_JsonExport + lcb_prettyJson directly instead of jsonExport() to bypass
-   -- _cleaningNonPrintableChars, which maps numToChar(128-159) via Mac Roman and
-   -- corrupts accented characters (e.g. É →  → ƒ on re-import).
-   -- The project JSON is written as UTF-8, so Unicode text is valid as-is.
-   local tJSON
-   put lcb_JsonExport(tTree) into tJSON
-   put lcb_prettyJson(tJSON, 4, true) into tJSON
+   -- Encode to JSON with PhotonJSON (community.ferruslogic.library.photonjson),
+   -- pretty-printed for readable diffs in version control. Its pretty output
+   -- is text, which is written below as UTF-8.
+   local tJSON, tLibError
+   put revIDEProjectEnsureJSONLibrary() into tLibError
+   if tLibError is not empty then
+      close stack "revSaving"
+      answer error tLibError
+      return "Error"
+   end if
+   put JSONStringify(tTree, empty, true) into tJSON
    if tJSON is empty then
       close stack "revSaving"
       answer error revIDELocalise("Could not encode project data as JSON. The project was not saved.")
@@ -8526,6 +8547,29 @@ private function revIDEProjectReadScript pScriptFile, pFolderPath
    end if
    return tContent
 end revIDEProjectReadScript
+
+-- Makes sure PhotonJSON (community.ferruslogic.library.photonjson) is
+-- available. It is a script library extension and is normally loaded with
+-- the other extensions at startup; this covers a layout where it is not.
+-- Returns empty when the library is available, else an error message.
+private function revIDEProjectEnsureJSONLibrary
+   if there is a stack "community.ferruslogic.library.photonjson" then
+      return empty
+   end if
+   local tSavedItemDelim, tPath
+   put the itemDelimiter into tSavedItemDelim
+   put revIDESpecialFolderPath("extensions") & "/community.ferruslogic.library.photonjson/photonjson.livecodescript" into tPath
+   set the itemDelimiter to tSavedItemDelim
+   if there is not a file tPath then
+      return "The PhotonJSON library was not found at:" & return & tPath
+   end if
+   start using stack tPath
+   if there is a stack "community.ferruslogic.library.photonjson" then
+      return empty
+   end if
+   return "The PhotonJSON library could not be loaded from:" & return & tPath
+end revIDEProjectEnsureJSONLibrary
+
 
 on revIDEProjectBuildTree pStackID, pMediaFolder, pScriptsFolder, @rTree
    put "hyperxtalk-project" into rTree["format"]
@@ -8760,8 +8804,14 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
    local tBGFTOldDefault, tBGFTPrevCardID
    put the defaultStack into tBGFTOldDefault
    set the defaultStack to pStackName
-   put the id of the currentCard of stack pStackName into tBGFTPrevCardID
+   -- "this card of stack" is an object reference; "the currentCard of stack"
+   -- is only the card's name, so "the id of" it fails as soon as the card
+   -- has a name of its own.
+   put the id of this card of stack pStackName into tBGFTPrevCardID
    lock screen
+   -- no preOpenCard/openCard handlers (datagrid refreshes and the like) while
+   -- the serialiser moves between cards; it only reads properties
+   lock messages
    go card id pCardIDNum of stack pStackName
    local tBGFTCardCtrlCt
    put the number of controls of card id pCardIDNum of stack pStackName into tBGFTCardCtrlCt
@@ -8824,6 +8874,7 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
    if tBGFTPrevCardID is not empty then
       go card id tBGFTPrevCardID of stack pStackName
    end if
+   unlock messages
    unlock screen
    set the defaultStack to tBGFTOldDefault
 end revIDEProjectSerializeCard
@@ -9264,22 +9315,6 @@ on revIDEProjectSerializeCustomProps pObjRef, @rObj
       local tSetProps
       put the customProperties[tSetName] of pObjRef into tSetProps
       if tSetProps is an array then
-         -- Preserve full integer precision for revUniqueID: the JSON float representation
-         -- (e.g. 1.78707e+12) loses digits for 13-digit timestamps.  Storing as a quoted
-         -- string keeps full precision so UID scans at load time can match correctly.
-         if tSetProps["revUniqueID"] is not empty then
-            put tSetProps["revUniqueID"] & "" into tSetProps["revUniqueID"]
-         end if
-         -- Workaround: lcb_JsonExport strips spaces from string values that contain
-         -- embedded double-quote characters (e.g. long ids like stack "My Stack").
-         -- Replace the quote char with a safe placeholder before JSON encoding;
-         -- revIDEProjectReconstructCustomProps restores it after loading.
-         local tQKey
-         repeat for each key tQKey in tSetProps
-            if tSetProps[tQKey] is not an array and quote is in tSetProps[tQKey] then
-               replace quote with "__LCQUOTE__" in tSetProps[tQKey]
-            end if
-         end repeat
          put tSetProps into rObj["customPropertySets"][tSetName]
       end if
    end repeat
@@ -9299,14 +9334,6 @@ on revIDEProjectReconstructCustomProps pNode, pObjRef
       repeat for each key tSetName in pNode["customPropertySets"]
          local tSetProps
          put pNode["customPropertySets"][tSetName] into tSetProps
-         -- Restore double-quote chars that were placeholdered during serialization
-         -- to work around the lcb_JsonExport space-stripping bug.
-         local tQKey
-         repeat for each key tQKey in tSetProps
-            if tSetProps[tQKey] is not an array and "__LCQUOTE__" is in tSetProps[tQKey] then
-               replace "__LCQUOTE__" with quote in tSetProps[tQKey]
-            end if
-         end repeat
          revIDEProjectDecodeBinaryProps tSetProps
          set the customProperties[tSetName] of pObjRef to tSetProps
       end repeat
@@ -9331,21 +9358,24 @@ end revIDEProjectDecodeBinaryProps
 
 -- Recursively converts every leaf value in an array to a plain string,
 -- so that livecode.lang.boolean and livecode.lang.data typed values do not
--- cause type errors inside jsonExport.
--- Binary values (those containing null bytes or other control characters that
--- jsonExport cannot safely represent) are base64-encoded with a "__binary__:"
+-- reach the JSON encoder as text.
+-- Binary values (those containing null bytes or other control characters)
+-- are base64-encoded with a "__binary__:"
 -- prefix so they survive the JSON round-trip intact.
 on revIDEProjectSanitizeArray @pArray
    local tKey, tSubArray
+   -- Numbers are converted to text with full precision (the default
+   -- numberFormat rounds to six decimals, which would truncate values such
+   -- as a scrollbar's thumbSize).
+   set the numberFormat to "0.###############"
    repeat for each key tKey in pArray
       if pArray[tKey] is an array then
          put pArray[tKey] into tSubArray
          revIDEProjectSanitizeArray tSubArray
          put tSubArray into pArray[tKey]
       else
-         -- Preserve booleans and numbers so jsonExport emits the correct JSON types.
-         -- LCB widget properties require proper types; stringifying breaks them.
-         if pArray[tKey] is a boolean or pArray[tKey] is a number then
+         -- Booleans pass through as they are; the encoder writes them bare.
+         if pArray[tKey] is a boolean then
             next repeat
          end if
          local tLeaf
@@ -9365,28 +9395,26 @@ end revIDEProjectSanitizeArray
 -- (which cannot be guaranteed to form valid UTF-8 sequences — e.g. raw MD5
 -- checksums stored in custom properties).
 private function revIDEProjectValueIsBinary pValue
-   local i
-   -- Chars 0x00–0x08 (null through backspace)
-   repeat with i = 0 to 8
-      if pValue contains numToChar(i) then return true
-   end repeat
-   -- 0x0B (vertical tab) and 0x0C (form feed)
-   if pValue contains numToChar(11) then return true
-   if pValue contains numToChar(12) then return true
-   -- 0x0E–0x1F (shift-out through unit separator)
-   repeat with i = 14 to 31
-      if pValue contains numToChar(i) then return true
-   end repeat
-   -- Note: bytes 0x80–0xFF are NOT treated as binary here. The project JSON file
-   -- is written/read as explicit UTF-8, so Unicode text strings (including names
-   -- with non-ASCII characters) are stored as readable UTF-8 in the JSON rather
-   -- than being base64-encoded. Only genuine control-character binary data is flagged.
-   return false
+   -- One regex for the control characters that mark binary data: 0x00-0x08,
+   -- 0x0B, 0x0C and 0x0E-0x1F (tab, LF and CR are text). Bytes 0x80-0xFF are
+   -- not treated as binary: the project JSON is written and read as UTF-8,
+   -- so text with non-ASCII characters is stored readably.
+   return matchText(pValue, "[\x{0}-\x{8}\x{B}\x{C}\x{E}-\x{1F}]")
 end revIDEProjectValueIsBinary
 
 -- ---------------------------------------------------------------------------
 -- Project format loading (commented out for incremental testing)
 -- ---------------------------------------------------------------------------
+
+-- The name stored in a stack node, decoded if it was base64-wrapped.
+private function revIDEProjectNodeName pNode
+   local tName
+   put pNode["name"] into tName
+   if tName begins with "__binary__:" then
+      put base64Decode(char 12 to -1 of tName) into tName
+   end if
+   return tName
+end revIDEProjectNodeName
 
 on revIDELoadFromProject pFilePath
    local tFolderPath, tSavedItemDelim
@@ -9405,10 +9433,16 @@ on revIDELoadFromProject pFilePath
       return "Error"
    end if
    read from file pFilePath until end
-   put textDecode(it, "UTF-8") into tJSON
+   put it into tJSON
    close file pFilePath
-   local tTree
-   put jsonImport(tJSON) into tTree
+   local tTree, tLibError
+   put revIDEProjectEnsureJSONLibrary() into tLibError
+   if tLibError is not empty then
+      answer error tLibError
+      return "Error"
+   end if
+   -- PhotonJSON takes the UTF-8 bytes of the file directly
+   put JSONParser(tJSON) into tTree
    if tTree is not an array then
       answer revIDELocalise("Invalid project file format.")
       return "Error"
@@ -9419,6 +9453,47 @@ on revIDELoadFromProject pFilePath
    end if
    local tStackNode, tNewStackName
    put tTree["stack"] into tStackNode
+   -- Stacks of this project (main stack and substacks) that are already in
+   -- memory would make "create stack" fall back to an auto-generated name.
+   -- If the project's main stack is open, bring it to the front; if another
+   -- stack of the same name is open, ask; then discard what is in memory,
+   -- substacks first (deleting a main stack does not remove its substacks).
+   local tProjectNames, tProjectName, tMainName, tOpenName, si
+   put revIDEProjectNodeName(tStackNode) into tMainName
+   put tMainName into tProjectNames
+   if tStackNode["substacks"] is an array then
+      repeat with si = 1 to the number of elements of tStackNode["substacks"]
+         put return & revIDEProjectNodeName(tStackNode["substacks"][si]) after tProjectNames
+      end repeat
+   end if
+   put empty into tOpenName
+   repeat for each line tProjectName in tProjectNames
+      if tProjectName is among the lines of the openStacks then
+         put tProjectName into tOpenName
+         exit repeat
+      end if
+   end repeat
+   if tOpenName is not empty then
+      if tMainName is among the lines of the openStacks and \
+            the cRevProjectFilePath of stack tMainName is tFolderPath then
+         go stack tMainName
+         return empty
+      end if
+      local tReplaceParams
+      put tOpenName into tReplaceParams[1]
+      answer revIDELocalise("A stack named '%1' is already open. Close it and load the project?", tReplaceParams) \
+            with revIDELocalise("Close and load") and revIDELocalise("Cancel")
+      if it is revIDELocalise("Cancel") then
+         return "Error"
+      end if
+   end if
+   lock messages
+   repeat with si = the number of lines in tProjectNames down to 1
+      if there is a stack (line si of tProjectNames) then
+         delete stack (line si of tProjectNames)
+      end if
+   end repeat
+   unlock messages
    lock screen
    -- tDeferredBehaviors collects {controlRef, behaviorName, behaviorStack} entries
    -- tDeferredIcons collects {controlRef, stackName, iconNames} entries for buttons
@@ -9572,6 +9647,7 @@ on revIDELoadFromProject pFilePath
       go card 1 of stack tNewStackName
       send "preOpenStack" to card 1 of stack tNewStackName
       send "preOpenCard" to card 1 of stack tNewStackName
+      set the visible of stack tNewStackName to true
       go stack tNewStackName
       send "openStack" to card 1 of stack tNewStackName
       send "openCard" to card 1 of stack tNewStackName
@@ -9588,18 +9664,26 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    if tName begins with "__binary__:" then
       put base64Decode(char 12 to -1 of tName) into tName
    end if
-   create stack tName
+   -- Messages are locked before the stack is created: the engine creates it
+   -- under a temporary name, opens it and only then names it, and the IDE's
+   -- deferred ideOpenStack would otherwise look for the temporary name.
+   lock messages
+   -- invisible, so that the default-size window does not flash before the
+   -- rect and the controls are applied; the load shows it at the end
+   create invisible stack tName
    local tNewStackName
    put the short name of it into tNewStackName
    -- Restore the stack's original ID immediately so its fresh auto-assigned ID
    -- cannot collide with any control's origID during reconstruction.
-   if pStackNode["id"] is not empty then
+   -- The engine only lets an id be raised, so a saved id below the fresh
+   -- one cannot be restored; leave it in that case.
+   if pStackNode["id"] is not empty and pStackNode["id"] > the id of stack tNewStackName then
       set the id of stack tNewStackName to pStackNode["id"]
    end if
    -- Restore card 1's original ID for the same reason.
    local tEarlyCard1ID
    put the id of card 1 of stack tNewStackName into tEarlyCard1ID
-   if pStackNode["cards"][1]["id"] is not empty then
+   if pStackNode["cards"][1]["id"] is not empty and pStackNode["cards"][1]["id"] > tEarlyCard1ID then
       set the id of card id tEarlyCard1ID of stack tNewStackName to pStackNode["cards"][1]["id"]
    end if
    lock screen
@@ -9904,15 +9988,12 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
                end if
             end repeat
             set the mainStack of stack tSubName to tNewStackName
-            if tIsRowTplStack then
-               -- Keep DataGridTemplates stack in memory (hidden) so datagrid behavior
-               -- can access the row template group. Hiding is fine; the datagrid behavior
-               -- works with hidden template stacks (same as normal LC IDE workflow).
-               set the destroyStack of stack tSubName to false
-               hide stack tSubName
-            else
-               close stack tSubName
-            end if
+            -- A closed substack stays in memory with its mainstack, so the
+            -- datagrid behavior can still reach the row template group. It
+            -- used to be left open but hidden, which kept the whole stack in
+            -- memory after the user closed it (destroyStack could not purge
+            -- it) and made the next load of the project collide on the name.
+            close stack tSubName
          end if
       end repeat
    end if
