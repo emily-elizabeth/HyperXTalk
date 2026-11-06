@@ -3,17 +3,17 @@
 	[
 		'../../common.gypi',
 	],
-
+	
 	'targets':
 	[
 		{
 			'target_name': 'libzip',
-
+			
 			'dependencies':
 			[
 				'../libz/libz.gyp:libz',
 			],
-
+			
 			'conditions':
 			[
 				[
@@ -21,45 +21,44 @@
 					{
 						'target_name': 'libzip',
 						'type': 'static_library',
-
+						
 						'variables':
 						{
 							'library_for_module': 1,
 							'silence_warnings': 1,
 						},
-
-						# Source list derived from libzip-1.11.4/lib/CMakeLists.txt
-						# (add_library(zip ...) block and the `else(WIN32)` branch).
-						# Optional compression backends (bzip2/xz/zstd) and crypto
-						# (openssl / commoncrypto / gnutls / mbedtls / winzip-aes)
-						# are intentionally excluded — the engine does not link
-						# against them.
-
+						
 						'include_dirs':
 						[
+#							'include',
 							'src',
 						],
-
+						
+						# libzip 1.12, built without bzip2, xz, zstd or WinZip AES
+						# (see ORIGIN). config.h and zipconf.h are hand-written in
+						# place of the files libzip's CMake build generates.
 						'sources':
 						[
-							'src/compat.h',
 							'src/zip.h',
 							'src/zipconf.h',
-							'src/zip_crypto.h',
-							'src/zip_crypto_commoncrypto.h',
-							'src/zip_crypto_gnutls.h',
-							'src/zip_crypto_mbedtls.h',
-							'src/zip_crypto_openssl.h',
-							'src/zipint.h',
+							
+							'src/compat.h',
+							'src/config.h',
+							'src/siphash.h',
+							'src/zip_random.h',
 							'src/zip_source_file.h',
 							'src/zip_source_file_stdio.h',
-
+							'src/zip_source_file_win32.h',
+							'src/zipint.h',
+							
+							'src/siphash.c',
 							'src/zip_add.c',
 							'src/zip_add_dir.c',
 							'src/zip_add_entry.c',
 							'src/zip_algorithm_deflate.c',
 							'src/zip_buffer.c',
 							'src/zip_close.c',
+							'src/zip_crypto.c',
 							'src/zip_delete.c',
 							'src/zip_dir_add.c',
 							'src/zip_dirent.c',
@@ -122,6 +121,7 @@
 							'src/zip_set_file_compression.c',
 							'src/zip_set_name.c',
 							'src/zip_source_accept_empty.c',
+							'src/zip_source_at_eof.c',
 							'src/zip_source_begin_write.c',
 							'src/zip_source_begin_write_cloning.c',
 							'src/zip_source_buffer.c',
@@ -166,88 +166,64 @@
 							'src/zip_unchange_archive.c',
 							'src/zip_unchange_data.c',
 							'src/zip_utf-8.c',
-
-							# Unix platforms (mac/linux/ios/android/emscripten).
-							# Windows overrides these under the OS=="win"
-							# condition below.
-							'src/zip_source_file_stdio_named.c',
-							'src/zip_random_unix.c',
 						],
-
+						
 						'conditions':
 						[
 							[
 								'OS == "win"',
 								{
-									'sources/':
-									[
-										['exclude', '^src/zip_source_file_stdio_named\\.c$'],
-										['exclude', '^src/zip_random_unix\\.c$'],
-									],
+									# Win32 file I/O (UTF-8 paths become UTF-16) and
+									# CryptGenRandom, which seeds the key of every
+									# archive's name table and makes PKWARE
+									# encryption headers. Temporary file names come
+									# from GetTickCount.
 									'sources':
 									[
-										'src/zip_source_file_win32.h',
-										# src/zip_crypto_win.c intentionally
-										# excluded — upstream gates it on
-										# HAVE_WINDOWS_CRYPTO; we ship without
-										# Windows crypto matching the other
-										# excluded crypto backends.
 										'src/zip_random_win32.c',
 										'src/zip_source_file_win32.c',
 										'src/zip_source_file_win32_ansi.c',
 										'src/zip_source_file_win32_named.c',
-										'src/zip_source_file_win32_utf8.c',
 										'src/zip_source_file_win32_utf16.c',
+										'src/zip_source_file_win32_utf8.c',
+									],
+									
+									'defines':
+									[
+										'_CRT_SECURE_NO_WARNINGS',
+										'_CRT_NONSTDC_NO_DEPRECATE',
+									],
+									
+									'link_settings':
+									{
+										'libraries':
+										[
+											'-ladvapi32',
+										],
+									},
+								},
+								{
+									'sources':
+									[
+										'src/zip_random_unix.c',
+										'src/zip_source_file_stdio_named.c',
 									],
 								},
 							],
 						],
-
-						'defines':
-						[
-							# Compile the static library itself without dllexport/dllimport
-							# decorations so the object files contain plain zip_* symbols.
-							'ZIP_STATIC',
-						],
-
+						
 						'direct_dependent_settings':
 						{
 							'include_dirs':
 							[
-								'include',
-							],
-
-							'defines':
-							[
-								# Propagate ZIP_STATIC to all consumers so zip.h does not
-								# decorate declarations with __declspec(dllimport) on Windows.
-								# Without this, consumers generate __imp_zip_* references that
-								# the static libzip.lib cannot satisfy (it has plain zip_*).
-								'ZIP_STATIC',
-							],
-
-							'conditions':
-							[
-								[
-									'OS == "win"',
-									{
-										'libraries':
-										[
-											# zip_random_win32.c uses CryptAcquireContext /
-											# CryptGenRandom / CryptReleaseContext from the
-											# legacy CryptoAPI, all of which live in advapi32.
-											# Use -l prefix so GYP treats this as a system
-											# library name, not a file path.
-											'-ladvapi32',
-										],
-									},
-								],
+#								'include',
+								'src',
 							],
 						},
 					},
 					{
 						'type': 'none',
-
+						
 						'direct_dependent_settings':
 						{
 							'libraries':
