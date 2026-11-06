@@ -720,6 +720,59 @@ void MCField::SetScrollbarWidth(MCExecContext& ctxt, uinteger_t p_width)
 		Redraw(true, textx, texty);
 	}
 }
+void MCField::GetScrollbarForeColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color)
+{
+    // Return the colour stored on the field, or empty if not set.
+    if (m_scrollbar_fore_set)
+    {
+        r_color.color = m_scrollbar_fore_color;
+        r_color.name  = nil;
+        ctxt.FormatLegacyColor(m_scrollbar_fore_color, r_color.name);
+    }
+    else
+        MCInterfaceNamedColorInit(ctxt, r_color);
+}
+
+void MCField::SetScrollbarForeColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color)
+{
+    // An empty-string name means "unset"; otherwise store the RGB on the field.
+    if (p_color.name != nil && MCStringIsEmpty(p_color.name))
+    {
+        m_scrollbar_fore_set = false;
+    }
+    else
+    {
+        m_scrollbar_fore_color = p_color.color;
+        m_scrollbar_fore_set   = true;
+    }
+    layer_redrawall();
+}
+
+void MCField::GetScrollbarBackColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color)
+{
+    if (m_scrollbar_back_set)
+    {
+        r_color.color = m_scrollbar_back_color;
+        r_color.name  = nil;
+        ctxt.FormatLegacyColor(m_scrollbar_back_color, r_color.name);
+    }
+    else
+        MCInterfaceNamedColorInit(ctxt, r_color);
+}
+
+void MCField::SetScrollbarBackColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color)
+{
+    if (p_color.name != nil && MCStringIsEmpty(p_color.name))
+    {
+        m_scrollbar_back_set = false;
+    }
+    else
+    {
+        m_scrollbar_back_color = p_color.color;
+        m_scrollbar_back_set   = true;
+    }
+    layer_redrawall();
+}
 
 void MCField::GetFormattedWidth(MCExecContext& ctxt, integer_t& r_width)
 {

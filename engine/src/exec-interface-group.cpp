@@ -815,3 +815,53 @@ void MCGroup::SetOpaque(MCExecContext &ctxt, bool setting)
 		m_layer_attr_changed = true;
 	}
 }
+
+// ── scrollbarForeColor / scrollbarBackColor for MCGroup ───────────────────────
+
+void MCGroup::GetScrollbarForeColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color)
+{
+    if (m_scrollbar_fore_set)
+    {
+        r_color.color = m_scrollbar_fore_color;
+        r_color.name  = nil;
+        ctxt.FormatLegacyColor(m_scrollbar_fore_color, r_color.name);
+    }
+    else
+        MCInterfaceNamedColorInit(ctxt, r_color);
+}
+
+void MCGroup::SetScrollbarForeColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color)
+{
+    if (p_color.name != nil && MCStringIsEmpty(p_color.name))
+        m_scrollbar_fore_set = false;
+    else
+    {
+        m_scrollbar_fore_color = p_color.color;
+        m_scrollbar_fore_set   = true;
+    }
+    layer_redrawall();
+}
+
+void MCGroup::GetScrollbarBackColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color)
+{
+    if (m_scrollbar_back_set)
+    {
+        r_color.color = m_scrollbar_back_color;
+        r_color.name  = nil;
+        ctxt.FormatLegacyColor(m_scrollbar_back_color, r_color.name);
+    }
+    else
+        MCInterfaceNamedColorInit(ctxt, r_color);
+}
+
+void MCGroup::SetScrollbarBackColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color)
+{
+    if (p_color.name != nil && MCStringIsEmpty(p_color.name))
+        m_scrollbar_back_set = false;
+    else
+    {
+        m_scrollbar_back_color = p_color.color;
+        m_scrollbar_back_set   = true;
+    }
+    layer_redrawall();
+}

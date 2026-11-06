@@ -1628,6 +1628,8 @@ const LT factor_table[] =
         {"scripttextsize", TT_PROPERTY, P_SCRIPT_TEXT_SIZE},		
         {"scroll", TT_PROPERTY, P_VSCROLL},
         {"scrollbar", TT_CHUNK, CT_SCROLLBAR},
+        {"scrollbarbackcolor", TT_PROPERTY, P_SCROLLBAR_BACK_COLOR},
+        {"scrollbarforecolor", TT_PROPERTY, P_SCROLLBAR_FORE_COLOR},
         {"scrollbars", TT_CLASS, CT_SCROLLBAR},
         {"scrollbarwidth", TT_PROPERTY, P_SCROLLBAR_WIDTH},
         {"sec", TT_FUNCTION, F_SECONDS},
