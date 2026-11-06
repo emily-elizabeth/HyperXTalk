@@ -12,7 +12,7 @@ BUILD_OUT="${REPO_ROOT}/_build/mac/Debug/libz.a"
 SDK_PATH="$(xcrun --sdk macosx --show-sdk-path)"
 CLANG="$(xcrun -find clang)"
 
-CFLAGS="-arch arm64 -mmacosx-version-min=11.0 -isysroot ${SDK_PATH} -O2 -include unistd.h"
+CFLAGS="-arch arm64 -mmacosx-version-min=12.0 -isysroot ${SDK_PATH} -O2 -include unistd.h"
 INCLUDES="-I${SRC} -I${INC}"
 
 SOURCES="adler32.c compress.c crc32.c deflate.c gzclose.c gzlib.c gzread.c gzwrite.c \

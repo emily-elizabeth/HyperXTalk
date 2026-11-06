@@ -391,6 +391,9 @@ struct load_command {
 // PM-2018-10-02: [[ iOS 12 Support ]] Used by iOS device builds when min_version=12
 #define LC_BUILD_VERSION 0x32 /* build for platform min OS version */
 
+#define LC_DYLD_EXPORTS_TRIE (0x33 | LC_REQ_DYLD) /* export trie for dynamic linker */
+#define LC_DYLD_CHAINED_FIXUPS (0x34 | LC_REQ_DYLD) /* chained fixups for dyld */
+
 /*
  * A variable length string in a load command is represented by an lc_str
  * union.  The strings are stored just after the load command structure and
@@ -1384,6 +1387,8 @@ template<typename T> bool MCDeployToMacOSXMainBody(const MCDeployParameters& p_p
                 case LC_FUNCTION_STARTS:
                 case LC_DYLIB_CODE_SIGN_DRS:
                 case LC_DATA_IN_CODE:
+				case LC_DYLD_EXPORTS_TRIE:    // pulled from build_installer.py
+				case LC_DYLD_CHAINED_FIXUPS:  // pulled from build_installer.py
                     relocate_function_starts_command((linkedit_data_command *)t_commands[i], t_file_delta, t_address_delta);
                     break;
                     

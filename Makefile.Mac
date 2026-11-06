@@ -659,7 +659,7 @@ package-mac-bin:
 	  SDKPATH=$$(xcrun --sdk macosx --show-sdk-path 2>/dev/null) && \
 	  mkdir -p "$$QLOUT" && \
 	  swiftc \
-	    -target arm64-apple-macos11.0 \
+	    -target arm64-apple-macos12.0 \
 	    -sdk "$$SDKPATH" \
 	    -module-name HyperXTalkQL \
 	    -framework Quartz \
