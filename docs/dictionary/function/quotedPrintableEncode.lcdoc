@@ -1,0 +1,50 @@
+Name: quotedPrintableEncode
+
+Type: function
+
+Syntax: the quotedPrintableEncode of <data>
+
+Syntax: quotedPrintableEncode(<data>)
+
+Summary:
+<return|Returns> a Quoted-Printable-<encode|encoded> string.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+put quotedPrintableEncode(messageBody) into emailBody
+
+Parameters:
+data (string):
+A string of binary data of any length.
+
+Returns:
+The <quotedPrintableEncode> function <return|returns> a text <string>
+representing the binary <data> in Quoted-Printable format.
+
+Description:
+Use the <quotedPrintableEncode> function to <encode> <binary file|binary
+data> for use in MIME email bodies and headers, where most printable
+ASCII characters are transmitted as-is and only non-printable or
+non-ASCII bytes are escaped.
+
+The <quotedPrintableEncode> function is the <inverse> of the
+<quotedPrintableDecode> <function>. Printable ASCII characters (except
+=) are passed through unchanged. All other bytes are encoded as =XX
+where XX is the uppercase hexadecimal value of the byte. Lines are
+wrapped at 76 characters using soft line breaks (=\r\n) as required by
+RFC 2045.
+
+For technical information about Quoted-Printable encoding, see
+[RFC 2045, section 6.7](https://tools.ietf.org/html/rfc2045#section-6.7).
+
+References: function (control structure), base64Encode (function),
+quotedPrintableDecode (function), encode (glossary),
+binary file (glossary), return (glossary), inverse (keyword),
+string (keyword)
+
+Tags: text processing

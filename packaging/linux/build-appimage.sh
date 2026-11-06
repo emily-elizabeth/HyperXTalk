@@ -46,7 +46,7 @@ cp "$OUT_DIR/HyperXTalk" "$APPBIN/"
 strip --strip-debug "$APPBIN/HyperXTalk" 2>/dev/null || true
 
 # --- IDE content (Toolset, Resources, Documentation, Plugins, etc.) ---
-for subdir in Toolset Resources Documentation Plugins Externals; do
+for subdir in Toolset Resources Documentation Plugins Externals Ext; do
     if [ -d "$IDE_DIR/$subdir" ]; then
         cp -a "$IDE_DIR/$subdir" "$APPBIN/"
     fi
@@ -164,6 +164,20 @@ fi
 if [ -d "$OUT_DIR/modules" ]; then
     mkdir -p "$APPBIN/modules"
     cp -a "$OUT_DIR/modules/"* "$APPBIN/modules/" 2>/dev/null || true
+fi
+
+# --- Toolchain (LCB compiler, runner, and modules) ---
+# Mirrors the Mac bundle layout: Tools/Toolchain/{lc-compile,lc-run,modules/}
+# lc-compile and lc-run are needed by the IDE to compile LCB extensions.
+mkdir -p "$APPBIN/Toolchain"
+for tool in lc-compile lc-run lc-compile-ffi-java; do
+    if [ -f "$OUT_DIR/$tool" ]; then
+        cp "$OUT_DIR/$tool" "$APPBIN/Toolchain/"
+        chmod +x "$APPBIN/Toolchain/$tool"
+    fi
+done
+if [ -d "$OUT_DIR/modules" ]; then
+    cp -a "$OUT_DIR/modules" "$APPBIN/Toolchain/"
 fi
 
 # --- Vosk speech recognition library ---

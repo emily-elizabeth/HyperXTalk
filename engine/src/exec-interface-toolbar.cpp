@@ -288,8 +288,7 @@ void MCToolbar::SetItemIcon(MCExecContext& ctxt, MCNameRef p_item,
         if (t_image != nil)
         {
             MCAutoDataRef t_data;
-            t_image->GetText(ctxt, &t_data);
-            if (*t_data != nil && !MCDataIsEmpty(*t_data))
+            if (MCToolbarCopyImageAsPNG(t_image, ctxt, &t_data))
                 t_item->SetImageData(*t_data);
         }
     }

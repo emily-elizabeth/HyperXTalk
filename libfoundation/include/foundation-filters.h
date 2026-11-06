@@ -25,6 +25,8 @@
 
 bool MCFiltersBase64Decode(MCStringRef p_src, MCDataRef& r_dst);
 bool MCFiltersBase64Encode(MCDataRef p_src, MCStringRef& r_dst);
+bool MCFiltersQuotedPrintableDecode(MCStringRef p_src, MCDataRef& r_dst);
+bool MCFiltersQuotedPrintableEncode(MCDataRef p_src, MCStringRef& r_dst);
 bool MCFiltersCompress(MCDataRef p_source, MCDataRef& r_result);
 bool MCFiltersIsCompressed(MCDataRef p_source);
 bool MCFiltersDecompress(MCDataRef p_source, MCDataRef& r_result);

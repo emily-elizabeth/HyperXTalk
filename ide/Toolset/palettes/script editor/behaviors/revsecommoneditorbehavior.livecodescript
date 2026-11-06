@@ -417,6 +417,23 @@ private function __GetPreference pPreference, pDefault
    return pDefault
 end __GetPreference
 
+# Parameters
+#   pKey : the name of an editor colour defined by the colorization scheme
+#   pDefault : the colour to use when the scheme does not define it
+# Returns
+#   The scheme's colour for pKey, or pDefault. Like __GetPreference this goes
+#   through the script editor stack, as this behavior is shared with other editors.
+private function __GetEditorColor pKey, pDefault
+   try
+      dispatch function "seColorizationEditorColor" to stack "revNewScriptEditor" with pKey, pDefault
+      if the result is not empty then
+         return the result
+      end if
+   end try
+   
+   return pDefault
+end __GetEditorColor
+
 -- Text Formatting Code
 command textFormatInitialize
    -- permit use in environment with no dependencies
@@ -785,7 +802,7 @@ private function textFormatSelection pText
       put return & tTextLines[tIndex] after tResult
    end repeat
    
-   if line -1 of pText = "" then put cr after tResult
+   if char -1 of pText = cr then put cr after tResult
    
    return tResult
 end textFormatSelection
@@ -1660,7 +1677,7 @@ function lineNumberToVerticalLoc pLineNumber
 
    -- Folding
    if sePrefGet("Editor,folding") then
-      put the formattedTop of line pLineNumber of tField + the vScroll of tField - the top of tField - 4 into tHeight
+      put the formattedTop of line pLineNumber of tField + the vScroll of tField - the top of tField - 2 into tHeight
    else
       put (pLineNumber - 1) * the effective textHeight of getScriptField() into tHeight
    end if
@@ -4031,7 +4048,8 @@ private command __HighlightBrackets pCharNum, pChar
    
    if it and pCharNum is not tMatchedCharNum then
       local tColor
-      put __GetPreference("editor,brackethighlightcolor", "255,200,200") into tColor
+      put __GetEditorColor("brackethighlight", \
+            __GetPreference("editor,brackethighlightcolor", "255,200,200")) into tColor
       
       put pCharNum into sHighlightedBrackets["open"]
       set the backgroundColor of char pCharNum of field "script" of me to tColor
@@ -4183,7 +4201,8 @@ private command __SelectPlaceholder pUUID, pFromParagraph, pToParagraph, pStyled
    put pUUID into sEditPlaceholder
    
    local tColor
-   put __GetPreference("editor,placeholdercolor", kPlaceholderDefaultBackgroundColor) into tColor
+   put __GetEditorColor("placeholder", \
+         __GetPreference("editor,placeholdercolor", kPlaceholderDefaultBackgroundColor)) into tColor
   
    local tParagraphIndex
    repeat with tParagraphIndex = 1 to the number of elements of pStyledText

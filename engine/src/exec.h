@@ -1973,6 +1973,8 @@ void MCMathSetRandomSeed(MCExecContext& ctxt, integer_t p_value);
 
 void MCFiltersEvalBase64Encode(MCExecContext& ctxt, MCDataRef p_source, MCStringRef& r_result);
 void MCFiltersEvalBase64Decode(MCExecContext& ctxt, MCStringRef p_source, MCDataRef& r_result);
+void MCFiltersEvalQuotedPrintableEncode(MCExecContext& ctxt, MCDataRef p_source, MCStringRef& r_result);
+void MCFiltersEvalQuotedPrintableDecode(MCExecContext& ctxt, MCStringRef p_source, MCDataRef& r_result);
 void MCFiltersEvalBinaryEncode(MCExecContext& ctxt, MCStringRef p_format, MCValueRef *p_params, uindex_t p_param_count, MCDataRef& r_string);
 void MCFiltersEvalBinaryDecode(MCExecContext& ctxt, MCStringRef p_format, MCDataRef p_data, MCValueRef *r_results, uindex_t p_result_count, integer_t& r_done);
 void MCFiltersEvalCompress(MCExecContext& ctxt, MCDataRef p_source, MCDataRef& r_result);
@@ -2196,6 +2198,7 @@ extern MCExecCustomTypeInfo *kMCInterfaceButtonIconTypeInfo;
 extern MCExecCustomTypeInfo *kMCInterfaceTriStateTypeInfo;
 extern MCExecCustomTypeInfo *kMCInterfaceStackFileVersionTypeInfo;
 extern MCExecEnumTypeInfo *kMCInterfaceSystemAppearanceTypeInfo;
+extern MCExecEnumTypeInfo *kMCInterfacePreferredAppearanceTypeInfo;
 
 void MCInterfaceInitialize(MCExecContext& ctxt);
 void MCInterfaceFinalize(MCExecContext& ctxt);
@@ -2664,6 +2667,8 @@ void MCInterfaceSetScreenGamma(MCExecContext& ctxt, double p_value);
 void MCInterfaceGetSelectionMode(MCExecContext& ctxt, intenum_t& r_value);
 void MCInterfaceSetSelectionMode(MCExecContext& ctxt, intenum_t p_value);
 void MCInterfaceGetSystemAppearance(MCExecContext& ctxt, intenum_t& r_value);
+void MCInterfaceGetPreferredAppearance(MCExecContext& ctxt, intenum_t& r_value);
+void MCInterfaceSetPreferredAppearance(MCExecContext& ctxt, intenum_t p_value);
 void MCInterfaceGetSystemWindowColor(MCExecContext& ctxt, MCStringRef& r_value);
 void MCInterfaceGetSystemTextColor(MCExecContext& ctxt, MCStringRef& r_value);
 void MCInterfaceGetSystemThemeName(MCExecContext& ctxt, MCStringRef& r_value);

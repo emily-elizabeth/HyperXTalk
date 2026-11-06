@@ -213,7 +213,10 @@ command update
       end if
       
       if not tHandlerExists then
-         put merge("<font color='[[kDefaultHandlerTextColor]]'>[[tParseHandler]]</font>") \
+         local tDefaultHandlerColor
+         put colorToHtml(seColorizationEditorColor("defaulthandlertext", kDefaultHandlerTextColor)) \
+               into tDefaultHandlerColor
+         put merge("<font color='[[tDefaultHandlerColor]]'>[[tParseHandler]]</font>") \
                into tParseHandler
       end if
       
@@ -228,7 +231,8 @@ command update
    set the textSize of field "Handlers" of me to sePrefGet("editor,fontsize")
    set the textFont of field "Handlers" of me to sePrefGet("editor,font")
    
-   set the foregroundColor of field "Handlers" of me to contrastingTextColor(the backgroundColor of field "Handlers" of me)
+   set the foregroundColor of field "Handlers" of me to \
+         seColorizationEditorColor("handlerlisttext", contrastingTextColor(the backgroundColor of field "Handlers" of me))
       
    set the htmlText of field "Handlers" of me to tText
    set the cHandlers of field "Handlers" of me to tHandlers
@@ -263,6 +267,22 @@ command update
    unlock screen
 end update
 
+
+# Parameters
+#   pColor : a colour as "r,g,b" or "#rrggbb"
+# Returns
+#   The colour in "#rrggbb" form, for use in htmlText.
+private function colorToHtml pColor
+   if pColor contains comma then
+      local tHex, tChannel
+      put "#" into tHex
+      repeat for each item tChannel in pColor
+         put char -2 to -1 of ("0" & baseConvert(tChannel, 10, 16)) after tHex
+      end repeat
+      return tHex
+   end if
+   return pColor
+end colorToHtml
 
 private function contrastingTextColor pBackgroundColor
    set the itemDelimiter to comma

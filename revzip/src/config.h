@@ -10,10 +10,14 @@
 /* #undef HAVE__DUP */
 /* #undef HAVE__FDOPEN */
 /* #undef HAVE__FILENO */
+/* #undef HAVE__FSEEKI64 */
+/* #undef HAVE__FSTAT64 */
+/* #undef HAVE__FTELLI64 */
 /* #undef HAVE__SETMODE */
 /* #undef HAVE__SNPRINTF */
 /* #undef HAVE__SNPRINTF_S */
 /* #undef HAVE__SNWPRINTF_S */
+/* #undef HAVE__STAT64 */
 /* #undef HAVE__STRDUP */
 /* #undef HAVE__STRICMP */
 /* #undef HAVE__STRTOI64 */
@@ -23,12 +27,15 @@
 /* #undef HAVE_CLONEFILE */
 /* #undef HAVE_COMMONCRYPTO */
 #define HAVE_CRYPTO
+#define HAVE_EXPLICIT_BZERO
+/* #undef HAVE_EXPLICIT_MEMSET */
 #define HAVE_FICLONERANGE
 #define HAVE_FILENO
 #define HAVE_FCHMOD
 #define HAVE_FSEEKO
 #define HAVE_FTELLO
 /* #undef HAVE_GETPROGNAME */
+/* #undef HAVE_GETSECURITYINFO */
 /* #undef HAVE_GNUTLS */
 #define HAVE_LIBBZ2
 #define HAVE_LIBLZMA
@@ -36,9 +43,7 @@
 #define HAVE_LOCALTIME_R
 /* #undef HAVE_LOCALTIME_S */
 /* #undef HAVE_MEMCPY_S */
-/* #undef HAVE_MBEDTLS */
 /* #undef HAVE_MKSTEMP */
-/* #undef HAVE_NULLABLE */
 #define HAVE_OPENSSL
 /* #undef HAVE_SETMODE */
 #define HAVE_SNPRINTF
@@ -65,8 +70,9 @@
 /* #undef HAVE_SYS_NDIR_H */
 /* #undef WORDS_BIGENDIAN */
 #define HAVE_SHARED
+#define LZMA_WINDOW_LIMIT UINT64_MAX
 /* END DEFINES */
 #define PACKAGE "libzip"
-#define VERSION "1.10.1"
+#define VERSION "1.12"
 
 #endif /* HAD_CONFIG_H */

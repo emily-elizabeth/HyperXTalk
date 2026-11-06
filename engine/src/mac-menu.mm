@@ -27,6 +27,10 @@
 
 #include <Carbon/Carbon.h>
 
+// HXT: appearance the engine should draw in (honours the preferredAppearance
+// override); defined in mac-theme.mm.
+NSAppearance *MCMacEffectiveAppearance(void);
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // NOTE:
@@ -1980,7 +1984,7 @@ bool MCPlatformPopUpMenu(MCPlatformMenuRef p_menu, MCPlatformWindowRef p_window,
     // Inherit the appearance from the window/app so the menu renders correctly
     // in dark mode. NSMenu does not automatically pick up the effective
     // appearance from the view it is anchored to.
-    [t_menu setAppearance: t_view != nil ? [t_view effectiveAppearance] : [NSApp effectiveAppearance]];
+    [t_menu setAppearance: t_view != nil ? [t_view effectiveAppearance] : MCMacEffectiveAppearance()];
 
 	[t_menu popUpMenuPositioningItem: p_item == UINDEX_MAX ? nil : [t_menu itemAtIndex: p_item] atLocation: t_location inView: t_view];
 	

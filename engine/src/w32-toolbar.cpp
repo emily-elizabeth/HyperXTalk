@@ -135,10 +135,43 @@ static HBITMAP _bitmapFromPNGData(const void *p_bytes, uindex_t p_length,
     if (t_scaled.GetLastStatus() != Ok)
         return NULL;
 
-    HBITMAP t_hbmp = NULL;
-    // Transparent background for per-pixel alpha; ILC_COLOR32 image lists on
-    // Vista+ handle pre-multiplied alpha from GetHBITMAP correctly.
-    t_scaled.GetHBITMAP(Color(0, 0, 0, 0), &t_hbmp);
+    // Copy the pixels into our own top-down 32bpp DIB section as
+    // pre-multiplied BGRA — the layout an ILC_COLOR32 image list alpha-blends.
+    // Bitmap::GetHBITMAP() is deliberately avoided: its output does not
+    // reliably carry an alpha channel the image list recognises, which made
+    // transparent PNG pixels render as solid black squares (bug #480).
+    BITMAPINFO t_bmi;
+    ZeroMemory(&t_bmi, sizeof(t_bmi));
+    t_bmi.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
+    t_bmi.bmiHeader.biWidth       = p_size;
+    t_bmi.bmiHeader.biHeight      = -p_size; // top-down
+    t_bmi.bmiHeader.biPlanes      = 1;
+    t_bmi.bmiHeader.biBitCount    = 32;
+    t_bmi.bmiHeader.biCompression = BI_RGB;
+
+    void *t_bits = NULL;
+    HBITMAP t_hbmp = CreateDIBSection(NULL, &t_bmi, DIB_RGB_COLORS,
+                                      &t_bits, NULL, 0);
+    if (!t_hbmp || !t_bits)
+        return NULL;
+
+    BitmapData t_data;
+    Rect t_rect(0, 0, p_size, p_size);
+    if (t_scaled.LockBits(&t_rect, ImageLockModeRead,
+                          PixelFormat32bppPARGB, &t_data) != Ok)
+    {
+        DeleteObject(t_hbmp);
+        return NULL;
+    }
+
+    const int t_dst_stride = p_size * 4;
+    for (int y = 0; y < p_size; y++)
+        memcpy((BYTE *)t_bits + y * t_dst_stride,
+               (const BYTE *)t_data.Scan0 + y * t_data.Stride,
+               t_dst_stride);
+
+    t_scaled.UnlockBits(&t_data);
+    GdiFlush();
     return t_hbmp;
 }
 
@@ -210,9 +243,11 @@ public:
         SendMessage(m_hwnd_toolbar, TB_BUTTONSTRUCTSIZE,
                     (WPARAM)sizeof(TBBUTTON), 0);
 
-        // 32-bit ARGB image list for icons
+        // 32-bit pre-multiplied ARGB image list for icons.  No ILC_MASK: with
+        // a mask the list falls back to mask-based transparency and ignores
+        // per-pixel alpha, so transparent areas draw black (bug #480).
         m_image_list = ImageList_Create(W32_ICON_SIZE, W32_ICON_SIZE,
-                                        ILC_COLOR32 | ILC_MASK, 8, 8);
+                                        ILC_COLOR32, 8, 8);
         SendMessage(m_hwnd_toolbar, TB_SETIMAGELIST, 0,
                     (LPARAM)m_image_list);
 

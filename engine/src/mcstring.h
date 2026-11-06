@@ -89,6 +89,7 @@ extern const char * const MCmetalstring;
 extern const char * const MCutilitystring;
 extern const char * const MCnoshadowstring;
 extern const char * const MCforcetaskbarstring;
+extern const char * const MCtransparenttitlebarstring;
 extern const char * const MCunicodestring;
 extern const char * const MCnativestring;
 

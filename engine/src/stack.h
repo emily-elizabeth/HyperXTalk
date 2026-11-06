@@ -1198,6 +1198,8 @@ public:
 	void SetSystemWindow(MCExecContext& ctxt, bool setting);
 	void GetMetal(MCExecContext& ctxt, bool& r_setting);
 	void SetMetal(MCExecContext& ctxt, bool setting);
+	void GetTransparentTitlebar(MCExecContext& ctxt, bool& r_setting);
+	void SetTransparentTitlebar(MCExecContext& ctxt, bool setting);
 	void GetWindowShadow(MCExecContext& ctxt, bool& r_setting);
 	void SetWindowShadow(MCExecContext& ctxt, bool setting);
 	void GetResizable(MCExecContext& ctxt, bool& r_setting);

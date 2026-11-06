@@ -376,6 +376,11 @@ void MCPlatformWindow::SetProperty(MCPlatformWindowProperty p_property, MCPlatfo
 			m_has_shadow = *(bool *)p_value;
 			m_changes . has_shadow_changed = true;
 			break;
+		case kMCPlatformWindowPropertyTransparentTitlebar:
+			assert(p_type == kMCPlatformPropertyTypeBool);
+			m_transparent_titlebar = *(bool *)p_value;
+			m_changes . has_transparent_titlebar_changed = true;
+			break;
 		case kMCPlatformWindowPropertyHasModifiedMark:
 			assert(p_type == kMCPlatformPropertyTypeBool);
 			m_has_modified_mark = *(bool *)p_value;
@@ -474,6 +479,10 @@ void MCPlatformWindow::GetProperty(MCPlatformWindowProperty p_property, MCPlatfo
 			break;
 		case kMCPlatformWindowPropertyHasShadow:
 			assert(p_type == kMCPlatformPropertyTypeBool);
+			break;
+		case kMCPlatformWindowPropertyTransparentTitlebar:
+			assert(p_type == kMCPlatformPropertyTypeBool);
+			*(bool *)r_value = m_transparent_titlebar;
 			break;
 		case kMCPlatformWindowPropertyHasModifiedMark:
 			assert(p_type == kMCPlatformPropertyTypeBool);

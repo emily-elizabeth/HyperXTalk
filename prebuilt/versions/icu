@@ -1,8 +1,10 @@
 58.2
+78.3
 # SHA256 of source tarball:
 # 2b0a4410153a9b20de0e20c7d8b66049a72aef244b53683d0d7521371683da0c
 # URL: https://github.com/unicode-org/icu/releases/download/release-58-2/icu4c-58_2-src.tgz
-#
+#      https://github.com/unicode-org/icu/releases/download/release-78.3/icu4c-78.3-src.tgz
+
 # Attempted-bump history (keep for context — bumping is a separate task):
 #   58.3  — headers-only bump that was never followed up on
 #   63.2  — as far as one can get without dumping core
@@ -13,5 +15,7 @@
 # change the variable in libicu.gyp if you change this value
 
 # the shasum check file is named differently in different versions.
+https://github.com/unicode-org/icu/releases/download/release-78.3/SHASUM512.txt
 https://github.com/unicode-org/icu/releases/download/release-65-1/SHASUM512.txt
 https://github.com/unicode-org/icu/releases/download/release-63-2/icu4c-SHASUM512.txt.asc
+

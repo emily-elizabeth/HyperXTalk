@@ -501,6 +501,8 @@ enum Functions {
     F_QT_EFFECTS,
     F_QT_VERSION,
     F_QUERY_REGISTRY,
+    F_QUOTED_PRINTABLE_DECODE,
+    F_QUOTED_PRINTABLE_ENCODE,
     F_RANDOM,
     F_RECORD_COMPRESSION_TYPES,
     F_RECORD_FORMATS,
@@ -1328,6 +1330,7 @@ enum Properties {
     P_METAL,
     P_SYSTEM_WINDOW,
     P_LIVE_RESIZING,
+    P_TRANSPARENT_TITLEBAR,
     P_MINIMIZE_BOX,
     P_MAXIMIZE_BOX,
     P_COLLAPSE_BOX,
@@ -1805,6 +1808,9 @@ enum Properties {
     P_LAYER_CLIP_RECT,
 	
 	P_SYSTEM_APPEARANCE,
+
+	// HXT: global override of the app's appearance (system / light / dark)
+	P_PREFERRED_APPEARANCE,
 
 	P_SYSTEM_WINDOW_COLOR,
 
