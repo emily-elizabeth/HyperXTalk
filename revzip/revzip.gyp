@@ -29,14 +29,14 @@
 				'../thirdparty/libz/libz.gyp:libz',
 			],
 
-#			'defines':
-#			[
+			'defines':
+			[
 				# libzip is linked as a static library; without ZIP_STATIC,
 				# zip.h decorates every function with __declspec(dllimport)
 				# on Windows, generating __imp_zip_* references that the
 				# static libzip.lib cannot satisfy.
-#				'ZIP_STATIC',
-#			],
+				'ZIP_STATIC',
+			],
 
 #			'include_dirs':
 #			[
@@ -95,10 +95,10 @@
 				'../thirdparty/libz/libz.gyp:libz',
 			],
 
-#			'defines':
-#			[
-#				'ZIP_STATIC',
-#			],
+			'defines':
+			[
+				'ZIP_STATIC',
+			],
 
 			'sources':
 			[
