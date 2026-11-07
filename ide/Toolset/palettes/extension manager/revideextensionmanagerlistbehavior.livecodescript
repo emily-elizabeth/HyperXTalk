@@ -90,10 +90,17 @@ end hxtApplyListColors
 
 on systemAppearanceChanged pMode, pWindowColor, pTextColor
    -- Re-colour the rows for the new appearance without closing and reopening
-   -- the stack: rendering the view again runs each row's colour code.
+   -- the stack: refreshing the view runs each row's colour code. RefreshViewRows
+   -- rather than RenderView, which would reset the selection; restore the
+   -- selection afterwards in case the refresh dropped it.
+   local tHilitedRows
    lock screen
+   put the dvHilitedRows of group "extensionList" of me into tHilitedRows
    hxtApplyListColors
-   send "renderView" to group "extensionList" of me
+   send "RefreshViewRows" to group "extensionList" of me
+   if tHilitedRows is not empty and the dvHilitedRows of group "extensionList" of me is not tHilitedRows then
+      set the dvHilitedRows of group "extensionList" of me to tHilitedRows
+   end if
    unlock screen
    pass systemAppearanceChanged
 end systemAppearanceChanged
