@@ -211,7 +211,7 @@ static bool osx_cf_fetch_format(CFLocaleRef p_locale, CFDateFormatterStyle p_dat
 	{
 		CFStringRef t_calendar;
 		t_calendar = (CFStringRef)CFDateFormatterCopyProperty(t_formatter, kCFDateFormatterCalendarName);
-		if (t_calendar != kCFGregorianCalendar)
+		if (t_calendar == NULL || !CFEqual(t_calendar, kCFGregorianCalendar))
 			t_success = false;
 		
 		if (t_calendar != NULL)
@@ -317,8 +317,38 @@ static bool osx_cf_fetch_format(CFLocaleRef p_locale, CFDateFormatterStyle p_dat
 							/* UNCHECKED */ MCStringAppendFormat(t_format, "%%p");
 						break;
 						
+					case 'L': // STANDALONE MONTH (treat same as M)
+						if (t_count == 1)
+							/* UNCHECKED */ MCStringAppendFormat(t_format, "%%#m");
+						else if (t_count == 2)
+							/* UNCHECKED */ MCStringAppendFormat(t_format, "%%m");
+						else if (t_count == 3)
+							/* UNCHECKED */ MCStringAppendFormat(t_format, "%%b");
+						else
+							/* UNCHECKED */ MCStringAppendFormat(t_format, "%%B");
+						break;
+					case 'c': // STANDALONE WEEKDAY (treat same as E)
+						if (t_count < 4)
+							/* UNCHECKED */ MCStringAppendFormat(t_format, "%%a");
+						else
+							/* UNCHECKED */ MCStringAppendFormat(t_format, "%%A");
+						break;
+					case 'u': // EXTENDED YEAR (treat same as y)
+						if (t_count == 2)
+							/* UNCHECKED */ MCStringAppendFormat(t_format, "%%y");
+						else
+							/* UNCHECKED */ MCStringAppendFormat(t_format, "%%Y");
+						break;
 					case 'G': // ERA
-					case 'Z': // TIME ZONE
+					case 'Z': // TIMEZONE (RFC 822/ISO 8601, uppercase)
+					case 'z': // TIMEZONE ABBREVIATION (e.g. CET, PST)
+					case 'v': // GENERIC TIMEZONE (e.g. Pacific Time)
+					case 'V': // TIMEZONE ID
+					case 'O': // LOCALIZED GMT OFFSET
+					case 'X': // ISO 8601 TIMEZONE (zero UTC = Z)
+					case 'x': // ISO 8601 TIMEZONE (zero UTC = +00)
+					case 'B': // FLEXIBLE DAY PERIOD (morning/afternoon)
+					case 'r': // RELATED GREGORIAN YEAR
 						break;
 	
 					case 'S': // MILLISECOND
@@ -327,6 +357,8 @@ static bool osx_cf_fetch_format(CFLocaleRef p_locale, CFDateFormatterStyle p_dat
 					case 'w': // WEEK IN YEAR
 					case 'W': // WEEK IN MONTH
 					case 'k': // ONE-BASED TWENTY-FOUR HOUR
+					case 'q': // QUARTER (standalone)
+					case 'Q': // QUARTER (in context)
 					default: 
 						t_success = false;
 						break;
@@ -471,6 +503,22 @@ static bool osx_cf_cache_locale(MCDateTimeLocale *p_info)
 	return t_success;
 }
 
+// Called by CFNotificationCenter when the system locale changes at runtime.
+static void locale_changed_callback(CFNotificationCenterRef, void *, CFStringRef, const void *, CFDictionaryRef)
+{
+	// Discard the stale cached locale so it gets rebuilt on next access.
+	if (s_locale_info != nil)
+	{
+		delete s_locale_info;
+		s_locale_info = nil;
+	}
+	if (s_locale_timezone != NULL)
+	{
+		CFRelease(s_locale_timezone);
+		s_locale_timezone = NULL;
+	}
+}
+
 static MCDateTimeLocale *do_cache_locale(void)
 {
 	extern MCDateTimeLocale *g_basic_locale;
@@ -484,6 +532,21 @@ static MCDateTimeLocale *do_cache_locale(void)
 	
 	if (!osx_cf_cache_locale(s_locale_info))
 		*s_locale_info = *g_basic_locale;
+	
+	// Register (once) for runtime locale-change notifications so the cache
+	// gets invalidated if the user changes Language & Region while running.
+	static bool s_observer_registered = false;
+	if (!s_observer_registered)
+	{
+		CFNotificationCenterAddObserver(
+			CFNotificationCenterGetLocalCenter(),
+			NULL,
+			locale_changed_callback,
+			kCFLocaleCurrentLocaleDidChangeNotification,
+			NULL,
+			CFNotificationSuspensionBehaviorDeliverImmediately);
+		s_observer_registered = true;
+	}
 	
 	// MM-2011-09-14: [[ BZ 9721 ]] Make sure a value is returned
 	return s_locale_info;
