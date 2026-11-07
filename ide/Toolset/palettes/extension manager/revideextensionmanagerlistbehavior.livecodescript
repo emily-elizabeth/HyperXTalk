@@ -82,26 +82,23 @@ end setUpExtensionList
 -- HXT dark mode: the row and hilite colours come from revIDEColor, which
 -- follows the current appearance, so they are applied here rather than only
 -- when the list is first set up, and again when the appearance changes.
-private command hxtApplyListColors
-   set the viewProp["hilite color"] of group "extensionList" of card "list" of this stack to ideColorGet("pb_line_selected")
+command hxtApplyListColors
+   -- Setting "hilite color" makes the data view re-hilite every visible row,
+   -- which repaints each row's background with the row colours and runs the
+   -- row's dvHilite (its text and icon colours), so set it last.
    set the viewProp["row color"] of group "extensionList" of card "list" of this stack to revIDEColor("dataView_rowColor")
    set the viewProp["alternate row color"] of group "extensionList" of card "list" of this stack to revIDEColor("dataView_rowAlternateColor")
+   set the viewProp["hilite color"] of group "extensionList" of card "list" of this stack to ideColorGet("pb_line_selected")
 end hxtApplyListColors
 
 on systemAppearanceChanged pMode, pWindowColor, pTextColor
    -- Re-colour the rows for the new appearance without closing and reopening
-   -- the stack: refreshing the view runs each row's colour code. RefreshViewRows
-   -- rather than RenderView, which would reset the selection; restore the
-   -- selection afterwards in case the refresh dropped it.
-   local tHilitedRows
-   lock screen
-   put the dvHilitedRows of group "extensionList" of me into tHilitedRows
-   hxtApplyListColors
-   send "RefreshViewRows" to group "extensionList" of me
-   if tHilitedRows is not empty and the dvHilitedRows of group "extensionList" of me is not tHilitedRows then
-      set the dvHilitedRows of group "extensionList" of me to tHilitedRows
-   end if
-   unlock screen
+   -- the stack. Applying the list colours re-hilites every visible row in
+   -- place, so the selection is kept. Deferred so that it runs after the
+   -- palette frame behaviour further along the message path, whose
+   -- systemAppearanceChanged recolours every widget on the card, including
+   -- the rows' icons, with a single generic colour.
+   send "hxtApplyListColors" to me in 0 milliseconds
    pass systemAppearanceChanged
 end systemAppearanceChanged
 
