@@ -230,6 +230,11 @@
 				},
 			},
 
+			'xcode_settings':
+			{
+				'CODE_SIGN_ENTITLEMENTS': '../HyperXTalk.entitlements',
+			},
+
 			'all_dependent_settings':
 			{
 				'variables':
