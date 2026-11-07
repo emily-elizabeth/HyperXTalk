@@ -100,6 +100,6 @@
 #endif
 
 #define PACKAGE "libzip"
-#define VERSION "1.12"
+#define VERSION "1.12.1"
 
 #endif /* HAD_CONFIG_H */
