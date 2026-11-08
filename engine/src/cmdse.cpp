@@ -852,11 +852,37 @@ MCMove::~MCMove()
 	delete startloc;
 	delete endloc;
 	delete durationexp;
+	delete trash_file;
 }
 
 Parse_stat MCMove::parse(MCScriptPoint &sp)
 {
 	initpoint(sp);
+
+	// Handle: move file <path> to trash
+	{
+		MCScriptPoint t_savesp(sp);
+		// Accept both "file" and "folder"/"directory"
+		bool t_got_token = sp.skip_token(SP_THERE, TT_UNDEFINED, TM_FILE) == PS_NORMAL
+		                || sp.skip_token(SP_THERE, TT_UNDEFINED, TM_DIRECTORY) == PS_NORMAL;
+		if (t_got_token)
+		{
+			MCExpression *t_path = NULL;
+			if (sp.parseexp(False, True, &t_path) == PS_NORMAL)
+			{
+				if (sp.skip_token(SP_FACTOR, TT_TO, PT_TO) == PS_NORMAL &&
+					sp.skip_token(SP_THERE, TT_UNDEFINED, TM_TRASH) == PS_NORMAL)
+				{
+					trash_file = t_path;
+					is_trash = True;
+					return PS_NORMAL;
+				}
+			}
+			delete t_path;
+			sp = t_savesp;
+		}
+	}
+
 	object = new (nothrow) MCChunk(False);
 	if (object->parse(sp, False) != PS_NORMAL)
 	{
@@ -903,6 +929,15 @@ Parse_stat MCMove::parse(MCScriptPoint &sp)
 
 void MCMove::exec_ctxt(MCExecContext &ctxt)
 {
+	if (is_trash)
+	{
+		MCAutoStringRef t_path;
+		if (!ctxt . EvalExprAsStringRef(trash_file, EE_DELETE_BADFILEEXP, &t_path))
+			return;
+		MCFilesExecMoveFileToTrash(ctxt, *t_path);
+		return;
+	}
+
 	MCObject *optr;
 	uint4 parid;
 

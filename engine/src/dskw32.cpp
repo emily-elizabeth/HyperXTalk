@@ -1774,6 +1774,31 @@ struct MCWindowsDesktop: public MCSystemInterface, public MCWindowsSystemService
 		return DeleteFileW(*t_path_wstr);
     }
 	
+	virtual Boolean MoveFileToTrash(MCStringRef p_path)
+	{
+		MCAutoStringRefAsWString t_path_wstr;
+		/* UNCHECKED */ t_path_wstr.Lock(p_path);
+
+		// SHFileOperationW requires the path to be double-null-terminated.
+		const wchar_t *t_src = *t_path_wstr;
+		size_t t_len = wcslen(t_src);
+		wchar_t *t_buf = new (nothrow) wchar_t[t_len + 2];
+		if (t_buf == NULL)
+			return False;
+		wcsncpy(t_buf, t_src, t_len);
+		t_buf[t_len]     = L'\0';
+		t_buf[t_len + 1] = L'\0';
+
+		SHFILEOPSTRUCTW t_op = {};
+		t_op.wFunc  = FO_DELETE;
+		t_op.pFrom  = t_buf;
+		t_op.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+		int t_result = SHFileOperationW(&t_op);
+
+		delete[] t_buf;
+		return t_result == 0 ? True : False;
+	}
+
 	virtual Boolean RenameFileOrFolder(MCStringRef p_old_name, MCStringRef p_new_name)
     {
 		MCAutoStringRefAsWString t_old_wstr, t_new_wstr;

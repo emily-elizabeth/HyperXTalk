@@ -496,6 +496,8 @@ struct MCSystemInterface
 	virtual Boolean DeleteFolder(MCStringRef p_path) = 0;
 	
 	virtual Boolean DeleteFile(MCStringRef p_path) = 0;
+	// Move a file to the system trash/recycle bin. Returns False if not supported on this platform.
+	virtual Boolean MoveFileToTrash(MCStringRef p_path) { return False; }
 	
 	virtual Boolean RenameFileOrFolder(MCStringRef p_old_name, MCStringRef p_new_name) = 0;
 	

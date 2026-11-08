@@ -782,6 +782,25 @@ void MCFilesExecDeleteFile(MCExecContext& ctxt, MCStringRef p_target)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+void MCFilesExecMoveFileToTrash(MCExecContext& ctxt, MCStringRef p_target)
+{
+	if (!ctxt . EnsureDiskAccessIsAllowed())
+		return;
+
+	if (!MCS_exists(p_target, true) && !MCS_exists(p_target, false))
+	{
+		ctxt . SetTheResultToStaticCString("can't find that file");
+		return;
+	}
+
+	if (!MCS_movefiletotrash(p_target))
+		ctxt . SetTheResultToStaticCString("can't move to trash");
+	else
+		ctxt . SetTheResultToEmpty();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void MCFilesExecPerformOpen(MCExecContext& ctxt, MCNameRef p_name, int p_mode, intenum_t p_encoding, bool p_is_driver)
 {
 	if (!ctxt . EnsureDiskAccessIsAllowed())
