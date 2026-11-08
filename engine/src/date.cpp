@@ -137,6 +137,16 @@ bool MCDateTimeFinalize()
 	return true;
 }
 
+const MCDateTimeLocale *get_locale(bool pUseSystem, uint4 pLength)
+{
+	const MCDateTimeLocale *t_locale;
+	if (pUseSystem && pLength != P_INTERNET && pLength != P_SQL && pLength != P_SHORT)
+		t_locale = MCS_getdatetimelocale();
+	else
+		t_locale = g_basic_locale;
+	return t_locale;
+}
+
 static bool match_string(MCStringRef p_string, MCStringRef p_input, uindex_t &x_offset)
 {
 	uindex_t t_length;
@@ -708,12 +718,12 @@ static bool datetime_validate(const MCDateTime& p_datetime)
 
 void MCD_decompose_format(MCExecContext &ctxt, uint4 p_format, uint4& r_length, bool& r_system)
 {
-	if (p_format > CF_SYSTEM)	// = the system xxx date
+	if (p_format > CF_SYSTEM)	// = the system xxx date|time
 	{
 		r_system = true;
 		r_length = p_format - CF_SYSTEM;
 	}
-	else if (p_format > CF_ENGLISH)	// = the working xxx date
+	else if (p_format > CF_ENGLISH)	// = the working xxx date|time
 	{
 		r_system = false;
 		r_length = p_format - CF_ENGLISH;
@@ -735,7 +745,6 @@ void MCD_date(MCExecContext &ctxt, Properties p_format, MCStringRef &r_date)
 	MCD_decompose_format(ctxt, p_format, t_length, t_use_system);
 
 	// default to short date length
-//	if (t_length != P_SHORT && t_length != P_ABBREVIATE && t_length != P_LONG && t_length != P_INTERNET && t_length != P_SQL)
 	switch(t_length)
 	{
 		case P_ABBREVIATE:
@@ -756,12 +765,17 @@ void MCD_date(MCExecContext &ctxt, Properties p_format, MCStringRef &r_date)
 
 	// now get the date format
 	MCStringRef t_date_format;
-	if (P_INTERNET == t_length)
-		t_date_format = MCSTR(s_internet_date_format);
-	else if (P_SQL == t_length)
-		t_date_format = MCSTR(s_sql_date_format);
-	else
-		t_date_format = t_locale -> date_formats[t_length - P_SHORT];
+	switch (t_length)
+	{
+		case P_INTERNET:
+			t_date_format = MCSTR(s_internet_date_format);
+			break;
+		case P_SQL:
+			t_date_format = MCSTR(s_sql_date_format);
+			break;
+		default:
+			t_date_format = t_locale -> date_formats[t_length - P_SHORT];
+	}
 
 	datetime_format(t_locale, t_date_format, t_datetime, r_date);
 }
@@ -771,24 +785,33 @@ void MCD_time(MCExecContext &ctxt, Properties p_format, MCStringRef &r_time)
 	MCDateTime t_datetime;
 	MCS_getlocaldatetime(t_datetime);
 
-	bool t_use_system;
+	bool t_use_system = false;
 	uint4 t_length;
 	MCD_decompose_format(ctxt, p_format, t_length, t_use_system);
 
-	if (t_length != P_LONG && t_length != P_INTERNET)
-		t_length = P_ABBREVIATE;
+	switch(t_length)
+	{
+		case P_LONG:	// long time is always 24-hour format
+			break;
+		default:
+			t_length = P_ABBREVIATE;
+	}
 
 	const MCDateTimeLocale *t_locale;
-	if (t_use_system && t_length != P_INTERNET)
+	if (t_use_system)
 		t_locale = MCS_getdatetimelocale();
 	else
 		t_locale = g_basic_locale;
 
 	MCStringRef t_date_format;
-	if (t_length == P_INTERNET)
-		t_date_format = MCSTR(s_internet_date_format);
-	else if (MCtwelvetime)
+	if (MCtwelvetime)
+	{
 		t_date_format = t_locale -> time_formats[t_length - P_ABBREVIATE];
+		// twelve-hour system time not always available in every locale
+		unichar_t t_char = MCStringGetCharAtIndex(t_date_format, 0);
+		if ('!' != t_char)	// test for a valid date format
+			t_date_format = t_locale -> time24_formats[t_length - P_ABBREVIATE];
+	}
 	else
 		t_date_format = t_locale -> time24_formats[t_length - P_ABBREVIATE];
 
@@ -805,10 +828,7 @@ bool MCD_monthnames(MCExecContext& ctxt, Properties p_format, MCListRef& r_list)
 		t_length = P_LONG;
 
 	const MCDateTimeLocale *t_locale;
-	if (t_use_system && t_length != P_SHORT)
-		t_locale = MCS_getdatetimelocale();
-	else
-		t_locale = g_basic_locale;
+	t_locale = get_locale(t_use_system, t_length);
 
 	bool t_success = true;
 
@@ -817,12 +837,17 @@ bool MCD_monthnames(MCExecContext& ctxt, Properties p_format, MCListRef& r_list)
 
 	for(uint4 t_month = 1; t_success && t_month <= 12; ++t_month)
 	{
-		if (t_length == P_SHORT)
-			t_success = MCListAppendInteger(*t_list, t_month);
-		else if (t_length == P_ABBREVIATE)
-			t_success = MCListAppend(*t_list, t_locale -> abbrev_month_names[t_month - 1]);
-		else
-			t_success = MCListAppend(*t_list, t_locale -> month_names[t_month - 1]);
+		switch (t_length)
+		{
+			case P_SHORT:
+				t_success = MCListAppendInteger(*t_list, t_month);
+				break;
+			case P_ABBREVIATE:
+				t_success = MCListAppend(*t_list, t_locale -> abbrev_month_names[t_month - 1]);
+				break;
+			default:
+				t_success = MCListAppend(*t_list, t_locale -> month_names[t_month - 1]);
+		}
 	}
 
 	return t_success && MCListCopy(*t_list, r_list);
@@ -838,10 +863,7 @@ bool MCD_weekdaynames(MCExecContext& ctxt, Properties p_format, MCListRef& r_lis
 		t_length = P_LONG;
 
 	const MCDateTimeLocale *t_locale;
-	if (t_use_system && t_length != P_SHORT)
-		t_locale = MCS_getdatetimelocale();
-	else
-		t_locale = g_basic_locale;
+	t_locale = get_locale(t_use_system, t_length);
 
 	bool t_success = true;
 
@@ -850,12 +872,17 @@ bool MCD_weekdaynames(MCExecContext& ctxt, Properties p_format, MCListRef& r_lis
 
 	for(uint4 t_weekday = 1; t_success && t_weekday <= 7; ++t_weekday)
 	{
-		if (t_length == P_SHORT)
-			t_success = MCListAppendInteger(*t_list, t_weekday);
-		else if (t_length == P_ABBREVIATE)
-			t_success = MCListAppend(*t_list, t_locale -> abbrev_weekday_names[t_weekday - 1]);
-		else
-			t_success = MCListAppend(*t_list, t_locale -> weekday_names[t_weekday - 1]);
+		switch(t_length)
+		{
+			case P_SHORT:
+				t_success = MCListAppendInteger(*t_list, t_weekday);
+				break;
+			case P_ABBREVIATE:
+				t_success = MCListAppend(*t_list, t_locale -> abbrev_weekday_names[t_weekday - 1]);
+				break;
+			default:
+				t_success = MCListAppend(*t_list, t_locale -> weekday_names[t_weekday - 1]);
+		}
 	}
 
 	return t_success && MCListCopy(*t_list, r_list);
@@ -881,8 +908,14 @@ void MCD_dateformat(MCExecContext &ctxt, Properties p_length, MCStringRef& r_dat
 	else
 		t_locale = MCS_getdatetimelocale();
 
-	if (t_length != P_SHORT && t_length != P_ABBREVIATE && t_length != P_LONG)
-		t_length = P_SHORT;
+	switch(t_length)
+	{
+		case P_ABBREVIATE:
+		case P_LONG:
+			break;
+		default:
+			t_length = P_SHORT;
+	}
 
 	MCStringRef t_format;
 	t_format = MCValueRetain(t_locale -> date_formats[t_length - P_SHORT]);
@@ -906,14 +939,12 @@ static bool MCD_decompose_convert_format(MCExecContext &ctxt, int p_from, const 
 {
 	bool t_use_system = false;
 
-//	if (p_from >= CF_SYSTEM)		// = 2000
-	if (p_from > CF_SYSTEM)		// = 2000
+	if (p_from >= CF_SYSTEM)		// = 2000
 	{
 		t_use_system = true;
 		p_from -= CF_SYSTEM;
 	}
-//	else if (p_from >= CF_ENGLISH)	// = 1000
-	else if (p_from > CF_ENGLISH)	// = 1000
+	else if (p_from >= CF_ENGLISH)	// = 1000
 	{
 		t_use_system = false;
 		p_from -= CF_ENGLISH;
@@ -944,28 +975,23 @@ static bool MCD_decompose_convert_format(MCExecContext &ctxt, int p_from, const 
 		case CF_ABBREV_TIME:
 			r_format = MCValueRetain(MCtwelvetime ? r_locale -> time_formats[0] : r_locale -> time24_formats[0]);
 			return true;
-			//r_is_date = false;
 
 		case CF_LONG_TIME:
 			r_format = MCValueRetain(MCtwelvetime ? r_locale -> time_formats[1] : r_locale -> time24_formats[1]);
 			return true;
-			//r_is_date = false;
 
 		case CF_ENGLISH:
 		case CF_DATE:
 		case CF_SHORT_DATE:
 			r_format = MCValueRetain(r_locale -> date_formats[0]);
-			//r_is_date = true;
 			break;
 
 		case CF_ABBREV_DATE:
 			r_format = MCValueRetain(r_locale -> date_formats[1]);
-			//r_is_date = true;
 			break;
 
 		case CF_LONG_DATE:
 			r_format = MCValueRetain(r_locale -> date_formats[2]);
-			//r_is_date = true;
 			break;
 
 		default:
@@ -1180,7 +1206,7 @@ bool MCD_convert_to_datetime(MCExecContext &ctxt, MCValueRef p_input, Convert_fo
 		else if (!MCValueIsEmpty(p_input))
 		{
 			const MCDateTimeLocale *t_locale;
-			if (ctxt.GetUseSystemDate())
+			if (True == ctxt.GetUseSystemDate())
 				t_locale = MCS_getdatetimelocale();
 			else
 				t_locale = g_basic_locale;
