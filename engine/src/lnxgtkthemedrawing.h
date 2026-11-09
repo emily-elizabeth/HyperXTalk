@@ -348,6 +348,15 @@ extern "C"
 	 */
 	gint moz_gtk_get_dropdown_arrow_size(gint* width, gint* height);
 
+	/**
+	 * Get the width of the disclosure arrow area at the right edge of an
+	 * option menu (arrow plus the combo button's right border and padding).
+	 * width:   [OUT] the width to reserve for the arrow
+	 *
+	 * returns:    MOZ_GTK_SUCCESS if there was no error, an error code otherwise
+	 */
+	gint moz_gtk_get_optionbutton_arrow_size(gint* width);
+
 	void spinbutton_get_rects(GtkArrowType type, GdkRectangle *rect,
 	                          GdkRectangle &framerect, GdkRectangle &btnrect);
 
