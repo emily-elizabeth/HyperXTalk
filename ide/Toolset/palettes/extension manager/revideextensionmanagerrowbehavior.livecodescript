@@ -188,8 +188,7 @@ on LayoutControl pControlRect
    set the loc of field "description" of me to the loc of me
    set the left of field "description" of me to the right of widget "svgicon" of me + tPadding
    
-   set the textColor of line 1 of field "description" of me to revIDEColor("text_1")
-   set the textColor of line 2 of field "description" of me to revIDEColor("text_2")
+   hxtApplyRowColors
    
    ## Action Icon
    set the loc of widget "ActionIcon" of me to the loc of me
@@ -322,5 +321,41 @@ getProp dvRowControl
 end dvRowControl
 
 setProp dvHilite[pHiliteColor] pBoolean
-   # Override basic hilite feature...
+   # Override basic hilite feature: the data view has already coloured the
+   # row background; keep the text and icon readable on it.
+   set the uHXTHilited of me to pBoolean
+   hxtApplyRowColors
 end dvHilite
+
+-- HXT dark mode: colour the name, publisher and icon for the current
+-- appearance and hilite state. The hilite colour is the edition's light
+-- "pb_line_selected" colour in both appearances, so a hilited row always
+-- carries the light-appearance text colours (black name, grey publisher),
+-- which is also what it showed before dark mode existed, and its icon keeps
+-- its original colours. An unhilited row follows revIDEColor. In dark mode
+-- its icon is lightened: the SVG preset icon by colour, and a bitmap icon
+-- (the extension's support/icon.png, a single-colour grey glyph on a
+-- transparent background) by a colour overlay, which keeps its shape.
+private command hxtApplyRowColors
+   local tHilited, tOverlay
+   put the uHXTHilited of me is true into tHilited
+   if tHilited then
+      set the textColor of line 1 of field "description" of me to "0,0,0"
+      set the textColor of line 2 of field "description" of me to "125,125,125"
+      set the foregroundColor of widget "svgicon" of me to "82,82,82"
+      set the colorOverlay of image "icon" of me to empty
+   else
+      set the textColor of line 1 of field "description" of me to revIDEColor("text_1")
+      set the textColor of line 2 of field "description" of me to revIDEColor("text_2")
+      if the systemAppearance is "dark" then
+         set the foregroundColor of widget "svgicon" of me to revIDEColor("text_1")
+         put revIDEColor("text_1") into tOverlay["color"]
+         put 255 into tOverlay["opacity"]
+         put "normal" into tOverlay["blendMode"]
+         set the colorOverlay of image "icon" of me to tOverlay
+      else
+         set the foregroundColor of widget "svgicon" of me to "82,82,82"
+         set the colorOverlay of image "icon" of me to empty
+      end if
+   end if
+end hxtApplyRowColors

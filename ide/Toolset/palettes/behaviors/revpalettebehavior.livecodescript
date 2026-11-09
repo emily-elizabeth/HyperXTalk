@@ -345,8 +345,13 @@ on generateFrame
       else
          set the showNavIcons of widget "header_background" of group "background" of me to true
       end if
-      set the hiliteColor of widget "header_background" of group "background" of me to revIDEColor("edition_color")
+      set the hiliteColor of widget "header_background" of group "background" of me to hxtNavHoverColor()
       set the borderColor of widget "header_background" of group "background" of me to "178,178,178"
+      -- HXT dark mode: the widget fills the selected nav tab with its own
+      -- background paint, which is white until set. Give it the palette
+      -- background here, as systemAppearanceChanged below already does,
+      -- so a palette opened in dark mode does not show a white tab.
+      set the backgroundColor of widget "header_background" of group "background" of me to revIDEColor("palette_background")
    else
       if there is a widget "header_background" of group "background" of me then 
          delete widget "header_background" of group "background" of me 
@@ -360,8 +365,9 @@ on generateFrame
       set the isHeader of widget "footer_background" of group "background" of me to false
       set the actionData of widget "footer_background" of group "background" of me to tFooterActionDataA
       set the navData of widget "footer_background" of group "background" of me to empty
-      set the hiliteColor of widget "footer_background" of group "background" of me to revIDEColor("edition_color")
+      set the hiliteColor of widget "footer_background" of group "background" of me to hxtNavHoverColor()
       set the borderColor of widget "footer_background" of group "background" of me to "178,178,178"
+      set the backgroundColor of widget "footer_background" of group "background" of me to revIDEColor("palette_background")
    else
       if there is a widget "footer_background" of group "background" of me then 
          delete widget "footer_background" of group "background" of me 
@@ -625,11 +631,11 @@ on systemAppearanceChanged pMode, pWindowColor, pTextColor
    if sHideFrame is not true then
       if there is a widget "header_background" of group "background" of me then
          set the backgroundColor of widget "header_background" of group "background" of me to tBgColor
-         set the hiliteColor of widget "header_background" of group "background" of me to revIDEColor("edition_color")
+         set the hiliteColor of widget "header_background" of group "background" of me to hxtNavHoverColor()
       end if
       if there is a widget "footer_background" of group "background" of me then
          set the backgroundColor of widget "footer_background" of group "background" of me to tBgColor
-         set the hiliteColor of widget "footer_background" of group "background" of me to revIDEColor("edition_color")
+         set the hiliteColor of widget "footer_background" of group "background" of me to hxtNavHoverColor()
       end if
    end if
    
@@ -774,6 +780,25 @@ getProp footerHeight
    
    return tHeight
 end footerHeight
+
+-- HXT: the paletteActions widget paints a hovered tab label or action icon
+-- with its hiliteColor. The edition colour is a pale green that is almost
+-- unreadable on the light palette background, so in light mode use a darker
+-- shade of it; in dark mode the edition colour itself reads fine.
+private function hxtNavHoverColor
+   local tColor, tChannel, tDark
+   put revIDEColor("edition_color") into tColor
+   if the systemAppearance is "dark" then
+      return tColor
+   end if
+   if the number of items of tColor is not 3 then
+      return tColor
+   end if
+   repeat with tChannel = 1 to 3
+      put round(item tChannel of tColor * 0.55) into item tChannel of tDark
+   end repeat
+   return tDark
+end hxtNavHoverColor
 
 setProp hilitedTabColor pColor
    put pColor into TAB_SELECTED_COLOR
