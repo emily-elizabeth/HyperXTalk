@@ -206,7 +206,7 @@ static struct WKSymbols
     void     (*g_signal_handler_disconnect)(gpointer, gulong);
     void     (*g_object_unref)(gpointer);
     gpointer (*g_object_ref)(gpointer);
-    void     (*g_free)(gpointer);
+    void     (*fn_g_free)(gpointer);          // avoid GLib >= 2.86 #define g_free(mem) (object-size checked macro)
     gchar*   (*fn_g_strdup)(const gchar*);  // avoid GLib's #define g_strdup(x) g_strdup_inline(x)
     gchar*   (*g_strdup_printf)(const gchar*, ...);
     void     (*g_error_free)(GError*);
@@ -812,7 +812,7 @@ static bool LoadWebKit(void)
     LOAD_SYM(t_wk, g_signal_handler_disconnect);
     LOAD_SYM(t_wk, g_object_unref);
     LOAD_SYM(t_wk, g_object_ref);
-    LOAD_SYM(t_wk, g_free);
+    wk.fn_g_free = (void(*)(gpointer))dlsym(t_wk, "g_free");
     wk.fn_g_strdup = (gchar*(*)(const gchar*))dlsym(t_wk, "g_strdup");
     LOAD_SYM(t_wk, g_strdup_printf);
     LOAD_SYM(t_wk, g_error_free);
@@ -1141,8 +1141,8 @@ MCWebKitGTKBrowser::~MCWebKitGTKBrowser()
 
     // m_web_view is owned by m_child_window in native-layer-x11; no destroy here.
 
-    if (m_js_handlers != nil) wk.g_free(m_js_handlers);
-    if (m_js_result   != nil) wk.g_free(m_js_result);
+    if (m_js_handlers != nil) wk.fn_g_free(m_js_handlers);
+    if (m_js_result   != nil) wk.fn_g_free(m_js_result);
 }
 
 bool MCWebKitGTKBrowser::Init(void *p_display, void *p_parent_window)
@@ -1388,7 +1388,7 @@ void JSFinishWithValue(MCWebKitGTKBrowser *t_browser, JSCValue *t_value, GError 
             if (t_str)
             {
                 if (t_browser->m_js_result)
-                    wk.g_free(t_browser->m_js_result);
+                    wk.fn_g_free(t_browser->m_js_result);
                 t_browser->m_js_result = t_str; // caller owns
             }
         }
@@ -1431,7 +1431,7 @@ bool MCWebKitGTKBrowser::EvaluateJavaScript(const char *p_script, char *&r_resul
         return false;
 
     m_js_finished = false;
-    if (m_js_result) { wk.g_free(m_js_result); m_js_result = nil; }
+    if (m_js_result) { wk.fn_g_free(m_js_result); m_js_result = nil; }
 
     if (wk.is4_1 && wk.webkit_web_view_evaluate_javascript)
     {
@@ -1460,7 +1460,7 @@ bool MCWebKitGTKBrowser::EvaluateJavaScript(const char *p_script, char *&r_resul
     {
         // Transfer ownership to caller (MCCStringClone makes a LiveCode-heap copy)
         MCCStringClone(m_js_result, r_result);
-        wk.g_free(m_js_result);
+        wk.fn_g_free(m_js_result);
         m_js_result = nil;
         return true;
     }
@@ -1706,7 +1706,7 @@ static void hxt_nav_done_41(GObject *source, GAsyncResult *result, gpointer user
             if (url && url[0] && strncmp(url, "HXT:", 4) != 0 &&
                 wk.webkit_web_view_load_uri)
                 wk.webkit_web_view_load_uri(ctx->view, url);
-            if (url) wk.g_free(url);
+            if (url) wk.fn_g_free(url);
         }
         wk.g_object_unref(val);
     }
@@ -1731,7 +1731,7 @@ static void hxt_nav_done_40(GObject *source, GAsyncResult *result, gpointer user
             if (url && url[0] && strncmp(url, "HXT:", 4) != 0 &&
                 wk.webkit_web_view_load_uri)
                 wk.webkit_web_view_load_uri(ctx->view, url);
-            if (url) wk.g_free(url);
+            if (url) wk.fn_g_free(url);
         }
         // WebKitJavascriptResult is not a GObject; no unref in 4.0.
     }
@@ -2092,7 +2092,7 @@ void MCWebKitGTKBrowser::on_nav_message(WebKitUserContentManager * /*p_mgr*/,
     if (t_url && t_url[0] && wk.webkit_web_view_load_uri)
         wk.webkit_web_view_load_uri(t_browser->m_web_view, t_url);
     if (t_url)
-        wk.g_free(t_url);
+        wk.fn_g_free(t_url);
 }
 
 void MCWebKitGTKBrowser::on_script_message(WebKitUserContentManager * /*p_mgr*/,
@@ -2121,10 +2121,10 @@ void MCWebKitGTKBrowser::on_script_message(WebKitUserContentManager * /*p_mgr*/,
     // Extract handler name (first quoted string in the outer array).
     char *p = t_json;
     while (*p && *p != '[') p++;
-    if (!*p) { wk.g_free(t_json); return; }
+    if (!*p) { wk.fn_g_free(t_json); return; }
     p++; // skip '['
     while (*p && (*p == ' ' || *p == '\t')) p++;
-    if (*p != '"') { wk.g_free(t_json); return; }
+    if (*p != '"') { wk.fn_g_free(t_json); return; }
     p++; // skip opening quote
 
     char *t_name_start = p;
@@ -2134,7 +2134,7 @@ void MCWebKitGTKBrowser::on_script_message(WebKitUserContentManager * /*p_mgr*/,
     char *t_handler_name = nil;
     if (!MCCStringCloneSubstring(t_name_start, t_name_len, t_handler_name))
     {
-        wk.g_free(t_json);
+        wk.fn_g_free(t_json);
         return;
     }
 
@@ -2145,7 +2145,7 @@ void MCWebKitGTKBrowser::on_script_message(WebKitUserContentManager * /*p_mgr*/,
     t_browser->OnJavaScriptCall(t_handler_name, t_args);
     MCBrowserListRelease(t_args);
     MCCStringFree(t_handler_name);
-    wk.g_free(t_json);
+    wk.fn_g_free(t_json);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2297,7 +2297,7 @@ bool MCWebKitGTKBrowser::SetStringProperty(MCBrowserProperty p_property, const c
     case kMCBrowserUserAgent: return SetUserAgent(p_utf8_string);
     case kMCBrowserJavaScriptHandlers:
     {
-        if (m_js_handlers) { wk.g_free(m_js_handlers); m_js_handlers = nil; }
+        if (m_js_handlers) { wk.fn_g_free(m_js_handlers); m_js_handlers = nil; }
         if (!MCCStringIsEmpty(p_utf8_string))
             m_js_handlers = wk.fn_g_strdup ? wk.fn_g_strdup(p_utf8_string) : strdup(p_utf8_string);
         SyncJavaScriptHandlers();
