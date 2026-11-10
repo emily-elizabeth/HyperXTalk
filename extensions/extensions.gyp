@@ -87,7 +87,6 @@
 				'script-libraries/shakecontrol/shakecontrol.livecodescript',
 				'script-libraries/macscrollenhancement2/macscrollenhancement2.livecodescript',
 				'script-libraries/hxtpm/hxtpm.livecodescript',
-				'script-libraries/jsonexport/jsonexport.livecodescript',
 				'script-libraries/photonjson/photonjson.livecodescript',
 			],
 			
@@ -155,7 +154,6 @@
 
 				'libraries/canvas/canvas.lcb',
 				'libraries/iconsvg/iconsvg.lcb',
-				'libraries/json/json.lcb',
 				'libraries/objectrepository/objectrepository.lcb',
 				'libraries/ini/ini.lcb',
 				'libraries/timezone/timezone.lcb',
@@ -239,7 +237,6 @@
 			[
 				'libraries/ini/inih/inih.gyp:inih',
 				'libraries/timezone/tz/tz.gyp:tz',
-				'libraries/json/yyjson/yyjson.gyp:yyjson',
 			],
 		},
 	],
