@@ -730,7 +730,10 @@ void MCField::GetScrollbarForeColor(MCExecContext& ctxt, MCInterfaceNamedColor& 
         ctxt.FormatLegacyColor(m_scrollbar_fore_color, r_color.name);
     }
     else
-        MCInterfaceNamedColorInit(ctxt, r_color);
+    {
+        MCMemoryClear(&r_color, sizeof(r_color));
+        r_color.name = MCValueRetain(kMCEmptyString);
+    }
 }
 
 void MCField::SetScrollbarForeColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color)
@@ -757,7 +760,10 @@ void MCField::GetScrollbarBackColor(MCExecContext& ctxt, MCInterfaceNamedColor& 
         ctxt.FormatLegacyColor(m_scrollbar_back_color, r_color.name);
     }
     else
-        MCInterfaceNamedColorInit(ctxt, r_color);
+    {
+        MCMemoryClear(&r_color, sizeof(r_color));
+        r_color.name = MCValueRetain(kMCEmptyString);
+    }
 }
 
 void MCField::SetScrollbarBackColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color)

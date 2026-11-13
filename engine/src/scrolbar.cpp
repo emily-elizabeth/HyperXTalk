@@ -57,8 +57,6 @@ MCPropertyInfo MCScrollbar::kProperties[] =
 	DEFINE_RW_OBJ_PROPERTY(P_START_VALUE, String, MCScrollbar, StartValue)
 	DEFINE_RW_OBJ_PROPERTY(P_END_VALUE, String, MCScrollbar, EndValue)
 	DEFINE_RW_OBJ_PROPERTY(P_SHOW_VALUE, Bool, MCScrollbar, ShowValue)
-	DEFINE_RW_OBJ_NON_EFFECTIVE_CUSTOM_PROPERTY(P_SCROLLBAR_FORE_COLOR, InterfaceNamedColor, MCScrollbar, ScrollbarForeColor)
-	DEFINE_RW_OBJ_NON_EFFECTIVE_CUSTOM_PROPERTY(P_SCROLLBAR_BACK_COLOR, InterfaceNamedColor, MCScrollbar, ScrollbarBackColor)
 };
 
 MCObjectPropertyTable MCScrollbar::kPropertyTable =
@@ -95,10 +93,6 @@ MCScrollbar::MCScrollbar()
     
     // MM-2014-07-31: [[ ThreadedRendering ]] Used to ensure the progress bar animate message is only posted from a single thread.
     m_animate_posted = false;
-    m_custom_fore_set = false;
-    m_custom_back_set = false;
-    MCMemoryClear(&m_custom_fore_color, sizeof(m_custom_fore_color));
-    MCMemoryClear(&m_custom_back_color, sizeof(m_custom_back_color));
 }
 
 MCScrollbar::MCScrollbar(const MCScrollbar &sref) : MCControl(sref)
@@ -124,10 +118,6 @@ MCScrollbar::MCScrollbar(const MCScrollbar &sref) : MCControl(sref)
     
     // MM-2014-07-31: [[ ThreadedRendering ]] Used to ensure the progress bar animate message is only posted from a single thread.
     m_animate_posted = false;
-    m_custom_fore_color = sref.m_custom_fore_color;
-    m_custom_fore_set   = sref.m_custom_fore_set;
-    m_custom_back_color = sref.m_custom_back_color;
-    m_custom_back_set   = sref.m_custom_back_set;
 }
 
 MCScrollbar::~MCScrollbar()
@@ -1088,14 +1078,76 @@ void MCScrollbar::setembedded(void)
 //  SAVING AND LOADING
 //
 
+#define SCROLLBAR_EXTRA_FORE_COLOR (1 << 0)
+#define SCROLLBAR_EXTRA_BACK_COLOR (1 << 1)
+
 IO_stat MCScrollbar::extendedsave(MCObjectOutputStream& p_stream, uint4 p_part, uint32_t p_version)
 {
-	return defaultextendedsave(p_stream, p_part, p_version);
+    uint32_t t_flags = 0;
+    uint32_t t_size = 0;
+
+    if (m_custom_fore_set)
+    {
+        t_flags |= SCROLLBAR_EXTRA_FORE_COLOR;
+        t_size += 3 * sizeof(uint16_t);
+    }
+
+    if (m_custom_back_set)
+    {
+        t_flags |= SCROLLBAR_EXTRA_BACK_COLOR;
+        t_size += 3 * sizeof(uint16_t);
+    }
+
+    IO_stat t_stat;
+    t_stat = p_stream . WriteTag(t_flags, t_size);
+
+    if (t_stat == IO_NORMAL && (t_flags & SCROLLBAR_EXTRA_FORE_COLOR))
+        t_stat = p_stream . WriteColor(m_custom_fore_color);
+
+    if (t_stat == IO_NORMAL && (t_flags & SCROLLBAR_EXTRA_BACK_COLOR))
+        t_stat = p_stream . WriteColor(m_custom_back_color);
+
+    if (t_stat == IO_NORMAL)
+        t_stat = MCObject::extendedsave(p_stream, p_part, p_version);
+
+    return t_stat;
 }
 
 IO_stat MCScrollbar::extendedload(MCObjectInputStream& p_stream, uint32_t p_version, uint4 p_length)
 {
-	return defaultextendedload(p_stream, p_version, p_length);
+    IO_stat t_stat = IO_NORMAL;
+
+    if (p_length > 0)
+    {
+        uint32_t t_flags;
+        uint32_t t_length;
+        t_stat = p_stream . ReadTag(t_flags, t_length);
+
+        if (t_stat == IO_NORMAL)
+            t_stat = p_stream . Mark();
+
+        if (t_stat == IO_NORMAL && (t_flags & SCROLLBAR_EXTRA_FORE_COLOR) != 0)
+        {
+            t_stat = checkloadstat(p_stream . ReadColor(m_custom_fore_color));
+            if (t_stat == IO_NORMAL)
+                m_custom_fore_set = true;
+        }
+
+        if (t_stat == IO_NORMAL && (t_flags & SCROLLBAR_EXTRA_BACK_COLOR) != 0)
+        {
+            t_stat = checkloadstat(p_stream . ReadColor(m_custom_back_color));
+            if (t_stat == IO_NORMAL)
+                m_custom_back_set = true;
+        }
+
+        if (t_stat == IO_NORMAL)
+            t_stat = checkloadstat(p_stream . Skip(t_length));
+    }
+
+    if (t_stat == IO_NORMAL)
+        t_stat = MCObject::extendedload(p_stream, p_version, p_length);
+
+    return t_stat;
 }
 
 IO_stat MCScrollbar::save(IO_handle stream, uint4 p_part, bool p_force_ext, uint32_t p_version)

@@ -81,8 +81,6 @@ MCPropertyInfo MCGroup::kProperties[] =
 	DEFINE_RW_OBJ_PROPERTY(P_HSCROLLBAR, Bool, MCGroup, HScrollbar)
 	DEFINE_RW_OBJ_PROPERTY(P_VSCROLLBAR, Bool, MCGroup, VScrollbar)
 	DEFINE_RW_OBJ_PROPERTY(P_SCROLLBAR_WIDTH, Int16, MCGroup, ScrollbarWidth)
-	DEFINE_RW_OBJ_NON_EFFECTIVE_CUSTOM_PROPERTY(P_SCROLLBAR_FORE_COLOR, InterfaceNamedColor, MCGroup, ScrollbarForeColor)
-	DEFINE_RW_OBJ_NON_EFFECTIVE_CUSTOM_PROPERTY(P_SCROLLBAR_BACK_COLOR, InterfaceNamedColor, MCGroup, ScrollbarBackColor)
 	DEFINE_RO_OBJ_PROPERTY(P_FORMATTED_LEFT, Int16, MCGroup, FormattedLeft)
 	DEFINE_RO_OBJ_PROPERTY(P_FORMATTED_HEIGHT, Int16, MCGroup, FormattedHeight)
 	DEFINE_RO_OBJ_PROPERTY(P_FORMATTED_TOP, Int16, MCGroup, FormattedTop)
@@ -138,10 +136,6 @@ MCGroup::MCGroup() :
 	flags |= F_TRAVERSAL_ON | F_RADIO_BEHAVIOR | F_GROUP_ONLY;
 	flags &= ~(F_SHOW_BORDER | F_OPAQUE);
     leftmargin = rightmargin = topmargin = bottommargin = defaultmargin;
-    m_scrollbar_fore_set = false;
-    m_scrollbar_back_set = false;
-    MCMemoryClear(&m_scrollbar_fore_color, sizeof(m_scrollbar_fore_color));
-    MCMemoryClear(&m_scrollbar_back_color, sizeof(m_scrollbar_back_color));
 }
 
 MCGroup::MCGroup(const MCGroup &gref, bool p_copy_ids) :
@@ -162,10 +156,6 @@ MCGroup::MCGroup(const MCGroup &gref, bool p_copy_ids) :
   m_updates_locked(false),
   m_clips_to_rect(gref.m_clips_to_rect)
 {
-    m_scrollbar_fore_color = gref.m_scrollbar_fore_color;
-    m_scrollbar_fore_set   = gref.m_scrollbar_fore_set;
-    m_scrollbar_back_color = gref.m_scrollbar_back_color;
-    m_scrollbar_back_set   = gref.m_scrollbar_back_set;
     // Copy the controls
 	if (gref.controls != NULL)
 	{
@@ -2537,6 +2527,8 @@ void MCGroup::drawbord(MCDC *dc, const MCRectangle &dirty)
 //
 
 #define GROUP_EXTRA_CLIPSTORECT (1 << 0UL)
+#define GROUP_EXTRA_SCROLLBAR_FORE_COLOR (1 << 1)
+#define GROUP_EXTRA_SCROLLBAR_BACK_COLOR (1 << 2)
 
 IO_stat MCGroup::extendedsave(MCObjectOutputStream& p_stream, uint4 p_part, uint32_t p_version)
 {
@@ -2548,9 +2540,28 @@ IO_stat MCGroup::extendedsave(MCObjectOutputStream& p_stream, uint4 p_part, uint
     //   as if the flag is present its true, otherwise false.
     if (m_clips_to_rect)
         t_flags |= GROUP_EXTRA_CLIPSTORECT;
-    
+
+    if (m_scrollbar_fore_set)
+    {
+        t_flags |= GROUP_EXTRA_SCROLLBAR_FORE_COLOR;
+        t_size += 3 * sizeof(uint16_t);
+    }
+
+    if (m_scrollbar_back_set)
+    {
+        t_flags |= GROUP_EXTRA_SCROLLBAR_BACK_COLOR;
+        t_size += 3 * sizeof(uint16_t);
+    }
+
 	IO_stat t_stat;
 	t_stat = p_stream . WriteTag(t_flags, t_size);
+
+    if (t_stat == IO_NORMAL && (t_flags & GROUP_EXTRA_SCROLLBAR_FORE_COLOR))
+        t_stat = p_stream . WriteColor(m_scrollbar_fore_color);
+
+    if (t_stat == IO_NORMAL && (t_flags & GROUP_EXTRA_SCROLLBAR_BACK_COLOR))
+        t_stat = p_stream . WriteColor(m_scrollbar_back_color);
+
 	if (t_stat == IO_NORMAL)
 		t_stat = MCObject::extendedsave(p_stream, p_part, p_version);
     
@@ -2574,7 +2585,21 @@ IO_stat MCGroup::extendedload(MCObjectInputStream& p_stream, uint32_t p_version,
         //   as if the flag is present its true, otherwise false.
 		if (t_stat == IO_NORMAL && (t_flags & GROUP_EXTRA_CLIPSTORECT))
             m_clips_to_rect = true;
-        
+
+        if (t_stat == IO_NORMAL && (t_flags & GROUP_EXTRA_SCROLLBAR_FORE_COLOR) != 0)
+        {
+            t_stat = checkloadstat(p_stream . ReadColor(m_scrollbar_fore_color));
+            if (t_stat == IO_NORMAL)
+                m_scrollbar_fore_set = true;
+        }
+
+        if (t_stat == IO_NORMAL && (t_flags & GROUP_EXTRA_SCROLLBAR_BACK_COLOR) != 0)
+        {
+            t_stat = checkloadstat(p_stream . ReadColor(m_scrollbar_back_color));
+            if (t_stat == IO_NORMAL)
+                m_scrollbar_back_set = true;
+        }
+
 		if (t_stat == IO_NORMAL)
 			t_stat = checkloadstat(p_stream . Skip(t_length));
         

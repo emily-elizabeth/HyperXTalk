@@ -126,7 +126,10 @@ void MCScrollbar::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bo
 			dc->fillroundrect(t_bar, t_bar_radius);
 
 			// Thumb -- fore colour; fall back to dark grey; drawn as a pill.
-			if (t_thumb.width > 0 && t_thumb.height > 0)
+			// Only draw the thumb when there is something to scroll; when thumbsize
+			// covers the full range compute_thumb() fills the whole bar, which would
+			// paint the entire track in the thumb colour.
+			if (t_thumb.width > 0 && t_thumb.height > 0 && thumbsize < fabs(endvalue - startvalue))
 			{
 				if (t_has_fore)
 					dc->setforeground(t_fore_color);
