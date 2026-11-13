@@ -38,10 +38,10 @@
 				'ZIP_STATIC',
 			],
 
-			'include_dirs':
-			[
-				'../thirdparty/libzip/src',
-			],
+#			'include_dirs':
+#			[
+#				'../thirdparty/libzip/src',
+#			],
 
 			'sources':
 			[
@@ -142,5 +142,54 @@
 				},
 			},
 		},
+	],
+
+	# OXT-Beyond: revZip for the web engine, which links it into itself
+	# (engine/src/em-externals.cpp). Its names, and those of its copy of
+	# libExternal, are renamed for it (libexternal/src/external-static.h).
+	'conditions':
+	[
+		[
+			'OS == "emscripten"',
+			{
+				'targets':
+				[
+					{
+						'target_name': 'external-revzip-static',
+						'type': 'static_library',
+
+						'dependencies':
+						[
+							'../libexternal/libexternal.gyp:libExternal-static-revzip',
+							'../prebuilt/thirdparty.gyp:thirdparty_prebuilt_zip',
+							'../prebuilt/thirdparty.gyp:thirdparty_prebuilt_z',
+						],
+
+						'include_dirs':
+						[
+							'../libexternal/include',
+							'../libexternal/src',
+						],
+
+						'defines':
+						[
+							'EXTERNAL_STATIC_PREFIX=revzip',
+							# its POSIX code
+							'_LINUX',
+						],
+
+						'cflags':
+						[
+							'-include', 'external-static.h',
+						],
+
+						'sources':
+						[
+							'<@(revzip_sources)',
+						],
+					},
+				],
+			},
+		],
 	],
 }

@@ -101,10 +101,9 @@ function cmakeBinary
 			echo "running cmake"
 			mkdir -p ${BUILDDIR}/${ARCHIVE_DESTINATION}/build
 			pushd "${BUILDDIR}/${ARCHIVE_DESTINATION}"
-			cmake -S . -B build
+			cmake -S . -B build ${CMAKEFLAGS}
 			popd
 			makeBinary
-#			popd
 		fi
 	fi
 }
