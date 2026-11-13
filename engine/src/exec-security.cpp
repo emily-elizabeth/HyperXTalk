@@ -65,12 +65,11 @@ void MCSecurityEvalCipherNames(MCExecContext& ctxt, MCStringRef& r_names)
 
 void MCSecurityEvalRandomBytes(MCExecContext& ctxt, uinteger_t p_byte_count, MCDataRef& r_bytes)
 {
-	if (!InitSSLCrypt())
-	{
-		ctxt.LegacyThrow(EE_SECURITY_NOLIBRARY);
-		return;
-	}
-
+	// The bytes come from the platform's own cryptographic source
+	// (arc4random_buf, /dev/urandom, CryptGenRandom) via MCSRandomData,
+	// not from OpenSSL. Do not gate on InitSSLCrypt(): a missing or
+	// unloadable security library must not take randomBytes down with it,
+	// since script-only crypto (PBKDF2, HMAC, salts) depends on it.
 	if (MCSRandomData (p_byte_count, r_bytes))
 	{
 		ctxt.SetTheResultToEmpty();
