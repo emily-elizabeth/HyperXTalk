@@ -33,7 +33,7 @@ LIBFFI_AARCH64_SRC="${REPO_ROOT}/thirdparty/libffi/git_master/src/aarch64"
 # but that file is shadowed by include_darwin/ffitarget_arm64.h in our -I order.
 # Our include_darwin version only defines FFI_TRAMPOLINE_SIZE (now 40), not the
 # offset, so we supply it explicitly.  40 is 8-byte aligned as required by ldp.
-CFLAGS="-arch arm64 -mmacosx-version-min=11.0 -isysroot ${SDK_PATH} -O2 -fPIC \
+CFLAGS="-arch arm64 -mmacosx-version-min=12.0 -isysroot ${SDK_PATH} -O2 -fPIC \
         -DFFI_TRAMPOLINE_CLOSURE_OFFSET=40"
 INCLUDES="-I${LIBFFI_INCLUDE_DARWIN} \
           -I${LIBFFI_DARWIN_IOS}/include \
@@ -79,7 +79,7 @@ ${CLANG} ${CFLAGS} ${INCLUDES} -E -x assembler-with-cpp "${ASM}" -o "${ASM_PP}"
 echo "  SED strip .cfi_* directives"
 sed -i '' '/^[[:space:]]*\.cfi_/d' "${ASM_PP}"
 echo "  AS  sysv_arm64.s"
-${CLANG} -arch arm64 -mmacosx-version-min=11.0 -isysroot "${SDK_PATH}" \
+${CLANG} -arch arm64 -mmacosx-version-min=12.0 -isysroot "${SDK_PATH}" \
          -x assembler -c "${ASM_PP}" -o "${OBJ}"
 OBJECTS="${OBJECTS} ${OBJ}"
 
