@@ -253,16 +253,26 @@ static IO_stat MCS_lnx_shellread(int fd, char *&buffer, uint4 &buffersize, uint4
 
             // SN-2015-02-12: [[ Bug 14441 ]] poll might as well get signal interrupted
             //  and we don't want to miss the reading for that only reason.
+            // -- 2026-11-06: The old exit test also looked at errno after a
+            //  *successful* poll, where errno is just whatever the preceding
+            //  read() or the SIGCHLD handler left behind.  When that was not
+            //  EAGAIN/EINTR/EWOULDBLOCK, poll kept returning 1 (POLLIN/POLLHUP)
+            //  and the loop spun at 100% CPU, hanging e.g. the extension build
+            //  (server-community running extension-utils.lc on Debian).
+            //  Retry only when poll itself was interrupted; give up on a hard
+            //  poll error instead of spinning on it.
             int t_result;
             do
             {
                 t_result = poll(&t_poll_fd, 1, -1);
             }
-            while (t_result != 1 ||
-                   (errno != EAGAIN && errno != EINTR && errno != EWOULDBLOCK));
+            while (t_result == -1 && (errno == EINTR || errno == EAGAIN));
 
-            // SN-2015-02-26: [[ CID 37859 ]] Dead code removed (t_result is
-            //  always different from -1 here
+            if (t_result == -1)
+            {
+                MCshellfd = -1;
+                return IO_ERROR;
+            }
 #else
             if (MCscreen->wait(READ_INTERVAL, False, True))
             {
@@ -462,6 +472,11 @@ static void handle_signal(int sig)
         break;
     case SIGCHLD:
         {
+            // -- 2026-11-06: waitpid() in MCS_checkprocesses can change errno;
+            //  a signal handler must leave it as it found it, or code that was
+            //  interrupted between a system call and its errno check (such as
+            //  the shell() read loop) sees a stale value.
+            int t_saved_errno = errno;
 #ifdef FEATURE_MPLAYER
             MCPlayerHandle t_player = MCplayers;
             waitedpid = -1;
@@ -499,6 +514,7 @@ static void handle_signal(int sig)
 #else
             MCS_checkprocesses();
 #endif
+            errno = t_saved_errno;
         }
         break;
     case SIGALRM:
