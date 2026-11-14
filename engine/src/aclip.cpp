@@ -805,7 +805,7 @@ void MCAudioClip::stop(Boolean abort)
 		SndDisposeChannel(soundChannel, True);
 		soundChannel = NULL;
 	}
-#elif defined(_LINUX)
+#elif defined(TARGET_PLATFORM_LINUX)
 	if (x11audio != NULL)
 		x11audio -> stop();
 #endif
