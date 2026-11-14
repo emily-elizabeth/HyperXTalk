@@ -93,6 +93,7 @@
 							'-Wl,macos',
 							'-Wl,12.0',
 							'-Wl,12.0',
+							'-Wl,-no_fixup_chains',
 						],
 					},
 				},
