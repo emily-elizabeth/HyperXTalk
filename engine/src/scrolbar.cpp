@@ -39,6 +39,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "exec.h"
 
 #include "stackfileformat.h"
+#include "objectstream.h"
 
 real8 MCScrollbar::markpos;
 uint2 MCScrollbar::mode = SM_CLEARED;
@@ -57,6 +58,8 @@ MCPropertyInfo MCScrollbar::kProperties[] =
 	DEFINE_RW_OBJ_PROPERTY(P_START_VALUE, String, MCScrollbar, StartValue)
 	DEFINE_RW_OBJ_PROPERTY(P_END_VALUE, String, MCScrollbar, EndValue)
 	DEFINE_RW_OBJ_PROPERTY(P_SHOW_VALUE, Bool, MCScrollbar, ShowValue)
+	DEFINE_RW_OBJ_NON_EFFECTIVE_CUSTOM_PROPERTY(P_SCROLLBAR_FORE_COLOR, InterfaceNamedColor, MCScrollbar, ScrollbarForeColor)
+	DEFINE_RW_OBJ_NON_EFFECTIVE_CUSTOM_PROPERTY(P_SCROLLBAR_BACK_COLOR, InterfaceNamedColor, MCScrollbar, ScrollbarBackColor)
 };
 
 MCObjectPropertyTable MCScrollbar::kPropertyTable =
@@ -1121,7 +1124,8 @@ IO_stat MCScrollbar::extendedload(MCObjectInputStream& p_stream, uint32_t p_vers
     {
         uint32_t t_flags;
         uint32_t t_length;
-        t_stat = p_stream . ReadTag(t_flags, t_length);
+        uint32_t t_header_length;
+        t_stat = checkloadstat(p_stream . ReadTag(t_flags, t_length, t_header_length));
 
         if (t_stat == IO_NORMAL)
             t_stat = p_stream . Mark();
@@ -1156,7 +1160,8 @@ IO_stat MCScrollbar::save(IO_handle stream, uint4 p_part, bool p_force_ext, uint
 
 	if ((stat = IO_write_uint1(OT_SCROLLBAR, stream)) != IO_NORMAL)
 		return stat;
-	if ((stat = MCControl::save(stream, p_part, p_force_ext, p_version)) != IO_NORMAL)
+	bool t_has_extension = m_custom_fore_set || m_custom_back_set;
+	if ((stat = MCControl::save(stream, p_part, t_has_extension || p_force_ext, p_version)) != IO_NORMAL)
 		return stat;
 	if (flags & F_SAVE_ATTS)
 	{

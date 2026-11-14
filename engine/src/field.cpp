@@ -101,6 +101,8 @@ MCPropertyInfo MCField::kProperties[] =
 	DEFINE_RW_OBJ_PROPERTY(P_HSCROLLBAR, Bool, MCField, HScrollbar)
 	DEFINE_RW_OBJ_PROPERTY(P_VSCROLLBAR, Bool, MCField, VScrollbar)
 	DEFINE_RW_OBJ_PROPERTY(P_SCROLLBAR_WIDTH, UInt16, MCField, ScrollbarWidth)
+	DEFINE_RW_OBJ_NON_EFFECTIVE_CUSTOM_PROPERTY(P_SCROLLBAR_FORE_COLOR, InterfaceNamedColor, MCField, ScrollbarForeColor)
+	DEFINE_RW_OBJ_NON_EFFECTIVE_CUSTOM_PROPERTY(P_SCROLLBAR_BACK_COLOR, InterfaceNamedColor, MCField, ScrollbarBackColor)
 	DEFINE_RO_OBJ_PROPERTY(P_FORMATTED_WIDTH, Int16, MCField, FormattedWidth)
 	DEFINE_RO_OBJ_PROPERTY(P_FORMATTED_HEIGHT, Int16, MCField, FormattedHeight)
 	DEFINE_RW_OBJ_PROPERTY(P_LIST_BEHAVIOR, Bool, MCField, ListBehavior)
@@ -3037,7 +3039,9 @@ IO_stat MCField::save(IO_handle stream, uint4 p_part, bool p_force_ext, uint32_t
                       keyboard_type != kMCInterfaceKeyboardTypeNone ||
                       return_key_type != kMCInterfaceReturnKeyTypeNone ||
                       m_password_field ||
-                      !MCStringIsEmpty(m_hint_text);
+                      !MCStringIsEmpty(m_hint_text) ||
+                      m_scrollbar_fore_set ||
+                      m_scrollbar_back_set;
     
     if ((stat = MCObject::save(stream, p_part, t_has_extension || p_force_ext, p_version)) != IO_NORMAL)
 		return stat;

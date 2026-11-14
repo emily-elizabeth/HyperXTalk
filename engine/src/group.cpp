@@ -81,6 +81,8 @@ MCPropertyInfo MCGroup::kProperties[] =
 	DEFINE_RW_OBJ_PROPERTY(P_HSCROLLBAR, Bool, MCGroup, HScrollbar)
 	DEFINE_RW_OBJ_PROPERTY(P_VSCROLLBAR, Bool, MCGroup, VScrollbar)
 	DEFINE_RW_OBJ_PROPERTY(P_SCROLLBAR_WIDTH, Int16, MCGroup, ScrollbarWidth)
+	DEFINE_RW_OBJ_NON_EFFECTIVE_CUSTOM_PROPERTY(P_SCROLLBAR_FORE_COLOR, InterfaceNamedColor, MCGroup, ScrollbarForeColor)
+	DEFINE_RW_OBJ_NON_EFFECTIVE_CUSTOM_PROPERTY(P_SCROLLBAR_BACK_COLOR, InterfaceNamedColor, MCGroup, ScrollbarBackColor)
 	DEFINE_RO_OBJ_PROPERTY(P_FORMATTED_LEFT, Int16, MCGroup, FormattedLeft)
 	DEFINE_RO_OBJ_PROPERTY(P_FORMATTED_HEIGHT, Int16, MCGroup, FormattedHeight)
 	DEFINE_RO_OBJ_PROPERTY(P_FORMATTED_TOP, Int16, MCGroup, FormattedTop)
@@ -2623,9 +2625,9 @@ IO_stat MCGroup::save(IO_handle stream, uint4 p_part, bool p_force_ext, uint32_t
     // MW-2014-06-20: [[ ClipsToRect ]] If clipsToRect is set, then force extensions so the
     //   flag can be written.
     bool t_has_extensions;
-    t_has_extensions = false;
-    if (m_clips_to_rect)
-        t_has_extensions = true;
+    t_has_extensions = m_clips_to_rect ||
+                       m_scrollbar_fore_set ||
+                       m_scrollbar_back_set;
 
     if ((stat = MCObject::save(stream, p_part, t_has_extensions || p_force_ext, p_version)) != IO_NORMAL)
 		return stat;
