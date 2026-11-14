@@ -299,9 +299,19 @@ convert "$ICON_SRC" -resize 512x512 "$APPDIR/hyperxtalk.png"
 # (3) needs VLC_PLUGIN_PATH set so libvlccore can find them.
 # Dependencies of all three layers are bundled by the recursive ldd pass below.
 
-# Libraries that must come from the host (core OS ABI).
+# Libraries that must come from the host and must never be bundled:
+#   - Graphics/EGL stack: libGL, libEGL, libGLX, libOpenGL, libGLdispatch,
+#     libglapi -- tied to the host Mesa version and kernel DRM driver.
+#     Bundling libwayland caused Mesa's EGL driver to fail at load time:
+#     "undefined symbol: wl_fixes_interface" because Mesa was built against a
+#     newer libwayland than the one the AppImage was carrying.
+#   - Wayland client/cursor/egl/server -- host-ABI Wayland surface.
+#   - DRM/GBM -- kernel driver interface.
+#   - Core libc/runtime and X11 ABI (unchanged).
 SKIP_PATTERN="linux-vdso|ld-linux|libpthread|libdl|librt|libc\\.so|libm\\.so\
-|libGL\\.so|libEGL\\.so|libGLdispatch|libGLX\
+|libGL\\.so|libGLX|libEGL|libOpenGL\\.so|libGLdispatch|libglapi\\.so\
+|libwayland-client|libwayland-cursor|libwayland-egl|libwayland-server\
+|libdrm|libgbm\
 |libX11|libXext|libXfixes|libXrender|libXi|libxcb|libXau|libXdmcp\
 |libgcc_s|libstdc++"
 
