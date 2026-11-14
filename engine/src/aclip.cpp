@@ -55,9 +55,7 @@ static Boolean playing;  //flag inicates if a sound is playing
 
 MCStack *MCAudioClip::mstack;
 Boolean MCAudioClip::supported = False;
-uint4 MCAudioClip::curindex;
 Boolean MCAudioClip::looping;
-real8 MCAudioClip::endtime;
 
 static const int2 ulaw_table[256] = {
                                   -32124, -31100, -30076, -29052, -28028, -27004, -25980, -24956,
@@ -658,10 +656,18 @@ Boolean MCAudioClip::open_audio() //plays a sound immediately
 		return True;
 }
 #elif defined TARGET_PLATFORM_LINUX
-// TS-2007-11-20 : Stopping LINUX from playing any sound - for 2.9.0-DP-2
-// TS-2007-12-04 : Adding in support for ESD
 Boolean MCAudioClip::open_audio()
 {
+	if (x11audio == NULL)
+		return False;
+
+	// Already handed to the sound system, playing or just finished; play()
+	// decides what happens next.
+	if (x11audio -> isactive())
+		return True;
+
+	// Leave 8-bit samples unsigned and 16-bit samples big-endian signed,
+	// which is what X11Audio expects.
 	if (format == AF_MULAW)
 		convert_mulawtoulin8();
 	else
@@ -671,10 +677,8 @@ Boolean MCAudioClip::open_audio()
 			if (format == AF_ULINEAR && swidth == 2)
 				convert_ulintoslin();
 
-	
-	if ( x11audio != NULL )	
-		return x11audio -> init(NULL, nchannels, swidth);
-	return false ;
+	return x11audio -> play(samples, size, rate, nchannels, swidth,
+	                        looping == True, loudness);
 }
 #elif defined _SERVER || defined(_MOBILE) || defined(__EMSCRIPTEN__)
 Boolean MCAudioClip::open_audio()
@@ -751,52 +755,13 @@ Boolean MCAudioClip::play()
 		}
 	return True;
 #elif defined(TARGET_PLATFORM_LINUX)
-	if (looping || curindex < size)
+	// The worker thread streams the clip (and loops it); all that is left to
+	// do here is notice when it has finished.
+	if (x11audio == NULL || !x11audio -> isplaying())
 	{
-		while (True)
-		{
-			int4 count = 0;
-
-			int4 nsamples = size - curindex;
-			
-			if ( MCuseESD)
-			{
-				if ( x11audio != NULL)
-					count = x11audio -> play(&samples[curindex], nsamples, rate);
-				if ( count == nsamples )
-				{
-					stop(false);
-					return false ;
-				}
-			}
-			
-			if (count <= 0)
-			{
-				return True;
-			}
-
-			if (curindex == 0 && !looping)
-				endtime = MCS_time() + (real8)size
-				          / (real8)(rate * nchannels * swidth);
-			curindex += count;
-			if (curindex >= size)
-				if (looping)
-					curindex = 0;
-				else
-					break;
-			else
-				break;
-		}
+		stop(False);
+		return False;
 	}
-	else
-	{
-		if (MCS_time() > endtime)
-		{
-			stop(False);
-			return False;
-		}
-	}
-
 	return True;
 #elif defined(_SERVER) || defined(_MOBILE) || defined(__EMSCRIPTEN__)
 	return True;
@@ -841,6 +806,8 @@ void MCAudioClip::stop(Boolean abort)
 		soundChannel = NULL;
 	}
 #elif defined(_LINUX)
+	if (x11audio != NULL)
+		x11audio -> stop();
 #endif
 }
 
@@ -848,6 +815,8 @@ bool MCAudioClip::isPlaying()
 {
 #if defined FEATURE_PLATFORM_AUDIO
     return MCPlatformSoundIsPlaying(s_current_sound);
+#elif defined(TARGET_PLATFORM_LINUX)
+    return x11audio != NULL && x11audio -> isplaying();
 #endif
     return true;
 }
@@ -968,13 +937,7 @@ uint2 MCS_getplayloudness()
     GetDefaultOutputVolume(&volume);
     t_loudness = (HiWord(volume) + LoWord(volume)) * 50 / 255;
 #elif defined TARGET_PLATFORM_LINUX
-    X11Audio *t_x11audio = nil;
-    t_x11audio = new (nothrow) X11Audio ;
-    if ( t_x11audio != nil)
-    {
-        t_loudness = t_x11audio -> getloudness() ;
-        delete t_x11audio;
-    }
+    t_loudness = X11Audio::getloudness();
 #endif
     return t_loudness;
 }
@@ -1011,12 +974,6 @@ void MCS_setplayloudness(uint2 p_loudness)
     long volume = p_loudness * 255 / 100;
     SetDefaultOutputVolume(volume | volume << 16);
 #elif defined TARGET_PLATFORM_LINUX
-    X11Audio *t_x11audio = nil;
-    t_x11audio = new (nothrow) X11Audio ;
-    if (t_x11audio != nil)
-    {
-        t_x11audio -> setloudness(p_loudness);
-        delete t_x11audio;
-    }
+    X11Audio::setloudness(p_loudness);
 #endif
 }
