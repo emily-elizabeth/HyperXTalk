@@ -8499,6 +8499,12 @@ private function revIDEProjectControlScriptFilename pControlID
       catch tErr
          put "card_" & word 3 of tOwner into tOwnerName -- fall back to "card_<id>"
       end try
+      -- An unnamed card reports "card id N" as its name when the lookup works and
+      -- lands in the fallback above when it does not (a stack loaded from a file);
+      -- use the one form so the file name does not depend on that.
+      if the number of words in tOwnerName is 3 and word 1 to 2 of tOwnerName is "card id" then
+         put "card_" & word 3 of tOwnerName into tOwnerName
+      end if
       put "card--" & revIDEProjectSanitizeName(tOwnerName) & "--" & tFilename into tFilename
    end if
    return tFilename & ".hyperxtalkscript"
@@ -8618,6 +8624,21 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
    -- the same snapshot is used for all cards (curcard may change between per-card calls).
    local tUnplacedIDs
    put the revUnplacedGroupIds of stack pStackName into tUnplacedIDs
+   -- revUnplacedGroupIds reports every group that is not on the current card, so a
+   -- group placed only on another card is in it too. Keep the groups that are on no
+   -- card at all: a group on a card is serialized with that card or, when it is
+   -- shared, once at stack level by the passes below. Listing a card's own group
+   -- here as well made it come back twice.
+   local tPlacedIDs, tPlacedCardI, tReallyUnplaced, tUnplacedCheck
+   repeat with tPlacedCardI = 1 to the number of cards of stack pStackName
+      put the groupIDs of card tPlacedCardI of stack pStackName & return after tPlacedIDs
+   end repeat
+   repeat for each line tUnplacedCheck in tUnplacedIDs
+      if tUnplacedCheck is empty then next repeat
+      if tUnplacedCheck is among the lines of tPlacedIDs then next repeat
+      put tUnplacedCheck & return after tReallyUnplaced
+   end repeat
+   put tReallyUnplaced into tUnplacedIDs
 
    -- Cards
    local tCardCount
@@ -8779,13 +8800,19 @@ on revIDEProjectSerializeCard pCardIDNum, pStackName, pMediaFolder, pScriptsFold
       add 1 to tBGPlaceIndex
    end repeat
 
-   local j, tControlIndex
+   local j, tControlIndex, tLayerIndex
    put 1 into tControlIndex
+   put 1 into tLayerIndex
    repeat with j = 1 to tControlCount
       local tControlID, tControlNode
       put the long id of control j of card id pCardIDNum of stack pStackName into tControlID
       -- Only serialize top-level controls (direct children of the card, not inside groups)
       if word 1 of the owner of control j of card id pCardIDNum of stack pStackName is not "card" then next repeat
+      -- Record the layer order of the card's top-level objects, its own controls and
+      -- the shared groups placed on it alike. A shared group sits at a different
+      -- layer on each card, so this cannot be stored with the group.
+      put the id of tControlID into rObj["layerOrder"][tLayerIndex]
+      add 1 to tLayerIndex
       -- Skip background groups — serialized once at stack level, placement recorded above.
       if word 1 of tControlID is "group" or word 1 of tControlID is "background" or word 1 of tControlID is "bkgnd" then
          if the sharedBehavior of tControlID then next repeat
@@ -9658,6 +9685,92 @@ on revIDELoadFromProject pFilePath
 end revIDELoadFromProject
 
 
+-- The number of layers a serialized control takes: itself plus, for a group,
+-- everything inside it.
+private function revIDEProjectNodeLayerCount pNode
+   local tCount, i
+   put 1 into tCount
+   if pNode["controls"] is an array then
+      repeat with i = 1 to the number of elements of pNode["controls"]
+         if pNode["controls"][i] is not an array then next repeat
+         add revIDEProjectNodeLayerCount(pNode["controls"][i]) to tCount
+      end repeat
+   end if
+   return tCount
+end revIDEProjectNodeLayerCount
+
+-- The ids of a card's top-level objects (its own controls and the shared groups
+-- placed on it) from the bottom layer up, one per line.
+-- New project files store this as the card's "layerOrder". Older ones do not, and
+-- it is worked out from what they do have: each of the card's own controls has its
+-- layer on that card, and the shared groups, listed in layer order, fill the gaps.
+private function revIDEProjectCardLayerOrder pCardNode, pBackgrounds
+   local tOrder, i
+   if pCardNode["layerOrder"] is an array then
+      repeat with i = 1 to the number of elements of pCardNode["layerOrder"]
+         if pCardNode["layerOrder"][i] is not empty then
+            put pCardNode["layerOrder"][i] & return after tOrder
+         end if
+      end repeat
+      return tOrder
+   end if
+
+   local tControls, tGroups, tGroupSize, tControlCount, tGroupCount
+   local tControlIndex, tGroupIndex, tPosition, tLayer, tTakeControl
+   put pCardNode["controls"] into tControls
+   put pCardNode["backgroundGroups"] into tGroups
+   if tGroups is not an array then
+      return empty
+   end if
+   if pBackgrounds is an array then
+      repeat with i = 1 to the number of elements of pBackgrounds
+         if pBackgrounds[i]["origID"] is empty then next repeat
+         put revIDEProjectNodeLayerCount(pBackgrounds[i]) into tGroupSize[pBackgrounds[i]["origID"]]
+      end repeat
+   end if
+   put 0 into tControlCount
+   if tControls is an array then
+      put the number of elements of tControls into tControlCount
+   end if
+   put the number of elements of tGroups into tGroupCount
+   put 1 into tControlIndex
+   put 1 into tGroupIndex
+   put 1 into tPosition
+   repeat while tControlIndex <= tControlCount or tGroupIndex <= tGroupCount
+      if tControlIndex <= tControlCount and tControls[tControlIndex]["origID"] is empty then
+         add 1 to tControlIndex
+         next repeat
+      end if
+      if tGroupIndex <= tGroupCount and tGroups[tGroupIndex] is empty then
+         add 1 to tGroupIndex
+         next repeat
+      end if
+      put false into tTakeControl
+      if tGroupIndex > tGroupCount then
+         put true into tTakeControl
+      else if tControlIndex <= tControlCount then
+         put tControls[tControlIndex]["properties"]["layer"] into tLayer
+         if tLayer is a number and tLayer <= tPosition then
+            put true into tTakeControl
+         end if
+      end if
+      if tTakeControl then
+         put tControls[tControlIndex]["origID"] & return after tOrder
+         add revIDEProjectNodeLayerCount(tControls[tControlIndex]) to tPosition
+         add 1 to tControlIndex
+      else
+         put tGroups[tGroupIndex] & return after tOrder
+         if tGroupSize[tGroups[tGroupIndex]] is a number then
+            add tGroupSize[tGroups[tGroupIndex]] to tPosition
+         else
+            add 1 to tPosition
+         end if
+         add 1 to tGroupIndex
+      end if
+   end repeat
+   return tOrder
+end revIDEProjectCardLayerOrder
+
 on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDeferredBehaviors, @pDeferredIcons, @pDeferredDgData
    local tName
    put pStackNode["name"] into tName
@@ -9769,8 +9882,24 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
       local tPreGroupNames, tPostGroupNames, tActualGroupName
       local tRemoveErr1
       local tOrigID, tShortName
+      -- Project files written before the serializer was corrected also list, as
+      -- backgrounds, ordinary groups that belong to a card and are among that
+      -- card's controls. Rebuilding both gave two copies, so the stack-level one
+      -- is skipped.
+      local tCardOwnedIDs, tOwnCI, tOwnJ
+      repeat with tOwnCI = 1 to the number of elements of pStackNode["cards"]
+         if pStackNode["cards"][tOwnCI]["controls"] is not an array then next repeat
+         repeat with tOwnJ = 1 to the number of elements of pStackNode["cards"][tOwnCI]["controls"]
+            put pStackNode["cards"][tOwnCI]["controls"][tOwnJ]["origID"] & return after tCardOwnedIDs
+         end repeat
+      end repeat
       repeat with bgi = 1 to the number of elements of tBGArray
          put tBGArray[bgi] into tBGNodeR
+         if tBGNodeR["origID"] is not empty \
+               and tBGNodeR["origID"] is among the lines of tCardOwnedIDs \
+               and tBGNodeR["properties"]["sharedBehavior"] is not true then
+            next repeat
+         end if
 
          -- Snapshot groupNames before reconstruction so we can find the new group by diff.
          -- In HyperXTalk, "remove group from card" is what enables sharedBehavior, so we
@@ -9888,6 +10017,25 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
             catch tPCTUnused
             end try
          end repeat
+      end repeat
+   end repeat
+   -- Post-process: restore the layer order of each card's top-level objects.
+   -- Controls are created in order and the shared groups placed afterwards, which
+   -- leaves every shared group on top; the order saved for the card is put back
+   -- here. Relayering needs the card to be the current card; messages stay locked
+   -- for the go, so no card or control script runs.
+   local tLOI, tLOOrder, tLOCardID, tLOK, tLOUnused
+   repeat with tLOI = 1 to tCardCount
+      put revIDEProjectCardLayerOrder(tCards[tLOI], pStackNode["backgrounds"]) into tLOOrder
+      if the number of lines in tLOOrder < 2 then next repeat
+      go card tLOI of stack tNewStackName
+      put the id of card tLOI of stack tNewStackName into tLOCardID
+      -- bottom-up: each object in turn is sent to the bottom, the first one last
+      repeat with tLOK = the number of lines in tLOOrder down to 1
+         try
+            set the layer of control id (line tLOK of tLOOrder) of card id tLOCardID of stack tNewStackName to 1
+         catch tLOUnused
+         end try
       end repeat
    end repeat
    unlock messages
@@ -10479,6 +10627,19 @@ on revIDEProjectReconstructControl pControlNode, pStackName, pCardID, pGroupID, 
             put tChildControls[k] into tChildNode
             revIDEProjectReconstructControl tChildNode, pStackName, pCardID, tNewControlID, pFolderPath, pDeferredBehaviors, pDeferredIcons, pDeferredDgData
          end repeat
+      end if
+      -- An unlocked group shrinks to fit its children as they are added; put back
+      -- the size it was saved with. Only when its top left is where it was saved:
+      -- moving a group moves its children, which are already in place.
+      local tSavedGroupRect, tNowGroupRect, tGroupRectUnused
+      put pControlNode["properties"]["rect"] into tSavedGroupRect
+      put the rect of tStackRef into tNowGroupRect
+      if tSavedGroupRect is not empty and tNowGroupRect is not tSavedGroupRect \
+            and item 1 to 2 of tNowGroupRect is item 1 to 2 of tSavedGroupRect then
+         try
+            set the rect of tStackRef to tSavedGroupRect
+         catch tGroupRectUnused
+         end try
       end if
    end if
    
