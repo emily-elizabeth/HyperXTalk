@@ -154,6 +154,8 @@ shadow	Shadow	Icons	com.livecode.pi.boolean	true	false
 shadowColor	Shadow color	Colors	com.livecode.pi.color	true	false	Shadow fill						
 shadowOffset	Shadow offset	Icons	com.livecode.pi.integer	true	false		4			-128	127	1
 shadowPattern	Shadow pattern	Colors	com.livecode.pi.pattern	true	false	Shadow fill		
+scrollbarForeColor	Scrollbar thumb color	Colors	com.livecode.pi.color	true	false	Scrollbar fill		
+scrollbarBackColor	Scrollbar track color	Colors	com.livecode.pi.color	true	false	Scrollbar fill		
 sharedBehavior	Shared group	Basic	com.livecode.pi.boolean	true	false		false	
 sharedHilite	Shared hilite	Basic	com.livecode.pi.boolean	true	false			
 sharedText	Share text	Basic	com.livecode.pi.boolean	true	false			
