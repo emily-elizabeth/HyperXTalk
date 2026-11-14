@@ -910,15 +910,27 @@ treated as a script library in the raw: the same generators the build and
 the Extension Builder use produce its api.lcdoc from the doc comments and
 its manifest.xml from the library-level block. A folder that already has a
 manifest, holds no script, more than one, or an LCB source, is left alone.
-A folder with one of the two files but not the other is left alone as well,
-and named in the result, so the developer can delete the one present and
-have both regenerated.
+A script library folder with one of the two files but not the other is left
+alone as well, and named in the result, so the developer can delete the one
+present and have both regenerated.
 */
 command revIDEExtensionPackageBareScriptLibrary pFolder
    local tHasManifest, tHasDocs
    put there is a file (pFolder & slash & "manifest.xml") into tHasManifest
    put there is a file (pFolder & slash & "api.lcdoc") into tHasDocs
    if tHasManifest and tHasDocs then
+      return empty
+   end if
+   -- Only a folder holding exactly one script and no LCB source is a script
+   -- library. Check that before the lone-file warning, so that a compiled
+   -- widget (manifest.xml and module.lcm, no api.lcdoc) is left alone.
+   local tFiles, tScripts, tModules
+   put files(pFolder) into tFiles
+   put tFiles into tScripts
+   filter tScripts with regex pattern "^.*\.(hyperxtalk|livecode)(script)?$"
+   put tFiles into tModules
+   filter tModules with regex pattern "^.*\.lcb$"
+   if the number of lines in tScripts is not 1 or tModules is not empty then
       return empty
    end if
    if tHasManifest or tHasDocs then
@@ -934,15 +946,6 @@ command revIDEExtensionPackageBareScriptLibrary pFolder
             "but no" && tMissing & ". Delete" && tPresent && "(keep the script)" && \
             "and both" && tPresent && "and" && tMissing && "will be regenerated" && \
             "from the script at the next launch."
-   end if
-   local tFiles, tScripts, tModules
-   put files(pFolder) into tFiles
-   put tFiles into tScripts
-   filter tScripts with regex pattern "^.*\.(hyperxtalk|livecode)(script)?$"
-   put tFiles into tModules
-   filter tModules with regex pattern "^.*\.lcb$"
-   if the number of lines in tScripts is not 1 or tModules is not empty then
-      return empty
    end if
    __revIDEEnsureDocsParser
    if there is no stack "revDocsParser" then
