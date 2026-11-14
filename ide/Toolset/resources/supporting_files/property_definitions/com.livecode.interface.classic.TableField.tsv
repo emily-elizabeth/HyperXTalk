@@ -53,6 +53,8 @@ bottomColor
 bottomPattern												
 shadowColor												
 shadowPattern												
+scrollbarForeColor																		
+scrollbarBackColor																		
 focusColor												
 focusPattern												
 customProperties												
