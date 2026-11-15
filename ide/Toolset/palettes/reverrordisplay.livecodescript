@@ -83,6 +83,7 @@ on preOpenStack
    set the margins of it to "8,14,8,8"
    set the bordercolor of it to "220,220,220"
    set the showfocusborder of it to false
+   applyAppearanceToField
    create button "Ignore" in group "errordisplay"
    create button "Script" in group "errorDisplay"
    create button "Debug" in group "errordisplay"
@@ -142,6 +143,74 @@ constant kErrorTextColor = "64,64,64"
 constant kErrorYellowIconID = 202696
 constant kErrorGreyIconID = 202697
 constant kExtensionErrorCode = 863
+
+-- HXT dark mode: the error field colours its lines explicitly (the newest
+-- error in the text colour, older ones dimmed by revLineColors), so the
+-- colours have to follow the appearance or the text is unreadable in dark
+-- mode. The engine already flips the default fore/back colours of objects
+-- without explicit colours, so the field background and the buttons look
+-- after themselves.
+private function errorTextColor pDimmed
+   if pDimmed then
+      if the systemAppearance is "dark" then
+         return revIDEColor("text_2")
+      end if
+      return kErrorTextColor
+   end if
+   return revIDEColor("text_1")
+end errorTextColor
+
+-- The Mac theme paints a field without an explicit backgroundColor white in
+-- both appearances, so give the error field a dark background and border
+-- explicitly and clear them again in light mode so that path stays as it
+-- was. The selection colour is left to the engine: it already follows the
+-- appearance (and the theme accent on Linux).
+private command applyAppearanceToField
+   local tField
+   put the long id of fld "Error" of group "errorDisplay" of me into tField
+   if the systemAppearance is "dark" then
+      set the backgroundColor of tField to revIDEColor("dataView_rowColor")
+      set the borderColor of tField to "70,70,70"
+   else
+      set the backgroundColor of tField to empty
+      set the borderColor of tField to "220,220,220"
+   end if
+end applyAppearanceToField
+
+-- Recolour every error block (six lines each) for the current appearance.
+-- Blocks that still have a revLineColors message pending are the fresh ones
+-- (new errors are inserted at the top, one pending message per block).
+private command applyAppearanceToErrors
+   applyAppearanceToField
+   
+   local tField
+   put the long id of fld "Error" of group "errorDisplay" of me into tField
+   
+   local tFresh
+   put 0 into tFresh
+   repeat for each line tLine in the pendingMessages
+      if "revLineColors" is in tLine then add 1 to tFresh
+   end repeat
+   
+   local tBlocks
+   put (the number of lines of tField + 5) div 6 into tBlocks
+   
+   local tBlock, tLineStart
+   repeat with tBlock = 1 to tBlocks
+      put (tBlock - 1) * 6 + 1 into tLineStart
+      set the textColor of line tLineStart to tLineStart + 5 of tField \
+            to errorTextColor(tBlock > tFresh)
+   end repeat
+end applyAppearanceToErrors
+
+on systemAppearanceChanged pMode, pWindowColor, pTextColor
+   if there is a fld "Error" of group "errorDisplay" of me then
+      lock screen
+      applyAppearanceToErrors
+      unlock screen
+   end if
+   pass systemAppearanceChanged
+end systemAppearanceChanged
 
 on preOpenCard
    global gREVMovingPalette, gREVDevelopment, gRevExit
@@ -324,14 +393,14 @@ on preOpenCard
       exit preOpenCard
    else if lExit then
       put tErrorString into line 1 to 5 of fld "Error" of group "errorDisplay" of me
-      set the textColor of line 1 to 5 of fld "Error" of group "errorDisplay" of me to kErrorTextColor
+      set the textColor of line 1 to 5 of fld "Error" of group "errorDisplay" of me to errorTextColor(true)
    else
       put tErrorString & cr & cr before fld "Error" of group "errorDisplay" of me
    end if
    set the imageSource of char 1 of fld "Error" of group "errorDisplay" of me to kErrorYellowIconID
    set the textStyle of line 1 of fld "Error" of group "errorDisplay" of me to "bold"
    set the textStyle of line 2 to 5 of fld "Error" of group "errorDisplay" of me to "plain"
-   set the textColor of line 1 to 5 of fld "Error" of group "errorDisplay" of me to "black"
+   set the textColor of line 1 to 5 of fld "Error" of group "errorDisplay" of me to errorTextColor(false)
    set the hScroll of fld "Error" of group "errorDisplay" of me to 0
    if tUIError then
       --
@@ -409,7 +478,7 @@ on revLineColors
    add tTotal * 6 to tLineStart
    
    set the textColor of line tLineStart to tLineStart+5 of \ 
-         fld "Error" of group "errorDisplay" of me to kErrorTextColor
+         fld "Error" of group "errorDisplay" of me to errorTextColor(true)
    set the imageSource of char 1 of line tLineStart of \ 
          fld "Error" of group "errorDisplay" of me to kErrorGreyIconID
    

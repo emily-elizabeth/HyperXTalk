@@ -912,6 +912,73 @@ public:
         return done;
     }
 
+    virtual Boolean MoveFileToTrash(MCStringRef p_path)
+    {
+        MCAutoStringRefAsSysString t_path;
+        MCAutoStringRef t_resolved_path;
+        MCS_resolvepath(p_path, &t_resolved_path);
+        /* UNCHECKED */ t_path.Lock(*t_resolved_path);
+
+        // Prefer gio if available (covers most modern desktop Linux installs)
+        {
+            // Use execvp to avoid shell injection from paths with spaces or metacharacters.
+            pid_t t_pid = fork();
+            if (t_pid == 0)
+            {
+                // Child: redirect stderr, exec gio
+                int t_dev_null = open("/dev/null", O_WRONLY);
+                if (t_dev_null >= 0) dup2(t_dev_null, STDERR_FILENO);
+                execlp("gio", "gio", "trash", "--", *t_path, (char *)NULL);
+                _exit(127); // gio not found
+            }
+            else if (t_pid > 0)
+            {
+                int t_status = 0;
+                waitpid(t_pid, &t_status, 0);
+                if (WIFEXITED(t_status) && WEXITSTATUS(t_status) == 0)
+                    return True;
+            }
+        }
+
+        // XDG Trash spec fallback:
+        // Move file to ~/.local/share/Trash/files/ and write a .trashinfo
+        const char *t_home = getenv("HOME");
+        if (t_home == NULL)
+            return False;
+
+        char t_trash_files[PATH_MAX], t_trash_info[PATH_MAX];
+        snprintf(t_trash_files, sizeof(t_trash_files), "%s/.local/share/Trash/files", t_home);
+        snprintf(t_trash_info,  sizeof(t_trash_info),  "%s/.local/share/Trash/info",  t_home);
+        mkdir(t_trash_files, 0700);
+        mkdir(t_trash_info,  0700);
+
+        // Derive the destination name from the basename
+        const char *t_basename = strrchr(*t_path, '/');
+        t_basename = t_basename ? t_basename + 1 : *t_path;
+
+        char t_dest[PATH_MAX], t_info_file[PATH_MAX];
+        snprintf(t_dest,      sizeof(t_dest),      "%s/%s", t_trash_files, t_basename);
+        snprintf(t_info_file, sizeof(t_info_file),  "%s/%s.trashinfo", t_trash_info, t_basename);
+
+        if (rename(*t_path, t_dest) != 0)
+            return False;
+
+        // Write the .trashinfo metadata file
+        FILE *t_fp = fopen(t_info_file, "w");
+        if (t_fp != NULL)
+        {
+            // Get deletion time as ISO 8601 local time
+            time_t t_now = time(NULL);
+            struct tm *t_tm = localtime(&t_now);
+            char t_date[32];
+            strftime(t_date, sizeof(t_date), "%Y-%m-%dT%H:%M:%S", t_tm);
+            fprintf(t_fp, "[Trash Info]\nPath=%s\nDeletionDate=%s\n", *t_path, t_date);
+            fclose(t_fp);
+        }
+
+        return True;
+    }
+
     virtual Boolean RenameFileOrFolder(MCStringRef p_old_name, MCStringRef p_new_name)
     {
         MCAutoStringRef t_old_resolved_path, t_new_resolved_path;
@@ -2474,3 +2541,90 @@ bool MCS_get_browsers(MCStringRef &r_browsers)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+#include <limits.h>
+#include <string.h>
+#include <stdlib.h>
+
+void MCS_show_in_finder(MCExecContext &ctxt, MCStringRef p_path)
+{
+    MCAutoStringRefAsSysString t_path_sys;
+    /* UNCHECKED */ t_path_sys.Lock(p_path);
+
+    const char *t_path = *t_path_sys;
+
+    // Derive the parent directory for fallback
+    char t_parent[PATH_MAX];
+    strncpy(t_parent, t_path, PATH_MAX - 1);
+    t_parent[PATH_MAX - 1] = '\0';
+    char *t_sep = strrchr(t_parent, '/');
+    if (t_sep != nullptr)
+        *t_sep = '\0';
+    else
+        strncpy(t_parent, ".", PATH_MAX - 1);
+
+    char t_cmd[PATH_MAX * 2 + 256];
+
+    // Check the desktop environment first so we can route to the most
+    // reliable method per DE before falling back to generic D-Bus.
+    const char *t_de = getenv("XDG_CURRENT_DESKTOP");
+    if (t_de == nullptr)
+        t_de = "";
+
+    // Cinnamon/MATE: call nemo directly — the D-Bus ShowItems path triggers
+    // a "cannot handle 'file' locations" error on some Nemo versions.
+    if ((strcasestr(t_de, "X-Cinnamon") != nullptr || strcasestr(t_de, "MATE") != nullptr)
+        && system("which nemo > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "nemo \"%s\" > /dev/null 2>&1 &", t_path);
+        if (system(t_cmd) == 0)
+            return;
+    }
+
+    // XFCE: Thunar opens the folder but doesn't select the file — best we can do.
+    if (strcasestr(t_de, "XFCE") != nullptr && system("which thunar > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "thunar \"%s\" > /dev/null 2>&1 &", t_parent);
+        if (system(t_cmd) == 0)
+            return;
+    }
+
+    // For GNOME (including Fedora 43+), KDE, and other DEs: use the
+    // org.freedesktop.FileManager1 D-Bus interface. Nautilus 43+ dropped
+    // --select so D-Bus is the only reliable way there.
+    // No & — we need the real exit code to know if the call succeeded.
+    if (system("which dbus-send > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd),
+            "dbus-send --session --print-reply --reply-timeout=2000 "
+            "--dest=org.freedesktop.FileManager1 "
+            "/org/freedesktop/FileManager1 "
+            "org.freedesktop.FileManager1.ShowItems "
+            "array:string:\"file://%s\" string:\"\" "
+            "> /dev/null 2>&1",
+            t_path);
+        if (system(t_cmd) == 0)
+            return;
+    }
+
+    // CLI fallback for GNOME/KDE if D-Bus failed.
+    if ((strcasestr(t_de, "GNOME") != nullptr || strcasestr(t_de, "Unity") != nullptr || strcasestr(t_de, "Budgie") != nullptr)
+        && system("which nautilus > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "nautilus --select \"%s\" > /dev/null 2>&1 &", t_path);
+        if (system(t_cmd) == 0)
+            return;
+    }
+    else if (strcasestr(t_de, "KDE") != nullptr && system("which dolphin > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "dolphin --select \"%s\" > /dev/null 2>&1 &", t_path);
+        if (system(t_cmd) == 0)
+            return;
+    }
+
+    // Last resort: xdg-open on the parent folder
+    if (system("which xdg-open > /dev/null 2>&1") == 0)
+    {
+        snprintf(t_cmd, sizeof(t_cmd), "xdg-open \"%s\" > /dev/null 2>&1 &", t_parent);
+        system(t_cmd);
+    }
+}

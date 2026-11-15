@@ -2667,7 +2667,7 @@ struct MCMacDesktop: public MCSystemInterface, public MCMacSystemService
         
         return True;
     }
-	
+
 	virtual Boolean RenameFileOrFolder(MCStringRef p_old_name, MCStringRef p_new_name)
     {
         MCAutoStringRefAsUTF8String t_old_name, t_new_name;

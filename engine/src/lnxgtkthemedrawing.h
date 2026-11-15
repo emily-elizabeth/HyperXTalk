@@ -152,7 +152,9 @@ extern "C"
 	    MOZ_GTK_SCALE_TRACK_VERTICAL,
 	    MOZ_GTK_SCALE_TRACK_HORIZONTAL,
 	    MOZ_GTK_SCALE_THUMB_VERTICAL,
-	    MOZ_GTK_SCALE_THUMB_HORIZONTAL
+	    MOZ_GTK_SCALE_THUMB_HORIZONTAL,
+	    MOZ_GTK_SCALE_FILL_VERTICAL,
+	    MOZ_GTK_SCALE_FILL_HORIZONTAL
 	} GtkThemeWidgetType;
 
 	/*** General library functions ***/
@@ -229,6 +231,10 @@ extern "C"
 	cairo_surface_t*
 	moz_gtk_scale_thumb_paint_to_surface(GtkThemeWidgetType type, GdkRectangle* rect,
 	                                      GtkWidgetState* state, int *out_width, int *out_height);
+
+	cairo_surface_t*
+	moz_gtk_scale_fill_paint_to_surface(GtkThemeWidgetType type, GdkRectangle* rect,
+	                                     int *out_width, int *out_height);
 	
 	cairo_surface_t*
 	moz_gtk_toggle_paint_to_surface(GdkRectangle* rect, GtkWidgetState* state,
@@ -347,6 +353,15 @@ extern "C"
 	 * returns:    MOZ_GTK_SUCCESS if there was no error, an error code otherwise
 	 */
 	gint moz_gtk_get_dropdown_arrow_size(gint* width, gint* height);
+
+	/**
+	 * Get the width of the disclosure arrow area at the right edge of an
+	 * option menu (arrow plus the combo button's right border and padding).
+	 * width:   [OUT] the width to reserve for the arrow
+	 *
+	 * returns:    MOZ_GTK_SUCCESS if there was no error, an error code otherwise
+	 */
+	gint moz_gtk_get_optionbutton_arrow_size(gint* width);
 
 	void spinbutton_get_rects(GtkArrowType type, GdkRectangle *rect,
 	                          GdkRectangle &framerect, GdkRectangle &btnrect);

@@ -1949,7 +1949,8 @@ enum Show_object {
     SO_PICTURE,
     SO_TASKBAR,
     SO_TITLEBAR,
-    SO_WINDOW
+    SO_WINDOW,
+    SO_IN_FINDER
 };
 
 enum Sort_type {
@@ -2268,7 +2269,8 @@ enum There_mode {
     TM_FILE,
     TM_PROCESS,
     TM_URL,
-    TM_WORKER
+    TM_WORKER,
+    TM_TRASH
 };
 
 // types returned from lex
