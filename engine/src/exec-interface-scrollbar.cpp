@@ -250,6 +250,21 @@ void MCScrollbar::SetStartValue(MCExecContext& ctxt, MCStringRef p_value)
 		flags |= F_HAS_VALUES;
 		MCValueAssign(startstring, p_value);
 	}
+	// AL-2026: [[ Bug ]] Re-apply signed direction to lineinc/pageinc.
+	// SetLineInc/SetPageInc negate these for reversed ranges, but that is not
+	// re-done when startValue or endValue changes and flips the range direction.
+	// Without this, SM_PAGEDEC/SM_PAGEINC use the wrong sign and track-clicks
+	// either snap the thumb to the opposite end or do nothing at all.
+	if (startvalue < endvalue)
+	{
+		lineinc = fabs(lineinc);
+		pageinc = fabs(pageinc);
+	}
+	else
+	{
+		lineinc = -fabs(lineinc);
+		pageinc = -fabs(pageinc);
+	}
 	update(thumbpos, MCM_scrollbar_drag);
 	Redraw();
 }
@@ -281,6 +296,18 @@ void MCScrollbar::SetEndValue(MCExecContext& ctxt, MCStringRef p_value)
 	{
 		flags |= F_HAS_VALUES;
 		MCValueAssign(endstring, p_value);
+	}
+	// AL-2026: [[ Bug ]] Re-apply signed direction to lineinc/pageinc (same as
+	// SetStartValue above - see comment there).
+	if (startvalue < endvalue)
+	{
+		lineinc = fabs(lineinc);
+		pageinc = fabs(pageinc);
+	}
+	else
+	{
+		lineinc = -fabs(lineinc);
+		pageinc = -fabs(pageinc);
 	}
 	update(thumbpos, MCM_scrollbar_drag);
 	Redraw();
