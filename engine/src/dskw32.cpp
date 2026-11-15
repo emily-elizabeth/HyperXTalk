@@ -16,6 +16,7 @@
 
 #include "prefix.h"
 #include <AclAPI.h>
+#include <shlobj.h>
 
 #ifdef DeleteFile
 #undef DeleteFile
@@ -3890,3 +3891,35 @@ bool MCS_get_browsers(MCStringRef &r_browsers)
 {
 	return false;
 }
+void MCS_show_in_finder(MCExecContext &ctxt, MCStringRef p_path)
+{
+    // Convert to a wide string, then normalise forward slashes to backslashes
+    // in-place. We do this in wchar_t space so we skip any MCString API
+    // complexity and feed SHParseDisplayName exactly what it needs.
+    // This handles both HyperXTalk-style paths (forward slashes) and
+    // Windows-style paths (backslashes) without corrupting either.
+    MCAutoStringRefAsWString t_path_wstr;
+    /* UNCHECKED */ t_path_wstr.Lock(p_path);
+
+    const WCHAR *t_src = *t_path_wstr;
+    size_t t_wlen = wcslen(t_src);
+    MCAutoArray<WCHAR> t_buf;
+    t_buf.New(t_wlen + 1);
+    for (size_t i = 0; i < t_wlen; i++)
+        t_buf[i] = (t_src[i] == L'/') ? L'\\' : t_src[i];
+    t_buf[t_wlen] = L'\0';
+
+    // Parse the path into a PIDL so SHOpenFolderAndSelectItems can use it
+    PIDLIST_ABSOLUTE t_pidl = nullptr;
+    SFGAOF t_attrs = 0;
+    HRESULT hr = SHParseDisplayName(t_buf.Ptr(), nullptr, &t_pidl, 0, &t_attrs);
+    if (FAILED(hr))
+    {
+        ctxt.SetTheResultToStaticCString("file not found");
+        return;
+    }
+
+    SHOpenFolderAndSelectItems(t_pidl, 0, nullptr, 0);
+    CoTaskMemFree(t_pidl);
+}
+
