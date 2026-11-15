@@ -150,8 +150,9 @@ dbus libdbus-1.so.3
 	dbus_bus_add_match: (pointer, pointer, pointer) -> ()
 	dbus_free: (pointer) -> ()
 
-esd libesd.so.0
-	esd_close: (integer) -> (integer)
-	esd_play_stream: (integer, integer, pointer, pointer) -> (integer)
-	esd_open_sound: (pointer) -> (integer)
-
+pulse_simple libpulse-simple.so.0
+	pa_simple_new: (pointer, pointer, integer, pointer, pointer, pointer, pointer, pointer, pointer) -> (pointer)
+	pa_simple_write: (pointer, pointer, intsize, pointer) -> (integer)
+	pa_simple_drain: (pointer, pointer) -> (integer)
+	pa_simple_flush: (pointer, pointer) -> (integer)
+	pa_simple_free: (pointer) -> ()
