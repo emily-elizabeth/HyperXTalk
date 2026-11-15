@@ -51,6 +51,7 @@ extern int MCS_geterrno(void);
 extern uint32_t MCS_getsyserror(void);
 extern void MCS_alarm(real8 secs);
 extern void MCS_launch_document(MCStringRef docname);
+extern void MCS_show_in_finder(MCExecContext &ctxt, MCStringRef p_path);
 extern void MCS_launch_url(MCStringRef url);
 extern void MCS_startprocess(MCNameRef appname, MCStringRef docname, intenum_t mode, Boolean elevated);
 extern void MCS_checkprocesses();
