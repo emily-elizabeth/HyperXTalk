@@ -1307,17 +1307,20 @@ class MCMove : public MCStatement
 	MCExpression *startloc;
 	MCExpression *endloc;
 	MCExpression *durationexp;
+	MCExpression *trash_file;
 	Functions units;
 	Boolean relative;
 	Boolean messages;
 	Boolean waiting;
+	Boolean is_trash;
 public:
 	MCMove()
 	{
 		object = NULL;
-		startloc = endloc = durationexp = NULL;
+		startloc = endloc = durationexp = trash_file = NULL;
 		relative = False;
 		messages = waiting = True;
+		is_trash = False;
 	}
 	virtual ~MCMove();
 	virtual Parse_stat parse(MCScriptPoint &);
