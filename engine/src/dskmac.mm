@@ -2678,7 +2678,21 @@ struct MCMacDesktop: public MCSystemInterface, public MCMacSystemService
         return True;
     }
 	
-	virtual Boolean RenameFileOrFolder(MCStringRef p_old_name, MCStringRef p_new_name)
+		virtual Boolean MoveFileToTrash(MCStringRef p_path)
+    {
+        MCAutoStringRefAsUTF8String t_path;
+        if (!t_path.Lock(p_path))
+            return False;
+        NSString *t_ns_path = [NSString stringWithUTF8String:*t_path];
+        if (t_ns_path == nil)
+            return False;
+        NSURL *t_url = [NSURL fileURLWithPath:t_ns_path];
+        NSError *t_error = nil;
+        BOOL t_ok = [[NSFileManager defaultManager] trashItemAtURL:t_url resultingItemURL:nil error:&t_error];
+        return t_ok ? True : False;
+    }
+
+virtual Boolean RenameFileOrFolder(MCStringRef p_old_name, MCStringRef p_new_name)
     {
         MCAutoStringRefAsUTF8String t_old_name, t_new_name;
         
