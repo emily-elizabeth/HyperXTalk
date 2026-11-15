@@ -3,6 +3,7 @@
 on extensionInitialize
    if the target is not me then pass extensionInitialize
    insert the script of me into back
+   insert the script of me into front
    if the platform is "MacOS" then
       send "seScrollEnhancementEnable" to me in 0 milliseconds
    end if
@@ -14,6 +15,7 @@ end extensionInitialize
 on extensionFinalize
    if the target is not me then pass extensionFinalize
    remove the script of me from back
+   remove the script of me from front
    seScrollEnhancementDisable
 end extensionFinalize
 
@@ -26,20 +28,24 @@ Author: HyperXTalk
 
 Type: library
 
-Version: 1.0.1
+Version: 1.0.2
 
 Description:
-  Generic smooth-scroll library for HyperXTalk.
+Generic smooth-scroll library for HyperXTalk.
 
-  Intercepts precise trackpad scroll events application-wide via a C
-  NSEvent monitor and applies accumulated pixel deltas to whichever
-  scrollable HyperXTalk control is currently under the mouse - fields,
-  groups with scrollbars, etc.
+Intercepts precise trackpad scroll events application-wide via a C
+NSEvent monitor and applies accumulated pixel deltas to whichever
+scrollable HyperXTalk control is currently under the mouse - fields,
+groups with scrollbars, DataGrids, etc.
 
-  Call seScrollEnhancementEnable from any openStack handler that should
-  benefit from smooth scrolling. Call seScrollEnhancementDisable from the
-  matching closeStack. Reference-counted - the poll keeps running until
-  every caller has disabled it.
+Call seScrollEnhancementEnable from any openStack handler that should
+benefit from smooth scrolling. Call seScrollEnhancementDisable from the
+matching closeStack. Reference-counted - the poll keeps running until
+every caller has disabled it.
+
+1.0.2: DataGrids are scrolled through their own dgVScroll property, and
+the engine's wheel keys are swallowed by a front script while a grid is
+the smooth-scroll target, so grids are not scrolled twice.
 */
 
 -- ---------------------------------------------------------------------------
@@ -48,6 +54,7 @@ Description:
 
 local sRefCount         -- number of active callers; poll runs while > 0
 local sMonitorInstalled -- true when the C NSEvent monitor is active
+constant kGridScrollFactor = 0.3
 
 -- ---------------------------------------------------------------------------
 -- Public API
@@ -57,7 +64,7 @@ local sMonitorInstalled -- true when the C NSEvent monitor is active
 seScrollEnhancementEnable pWindowId
 Start smooth scrolling. Call from openStack (or equivalent).
 pWindowId is accepted for backward compatibility; no longer used internally.
-Safe to call from multiple windows ‚Äî reference-counted.
+Safe to call from multiple windows - reference-counted.
 */
 command seScrollEnhancementEnable
    if the platform is not "MacOS" then exit seScrollEnhancementEnable
@@ -88,6 +95,7 @@ seGetScrollTarget
 Returns the long id of the best scrollable control under the mouse,
 or empty if there is none. Walks up the owner chain from mouseControl
 to find the first eligible control:
+- A DataGrid, when the mouse is over any control inside one.
 - A field (always potentially scrollable) - except fields inside a
 group named "Gutter" (line-number display in the script editor).
 - A group that has vScrollbar or hScrollbar set to true.
@@ -100,7 +108,7 @@ function seGetScrollTarget
       put empty into tControl
    end try
 
-   -- Data views like the Project Browser need special handling since 
+   -- Data views like the Project Browser need special handling since
    -- the content is not a static group and is generated dynamically
    if tControl is not empty and the dvcontrol of tControl is not empty then
       return tControl
@@ -108,7 +116,7 @@ function seGetScrollTarget
 
    -- Fallback when mouseControl hasn't updated yet (e.g. right after window opens)
    if tControl is empty and the mouseStack is not empty then
-      -- Get the selected field on the mousestack.  If mouse is over 
+      -- Get the selected field on the mousestack.  If mouse is over
       -- another control then tControl will get updated.
       if the selectedfield is not empty and \
             the long name of the mousestack is the topstack and \
@@ -129,12 +137,23 @@ function seGetScrollTarget
          end if
       end repeat
    end if
-   
+
    if tControl is empty then return empty
+
+   -- DataGrids: any control inside one answers "the dgControl" with the grid
+   -- group's long id. Scroll the grid, not the row field under the mouse.
+   local tGrid
+   try
+      put the dgControl of tControl into tGrid
+   catch tError
+      put empty into tGrid
+   end try
+   if tGrid is not empty then return tGrid
+
    repeat
       local tKind
       put word 1 of tControl into tKind
-      
+
       if tKind is "field" then
          -- Skip fields inside the line-number gutter.
          local tParent
@@ -144,7 +163,7 @@ function seGetScrollTarget
          else
             return tControl
          end if
-         
+
       else if tKind is "group" or tKind is "widget" then
          -- Exclude the browser widget since it is a native control handled by the OS
          if tKind is "widget" and the kind of tControl ends with "browser" then
@@ -160,7 +179,7 @@ function seGetScrollTarget
             put the hScrollbar of tControl into tHasScrollbar
             if tHasScrollbar then return tControl
          end try
-         
+
          if tKind is "group" then
             -- Not a scrolling group - walk up.
             put the long id of the owner of tControl into tControl
@@ -168,12 +187,12 @@ function seGetScrollTarget
             -- Not a scrolling widget - stop.
             return empty
          end if
-         
+
       else
          -- card, stack, or unrecognised - stop.
          return empty
       end if
-      
+
       if tControl is empty then return empty
    end repeat
 end seGetScrollTarget
@@ -182,9 +201,6 @@ end seGetScrollTarget
 seSyncGutter pScrolledControl, pNewV
 If the scrolled control is the Script field of a script editor, syncs
 the line-number gutter to the same vertical scroll position.
-Parameters:
-pScrolledControl (string): The control that was scrolled (long id).
-pNewV (integer): The new vertical scroll position.
 */
 command seSyncGutter pScrolledControl, pNewV
    if the short name of pScrolledControl is not "Script" then exit seSyncGutter
@@ -201,7 +217,7 @@ command seSyncGutter pScrolledControl, pNewV
 end seSyncGutter
 
 -- Even though the dictionary says the mouseLoc is relative to the topstack,
--- it is actually returned in global coordinates in this extension.  We 
+-- it is actually returned in global coordinates in this extension.  We
 -- need it relative to the mouseStack so convert it here.
 private function _seGetRelativeMouseLoc
    local tMouseLoc, tStackRect
@@ -219,11 +235,11 @@ end _seGetRelativeMouseLoc
 on seScrollPoll
    -- Stop naturally when all callers have disabled.
    if sRefCount < 1 then exit seScrollPoll
-   
+
    -- Find whatever scrollable control is under the mouse right now.
    local tScrollTarget
    put seGetScrollTarget() into tScrollTarget
-   
+
    -- Install or remove the C monitor based on whether there is a target.
    -- Keeping the monitor installed when there is a target also blocks
    -- HyperXTalk's own coarse line-quantised scroll from reaching the control.
@@ -238,13 +254,13 @@ on seScrollPoll
          put false into sMonitorInstalled
       end if
    end if
-   
+
    -- Always drain both accumulators every tick so stale delta never carries
    -- over to a new scroll target.
    local tDeltaY, tDeltaX
    put macScrollEnhancementGetDelta() into tDeltaY
    put macScrollEnhancementGetDeltaX() into tDeltaX
-   
+
    if tScrollTarget is not empty then
       -- Special case data views like the Project Browser
       -- Initial use case only implements vscroll
@@ -257,7 +273,30 @@ on seScrollPoll
          send "seScrollPoll" to me in 16 milliseconds
          exit seScrollPoll
       end if
-      
+
+      -- Special case DataGrids: use their own pixel scroll properties.
+      -- (The engine's wheel keys are swallowed for grids by the front-script
+      -- rawKeyDown above, so this is the only scrolling the grid receives.)
+      local tIsGrid
+      try
+         put (the dgControl of tScrollTarget is tScrollTarget) into tIsGrid
+      catch tError
+         put false into tIsGrid
+      end try
+      if tIsGrid then
+         if abs(tDeltaY) > 0.5 then
+            local tGridMax, tGridNew
+            put the dgFormattedHeight of tScrollTarget - the height of tScrollTarget into tGridMax
+            if tGridMax < 0 then put 0 into tGridMax
+            put (the dgVScroll of tScrollTarget) + tDeltaY*kGridScrollFactor into tGridNew
+            if tGridNew < 0 then put 0 into tGridNew
+            if tGridNew > tGridMax then put tGridMax into tGridNew
+            set the dgVScroll of tScrollTarget to tGridNew
+         end if
+         send "seScrollPoll" to me in 16 milliseconds
+         exit seScrollPoll
+      end if
+
       -- Suppress scrolling while the script editor handler list popup is
       -- visible. The popup is drawn inside the same NSWindow as the field
       -- so the OS-level window check in the C layer cannot detect it; we
@@ -272,7 +311,7 @@ on seScrollPoll
          send "seScrollPoll" to me in 16 milliseconds
          exit seScrollPoll
       end if
-      
+
       -- Apply vertical scroll.
       if abs(tDeltaY) > 0.5 then
          local tCurrentV, tMaxV, tNewV
@@ -285,7 +324,7 @@ on seScrollPoll
          set the vScroll of tScrollTarget to tNewV
          seSyncGutter tScrollTarget, tNewV
       end if
-      
+
       -- Apply horizontal scroll.
       if abs(tDeltaX) > 0.5 then
          local tCurrentH, tMaxH, tNewH
@@ -298,6 +337,24 @@ on seScrollPoll
          set the hScroll of tScrollTarget to tNewH
       end if
    end if
-   
+
    send "seScrollPoll" to me in 16 milliseconds
 end seScrollPoll
+
+-- ---------------------------------------------------------------------------
+-- Front-script: while smooth scrolling is driving a DataGrid, swallow the
+-- engine's wheel keys so the grid is not scrolled twice.
+-- ---------------------------------------------------------------------------
+
+on rawKeyDown pKey
+   if sMonitorInstalled and (pKey is 65308 or pKey is 65309) then
+      local tGrid
+      try
+         put the dgControl of the target into tGrid
+      catch tError
+         put empty into tGrid
+      end try
+      if tGrid is not empty then exit rawKeyDown
+   end if
+   pass rawKeyDown
+end rawKeyDown

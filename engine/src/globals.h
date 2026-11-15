@@ -71,7 +71,6 @@ extern MCStringRef MCfiletype;
 extern MCStringRef MCstackfiletype;
 
 extern Boolean MCuseXft ;
-extern Boolean MCuseESD ;
 
 #ifdef TARGET_PLATFORM_LINUX
 class MCXImageCache;

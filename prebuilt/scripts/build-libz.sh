@@ -4,7 +4,7 @@ source "${BASEDIR}/scripts/platform.inc"
 source "${BASEDIR}/scripts/lib_versions.inc"
 source "${BASEDIR}/scripts/util.inc"
 
-# 2023.10.27 currently ${LIBZ_VERSION} is 1.3.1
+# 2026.10.06 currently ${LIBZ_VERSION} is 1.3.2
 
 THIS="libz"
 URL_ROOT="https://www.zlib.net/current/zlib.tar.gz"

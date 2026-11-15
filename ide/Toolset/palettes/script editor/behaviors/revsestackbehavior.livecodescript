@@ -2763,6 +2763,8 @@ on idePreferenceChanged pPreference, pValue
          break
       case "cScriptEditor,colorization,scheme"
       case "cScriptEditor,colorization,config"
+      case "cScriptEditor,colorization,schemedark"
+      case "cScriptEditor,colorization,configdark"
          -- Colorization preferences changed externally (e.g. via Preferences dialog).
          -- Re-initialise sPrefs so the new scheme is picked up immediately and is not
          -- overwritten when sePrefSave runs on suspendStack / seFinalize.

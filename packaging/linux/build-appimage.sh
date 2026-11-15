@@ -166,6 +166,20 @@ if [ -d "$OUT_DIR/modules" ]; then
     cp -a "$OUT_DIR/modules/"* "$APPBIN/modules/" 2>/dev/null || true
 fi
 
+# --- Toolchain (LCB compiler, runner, and modules) ---
+# Mirrors the Mac bundle layout: Tools/Toolchain/{lc-compile,lc-run,modules/}
+# lc-compile and lc-run are needed by the IDE to compile LCB extensions.
+mkdir -p "$APPBIN/Toolchain"
+for tool in lc-compile lc-run lc-compile-ffi-java; do
+    if [ -f "$OUT_DIR/$tool" ]; then
+        cp "$OUT_DIR/$tool" "$APPBIN/Toolchain/"
+        chmod +x "$APPBIN/Toolchain/$tool"
+    fi
+done
+if [ -d "$OUT_DIR/modules" ]; then
+    cp -a "$OUT_DIR/modules" "$APPBIN/Toolchain/"
+fi
+
 # --- Vosk speech recognition library ---
 #
 # lnx-speech.cpp dlopen()s libvosk.so at runtime, so we bundle it next to the
@@ -285,9 +299,19 @@ convert "$ICON_SRC" -resize 512x512 "$APPDIR/hyperxtalk.png"
 # (3) needs VLC_PLUGIN_PATH set so libvlccore can find them.
 # Dependencies of all three layers are bundled by the recursive ldd pass below.
 
-# Libraries that must come from the host (core OS ABI).
+# Libraries that must come from the host and must never be bundled:
+#   - Graphics/EGL stack: libGL, libEGL, libGLX, libOpenGL, libGLdispatch,
+#     libglapi -- tied to the host Mesa version and kernel DRM driver.
+#     Bundling libwayland caused Mesa's EGL driver to fail at load time:
+#     "undefined symbol: wl_fixes_interface" because Mesa was built against a
+#     newer libwayland than the one the AppImage was carrying.
+#   - Wayland client/cursor/egl/server -- host-ABI Wayland surface.
+#   - DRM/GBM -- kernel driver interface.
+#   - Core libc/runtime and X11 ABI (unchanged).
 SKIP_PATTERN="linux-vdso|ld-linux|libpthread|libdl|librt|libc\\.so|libm\\.so\
-|libGL\\.so|libEGL\\.so|libGLdispatch|libGLX\
+|libGL\\.so|libGLX|libEGL|libOpenGL\\.so|libGLdispatch|libglapi\\.so\
+|libwayland-client|libwayland-cursor|libwayland-egl|libwayland-server\
+|libdrm|libgbm\
 |libX11|libXext|libXfixes|libXrender|libXi|libxcb|libXau|libXdmcp\
 |libgcc_s|libstdc++"
 

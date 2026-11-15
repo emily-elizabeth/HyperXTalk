@@ -1,0 +1,76 @@
+Name: preferredAppearance
+
+Type: property
+
+Syntax: set the preferredAppearance to {system | light | dark}
+Syntax: get the preferredAppearance
+
+Summary:
+Forces the application to use a light or dark appearance, or lets it follow
+the operating system.
+
+Introduced: 0.9.16
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+-- in the mainstack of an application that should always be dark
+on preOpenStack
+   set the preferredAppearance to "dark"
+end preOpenStack
+
+Example:
+set the preferredAppearance to "system"
+
+Description:
+Use the <preferredAppearance> property to decide which appearance the
+application draws in. The value is one of:
+
+- "system": follow the operating system's light or dark setting (the default)
+- "light": always draw in light mode
+- "dark": always draw in dark mode
+
+The property is global to the running process and is never saved in a stack
+file. A standalone starts in "system" unless its own script sets the
+property, typically in the mainstack's <preOpenStack> handler. The IDE sets
+it from its Appearance preference.
+
+Setting the property changes the application's effective appearance, so
+everything that depends on it follows: the default colors of objects that
+have no explicit colors, native controls such as scrollbars and menu
+buttons, the <systemAppearance> property and the <systemAppearanceChanged>
+message. Scripts that test `the systemAppearance is "dark"` therefore keep
+working when the appearance is forced.
+
+Because the IDE runs stacks in its own process, a stack that sets the
+<preferredAppearance> while open in the IDE changes the IDE's appearance too,
+in the same way as setting the <lookAndFeel> does.
+
+What the forced appearance covers depends on the platform:
+
+- macOS: the application's NSAppearance is set, so AppKit draws windows,
+  menus, panels and native controls in the forced appearance, and every
+  appearance query in the engine follows it.
+- Windows: the engine draws in the forced appearance (default colors, the
+  menu bar, themed controls), the title bars of open and new stack windows
+  follow it, and Windows is told to draw its own context menus and tooltips
+  for the application in that appearance (Windows 10 1903 or later). With
+  "system", the engine follows the Windows "app mode" colour setting.
+- Linux: the GTK application-prefer-dark-theme setting is switched, so the
+  theme's dark or light variant is used for the engine's native controls and
+  the engine's own drawing follows the forced value. When the desktop's theme
+  is itself a dark variant (Adwaita-dark, Yaru-dark), "light" uses the base
+  theme (Adwaita, Yaru). When the desktop's theme has no variant for the
+  forced appearance at all (Debian MATE's Menta has no dark variant), the
+  application uses GTK's built-in Adwaita theme in that appearance instead.
+  "system" puts the desktop's theme back and follows its later changes.
+
+Setting the property always sends <systemAppearanceChanged> to the open
+stacks, even when the effective appearance did not change, so handlers can
+re-apply their colors. In a headless engine (-ui) the value is stored and
+reported but nothing is drawn.
+
+References: systemAppearance (property), systemAppearanceChanged (message),
+lookAndFeel (property), preOpenStack (message)

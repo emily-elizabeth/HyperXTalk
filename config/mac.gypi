@@ -34,7 +34,8 @@
 		'SHARED_PRECOMPS_DIR': '$(OBJROOT)/Precompiled/$(CURRENT_ARCH)',
 		'GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS': 'NO',
 		'ALWAYS_SEARCH_USER_PATHS': 'NO',
-		'MACOSX_DEPLOYMENT_TARGET': '11.0',
+		# HXT: Xcode 26/27 only accept deployment targets of 12.0 or later
+		'MACOSX_DEPLOYMENT_TARGET': '12.0',
 		'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES',
 		'COPY_PHASE_STRIP': 'NO',
 		'STRIP_INSTALLED_PRODUCT': 'NO',
@@ -90,8 +91,8 @@
 						[
 							'-Wl,-platform_version',
 							'-Wl,macos',
-							'-Wl,11.0',
-							'-Wl,11.0',
+							'-Wl,12.0',
+							'-Wl,12.0',
 						],
 					},
 				},

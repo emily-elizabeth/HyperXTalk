@@ -1,0 +1,44 @@
+group commands bold 137,89,168
+group properties none 200,40,41
+group functions none 66,113,174
+class error none 200,40,41
+class singlecomment italic 142,144,140
+class multicomment italic 142,144,140
+class identifier none 77,77,76
+class literal none 113,140,0
+class number none 245,135,31
+class keyword none 137,89,168
+class operator none 62,153,159
+class continuation none 142,144,140
+keyword command bold 137,89,168
+keyword private bold 137,89,168
+keyword on bold 137,89,168
+keyword end bold 137,89,168
+keyword if bold 137,89,168
+keyword then bold 137,89,168
+keyword else bold 137,89,168
+keyword function bold 137,89,168
+keyword setprop bold 137,89,168
+keyword getprop bold 137,89,168
+keyword repeat bold 137,89,168
+keyword switch bold 137,89,168
+keyword try bold 137,89,168
+keyword catch bold 137,89,168
+keyword case bold 137,89,168
+keyword default bold 137,89,168
+keyword finally bold 137,89,168
+keyword next bold 137,89,168
+keyword exit bold 137,89,168
+editor background 255,255,255
+editor debugbackground 239,239,239
+editor gutterbackground 255,255,255
+editor gutterforeground 142,144,140
+editor foldingbackground 239,239,239
+editor foldingforeground 142,144,140
+editor selection 239,239,239
+editor findhighlight 245,135,31
+editor brackethighlight 142,144,140
+editor placeholder 239,239,239
+editor executionline 239,239,239
+editor defaulthandlertext 142,144,140
+editor appearance light

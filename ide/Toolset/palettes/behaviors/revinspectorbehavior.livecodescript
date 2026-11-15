@@ -753,3 +753,25 @@ on ideStyleTextRequest pWhich, pValue, pSelectedChunk, pSelectedObject
       end if
    end if
 end ideStyleTextRequest
+
+// HXT dark mode: recolour the property inspector when the OS appearance
+// changes. The engine sends this to the current card of every open stack.
+on systemAppearanceChanged pMode, pWindowColor, pTextColor
+   local tBgColor, tFgColor
+   -- Prefer the colours the engine passed with the message; fall back to the
+   -- appearance-aware IDE colours (pWindowColor/pTextColor are empty on
+   -- platforms without a native implementation).
+   put revIDEColor("palette_background") into tBgColor
+   if pWindowColor is a color then put pWindowColor into tBgColor
+   put pTextColor into tFgColor
+   if tFgColor is not a color then put the systemTextColor into tFgColor
+   if tFgColor is not a color then put revIDEColor("text_1") into tFgColor
+
+   set the cInspectorBackgroundColor of stack "revPreferences" to tBgColor
+   set the backgroundColor of this stack to tBgColor
+   set the backgroundColor of this card to tBgColor
+   set the foregroundColor of this stack to tFgColor
+
+   -- Let revPaletteBehavior recolour the frame widgets (icons) as well.
+   pass systemAppearanceChanged
+end systemAppearanceChanged

@@ -894,6 +894,112 @@ private command addToList pElement, @xArray
    put pElement into xArray[the number of elements in xArray + 1]
 end addToList
 
+/**
+Summary: Generates the manifest.xml and api.lcdoc of a script library that was
+copied into the user extensions or user libraries folder as a bare script file.
+
+Parameters:
+pFolder: The folder holding the script.
+
+Returns: Empty, or an error message.
+
+Description:
+A folder in the user extensions or user libraries folder that holds one
+script-only stack (.livecodescript or .hyperxtalkscript) and no manifest is
+treated as a script library in the raw: the same generators the build and
+the Extension Builder use produce its api.lcdoc from the doc comments and
+its manifest.xml from the library-level block. A folder that already has a
+manifest, holds no script, more than one, or an LCB source, is left alone.
+A folder with one of the two files but not the other is left alone as well,
+and named in the result, so the developer can delete the one present and
+have both regenerated.
+*/
+command revIDEExtensionPackageBareScriptLibrary pFolder
+   local tHasManifest, tHasDocs
+   put there is a file (pFolder & slash & "manifest.xml") into tHasManifest
+   put there is a file (pFolder & slash & "api.lcdoc") into tHasDocs
+   if tHasManifest and tHasDocs then
+      return empty
+   end if
+   if tHasManifest or tHasDocs then
+      local tPresent, tMissing
+      if tHasManifest then
+         put "manifest.xml" into tPresent
+         put "api.lcdoc" into tMissing
+      else
+         put "api.lcdoc" into tPresent
+         put "manifest.xml" into tMissing
+      end if
+      return "The script library folder" && pFolder && "has" && tPresent && \
+            "but no" && tMissing & ". Delete" && tPresent && "(keep the script)" && \
+            "and both" && tPresent && "and" && tMissing && "will be regenerated" && \
+            "from the script at the next launch."
+   end if
+   local tFiles, tScripts, tModules
+   put files(pFolder) into tFiles
+   put tFiles into tScripts
+   filter tScripts with regex pattern "^.*\.(hyperxtalk|livecode)(script)?$"
+   put tFiles into tModules
+   filter tModules with regex pattern "^.*\.lcb$"
+   if the number of lines in tScripts is not 1 or tModules is not empty then
+      return empty
+   end if
+   __revIDEEnsureDocsParser
+   if there is no stack "revDocsParser" then
+      return "The docs parser is not available"
+   end if
+   try
+      extensionExtractDocs "revDocsParser", pFolder, pFolder & slash & tScripts
+      extensionGenerateManifestForLCSExtension "revDocsParser", pFolder
+   catch tError
+      return tError
+   end try
+   return empty
+end revIDEExtensionPackageBareScriptLibrary
+
+-- Loads the docs parser stack if it is not loaded yet (the same locations
+-- revIDERegenerateBuiltAPIs uses).
+private command __revIDEEnsureDocsParser
+   if there is a stack "revDocsParser" then
+      exit __revIDEEnsureDocsParser
+   end if
+   local tParserPath
+   if revEnvironmentIsInstalled() then
+      put revIDESpecialFolderPath("Toolset") & "/libraries/revdocsparser.livecodescript" into tParserPath
+   else
+      put revEnvironmentRepositoryPath() & slash & "ide-support" & slash & "revdocsparser.livecodescript" into tParserPath
+   end if
+   if there is a file tParserPath then
+      start using stack tParserPath
+   end if
+end __revIDEEnsureDocsParser
+
+-- Warnings from packaging bare script libraries are gathered while the
+-- extensions and user libraries load, and shown in one dialog once
+-- startup is over and the IDE can put one up.
+local sBareLibraryWarnings
+
+private command __revIDEBareLibraryWarn pWarning
+   if pWarning is empty then
+      exit __revIDEBareLibraryWarn
+   end if
+   if sBareLibraryWarnings is empty then
+      send "__revIDEBareLibraryWarningsShow" to me in 0 milliseconds
+   else
+      put return & return after sBareLibraryWarnings
+   end if
+   put pWarning after sBareLibraryWarnings
+end __revIDEBareLibraryWarn
+
+on __revIDEBareLibraryWarningsShow
+   local tWarnings
+   put sBareLibraryWarnings into tWarnings
+   put empty into sBareLibraryWarnings
+   if tWarnings is not empty then
+      answer warning tWarnings with "OK"
+   end if
+end __revIDEBareLibraryWarningsShow
+
 on __extensionsLoad
    local tDataA   
    # Fetch all the available data about extensions in the search paths
@@ -906,6 +1012,12 @@ on __extensionsLoad
          if tFolder is among the items of "downloading,temp,uninstalled" then next repeat
          local tExtFolder
          put tExtensionFolder & slash & tFolder into tExtFolder
+         if tKey is "user" then
+            -- a script library dropped in as a bare file gets its manifest
+            -- and api.lcdoc generated, so it loads and is documented
+            revIDEExtensionPackageBareScriptLibrary tExtFolder
+            __revIDEBareLibraryWarn the result
+         end if
          extensionFindInFolder tExtFolder, tKey is "user", true, tDataA
       end repeat
    end repeat
@@ -967,6 +1079,11 @@ private command __userLibrariesLoad
 
       local tPackagePath
       put tLibrariesFolder & slash & tPackageFolder into tPackagePath
+
+      -- a library installed as a bare script gets its manifest and
+      -- api.lcdoc generated, so the Dictionary can document it
+      revIDEExtensionPackageBareScriptLibrary tPackagePath
+      __revIDEBareLibraryWarn the result
 
       repeat for each line tFile in files(tPackagePath)
          if tFile ends with ".livecodescript" then
@@ -1475,13 +1592,14 @@ end __TypeToAPI
 function revIDEExtensionDocsData pForAPI
    local tExtensionsA
    put revIDEExtensions("", "installed", true) into tExtensionsA
-   local tDataA, tCount
+   local tDataA, tCount, tListedA
    repeat for each element tExtension in tExtensionsA
       if pForAPI is not empty and \
             __TypeToAPI(tExtension["type"]) is not pForAPI then
          next repeat
       end if
       add 1 to tCount
+      put true into tListedA[tExtension["name"]]
       put tExtension["install_path"] into tDataA[tCount]["folder"]
       put tExtension["title"] into tDataA[tCount]["title"]
       put tExtension["author"] into tDataA[tCount]["author"]
@@ -1489,8 +1607,159 @@ function revIDEExtensionDocsData pForAPI
       put tExtension["source_type"] into tDataA[tCount]["source_type"]
       put tExtension["name"] into tDataA[tCount]["name"]
    end repeat
+   if pForAPI is empty or pForAPI is "script" then
+      repeat for each element tUserScript in __revIDEUserScriptDocsData()
+         -- a copy of an installed extension (the same library in the
+         -- user libraries folder, say) would be documented twice
+         if tListedA[tUserScript["name"]] then next repeat
+         put true into tListedA[tUserScript["name"]]
+         add 1 to tCount
+         put tUserScript into tDataA[tCount]
+      end repeat
+      repeat for each element tExternal in __revIDEExternalDocsData()
+         -- the same external in both externals folders, or one sharing
+         -- its name with an extension, would be documented twice
+         if tListedA[tExternal["name"]] then next repeat
+         put true into tListedA[tExternal["name"]]
+         add 1 to tCount
+         put tExternal into tDataA[tCount]
+      end repeat
+   end if
    return tDataA
 end revIDEExtensionDocsData
+
+-- Libraries in the user libraries folder and script plugins in the user
+-- plugins folder are not extensions, so the Dictionary knows nothing of
+-- them. This lists them in the shape revIDEExtensionDocsData returns, so
+-- their doc comments are built into the Script dictionary alongside the
+-- extensions. A library takes its name, title and author from the manifest
+-- generated at startup, or falls back to its folder name; a plugin is
+-- listed under its file name, and only when its script has doc comments.
+private function __revIDEUserScriptDocsData
+   local tDataA, tCount
+   put 0 into tCount
+
+   local tLibrariesFolder
+   put revIDESpecialFolderPath("user libraries") into tLibrariesFolder
+   if tLibrariesFolder is not empty then
+      repeat for each line tPackageFolder in folders(tLibrariesFolder)
+         if tPackageFolder begins with "." then next repeat
+         local tPackagePath, tFoundA, tLibraryA
+         put tLibrariesFolder & slash & tPackageFolder into tPackagePath
+         put empty into tFoundA
+         extensionFindInFolder tPackagePath, true, false, tFoundA
+         if tFoundA is not an array then next repeat
+         put tFoundA[line 1 of the keys of tFoundA][tPackagePath] into tLibraryA
+         if tLibraryA["source_type"] is not "lcs" then next repeat
+         add 1 to tCount
+         put tPackagePath into tDataA[tCount]["folder"]
+         put tLibraryA["source_file"] into tDataA[tCount]["source_file"]
+         put "lcs" into tDataA[tCount]["source_type"]
+         put tLibraryA["author"] into tDataA[tCount]["author"]
+         if tLibraryA["name"] is not empty then
+            put tLibraryA["name"] into tDataA[tCount]["name"]
+         else
+            put "library." & tPackageFolder into tDataA[tCount]["name"]
+         end if
+         if tLibraryA["title"] is not empty then
+            put tLibraryA["title"] into tDataA[tCount]["title"]
+         else
+            put tPackageFolder into tDataA[tCount]["title"]
+         end if
+      end repeat
+   end if
+
+   local tPluginsFolder, tPlugins
+   put revIDESpecialFolderPath("user plugins") into tPluginsFolder
+   if tPluginsFolder is not empty then
+      put files(tPluginsFolder) into tPlugins
+      filter tPlugins with regex pattern "^.*\.(hyperxtalk|livecode)(script)?$"
+      set the itemDelimiter to "."
+      repeat for each line tPlugin in tPlugins
+         local tPluginPath
+         put tPluginsFolder & slash & tPlugin into tPluginPath
+         if not __revIDEScriptHasDocComments(tPluginPath) then next repeat
+         add 1 to tCount
+         put tPluginsFolder into tDataA[tCount]["folder"]
+         put tPlugin into tDataA[tCount]["source_file"]
+         put "lcs" into tDataA[tCount]["source_type"]
+         put empty into tDataA[tCount]["author"]
+         put "plugin." & item 1 to -2 of tPlugin into tDataA[tCount]["name"]
+         put item 1 to -2 of tPlugin into tDataA[tCount]["title"]
+      end repeat
+   end if
+   return tDataA
+end __revIDEUserScriptDocsData
+
+-- True when the stack file's script holds a doc comment. A script-only
+-- stack is read as text; a binary stack has to be loaded, and is taken
+-- out of memory again if it was not open, as revIDEUpdatePlugins does.
+private function __revIDEScriptHasDocComments pStackFile
+   local tScript
+   if pStackFile ends with "script" then
+      put textDecode(url("binfile:" & pStackFile), "utf-8") into tScript
+      return "/**" is in tScript
+   end if
+   if there is no stack pStackFile then
+      return false
+   end if
+   put the script of stack pStackFile into tScript
+   if the mode of stack pStackFile is 0 then
+      set the cantDelete of stack pStackFile to false
+      delete stack pStackFile
+   end if
+   return "/**" is in tScript
+end __revIDEScriptHasDocComments
+
+-- An external in a folder of its own (see revEnvironmentExternalFolders in
+-- the home stack) may carry an api.lcdoc beside its binaries, as an
+-- extension does. This lists such externals in the shape
+-- revIDEExtensionDocsData returns, so the Dictionary builds their entries
+-- into the Script API alongside the extensions. An external has no
+-- manifest, so it is listed under its folder name, with the title and
+-- author of the api.lcdoc's library header when it has one; with no source
+-- file to regenerate it from, the api.lcdoc is taken as it is.
+private function __revIDEExternalDocsData
+   local tDataA, tCount
+   put 0 into tCount
+   set the itemDelimiter to slash
+   repeat for each line tFolder in revEnvironmentExternalFolders()
+      local tAPIDoc
+      put tFolder & slash & "api.lcdoc" into tAPIDoc
+      if there is no file tAPIDoc then next repeat
+      add 1 to tCount
+      put tFolder into tDataA[tCount]["folder"]
+      put empty into tDataA[tCount]["source_file"]
+      put empty into tDataA[tCount]["source_type"]
+      put "external." & item -1 of tFolder into tDataA[tCount]["name"]
+      put __revIDELcdocHeaderElement(tAPIDoc, "Title") into tDataA[tCount]["title"]
+      if tDataA[tCount]["title"] is empty then
+         put item -1 of tFolder into tDataA[tCount]["title"]
+      end if
+      put __revIDELcdocHeaderElement(tAPIDoc, "Author") into tDataA[tCount]["author"]
+   end repeat
+   return tDataA
+end __revIDEExternalDocsData
+
+-- The content of a one-line element (Title or Author, say) in the library
+-- header of an lcdoc file: the elements before its first "Name:" entry.
+private function __revIDELcdocHeaderElement pFile, pElement
+   local tText
+   put revIDEUTF8FileContents(pFile) into tText
+   local tOffset
+   put lineOffset(cr & "Name:", cr & tText) into tOffset
+   if tOffset > 0 then
+      delete line tOffset to -1 of tText
+   end if
+   put lineOffset(cr & pElement & ":", cr & tText) into tOffset
+   if tOffset is 0 then
+      return empty
+   end if
+   local tLine
+   put line tOffset of tText into tLine
+   delete char 1 to (length(pElement) + 1) of tLine
+   return word 1 to -1 of tLine
+end __revIDELcdocHeaderElement
 
 on revIDEExtensionUpdateAPI pFolder, pExtensionSource
    if pExtensionSource is empty then

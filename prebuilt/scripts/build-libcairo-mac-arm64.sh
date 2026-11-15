@@ -142,7 +142,10 @@ mkdir -p "${MERGE_DIR}/cairo" "${MERGE_DIR}/pixman"
 (cd "${MERGE_DIR}/cairo"  && ar -x "${LIBCAIRO}")
 (cd "${MERGE_DIR}/pixman" && ar -x "${LIBPIXMAN}")
 
-# Create merged archive
+# Create merged archive. Remove any previous archive first: ar -r would keep
+# stale members whose names differ (an older Xcode build names its objects
+# cairo.o, meson names them cairo.c.o), producing duplicate-symbol link errors.
+rm -f "${PREBUILT_LIB}/libcairo.a"
 ar -rcs "${PREBUILT_LIB}/libcairo.a" \
     "${MERGE_DIR}/cairo"/*.o \
     "${MERGE_DIR}/pixman"/*.o

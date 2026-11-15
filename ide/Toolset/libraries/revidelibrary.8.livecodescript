@@ -2329,6 +2329,28 @@ tags: preferences
 Example: set the textsize of field 1 to revIDEGetPreference("text size")
 Returns (Any): The value of the preference
 */
+/**
+Applies the IDE's Appearance preference to the engine
+
+Description:
+Reads the "cAppearance" preference ("system", "light" or "dark") and sets the
+engine's preferredAppearance to it. The property is set through "do" so this
+library still compiles and runs on engines that do not have it; on those the
+preference has no effect.
+**/
+command revIDEApplyAppearancePreference
+   local tAppearance
+   put revIDEGetPreference("cAppearance") into tAppearance
+   if tAppearance is not among the items of "system,light,dark" then
+      put "system" into tAppearance
+   end if
+   try
+      do "set the preferredAppearance to" && quote & tAppearance & quote
+   catch tError
+      -- engine without the preferredAppearance property
+   end try
+end revIDEApplyAppearancePreference
+
 function revIDEGetPreference pPreferenceName
    local tValue
    
@@ -2589,6 +2611,13 @@ function revIDEColor pTag
       case "palette_background"
          if the platform is "Win32" then
             return "240,240,240"
+         else if the systemWindowColor is a color then
+            // HXT dark mode: use the live system window colour. The effective
+            // backgroundColor of "this stack" is unreliable while an appearance
+            // change is being processed - the stack may still carry the explicit
+            // dark colour it was given in dark mode, which left the property
+            // inspector dark with dark text after switching back to light.
+            return the systemWindowColor
          else
             return the effective backgroundColor of this stack
          end if
@@ -13173,8 +13202,12 @@ private function revIDEGetExtensionDocsData pAPI
       put tFolder & slash & "api.lcdoc" into tSourceAPI
       if there is a file tSourceAPI then
          if tSource is empty then
+            # With no source to regenerate it from, the api.lcdoc is the
+            # source: copy it across when the cached copy is missing or
+            # older than it (an external in a folder ships its docs this way)
             put false into tNeedUpdate
-            if there is no file tAPIDoc then
+            if there is no file tAPIDoc or \
+                  revIDEIsFilesetStale(tSourceAPI, tAPIDoc, false, tError) is true then
                revIDESetUTF8FileContents tAPIDoc, revIDEUTF8FileContents(tSourceAPI)
             end if
          else if tNeedUpdate then

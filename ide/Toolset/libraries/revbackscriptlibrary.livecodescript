@@ -14,6 +14,104 @@ on extensionFinalize
    end if
 end extensionFinalize
 
+## HXT dark mode: the engine sends systemAppearanceChanged to the current card
+## of every open stack. Data Grids paint some colours explicitly (row
+## backgrounds, header gradient, dividers), so forward the message to every
+## Data Grid in the stack the message was sent to; the grid then re-applies its
+## built-in defaults for the new appearance. IDE stacks look after themselves.
+on systemAppearanceChanged pMode, pWindowColor, pTextColor
+   local tTarget, tStack
+   put the long id of the target into tTarget
+   if word 1 of tTarget is "card" then
+      put ideStackOfObject(tTarget) into tStack
+      if exists(tStack) and not revIDEStackIsIDEStack(tStack) then
+         __ForwardAppearanceChangeToDataGrids tStack, pMode, pWindowColor, pTextColor
+      end if
+   end if
+   pass systemAppearanceChanged
+end systemAppearanceChanged
+
+private command __ForwardAppearanceChangeToDataGrids pStack, pMode, pWindowColor, pTextColor
+   -- Walks every control (nested ones included) of every card of pStack:
+   --   * Data Grids get the systemAppearanceChanged message dispatched to them
+   --   * segmented control widgets get their hxtAppearance property poked, which
+   --     makes the widget re-read the system appearance and repaint
+   local tCardNum, tControlNum, tControl
+   repeat with tCardNum = 1 to the number of cards of pStack
+      repeat with tControlNum = 1 to the number of controls of card tCardNum of pStack
+         put the long id of control tControlNum of card tCardNum of pStack into tControl
+         try
+            if word 1 of tControl is "widget" then
+               __HXTPushAppearanceToWidget tControl, pMode
+            else if word 1 of tControl is "group" then
+               if the dgProps["control type"] of tControl is "Data Grid" then
+                  dispatch "systemAppearanceChanged" to tControl with pMode, pWindowColor, pTextColor
+               end if
+            end if
+         catch tError
+            -- one broken control must not stop the rest from updating
+         end try
+      end repeat
+   end repeat
+end __ForwardAppearanceChangeToDataGrids
+
+## HXT dark mode: LCB widgets cannot read the system appearance themselves
+## (script-object access is blocked in their paint and property handlers), so
+## the IDE pushes it to the widgets that support it. Called by the front
+## script when a stack opens, by newWidget below, and by the appearance-change
+## handler above.
+command revHXTPushAppearanceToWidgets pStack, pMode
+   if pMode is empty then put the systemAppearance into pMode
+   if not exists(pStack) then exit revHXTPushAppearanceToWidgets
+   local tCardNum, tControlNum, tControl
+   repeat with tCardNum = 1 to the number of cards of pStack
+      repeat with tControlNum = 1 to the number of controls of card tCardNum of pStack
+         put the long id of control tControlNum of card tCardNum of pStack into tControl
+         if word 1 of tControl is "widget" then
+            __HXTPushAppearanceToWidget tControl, pMode
+         end if
+      end repeat
+   end repeat
+end revHXTPushAppearanceToWidgets
+
+## Widget kinds that understand the hxtAppearance property
+constant kHXTAppearanceAwareWidgets = "com.livecode.widget.segmented,com.livecode.widget.treeview,com.livecode.widget.navbar,com.livecode.widget.headerbar,com.livecode.widget.iconpicker,com.livecode.widget.switchbutton"
+
+private command __HXTPushAppearanceToWidget pWidget, pMode
+   try
+      if the kind of pWidget is among the items of kHXTAppearanceAwareWidgets then
+         set the hxtAppearance of pWidget to pMode
+      end if
+   catch tError
+      -- an older widget module without the property must not break anything
+   end try
+end __HXTPushAppearanceToWidget
+
+local sHXTNewWidgets
+
+on newWidget
+   -- Deferred on purpose: for a cloned widget (Duplicate, option-drag,
+   -- paste) the engine sends newWidget while attaching the copy, before it
+   -- has bound the LCB instance and recorded the kind. Reading "the kind"
+   -- at that point dereferences a nil kind in the engine and crashes the
+   -- IDE (segfault, no dialog). By the next event-loop turn the clone is
+   -- fully bound.
+   put the long id of the target & return after sHXTNewWidgets
+   send "__HXTPushAppearanceToNewWidgets" to me in 0 milliseconds
+   pass newWidget
+end newWidget
+
+on __HXTPushAppearanceToNewWidgets
+   local tWidgets, tWidget
+   put sHXTNewWidgets into tWidgets
+   put empty into sHXTNewWidgets
+   repeat for each line tWidget in tWidgets
+      if exists(tWidget) then
+         __HXTPushAppearanceToWidget tWidget, the systemAppearance
+      end if
+   end repeat
+end __HXTPushAppearanceToNewWidgets
+
 global gREVSuppressMessages
 
 local lUpdateDimensionsTimerID, lUpdateAOControlsTimerID, lLastTopStack

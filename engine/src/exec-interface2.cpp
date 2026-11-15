@@ -448,6 +448,26 @@ static MCExecEnumTypeInfo _kMCInterfaceSystemAppearanceTypeInfo =
 	_kMCInterfaceSystemAppearanceElementInfo,
 };
 
+//////////
+
+// HXT: the preferredAppearance global property. "system" follows the OS;
+// "light" / "dark" force the app's effective appearance, so everything that
+// reads the systemAppearance (default object colours, native controls, the
+// systemAppearanceChanged message) follows the forced value.
+static MCExecEnumTypeElementInfo _kMCInterfacePreferredAppearanceElementInfo[] =
+{
+	{ "system", 0, false },
+	{ "light", 1, false },
+	{ "dark", 2, false },
+};
+
+static MCExecEnumTypeInfo _kMCInterfacePreferredAppearanceTypeInfo =
+{
+	"Interface.PreferredAppearance",
+	sizeof(_kMCInterfacePreferredAppearanceElementInfo) / sizeof(MCExecEnumTypeElementInfo),
+	_kMCInterfacePreferredAppearanceElementInfo,
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 
 MCExecEnumTypeInfo *kMCInterfaceLookAndFeelTypeInfo = &_kMCInterfaceLookAndFeelTypeInfo;
@@ -458,6 +478,7 @@ MCExecEnumTypeInfo *kMCInterfaceProcessTypeTypeInfo = &_kMCInterfaceProcessTypeT
 MCExecEnumTypeInfo *kMCInterfaceSelectionModeTypeInfo = &_kMCInterfaceSelectionModeTypeInfo;
 MCExecCustomTypeInfo *kMCInterfaceStackFileVersionTypeInfo = &_kMCInterfaceStackFileVersionTypeInfo;
 MCExecEnumTypeInfo *kMCInterfaceSystemAppearanceTypeInfo = &_kMCInterfaceSystemAppearanceTypeInfo;
+MCExecEnumTypeInfo *kMCInterfacePreferredAppearanceTypeInfo = &_kMCInterfacePreferredAppearanceTypeInfo;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1723,6 +1744,45 @@ void MCInterfaceGetSystemAppearance(MCExecContext& ctxt, intenum_t& r_value)
 	MCSystemAppearance t_appearance;
 	MCscreen->getsystemappearance(t_appearance);
 	r_value = (intenum_t)t_appearance;
+}
+
+// HXT: preferredAppearance. The value is process-wide and never saved in a
+// stack. The platform hook applies it to the app:
+//   macOS   - mac-core.mm: NSApp.appearance, every engine appearance query
+//             goes through MCMacEffectiveAppearance().
+//   Windows - w32dcs.cpp: MCplatformIsDarkMode() honours the override, the
+//             uxtheme app mode and DWM title-bar attribute follow it.
+//   Linux   - lnxgtktheme.cpp: MCplatformIsDarkMode() honours the override and
+//             gtk-application-prefer-dark-theme is set to match.
+// Each of them runs the appearance-changed processing immediately, so
+// systemAppearanceChanged is sent to the open stacks.
+#if defined(_MACOSX) || defined(_LINUX)
+// The strong definition lives in the desktop engine only (mac-core.mm,
+// lnxgtktheme.cpp). This weak no-op keeps the non-GUI targets that also
+// compile this file (server, standalone builders) linking, in the same way as
+// the MCplatformIsDarkMode fallbacks in desktop.cpp and buttondraw.cpp.
+extern "C" __attribute__((weak)) void MCplatformSetPreferredAppearance(int p_mode) {}
+#elif defined(_WINDOWS)
+// MSVC has no weak symbols: the desktop engine defines this in w32dcs.cpp and
+// the server in srvwindows.cpp, as for MCplatformIsDarkMode.
+extern "C" void MCplatformSetPreferredAppearance(int p_mode);
+#else
+static inline void MCplatformSetPreferredAppearance(int p_mode) { /* not supported on this platform */ }
+#endif
+
+static intenum_t s_preferred_appearance = 0; // 0 system, 1 light, 2 dark
+
+void MCInterfaceGetPreferredAppearance(MCExecContext& ctxt, intenum_t& r_value)
+{
+	r_value = s_preferred_appearance;
+}
+
+void MCInterfaceSetPreferredAppearance(MCExecContext& ctxt, intenum_t p_value)
+{
+	if (p_value < 0 || p_value > 2)
+		p_value = 0;
+	s_preferred_appearance = p_value;
+	MCplatformSetPreferredAppearance((int)p_value);
 }
 
 void MCInterfaceGetSystemWindowColor(MCExecContext& ctxt, MCStringRef& r_value)

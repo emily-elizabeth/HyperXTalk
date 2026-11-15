@@ -52,6 +52,11 @@ public:
 	// MW-2011-09-14: [[ Bug 9719 ]] Override to return the actual sizeof(MCThemeDrawInfo).
 	virtual uint32_t getthemedrawinfosize(void);
 
+	// HXT dark mode: lets the generic drawing code (buttondraw.cpp etc.) pick
+	// dark-aware colours on Linux, as the Windows and macOS themes already do.
+	// Honours the preferredAppearance override.
+	virtual bool isdarkmodeactive(void);
+
 protected:
 	// -- tperry 12-11-2025: GTK3 removed GdkDrawable, use GdkWindow
 	void make_theme_info(MCThemeDrawInfo& ret, GtkThemeWidgetType widget, 

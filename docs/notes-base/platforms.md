@@ -32,7 +32,7 @@ requirements:
 * Optional requirements for GUI functionality:
   * GTK/GDK 2.24 or later
   * Pango with Xft support
-  * esd (optional, needed for audio output)
+  * PulseAudio, or PipeWire with pipewire-pulse (libpulse-simple; optional, needed for audioClip playback)
   * mplayer (optional, needed for media player functionality)
   * lcms (optional, required for color profile support in images)
   * gksu (optional, required for privilege elevation support)

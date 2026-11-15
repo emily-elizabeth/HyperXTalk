@@ -171,6 +171,7 @@ MCCard::MCCard()
 
 	// MM-2012-11-05: [[ Object selection started/ended message ]]
 	m_selecting_objects = false;
+	m_card_drag_dest = false;
 }
 
 MCCard::MCCard(const MCCard &cref) : MCObject(cref)
@@ -199,6 +200,7 @@ MCCard::MCCard(const MCCard &cref) : MCObject(cref)
 	
 	// MM-2012-11-05: [[ Object selection started/ended message ]]
 	m_selecting_objects = false;
+	m_card_drag_dest = false;
 }
 
 MCCard::~MCCard()
@@ -642,12 +644,29 @@ Boolean MCCard::mfocus(int2 x, int2 y)
 	else
 		state &= ~CS_INSIDE;
 
+	// If the drag operation ended without munfocus being called (e.g. a
+	// completed drop), clear the stale flag so dragEnter fires correctly
+	// the next time a drag enters this card.
+	if (!MCdispatcher->isdragtarget())
+		m_card_drag_dest = false;
+
 	if (objptrs == NULL)
 	{
 		// MW-2007-10-29: [[ Bug 3726 ]] dragMove is not sent to a card during
 		//   a drag-drop operation.
 		if (MCdispatcher -> isdragtarget())
+		{
+			if (!m_card_drag_dest)
+			{
+				m_card_drag_dest = true;
+				// Mirror MCControl::enter(): reset drag action and set
+				// drag dest so dodrop() will dispatch dragDrop to us.
+				MCdragaction = DRAG_ACTION_NONE;
+				MCdragdest = this;
+				message(MCM_drag_enter);
+			}
 			message_with_args(MCM_drag_move, x, y);
+		}
 		else
 			message_with_args(MCM_mouse_move, x, y);
 		mfocused = NULL; 
@@ -691,17 +710,49 @@ Boolean MCCard::mfocus(int2 x, int2 y)
 			mfocused->getref()->mfocus(x, y);
 		mgrabbed = False;
         
+        // Note on message ordering: mfocus_control calls enter() on the
+        // control before we return, so the control's dragEnter fires BEFORE
+        // the card's dragLeave.  A card dragLeave handler that sets dragAction
+        // will therefore clobber what the control's dragEnter handler set.
         if (mfocus_control(x, y, true))
+        {
+            if (MCdispatcher->isdragtarget() && m_card_drag_dest)
+            {
+                m_card_drag_dest = false;
+                message(MCM_drag_leave);
+            }
             return true;
+        }
         
         if (mfocus_control(x, y, false))
+        {
+            if (MCdispatcher->isdragtarget() && m_card_drag_dest)
+            {
+                m_card_drag_dest = false;
+                message(MCM_drag_leave);
+            }
             return true;
+        }
         
 		MCtooltip->cleartip();
 		// MW-2007-07-09: [[ Bug 3726 ]] dragMove is not sent to a card during
 		//   a drag-drop operation.
 		if (MCdispatcher -> isdragtarget())
+		{
+			// Send dragEnter to the card itself the first time the drag lands on
+			// bare card space (no control under cursor). Previously this message
+			// was never dispatched for the card; only MCControl::enter() sent it.
+			if (!m_card_drag_dest)
+			{
+				m_card_drag_dest = true;
+				// Mirror MCControl::enter(): reset drag action and set
+				// drag dest so dodrop() will dispatch dragDrop to us.
+				MCdragaction = DRAG_ACTION_NONE;
+				MCdragdest = this;
+				message(MCM_drag_enter);
+			}
 			message_with_args(MCM_drag_move, x, y);
+		}
 		else
 			message_with_args(MCM_mouse_move, x, y);
 		return False;
@@ -735,6 +786,13 @@ void MCCard::munfocus()
 {
 	MCtooltip->cleartip();
 	state &= ~CS_INSIDE;
+	// Always clear the card-is-drag-dest flag on any focus loss, regardless
+	// of whether a drag is currently active.  Without this, a plain
+	// mouseLeave after a completed drop (where isdragtarget() is already
+	// false) leaves m_card_drag_dest true, causing the next dragEnter to
+	// be silently skipped.  The flag is re-set in mfocus whenever the card
+	// becomes the drag destination again.
+	m_card_drag_dest = false;
 	if (mfocused != NULL && !mgrabbed)
 	{
 		MCControl *oldfocused = mfocused->getref();
@@ -744,7 +802,14 @@ void MCCard::munfocus()
 	else
 	{
 		if (MCdispatcher -> isdragtarget())
+		{
 			message(MCM_drag_leave);
+			// Mirror MCControl::leave(): clear the drag-destination globals so
+			// that a later dodrop() does not dispatch dragDrop to a stale dest,
+			// and so dragEnd reaches the source on internal drag-and-drop.
+			MCdragaction = DRAG_ACTION_NONE;
+			MCdragdest = nil;
+		}
 		else
 			message(MCM_mouse_leave);
 	}

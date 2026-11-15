@@ -161,6 +161,37 @@ bool MCPlatformGetControlThemePropInteger(MCPlatformControlType p_type, MCPlatfo
     return t_found;
 }
 
+// HXT: the preferredAppearance override (0 system, 1 light, 2 dark), set by
+// MCplatformSetPreferredAppearance in mac-core.mm. AppKit resolves
+// NSApp.effectiveAppearance lazily, so during the synchronous script that sets
+// the preference the effective appearance can still report the OS value; every
+// appearance query in the engine therefore goes through
+// MCMacEffectiveAppearance(), which returns the forced appearance directly.
+// Defined here because this file is linked into every macOS target.
+static int s_preferred_appearance_mode = 0;
+
+void MCMacSetPreferredAppearanceMode(int p_mode)
+{
+    s_preferred_appearance_mode = p_mode;
+}
+
+NSAppearance *MCMacEffectiveAppearance(void)
+{
+    switch (s_preferred_appearance_mode)
+    {
+        case 1:
+            return [NSAppearance appearanceNamed: NSAppearanceNameAqua];
+        case 2:
+            return [NSAppearance appearanceNamed: NSAppearanceNameDarkAqua];
+        default:
+            break;
+    }
+    NSAppearance *t_appearance = (NSApp != nil) ? [NSApp effectiveAppearance] : nil;
+    if (t_appearance == nil)
+        t_appearance = [NSAppearance appearanceNamed: NSAppearanceNameAqua];
+    return t_appearance;
+}
+
 bool MCPlatformGetControlThemePropColor(MCPlatformControlType p_type, MCPlatformControlPart p_part, MCPlatformControlState p_state, MCPlatformThemeProperty p_which, MCColor& r_color)
 {
     bool t_found;
@@ -300,7 +331,7 @@ bool MCPlatformGetControlThemePropColor(MCPlatformControlType p_type, MCPlatform
                         // correct shade is returned for the current mode.
                         {
                             __block NSColor *t_resolved = nil;
-                            [[NSApp effectiveAppearance] performAsCurrentDrawingAppearance:^{
+                            [MCMacEffectiveAppearance() performAsCurrentDrawingAppearance:^{
                                 t_resolved = [[NSColor windowBackgroundColor]
                                               colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
                             }];
@@ -376,12 +407,22 @@ bool MCPlatformGetControlThemePropColor(MCPlatformControlType p_type, MCPlatform
             // a solid approximation.  Apply the same appearance-aware resolution
             // used for non-pattern colours so the conversion doesn't yield nil on
             // macOS 11+ dynamic appearances.
-            NSColor *t_highlight = [NSColor controlHighlightColor];
+            //
+            // HXT dark mode: controlHighlightColor stays near-white in dark mode,
+            // and this fallback is what the engine paints *underneath* the
+            // translucent dark bezel of option, popup and combo menu buttons
+            // (MCObject::getforecolor, the themed DI_BACK path). Use the window
+            // background instead when dark, so the bezel composites over the same
+            // colour a real NSPopUpButton would sit on.
+            NSAppearanceName t_best = [MCMacEffectiveAppearance()
+                bestMatchFromAppearancesWithNames: @[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]];
+            bool t_dark = [t_best isEqualToString: NSAppearanceNameDarkAqua];
+            NSColor *t_highlight = t_dark ? [NSColor windowBackgroundColor] : [NSColor controlHighlightColor];
             NSColor *t_solid = [t_highlight colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
             if (t_solid == nil)
             {
                 __block NSColor *t_blk = t_highlight;
-                [[NSApp effectiveAppearance] performAsCurrentDrawingAppearance:^{
+                [MCMacEffectiveAppearance() performAsCurrentDrawingAppearance:^{
                     t_blk = [t_blk colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
                 }];
                 t_solid = t_blk;
@@ -402,7 +443,7 @@ bool MCPlatformGetControlThemePropColor(MCPlatformControlType p_type, MCPlatform
             if (t_resolved == nil)
             {
                 __block NSColor *t_block = t_color;
-                [[NSApp effectiveAppearance] performAsCurrentDrawingAppearance:^{
+                [MCMacEffectiveAppearance() performAsCurrentDrawingAppearance:^{
                     t_block = [t_block colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
                 }];
                 t_resolved = t_block;
