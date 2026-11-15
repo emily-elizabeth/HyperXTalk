@@ -85,11 +85,22 @@
 				'script-libraries/httpd/httpd.livecodescript',
 				'script-libraries/qr/qr.livecodescript',
 				'script-libraries/shakecontrol/shakecontrol.livecodescript',
-				'script-libraries/macscrollenhancement2/macscrollenhancement2.livecodescript',
 				'script-libraries/hxtpm/hxtpm.livecodescript',
 				'script-libraries/jsonexport/jsonexport.livecodescript',
 			],
-			
+			'conditions':
+			[
+				[
+	                'OS == "mac"',
+	                {
+						'sources':
+	                    [
+							'script-libraries/macscrollenhancement2/macscrollenhancement2.livecodescript',
+	                    ],	 
+	                },
+	            ],
+			],
+
 			'dependencies':
 		    [
         		# Requires a working HyperXTalk engine
@@ -158,15 +169,15 @@
 				'libraries/objectrepository/objectrepository.lcb',
 				'libraries/ini/ini.lcb',
 				'libraries/timezone/timezone.lcb',
-				'libraries/macstatusmenu/macstatusmenu.lcb',
-				'libraries/macoswindowresizeanimation/macoswindowresizeanimation.lcb',
-				'libraries/macscrollenhancement/macscrollenhancement.lcb',
+#				'libraries/macstatusmenu/macstatusmenu.lcb',
+#				'libraries/macoswindowresizeanimation/macoswindowresizeanimation.lcb',
+#				'libraries/macscrollenhancement/macscrollenhancement.lcb',
 
 				#'widgets/androidbutton/androidbutton.lcb',  # Android-only, no androidutils on macOS
 				#'widgets/androidfield/androidfield.lcb',    # Android-only
 				#'widgets/html5button/html5button.lcb',
-				'widgets/macbutton/macbutton.lcb',
-				'widgets/mactextfield/mactextfield.lcb',
+#				'widgets/macbutton/macbutton.lcb',
+#				'widgets/mactextfield/mactextfield.lcb',
 				#'widgets/iosbutton/iosbutton.lcb',
 				'widgets/browser/browser.lcb',
 				#’widgets/chart/chart.lcb',
@@ -192,6 +203,23 @@
 				'widgets/gradientrampeditor/gradientrampeditor.lcb',
 				'widgets/tile/tile.lcb',
 				'widgets/spinner/spinner.lcb',
+			],
+
+			'conditions':
+			[
+				[
+	                'OS == "mac"',
+	                {
+						'sources':
+	                    [
+							'widgets/macbutton/macbutton.lcb',
+							'widgets/mactextfield/mactextfield.lcb',
+							'libraries/macstatusmenu/macstatusmenu.lcb',
+							'libraries/macoswindowresizeanimation/macoswindowresizeanimation.lcb',
+							'libraries/macscrollenhancement/macscrollenhancement.lcb',
+	                    ],	 
+	                },
+	            ],
 			],
 
 			'actions':
