@@ -2915,6 +2915,14 @@ build_scale_fill_context(bool is_horizontal, GtkStateFlags state_flags)
 
     gint p2 = gtk_widget_path_append_type(path, GTK_TYPE_WIDGET);
     gtk_widget_path_iter_set_object_name(path, p2, "highlight");
+
+    GtkStyleContext *ctx = gtk_style_context_new();
+    gtk_style_context_set_path(ctx, path);
+    gtk_style_context_set_screen(ctx, gdk_screen_get_default());
+    gtk_style_context_set_state(ctx, state_flags);
+    gtk_widget_path_free(path);
+    return ctx;
+}
 // -- 2026-11-05 [issue 566]: Build a style context for the visible button of an
 // option menu (a GtkComboBox without an entry).
 // GTK3 CSS node path: combobox > box.horizontal > button.combo
