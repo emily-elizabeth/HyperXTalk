@@ -96,6 +96,12 @@ MCScrollbar::MCScrollbar()
     
     // MM-2014-07-31: [[ ThreadedRendering ]] Used to ensure the progress bar animate message is only posted from a single thread.
     m_animate_posted = false;
+
+    // Scrollbar custom colour state.
+    m_custom_fore_set = false;
+    m_custom_back_set = false;
+    MCMemoryClear(&m_custom_fore_color, sizeof(m_custom_fore_color));
+    MCMemoryClear(&m_custom_back_color, sizeof(m_custom_back_color));
 }
 
 MCScrollbar::MCScrollbar(const MCScrollbar &sref) : MCControl(sref)
@@ -121,6 +127,12 @@ MCScrollbar::MCScrollbar(const MCScrollbar &sref) : MCControl(sref)
     
     // MM-2014-07-31: [[ ThreadedRendering ]] Used to ensure the progress bar animate message is only posted from a single thread.
     m_animate_posted = false;
+
+    // Copy scrollbar custom colours from source.
+    m_custom_fore_color = sref.m_custom_fore_color;
+    m_custom_fore_set   = sref.m_custom_fore_set;
+    m_custom_back_color = sref.m_custom_back_color;
+    m_custom_back_set   = sref.m_custom_back_set;
 }
 
 MCScrollbar::~MCScrollbar()
@@ -1146,6 +1158,9 @@ IO_stat MCScrollbar::extendedload(MCObjectInputStream& p_stream, uint32_t p_vers
 
         if (t_stat == IO_NORMAL)
             t_stat = checkloadstat(p_stream . Skip(t_length));
+
+        if (t_stat == IO_NORMAL)
+            p_length -= t_length + t_header_length;
     }
 
     if (t_stat == IO_NORMAL)

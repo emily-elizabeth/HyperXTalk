@@ -288,6 +288,12 @@ MCField::MCField()
     // MM-2014-08-11: [[ Bug 13149 ]] Used to flag if a recompute is required during the next draw.
     m_recompute = false;
 
+    // Scrollbar custom colour state.
+    m_scrollbar_fore_set = false;
+    m_scrollbar_back_set = false;
+    MCMemoryClear(&m_scrollbar_fore_color, sizeof(m_scrollbar_fore_color));
+    MCMemoryClear(&m_scrollbar_back_color, sizeof(m_scrollbar_back_color));
+
     // Spell checking.
     m_spell_errors = nil;
     m_spell_error_count = 0;
@@ -388,6 +394,12 @@ MCField::MCField(const MCField &fref) : MCControl(fref)
 
     // MM-2014-08-11: [[ Bug 13149 ]] Used to flag if a recompute is required during the next draw.
     m_recompute = false;
+
+    // Copy scrollbar custom colours from source.
+    m_scrollbar_fore_color = fref.m_scrollbar_fore_color;
+    m_scrollbar_fore_set   = fref.m_scrollbar_fore_set;
+    m_scrollbar_back_color = fref.m_scrollbar_back_color;
+    m_scrollbar_back_set   = fref.m_scrollbar_back_set;
 
     // Spell checking — copy constructor does not inherit error state.
     m_spell_errors = nil;
