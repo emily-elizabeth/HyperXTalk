@@ -34,8 +34,8 @@ end systemAppearanceChanged
 private command __ForwardAppearanceChangeToDataGrids pStack, pMode, pWindowColor, pTextColor
    -- Walks every control (nested ones included) of every card of pStack:
    --   * Data Grids get the systemAppearanceChanged message dispatched to them
-   --   * segmented control widgets get their hxtAppearance property poked, which
-   --     makes the widget re-read the system appearance and repaint
+   --   * widgets that have an hxtAppearance property get it set, which makes
+   --     the widget repaint in the new appearance
    local tCardNum, tControlNum, tControl
    repeat with tCardNum = 1 to the number of cards of pStack
       repeat with tControlNum = 1 to the number of controls of card tCardNum of pStack
@@ -74,12 +74,26 @@ command revHXTPushAppearanceToWidgets pStack, pMode
    end repeat
 end revHXTPushAppearanceToWidgets
 
-## Widget kinds that understand the hxtAppearance property
+## Bundled widget kinds that understand the hxtAppearance property
 constant kHXTAppearanceAwareWidgets = "com.livecode.widget.segmented,com.livecode.widget.treeview,com.livecode.widget.navbar,com.livecode.widget.headerbar,com.livecode.widget.iconpicker,com.livecode.widget.switchbutton"
+
+## True if widgets of kind pKind take the hxtAppearance property: the bundled
+## kinds above, and any other installed widget whose manifest declares a
+## property of that name. The check matters because setting the property on
+## a widget that does not have it would quietly create a custom property.
+private function __HXTWidgetKindTakesAppearance pKind
+   if pKind is among the items of kHXTAppearanceAwareWidgets then
+      return true
+   end if
+   
+   local tPropertiesA
+   put revIDEExtensionProperties(pKind) into tPropertiesA
+   return tPropertiesA["hxtAppearance"] is an array
+end __HXTWidgetKindTakesAppearance
 
 private command __HXTPushAppearanceToWidget pWidget, pMode
    try
-      if the kind of pWidget is among the items of kHXTAppearanceAwareWidgets then
+      if __HXTWidgetKindTakesAppearance(the kind of pWidget) then
          set the hxtAppearance of pWidget to pMode
       end if
    catch tError
