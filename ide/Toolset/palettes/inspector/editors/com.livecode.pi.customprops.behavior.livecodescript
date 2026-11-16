@@ -406,3 +406,7 @@ function arrayKeysAreNumeric pArrayA
    end repeat
    return true
 end arrayKeysAreNumeric
+
+after openfield
+   ## blocks "after openfield" in "revInspectorEditorBehavior"
+end openfield
