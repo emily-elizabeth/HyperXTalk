@@ -48,22 +48,41 @@ on ensureOnScreen
 end ensureOnScreen
 
 on closeStack
-   send "popupDismissed" to sTarget in 0 millisecs
+   dismissPopup
 end closeStack
 
 on editorValueChanged pProperty, pValue, pLockUpdates
+   if not targetExists() then
+      exit editorValueChanged
+   end if
    try
       dispatch "valueChanged" to sTarget with pProperty, pValue
    catch tError
-      send "popupDismissed" to sTarget in 0 millisecs
+      dismissPopup
    end try
 end editorValueChanged
 
 on mouseUp
    if the long id of the target is the long id of button "OK" of me then
-      send "popupDismissed" to sTarget in 0 millisecs
+      if targetExists() then
+         dismissPopup
+      else
+         # The editor this popup belongs to has gone: just go away.
+         close me
+      end if
    end if
 end mouseUp
+
+private function targetExists
+   return sTarget is not empty and exists(sTarget)
+end targetExists
+
+# Tells the editor the popup is done with, if the editor is still there.
+private command dismissPopup
+   if targetExists() then
+      send "popupDismissed" to sTarget in 0 millisecs
+   end if
+end dismissPopup
 
 setProp editorTarget pTarget
    put pTarget into sTarget

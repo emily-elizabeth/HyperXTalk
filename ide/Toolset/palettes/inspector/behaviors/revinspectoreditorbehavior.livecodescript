@@ -312,6 +312,9 @@ end editorConflicts
 
 on editorFinalize
    if there is a stack popupStackName()  then
+      // The editor is going away because the inspector is showing something
+      // else: close the popup, but leave the selection as it now is.
+      put empty into sSavedSelection
       dispatch "popupDismissed" to me
    end if
 end editorFinalize
