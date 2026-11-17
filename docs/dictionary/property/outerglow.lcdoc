@@ -9,7 +9,7 @@ Syntax: set the outerglow[<propertyName>] of object to <propertyValue>
 Summary:
 Specifies the outer glow to use for an object.
 
-Associations: field, button, graphic, scrollbar, player, image
+Associations: field, button, graphic, scrollbar, player, image, widget
 
 Introduced: 1.0.0
 
