@@ -313,11 +313,29 @@ end editorConflicts
 on editorFinalize
    if there is a stack popupStackName()  then
       // The editor is going away because the inspector is showing something
-      // else: close the popup, but leave the selection as it now is.
+      // else, so leave the selection as it now is. An editor whose
+      // editorPopupFollows is true leaves its popup open: the inspector
+      // gives it to the new editor of the same property, or closes it
+      // (inspectorPopupsReconcile). Any other popup is closed here.
       put empty into sSavedSelection
-      dispatch "popupDismissed" to me
+      if the editorPopupFollows of me is not true then
+         dispatch "popupDismissed" to me
+      end if
    end if
 end editorFinalize
+
+// Sent by the inspector to take over the open popup of this editor's
+// property, left by the editor of the object inspected before.
+on editorAdoptPopup
+   local tStackName
+   put popupStackName() into tStackName
+   if there is not a stack tStackName then
+      pass editorAdoptPopup
+   end if
+   set the editorTarget of stack tStackName to the long id of me
+   set the title of stack tStackName to the rowLabel of the owner of me
+   dispatch "inspectorFillGroups" to stack tStackName with sPopupData
+end editorAdoptPopup
 
 local sExpandVertical
 setProp editorExpandVertical pValue
