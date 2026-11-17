@@ -1,7 +1,23 @@
 ﻿script "ideautocompletelibrary"
 
--- Word list cache: ruggedId -> return-separated sorted word list
-local sWordListCache
+-- Language words (commands, functions, properties, messages, keywords...),
+-- one per line.  Taken from the dictionary where possible so the names keep
+-- their camelCase, which is what the "hump" matching works on.
+local sBuiltinWords
+local sBuiltinFromDocs
+local sBuiltinBuiltAt
+
+-- Message path handler names: ruggedId -> return-separated list.  Refreshed
+-- each time a new completion session starts, so handlers added since the
+-- editor was opened are picked up.
+local sPathHandlers
+
+-- True once the user has moved the selection with the arrow keys.  Return
+-- only accepts a completion after that; Tab always does.
+local sNavigated
+
+-- True while a debounced update is waiting to run.
+local sUpdatePending
 
 -- Popup state
 local sPopupShowing
@@ -73,12 +89,13 @@ end extensionFinalize
 -- Called when the object being edited changes.
 -- Builds and caches the word list for the object's message path.
 command ideAutocompleteIntrospectMessagePath pObjectId
-   ideAutocomplete_BuildWordList pObjectId
+   ideAutocomplete_EnsureBuiltinWords
+   ideAutocomplete_RefreshPathHandlers pObjectId
 end ideAutocompleteIntrospectMessagePath
 
 -- Called when an object's script editor tab is closed.
 command ideAutocompleteClearObjectCache pObject
-   delete variable sWordListCache[revRuggedId(pObject)]
+   delete variable sPathHandlers[revRuggedId(pObject)]
 end ideAutocompleteClearObjectCache
 
 -- Called on every relevant keypress. Debounced to avoid firing on every char.
@@ -90,11 +107,19 @@ command ideAutocompleteUpdate pEditorId, pObjectId, pClasses
    put pObjectId into sPendingObjectId
    send "ideAutocomplete_DoUpdate" to me in 150 milliseconds
    put the result into sUpdateTimer
+   put true into sUpdatePending
 end ideAutocompleteUpdate
 
 -- Called on mouseMove, closeField, exitField, escapeKey, returnInField.
-command ideAutocompleteCancelFind pEditorId
+-- pImmediate (escapeKey, returnInField) hides the popup straight away
+-- instead of waiting to see whether the pointer is heading for it.
+command ideAutocompleteCancelFind pEditorId, pImmediate
    cancel sUpdateTimer
+   put false into sUpdatePending
+   if pImmediate is true then
+      ideAutocomplete_HidePopup
+      exit ideAutocompleteCancelFind
+   end if
    -- Suppressed while show stack + focus-return are in flight to prevent the
    -- focus-change events those operations fire from immediately closing the popup.
    if sSuppressCancel then
@@ -117,6 +142,77 @@ command ideAutocompleteCancelFind pEditorId
    ideAutocomplete_HidePopup
 end ideAutocompleteCancelFind
 
+-- Called when Tab is pressed.  Accepts the highlighted completion.
+-- Returns true if the key should carry on to its normal job (formatting).
+command ideAutocompleteHandleTab pEditorId, pObjectId
+   ideAutocomplete_FlushPendingUpdate
+   if not sPopupShowing then
+      return true
+   end if
+   -- The word is already complete: let Tab format as usual.
+   set the caseSensitive to true
+   if ideAutocomplete_SelectedWord() is sSavedToken then
+      ideAutocomplete_HidePopup
+      return true
+   end if
+   ideAutocomplete_AcceptCompletion pEditorId
+   return false
+end ideAutocompleteHandleTab
+
+-- Called when Return is pressed.  Only accepts once the user has picked an
+-- entry with the arrow keys, so that ending a line on a word that happens to
+-- have completions (put it, into len ...) still just inserts a new line.
+-- Returns true if the key should carry on to its normal job.
+command ideAutocompleteHandleReturn pEditorId
+   if not (sPopupShowing and sNavigated is true) or sUpdatePending is true then
+      return true
+   end if
+   ideAutocomplete_AcceptCompletion pEditorId
+   return false
+end ideAutocompleteHandleReturn
+
+-- Called for the arrow keys.  Up and down move through the list while it is
+-- showing; left and right dismiss it.
+-- Returns true if the key should carry on to its normal job.
+command ideAutocompleteHandleArrow pEditorId, pKeyName, pObjectId
+   if not sPopupShowing then
+      return true
+   end if
+   if pKeyName is not among the items of "up,down" then
+      ideAutocomplete_HidePopup
+      return true
+   end if
+   
+   local tField, tCount
+   put the long id of field "completions" of stack kPopupName into tField
+   put the number of lines of the text of tField into tCount
+   if pKeyName is "down" then
+      add 1 to sSelectedLine
+      if sSelectedLine > tCount then
+         put 1 into sSelectedLine
+      end if
+   else
+      subtract 1 from sSelectedLine
+      if sSelectedLine < 1 then
+         put tCount into sSelectedLine
+      end if
+   end if
+   put true into sNavigated
+   set the hilitedLine of tField to sSelectedLine
+   
+   -- Keep the highlighted line in view
+   local tLineHeight, tTop, tVisible
+   put the effective textHeight of tField into tLineHeight
+   put (sSelectedLine - 1) * tLineHeight into tTop
+   put the height of tField - 8 into tVisible
+   if tTop < the vScroll of tField then
+      set the vScroll of tField to tTop
+   else if tTop + tLineHeight > the vScroll of tField + tVisible then
+      set the vScroll of tField to tTop + tLineHeight - tVisible
+   end if
+   return false
+end ideAutocompleteHandleArrow
+
 -- Called when the Help key is pressed. Opens the dictionary for the hovered
 -- completion if the popup is showing. Returns true if handled.
 command ideAutocompleteHandleHelp pEditorId, pObjectId
@@ -135,57 +231,200 @@ end ideAutocompleteHandleHelp
 -- Private: word list
 --------------------------------------------------------------------------------
 
-private command ideAutocomplete_BuildWordList pObjectId
-   local tRuggedId
-   put revRuggedId(pObjectId) into tRuggedId
-
-   -- Already cached for this object
-   if sWordListCache[tRuggedId] is not empty then
-      exit ideAutocomplete_BuildWordList
+-- Builds the list of language words once.  The dictionary is preferred
+-- because its entry names are camelCase (openCard, itemDelimiter); the engine's
+-- own lists are all lower case and only fill in anything the dictionary lacks.
+private command ideAutocomplete_EnsureBuiltinWords
+   if sBuiltinFromDocs is true then
+      exit ideAutocomplete_EnsureBuiltinWords
    end if
+   -- The dictionary may not be ready early in startup: retry now and then.
+   if sBuiltinWords is not empty and the seconds - sBuiltinBuiltAt < 10 then
+      exit ideAutocomplete_EnsureBuiltinWords
+   end if
+   
+   -- The documentation cache holds extensions and libraries (and, depending
+   -- on how it was built, the language itself); the database shipped with the
+   -- IDE always has the language.  Read both.
+   local tDocNames, tConnection, tOwnConnection, tPath
+   try
+      ideDocsInitialize
+      put the result into tConnection
+      put ideAutocomplete_DocNames(tConnection) into tDocNames
+   catch tError
+   end try
+   try
+      put revIDESpecialFolderPath("API") & slash & "api.sqlite" into tPath
+      if there is a file tPath then
+         put revOpenDatabase("sqlite", tPath) into tOwnConnection
+         if tOwnConnection is a number then
+            put return & ideAutocomplete_DocNames(tOwnConnection) after tDocNames
+            revCloseDatabase tOwnConnection
+         end if
+      end if
+   catch tError
+   end try
+   filter lines of tDocNames with regex pattern "^[A-Za-z_][A-Za-z0-9_]*$"
+   
+   local tEngineNames
+   put commandNames() & return & functionNames() & return & propertyNames() into tEngineNames
+   filter lines of tEngineNames with regex pattern "^[A-Za-z_][A-Za-z0-9_]*$"
+   
+   put ideAutocomplete_MergeWords(tDocNames, tEngineNames) into sBuiltinWords
+   put (the number of lines of tDocNames > 1000) into sBuiltinFromDocs
+   put the seconds into sBuiltinBuiltAt
+end ideAutocomplete_EnsureBuiltinWords
 
-   local tWords
+-- Returns the entry names in a dictionary database that can appear in script.
+private function ideAutocomplete_DocNames pConnection
+   if pConnection is not a number then
+      return empty
+   end if
+   local tNames
+   put revDataFromQuery(tab, return, pConnection, \
+         "SELECT DISTINCT entry_name FROM dictionary_data WHERE library_name NOT LIKE '%Builder' " & \
+         "AND entry_type NOT IN ('glossary','library')") into tNames
+   if tNames begins with "revdberr" then
+      return empty
+   end if
+   return tNames
+end ideAutocomplete_DocNames
 
-   -- Built-in commands, functions and properties
-   put commandNames() into tWords
-   put return & functionNames() after tWords
-   put return & propertyNames() after tWords
+-- Merges two word lists, ignoring case; where both have the same word the
+-- spelling in pPreferred wins.
+private function ideAutocomplete_MergeWords pPreferred, pOther
+   local tSeenA, tResult, tKey
+   repeat for each line tLine in pPreferred & return & pOther
+      if tLine is empty then next repeat
+      put toLower(tLine) into tKey
+      if tSeenA[tKey] then next repeat
+      put true into tSeenA[tKey]
+      put tLine & return after tResult
+   end repeat
+   delete the last char of tResult
+   return tResult
+end ideAutocomplete_MergeWords
 
-   -- Handler names from the object's full message path
-   if there is a pObjectId then
+-- Handler names the object can call through its message path.  Private
+-- handlers are left out: the object's own come from the editor text instead
+-- (see ideAutocomplete_ScriptHandlers) and other objects' are not callable.
+-- Libraries and back scripts are part of the path, so their handlers count.
+private command ideAutocomplete_RefreshPathHandlers pObjectId
+   local tNames
+   if pObjectId is not empty and there is a pObjectId then
       local tHandlers
-      put the effective revAvailableHandlers of pObjectId into tHandlers
-      local tLine
+      try
+         put the effective revAvailableHandlers of pObjectId into tHandlers
+      catch tError
+         put empty into tHandlers
+      end try
+      -- Handlers are listed object by object; the first line for each object
+      -- ends with its long id.  The IDE's own libraries sit in the message
+      -- path too, and their internals are of no use in a user's script.
+      local tOwner, tSkip
+      put false into tSkip
       repeat for each line tLine in tHandlers
-         local tName
-         put word 2 of tLine into tName
-         if tName is not empty then
-            put return & tName after tWords
+         put word 5 to -1 of tLine into tOwner
+         if tOwner is not empty then
+            try
+               put revIDEObjectIsOnIDEStack(tOwner) into tSkip
+            catch tError
+               put false into tSkip
+            end try
+         end if
+         if tSkip or char 1 of word 1 of tLine is "P" then next repeat
+         if word 2 of tLine is not empty then
+            put word 2 of tLine & return after tNames
          end if
       end repeat
+      delete the last char of tNames
    end if
+   put tNames into sPathHandlers[revRuggedId(pObjectId)]
+end ideAutocomplete_RefreshPathHandlers
 
-   -- Sort and deduplicate
-   sort lines of tWords ascending text
-   put ideAutocomplete_Deduplicate(tWords) into tWords
-
-   put tWords into sWordListCache[tRuggedId]
-end ideAutocomplete_BuildWordList
-
-private function ideAutocomplete_Deduplicate pList
-   local tResult, tPrev
-   repeat for each line tLine in pList
-      if tLine is not empty and tLine is not tPrev then
-         put tLine & return after tResult
-         put tLine into tPrev
+-- Handler names declared in the text currently in the editor, applied or not.
+-- This is what makes a handler completable from elsewhere in its own script.
+private function ideAutocomplete_ScriptHandlers pField
+   local tScript, tNames, tName
+   put the text of pField into tScript
+   filter lines of tScript with regex pattern \
+         "(?i)^\s*(private\s+)?(on|command|function|getprop|setprop|before|after)\s+[A-Za-z_]"
+   repeat for each line tLine in tScript
+      if word 1 of tLine is "private" then
+         put word 3 of tLine into tName
+      else
+         put word 2 of tLine into tName
+      end if
+      if matchText(tName, "^([A-Za-z_][A-Za-z0-9_]*)", tName) then
+         put tName & return after tNames
       end if
    end repeat
-   -- Remove trailing return
-   if tResult ends with return then
-      delete the last char of tResult
-   end if
-   return tResult
-end ideAutocomplete_Deduplicate
+   delete the last char of tNames
+   return tNames
+end ideAutocomplete_ScriptHandlers
+
+-- Returns the regex a word must match to complete pToken.  The first letter
+-- must start the word; each later letter either follows on directly or starts
+-- a later "hump" (a capital, or a letter after an underscore).  So "oc" and
+-- "opCa" both find openCard, as well as everything a plain prefix would.
+private function ideAutocomplete_MatchPattern pToken
+   local tPattern, tLower, tUpper
+   repeat for each char tChar in pToken
+      put toLower(tChar) into tLower
+      put toUpper(tChar) into tUpper
+      if tPattern is empty then
+         put "^[" & tLower & tUpper & "]" into tPattern
+      else if not matchText(tChar, "[A-Za-z]") then
+         -- digit or underscore
+         put "(?:" & tChar & "|[a-z0-9]*" & tChar & ")" after tPattern
+      else
+         put "(?:[" & tLower & tUpper & "]|[a-z0-9]*(?:" & tUpper & "|_[" & tLower & tUpper & "]))" after tPattern
+      end if
+   end repeat
+   return tPattern
+end ideAutocomplete_MatchPattern
+
+-- Returns the words that complete pToken, best first: an exact match, then
+-- plain prefixes, then hump matches.  Within each of those the script's own
+-- handlers (pHandlers) come before language words (pBuiltins), alphabetically.
+private function ideAutocomplete_Matches pToken, pHandlers, pBuiltins
+   -- The pattern tells capitals from small letters, so match case-sensitively
+   local tPattern
+   put ideAutocomplete_MatchPattern(pToken) into tPattern
+   set the caseSensitive to true
+   filter lines of pHandlers with regex pattern tPattern
+   filter lines of pBuiltins with regex pattern tPattern
+   set the caseSensitive to false
+   
+   local tKeyed, tSource, tSeenA
+   put "a" into tSource
+   repeat for each line tLine in pHandlers & return & "/" & return & pBuiltins
+      if tLine is "/" then
+         put "b" into tSource
+         next repeat
+      end if
+      if tLine is empty or tSeenA[toLower(tLine)] then
+         next repeat
+      end if
+      put true into tSeenA[toLower(tLine)]
+      if tLine is pToken then
+         put "0" & tSource & tLine & return after tKeyed
+      else if tLine begins with pToken then
+         put "1" & tSource & tLine & return after tKeyed
+      else
+         put "2" & tSource & tLine & return after tKeyed
+      end if
+   end repeat
+   delete the last char of tKeyed
+   sort lines of tKeyed ascending text
+   
+   local tMatches
+   repeat for each line tLine in line 1 to kMaxCompletions of tKeyed
+      put char 3 to -1 of tLine & return after tMatches
+   end repeat
+   delete the last char of tMatches
+   return tMatches
+end ideAutocomplete_Matches
 
 --------------------------------------------------------------------------------
 -- Private: debounced update
@@ -193,63 +432,96 @@ end ideAutocomplete_Deduplicate
 
 -- Not private: timer-fired sends cannot reach private handlers.
 command ideAutocomplete_DoUpdate
+   put false into sUpdatePending
+   
    -- Read from the mailbox set by ideAutocompleteUpdate
    local pEditorId, pObjectId
    put sPendingEditorId into pEditorId
    put sPendingObjectId into pObjectId
-
+   if pEditorId is empty or there is not a pEditorId then
+      ideAutocomplete_HidePopup
+      exit ideAutocomplete_DoUpdate
+   end if
+   
    -- Get the partial word at the cursor
    dispatch "getCaretToken" to pEditorId
    local tToken
    put the result into tToken
-
-   if the number of chars of tToken < kMinChars then
+   
+   dispatch function "getScriptField" to pEditorId
+   local tField
+   put the result into tField
+   
+   if the number of chars of tToken < kMinChars or \
+         not matchText(tToken, "^[A-Za-z_][A-Za-z0-9_]*$") or \
+         tField is empty or there is not a tField then
       ideAutocomplete_HidePopup
       exit ideAutocomplete_DoUpdate
    end if
-
-   -- Ensure the word list exists for this object
-   ideAutocomplete_BuildWordList pObjectId
-
+   
+   -- Only complete when the caret sits at the end of the word being typed,
+   -- and not inside a string literal.
+   local tCursor, tTokenStart, tBefore
+   put word 2 of the selectedChunk of tField into tCursor
+   put tCursor - the number of chars of tToken into tTokenStart
+   if tTokenStart < 1 or the text of char tTokenStart to (tCursor - 1) of tField is not tToken then
+      ideAutocomplete_HidePopup
+      exit ideAutocomplete_DoUpdate
+   end if
+   put empty into tBefore
+   if tTokenStart > 1 then
+      put the last line of (the text of char max(1, tTokenStart - 1000) to (tTokenStart - 1) of tField) into tBefore
+   end if
+   set the itemDelimiter to quote
+   if tBefore is not empty and the number of items of (tBefore & "x") mod 2 is 0 then
+      ideAutocomplete_HidePopup
+      exit ideAutocomplete_DoUpdate
+   end if
+   
+   -- Gather the candidate words.  The message path is only re-read when a
+   -- new popup is about to appear, not on every character.
    local tRuggedId
    put revRuggedId(pObjectId) into tRuggedId
-
-   -- Filter: only words that begin with the typed token (case-insensitive)
-   local tMatches
-   repeat for each line tLine in sWordListCache[tRuggedId]
-      if tLine begins with tToken then
-         put tLine & return after tMatches
-         if the number of lines of tMatches > kMaxCompletions then
-            exit repeat
-         end if
-      end if
-   end repeat
-   if tMatches ends with return then
-      delete the last char of tMatches
+   ideAutocomplete_EnsureBuiltinWords
+   if not sPopupShowing or tRuggedId is not among the keys of sPathHandlers then
+      ideAutocomplete_RefreshPathHandlers pObjectId
    end if
-
+   
+   local tHandlers
+   put ideAutocomplete_ScriptHandlers(tField) & return & sPathHandlers[tRuggedId] into tHandlers
+   
+   local tMatches
+   put ideAutocomplete_Matches(tToken, tHandlers, sBuiltinWords) into tMatches
+   
    -- Nothing to show, or the only match is exactly the token already typed
+   set the caseSensitive to true
    if tMatches is empty or tMatches is tToken then
       ideAutocomplete_HidePopup
       exit ideAutocomplete_DoUpdate
    end if
-
-   -- Snapshot caret position now, while the editor field has focus.
+   set the caseSensitive to false
+   
+   -- Snapshot the caret position now, while the editor field has focus.
    -- AcceptCompletion reads these saved values so a popup click (which may
    -- shift OS focus away from the editor) doesn't corrupt the offset.
-   dispatch function "getScriptField" to pEditorId
-   local tSnapField, tSnapCursor
-   put the result into tSnapField
-   if tSnapField is not empty and there is a tSnapField then
-      put word 2 of the selectedChunk of tSnapField into tSnapCursor
-      put tSnapCursor - the number of chars of tToken into sSavedTokenStart
-   else
-      put 0 into sSavedTokenStart
-   end if
+   put tTokenStart into sSavedTokenStart
    put tToken into sSavedToken
-
+   
    ideAutocomplete_ShowPopup pEditorId, tMatches
 end ideAutocomplete_DoUpdate
+
+-- Runs a debounced update straight away if one is waiting, so a key pressed
+-- hard on the heels of typing acts on the list for what is actually typed.
+private command ideAutocomplete_FlushPendingUpdate
+   if sUpdatePending is true then
+      cancel sUpdateTimer
+      ideAutocomplete_DoUpdate
+   end if
+end ideAutocomplete_FlushPendingUpdate
+
+private function ideAutocomplete_SelectedWord
+   return line sSelectedLine of the text of field "completions" of stack kPopupName
+end ideAutocomplete_SelectedWord
 
 -- Not private: timer-fired sends cannot reach private handlers.
 command ideAutocomplete_ClearSuppressCancel
@@ -337,33 +609,29 @@ private command ideAutocomplete_ShowPopup pEditorId, pMatches
 
    set the text of field "completions" of stack kPopupName to pMatches
    put 1 into sSelectedLine
+   put false into sNavigated
+   set the vScroll of field "completions" of stack kPopupName to 0
    try
       set the hilitedLine of field "completions" of stack kPopupName to 1
    catch tErr
    end try
 
    -- Calculate screen position below the current caret line
-   local tX, tY
-   ideAutocomplete_GetCaretScreenPos pEditorId, tX, tY
+   local tX, tY, tLineHeight
+   ideAutocomplete_GetCaretScreenPos pEditorId, tX, tY, tLineHeight
 
    -- Keep the popup on the same screen as the caret.
-   -- 'the screenRect' always returns the primary display rect; use
-   -- 'the screenRects' to find the display that actually contains the caret.
    local tScreenRect
-   put the screenRect into tScreenRect
-   repeat for each line tLine in the screenRects
-      if tX >= item 1 of tLine and tX < item 3 of tLine and \
-            tY >= item 2 of tLine and tY < item 4 of tLine then
-         put tLine into tScreenRect
-         exit repeat
-      end if
-   end repeat
+   put ideAutocomplete_ScreenRectFor(pEditorId, tX, tY) into tScreenRect
    if tX + kPopupWidth > item 3 of tScreenRect then
       put item 3 of tScreenRect - kPopupWidth into tX
    end if
+   if tX < item 1 of tScreenRect then
+      put item 1 of tScreenRect into tX
+   end if
    if tY + tPopupHeight > item 4 of tScreenRect then
       -- Flip above the current line
-      subtract tPopupHeight + kItemHeight from tY
+      subtract tPopupHeight + tLineHeight from tY
    end if
 
    set the topleft of stack kPopupName to tX, tY
@@ -375,6 +643,11 @@ private command ideAutocomplete_ShowPopup pEditorId, pMatches
    if not sPopupShowing then
       show stack kPopupName
       put true into sPopupShowing
+      -- Some window managers place a window themselves when it is first
+      -- mapped, ignoring where it was put while hidden: position it again.
+      if the topleft of stack kPopupName is not (tX,tY) then
+         set the topleft of stack kPopupName to tX, tY
+      end if
    end if
 
    -- Return keyboard focus to the script editor so the user can keep typing.
@@ -434,96 +707,110 @@ end FocusOnField
 -- Private: caret screen position
 --------------------------------------------------------------------------------
 
-private command ideAutocomplete_GetCaretScreenPos pEditorId, @rX, @rY
+-- Returns in rX,rY the screen position just below the start of the word
+-- being typed, and in rLineHeight the height of a line of the editor.
+private command ideAutocomplete_GetCaretScreenPos pEditorId, @rX, @rY, @rLineHeight
    dispatch function "getScriptField" to pEditorId
    local tField
    put the result into tField
-
+   put kItemHeight into rLineHeight
+   
    if tField is empty or not (there is a tField) then
-      put item 1 of the rect of pEditorId + 20 into rX
-      put item 4 of the rect of pEditorId - 30 into rY
+      put ideAutocomplete_GlobalLoc(pEditorId, item 1 of the rect of pEditorId + 20, \
+            item 4 of the rect of pEditorId - 30) into rX
+      put item 2 of rX into rY
+      put item 1 of rX into rX
       exit ideAutocomplete_GetCaretScreenPos
    end if
-
-   local tLineNum
-   put word 2 of the selectedLine of tField into tLineNum
-   if tLineNum < 1 then
-      put 1 into tLineNum
+   
+   if the effective textHeight of tField >= 1 then
+      put the effective textHeight of tField into rLineHeight
    end if
-
-   local tFieldRect
-   put the rect of tField into tFieldRect
-
-   local tVScroll
-   put the vScroll of tField into tVScroll
-
-   -- Use the same constant-multiplier method as lineNumberToVerticalLoc in the
-   -- behavior: formattedHeight requires LiveCode to have measured every preceding
-   -- line, which is unreliable for long scripts. effectiveTextHeight is constant.
-   local tLineHeight
-   put the effective textHeight of tField into tLineHeight
-   if tLineHeight < 1 then
-      put kItemHeight into tLineHeight
-   end if
-
-   -- Top of the current line relative to the field's content area
-   local tAboveHeight
-   put (tLineNum - 1) * tLineHeight into tAboveHeight
-
-   -- Field top-margin offset (mirrors the kFudge = -4 the behavior uses)
-   local tMarginTop
-   if the number of items of the margins of tField = 4 then
-      put item 2 of the margins of tField into tMarginTop
-   else
-      put the margins of tField into tMarginTop
-   end if
-   subtract 4 from tMarginTop
-
-   -- Convert card-space coordinates to screen coordinates.
-   -- Extract the enclosing stack reference from the field's long id
-   -- (everything from " of stack " to the end of the string) and
-   -- use its rect as the window's screen origin.  Fall back to raw
-   -- card coordinates (origin 0,0) if the lookup fails for any reason.
-   local tWinX, tWinY
-   put 0 into tWinX
-   put 0 into tWinY
-   local tLongId, tStackPos
-   put the long id of tField into tLongId
-   put offset(" of stack ", tLongId) into tStackPos
-   if tStackPos > 0 then
-      local tStackRef
-      put char (tStackPos + 4) to -1 of tLongId into tStackRef
-      try
-         local tWRect
-         put the rect of tStackRef into tWRect
-         put item 1 of tWRect into tWinX
-         put item 2 of tWRect into tWinY
-         -- On macOS, applyscroll() shifts card content up by vScroll pixels so that
-         -- card y=vScroll maps to screen y=0 (top of visible window). Subtract vScroll
-         -- here so that card-space coordinates convert correctly to screen coordinates.
-         if the platform is "MacOS" then
-            subtract the vScroll of tStackRef from tWinY
-         end if
-      catch tErr
-         -- leave tWinX/tWinY as 0 — card coords become the fallback
-      end try
-   end if
-
-   -- X: align with the start of the token being typed.
-   -- formattedRect of char N returns card-space coordinates for that character,
-   -- so we get the exact horizontal position without any font-measurement guesswork.
-   local tTokenRect
+   
+   -- formattedRect gives the card position of the first character of the
+   -- word, which stays right with wrapped lines, folded code and scrolling.
+   local tCardX, tCardY, tTokenRect
    if sSavedTokenStart > 0 then
       put the formattedRect of char sSavedTokenStart of tField into tTokenRect
    end if
    if tTokenRect is not empty then
-      put tWinX + item 1 of tTokenRect into rX
+      put item 1 of tTokenRect into tCardX
+      put item 4 of tTokenRect into tCardY
    else
-      put tWinX + item 1 of tFieldRect + 4 into rX
+      -- Fall back to working the line position out from the line number
+      local tLineNum, tMarginTop
+      put max(1, word 2 of the selectedLine of tField) into tLineNum
+      put item 1 of the margins of tField into tMarginTop
+      if the number of items of the margins of tField = 4 then
+         put item 2 of the margins of tField into tMarginTop
+      end if
+      put the left of tField + 4 into tCardX
+      put the top of tField + tMarginTop - 4 + tLineNum * rLineHeight - the vScroll of tField into tCardY
    end if
-
-   put tWinY + item 2 of tFieldRect + tMarginTop + tAboveHeight + tLineHeight - tVScroll into rY
+   
+   -- Card to screen coordinates.  globalLoc knows about the window's position,
+   -- which screen it is on, its menu bar and its scroll, on every platform.
+   local tLoc
+   put ideAutocomplete_GlobalLoc(tField, tCardX, tCardY) into tLoc
+   put item 1 of tLoc into rX
+   put item 2 of tLoc into rY
 end ideAutocomplete_GetCaretScreenPos
+
+-- Converts a point on the card of pObject's stack to screen coordinates.
+private function ideAutocomplete_GlobalLoc pObject, pX, pY
+   local tStack, tOldDefault, tLoc
+   put ideAutocomplete_StackOf(pObject) into tStack
+   put the defaultStack into tOldDefault
+   try
+      set the defaultStack to tStack
+      put globalLoc(pX & comma & pY) into tLoc
+   catch tError
+      put empty into tLoc
+   end try
+   set the defaultStack to tOldDefault
+   if tLoc is empty then
+      put (the left of tStack + pX), (the top of tStack + pY) into tLoc
+   end if
+   return tLoc
+end ideAutocomplete_GlobalLoc
+
+-- Returns a reference to the stack that owns pObject.
+private function ideAutocomplete_StackOf pObject
+   local tLongId
+   put the long id of pObject into tLongId
+   return char (offset(" of stack ", tLongId) + 4) to -1 of tLongId
+end ideAutocomplete_StackOf
+
+-- Returns the rect of the screen the popup belongs on: the one containing the
+-- caret, or failing that the one showing most of the script editor window.
+-- (Never simply the primary screen: on a multi-monitor setup that sends the
+-- popup to a different display from the editor.)
+private function ideAutocomplete_ScreenRectFor pEditorId, pX, pY
+   local tScreens, tLine
+   put the screenRects into tScreens
+   repeat for each line tLine in tScreens
+      if pX >= item 1 of tLine and pX < item 3 of tLine and \
+            pY >= item 2 of tLine and pY < item 4 of tLine then
+         return tLine
+      end if
+   end repeat
+   
+   local tWindowRect, tBest, tBestArea, tWidth, tHeight
+   put the rect of ideAutocomplete_StackOf(pEditorId) into tWindowRect
+   put 0 into tBestArea
+   repeat for each line tLine in tScreens
+      put min(item 3 of tLine, item 3 of tWindowRect) - max(item 1 of tLine, item 1 of tWindowRect) into tWidth
+      put min(item 4 of tLine, item 4 of tWindowRect) - max(item 2 of tLine, item 2 of tWindowRect) into tHeight
+      if tWidth > 0 and tHeight > 0 and tWidth * tHeight > tBestArea then
+         put tWidth * tHeight into tBestArea
+         put tLine into tBest
+      end if
+   end repeat
+   if tBest is empty then
+      put the screenRect into tBest
+   end if
+   return tBest
+end ideAutocomplete_ScreenRectFor
 
 --------------------------------------------------------------------------------
 -- Private: accept completion
@@ -548,6 +835,11 @@ private command ideAutocomplete_AcceptCompletion pEditorId
    -- Delegate to the behavior wrapper so textReplace runs in the behavior's
    -- own call context rather than dispatched from this back-script library.
    dispatch "ideAutocompleteInsertCompletion" to pEditorId with sSavedTokenStart, sSavedToken, tCompletion
+
+   -- Inserting the word asks for a fresh update like any other edit; drop it,
+   -- or the popup would come straight back for the word just completed.
+   cancel sUpdateTimer
+   put false into sUpdatePending
 
    ideAutocomplete_HidePopup
 end ideAutocomplete_AcceptCompletion
