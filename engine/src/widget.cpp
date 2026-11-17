@@ -385,6 +385,33 @@ static void lookup_name_for_prop(Properties p_which, MCNameRef& r_name)
     assert(false);
 }
 
+// The classic graphic effects (dropShadow, innerShadow, outerGlow, innerGlow
+// and colorOverlay) are held by MCControl and applied by MCWidget::draw, so
+// they are handled as engine properties - unless the widget's own module
+// declares a property of the same name, in which case the module keeps it.
+static bool is_engine_effect_prop(MCWidgetRef p_widget, Properties p_which)
+{
+    switch(p_which)
+    {
+        case P_BITMAP_EFFECT_DROP_SHADOW:
+        case P_BITMAP_EFFECT_INNER_SHADOW:
+        case P_BITMAP_EFFECT_OUTER_GLOW:
+        case P_BITMAP_EFFECT_INNER_GLOW:
+        case P_BITMAP_EFFECT_COLOR_OVERLAY:
+            break;
+            
+        default:
+            return false;
+    }
+    
+    if (p_widget == nil)
+        return true;
+    
+    MCNewAutoNameRef t_name;
+    lookup_name_for_prop(p_which, &t_name);
+    return *t_name == nil || !MCWidgetHasProperty(p_widget, *t_name);
+}
+
 bool MCWidget::getprop(MCExecContext& ctxt, uint32_t p_part_id, Properties p_which, MCNameRef p_index, Boolean p_effective, MCExecValue& r_value)
 {
 	// If we are getting any of the reserved properties, then pass directly
@@ -486,6 +513,9 @@ bool MCWidget::getprop(MCExecContext& ctxt, uint32_t p_part_id, Properties p_whi
         default:
             break;
     }
+
+    if (is_engine_effect_prop(m_widget, p_which))
+        return MCControl::getprop(ctxt, p_part_id, p_which, p_index, p_effective, r_value);
 
     MCNewAutoNameRef t_name_for_prop;
     /* UNCHECKED */ lookup_name_for_prop(p_which, &t_name_for_prop);
@@ -591,6 +621,9 @@ bool MCWidget::setprop(MCExecContext& ctxt, uint32_t p_part_id, Properties p_whi
         default:
             break;
     }
+
+    if (is_engine_effect_prop(m_widget, p_which))
+        return MCControl::setprop(ctxt, p_part_id, p_which, p_index, p_effective, p_value);
     
     MCNewAutoNameRef t_name_for_prop;
     /* UNCHECKED */ lookup_name_for_prop(p_which, &t_name_for_prop);
