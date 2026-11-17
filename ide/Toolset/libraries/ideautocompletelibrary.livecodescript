@@ -3,11 +3,19 @@
 -- Language words (commands, functions, properties, messages, keywords...),
 -- one per line.  Taken from the dictionary where possible so the names keep
 -- their camelCase, which is what the "hump" matching works on.
+-- They are kept by where they can be used: sBuiltinWords["command"] for the
+-- start of a statement, ["value"] (functions, properties, constants) for
+-- anywhere after it, and ["message"] for after on / before / after / pass.
 local sBuiltinWords
+-- Keywords, operators and object types (into, of, the, is, field ...), keyed
+-- by lower-case word.  They are short and typed constantly, so they are never
+-- offered, and typing one in full puts the popup away.
+local sQuietWordsA
 local sBuiltinFromDocs
 local sBuiltinBuiltAt
 
--- Message path handler names: ruggedId -> return-separated list.  Refreshed
+-- Message path handler names: ruggedId -> ["command"] and ["value"], each a
+-- return-separated list (see ideAutocomplete_KindOfHandler).  Refreshed
 -- each time a new completion session starts, so handlers added since the
 -- editor was opened are picked up.
 local sPathHandlers
@@ -239,7 +247,7 @@ private command ideAutocomplete_EnsureBuiltinWords
       exit ideAutocomplete_EnsureBuiltinWords
    end if
    -- The dictionary may not be ready early in startup: retry now and then.
-   if sBuiltinWords is not empty and the seconds - sBuiltinBuiltAt < 10 then
+   if sBuiltinWords is an array and the seconds - sBuiltinBuiltAt < 10 then
       exit ideAutocomplete_EnsureBuiltinWords
    end if
    
@@ -264,25 +272,73 @@ private command ideAutocomplete_EnsureBuiltinWords
       end if
    catch tError
    end try
-   filter lines of tDocNames with regex pattern "^[A-Za-z_][A-Za-z0-9_]*$"
+   -- Sort the dictionary entries by where they can be used.
+   local tListsA, tQuietA, tStructures, tLine, tName, tDocCount
+   put 0 into tDocCount
+   set the itemDelimiter to tab
+   repeat for each line tLine in tDocNames
+      put item 1 of tLine into tName
+      if not matchText(tName, "^[A-Za-z_][A-Za-z0-9_]*$") then next repeat
+      add 1 to tDocCount
+      switch item 2 of tLine
+         case "command"
+            put tName & return after tListsA["command"]
+            break
+         case "control structure"
+            put tName & return after tStructures
+            break
+         case "function"
+         case "property"
+         case "constant"
+            put tName & return after tListsA["value"]
+            break
+         case "message"
+            put tName & return after tListsA["message"]
+            break
+         default
+            -- keyword, operator, object
+            put true into tQuietA[toLower(tName)]
+      end switch
+   end repeat
    
-   local tEngineNames
-   put commandNames() & return & functionNames() & return & propertyNames() into tEngineNames
-   filter lines of tEngineNames with regex pattern "^[A-Za-z_][A-Za-z0-9_]*$"
+   -- The engine's own lists fill in anything the dictionary lacks
+   put commandNames() after tListsA["command"]
+   put functionNames() & return & propertyNames() after tListsA["value"]
    
-   put ideAutocomplete_MergeWords(tDocNames, tEngineNames) into sBuiltinWords
-   put (the number of lines of tDocNames > 1000) into sBuiltinFromDocs
+   local tKind
+   repeat for each item tKind in "command" & tab & "value" & tab & "message"
+      filter lines of tListsA[tKind] with regex pattern "^[A-Za-z_][A-Za-z0-9_]*$"
+      put ideAutocomplete_MergeWords(tListsA[tKind], empty) into tListsA[tKind]
+      -- A keyword that is also a command, function or property stays on offer
+      repeat for each line tLine in tListsA[tKind]
+         delete variable tQuietA[toLower(tLine)]
+      end repeat
+   end repeat
+   
+   -- Control structures (repeat, switch, try) start a statement like a
+   -- command.  Those that are keywords as well (after, function, on) are quiet.
+   repeat for each line tLine in tStructures
+      if not tQuietA[toLower(tLine)] then
+         put return & tLine after tListsA["command"]
+      end if
+   end repeat
+   put ideAutocomplete_MergeWords(tListsA["command"], empty) into tListsA["command"]
+   
+   put tListsA into sBuiltinWords
+   put tQuietA into sQuietWordsA
+   put (tDocCount > 1000) into sBuiltinFromDocs
    put the seconds into sBuiltinBuiltAt
 end ideAutocomplete_EnsureBuiltinWords
 
--- Returns the entry names in a dictionary database that can appear in script.
+-- Returns the entries in a dictionary database that can appear in script, one
+-- per line as name, tab, type.
 private function ideAutocomplete_DocNames pConnection
    if pConnection is not a number then
       return empty
    end if
    local tNames
    put revDataFromQuery(tab, return, pConnection, \
-         "SELECT DISTINCT entry_name FROM dictionary_data WHERE library_name NOT LIKE '%Builder' " & \
+         "SELECT DISTINCT entry_name, entry_type FROM dictionary_data WHERE library_name NOT LIKE '%Builder' " & \
          "AND entry_type NOT IN ('glossary','library')") into tNames
    if tNames begins with "revdberr" then
       return empty
@@ -334,46 +390,97 @@ private command ideAutocomplete_RefreshPathHandlers pObjectId
          end if
          if tSkip or char 1 of word 1 of tLine is "P" then next repeat
          if word 2 of tLine is not empty then
-            put word 2 of tLine & return after tNames
+            -- F function, G getProp, S setProp; anything else is called
+            -- like a command (M message, C command, B before, A after)
+            if char 1 of word 1 of tLine is among the items of "F,G,S" then
+               put word 2 of tLine & return after tNames["value"]
+            else
+               put word 2 of tLine & return after tNames["command"]
+            end if
          end if
       end repeat
-      delete the last char of tNames
    end if
    put tNames into sPathHandlers[revRuggedId(pObjectId)]
 end ideAutocomplete_RefreshPathHandlers
 
--- Handler names declared in the text currently in the editor, applied or not.
+-- Handler names declared in the text currently in the editor, applied or not,
+-- as an array: ["command"] for on / command handlers and ["value"] for
+-- function / getProp / setProp ones.
 -- This is what makes a handler completable from elsewhere in its own script.
 private function ideAutocomplete_ScriptHandlers pField
-   local tScript, tNames, tName
+   local tScript, tNames, tName, tType
    put the text of pField into tScript
    filter lines of tScript with regex pattern \
          "(?i)^\s*(private\s+)?(on|command|function|getprop|setprop|before|after)\s+[A-Za-z_]"
    repeat for each line tLine in tScript
       if word 1 of tLine is "private" then
+         put word 2 of tLine into tType
          put word 3 of tLine into tName
       else
+         put word 1 of tLine into tType
          put word 2 of tLine into tName
       end if
       if matchText(tName, "^([A-Za-z_][A-Za-z0-9_]*)", tName) then
-         put tName & return after tNames
+         if tType is among the items of "function,getprop,setprop" then
+            put tName & return after tNames["value"]
+         else
+            put tName & return after tNames["command"]
+         end if
       end if
    end repeat
-   delete the last char of tNames
    return tNames
 end ideAutocomplete_ScriptHandlers
 
+-- Works out what kind of word belongs after pBefore, the text of the line up
+-- to the word being typed:
+--   "command"  at the start of a statement (line start, after then / else / ;)
+--   "message"  after on, before, after or pass
+--   "handler"  after end or exit
+--   "value"    anywhere else: functions, properties, constants
+private function ideAutocomplete_Context pBefore
+   if the number of words of pBefore is 0 then
+      return "command"
+   end if
+   if the number of words of pBefore is 1 then
+      if word 1 of pBefore is among the items of "on,before,after,pass" then
+         return "message"
+      end if
+      if word 1 of pBefore is among the items of "end,exit" then
+         return "handler"
+      end if
+   end if
+   if the last word of pBefore is among the items of "then,else" or \
+         the last char of word -1 of pBefore is ";" then
+      return "command"
+   end if
+   return "value"
+end ideAutocomplete_Context
+
 -- Returns the regex a word must match to complete pToken.  The first letter
 -- must start the word; each later letter either follows on directly or starts
--- a later "hump" (a capital, or a letter after an underscore).  So "oc" and
--- "opCa" both find openCard, as well as everything a plain prefix would.
-private function ideAutocomplete_MatchPattern pToken
+-- a later "hump" (a capital, or a letter after an underscore).  So "poc" and
+-- "prOpCa" both find preOpenCard, as well as everything a plain prefix would.
+private function ideAutocomplete_MatchPattern pToken, pHumpsFrom
+   -- Hump matching starts at pHumpsFrom letters, or sooner with a capital
+   -- after the first letter ("oC").  Below that only a plain prefix matches.
+   local tHumps
+   set the caseSensitive to true
+   put the number of chars of pToken >= pHumpsFrom or \
+         toLower(char 2 to -1 of pToken) is not char 2 to -1 of pToken into tHumps
+   set the caseSensitive to false
+   
    local tPattern, tLower, tUpper
    repeat for each char tChar in pToken
       put toLower(tChar) into tLower
       put toUpper(tChar) into tUpper
       if tPattern is empty then
          put "^[" & tLower & tUpper & "]" into tPattern
+      else if not tHumps then
+         if matchText(tChar, "[A-Za-z]") then
+            put "[" & tLower & tUpper & "]" after tPattern
+         else
+            put tChar after tPattern
+         end if
       else if not matchText(tChar, "[A-Za-z]") then
          -- digit or underscore
          put "(?:" & tChar & "|[a-z0-9]*" & tChar & ")" after tPattern
@@ -387,10 +494,10 @@ end ideAutocomplete_MatchPattern
 -- Returns the words that complete pToken, best first: an exact match, then
 -- plain prefixes, then hump matches.  Within each of those the script's own
 -- handlers (pHandlers) come before language words (pBuiltins), alphabetically.
-private function ideAutocomplete_Matches pToken, pHandlers, pBuiltins
+private function ideAutocomplete_Matches pToken, pHandlers, pBuiltins, pHumpsFrom
    -- The pattern tells capitals from small letters, so match case-sensitively
    local tPattern
-   put ideAutocomplete_MatchPattern(pToken) into tPattern
+   put ideAutocomplete_MatchPattern(pToken, pHumpsFrom) into tPattern
    set the caseSensitive to true
    filter lines of pHandlers with regex pattern tPattern
    filter lines of pBuiltins with regex pattern tPattern
@@ -459,6 +566,13 @@ command ideAutocomplete_DoUpdate
       exit ideAutocomplete_DoUpdate
    end if
    
+   -- A keyword typed in full (into, the, it): nothing to complete
+   ideAutocomplete_EnsureBuiltinWords
+   if sQuietWordsA[toLower(tToken)] then
+      ideAutocomplete_HidePopup
+      exit ideAutocomplete_DoUpdate
+   end if
+   
    -- Only complete when the caret sits at the end of the word being typed,
    -- and not inside a string literal.
    local tCursor, tTokenStart, tBefore
@@ -482,16 +596,43 @@ command ideAutocomplete_DoUpdate
    -- new popup is about to appear, not on every character.
    local tRuggedId
    put revRuggedId(pObjectId) into tRuggedId
-   ideAutocomplete_EnsureBuiltinWords
    if not sPopupShowing or tRuggedId is not among the keys of sPathHandlers then
       ideAutocomplete_RefreshPathHandlers pObjectId
    end if
    
-   local tHandlers
-   put ideAutocomplete_ScriptHandlers(tField) & return & sPathHandlers[tRuggedId] into tHandlers
+   -- What can be completed depends on where in the line the word is: a
+   -- command only ever starts a statement and a function never does.
+   local tContext, tScriptHandlers, tHandlers, tBuiltins
+   put ideAutocomplete_Context(tBefore) into tContext
+   put ideAutocomplete_ScriptHandlers(tField) into tScriptHandlers
+   switch tContext
+      case "message"
+         -- on / before / after / pass: the name of a message
+         put sBuiltinWords["message"] into tBuiltins
+         break
+      case "handler"
+         -- end / exit: the name of a handler in this script
+         put tScriptHandlers["command"] & return & tScriptHandlers["value"] into tHandlers
+         break
+      default
+         put tScriptHandlers[tContext] & return & sPathHandlers[tRuggedId][tContext] into tHandlers
+         put sBuiltinWords[tContext] into tBuiltins
+   end switch
+   
+   -- Two letters are enough for a hump match where the choice is small: "oc"
+   -- after "on" finds openCard, "sh" at the start of a line finds sayHello.
+   -- Mid-line there are some 1500 functions and properties to choose from,
+   -- and two letters would bring up a list for nearly every word typed, so
+   -- there it takes three ("spf" finds specialFolderPath).
+   local tHumpsFrom
+   if tContext is "value" then
+      put 3 into tHumpsFrom
+   else
+      put 2 into tHumpsFrom
+   end if
    
    local tMatches
-   put ideAutocomplete_Matches(tToken, tHandlers, sBuiltinWords) into tMatches
+   put ideAutocomplete_Matches(tToken, tHandlers, tBuiltins, tHumpsFrom) into tMatches
    
    -- Nothing to show, or the only match is exactly the token already typed
    set the caseSensitive to true
