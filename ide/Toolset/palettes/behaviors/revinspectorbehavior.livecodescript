@@ -688,6 +688,13 @@ on inspectorClear
          delete group 1 of card 1 of me
       else
          dispatch "rowFinalize" to group 2 of card 1 of me
+         # The rows are inside the scrolling "inspector" group, so they
+         # have to be finalized too: that is what closes an editor's popup
+         # (the graphic effect panel, say) before its editor is deleted.
+         local tRow
+         repeat with tRow = 1 to the number of groups of group 2 of card 1 of me
+            dispatch "rowFinalize" to group tRow of group 2 of card 1 of me
+         end repeat
          delete group 2 of card 1 of me
       end if
    end repeat
