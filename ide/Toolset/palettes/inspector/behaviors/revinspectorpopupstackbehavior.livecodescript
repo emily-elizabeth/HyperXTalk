@@ -87,3 +87,7 @@ end dismissPopup
 setProp editorTarget pTarget
    put pTarget into sTarget
 end editorTarget
+
+getProp editorTarget
+   return sTarget
+end editorTarget
