@@ -2633,16 +2633,6 @@ command revIDESetStackThemeProperty pObject, pProperty, pValue
    end if
    do "set the" && pProperty && "of pObject to tTheme"
    set the cREVGeneral[pProperty & "Scheme"] of pObject to pValue
-   
-   # Data Grids paint some colours once, so tell the stack's cards as the
-   # engine does on an appearance change; the back script passes it on.
-   local tError, tStackName
-   try
-      put the short name of pObject into tStackName
-      dispatch "systemAppearanceChanged" to this card of stack tStackName \
-            with the systemAppearance, the systemWindowColor, the systemTextColor
-   catch tError
-   end try
 end revIDESetStackThemeProperty
 
 # The IDE's themes, as applied by revIDEApplyThemePreference: sIDEThemes["light"]

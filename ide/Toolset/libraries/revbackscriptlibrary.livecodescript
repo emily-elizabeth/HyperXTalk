@@ -31,6 +31,22 @@ on systemAppearanceChanged pMode, pWindowColor, pTextColor
    pass systemAppearanceChanged
 end systemAppearanceChanged
 
+## HXT themes: the engine sends themeChanged to the current card of a stack
+## when its theme (the lightTheme or the darkTheme of the stack) is set. Pass
+## it on to the stack's Data Grids and widgets as for an appearance change, so
+## that they paint again with the new theme's colours.
+on themeChanged
+   local tTarget, tStack
+   put the long id of the target into tTarget
+   if word 1 of tTarget is "card" then
+      put ideStackOfObject(tTarget) into tStack
+      if exists(tStack) and not revIDEStackIsIDEStack(tStack) then
+         __ForwardAppearanceChangeToDataGrids tStack, the systemAppearance, the systemWindowColor, the systemTextColor
+      end if
+   end if
+   pass themeChanged
+end themeChanged
+
 private command __ForwardAppearanceChangeToDataGrids pStack, pMode, pWindowColor, pTextColor
    -- Walks every control (nested ones included) of every card of pStack:
    --   * Data Grids get the systemAppearanceChanged message dispatched to them

@@ -8857,32 +8857,38 @@ end _ThemeColor
 ## message path. So that a grid follows the appearance with no script from the
 ## developer, the first grid to initialise puts a small script into the back
 ## scripts which forwards the message to every grid on the stack concerned.
+## It forwards themeChanged, sent when a stack's theme is set, the same way.
 ## In the IDE the back script library already does this.
 private command _EnsureAppearanceForwarder
    local tScript, tError
    if the environment is "development" then exit _EnsureAppearanceForwarder
    if there is a stack "dgAppearanceForwarder" then exit _EnsureAppearanceForwarder
    put "on systemAppearanceChanged pMode, pWindowColor, pTextColor" & cr & \
-         "   local tTarget, tStack, tCard, tControl, tIndex" & cr & \
-         "   put the long id of the target into tTarget" & cr & \
-         "   if word 1 of tTarget is" && quote & "card" & quote && "then" & cr & \
-         "      put tTarget into tStack" & cr & \
-         "      repeat while word 1 of tStack is not" && quote & "stack" & quote & cr & \
-         "         put the long owner of tStack into tStack" & cr & \
-         "      end repeat" & cr & \
-         "      repeat with tCard = 1 to the number of cards of tStack" & cr & \
-         "         repeat with tIndex = 1 to the number of groups of card tCard of tStack" & cr & \
-         "            put the long id of group tIndex of card tCard of tStack into tControl" & cr & \
-         "            try" & cr & \
-         "               if the dgProps[" & quote & "control type" & quote & "] of tControl is" && quote & "Data Grid" & quote && "then" & cr & \
-         "                  dispatch" && quote & "systemAppearanceChanged" & quote && "to tControl with pMode, pWindowColor, pTextColor" & cr & \
-         "               end if" & cr & \
-         "            end try" & cr & \
-         "         end repeat" & cr & \
-         "      end repeat" & cr & \
-         "   end if" & cr & \
+         "   dgForwardToDataGrids" && quote & "systemAppearanceChanged" & quote & ", the long id of the target" & cr & \
          "   pass systemAppearanceChanged" & cr & \
-         "end systemAppearanceChanged" & cr into tScript
+         "end systemAppearanceChanged" & cr & cr & \
+         "on themeChanged" & cr & \
+         "   dgForwardToDataGrids" && quote & "themeChanged" & quote & ", the long id of the target" & cr & \
+         "   pass themeChanged" & cr & \
+         "end themeChanged" & cr & cr & \
+         "command dgForwardToDataGrids pMessage, pTarget" & cr & \
+         "   local tStack, tCard, tControl, tIndex" & cr & \
+         "   if word 1 of pTarget is not" && quote & "card" & quote && "then exit dgForwardToDataGrids" & cr & \
+         "   put pTarget into tStack" & cr & \
+         "   repeat while word 1 of tStack is not" && quote & "stack" & quote & cr & \
+         "      put the long owner of tStack into tStack" & cr & \
+         "   end repeat" & cr & \
+         "   repeat with tCard = 1 to the number of cards of tStack" & cr & \
+         "      repeat with tIndex = 1 to the number of groups of card tCard of tStack" & cr & \
+         "         put the long id of group tIndex of card tCard of tStack into tControl" & cr & \
+         "         try" & cr & \
+         "            if the dgProps[" & quote & "control type" & quote & "] of tControl is" && quote & "Data Grid" & quote && "then" & cr & \
+         "               dispatch pMessage to tControl with the systemAppearance, the systemWindowColor, the systemTextColor" & cr & \
+         "            end if" & cr & \
+         "         end try" & cr & \
+         "      end repeat" & cr & \
+         "   end repeat" & cr & \
+         "end dgForwardToDataGrids" & cr into tScript
    try
       create script only stack "dgAppearanceForwarder"
       set the script of stack "dgAppearanceForwarder" to tScript
@@ -9047,6 +9053,15 @@ on systemAppearanceChanged pMode, pWindowColor, pTextColor
    RefreshList
    unlock screen
 end systemAppearanceChanged
+
+
+## Sent by the engine to the card when the theme of the stack changes (the
+## lightTheme or the darkTheme of the stack is set), and passed on to the grid
+## in the same way as systemAppearanceChanged. The grid's defaults come from
+## the theme, so they are re-applied just as for an appearance change.
+on themeChanged
+   dispatch "systemAppearanceChanged" to me with the systemAppearance
+end themeChanged
 
 
 private function _GetEffectiveColor pProperty

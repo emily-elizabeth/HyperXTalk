@@ -1895,6 +1895,37 @@ static void MCInterfaceThemeRedrawAll(void)
 	MCRedrawDirtyScreen();
 }
 
+// Tells the stacks a theme change affects that it has happened, by queueing
+// themeChanged to their current cards. Controls that paint colours once and
+// keep them (a Data Grid's rows, for example) use it to paint them again.
+// p_owner is the stack whose theme changed, or nil for the IDE's theme.
+static void MCInterfaceThemeNotify(MCStack *p_owner)
+{
+	if (MCstacks == nil)
+		return;
+
+	MCStacknode *t_node = MCstacks -> topnode();
+	MCStacknode *t_first = t_node;
+	while (t_node != nil)
+	{
+		MCStack *t_stack = t_node -> getstack();
+		if (t_stack != nil && t_stack -> getcurcard() != nil)
+		{
+			bool t_affected;
+			if (p_owner == nil)
+				t_affected = t_stack -> isidestack();
+			else
+				t_affected = !t_stack -> isidestack() &&
+								(t_stack == p_owner || t_stack -> getparent() == p_owner);
+			if (t_affected)
+				MCscreen -> delaymessage(t_stack -> getcurcard(), MCM_theme_changed);
+		}
+		t_node = t_node -> next();
+		if (t_node == t_first)
+			break;
+	}
+}
+
 // The theme that applies to an object: the IDE's for an IDE stack, otherwise
 // that of its stack or of the nearest stack above that has one.
 static const MCAppColorTheme *MCInterfaceThemeForObject(MCObject *p_object)
@@ -2240,6 +2271,8 @@ void MCStack::GetLightTheme(MCExecContext& ctxt, MCArrayRef& r_value)
 void MCStack::SetLightTheme(MCExecContext& ctxt, MCArrayRef p_value)
 {
 	MCInterfaceSetStackTheme(ctxt, m_app_theme, kMCInterfaceThemeLight, p_value);
+	if (!ctxt . HasError())
+		MCInterfaceThemeNotify(this);
 }
 
 void MCStack::GetDarkTheme(MCExecContext& ctxt, MCArrayRef& r_value)
@@ -2250,6 +2283,8 @@ void MCStack::GetDarkTheme(MCExecContext& ctxt, MCArrayRef& r_value)
 void MCStack::SetDarkTheme(MCExecContext& ctxt, MCArrayRef p_value)
 {
 	MCInterfaceSetStackTheme(ctxt, m_app_theme, kMCInterfaceThemeDark, p_value);
+	if (!ctxt . HasError())
+		MCInterfaceThemeNotify(this);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
