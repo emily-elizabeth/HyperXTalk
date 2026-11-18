@@ -1812,6 +1812,10 @@ enum Properties {
 	// HXT: global override of the app's appearance (system / light / dark)
 	P_PREFERRED_APPEARANCE,
 
+	// HXT: app colour themes used while the appearance is light / dark
+	P_LIGHT_THEME,
+	P_DARK_THEME,
+
 	P_SYSTEM_WINDOW_COLOR,
 
 	P_SYSTEM_TEXT_COLOR,

@@ -2177,6 +2177,19 @@ bool MCObject::GetColor(MCExecContext& ctxt, Properties which, bool effective, M
         
         if (!t_found && !recursive)
         {
+            // HXT themes: the app's light or dark theme comes before the
+            // system colours, as it does when drawing (MCObject::getforecolor).
+            {
+                extern bool MCInterfaceThemeLookupColor(uint2 p_di, MCColor& r_color);
+                MCColor t_theme_color;
+                if (MCInterfaceThemeLookupColor(which - P_FORE_COLOR, t_theme_color))
+                {
+                    r_color.color = t_theme_color;
+                    r_color.name = nil;
+                    return true;
+                }
+            }
+
             // Look up the colour using the theming API
             MCPlatformControlType t_control_type;
             MCPlatformControlPart t_control_part;

@@ -1514,6 +1514,15 @@ Boolean MCObject::getforecolor(uint2 p_di, Boolean rev, Boolean hilite,
         {
             if (p_di == DI_BACK)
             {
+                // HXT themes: a field takes the app theme's fieldColor
+                // here, if there is one, in place of the system colour.
+                if (o->gettype() == CT_FIELD)
+                {
+                    extern bool MCInterfaceThemeLookupFieldColor(MCColor& r_color);
+                    if (MCInterfaceThemeLookupFieldColor(c))
+                        return True;
+                }
+
                 // Use the themed colours and ignore inheritance. We do
                 // this so that controls always have the appropriate
                 // background colour (particularly fields).
@@ -1540,6 +1549,19 @@ Boolean MCObject::getforecolor(uint2 p_di, Boolean rev, Boolean hilite,
         }
         if (parent && parent != MCdispatcher)
             return parent->getforecolor(p_di, rev, hilite, c, r_pattern, x, y, dc_type, o, selected);
+    }
+
+    // HXT themes: nothing in the object hierarchy sets this colour, so use the
+    // app's light or dark theme if it has one, before the system colours. The
+    // selected-text colours are left to the system so they keep their contrast
+    // with the selection.
+    if (p_di != DI_PSEUDO_TEXT_COLOR_SEL_FORE &&
+        p_di != DI_PSEUDO_TEXT_COLOR_SEL_BACK &&
+        p_di != DI_PSEUDO_BUTTON_TEXT_SEL)
+    {
+        extern bool MCInterfaceThemeLookupColor(uint2 p_di, MCColor& r_color);
+        if (MCInterfaceThemeLookupColor(di, c))
+            return True;
     }
 
     // Try to get the colour from the system theme rather than these hard-coded values

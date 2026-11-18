@@ -402,6 +402,9 @@ static MCPropertyInfo kMCPropertyInfoTable[] =
 	DEFINE_RO_ENUM_PROPERTY(P_SYSTEM_APPEARANCE, InterfaceSystemAppearance, Interface, SystemAppearance)
 	// HXT: the preferredAppearance (system / light / dark) overrides the OS appearance for this process
 	DEFINE_RW_ENUM_PROPERTY(P_PREFERRED_APPEARANCE, InterfacePreferredAppearance, Interface, PreferredAppearance)
+	// HXT: the lightTheme / darkTheme hold the colours used by objects with no colour of their own
+	DEFINE_RW_PROPERTY(P_LIGHT_THEME, Array, Interface, LightTheme)
+	DEFINE_RW_PROPERTY(P_DARK_THEME, Array, Interface, DarkTheme)
 	DEFINE_RO_PROPERTY(P_SYSTEM_WINDOW_COLOR, String, Interface, SystemWindowColor)
 	DEFINE_RO_PROPERTY(P_SYSTEM_TEXT_COLOR, String, Interface, SystemTextColor)
 	DEFINE_RO_PROPERTY(P_SYSTEM_THEME_NAME, String, Interface, SystemThemeName)
@@ -948,6 +951,8 @@ Parse_stat MCProperty::parse(MCScriptPoint &sp, Boolean the)
     case P_LOADED_EXTENSIONS:
 	case P_SYSTEM_APPEARANCE:
 	case P_PREFERRED_APPEARANCE:
+	case P_LIGHT_THEME:
+	case P_DARK_THEME:
 	case P_SYSTEM_WINDOW_COLOR:
 	case P_SYSTEM_TEXT_COLOR:
 	case P_SYSTEM_THEME_NAME:

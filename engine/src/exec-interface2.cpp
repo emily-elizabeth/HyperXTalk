@@ -1785,6 +1785,200 @@ void MCInterfaceSetPreferredAppearance(MCExecContext& ctxt, intenum_t p_value)
 	MCplatformSetPreferredAppearance((int)p_value);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//
+// HXT app colour themes (prototype)
+//
+// the lightTheme and the darkTheme are arrays of colours, keyed by the name of
+// the colour property they stand in for (backgroundColor, foregroundColor,
+// hiliteColor, borderColor, topColor, bottomColor, shadowColor, focusColor).
+// An object with no colour of its own, and none to inherit, takes the colour
+// from the theme that matches the current appearance before it falls back to
+// the system colour (see MCObject::getforecolor).
+//
+// One more key, fieldColor, is the background of a bordered field that has no
+// backgroundColor of its own. The engine takes that from the system without
+// looking at the owners of the field, so the theme's backgroundColor does not
+// reach it. Any other key is ignored.
+
+enum { kMCInterfaceThemeLight = 0, kMCInterfaceThemeDark = 1 };
+
+// Indexed by the DI_* colour index (DI_FORE = 0 ... DI_FOCUS = 7), then the
+// colours that have no DI_* index.
+enum { kMCInterfaceThemeFieldColor = 8, kMCInterfaceThemeColorCount = 9 };
+
+static const char *s_theme_keys[kMCInterfaceThemeColorCount] =
+{
+	"foregroundColor", "backgroundColor", "hiliteColor", "borderColor",
+	"topColor", "bottomColor", "shadowColor", "focusColor",
+	"fieldColor",
+};
+
+static MCColor s_theme_colors[2][kMCInterfaceThemeColorCount];
+static bool s_theme_has_color[2][kMCInterfaceThemeColorCount];
+static bool s_theme_in_use = false;
+
+static void MCInterfaceThemeRedrawAll(void)
+{
+	if (MCstacks == nil)
+		return;
+
+	MCStacknode *t_node = MCstacks -> topnode();
+	MCStacknode *t_first = t_node;
+	while (t_node != nil)
+	{
+		MCStack *t_stack = t_node -> getstack();
+		if (t_stack != nil && t_stack -> getcurcard() != nil)
+			t_stack -> dirtyall();
+		t_node = t_node -> next();
+		if (t_node == t_first)
+			break;
+	}
+
+	MCRedrawDirtyScreen();
+}
+
+static void MCInterfaceGetTheme(MCExecContext& ctxt, int p_slot, MCArrayRef& r_value)
+{
+	MCAutoArrayRef t_array;
+	if (!MCArrayCreateMutable(&t_array))
+	{
+		ctxt . Throw();
+		return;
+	}
+
+	for (int i = 0; i < kMCInterfaceThemeColorCount; i++)
+	{
+		if (!s_theme_has_color[p_slot][i])
+			continue;
+
+		const MCColor& t_color = s_theme_colors[p_slot][i];
+		MCNewAutoNameRef t_key;
+		MCAutoStringRef t_string;
+		if (!MCNameCreateWithNativeChars((const char_t *)s_theme_keys[i], strlen(s_theme_keys[i]), &t_key) ||
+			!MCStringFormat(&t_string, "%d,%d,%d", t_color . red >> 8, t_color . green >> 8, t_color . blue >> 8) ||
+			!MCArrayStoreValue(*t_array, false, *t_key, *t_string))
+		{
+			ctxt . Throw();
+			return;
+		}
+	}
+
+	r_value = MCValueRetain(*t_array);
+}
+
+static void MCInterfaceSetTheme(MCExecContext& ctxt, int p_slot, MCArrayRef p_value)
+{
+	MCColor t_colors[kMCInterfaceThemeColorCount];
+	bool t_has_color[kMCInterfaceThemeColorCount];
+
+	for (int i = 0; i < kMCInterfaceThemeColorCount; i++)
+	{
+		t_has_color[i] = false;
+
+		if (p_value == nil)
+			continue;
+
+		MCNewAutoNameRef t_key;
+		if (!MCNameCreateWithNativeChars((const char_t *)s_theme_keys[i], strlen(s_theme_keys[i]), &t_key))
+		{
+			ctxt . Throw();
+			return;
+		}
+
+		MCValueRef t_value;
+		if (!MCArrayFetchValue(p_value, false, *t_key, t_value))
+			continue;
+
+		MCAutoStringRef t_string;
+		if (!ctxt . ConvertToString(t_value, &t_string))
+		{
+			ctxt . LegacyThrow(EE_OBJECT_BADCOLOR);
+			return;
+		}
+
+		// An empty entry is the same as no entry.
+		if (MCStringIsEmpty(*t_string))
+			continue;
+
+		if (!MCscreen -> parsecolor(*t_string, t_colors[i]))
+		{
+			ctxt . LegacyThrow(EE_OBJECT_BADCOLOR);
+			return;
+		}
+
+		t_has_color[i] = true;
+	}
+
+	for (int i = 0; i < kMCInterfaceThemeColorCount; i++)
+	{
+		s_theme_colors[p_slot][i] = t_colors[i];
+		s_theme_has_color[p_slot][i] = t_has_color[i];
+	}
+
+	s_theme_in_use = false;
+	for (int t_slot = 0; t_slot < 2; t_slot++)
+		for (int i = 0; i < kMCInterfaceThemeColorCount; i++)
+			if (s_theme_has_color[t_slot][i])
+				s_theme_in_use = true;
+
+	MCInterfaceThemeRedrawAll();
+}
+
+// Called by MCObject::getforecolor when neither the object nor anything above
+// it has the colour set. p_di is one of DI_FORE ... DI_FOCUS.
+bool MCInterfaceThemeLookupColor(uint2 p_di, MCColor& r_color)
+{
+	if (!s_theme_in_use || p_di >= kMCInterfaceThemeColorCount || MCscreen == nil)
+		return false;
+
+	// "custom" (a high contrast theme on Windows) keeps the system colours.
+	MCSystemAppearance t_appearance = kMCSystemAppearanceLight;
+	MCscreen -> getsystemappearance(t_appearance);
+
+	int t_slot;
+	if (t_appearance == kMCSystemAppearanceDark)
+		t_slot = kMCInterfaceThemeDark;
+	else if (t_appearance == kMCSystemAppearanceLight)
+		t_slot = kMCInterfaceThemeLight;
+	else
+		return false;
+
+	if (!s_theme_has_color[t_slot][p_di])
+		return false;
+
+	r_color = s_theme_colors[t_slot][p_di];
+	return true;
+}
+
+// The background of a bordered field with no backgroundColor of its own.
+bool MCInterfaceThemeLookupFieldColor(MCColor& r_color)
+{
+	return MCInterfaceThemeLookupColor(kMCInterfaceThemeFieldColor, r_color);
+}
+
+void MCInterfaceGetLightTheme(MCExecContext& ctxt, MCArrayRef& r_value)
+{
+	MCInterfaceGetTheme(ctxt, kMCInterfaceThemeLight, r_value);
+}
+
+void MCInterfaceSetLightTheme(MCExecContext& ctxt, MCArrayRef p_value)
+{
+	MCInterfaceSetTheme(ctxt, kMCInterfaceThemeLight, p_value);
+}
+
+void MCInterfaceGetDarkTheme(MCExecContext& ctxt, MCArrayRef& r_value)
+{
+	MCInterfaceGetTheme(ctxt, kMCInterfaceThemeDark, r_value);
+}
+
+void MCInterfaceSetDarkTheme(MCExecContext& ctxt, MCArrayRef p_value)
+{
+	MCInterfaceSetTheme(ctxt, kMCInterfaceThemeDark, p_value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
 void MCInterfaceGetSystemWindowColor(MCExecContext& ctxt, MCStringRef& r_value)
 {
 	MCscreen->getsystemwindowcolor(r_value);
