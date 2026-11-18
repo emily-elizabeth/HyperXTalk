@@ -16,6 +16,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include "prefix.h"
 
+#include <math.h>
+
 #include "globdefs.h"
 #include "filedefs.h"
 #include "parsedef.h"
@@ -2342,6 +2344,29 @@ void MCBlock::setcolorforhilite(MCDC* dc)
     f->setforeground(dc, DI_PSEUDO_TEXT_BACKGROUND_SEL, False, True);
 }
 
+// One sRGB channel (0 .. 65535) as a linear-light value (0 .. 1).
+static double MCBlockLinearChannel(uint2 p_channel)
+{
+    double t_value = p_channel / 65535.0;
+    if (t_value <= 0.04045)
+        return t_value / 12.92;
+    return pow((t_value + 0.055) / 1.055, 2.4);
+}
+
+// Whether text on a highlight of the given colour should be white rather than
+// black. This uses the relative luminance of the colour (the WCAG definition).
+// Black and white have equal WCAG contrast at about 0.179, but that measure
+// undervalues white on saturated mid-tones, so black text was being chosen for
+// mid oranges and blues. A cut-off of 0.30 gives white on those and keeps black
+// on light highlights such as yellow.
+static bool MCBlockHiliteTakesWhiteText(const MCColor& p_hilite)
+{
+    double t_luminance = 0.2126 * MCBlockLinearChannel(p_hilite . red) +
+                         0.7152 * MCBlockLinearChannel(p_hilite . green) +
+                         0.0722 * MCBlockLinearChannel(p_hilite . blue);
+    return t_luminance <= 0.30;
+}
+
 // HXT themes: the app theme's hiliteTextColor, if the selection in this field
 // is being drawn in the theme's hiliteColor.
 static bool MCBlockGetThemeSelectedTextColor(MCField *f, MCDC *dc, MCColor& r_color)
@@ -2373,20 +2398,16 @@ void MCBlock::setcolorforselectedtext(MCDC* dc, MCColor* p_color)
     else
     {
         // On Mac the field uses its own foreground colour for selected text, but
-        // that can be illegible when the system highlight colour is dark (e.g. a
-        // dark accent in light mode, or any accent in dark mode).  Compute the
-        // perceived luminance of the hilite colour (ITU-R BT.601 coefficients)
-        // and choose white or black text so contrast is always maintained.
+        // that can be illegible when the highlight colour is dark (e.g. a dark
+        // accent in light mode, or any accent in dark mode). Choose white or
+        // black text from the relative luminance of the highlight colour.
         MCColor hc;
         MCPatternRef t_pattern;
         int2 t_x = 0, t_y = 0;
         f->getforecolor(DI_HILITE, False, True, hc, t_pattern, t_x, t_y, dc->gettype(), f);
-        uint32_t r = hc.red   >> 8;
-        uint32_t g = hc.green >> 8;
-        uint32_t b = hc.blue  >> 8;
-        uint32_t luminance = (299 * r + 587 * g + 114 * b) / 1000;
+        bool t_white_text = MCBlockHiliteTakesWhiteText(hc);
         MCColor text_color;
-        text_color.red = text_color.green = text_color.blue = (luminance < 128) ? 0xFFFF : 0x0000;
+        text_color.red = text_color.green = text_color.blue = t_white_text ? 0xFFFF : 0x0000;
         dc->setforeground(text_color);
     }
 }
