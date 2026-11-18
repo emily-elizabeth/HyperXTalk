@@ -541,6 +541,8 @@ public foreign handler MCWidgetGetMyPaint(in pPaintType as CUInt, out rPaint as 
 public foreign handler MCWidgetGetMyPixelScale(out rPixelScale as CanvasFloat) returns nothing binds to "<builtin>"
 public foreign handler MCWidgetGetSystemAppearance(out rAppearance as String) returns nothing binds to "<builtin>"
 public foreign handler MCWidgetGetThemeColor(in pName as String, out rColor as optional Color) returns nothing binds to "<builtin>"
+public foreign handler MCWidgetGetMyColor(in pColorType as CUInt, out rColor as optional Color) returns nothing binds to "<builtin>"
+public foreign handler MCWidgetGetMyOwnColor(in pColorType as CUInt, out rColor as optional Color) returns nothing binds to "<builtin>"
 
 /**
 Summary:	Returns the widget script object.
@@ -669,6 +671,62 @@ syntax SystemAppearance is expression
     "the" "system" "appearance"
 begin
     MCWidgetGetSystemAppearance(output)
+end syntax
+
+/**
+Summary:    Returns a particular colour of the widget.
+
+Returns:    The colour, or nothing if the widget draws that part with a pattern.
+
+Description:
+Use `my ... color` to get the colour that `my ... paint` would draw with, as
+a colour that can be tested or compared. It is the colour set on the widget
+if there is one, otherwise an inherited one, the app theme's or the system's.
+It can be read in any handler, including OnPaint.
+*/
+syntax MyColor is expression
+    "my" ( "foreground" <mColorType=0> | \
+            "background" <mColorType=1> | \
+            "highlight" <mColorType=2> | \
+            "border" <mColorType=3> | \
+            "top" <mColorType=4> | \
+            "bottom" <mColorType=5> | \
+            "shadow" <mColorType=6> | \
+            "focus" <mColorType=7> ) "color"
+begin
+    MCWidgetGetMyColor(mColorType, output)
+end syntax
+
+/**
+Summary:    Returns a particular colour set on the widget itself.
+
+Returns:    The colour, or nothing if the widget has no colour of its own for
+            that part.
+
+Example:
+	variable tOwn as optional Color
+	put my own background color into tOwn
+	if tOwn is nothing then
+		-- nothing was set on this widget: use a theme colour or a default
+	end if
+
+Description:
+Use `my own ... color` to find out whether a colour property has been set on
+the widget, and to what. Inherited, theme and system colours are ignored. It
+can be read in any handler, including OnPaint, so a widget can decide how to
+draw without reading its script object.
+*/
+syntax MyOwnColor is expression
+    "my" "own" ( "foreground" <mColorType=0> | \
+            "background" <mColorType=1> | \
+            "highlight" <mColorType=2> | \
+            "border" <mColorType=3> | \
+            "top" <mColorType=4> | \
+            "bottom" <mColorType=5> | \
+            "shadow" <mColorType=6> | \
+            "focus" <mColorType=7> ) "color"
+begin
+    MCWidgetGetMyOwnColor(mColorType, output)
 end syntax
 
 /**
