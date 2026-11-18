@@ -2444,10 +2444,11 @@ Colours the scheme does not set are taken from its script editor colours where
 there is a natural match: backgroundColor from the gutter background,
 fieldColor from the editor background, foregroundColor from the identifier
 colour, hiliteColor from the selection and borderColor from the folding
-column.
+column. Where the selection or the folding column would not stand out from the
+background, the keyword colour or the gutter's text colour is used instead.
 **/
 function revIDESchemeInterfaceTheme pName
-   local tFile, tText, tLine, tKey, tKeys, tTheme, tEditor, tIdentifier, tColor
+   local tFile, tText, tLine, tKey, tKeys, tTheme, tEditor, tIdentifier, tAccent, tColor
    if pName is empty or pName is "default" then return empty
    put revIDESchemeFile(pName) into tFile
    if tFile is empty then return empty
@@ -2475,6 +2476,7 @@ function revIDESchemeInterfaceTheme pName
             break
          case "class"
             if word 2 of tLine is "identifier" then put word 4 of tLine into tIdentifier
+            if word 2 of tLine is "keyword" then put word 4 of tLine into tAccent
             break
       end switch
    end repeat
@@ -2482,8 +2484,17 @@ function revIDESchemeInterfaceTheme pName
    __schemeDerive tTheme, "backgroundColor", tEditor["gutterbackground"], tEditor["background"]
    __schemeDerive tTheme, "fieldColor", tEditor["background"]
    __schemeDerive tTheme, "foregroundColor", tIdentifier
-   __schemeDerive tTheme, "hiliteColor", tEditor["selection"]
-   __schemeDerive tTheme, "borderColor", tEditor["foldingbackground"], tEditor["gutterforeground"]
+   
+   # A script editor's selection and folding column are often the same colour
+   # as its gutter, which would leave highlights and borders invisible against
+   # the window. Such a colour is passed over for one that stands out.
+   local tAgainst
+   put tTheme["backgroundColor"] & return & tTheme["fieldColor"] into tAgainst
+   __schemeDeriveDistinct tTheme, "hiliteColor", tAgainst, \
+         tEditor["selection"] & return & tAccent & return & tEditor["findhighlight"] & return & tIdentifier
+   __schemeDeriveDistinct tTheme, "borderColor", tAgainst, \
+         tEditor["foldingbackground"] & return & tEditor["gutterforeground"] & return & \
+         tEditor["foldingforeground"] & return & tIdentifier
    return tTheme
 end revIDESchemeInterfaceTheme
 
@@ -2504,6 +2515,53 @@ private command __schemeDerive @xTheme, pKey, pFirst, pSecond
       put pSecond into xTheme[pKey]
    end if
 end __schemeDerive
+
+# The first of the candidate colours, one per line, that is valid and stands
+# out from every colour in pAgainst becomes xTheme[pKey], unless it is set.
+private command __schemeDeriveDistinct @xTheme, pKey, pAgainst, pCandidates
+   local tCandidate, tOther, tDistinct
+   if xTheme[pKey] is not empty then exit __schemeDeriveDistinct
+   repeat for each line tCandidate in pCandidates
+      if not __schemeColorIsValid(tCandidate) then next repeat
+      put true into tDistinct
+      repeat for each line tOther in pAgainst
+         if __schemeColorIsValid(tOther) and __schemeContrast(tCandidate, tOther) < 1.3 then
+            put false into tDistinct
+            exit repeat
+         end if
+      end repeat
+      if tDistinct then
+         put tCandidate into xTheme[pKey]
+         exit __schemeDeriveDistinct
+      end if
+   end repeat
+end __schemeDeriveDistinct
+
+# The relative luminance of a colour, from 0 (black) to 1 (white).
+private function __schemeLuminance pColor
+   local tChannel, tValue, tTotal, tIndex
+   put 0 into tTotal
+   put 0 into tIndex
+   repeat for each item tChannel in pColor
+      add 1 to tIndex
+      put tChannel / 255 into tValue
+      if tValue <= 0.03928 then
+         put tValue / 12.92 into tValue
+      else
+         put ((tValue + 0.055) / 1.055) ^ 2.4 into tValue
+      end if
+      add tValue * item tIndex of "0.2126,0.7152,0.0722" to tTotal
+   end repeat
+   return tTotal
+end __schemeLuminance
+
+# The contrast ratio of two colours, from 1 (the same) to 21 (black on white).
+private function __schemeContrast pFirst, pSecond
+   local tFirst, tSecond
+   put __schemeLuminance(pFirst) into tFirst
+   put __schemeLuminance(pSecond) into tSecond
+   return (max(tFirst, tSecond) + 0.05) / (min(tFirst, tSecond) + 0.05)
+end __schemeContrast
 
 /**
 The choices offered for a stack's theme in the property inspector

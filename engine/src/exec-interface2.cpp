@@ -2027,8 +2027,24 @@ static int MCInterfaceThemeCurrentSlot(void)
 // Called by MCObject::getforecolor when neither the object nor anything above
 // it has the colour set. p_index is one of DI_FORE ... DI_FOCUS, or one of the
 // extra theme colours.
+// While this is non-zero the theme is not consulted. A control that the system
+// draws (a push button's bezel, for example) uses it while it fetches its text
+// colour, so the label keeps the system colour that suits the system's bezel.
+static int s_theme_suspended = 0;
+
+void MCInterfaceThemeSuspend(bool p_suspend)
+{
+	if (p_suspend)
+		s_theme_suspended++;
+	else if (s_theme_suspended > 0)
+		s_theme_suspended--;
+}
+
 bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_index, MCColor& r_color)
 {
+	if (s_theme_suspended != 0)
+		return false;
+
 	if (p_index >= kMCInterfaceThemeColorCount)
 		return false;
 

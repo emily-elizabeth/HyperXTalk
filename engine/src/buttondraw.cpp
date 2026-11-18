@@ -426,9 +426,20 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 				(MClook != LF_MOTIF && style == F_MENU && flags & F_OPAQUE && state & CS_ARMED && !(flags & F_SHOW_BORDER)))
 				setforeground(dc, DI_PSEUDO_BUTTON_TEXT_SEL, False, True);
 			else
+			{
+				// HXT themes: when the system draws this button's bezel, the
+				// label must suit that bezel and not the app theme, so the
+				// theme's text colour is left out for it.
+				extern void MCInterfaceThemeSuspend(bool p_suspend);
+				bool t_system_bezel = isstdbtn && noback && MCcurtheme != NULL;
+				if (t_system_bezel)
+					MCInterfaceThemeSuspend(true);
 				setforeground(dc, DI_FORE, ((state & CS_HILITED && flags & F_HILITE_FILL)
 				                            || ((state & CS_ARMED && flags & F_ARM_FILL) && flags & F_OPAQUE && ((MClook != LF_WIN95 && !MCaqua)))
 				                            || style != F_STANDARD), False);
+				if (t_system_bezel)
+					MCInterfaceThemeSuspend(false);
+			}
         }
 		}
 
