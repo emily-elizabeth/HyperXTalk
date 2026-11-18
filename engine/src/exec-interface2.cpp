@@ -1980,6 +1980,17 @@ bool MCInterfaceThemeLookupHiliteTextColor(const MCColor& p_hilite, MCColor& r_c
 	return MCInterfaceThemeLookupColor(kMCInterfaceThemeHiliteTextColor, r_color);
 }
 
+// A theme colour by the name of its key, for widgets ("the theme color" in
+// LCB). False if the theme in use has no such colour.
+bool MCInterfaceThemeLookupNamedColor(MCStringRef p_name, MCColor& r_color)
+{
+	for (uint2 i = 0; i < kMCInterfaceThemeColorCount; i++)
+		if (MCStringIsEqualToCString(p_name, s_theme_keys[i], kMCStringOptionCompareCaseless))
+			return MCInterfaceThemeLookupColor(i, r_color);
+
+	return false;
+}
+
 void MCInterfaceGetLightTheme(MCExecContext& ctxt, MCArrayRef& r_value)
 {
 	MCInterfaceGetTheme(ctxt, kMCInterfaceThemeLight, r_value);

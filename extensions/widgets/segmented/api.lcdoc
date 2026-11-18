@@ -363,10 +363,12 @@ pMode: "dark" or "light"
 Description:
 The <hxtAppearance> property tells the widget which appearance to draw its
 built-in default colours in. It is not saved with the widget and is not shown
-in the property inspector. The IDE sets it when a stack opens, when a widget
-is created and when the system appearance changes; in a standalone the
-developer's <systemAppearanceChanged> handler should set it. Colours the
-developer has changed from their defaults are not affected.
+in the property inspector. The widget follows the system appearance by itself,
+in the IDE and in a standalone, so there is normally no need to set it; set it
+to "dark" or "light" to hold the widget in one appearance, and to empty to
+follow the system again. The IDE sets it when a stack opens, when a widget is
+created and when the system appearance changes. Colours the developer has
+changed from their defaults are not affected.
 
 
 

@@ -540,6 +540,7 @@ public foreign handler MCWidgetGetMyDisabled(out rDisabled as CBool) returns not
 public foreign handler MCWidgetGetMyPaint(in pPaintType as CUInt, out rPaint as Paint) returns nothing binds to "<builtin>"
 public foreign handler MCWidgetGetMyPixelScale(out rPixelScale as CanvasFloat) returns nothing binds to "<builtin>"
 public foreign handler MCWidgetGetSystemAppearance(out rAppearance as String) returns nothing binds to "<builtin>"
+public foreign handler MCWidgetGetThemeColor(in pName as String, out rColor as optional Color) returns nothing binds to "<builtin>"
 
 /**
 Summary:	Returns the widget script object.
@@ -668,6 +669,40 @@ syntax SystemAppearance is expression
     "the" "system" "appearance"
 begin
     MCWidgetGetSystemAppearance(output)
+end syntax
+
+/**
+Summary:    Returns a colour of the app theme in use.
+
+Name:       The name of the colour: "backgroundColor", "foregroundColor",
+            "hiliteColor", "borderColor", "topColor", "bottomColor",
+            "shadowColor", "focusColor", "fieldColor" or "hiliteTextColor".
+
+Returns:    The colour, or nothing if the theme has no colour of that name.
+
+Example:
+	variable tColor as optional Color
+	put the theme color "hiliteColor" into tColor
+	if tColor is nothing then
+		put color [0.04, 0.37, 0.96] into tColor
+	end if
+	set the paint of this canvas to solid paint with tColor
+
+Description:
+Use `the theme color` to draw with the colours of the app's theme, which
+script sets with the lightTheme and darkTheme properties. The colour comes
+from the theme that matches the current appearance. It is nothing when no
+theme is set or the theme leaves that colour out, so a widget can fall back
+to its own default.
+
+Unlike `my background paint` and the other paints, this ignores colours set
+on the widget and its owners. A widget would normally use its own colour
+when the user has set one and the theme colour otherwise.
+*/
+syntax ThemeColor is prefix operator with property precedence
+    "the" "theme" "color" <Name: Expression>
+begin
+    MCWidgetGetThemeColor(Name, output)
 end syntax
 
 /**

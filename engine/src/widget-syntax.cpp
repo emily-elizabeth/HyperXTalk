@@ -216,6 +216,32 @@ extern "C" MC_DLLEXPORT_DEF void MCWidgetGetSystemAppearance(MCStringRef& r_appe
 	}
 }
 
+// Defined in exec-interface2.cpp. Declared here, not inside the handler below,
+// so that it keeps its C++ linkage.
+extern bool MCInterfaceThemeLookupNamedColor(MCStringRef p_name, MCColor& r_color);
+
+// HXT themes: a colour of the app theme in use (the lightTheme or the
+// darkTheme, by the current appearance), or nothing if it has no such colour.
+extern "C" MC_DLLEXPORT_DEF void MCWidgetGetThemeColor(MCStringRef p_name, MCValueRef& r_color)
+{
+	MCColor t_color;
+	if (!MCInterfaceThemeLookupNamedColor(p_name, t_color))
+	{
+		r_color = MCValueRetain(kMCNull);
+		return;
+	}
+
+	MCCanvasColorRef t_canvas_color;
+	if (!MCCanvasColorCreateWithRGBA(t_color . red / 65535.0f,
+									 t_color . green / 65535.0f,
+									 t_color . blue / 65535.0f,
+									 1.0f,
+									 t_canvas_color))
+		return;
+
+	r_color = t_canvas_color;
+}
+
 extern "C" MC_DLLEXPORT_DEF void MCWidgetGetMyBounds(MCCanvasRectangleRef& r_rect)
 {
     if (!MCWidgetEnsureCurrentWidget())
