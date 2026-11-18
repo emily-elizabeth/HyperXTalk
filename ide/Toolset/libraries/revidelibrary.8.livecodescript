@@ -2506,6 +2506,76 @@ private command __schemeDerive @xTheme, pKey, pFirst, pSecond
 end __schemeDerive
 
 /**
+The choices offered for a stack's theme in the property inspector
+
+pSlot (String): "light" or "dark"
+Returns (String): "None", the schemes for that appearance and "Custom", one per line
+**/
+function revIDEStackThemeOptions pSlot
+   return "None" & return & revIDESchemeNames(pSlot) & return & "Custom"
+end revIDEStackThemeOptions
+
+private function __stackThemesMatch pLeft, pRight
+   local tKey
+   if the number of lines of the keys of pLeft is not the number of lines of the keys of pRight then return false
+   repeat for each key tKey in pLeft
+      if pLeft[tKey] is not pRight[tKey] then return false
+   end repeat
+   return true
+end __stackThemesMatch
+
+/**
+The scheme a stack's theme was taken from
+
+pObject (String): The long id of a stack
+pProperty (String): "lightTheme" or "darkTheme"
+Returns (String): "None" if the stack has no theme for that appearance, the
+name of the scheme it was set from, or "Custom" if its colours match no
+remembered scheme
+
+Description:
+A stack stores its theme's colours, not the name of a scheme, so that it needs
+no scheme file when it runs. The property inspector remembers the scheme name
+in the stack's cREVGeneral custom property set for display only.
+**/
+function revIDEGetStackThemeProperty pObject, pProperty
+   local tTheme, tName, tError
+   try
+      do "put the" && pProperty && "of pObject into tTheme"
+   catch tError
+      return "None"
+   end try
+   if tTheme is not an array then return "None"
+   put the cREVGeneral[pProperty & "Scheme"] of pObject into tName
+   if tName is not empty and __stackThemesMatch(tTheme, revIDESchemeInterfaceTheme(tName)) then
+      return tName
+   end if
+   return "Custom"
+end revIDEGetStackThemeProperty
+
+/**
+Sets a stack's theme from a scheme
+
+pObject (String): The long id of a stack
+pProperty (String): "lightTheme" or "darkTheme"
+pValue (String): "None" to remove the theme, or the name of a scheme
+**/
+command revIDESetStackThemeProperty pObject, pProperty, pValue
+   local tTheme
+   if pValue is "Custom" then exit revIDESetStackThemeProperty
+   if pValue is "None" then
+      put empty into pValue
+   else
+      put revIDESchemeInterfaceTheme(pValue) into tTheme
+      if tTheme is not an array then
+         exit revIDESetStackThemeProperty
+      end if
+   end if
+   do "set the" && pProperty && "of pObject to tTheme"
+   set the cREVGeneral[pProperty & "Scheme"] of pObject to pValue
+end revIDESetStackThemeProperty
+
+/**
 Applies the IDE's theme preferences to the engine
 
 Description:
