@@ -2567,10 +2567,10 @@ end __schemeContrast
 The choices offered for a stack's theme in the property inspector
 
 pSlot (String): "light" or "dark"
-Returns (String): "None", the schemes for that appearance and "Custom", one per line
+Returns (String): "Default", the schemes for that appearance and "Custom", one per line
 **/
 function revIDEStackThemeOptions pSlot
-   return "None" & return & revIDESchemeNames(pSlot) & return & "Custom"
+   return "Default" & return & revIDESchemeNames(pSlot) & return & "Custom"
 end revIDEStackThemeOptions
 
 private function __stackThemesMatch pLeft, pRight
@@ -2587,7 +2587,7 @@ The scheme a stack's theme was taken from
 
 pObject (String): The long id of a stack
 pProperty (String): "lightTheme" or "darkTheme"
-Returns (String): "None" if the stack has no theme for that appearance, the
+Returns (String): "Default" if the stack has no theme for that appearance, the
 name of the scheme it was set from, or "Custom" if its colours match no
 remembered scheme
 
@@ -2601,9 +2601,9 @@ function revIDEGetStackThemeProperty pObject, pProperty
    try
       do "put the" && pProperty && "of pObject into tTheme"
    catch tError
-      return "None"
+      return "Default"
    end try
-   if tTheme is not an array then return "None"
+   if tTheme is not an array then return "Default"
    put the cREVGeneral[pProperty & "Scheme"] of pObject into tName
    if tName is not empty and __stackThemesMatch(tTheme, revIDESchemeInterfaceTheme(tName)) then
       return tName
@@ -2616,12 +2616,12 @@ Sets a stack's theme from a scheme
 
 pObject (String): The long id of a stack
 pProperty (String): "lightTheme" or "darkTheme"
-pValue (String): "None" to remove the theme, or the name of a scheme
+pValue (String): "Default" to remove the theme, leaving the system colours, or the name of a scheme
 **/
 command revIDESetStackThemeProperty pObject, pProperty, pValue
    local tTheme
    if pValue is "Custom" then exit revIDESetStackThemeProperty
-   if pValue is "None" then
+   if pValue is "Default" or pValue is "None" then
       put empty into pValue
    else
       put revIDESchemeInterfaceTheme(pValue) into tTheme
