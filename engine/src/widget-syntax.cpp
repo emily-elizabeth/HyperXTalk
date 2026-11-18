@@ -194,6 +194,28 @@ extern "C" MC_DLLEXPORT_DEF void MCWidgetGetMyName(MCStringRef& r_name)
 	r_name = MCValueRetain(MCNameGetString(MCWidgetGetHost(MCcurrentwidget) -> getname()));
 }
 
+// HXT: the appearance the app is being drawn in, as the systemAppearance
+// property gives it to script: "light", "dark" or "custom".
+extern "C" MC_DLLEXPORT_DEF void MCWidgetGetSystemAppearance(MCStringRef& r_appearance)
+{
+	MCSystemAppearance t_appearance = kMCSystemAppearanceLight;
+	if (MCscreen != nil)
+		MCscreen -> getsystemappearance(t_appearance);
+
+	switch (t_appearance)
+	{
+		case kMCSystemAppearanceDark:
+			r_appearance = MCValueRetain(MCSTR("dark"));
+			break;
+		case kMCSystemAppearanceCustom:
+			r_appearance = MCValueRetain(MCSTR("custom"));
+			break;
+		default:
+			r_appearance = MCValueRetain(MCSTR("light"));
+			break;
+	}
+}
+
 extern "C" MC_DLLEXPORT_DEF void MCWidgetGetMyBounds(MCCanvasRectangleRef& r_rect)
 {
     if (!MCWidgetEnsureCurrentWidget())

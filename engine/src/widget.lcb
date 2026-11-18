@@ -539,6 +539,7 @@ public foreign handler MCWidgetGetMyEnabled(out rEnabled as CBool) returns nothi
 public foreign handler MCWidgetGetMyDisabled(out rDisabled as CBool) returns nothing binds to "<builtin>"
 public foreign handler MCWidgetGetMyPaint(in pPaintType as CUInt, out rPaint as Paint) returns nothing binds to "<builtin>"
 public foreign handler MCWidgetGetMyPixelScale(out rPixelScale as CanvasFloat) returns nothing binds to "<builtin>"
+public foreign handler MCWidgetGetSystemAppearance(out rAppearance as String) returns nothing binds to "<builtin>"
 
 /**
 Summary:	Returns the widget script object.
@@ -636,6 +637,37 @@ syntax MyEnabled is expression
     "my" "enabled"
 begin
     MCWidgetGetMyEnabled(output)
+end syntax
+
+/**
+Summary:    Returns the appearance the app is being drawn in.
+
+Returns:    "light", "dark" or "custom".
+
+Example:
+	public handler OnPaint()
+		if the system appearance is "dark" then
+			set the paint of this canvas to solid paint with color [0.9, 0.9, 0.9]
+		else
+			set the paint of this canvas to solid paint with color [0.1, 0.1, 0.1]
+		end if
+		fill rectangle path of my bounds on this canvas
+	end handler
+
+Description:
+Use `the system appearance` to choose colours or images that suit light or
+dark mode. It returns the same value as the systemAppearance property does in
+script, so it follows the preferredAppearance when that is set. "custom" means
+a high contrast theme is active on Windows.
+
+It can be read in any handler, including OnPaint. The engine redraws every
+stack when the appearance changes, so a widget that reads it while painting
+follows the system without any script.
+*/
+syntax SystemAppearance is expression
+    "the" "system" "appearance"
+begin
+    MCWidgetGetSystemAppearance(output)
 end syntax
 
 /**
