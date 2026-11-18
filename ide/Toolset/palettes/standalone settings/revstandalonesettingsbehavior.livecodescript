@@ -21,8 +21,8 @@ on preOpenStack
    end repeat
    helpButtons
    
-   set the backgroundColor of this stack to (the systemWindowColor)
-   set the foregroundColor of this stack to (the systemTextColor)
+   set the backgroundColor of this stack to revIDEWindowColor("window")
+   set the foregroundColor of this stack to revIDEWindowColor("text")
 end preOpenStack
 
 

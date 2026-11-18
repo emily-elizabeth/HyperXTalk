@@ -2633,6 +2633,16 @@ command revIDESetStackThemeProperty pObject, pProperty, pValue
    end if
    do "set the" && pProperty && "of pObject to tTheme"
    set the cREVGeneral[pProperty & "Scheme"] of pObject to pValue
+   
+   # Data Grids paint some colours once, so tell the stack's cards as the
+   # engine does on an appearance change; the back script passes it on.
+   local tError, tStackName
+   try
+      put the short name of pObject into tStackName
+      dispatch "systemAppearanceChanged" to this card of stack tStackName \
+            with the systemAppearance, the systemWindowColor, the systemTextColor
+   catch tError
+   end try
 end revIDESetStackThemeProperty
 
 # The IDE's themes, as applied by revIDEApplyThemePreference: sIDEThemes["light"]
@@ -2689,6 +2699,34 @@ private function __ideThemeColor pTag
    end switch
    return empty
 end __ideThemeColor
+
+/**
+The window or text colour an IDE window should use
+
+pWhich (String): "window" or "text"
+Returns (String): The IDE theme's background or text colour if an IDE theme is
+chosen for the current appearance, otherwise the system's window or text colour
+
+Description:
+IDE windows that set their own colours use this in place of the
+systemWindowColor and the systemTextColor, so that they follow the IDE theme.
+**/
+function revIDEWindowColor pWhich
+   local tTheme, tColor
+   put sIDEThemes[the systemAppearance] into tTheme
+   if pWhich is "text" then
+      put tTheme["foregroundColor"] into tColor
+      if tColor is empty then
+         put the systemTextColor into tColor
+      end if
+   else
+      put tTheme["backgroundColor"] into tColor
+      if tColor is empty then
+         put the systemWindowColor into tColor
+      end if
+   end if
+   return tColor
+end revIDEWindowColor
 
 # The IDE's palettes set some colours themselves, from revIDEColor, when the
 # appearance changes. Send them the same message so they pick up a new theme.

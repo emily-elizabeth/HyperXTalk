@@ -364,6 +364,7 @@ private command _Initialize
       DG2_ClearVars
       DG2_AnimationsInitProps
       DG2_EnsureRowChainedBehavior
+      _EnsureAppearanceForwarder
 
       put true into sInit
    else if the environment is "mobile" then
@@ -8748,9 +8749,165 @@ private function _DefaultColorPair pProperty
 end _DefaultColorPair
 
 
-## The built-in default for a colour property in the current appearance.
+## ---------------------------------------------------------------------------
+## HXT themes
+##
+## A stack can carry a light and a dark colour theme (the lightTheme and the
+## darkTheme of the stack). Where the stack the grid is on has a theme for the
+## current appearance, the grid's built-in defaults are taken from it, so the
+## grid matches the themed controls around it. Colours chosen by the developer
+## are still respected.
+## ---------------------------------------------------------------------------
+
+## The theme of the stack this grid is on (or of its main stack) for the
+## current appearance: an array of colours, or empty if there is none or the
+## engine has no themes.
+private function _ThemeColors
+   local tStack, tTheme, tMain, tProperty, tError
+   put the long id of me into tStack
+   repeat while word 1 of tStack is not "stack"
+      put the long owner of tStack into tStack
+   end repeat
+   if _AppearanceIsDark() then
+      put "darkTheme" into tProperty
+   else
+      put "lightTheme" into tProperty
+   end if
+   try
+      do "put the" && tProperty && "of tStack into tTheme"
+      if tTheme is not an array then
+         put the mainStack of tStack into tMain
+         do "put the" && tProperty && "of stack tMain into tTheme"
+      end if
+   catch tError
+      return empty
+   end try
+   if tTheme is not an array then return empty
+   return tTheme
+end _ThemeColors
+
+
+## A colour pPercent of the way from pFrom to pTo.
+private function _ThemeMix pFrom, pTo, pPercent
+   local tIndex, tMixed
+   repeat with tIndex = 1 to 3
+      put round(item tIndex of pFrom + (item tIndex of pTo - item tIndex of pFrom) * pPercent / 100) into item tIndex of tMixed
+   end repeat
+   return tMixed
+end _ThemeMix
+
+
+## The relative luminance of a colour, from 0 (black) to 1 (white).
+private function _ThemeLuminance pColor
+   local tChannel, tValue, tTotal, tIndex
+   put 0 into tTotal
+   put 0 into tIndex
+   repeat for each item tChannel in pColor
+      add 1 to tIndex
+      put tChannel / 255 into tValue
+      if tValue <= 0.03928 then
+         put tValue / 12.92 into tValue
+      else
+         put ((tValue + 0.055) / 1.055) ^ 2.4 into tValue
+      end if
+      add tValue * item tIndex of "0.2126,0.7152,0.0722" to tTotal
+   end repeat
+   return tTotal
+end _ThemeLuminance
+
+
+## The stack theme's value for one of the grid's default colour properties, or
+## empty if there is no theme or it cannot supply the colour.
+private function _ThemeColor pProperty
+   local tTheme, tText, tBack, tRow
+   put _ThemeColors() into tTheme
+   if tTheme is not an array then return empty
+   put tTheme["foregroundColor"] into tText
+   put tTheme["backgroundColor"] into tBack
+   put tTheme["fieldColor"] into tRow
+   if tRow is empty then put tBack into tRow
+   if tBack is empty then put tRow into tBack
+   if tText is empty or tRow is empty then return empty
+   
+   switch pProperty
+      case "row color"
+         return tRow
+      case "alternate row color"
+         return _ThemeMix(tRow, tText, 6)
+      case "dimmed hilite color"
+         return _ThemeMix(tRow, tText, 22)
+      case "header background color"
+         return _ThemeMix(tBack, tText, 12) & cr & _ThemeMix(tBack, tText, 5)
+      case "header background hilite color"
+         return _ThemeMix(tBack, tText, 26) & cr & _ThemeMix(tBack, tText, 18)
+      case "header divider color"
+         if tTheme["borderColor"] is not empty then return tTheme["borderColor"]
+         return _ThemeMix(tBack, tText, 30)
+      case "header divider threed color"
+         return _ThemeMix(tBack, tText, 9)
+      case "corner color"
+         return _ThemeMix(tBack, tText, 5)
+   end switch
+   return empty
+end _ThemeColor
+
+
+## In a standalone nothing passes the engine's systemAppearanceChanged message
+## on to a Data Grid: it goes to the card, and the grid is not in the card's
+## message path. So that a grid follows the appearance with no script from the
+## developer, the first grid to initialise puts a small script into the back
+## scripts which forwards the message to every grid on the stack concerned.
+## In the IDE the back script library already does this.
+private command _EnsureAppearanceForwarder
+   local tScript, tError
+   if the environment is "development" then exit _EnsureAppearanceForwarder
+   if there is a stack "dgAppearanceForwarder" then exit _EnsureAppearanceForwarder
+   put "on systemAppearanceChanged pMode, pWindowColor, pTextColor" & cr & \
+         "   local tTarget, tStack, tCard, tControl, tIndex" & cr & \
+         "   put the long id of the target into tTarget" & cr & \
+         "   if word 1 of tTarget is" && quote & "card" & quote && "then" & cr & \
+         "      put tTarget into tStack" & cr & \
+         "      repeat while word 1 of tStack is not" && quote & "stack" & quote & cr & \
+         "         put the long owner of tStack into tStack" & cr & \
+         "      end repeat" & cr & \
+         "      repeat with tCard = 1 to the number of cards of tStack" & cr & \
+         "         repeat with tIndex = 1 to the number of groups of card tCard of tStack" & cr & \
+         "            put the long id of group tIndex of card tCard of tStack into tControl" & cr & \
+         "            try" & cr & \
+         "               if the dgProps[" & quote & "control type" & quote & "] of tControl is" && quote & "Data Grid" & quote && "then" & cr & \
+         "                  dispatch" && quote & "systemAppearanceChanged" & quote && "to tControl with pMode, pWindowColor, pTextColor" & cr & \
+         "               end if" & cr & \
+         "            end try" & cr & \
+         "         end repeat" & cr & \
+         "      end repeat" & cr & \
+         "   end if" & cr & \
+         "   pass systemAppearanceChanged" & cr & \
+         "end systemAppearanceChanged" & cr into tScript
+   try
+      create script only stack "dgAppearanceForwarder"
+      set the script of stack "dgAppearanceForwarder" to tScript
+      insert the script of stack "dgAppearanceForwarder" into back
+   catch tError
+   end try
+end _EnsureAppearanceForwarder
+
+
+## The default for a colour property in the current appearance: the stack
+## theme's colour if the stack has a theme, otherwise the built-in one.
 private function _DefaultColor pProperty
-   local tPair
+   local tPair, tThemed
+   put _ThemeColor(pProperty) into tThemed
+   if tThemed is not empty then
+      ## Some defaults are stored in the grid's properties when applied. Note
+      ## the themed value, so that it is still known as a default, and not
+      ## taken for the developer's choice, once the theme changes.
+      if the cHXTThemeDefaults[pProperty] of me is not tThemed then
+         lock messages
+         set the cHXTThemeDefaults[pProperty] of me to tThemed
+         unlock messages
+      end if
+      return tThemed
+   end if
    put _DefaultColorPair(pProperty) into tPair
    set the itemDelimiter to tab
    if _AppearanceIsDark() then
@@ -8771,6 +8928,7 @@ private function _IsDefaultColorValue pProperty, pValue
    put _DefaultColorPair(pProperty) into tPair
    set the itemDelimiter to tab
    if pValue is item 1 of tPair or pValue is item 2 of tPair then return true
+   if pValue is the cHXTThemeDefaults[pProperty] of me then return true
    if the number of lines of pValue is 1 and pValue is not a color then return true
    return false
 end _IsDefaultColorValue
@@ -8840,12 +8998,28 @@ private command _ApplyAppearanceDefaults
       put the dgProps["background color"] of me into tStored
       unlock messages
       if tStored is not a color then
-         if _AppearanceIsDark() then
-            if tCurrent is empty or tCurrent is kDefaultRowColor then
-               set the cHXTLightBackgroundColor of tBackdrop to tCurrent
+         ## A backdrop this handler coloured earlier, for dark mode or from a
+         ## theme, counts as untouched too.
+         local tThemeRow, tOurs
+         put _ThemeColor("row color") into tThemeRow
+         put tCurrent is kDarkRowColor or \
+               (tCurrent is not empty and tCurrent is the cHXTThemeBackgroundColor of tBackdrop) into tOurs
+         if tThemeRow is not empty then
+            if tCurrent is empty or tCurrent is kDefaultRowColor or tOurs then
+               if not tOurs then
+                  set the cHXTLightBackgroundColor of tBackdrop to tCurrent
+               end if
+               set the backgroundColor of tBackdrop to tThemeRow
+               set the cHXTThemeBackgroundColor of tBackdrop to tThemeRow
+            end if
+         else if _AppearanceIsDark() then
+            if tCurrent is empty or tCurrent is kDefaultRowColor or tOurs then
+               if not tOurs then
+                  set the cHXTLightBackgroundColor of tBackdrop to tCurrent
+               end if
                set the backgroundColor of tBackdrop to kDarkRowColor
             end if
-         else if tCurrent is kDarkRowColor then
+         else if tOurs then
             set the backgroundColor of tBackdrop to the cHXTLightBackgroundColor of tBackdrop
          end if
       end if
@@ -8909,9 +9083,25 @@ private function _GetEffectiveColor pProperty
             return _DefaultColor("dimmed hilite color")
             break
          case "hilite color"
+            ## HXT themes: the stack theme's highlight, if it has one.
+            local tHiliteTheme
+            put _ThemeColors() into tHiliteTheme
+            if tHiliteTheme["hiliteColor"] is not empty then
+               return tHiliteTheme["hiliteColor"]
+            end if
             return the hiliteColor
             break
          case "hilited text color"
+            ## HXT themes: over a theme's highlight the text is black or white
+            ## by the highlight's relative luminance, as it is in a field.
+            local tTextTheme
+            put _ThemeColors() into tTextTheme
+            if tTextTheme["hiliteColor"] is not empty and not (the long ID of me is not in the long ID of the focusedObject and the dgProps["dim on focusOut"] of me is not false) then
+               if _ThemeLuminance(tTextTheme["hiliteColor"]) <= 0.30 then
+                  return "255,255,255"
+               end if
+               return "0,0,0"
+            end if
             if sSystemA["hilited text color"] is a color and not (the long ID of me is not in the long ID of the focusedObject and the dgProps["dim on focusOut"] of me is not false) then
                return sSystemA["hilited text color"]
             else
