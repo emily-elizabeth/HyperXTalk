@@ -114,6 +114,7 @@ widget com.livecode.widget.segmented
 use com.livecode.canvas
 use com.livecode.widget
 use com.livecode.engine
+use com.livecode.math
 use com.livecode.library.iconsvg
 use com.livecode.library.widgetutils
 use com.livecode.library.scriptitems
@@ -250,6 +251,13 @@ private variable mBackgroundIsDefault as Boolean
 private variable mForegroundIsDefault as Boolean
 private variable mBorderIsDefault as Boolean
 private variable mHiliteIsDefault as Boolean
+-- The highlight colour the widget resolves to with no theme (its own, an
+-- inherited one or the system one), cached for choosing the selected label
+-- colour; nothing if it could not be read.
+private variable mEffectiveHiliteColor as optional Color
+-- The same for the background, used when the developer chose a segment colour
+-- but left the label colour alone.
+private variable mEffectiveBackgroundColor as optional Color
 
 constant kLightBackgroundColor is "244,244,244"
 constant kLightForegroundColor is "0,0,0"
@@ -489,6 +497,8 @@ private handler resetAppearanceState() returns nothing
 	put true into mForegroundIsDefault
 	put true into mBorderIsDefault
 	put true into mHiliteIsDefault
+	put nothing into mEffectiveHiliteColor
+	put nothing into mEffectiveBackgroundColor
 end handler
 
 -- HXT dark mode: re-read whether this widget's own colours are still the
@@ -501,6 +511,84 @@ private handler updateAppearance() returns nothing
 	put isDefaultColor("foregroundColor", kLightForegroundColor) into mForegroundIsDefault
 	put isDefaultColor("borderColor", kLightBorderColor) into mBorderIsDefault
 	put isDefaultColor("hiliteColor", kLightHiliteColor) into mHiliteIsDefault
+
+	-- the highlight and background colours in effect, for label contrast
+	put effectiveColor("hiliteColor") into mEffectiveHiliteColor
+	put effectiveColor("backgroundColor") into mEffectiveBackgroundColor
+end handler
+
+-- The effective value of one of the widget's colour properties (its own, an
+-- inherited one or the system one), or nothing if it cannot be read. Like
+-- updateAppearance, this may only run where script-object access is allowed.
+private handler effectiveColor(in pProperty as String) returns optional Color
+	execute script "return the effective" && pProperty && "of me" in my script object
+	variable tValue as optional any
+	put the result into tValue
+	if tValue is a string then
+		variable tString as String
+		put tValue into tString
+		if tString is not "" then
+			return stringToColor(tString)
+		end if
+	end if
+	return nothing
+end handler
+
+-- One sRGB colour channel (0 .. 1) as a linear-light value.
+private handler linearChannel(in pChannel as Number) returns Number
+	if pChannel <= 0.04045 then
+		return pChannel / 12.92
+	end if
+	return ((pChannel + 0.055) / 1.055) ^ 2.4
+end handler
+
+-- Black or white, whichever suits text on a fill of the given colour.
+-- This is the engine's rule for selected text in a field: white when the
+-- relative luminance of the highlight is 0.30 or below, black above that.
+private handler labelColorOnHilite(in pHilite as Color) returns Color
+	variable tLuminance as Number
+	put 0.2126 * linearChannel(the red of pHilite) + \
+		0.7152 * linearChannel(the green of pHilite) + \
+		0.0722 * linearChannel(the blue of pHilite) into tLuminance
+	if tLuminance <= 0.30 then
+		return color [1, 1, 1]
+	end if
+	return color [0, 0, 0]
+end handler
+
+-- The colour of the label of a selected segment. A colour the developer set
+-- is used as it is. White is the default the IDE writes onto a new widget, so
+-- it counts as unset: the label then takes the app theme's selected text
+-- colour if the highlight is the theme's, and otherwise black or white by the
+-- brightness of the highlight.
+private handler selectedLabelColor() returns Color
+	if mSelectedLabelColor is not nothing then
+		variable tSet as Color
+		put mSelectedLabelColor into tSet
+		if the red of tSet < 1 or the green of tSet < 1 or the blue of tSet < 1 then
+			return tSet
+		end if
+	end if
+
+	variable tHilite as optional Color
+	put nothing into tHilite
+	if mHiliteIsDefault then
+		put the theme color "hiliteColor" into tHilite
+		if tHilite is not nothing then
+			variable tThemeLabel as optional Color
+			put the theme color "hiliteTextColor" into tThemeLabel
+			if tThemeLabel is not nothing then
+				return tThemeLabel
+			end if
+		end if
+	end if
+	if tHilite is nothing then
+		put mEffectiveHiliteColor into tHilite
+	end if
+	if tHilite is nothing then
+		return color kDefaultSelectedLabelColor
+	end if
+	return labelColorOnHilite(tHilite)
 end handler
 
 -- HXT dark mode: true if the widget's own (explicit) colour property is unset
@@ -552,6 +640,14 @@ private handler appearancePaint(in pWhich as String) returns Paint
 		put mHiliteIsDefault into tIsDefault
 		put "hiliteColor" into tThemeKey
 		put "" into tDarkDefault
+	end if
+
+	-- a segment colour the developer chose, with the label colour left alone:
+	-- black or white, whichever reads on that colour
+	if pWhich is "foreground" and tIsDefault and not mBackgroundIsDefault and mEffectiveBackgroundColor is not nothing then
+		variable tOwnBackground as Color
+		put mEffectiveBackgroundColor into tOwnBackground
+		return solid paint with labelColorOnHilite(tOwnBackground)
 	end if
 
 	if tIsDefault then
@@ -686,23 +782,7 @@ private handler drawSegments() returns nothing
 		restore state of this canvas
 
 		if tIsIn then
-			if mSelectedLabelColor is nothing then
-				-- set the paint of the label of the selected segment(s): the
-				-- app theme's selected text colour if the highlight is the
-				-- theme's too, and the default otherwise
-				variable tThemeLabelColor as optional Color
-				put nothing into tThemeLabelColor
-				if mHiliteIsDefault and the theme color "hiliteColor" is not nothing then
-					put the theme color "hiliteTextColor" into tThemeLabelColor
-				end if
-				if tThemeLabelColor is not nothing then
-					set the paint of this canvas to solid paint with tThemeLabelColor
-				else
-					set the paint of this canvas to solid paint with color kDefaultSelectedLabelColor
-				end if
-			else
-				set the paint of this canvas to solid paint with mSelectedLabelColor
-			end if
+			set the paint of this canvas to solid paint with selectedLabelColor()
 		else
 			set the paint of this canvas to appearancePaint("foreground")
 		end if	
