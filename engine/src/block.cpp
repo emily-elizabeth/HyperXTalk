@@ -2342,14 +2342,32 @@ void MCBlock::setcolorforhilite(MCDC* dc)
     f->setforeground(dc, DI_PSEUDO_TEXT_BACKGROUND_SEL, False, True);
 }
 
+// HXT themes: the app theme's hiliteTextColor, if the selection in this field
+// is being drawn in the theme's hiliteColor.
+static bool MCBlockGetThemeSelectedTextColor(MCField *f, MCDC *dc, MCColor& r_color)
+{
+    extern bool MCInterfaceThemeLookupHiliteTextColor(const MCColor& p_hilite, MCColor& r_color);
+
+    MCColor t_hilite;
+    MCPatternRef t_pattern = nil;
+    int2 t_x = 0, t_y = 0;
+    if (!f->getforecolor(DI_HILITE, False, True, t_hilite, t_pattern, t_x, t_y, dc->gettype(), f))
+        return false;
+
+    return MCInterfaceThemeLookupHiliteTextColor(t_hilite, r_color);
+}
+
 void MCBlock::setcolorforselectedtext(MCDC* dc, MCColor* p_color)
 {
     MCField* f = parent->getparent();
+    MCColor t_theme_color;
     
     if (p_color != nil)
         dc->setforeground(*p_color);
     else if (flags & F_HAS_COLOR)
         dc->setforeground(*atts -> color);
+    else if (MCBlockGetThemeSelectedTextColor(f, dc, t_theme_color))
+        dc->setforeground(t_theme_color);
     else if (!IsMacLF()) // TODO: if platform reverses selected text
         f->setforeground(dc, DI_PSEUDO_TEXT_COLOR_SEL_BACK, False, True, true);
     else

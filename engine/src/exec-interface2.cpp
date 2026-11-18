@@ -1799,19 +1799,25 @@ void MCInterfaceSetPreferredAppearance(MCExecContext& ctxt, intenum_t p_value)
 // One more key, fieldColor, is the background of a bordered field that has no
 // backgroundColor of its own. The engine takes that from the system without
 // looking at the owners of the field, so the theme's backgroundColor does not
-// reach it. Any other key is ignored.
+// reach it.
+//
+// hiliteTextColor is the colour of selected text in a field, used while the
+// selection itself is drawn in the theme's hiliteColor. Without it the engine
+// picks the selected text colour as it always has.
+//
+// Any other key is ignored.
 
 enum { kMCInterfaceThemeLight = 0, kMCInterfaceThemeDark = 1 };
 
 // Indexed by the DI_* colour index (DI_FORE = 0 ... DI_FOCUS = 7), then the
 // colours that have no DI_* index.
-enum { kMCInterfaceThemeFieldColor = 8, kMCInterfaceThemeColorCount = 9 };
+enum { kMCInterfaceThemeFieldColor = 8, kMCInterfaceThemeHiliteTextColor = 9, kMCInterfaceThemeColorCount = 10 };
 
 static const char *s_theme_keys[kMCInterfaceThemeColorCount] =
 {
 	"foregroundColor", "backgroundColor", "hiliteColor", "borderColor",
 	"topColor", "bottomColor", "shadowColor", "focusColor",
-	"fieldColor",
+	"fieldColor", "hiliteTextColor",
 };
 
 static MCColor s_theme_colors[2][kMCInterfaceThemeColorCount];
@@ -1955,6 +1961,23 @@ bool MCInterfaceThemeLookupColor(uint2 p_di, MCColor& r_color)
 bool MCInterfaceThemeLookupFieldColor(MCColor& r_color)
 {
 	return MCInterfaceThemeLookupColor(kMCInterfaceThemeFieldColor, r_color);
+}
+
+// The colour of selected text, given the colour the selection is drawn in. It
+// only applies while that is the theme's own hiliteColor, so a hiliteColor set
+// on a field keeps the engine's usual choice of text colour.
+bool MCInterfaceThemeLookupHiliteTextColor(const MCColor& p_hilite, MCColor& r_color)
+{
+	MCColor t_theme_hilite;
+	if (!MCInterfaceThemeLookupColor(DI_HILITE, t_theme_hilite))
+		return false;
+
+	if (t_theme_hilite . red != p_hilite . red ||
+		t_theme_hilite . green != p_hilite . green ||
+		t_theme_hilite . blue != p_hilite . blue)
+		return false;
+
+	return MCInterfaceThemeLookupColor(kMCInterfaceThemeHiliteTextColor, r_color);
 }
 
 void MCInterfaceGetLightTheme(MCExecContext& ctxt, MCArrayRef& r_value)
