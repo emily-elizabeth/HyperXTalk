@@ -65,6 +65,32 @@ in the IDE. The IDE ships these schemes, each tagged for its appearance:
 * Light: Atom One Light, Catppuccin Latte, GitHub Light, Gruvbox Light,
   Selenized Light, Solarized Light, Tomorrow, Xcode Light.
 
+## Interface colours (IDE theme)
+
+The same scheme files can theme the IDE's own windows. Preferences >
+Appearance has an IDE theme menu for light mode and one for dark mode,
+separate from the script editor's Colorization Scheme menus. `Default`
+leaves the IDE with the system colours.
+
+A scheme sets an interface colour with a line of the form
+
+    interface <key> <color>
+
+where `key` is one of `foregroundColor`, `backgroundColor`, `hiliteColor`,
+`borderColor`, `topColor`, `bottomColor`, `shadowColor`, `focusColor`,
+`fieldColor` and `hiliteTextColor`. The script editor ignores these lines.
+
+Colours a scheme does not set are taken from its editor colours:
+`backgroundColor` from `gutterbackground`, `fieldColor` from `background`,
+`foregroundColor` from the `identifier` class, `hiliteColor` from
+`selection` and `borderColor` from `foldingbackground`. So every existing
+scheme can be used as an IDE theme as it is.
+
+The choices are stored as the `cIDEThemeLight` and `cIDEThemeDark`
+preferences and applied by `revIDEApplyThemePreference`. The IDE theme
+does not affect the stacks you build; a stack's theme is stored with the
+stack in its `lightTheme` and `darkTheme` properties.
+
 ## Trying a scheme
 
 1. Copy a `.scheme` file into the `Schemes` folder next to your

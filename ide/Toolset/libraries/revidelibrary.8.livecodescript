@@ -1358,6 +1358,9 @@ on revIDEInitialiseIDELibrary
    ## Initialise property library
    revIDEPropertyLibraryInitialise
    
+   ## Apply the IDE theme preference
+   revIDEApplyThemePreference
+   
    ideSubscribe "ideExtensionsChanged"
    ideSubscribe "ideDesktopChanged"
 end revIDEInitialiseIDELibrary
@@ -2350,6 +2353,179 @@ command revIDEApplyAppearancePreference
       -- engine without the preferredAppearance property
    end try
 end revIDEApplyAppearancePreference
+
+/**
+The folders searched for scheme files
+
+Description:
+Returns the folders that hold "<name>.scheme" files, one per line: the user's
+Schemes folder first, then the schemes bundled with the IDE. The same files
+serve the script editor and the IDE theme.
+**/
+function revIDESchemeFolders
+   return revEnvironmentUserColorSchemesPath() & return & \
+         revIDESpecialFolderPath("Toolset") & "/resources/supporting_files/schemes"
+end revIDESchemeFolders
+
+/**
+The path of a scheme file
+
+pName (String): The name of the scheme, without the ".scheme" extension
+Returns (String): The path of the file, or empty if there is no such scheme
+**/
+function revIDESchemeFile pName
+   local tFolder
+   if pName is empty or pName contains slash then return empty
+   repeat for each line tFolder in revIDESchemeFolders()
+      if there is a file (tFolder & slash & pName & ".scheme") then
+         return tFolder & slash & pName & ".scheme"
+      end if
+   end repeat
+   return empty
+end revIDESchemeFile
+
+/**
+The names of the schemes suitable for an appearance
+
+pAppearance (String): "light" or "dark", or empty for every scheme
+Returns (String): The scheme names, one per line, sorted
+
+Description:
+A scheme declares its appearance with an "editor appearance light|dark" line.
+A scheme with no such line is listed for both appearances.
+**/
+function revIDESchemeNames pAppearance
+   local tFolder, tFile, tName, tNames, tText, tLine, tDeclared
+   repeat for each line tFolder in revIDESchemeFolders()
+      if there is no folder tFolder then next repeat
+      repeat for each line tFile in files(tFolder)
+         if not (tFile ends with ".scheme") then next repeat
+         put char 1 to -8 of tFile into tName
+         if tName is empty or tNames[tName] then next repeat
+         if pAppearance is not empty then
+            put empty into tDeclared
+            put URL ("file:" & tFolder & slash & tFile) into tText
+            repeat for each line tLine in tText
+               if word 1 of tLine is "editor" and word 2 of tLine is "appearance" then
+                  put word 3 of tLine into tDeclared
+                  exit repeat
+               end if
+            end repeat
+            if tDeclared is among the items of "light,dark" and tDeclared is not pAppearance then
+               next repeat
+            end if
+         end if
+         put true into tNames[tName]
+      end repeat
+   end repeat
+   put the keys of tNames into tNames
+   sort lines of tNames
+   return tNames
+end revIDESchemeNames
+
+/**
+The interface colours of a scheme
+
+pName (String): The name of the scheme
+Returns (Array): The colours, keyed as the lightTheme and darkTheme properties
+expect them, or empty if the scheme is "default", is missing or has no usable
+colours
+
+Description:
+A scheme sets an interface colour with a line of the form
+
+    interface <key> <red,green,blue>
+
+where <key> is one of foregroundColor, backgroundColor, hiliteColor,
+borderColor, topColor, bottomColor, shadowColor, focusColor, fieldColor and
+hiliteTextColor. The script editor ignores these lines.
+
+Colours the scheme does not set are taken from its script editor colours where
+there is a natural match: backgroundColor from the gutter background,
+fieldColor from the editor background, foregroundColor from the identifier
+colour, hiliteColor from the selection and borderColor from the folding
+column.
+**/
+function revIDESchemeInterfaceTheme pName
+   local tFile, tText, tLine, tKey, tKeys, tTheme, tEditor, tIdentifier, tColor
+   if pName is empty or pName is "default" then return empty
+   put revIDESchemeFile(pName) into tFile
+   if tFile is empty then return empty
+   
+   put "foregroundColor,backgroundColor,hiliteColor,borderColor,topColor,bottomColor," & \
+         "shadowColor,focusColor,fieldColor,hiliteTextColor" into tKeys
+   put URL ("file:" & tFile) into tText
+   replace CRLF with LF in tText
+   replace numToCodepoint(13) with LF in tText
+   
+   repeat for each line tLine in tText
+      switch word 1 of tLine
+         case "interface"
+            put word 3 of tLine into tColor
+            if not __schemeColorIsValid(tColor) then break
+            repeat for each item tKey in tKeys
+               if tKey is word 2 of tLine then
+                  put tColor into tTheme[tKey]
+                  exit repeat
+               end if
+            end repeat
+            break
+         case "editor"
+            put word 3 of tLine into tEditor[toLower(word 2 of tLine)]
+            break
+         case "class"
+            if word 2 of tLine is "identifier" then put word 4 of tLine into tIdentifier
+            break
+      end switch
+   end repeat
+   
+   __schemeDerive tTheme, "backgroundColor", tEditor["gutterbackground"], tEditor["background"]
+   __schemeDerive tTheme, "fieldColor", tEditor["background"]
+   __schemeDerive tTheme, "foregroundColor", tIdentifier
+   __schemeDerive tTheme, "hiliteColor", tEditor["selection"]
+   __schemeDerive tTheme, "borderColor", tEditor["foldingbackground"], tEditor["gutterforeground"]
+   return tTheme
+end revIDESchemeInterfaceTheme
+
+private function __schemeColorIsValid pColor
+   local tPart
+   if the number of items of pColor is not 3 then return false
+   repeat for each item tPart in pColor
+      if tPart is not an integer or tPart < 0 or tPart > 255 then return false
+   end repeat
+   return true
+end __schemeColorIsValid
+
+private command __schemeDerive @xTheme, pKey, pFirst, pSecond
+   if xTheme[pKey] is not empty then exit __schemeDerive
+   if __schemeColorIsValid(pFirst) then
+      put pFirst into xTheme[pKey]
+   else if __schemeColorIsValid(pSecond) then
+      put pSecond into xTheme[pKey]
+   end if
+end __schemeDerive
+
+/**
+Applies the IDE's theme preferences to the engine
+
+Description:
+Reads the "cIDEThemeLight" and "cIDEThemeDark" preferences, each the name of a
+scheme or "default", and sets the engine's lightTheme and darkTheme from them.
+These themes colour the IDE's own windows only; a stack's theme is stored with
+the stack. "default" leaves the IDE with the system colours. The properties are
+set through "do" so this library still runs on engines that do not have them.
+**/
+command revIDEApplyThemePreference
+   local tLight, tDark, tError
+   put revIDESchemeInterfaceTheme(revIDEGetPreference("cIDEThemeLight")) into tLight
+   put revIDESchemeInterfaceTheme(revIDEGetPreference("cIDEThemeDark")) into tDark
+   try
+      do "set the lightTheme to tLight"
+      do "set the darkTheme to tDark"
+   catch tError
+      -- engine without the theme properties
+   end try
+end revIDEApplyThemePreference
 
 function revIDEGetPreference pPreferenceName
    local tValue
