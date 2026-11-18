@@ -2444,7 +2444,8 @@ Colours the scheme does not set are taken from its script editor colours where
 there is a natural match: backgroundColor from the gutter background,
 fieldColor from the editor background, foregroundColor from the identifier
 colour, hiliteColor from the selection and borderColor from the folding
-column. Where the selection or the folding column would not stand out from the
+column. An editor's selection is usually too faint to serve as a highlight
+elsewhere, so where it or the folding column would not stand out from the
 background, the keyword colour or the gutter's text colour is used instead.
 **/
 function revIDESchemeInterfaceTheme pName
@@ -2490,9 +2491,9 @@ function revIDESchemeInterfaceTheme pName
    # the window. Such a colour is passed over for one that stands out.
    local tAgainst
    put tTheme["backgroundColor"] & return & tTheme["fieldColor"] into tAgainst
-   __schemeDeriveDistinct tTheme, "hiliteColor", tAgainst, \
+   __schemeDeriveDistinct tTheme, "hiliteColor", tAgainst, 2, \
          tEditor["selection"] & return & tAccent & return & tEditor["findhighlight"] & return & tIdentifier
-   __schemeDeriveDistinct tTheme, "borderColor", tAgainst, \
+   __schemeDeriveDistinct tTheme, "borderColor", tAgainst, 1.3, \
          tEditor["foldingbackground"] & return & tEditor["gutterforeground"] & return & \
          tEditor["foldingforeground"] & return & tIdentifier
    return tTheme
@@ -2516,16 +2517,17 @@ private command __schemeDerive @xTheme, pKey, pFirst, pSecond
    end if
 end __schemeDerive
 
-# The first of the candidate colours, one per line, that is valid and stands
-# out from every colour in pAgainst becomes xTheme[pKey], unless it is set.
-private command __schemeDeriveDistinct @xTheme, pKey, pAgainst, pCandidates
+# The first of the candidate colours, one per line, that is valid and has a
+# contrast ratio of at least pMinimum with every colour in pAgainst becomes
+# xTheme[pKey], unless it is set.
+private command __schemeDeriveDistinct @xTheme, pKey, pAgainst, pMinimum, pCandidates
    local tCandidate, tOther, tDistinct
    if xTheme[pKey] is not empty then exit __schemeDeriveDistinct
    repeat for each line tCandidate in pCandidates
       if not __schemeColorIsValid(tCandidate) then next repeat
       put true into tDistinct
       repeat for each line tOther in pAgainst
-         if __schemeColorIsValid(tOther) and __schemeContrast(tCandidate, tOther) < 1.3 then
+         if __schemeColorIsValid(tOther) and __schemeContrast(tCandidate, tOther) < pMinimum then
             put false into tDistinct
             exit repeat
          end if
@@ -2633,6 +2635,81 @@ command revIDESetStackThemeProperty pObject, pProperty, pValue
    set the cREVGeneral[pProperty & "Scheme"] of pObject to pValue
 end revIDESetStackThemeProperty
 
+# The IDE's themes, as applied by revIDEApplyThemePreference: sIDEThemes["light"]
+# and sIDEThemes["dark"] are each an array of interface colours, or empty.
+local sIDEThemes
+
+# A colour pPercent of the way from pFrom to pTo.
+private function __ideThemeMix pFrom, pTo, pPercent
+   local tIndex, tMixed
+   repeat with tIndex = 1 to 3
+      put round(item tIndex of pFrom + (item tIndex of pTo - item tIndex of pFrom) * pPercent / 100) into item tIndex of tMixed
+   end repeat
+   return tMixed
+end __ideThemeMix
+
+# The IDE theme's colour for one of revIDEColor's tags, or empty if there is
+# no IDE theme for the current appearance or the theme has nothing for the tag.
+private function __ideThemeColor pTag
+   local tTheme, tText, tBack, tField, tHilite
+   put sIDEThemes[the systemAppearance] into tTheme
+   if tTheme is not an array then return empty
+   put tTheme["foregroundColor"] into tText
+   put tTheme["backgroundColor"] into tBack
+   put tTheme["fieldColor"] into tField
+   put tTheme["hiliteColor"] into tHilite
+   if tField is empty then put tBack into tField
+   if tText is empty or tBack is empty then return empty
+   
+   switch pTag
+      case "text_1"
+         return tText
+      case "text_2"
+         return __ideThemeMix(tText, tBack, 40)
+      case "palette_background"
+         return tBack
+      case "dataView_rowColor"
+         return tField
+      case "dataView_rowAlternateColor"
+         return __ideThemeMix(tField, tText, 6)
+      case "dataView_disclosureIconColor"
+         return __ideThemeMix(tText, tBack, 30)
+      case "dataView_hiliteColor"
+      case "dataView_alternateHiliteColor"
+      case "dataView_scriptBackgroundColor"
+         return tHilite
+      case "dataView_TextHiliteColor"
+      case "dataView_disclosureIconHiliteColor"
+         if tHilite is empty then return empty
+         if __schemeLuminance(tHilite) <= 0.30 then return "255,255,255"
+         return "0,0,0"
+      case "propertyInspector_multiValueBackground"
+         if tHilite is empty then return empty
+         return __ideThemeMix(tField, tHilite, 30)
+   end switch
+   return empty
+end __ideThemeColor
+
+# The IDE's palettes set some colours themselves, from revIDEColor, when the
+# appearance changes. Send them the same message so they pick up a new theme.
+private command __ideThemeRefreshPalettes
+   local tStack, tTheme, tBack, tText, tError
+   put sIDEThemes[the systemAppearance] into tTheme
+   put tTheme["backgroundColor"] into tBack
+   put tTheme["foregroundColor"] into tText
+   if tBack is empty then put the systemWindowColor into tBack
+   if tText is empty then put the systemTextColor into tText
+   repeat for each line tStack in the openStacks
+      try
+         if revIDEStackIsIDEStack(the long id of stack tStack) then
+            dispatch "systemAppearanceChanged" to this card of stack tStack \
+                  with the systemAppearance, tBack, tText
+         end if
+      catch tError
+      end try
+   end repeat
+end __ideThemeRefreshPalettes
+
 /**
 Applies the IDE's theme preferences to the engine
 
@@ -2652,7 +2729,11 @@ command revIDEApplyThemePreference
       do "set the darkTheme to tDark"
    catch tError
       -- engine without the theme properties
+      exit revIDEApplyThemePreference
    end try
+   put tLight into sIDEThemes["light"]
+   put tDark into sIDEThemes["dark"]
+   __ideThemeRefreshPalettes
 end revIDEApplyThemePreference
 
 function revIDEGetPreference pPreferenceName
@@ -2823,6 +2904,12 @@ function revIDEColor pTag
    if pTag is "edition_color" then
       return revEnvironmentEditionProperty("color")
    end if
+
+   # An IDE theme, when one is chosen for the current appearance, supplies
+   # the palette colours in place of the built-in ones below.
+   local tThemed
+   put __ideThemeColor(pTag) into tThemed
+   if tThemed is not empty then return tThemed
 
    // HXT dark mode: return dark-appropriate values for the IDE palette
    // colors when the OS is in dark appearance. Light-mode path below is

@@ -432,6 +432,10 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 				// theme's text colour is left out for it.
 				extern void MCInterfaceThemeSuspend(bool p_suspend);
 				bool t_system_bezel = isstdbtn && noback && MCcurtheme != NULL;
+				if (!t_system_bezel && MCcurtheme != NULL && style == F_MENU &&
+				    (menumode == WM_OPTION || menumode == WM_COMBO || menumode == WM_PULLDOWN) &&
+				    !getcindex(DI_BACK, i) && !getpindex(DI_BACK, i))
+					t_system_bezel = true;
 				if (t_system_bezel)
 					MCInterfaceThemeSuspend(true);
 				setforeground(dc, DI_FORE, ((state & CS_HILITED && flags & F_HILITE_FILL)
@@ -1518,7 +1522,29 @@ void MCButton::drawtabs(MCDC *dc, MCRectangle &srect)
 				}
 				tabpanelwinfo.datatype = WTHEME_DATA_TABPANE;
 				tabpanelwinfo.data = &inf;
-				MCcurtheme->drawwidget(dc, tabpanelwinfo,tabpanelrect);
+				// HXT themes: with an app theme the pane takes the theme's
+				// background, so the area inside a tabbed button matches the
+				// rest of the window instead of the system's pane colour.
+				extern bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_di, MCColor& r_color);
+				MCColor t_theme_pane;
+				uint2 t_own;
+				if (!getcindex(DI_BACK, t_own) && !getpindex(DI_BACK, t_own) &&
+				    MCInterfaceThemeLookupColor(this, DI_BACK, t_theme_pane))
+				{
+					dc->setforeground(t_theme_pane);
+					dc->setfillstyle(FillSolid, nil, 0, 0);
+					dc->fillrect(tabpanelrect);
+					MCColor t_theme_border;
+					if (MCInterfaceThemeLookupColor(this, DI_BORDER, t_theme_border))
+					{
+						dc->setforeground(t_theme_border);
+						dc->setlineatts(0, LineSolid, CapButt, JoinBevel);
+						dc->drawline(tabpanelrect.x, tabpanelrect.y,
+						             tabpanelrect.x + tabpanelrect.width - 1, tabpanelrect.y);
+					}
+				}
+				else
+					MCcurtheme->drawwidget(dc, tabpanelwinfo,tabpanelrect);
 			}
 			if (i + 1 == menuhistory)
 			{
@@ -1824,7 +1850,17 @@ void MCButton::drawtabs(MCDC *dc, MCRectangle &srect)
 				dc->setfillstyle(FillSolid, nil, 0, 0);
 			}
 			else
+			{
+				// HXT themes: the system draws the tabs, so their labels keep
+				// the system's text colour.
+				extern void MCInterfaceThemeSuspend(bool p_suspend);
+				bool t_system_tabs = MCcurtheme != NULL && MCcurtheme->iswidgetsupported(WTHEME_TYPE_TAB);
+				if (t_system_tabs)
+					MCInterfaceThemeSuspend(true);
 				setforeground(dc, DI_PSEUDO_BUTTON_TEXT, False);
+				if (t_system_tabs)
+					MCInterfaceThemeSuspend(false);
+			}
         // AL-2014-09-24: [[ Bug 13528 ]] Don't draw character indicating button is disabled
         dc -> drawtext_substring(textx, cury + yoffset, t_tab, t_range, m_font, false, kMCDrawTextNoBreak);
 		if ((disabled || flags & F_DISABLED) && MClook == LF_MOTIF)
