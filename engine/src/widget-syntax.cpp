@@ -269,14 +269,18 @@ extern "C" MC_DLLEXPORT_DEF void MCWidgetGetMyOwnColor(uinteger_t p_type, MCValu
 
 // Defined in exec-interface2.cpp. Declared here, not inside the handler below,
 // so that it keeps its C++ linkage.
-extern bool MCInterfaceThemeLookupNamedColor(MCStringRef p_name, MCColor& r_color);
+extern bool MCInterfaceThemeLookupNamedColor(MCObject *p_object, MCStringRef p_name, MCColor& r_color);
 
-// HXT themes: a colour of the app theme in use (the lightTheme or the
-// darkTheme, by the current appearance), or nothing if it has no such colour.
+// HXT themes: a colour of the theme that applies to the widget (its stack's,
+// or the IDE's for a widget in an IDE stack), for the current appearance, or
+// nothing if there is no such colour.
 extern "C" MC_DLLEXPORT_DEF void MCWidgetGetThemeColor(MCStringRef p_name, MCValueRef& r_color)
 {
+	if (!MCWidgetEnsureCurrentWidget())
+		return;
+
 	MCColor t_color;
-	if (!MCInterfaceThemeLookupNamedColor(p_name, t_color))
+	if (!MCInterfaceThemeLookupNamedColor(MCWidgetGetHost(MCcurrentwidget), p_name, t_color))
 	{
 		r_color = MCValueRetain(kMCNull);
 		return;

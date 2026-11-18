@@ -72,6 +72,10 @@ uint2 MCStack::ibeam;
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// HXT themes (exec-interface2.cpp)
+extern struct MCAppColorTheme *MCInterfaceThemeCopy(const struct MCAppColorTheme *p_theme);
+extern void MCInterfaceThemeFree(struct MCAppColorTheme *p_theme);
+
 MCPropertyInfo MCStack::kProperties[] =
 {
 	DEFINE_RW_OBJ_PROPERTY(P_FULLSCREEN, Bool, MCStack, Fullscreen)
@@ -177,6 +181,10 @@ MCPropertyInfo MCStack::kProperties[] =
     DEFINE_RW_OBJ_PROPERTY(P_IGNORE_MOUSE_EVENTS, Bool, MCStack, IgnoreMouseEvents)
     
     DEFINE_RW_OBJ_CUSTOM_PROPERTY(P_DECORATIONS, InterfaceDecoration, MCStack, Decorations)
+
+    // HXT themes
+    DEFINE_RW_OBJ_PROPERTY(P_LIGHT_THEME, Array, MCStack, LightTheme)
+    DEFINE_RW_OBJ_PROPERTY(P_DARK_THEME, Array, MCStack, DarkTheme)
 
 	DEFINE_UNAVAILABLE_OBJ_PROPERTY(P_SHOW_BORDER)
 	DEFINE_UNAVAILABLE_OBJ_PROPERTY(P_BORDER_WIDTH)
@@ -343,6 +351,7 @@ MCStack::MCStack()
 	view_init();
 
     m_is_ide_stack = false;
+    m_app_theme = nil;
 }
 
 MCStack::MCStack(const MCStack &sref)
@@ -568,10 +577,14 @@ MCStack::MCStack(const MCStack &sref)
 	view_copy(sref);
 
     m_is_ide_stack = sref.m_is_ide_stack;
+    m_app_theme = MCInterfaceThemeCopy(sref.m_app_theme);
 }
 
 MCStack::~MCStack()
 {
+	MCInterfaceThemeFree(m_app_theme);
+	m_app_theme = nil;
+
 	flags &= ~F_DESTROY_STACK;
 	state |= CS_DELETE_STACK;
 	while (opened)

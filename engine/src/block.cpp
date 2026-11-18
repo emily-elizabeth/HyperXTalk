@@ -2371,7 +2371,7 @@ static bool MCBlockHiliteTakesWhiteText(const MCColor& p_hilite)
 // is being drawn in the theme's hiliteColor.
 static bool MCBlockGetThemeSelectedTextColor(MCField *f, MCDC *dc, MCColor& r_color)
 {
-    extern bool MCInterfaceThemeLookupHiliteTextColor(const MCColor& p_hilite, MCColor& r_color);
+    extern bool MCInterfaceThemeLookupHiliteTextColor(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color);
 
     MCColor t_hilite;
     MCPatternRef t_pattern = nil;
@@ -2379,7 +2379,7 @@ static bool MCBlockGetThemeSelectedTextColor(MCField *f, MCDC *dc, MCColor& r_co
     if (!f->getforecolor(DI_HILITE, False, True, t_hilite, t_pattern, t_x, t_y, dc->gettype(), f))
         return false;
 
-    return MCInterfaceThemeLookupHiliteTextColor(t_hilite, r_color);
+    return MCInterfaceThemeLookupHiliteTextColor(f, t_hilite, r_color);
 }
 
 void MCBlock::setcolorforselectedtext(MCDC* dc, MCColor* p_color)

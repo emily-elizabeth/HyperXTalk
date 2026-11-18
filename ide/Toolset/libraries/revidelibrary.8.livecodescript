@@ -8563,6 +8563,13 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
    put the menubar of stack pStackName into rObj["menubar"]
    put the backgroundColor of stack pStackName into rObj["backgroundColor"]
    put the foregroundColor of stack pStackName into rObj["foregroundColor"]
+   -- HXT themes: the stack's light and dark colour themes (arrays of colours;
+   -- left out when the stack has none)
+   local tTheme
+   put the lightTheme of stack pStackName into tTheme
+   if tTheme is an array then put tTheme into rObj["lightTheme"]
+   put the darkTheme of stack pStackName into tTheme
+   if tTheme is an array then put tTheme into rObj["darkTheme"]
    put the shadow of stack pStackName into rObj["shadow"]
    put the textFont of stack pStackName into rObj["textFont"]
    put the textSize of stack pStackName into rObj["textSize"]
@@ -9639,6 +9646,12 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    end if
    if pStackNode["foregroundColor"] is not empty then
       set the foregroundColor of stack tNewStackName to pStackNode["foregroundColor"]
+   end if
+   if pStackNode["lightTheme"] is an array then
+      set the lightTheme of stack tNewStackName to pStackNode["lightTheme"]
+   end if
+   if pStackNode["darkTheme"] is an array then
+      set the darkTheme of stack tNewStackName to pStackNode["darkTheme"]
    end if
    if pStackNode["shadow"] is not empty then
       set the shadow of stack tNewStackName to (pStackNode["shadow"] is "true")

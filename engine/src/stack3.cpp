@@ -73,6 +73,13 @@ extern "C" bool MCplatformIsDarkMode(void);
 #include "stackfileformat.h"
 
 #define STACK_EXTRA_ORIGININFO (1U << 0)
+// HXT themes: the stack's light and dark colour themes follow. An engine that
+// does not know this flag skips the data.
+#define STACK_EXTRA_APPTHEME (1U << 1)
+
+extern uint32_t MCInterfaceThemeMeasure(const struct MCAppColorTheme *p_theme);
+extern IO_stat MCInterfaceThemeSave(MCObjectOutputStream& p_stream, const struct MCAppColorTheme *p_theme);
+extern IO_stat MCInterfaceThemeLoad(MCObjectInputStream& p_stream, struct MCAppColorTheme*& x_theme);
 
 IO_stat MCStack::load_substacks(IO_handle stream, uint32_t version)
 {
@@ -129,6 +136,9 @@ IO_stat MCStack::extendedload(MCObjectInputStream& p_stream, uint32_t p_version,
 		uint32_t t_origin_info;
 		if (t_stat == IO_NORMAL && (t_flags & STACK_EXTRA_ORIGININFO))
 			t_stat = checkloadstat(p_stream . ReadU32(t_origin_info));
+
+		if (t_stat == IO_NORMAL && (t_flags & STACK_EXTRA_APPTHEME))
+			t_stat = checkloadstat(MCInterfaceThemeLoad(p_stream, m_app_theme));
 
 		if (t_stat == IO_NORMAL)
 			t_stat = checkloadstat(p_stream . Skip(t_length));
@@ -553,8 +563,18 @@ IO_stat MCStack::extendedsave(MCObjectOutputStream& p_stream, uint4 p_part, uint
 	// MW-2013-03-28: The origininfo is no longer emitted into the stackfile as it
 	//   serves no purpose. (There used to be code emitting it here!)
 
+	//    if apptheme then
+	//      the light and dark themes (see MCInterfaceThemeSave)
+	if (m_app_theme != nil)
+	{
+		t_flags |= STACK_EXTRA_APPTHEME;
+		t_size += MCInterfaceThemeMeasure(m_app_theme);
+	}
+
 	IO_stat t_stat;
 	t_stat = p_stream . WriteTag(t_flags, t_size);
+	if (t_stat == IO_NORMAL && m_app_theme != nil)
+		t_stat = MCInterfaceThemeSave(p_stream, m_app_theme);
 	if (t_stat == IO_NORMAL)
 		t_stat = MCObject::extendedsave(p_stream, p_part, p_version);
 

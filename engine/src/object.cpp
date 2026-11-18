@@ -1518,8 +1518,8 @@ Boolean MCObject::getforecolor(uint2 p_di, Boolean rev, Boolean hilite,
                 // here, if there is one, in place of the system colour.
                 if (o->gettype() == CT_FIELD)
                 {
-                    extern bool MCInterfaceThemeLookupFieldColor(MCColor& r_color);
-                    if (MCInterfaceThemeLookupFieldColor(c))
+                    extern bool MCInterfaceThemeLookupFieldColor(MCObject *p_object, MCColor& r_color);
+                    if (MCInterfaceThemeLookupFieldColor(o, c))
                         return True;
                 }
 
@@ -1559,8 +1559,8 @@ Boolean MCObject::getforecolor(uint2 p_di, Boolean rev, Boolean hilite,
         p_di != DI_PSEUDO_TEXT_COLOR_SEL_BACK &&
         p_di != DI_PSEUDO_BUTTON_TEXT_SEL)
     {
-        extern bool MCInterfaceThemeLookupColor(uint2 p_di, MCColor& r_color);
-        if (MCInterfaceThemeLookupColor(di, c))
+        extern bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_di, MCColor& r_color);
+        if (MCInterfaceThemeLookupColor(o, di, c))
             return True;
     }
 
