@@ -199,7 +199,7 @@ private command buildInterface
       set the hiliteColor of widget "SampleSegmented" to empty
       set the borderColor of widget "SampleSegmented" to empty
    end try
-   makeLabel "PreviewNote", "Checkboxes, radio buttons and menu arrows keep the accent colour set in System Settings.", \
+   makeLabel "PreviewNote", "The list of an open menu is drawn by the system and keeps its own highlight colour.", \
          r(kPreviewLeft + 20, kRowTop + 276, kPreviewLeft + 400, kRowTop + 312), "left"
    set the dontWrap of field "PreviewNote" to false
    set the textSize of field "PreviewNote" to 11

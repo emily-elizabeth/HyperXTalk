@@ -149,6 +149,107 @@ static NSColor *MCMacThemeAccentColor(const MCThemeDrawInfo *p_info)
     return t_accent;
 }
 
+// HXT themes: AppKit draws checkboxes, radio buttons and the arrows of an
+// option menu itself, in the accent colour from System Settings, and offers no
+// way to ask for another. So after such a control has been drawn into its
+// off-screen buffer, the pixels that carry the system accent are given the
+// theme's accent instead. A pixel counts as accent if it is clearly coloured
+// and its hue is close to the system accent's; greys, the white tick and the
+// bezel are left as they are. Each such pixel takes the theme accent's hue,
+// with its saturation and brightness moved by the same amount the theme
+// accent differs from the system's, scaled by how much accent the pixel holds,
+// so anti-aliased edges blend as they did.
+static void MCMacThemeRGBToHSV(double r, double g, double b, double& h, double& s, double& v)
+{
+    double t_max = fmax(r, fmax(g, b));
+    double t_min = fmin(r, fmin(g, b));
+    double t_delta = t_max - t_min;
+    v = t_max;
+    s = t_max <= 0.0 ? 0.0 : t_delta / t_max;
+    if (t_delta <= 0.0)
+        h = 0.0;
+    else if (t_max == r)
+        h = 60.0 * fmod((g - b) / t_delta, 6.0);
+    else if (t_max == g)
+        h = 60.0 * ((b - r) / t_delta + 2.0);
+    else
+        h = 60.0 * ((r - g) / t_delta + 4.0);
+    if (h < 0.0)
+        h += 360.0;
+}
+
+static void MCMacThemeHSVToRGB(double h, double s, double v, double& r, double& g, double& b)
+{
+    double t_c = v * s;
+    double t_x = t_c * (1.0 - fabs(fmod(h / 60.0, 2.0) - 1.0));
+    double t_m = v - t_c;
+    double t_r = 0.0, t_g = 0.0, t_b = 0.0;
+    if (h < 60.0)       { t_r = t_c; t_g = t_x; }
+    else if (h < 120.0) { t_r = t_x; t_g = t_c; }
+    else if (h < 180.0) { t_g = t_c; t_b = t_x; }
+    else if (h < 240.0) { t_g = t_x; t_b = t_c; }
+    else if (h < 300.0) { t_r = t_x; t_b = t_c; }
+    else                { t_r = t_c; t_b = t_x; }
+    r = t_r + t_m; g = t_g + t_m; b = t_b + t_m;
+}
+
+static void MCMacThemeRetintAccent(MCImageBitmap *p_bitmap, const MCThemeDrawInfo *p_info)
+{
+    if (p_bitmap == nil || p_info == nullptr || !p_info->has_accent)
+        return;
+
+    NSColor *t_system = [[NSColor controlAccentColor] colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
+    if (t_system == nil)
+        return;
+
+    double t_sys_h, t_sys_s, t_sys_v;
+    MCMacThemeRGBToHSV([t_system redComponent], [t_system greenComponent], [t_system blueComponent],
+                       t_sys_h, t_sys_s, t_sys_v);
+    // a grey system accent (Graphite) cannot be told from the bezel
+    if (t_sys_s < 0.15)
+        return;
+
+    double t_new_h, t_new_s, t_new_v;
+    MCMacThemeRGBToHSV(p_info->accent_red, p_info->accent_green, p_info->accent_blue,
+                       t_new_h, t_new_s, t_new_v);
+
+    for (uint32_t y = 0; y < p_bitmap->height; y++)
+    {
+        uint32_t *t_row = (uint32_t *)((uint8_t *)p_bitmap->data + y * p_bitmap->stride);
+        for (uint32_t x = 0; x < p_bitmap->width; x++)
+        {
+            uint8_t t_r8, t_g8, t_b8, t_a8;
+            MCGPixelUnpackNative(t_row[x], t_r8, t_g8, t_b8, t_a8);
+            if (t_a8 == 0)
+                continue;
+
+            // the buffer holds premultiplied colour
+            double t_alpha = t_a8 / 255.0;
+            double t_r = fmin(1.0, t_r8 / 255.0 / t_alpha);
+            double t_g = fmin(1.0, t_g8 / 255.0 / t_alpha);
+            double t_b = fmin(1.0, t_b8 / 255.0 / t_alpha);
+
+            double t_h, t_s, t_v;
+            MCMacThemeRGBToHSV(t_r, t_g, t_b, t_h, t_s, t_v);
+            double t_hue_gap = fabs(t_h - t_sys_h);
+            if (t_hue_gap > 180.0)
+                t_hue_gap = 360.0 - t_hue_gap;
+            if (t_s < 0.12 || t_hue_gap > 40.0)
+                continue;
+
+            // how much of this pixel is accent, from none to all
+            double t_share = fmin(1.0, t_s / t_sys_s);
+            t_s = fmax(0.0, fmin(1.0, t_s * (t_new_s / t_sys_s)));
+            t_v = fmax(0.0, fmin(1.0, t_v + (t_new_v - t_sys_v) * t_share));
+            MCMacThemeHSVToRGB(t_new_h, t_s, t_v, t_r, t_g, t_b);
+
+            t_row[x] = MCGPixelPackNative((uint8_t)lrint(t_r * t_alpha * 255.0),
+                                          (uint8_t)lrint(t_g * t_alpha * 255.0),
+                                          (uint8_t)lrint(t_b * t_alpha * 255.0), t_a8);
+        }
+    }
+}
+
 // ── Forward declarations ────────────────────────────────────────────────
 extern CGBitmapInfo MCGPixelFormatToCGBitmapInfo(uint32_t p_pixel_format, bool p_alpha);
 extern bool         MCMacPlatformGetImageColorSpace(CGColorSpaceRef &r_colorspace);
@@ -1804,6 +1905,13 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 
     [NSGraphicsContext restoreGraphicsState];
     CGContextRelease(t_cgcontext);
+
+    // HXT themes: give AppKit-drawn accent parts the theme's accent colour.
+    if (p_type == THEME_DRAW_TYPE_BUTTON && p_info->has_accent &&
+        (p_info->widget_type == WTHEME_TYPE_CHECKBOX ||
+         p_info->widget_type == WTHEME_TYPE_RADIOBUTTON ||
+         p_info->widget_type == WTHEME_TYPE_OPTIONBUTTON))
+        MCMacThemeRetintAccent(t_bitmap, p_info);
 
     // ── Blit rendered pixels → MCGContext ────────────────────────────
     // t_dst_mcg is the widget's logical rect in MCGContext space.
