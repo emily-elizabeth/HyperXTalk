@@ -1,0 +1,75 @@
+Name: scrollbarBackColor
+
+Type: property
+
+Syntax: set the scrollbarBackColor of {<field> | <scrollbar> | <group>} to {<colorName> | <RGBColor> | empty}
+
+Summary:
+Specifies the color used to draw the track of a <field|field's>,
+<scrollbar|scrollbar's>, or <group|group's> scrollbar.
+
+Associations: field, scrollbar, group
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+set the scrollbarBackColor of field 1 to "200,200,200"
+
+Example:
+set the scrollbarBackColor of field "myField" to "#E0E0E0"
+
+Example:
+set the scrollbarBackColor of scrollbar 1 to white
+
+Example:
+set the scrollbarBackColor of group "sidebar" to "240,240,240"
+
+Example:
+-- Restore native scrollbar appearance
+set the scrollbarBackColor of field 1 to empty
+
+Value:
+The <scrollbarBackColor> is a <color reference>.
+The <colorName> is any standard color name.
+
+The <RGBColor> consists of three comma-separated <integer|integers>
+between zero and 255, specifying the level of each of red, green, and
+blue; or an HTML-style color consisting of a hash mark (#) followed by
+three <hexadecimal> numbers, one for each of red, green, and blue.
+
+By default, the <scrollbarBackColor> of a <field>, <scrollbar>, or
+<group> is empty.
+
+Description:
+Use the <scrollbarBackColor> property to color the track (the channel
+the thumb slides along) of a scrollbar. When this property or
+<scrollbarForeColor> is set to a non-empty value, the engine draws the
+scrollbar entirely in software using the specified colors, bypassing the
+platform's native scrollbar renderer.
+
+If the <scrollbarBackColor> is empty but <scrollbarForeColor> is set,
+the track is drawn in gray.
+
+Setting the <scrollbarBackColor> to empty restores the scrollbar to its
+native platform appearance, provided <scrollbarForeColor> is also empty.
+
+For a <scrollbar> control, the property is stored directly on the
+control. For a <field> or <group>, the property is stored on the object
+and applied to the scrollbar it owns.
+
+>*Cross-platform note:* On Mac OS, the native scrollbar is rendered by
+> the system theme and cannot be tinted through standard color properties.
+> Setting <scrollbarBackColor> or <scrollbarForeColor> causes the scrollbar
+> to be drawn in software, which applies the color reliably across all
+> platforms.
+
+References: color reference (glossary), integer (glossary),
+hexadecimal (glossary), field (object), scrollbar (object),
+group (object), scrollbarForeColor (property), scrollbarWidth (property),
+backColor (property), vScrollbar (property), hScrollbar (property)
+
+Tags: ui
