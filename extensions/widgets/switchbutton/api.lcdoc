@@ -120,15 +120,15 @@ Summary: The appearance the widget draws in: "dark" or "light".
 
 Parameters: 
 
-pMode: "dark" or "light"
+pMode: "dark" or "light", or empty to follow the system
 
 Description:
-The <hxtAppearance> property tells the widget which appearance to draw its
-built-in default colours in. It is not saved with the widget and is not shown
-in the property inspector. The IDE sets it when a stack opens, when a widget
-is created and when the system appearance changes; in a standalone the
-developer's <systemAppearanceChanged> handler should set it. Colours the
-developer has changed from their defaults are not affected.
+The widget follows the system appearance and the theme of its stack by
+itself. Set the <hxtAppearance> property only to make it draw its built-in
+default colours for one appearance regardless of the system; set it to empty
+to follow the system again. It is not saved with the widget and is not shown
+in the property inspector. Colours the developer has changed from their
+defaults are not affected.
 
 
 
