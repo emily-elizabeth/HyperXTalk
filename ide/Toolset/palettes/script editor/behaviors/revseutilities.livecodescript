@@ -601,6 +601,8 @@ command sePrefGetDefaults
    
    # Auto-complete preferences
    put "false" into tPrefs["editor,showautocomplete"]
+   # Whether abbreviations complete long names (poc finds preOpenCard)
+   put "true" into tPrefs["editor,autocompletehumps"]
    
    # Gutter preferences
    put "true" into tPrefs["gutter,linenumbers"]
