@@ -443,6 +443,31 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 				                            || style != F_STANDARD), False);
 				if (t_system_bezel)
 					MCInterfaceThemeSuspend(false);
+
+				// HXT themes: a button filled with the highlight colour (a
+				// highlighted rectangle or round-rect button, say) had its
+				// label drawn in the ordinary text colour, which a theme's
+				// highlight need not suit. Under a theme the label is black
+				// or white, whichever reads on the fill, unless the button
+				// has a text colour of its own.
+				extern bool MCInterfaceThemeLookupTextOnHilite(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color);
+				if (!t_system_bezel && (flags & F_OPAQUE) && loff == 0 &&
+				    (flags & F_SHOW_ICON || !indicator) &&
+				    ((state & CS_HILITED && flags & F_HILITE_FILL) ||
+				     (state & CS_ARMED && flags & F_ARM_FILL)) &&
+				    !getcindex(DI_FORE, i))
+				{
+					MCColor t_fill, t_label;
+					MCPatternRef t_fill_pattern = nil;
+					int2 t_fill_x, t_fill_y;
+					if (getforecolor(DI_HILITE, False, False, t_fill, t_fill_pattern,
+					                 t_fill_x, t_fill_y, dc -> gettype(), this) &&
+					    MCInterfaceThemeLookupTextOnHilite(this, t_fill, t_label))
+					{
+						dc->setforeground(t_label);
+						dc->setfillstyle(FillSolid, nil, 0, 0);
+					}
+				}
 			}
         }
 		}

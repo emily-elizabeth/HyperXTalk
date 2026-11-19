@@ -2114,6 +2114,48 @@ bool MCInterfaceThemeLookupHiliteTextColor(MCObject *p_object, const MCColor& p_
 	return MCInterfaceThemeLookupColor(p_object, kMCInterfaceThemeHiliteTextColor, r_color);
 }
 
+// One 16-bit sRGB colour channel as a linear-light value.
+static double MCInterfaceThemeLinearChannel(uint2 p_channel)
+{
+	double t_value = p_channel / 65535.0;
+	if (t_value <= 0.03928)
+		return t_value / 12.92;
+	return pow((t_value + 0.055) / 1.055, 2.4);
+}
+
+// The colour for a label drawn on a control that is filled with p_hilite
+// (a highlighted button, say), for an object that has a theme: the theme's
+// hiliteTextColor if p_hilite is the theme's highlight and it has one,
+// otherwise black or white by the relative luminance of p_hilite (white at
+// 0.30 or less, as for selected text in a field). False if the object has no
+// theme, in which case the caller keeps its usual colour.
+bool MCInterfaceThemeLookupTextOnHilite(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color)
+{
+	if (s_theme_suspended != 0)
+		return false;
+
+	const MCAppColorTheme *t_theme = MCInterfaceThemeForObject(p_object);
+	int t_slot = MCInterfaceThemeCurrentSlot();
+	if (t_theme == nil || t_slot < 0)
+		return false;
+
+	bool t_any = false;
+	for (uint2 i = 0; i < kMCInterfaceThemeColorCount && !t_any; i++)
+		t_any = t_theme -> has_color[t_slot][i];
+	if (!t_any)
+		return false;
+
+	if (MCInterfaceThemeLookupHiliteTextColor(p_object, p_hilite, r_color))
+		return true;
+
+	double t_luminance = 0.2126 * MCInterfaceThemeLinearChannel(p_hilite . red) +
+							0.7152 * MCInterfaceThemeLinearChannel(p_hilite . green) +
+							0.0722 * MCInterfaceThemeLinearChannel(p_hilite . blue);
+	uint2 t_level = t_luminance <= 0.30 ? 0xFFFF : 0;
+	r_color . red = r_color . green = r_color . blue = t_level;
+	return true;
+}
+
 // A theme colour by the name of its key, for widgets ("the theme color" in
 // LCB). False if the theme in use has no such colour.
 bool MCInterfaceThemeLookupNamedColor(MCObject *p_object, MCStringRef p_name, MCColor& r_color)
