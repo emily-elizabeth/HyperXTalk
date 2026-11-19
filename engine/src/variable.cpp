@@ -37,6 +37,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "parentscript.h"
 #include "osspec.h"
 #include "variable.h"
+#include "literal.h"
 
 #include <utility>
 
@@ -1258,17 +1259,58 @@ Parse_stat MCVarref::parsearray(MCScriptPoint &sp)
 			return PS_NORMAL;
 		}
 
-		MCExpression *t_new_dimension;
-		if (dimensions == 255 || sp.parseexp(False, True, &t_new_dimension) != PS_NORMAL)
+		MCExpression *t_new_dimension = NULL;
+		bool t_rb_consumed = false;
+
+		if (dimensions < 255)
+		{
+			MCScriptPoint t_saved_sp(sp);
+			MCerrorlock++;
+			bool t_parse_ok = (sp.parseexp(False, True, &t_new_dimension) == PS_NORMAL);
+			MCerrorlock--;
+
+			if (!t_parse_ok)
+			{
+				// parseexp may have partially allocated an expression; discard it
+				if (t_new_dimension != NULL)
+				{
+					delete t_new_dimension;
+					t_new_dimension = NULL;
+				}
+				sp = t_saved_sp; // restore to just after '['
+
+				// Keyword-as-literal fallback: handles reserved words (from, to,
+				// before, after, ...) that are valid array key names but trip the
+				// expression parser because they appear in the factor_table with
+				// types (TT_FROM, TT_TO, TT_PREP, ...) that have no factor case.
+				Symbol_type t_key_type;
+				if (sp.next(t_key_type) == PS_NORMAL && t_key_type == ST_ID)
+				{
+					MCNameRef t_key_name = sp.gettoken_nameref();
+					Symbol_type t_rb_type;
+					if (sp.next(t_rb_type) == PS_NORMAL && t_rb_type == ST_RB)
+					{
+						t_new_dimension = new (nothrow) MCLiteral(t_key_name);
+						t_rb_consumed = true;
+					}
+				}
+			}
+		}
+
+		if (t_new_dimension == NULL)
 		{
 			MCperror->add(PE_VARIABLE_BADINDEX, sp);
 			return PS_ERROR;
 		}
 
-		if (sp.next(type) != PS_NORMAL || type != ST_RB)
+		if (!t_rb_consumed)
 		{
-			MCperror->add(PE_VARIABLE_NORBRACE, sp);
-			return PS_ERROR;
+			if (sp.next(type) != PS_NORMAL || type != ST_RB)
+			{
+				delete t_new_dimension;
+				MCperror->add(PE_VARIABLE_NORBRACE, sp);
+				return PS_ERROR;
+			}
 		}
 
         if (dimensions == 0)
