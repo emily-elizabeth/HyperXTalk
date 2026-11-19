@@ -20,6 +20,7 @@ local sScheme        -- the name of the scheme being edited
 local sText          -- the text of its file as loaded, line endings normalised
 local sExplicit      -- array: the interface colours set explicitly, by key
 local sDirty         -- true if there are unsaved changes
+local sFilter        -- "light" or "dark" to list only those schemes, empty for all
 
 constant kRowTop = 96
 constant kRowHeight = 30
@@ -30,7 +31,7 @@ on preOpenStack
    set the title of me to "Theme Editor"
    populateSchemeMenu
    if sScheme is empty or revIDESchemeFile(sScheme) is empty then
-      loadScheme line 1 of revIDESchemeNames()
+      loadScheme line 1 of listedSchemes()
    else
       showScheme
    end if
@@ -44,12 +45,24 @@ on closeStackRequest
    pass closeStackRequest
 end closeStackRequest
 
--- Sent by revIDEOpenThemeEditor to show a particular scheme.
-on themeEditorEdit pScheme
-   if pScheme is sScheme or revIDESchemeFile(pScheme) is empty then exit themeEditorEdit
-   if not okToDiscard() then exit themeEditorEdit
-   loadScheme pScheme
-end themeEditorEdit
+-- Sent by revIDEOpenThemeEditor. pAppearance is "light" or "dark" when the
+-- editor was opened from a menu of light or of dark schemes: the list then
+-- shows only those, so that it matches the menu the user came from. pScheme
+-- is the scheme to show, if any.
+on themeEditorShow pScheme, pAppearance
+   if not okToDiscard() then exit themeEditorShow
+   if pAppearance is among the items of "light,dark" then
+      put pAppearance into sFilter
+   end if
+   populateSchemeMenu
+   if pScheme is not empty and pScheme is among the lines of listedSchemes() then
+      loadScheme pScheme
+   else if sScheme is not among the lines of listedSchemes() then
+      loadScheme line 1 of listedSchemes()
+   else
+      showScheme
+   end if
+end themeEditorShow
 
 --------------------------------------------------------------------------------
 -- Building the window
@@ -128,6 +141,12 @@ private command buildInterface
    -- "Restore Bundled…" for a copy of a bundled scheme, "Delete…" for a scheme
    -- of the user's own; see showScheme
    makeButton "Remove", "Delete…", "574,17,714,41"
+   create button "Filter"
+   set the style of it to "menu"
+   set the menuMode of it to "option"
+   set the text of it to "Light schemes" & return & "Dark schemes" & return & "All schemes"
+   set the rect of it to 730,17,884,41
+   set the toolTip of it to "Which schemes the Scheme menu lists"
    makeLabel "Info", empty, "16,50,884,72", "left"
    makeLabel "ColoursHeading", "Interface colours", "16,74,300,94", "left"
    set the textStyle of field "ColoursHeading" to "bold"
@@ -216,12 +235,28 @@ end buildInterface
 --------------------------------------------------------------------------------
 -- Loading and showing a scheme
 
+-- The schemes the Scheme menu lists: those for the appearance in sFilter (a
+-- scheme that declares no appearance counts for both), or all of them.
+private function listedSchemes
+   return revIDESchemeNames(sFilter)
+end listedSchemes
+
 private command populateSchemeMenu
    lock messages
-   set the text of button "Scheme" of me to revIDESchemeNames()
+   set the text of button "Scheme" of me to listedSchemes()
    if sScheme is not empty then
       set the label of button "Scheme" of me to sScheme
    end if
+   switch sFilter
+      case "light"
+         set the label of button "Filter" of me to "Light schemes"
+         break
+      case "dark"
+         set the label of button "Filter" of me to "Dark schemes"
+         break
+      default
+         set the label of button "Filter" of me to "All schemes"
+   end switch
    unlock messages
 end populateSchemeMenu
 
@@ -403,6 +438,10 @@ on mouseUp
 end mouseUp
 
 on menuPick pItem
+   if the short name of the target is "Filter" then
+      filterPicked pItem
+      exit menuPick
+   end if
    if the short name of the target is not "Scheme" then pass menuPick
    if pItem is sScheme then exit menuPick
    if not okToDiscard() then
@@ -413,6 +452,33 @@ on menuPick pItem
    end if
    loadScheme pItem
 end menuPick
+
+-- The user chose which schemes to list. If the scheme being edited is not
+-- among them, the first that is takes its place.
+private command filterPicked pItem
+   local tNew
+   switch word 1 of pItem
+      case "Light"
+         put "light" into tNew
+         break
+      case "Dark"
+         put "dark" into tNew
+         break
+      default
+         put empty into tNew
+   end switch
+   if tNew is sFilter then exit filterPicked
+   put tNew into sFilter
+   populateSchemeMenu
+   if sScheme is among the lines of listedSchemes() then exit filterPicked
+   if not okToDiscard() then
+      -- keep the scheme, so go back to a list that has it
+      put empty into sFilter
+      populateSchemeMenu
+      exit filterPicked
+   end if
+   loadScheme line 1 of listedSchemes()
+end filterPicked
 
 -- True if there are no unsaved changes, or the user chose to save or discard them.
 private function okToDiscard
@@ -499,7 +565,7 @@ private command removeScheme
    if tBundled then
       loadScheme tName
    else
-      loadScheme line 1 of revIDESchemeNames()
+      loadScheme line 1 of listedSchemes()
    end if
    -- the IDE may have been using the scheme as its theme
    revIDEApplyThemePreference

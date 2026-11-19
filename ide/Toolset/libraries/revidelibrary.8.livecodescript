@@ -2540,14 +2540,15 @@ end revIDESchemeInterfaceThemeFromText
 Opens the theme editor
 
 pScheme (String): The name of the scheme to edit; if empty or "Default", the
-editor opens on the scheme it last showed
+editor shows the scheme it last showed, or the first it lists
+pAppearance (String): "light" or "dark" to list only the schemes for that
+appearance, as the menu the editor was opened from does; empty to leave the
+list as it is
 **/
-command revIDEOpenThemeEditor pScheme
+command revIDEOpenThemeEditor pScheme, pAppearance
    if pScheme is among the items of "Default,None,Custom" then put empty into pScheme
    go stack "revThemeEditor" as modeless
-   if pScheme is not empty then
-      dispatch "themeEditorEdit" to stack "revThemeEditor" with pScheme
-   end if
+   dispatch "themeEditorShow" to stack "revThemeEditor" with pScheme, pAppearance
 end revIDEOpenThemeEditor
 
 private function __schemeColorIsValid pColor
@@ -2675,7 +2676,13 @@ command revIDESetStackThemeProperty pObject, pProperty, pValue
    local tTheme
    if pValue is "Edit themes…" then
       # not a choice of theme: open the editor on the stack's present scheme
-      send "revIDEOpenThemeEditor" && quote & revIDEGetStackThemeProperty(pObject, pProperty) & quote to me in 0 milliseconds
+      local tAppearance
+      if pProperty is "darkTheme" then
+         put "dark" into tAppearance
+      else
+         put "light" into tAppearance
+      end if
+      send "revIDEOpenThemeEditor" && quote & revIDEGetStackThemeProperty(pObject, pProperty) & quote & comma & quote & tAppearance & quote to me in 0 milliseconds
       exit revIDESetStackThemeProperty
    end if
    if pValue is "Custom" then exit revIDESetStackThemeProperty
