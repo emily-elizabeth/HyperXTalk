@@ -33,7 +33,7 @@ BUILDBOT_PLATFORM_TRIPLES = (
     'arm64-android-ndk16r15',
     'x86-android-ndk16r15',
     'x86_64-android-ndk16r15',
-    'arm64-mac-macosx11.0',         # Apple Silicon (arm64)
+    'arm64-mac-macosx12.0',         # Apple Silicon (arm64)
     'universal-ios-iphoneos14.5',
     'universal-ios-iphoneos14.4',
     'universal-ios-iphoneos13.2',
