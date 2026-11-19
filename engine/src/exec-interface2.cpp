@@ -2162,6 +2162,25 @@ bool MCInterfaceThemeLookupTextOnHilite(MCObject *p_object, const MCColor& p_hil
 	return true;
 }
 
+// Whether the background an object's theme gives it is a dark one. False if
+// the object has no theme, or its theme sets no background, for the current
+// appearance. System-drawn controls use this to draw themselves, and to pick
+// their label colour, to suit the theme and not the system's light or dark
+// mode: a light theme shown while the system is in dark mode would otherwise
+// get dark-mode bezels with white labels on a pale window.
+bool MCInterfaceThemeBackgroundIsDark(MCObject *p_object, bool& r_dark)
+{
+	MCColor t_back;
+	if (!MCInterfaceThemeLookupColor(p_object, DI_BACK, t_back))
+		return false;
+
+	double t_luminance = 0.2126 * MCInterfaceThemeLinearChannel(t_back . red) +
+							0.7152 * MCInterfaceThemeLinearChannel(t_back . green) +
+							0.0722 * MCInterfaceThemeLinearChannel(t_back . blue);
+	r_dark = t_luminance <= 0.30;
+	return true;
+}
+
 // A theme colour by the name of its key, for widgets ("the theme color" in
 // LCB). False if the theme in use has no such colour.
 bool MCInterfaceThemeLookupNamedColor(MCObject *p_object, MCStringRef p_name, MCColor& r_color)

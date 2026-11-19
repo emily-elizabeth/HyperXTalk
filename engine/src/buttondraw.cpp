@@ -442,7 +442,21 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 				                            || ((state & CS_ARMED && flags & F_ARM_FILL) && flags & F_OPAQUE && ((MClook != LF_WIN95 && !MCaqua)))
 				                            || style != F_STANDARD), False);
 				if (t_system_bezel)
+				{
 					MCInterfaceThemeSuspend(false);
+
+					// The bezel is drawn light or dark to suit the theme's
+					// background, so the label must be too: the system's
+					// text colour is for the system's own mode.
+					extern bool MCInterfaceThemeBackgroundIsDark(MCObject *p_object, bool& r_dark);
+					bool t_theme_dark;
+					if (!(flags & F_DISABLED) && MCInterfaceThemeBackgroundIsDark(this, t_theme_dark) &&
+					    t_theme_dark != MCcurtheme->isdarkmodeactive())
+					{
+						dc->setforeground(t_theme_dark ? dc->getwhite() : dc->getblack());
+						dc->setfillstyle(FillSolid, nil, 0, 0);
+					}
+				}
 
 				// HXT themes: a button filled with the highlight colour (a
 				// highlighted rectangle or round-rect button, say) had its
@@ -1899,7 +1913,19 @@ void MCButton::drawtabs(MCDC *dc, MCRectangle &srect)
 					MCInterfaceThemeSuspend(true);
 				setforeground(dc, DI_PSEUDO_BUTTON_TEXT, False);
 				if (t_system_tabs)
+				{
 					MCInterfaceThemeSuspend(false);
+					// as for a push button: the tabs are drawn to suit the
+					// theme's background, so their labels are too
+					extern bool MCInterfaceThemeBackgroundIsDark(MCObject *p_object, bool& r_dark);
+					bool t_theme_dark;
+					if (MCInterfaceThemeBackgroundIsDark(this, t_theme_dark) &&
+					    t_theme_dark != MCcurtheme->isdarkmodeactive())
+					{
+						dc->setforeground(t_theme_dark ? dc->getwhite() : dc->getblack());
+						dc->setfillstyle(FillSolid, nil, 0, 0);
+					}
+				}
 			}
         // AL-2014-09-24: [[ Bug 13528 ]] Don't draw character indicating button is disabled
         dc -> drawtext_substring(textx, cury + yoffset, t_tab, t_range, m_font, false, kMCDrawTextNoBreak);

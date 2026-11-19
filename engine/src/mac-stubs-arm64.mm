@@ -128,6 +128,10 @@ struct MCThemeDrawInfo
     // this file paints itself (default button, pulldown, progress bar, slider).
     bool  has_accent;
     float accent_red, accent_green, accent_blue;
+    // HXT themes: 1 to draw in the light appearance, 2 in the dark one, 0 to
+    // follow the system. Set from the theme's background so that a control
+    // suits the window it is on rather than the system's mode.
+    int   forced_appearance;
 };
 
 // The accent colour for a draw: the theme's, if the info carries one, or the
@@ -531,6 +535,11 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
             t_info.accent_green = t_theme_accent.green / 65535.0f;
             t_info.accent_blue  = t_theme_accent.blue / 65535.0f;
         }
+
+        extern bool MCInterfaceThemeBackgroundIsDark(MCObject *p_object, bool& r_dark);
+        bool t_theme_dark;
+        if (MCInterfaceThemeBackgroundIsDark(winfo.whichobject, t_theme_dark))
+            t_info.forced_appearance = t_theme_dark ? 2 : 1;
     }
 
     switch (winfo.type)
@@ -822,6 +831,10 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
     // Sync the dummy window's appearance here so NSCell rendering uses the
     // modern flat style instead of falling back to the old Aqua gradient.
     NSAppearance *t_appearance = MCMacEffectiveAppearance();
+    if (p_info != nullptr && p_info->forced_appearance == 1)
+        t_appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
+    else if (p_info != nullptr && p_info->forced_appearance == 2)
+        t_appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
     if (t_appearance == nil)
         t_appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
     [t_view.window setAppearance:t_appearance];
