@@ -5,11 +5,13 @@
 -- their camelCase, which is what the "hump" matching works on.
 -- They are kept by where they can be used: sBuiltinWords["command"] for the
 -- start of a statement, ["value"] (functions, properties, constants) for
--- anywhere after it, and ["message"] for after on / before / after / pass.
+-- anywhere after it, ["message"] for after on, before or after, and
+-- ["function"] and ["property"] on their own for after "the".
 local sBuiltinWords
--- Keywords, operators and object types (into, of, the, is, field ...), keyed
--- by lower-case word.  They are short and typed constantly, so they are never
--- offered, and typing one in full puts the popup away.
+-- Keywords, operators and object types (into, of, the, is, me, field ...) and
+-- commands of three letters or fewer (put, set, get), keyed by lower-case
+-- word.  They are typed constantly and are quicker to type than to pick, so
+-- they are never offered, and typing one in full puts the popup away.
 local sQuietWordsA
 local sBuiltinFromDocs
 local sBuiltinBuiltAt
@@ -56,7 +58,30 @@ local sSavedToken
 -- operations fire do not immediately dismiss the popup.
 local sSuppressCancel
 
+-- Parameter hint: a one-off line above the caret showing the parameters of
+-- the handler being called.  sPathHandlerInfo is ruggedId -> lower-case
+-- handler name -> type, start line and owner (tab-separated), so a handler's
+-- declaration can be read from its owner's script when a hint is wanted.
+-- sSyntaxCache holds dictionary syntax already looked up.
+local sHintShowing
+-- What the hint on show belongs to, so it can be kept in step with the caret
+-- (see ideAutocomplete_WatchHint)
+local sHintEditorId
+local sHintObjectId
+local sHintField
+local sHintCaret
+local sHintScroll
+local sHintWatchTimer
+local sHintFocusMisses
+local sPathHandlerInfo
+local sSyntaxCache
+
 constant kPopupName = "ideAutoCompletePopup"
+-- Named so that the IDE's "*ideAutocompletePopup*" filters cover it too
+constant kHintName = "ideAutoCompletePopupHint"
+constant kMaxHintLines = 4
+-- How often (ms) a showing hint checks that the caret is still in its call
+constant kHintWatchInterval = 250
 constant kMinChars = 2
 constant kMaxCompletions = 50
 constant kMaxVisible = 10
@@ -81,11 +106,15 @@ end extensionInitialize
 on extensionFinalize
    cancel sUpdateTimer
    cancel sHideTimer
+   cancel sHintWatchTimer
    -- Hide rather than delete: explicitly destroying a GTK window during engine
    -- shutdown causes a segfault on Linux.  The engine will clean up all stacks
    -- when it exits, so hiding is sufficient here.
    if there is a stack kPopupName then
       hide stack kPopupName
+   end if
+   if there is a stack kHintName then
+      hide stack kHintName
    end if
    remove the script of me from back
 end extensionFinalize
@@ -104,6 +133,7 @@ end ideAutocompleteIntrospectMessagePath
 -- Called when an object's script editor tab is closed.
 command ideAutocompleteClearObjectCache pObject
    delete variable sPathHandlers[revRuggedId(pObject)]
+   delete variable sPathHandlerInfo[revRuggedId(pObject)]
 end ideAutocompleteClearObjectCache
 
 -- Called on every relevant keypress. Debounced to avoid firing on every char.
@@ -126,6 +156,7 @@ command ideAutocompleteCancelFind pEditorId, pImmediate
    put false into sUpdatePending
    if pImmediate is true then
       ideAutocomplete_HidePopup
+      ideAutocomplete_HideHint
       exit ideAutocompleteCancelFind
    end if
    -- Suppressed while show stack + focus-return are in flight to prevent the
@@ -133,6 +164,8 @@ command ideAutocompleteCancelFind pEditorId, pImmediate
    if sSuppressCancel then
       exit ideAutocompleteCancelFind
    end if
+   -- (A parameter hint is not put away here: it stays until the caret leaves
+   -- the call it describes, which ideAutocomplete_WatchHint looks after.)
    if sPopupShowing then
       -- The mouse is already over the popup (user hovering to read/click): don't hide.
       if the mouseStack is kPopupName then
@@ -183,6 +216,13 @@ end ideAutocompleteHandleReturn
 -- showing; left and right dismiss it.
 -- Returns true if the key should carry on to its normal job.
 command ideAutocompleteHandleArrow pEditorId, pKeyName, pObjectId
+   -- Up or down leaves the line a parameter hint belongs to (unless the keys
+   -- are moving through the completion list).  Left and right stay on it:
+   -- ideAutocomplete_WatchHint then updates the hint for the new position.
+   if sHintShowing is true and not sPopupShowing and \
+         pKeyName is among the items of "up,down" then
+      ideAutocomplete_HideHint
+   end if
    if not sPopupShowing then
       return true
    end if
@@ -289,6 +329,8 @@ private command ideAutocomplete_EnsureBuiltinWords
             break
          case "function"
          case "property"
+            put tName & return after tListsA[item 2 of tLine]
+            -- no break: these are values as well
          case "constant"
             put tName & return after tListsA["value"]
             break
@@ -304,9 +346,12 @@ private command ideAutocomplete_EnsureBuiltinWords
    -- The engine's own lists fill in anything the dictionary lacks
    put commandNames() after tListsA["command"]
    put functionNames() & return & propertyNames() after tListsA["value"]
+   put functionNames() after tListsA["function"]
+   put propertyNames() after tListsA["property"]
    
-   local tKind
-   repeat for each item tKind in "command" & tab & "value" & tab & "message"
+   local tKind, tKeywordsA
+   put tQuietA into tKeywordsA
+   repeat for each item tKind in "command" & tab & "value" & tab & "message" & tab & "function" & tab & "property"
       filter lines of tListsA[tKind] with regex pattern "^[A-Za-z_][A-Za-z0-9_]*$"
       put ideAutocomplete_MergeWords(tListsA[tKind], empty) into tListsA[tKind]
       -- A keyword that is also a command, function or property stays on offer
@@ -323,6 +368,27 @@ private command ideAutocomplete_EnsureBuiltinWords
       end if
    end repeat
    put ideAutocomplete_MergeWords(tListsA["command"], empty) into tListsA["command"]
+   
+   -- Words of three letters or fewer are quicker to type than to pick from a
+   -- list, so none is offered.  Short commands (put, set, get) and short
+   -- keywords (me, it) are quiet as well; other short properties and functions
+   -- are not, or "vis" and "sec" would put the popup away on the way to
+   -- "visible" and "seconds".
+   local tKept
+   repeat for each key tKind in tListsA
+      put empty into tKept
+      repeat for each line tLine in tListsA[tKind]
+         if the number of chars of tLine <= 3 then
+            if tKind is "command" or tKeywordsA[toLower(tLine)] then
+               put true into tQuietA[toLower(tLine)]
+            end if
+         else
+            put tLine & return after tKept
+         end if
+      end repeat
+      delete the last char of tKept
+      put tKept into tListsA[tKind]
+   end repeat
    
    put tListsA into sBuiltinWords
    put tQuietA into sQuietWordsA
@@ -377,11 +443,12 @@ private command ideAutocomplete_RefreshPathHandlers pObjectId
       -- Handlers are listed object by object; the first line for each object
       -- ends with its long id.  The IDE's own libraries sit in the message
       -- path too, and their internals are of no use in a user's script.
-      local tOwner, tSkip
+      local tOwner, tSkip, tCurrentOwner, tInfoA, tKey
       put false into tSkip
       repeat for each line tLine in tHandlers
          put word 5 to -1 of tLine into tOwner
          if tOwner is not empty then
+            put tOwner into tCurrentOwner
             try
                put revIDEObjectIsOnIDEStack(tOwner) into tSkip
             catch tError
@@ -390,6 +457,11 @@ private command ideAutocomplete_RefreshPathHandlers pObjectId
          end if
          if tSkip or char 1 of word 1 of tLine is "P" then next repeat
          if word 2 of tLine is not empty then
+            -- Remember where the nearest handler of this name is declared
+            put toLower(word 2 of tLine) into tKey
+            if tInfoA[tKey] is empty then
+               put word 1 of tLine & tab & word 3 of tLine & tab & tCurrentOwner into tInfoA[tKey]
+            end if
             -- F function, G getProp, S setProp; anything else is called
             -- like a command (M message, C command, B before, A after)
             if char 1 of word 1 of tLine is among the items of "F,G,S" then
@@ -401,6 +473,7 @@ private command ideAutocomplete_RefreshPathHandlers pObjectId
       end repeat
    end if
    put tNames into sPathHandlers[revRuggedId(pObjectId)]
+   put tInfoA into sPathHandlerInfo[revRuggedId(pObjectId)]
 end ideAutocomplete_RefreshPathHandlers
 
 -- Handler names declared in the text currently in the editor, applied or not,
@@ -431,21 +504,71 @@ private function ideAutocomplete_ScriptHandlers pField
    return tNames
 end ideAutocomplete_ScriptHandlers
 
+-- Returns the name of the handler the caret is in, given the script text up
+-- to the caret: the one "end", "exit" and "pass" refer to.
+private function ideAutocomplete_EnclosingHandler pScript
+   filter lines of pScript with regex pattern \
+         "(?i)^\s*(private\s+)?(on|command|function|getprop|setprop|before|after)\s+[A-Za-z_]"
+   local tLine, tName
+   put the last line of pScript into tLine
+   if word 1 of tLine is "private" then
+      put word 3 of tLine into tName
+   else
+      put word 2 of tLine into tName
+   end if
+   if matchText(tName, "^([A-Za-z_][A-Za-z0-9_]*)", tName) then
+      return tName
+   end if
+   return empty
+end ideAutocomplete_EnclosingHandler
+
+-- Returns true if the word being typed is inside a comment.  pBefore is the
+-- line up to the word, pPreceding a stretch of script up to the same point.
+private function ideAutocomplete_InComment pBefore, pPreceding
+   -- Line comments: --, # or // outside a string literal
+   local tCode, tIndex
+   set the itemDelimiter to quote
+   repeat for each item tPart in pBefore
+      add 1 to tIndex
+      if tIndex mod 2 is 1 then
+         put tPart & space after tCode
+      end if
+   end repeat
+   if tCode contains "--" or tCode contains "#" or tCode contains "//" then
+      return true
+   end if
+   
+   -- Block comments: a /* with no */ after it
+   if pPreceding contains "/*" then
+      replace "/*" with numToChar(1) in pPreceding
+      set the itemDelimiter to numToChar(1)
+      if not (the last item of pPreceding contains "*/") then
+         return true
+      end if
+   end if
+   return false
+end ideAutocomplete_InComment
+
 -- Works out what kind of word belongs after pBefore, the text of the line up
 -- to the word being typed:
---   "command"  at the start of a statement (line start, after then / else / ;)
---   "message"  after on, before, after or pass
---   "handler"  after end or exit
---   "value"    anywhere else: functions, properties, constants
+--   "command"   at the start of a statement (line start, after then, else or ;)
+--   "message"   after on, before or after
+--   "handler"   after end, exit or pass
+--   "property"  after "set the"
+--   "the"       after "the" anywhere else: a property or a built-in function
+--   "type"      after "is a", "is an", "is not a", "is not an"
+--   "value"     anywhere else: functions, properties, constants
 private function ideAutocomplete_Context pBefore
-   if the number of words of pBefore is 0 then
+   local tCount
+   put the number of words of pBefore into tCount
+   if tCount is 0 then
       return "command"
    end if
-   if the number of words of pBefore is 1 then
-      if word 1 of pBefore is among the items of "on,before,after,pass" then
+   if tCount is 1 then
+      if word 1 of pBefore is among the items of "on,before,after" then
          return "message"
       end if
-      if word 1 of pBefore is among the items of "end,exit" then
+      if word 1 of pBefore is among the items of "end,exit,pass" then
          return "handler"
       end if
    end if
@@ -453,21 +576,45 @@ private function ideAutocomplete_Context pBefore
          the last char of word -1 of pBefore is ";" then
       return "command"
    end if
+   if the last word of pBefore is "the" then
+      if tCount is 2 and word 1 of pBefore is "set" then
+         return "property"
+      end if
+      return "the"
+   end if
+   if the last word of pBefore is among the items of "a,an" and tCount >= 3 then
+      if word -2 of pBefore is "is" or word -3 to -2 of pBefore is "is not" then
+         return "type"
+      end if
+   end if
    return "value"
 end ideAutocomplete_Context
 
+-- Whether abbreviations may complete long names: the "Match abbreviations"
+-- preference of the script editor, on unless it has been switched off.
+private function ideAutocomplete_HumpsEnabled
+   local tPropName, tValue
+   put "cScriptEditor,editor,autocompletehumps" into tPropName
+   put the tPropName of stack "revPreferences" into tValue
+   return tValue is not false
+end ideAutocomplete_HumpsEnabled
+
 -- Returns the regex a word must match to complete pToken.  The first letter
 -- must start the word; each later letter either follows on directly or starts
--- a later "hump" (a capital, or a letter after an underscore).  So "poc" and
+-- a later "hump" (a capital, or a letter after an underscore or space).  So "poc" and
 -- "prOpCa" both find preOpenCard, as well as everything a plain prefix would.
 private function ideAutocomplete_MatchPattern pToken, pHumpsFrom
    -- Hump matching starts at pHumpsFrom letters, or sooner with a capital
    -- after the first letter ("oC").  Below that only a plain prefix matches.
+   -- pHumpsFrom 0 switches hump matching off altogether.
    local tHumps
-   set the caseSensitive to true
-   put the number of chars of pToken >= pHumpsFrom or \
-         toLower(char 2 to -1 of pToken) is not char 2 to -1 of pToken into tHumps
-   set the caseSensitive to false
+   put false into tHumps
+   if pHumpsFrom > 0 then
+      set the caseSensitive to true
+      put the number of chars of pToken >= pHumpsFrom or \
+            toLower(char 2 to -1 of pToken) is not char 2 to -1 of pToken into tHumps
+      set the caseSensitive to false
+   end if
    
    local tPattern, tLower, tUpper
    repeat for each char tChar in pToken
@@ -485,7 +632,7 @@ private function ideAutocomplete_MatchPattern pToken, pHumpsFrom
          -- digit or underscore
          put "(?:" & tChar & "|[a-z0-9]*" & tChar & ")" after tPattern
       else
-         put "(?:[" & tLower & tUpper & "]|[a-z0-9]*(?:" & tUpper & "|_[" & tLower & tUpper & "]))" after tPattern
+         put "(?:[" & tLower & tUpper & "]|[a-z0-9]*(?:" & tUpper & "|[_ ][" & tLower & tUpper & "]))" after tPattern
       end if
    end repeat
    return tPattern
@@ -547,21 +694,30 @@ command ideAutocomplete_DoUpdate
    put sPendingObjectId into pObjectId
    if pEditorId is empty or there is not a pEditorId then
       ideAutocomplete_HidePopup
+      ideAutocomplete_HideHint
       exit ideAutocomplete_DoUpdate
    end if
+   
+   dispatch function "getScriptField" to pEditorId
+   local tField
+   put the result into tField
+   if tField is empty or there is not a tField then
+      ideAutocomplete_HidePopup
+      ideAutocomplete_HideHint
+      exit ideAutocomplete_DoUpdate
+   end if
+   
+   -- The parameter hint is worked out first and on its own: it depends on the
+   -- call the caret is inside, not on the word being typed.
+   ideAutocomplete_UpdateHint pEditorId, pObjectId, tField
    
    -- Get the partial word at the cursor
    dispatch "getCaretToken" to pEditorId
    local tToken
    put the result into tToken
    
-   dispatch function "getScriptField" to pEditorId
-   local tField
-   put the result into tField
-   
    if the number of chars of tToken < kMinChars or \
-         not matchText(tToken, "^[A-Za-z_][A-Za-z0-9_]*$") or \
-         tField is empty or there is not a tField then
+         not matchText(tToken, "^[A-Za-z_][A-Za-z0-9_]*$") then
       ideAutocomplete_HidePopup
       exit ideAutocomplete_DoUpdate
    end if
@@ -582,12 +738,22 @@ command ideAutocomplete_DoUpdate
       ideAutocomplete_HidePopup
       exit ideAutocomplete_DoUpdate
    end if
+   local tPreceding
    put empty into tBefore
    if tTokenStart > 1 then
-      put the last line of (the text of char max(1, tTokenStart - 1000) to (tTokenStart - 1) of tField) into tBefore
+      put the text of char max(1, tTokenStart - 4000) to (tTokenStart - 1) of tField into tPreceding
+      -- (the "x" keeps a trailing return from being ignored, which would
+      -- hand back the line above when the word starts its own line)
+      put the last line of (tPreceding & "x") into tBefore
+      delete the last char of tBefore
    end if
    set the itemDelimiter to quote
    if tBefore is not empty and the number of items of (tBefore & "x") mod 2 is 0 then
+      ideAutocomplete_HidePopup
+      exit ideAutocomplete_DoUpdate
+   end if
+   -- ... nor inside a comment
+   if ideAutocomplete_InComment(tBefore, tPreceding) then
       ideAutocomplete_HidePopup
       exit ideAutocomplete_DoUpdate
    end if
@@ -607,17 +773,42 @@ command ideAutocomplete_DoUpdate
    put ideAutocomplete_ScriptHandlers(tField) into tScriptHandlers
    switch tContext
       case "message"
-         -- on / before / after / pass: the name of a message
+         -- on, before, after: the name of a message
          put sBuiltinWords["message"] into tBuiltins
          break
       case "handler"
-         -- end / exit: the name of a handler in this script
-         put tScriptHandlers["command"] & return & tScriptHandlers["value"] into tHandlers
+         -- end, exit, pass: only ever the handler the caret is in
+         put ideAutocomplete_EnclosingHandler(the text of char 1 to tTokenStart of tField) into tHandlers
+         break
+      case "property"
+         -- set the ...: a property
+         put sBuiltinWords["property"] into tBuiltins
+         break
+      case "the"
+         -- the ...: a property or a built-in function, never a handler
+         put sBuiltinWords["property"] & return & sBuiltinWords["function"] into tBuiltins
+         break
+      case "type"
+         -- is a / is an: one of the types that can be tested for
+         put "array,boolean,color,date,integer,number,point,rect" into tBuiltins
+         replace comma with return in tBuiltins
          break
       default
          put tScriptHandlers[tContext] & return & sPathHandlers[tRuggedId][tContext] into tHandlers
          put sBuiltinWords[tContext] into tBuiltins
    end switch
+   
+   -- "put x after msg" and "put x before msg" are everyday debugging lines, so
+   -- after those two words the message box is offered.  ("after" or "before"
+   -- as the first word of a line declares a handler instead.)
+   local tOfferMessageBox
+   put false into tOfferMessageBox
+   if tContext is "value" and the number of words of tBefore >= 2 then
+      if the last word of tBefore is "after" or the last word of tBefore is "before" then
+         put true into tOfferMessageBox
+         put return & "message box" after tBuiltins
+      end if
+   end if
    
    -- Two letters are enough for a hump match where the choice is small: "oc"
    -- after "on" finds openCard, "sh" at the start of a line finds sayHello.
@@ -625,7 +816,10 @@ command ideAutocomplete_DoUpdate
    -- and two letters would bring up a list for nearly every word typed, so
    -- there it takes three ("spf" finds specialFolderPath).
    local tHumpsFrom
-   if tContext is "value" then
+   set the itemDelimiter to comma
+   if not ideAutocomplete_HumpsEnabled() then
+      put 0 into tHumpsFrom
+   else if tContext is among the items of "value,the,property" then
       put 3 into tHumpsFrom
    else
       put 2 into tHumpsFrom
@@ -633,6 +827,16 @@ command ideAutocomplete_DoUpdate
    
    local tMatches
    put ideAutocomplete_Matches(tToken, tHandlers, tBuiltins, tHumpsFrom) into tMatches
+   
+   -- "ms" is the start of "msg": offer the message box for that too, spelled
+   -- out, since "msg" itself is too short to be worth picking from a list.
+   if tOfferMessageBox and "msg" begins with tToken and \
+         "message box" is not among the lines of tMatches then
+      put "message box" & return before tMatches
+      if the last char of tMatches is return then
+         delete the last char of tMatches
+      end if
+   end if
    
    -- Nothing to show, or the only match is exactly the token already typed
    set the caseSensitive to true
@@ -677,6 +881,463 @@ command ideAutocomplete_DeferredHide
    end if
    ideAutocomplete_HidePopup
 end ideAutocomplete_DeferredHide
+
+--------------------------------------------------------------------------------
+-- Private: parameter hint
+--------------------------------------------------------------------------------
+
+-- Shows the parameters of the handler being called at the caret, or puts the
+-- hint away if the caret is not in a call that has any.
+private command ideAutocomplete_UpdateHint pEditorId, pObjectId, pField
+   local tFrom, tTo
+   put word 2 of the selectedChunk of pField into tFrom
+   put word 4 of the selectedChunk of pField into tTo
+   if tFrom is not a number or tTo >= tFrom then
+      -- no caret, or a selection
+      ideAutocomplete_HideHint
+      exit ideAutocomplete_UpdateHint
+   end if
+   
+   local tPreceding, tBefore
+   if tFrom > 1 then
+      put the text of char max(1, tFrom - 4000) to (tFrom - 1) of pField into tPreceding
+      put the last line of (tPreceding & "x") into tBefore
+      delete the last char of tBefore
+   end if
+   if tBefore is empty or ideAutocomplete_InComment(tBefore, tPreceding) then
+      ideAutocomplete_HideHint
+      exit ideAutocomplete_UpdateHint
+   end if
+   
+   -- Innermost call first: the first one that has parameters to show wins
+   local tCalls, tCall, tSignature
+   put ideAutocomplete_CallsAtCaret(tBefore) into tCalls
+   if tCalls is empty then
+      ideAutocomplete_HideHint
+      exit ideAutocomplete_UpdateHint
+   end if
+   
+   -- Handlers in other scripts may have changed since they were last read:
+   -- look again when a new hint is about to appear, not on every character.
+   local tRuggedId
+   put revRuggedId(pObjectId) into tRuggedId
+   if sHintShowing is not true or tRuggedId is not among the keys of sPathHandlerInfo then
+      ideAutocomplete_RefreshPathHandlers pObjectId
+   end if
+   set the itemDelimiter to tab
+   repeat for each line tCall in tCalls
+      put ideAutocomplete_Signature(item 1 of tCall, item 2 of tCall, pField, tRuggedId) into tSignature
+      if tSignature is not empty then
+         -- item 3 is which argument the caret is in, item 4 where the name
+         -- starts in the line
+         put pEditorId into sHintEditorId
+         put pObjectId into sHintObjectId
+         put pField into sHintField
+         put tFrom into sHintCaret
+         put the vScroll of pField into sHintScroll
+         ideAutocomplete_ShowHint pEditorId, pField, tSignature, item 3 of tCall, \
+               tFrom - the number of chars of tBefore + item 4 of tCall - 1
+         exit ideAutocomplete_UpdateHint
+      end if
+   end repeat
+   ideAutocomplete_HideHint
+end ideAutocomplete_UpdateHint
+
+-- Finds the calls the caret is inside, given the line up to the caret.
+-- Returns one line per call, innermost first, each being: name, kind
+-- ("function" or "command"), the number of the argument being typed, and the
+-- char of the line the name starts at (tab-separated).
+--   put foo(1, bar(|        ->  bar function 1, foo function 2
+--   answer "Hi" with |      ->  answer command 1
+private function ideAutocomplete_CallsAtCaret pBefore
+   -- Blank out string literals, keeping every char in place, so brackets and
+   -- commas inside them are not counted
+   local tCode, tInString, tChar
+   put false into tInString
+   repeat for each char tChar in pBefore
+      if tChar is quote then
+         put not tInString into tInString
+         put quote after tCode
+      else if tInString then
+         put "x" after tCode
+      else
+         put tChar after tCode
+      end if
+   end repeat
+   
+   -- The statement the caret is in starts after the last then, else or ;
+   local tStart, tSeparator, tAt, tSkip
+   put 1 into tStart
+   repeat for each item tSeparator in " then , else ,;"
+      put 0 into tSkip
+      repeat
+         put offset(tSeparator, tCode, tSkip) into tAt
+         if tAt is 0 then exit repeat
+         add tAt to tSkip
+         put max(tStart, tSkip + the number of chars of tSeparator) into tStart
+      end repeat
+   end repeat
+   
+   -- Walk the statement keeping track of open brackets and the commas in each
+   local tDepth, tOpenA, tCommasA, tIndex
+   put 0 into tDepth
+   put 0 into tCommasA[0]
+   repeat with tIndex = tStart to the number of chars of tCode
+      switch char tIndex of tCode
+         case "("
+            add 1 to tDepth
+            put tIndex into tOpenA[tDepth]
+            put 0 into tCommasA[tDepth]
+            break
+         case ")"
+            if tDepth > 0 then subtract 1 from tDepth
+            break
+         case ","
+            add 1 to tCommasA[tDepth]
+            break
+      end switch
+   end repeat
+   
+   local tCalls, tName, tLead
+   repeat with tIndex = tDepth down to 1
+      if matchText(char tStart to (tOpenA[tIndex] - 1) of tCode, "([A-Za-z_][A-Za-z0-9_]*)$", tName) then
+         put tName & tab & "function" & tab & (tCommasA[tIndex] + 1) & tab & \
+               (tOpenA[tIndex] - the number of chars of tName) & return after tCalls
+      end if
+   end repeat
+   -- A command takes its parameters after a space
+   if matchText(char tStart to -1 of tCode, "^(\s*)([A-Za-z_][A-Za-z0-9_]*)\s", tLead, tName) then
+      put tName & tab & "command" & tab & (tCommasA[0] + 1) & tab & \
+            (tStart + the number of chars of tLead) & return after tCalls
+   end if
+   delete the last char of tCalls
+   return tCalls
+end ideAutocomplete_CallsAtCaret
+
+-- Returns what to show for a call to pName: its declaration with parameters
+-- for a handler, or its syntax from the dictionary for a built-in.  Empty if
+-- it is not known or takes no parameters.
+private function ideAutocomplete_Signature pName, pKind, pField, pRuggedId
+   -- 1. a handler in the script being edited, applied or not
+   local tScript
+   put the text of pField into tScript
+   filter lines of tScript with regex pattern \
+         "(?i)^\s*(private\s+)?(on|command|function|getprop|setprop|before|after)\s+" & pName & "([^A-Za-z0-9_]|$)"
+   if tScript is not empty then
+      return ideAutocomplete_SignatureFromLine(line 1 of tScript)
+   end if
+   
+   -- 2. a handler elsewhere in the message path
+   local tInfo, tLine
+   put sPathHandlerInfo[pRuggedId][toLower(pName)] into tInfo
+   if tInfo is not empty then
+      set the itemDelimiter to tab
+      try
+         put line (item 2 of tInfo) of the script of (item 3 of tInfo) into tLine
+      catch tError
+         -- a password-protected stack keeps its scripts to itself
+         put empty into tLine
+      end try
+      return ideAutocomplete_SignatureFromLine(tLine)
+   end if
+   
+   -- 3. a built-in.  Short commands (put, set, get) and keywords are typed
+   -- far too often to want their syntax every time.
+   if the number of chars of pName <= 3 or sQuietWordsA[toLower(pName)] then
+      return empty
+   end if
+   return ideAutocomplete_DocSyntax(pName, pKind)
+end ideAutocomplete_Signature
+
+-- Turns a handler's declaration line into what the hint shows:
+--   function area pWidth, pHeight   ->  area(pWidth, pHeight)
+--   command greet pName, pTimes     ->  greet pName, pTimes
+-- Empty if the handler takes no parameters.
+private function ideAutocomplete_SignatureFromLine pLine
+   local tType, tName, tParams
+   if not matchText(pLine, "(?i)^\s*(?:private\s+)?(on|command|function|getprop|setprop|before|after)\s+([A-Za-z_][A-Za-z0-9_]*)(.*)$", \
+         tType, tName, tParams) then
+      return empty
+   end if
+   -- drop a trailing comment and tidy the spacing
+   local tComment
+   repeat for each item tComment in "--,#,//"
+      if offset(tComment, tParams) > 0 then
+         put char 1 to offset(tComment, tParams) - 1 of tParams into tParams
+      end if
+   end repeat
+   replace "(" with space in tParams
+   replace ")" with space in tParams
+   replace "@" with empty in tParams
+   local tList, tParam
+   repeat for each item tParam in tParams
+      if word 1 of tParam is not empty then
+         put word 1 of tParam & ", " after tList
+      end if
+   end repeat
+   delete char -2 to -1 of tList
+   if tList is empty then
+      return empty
+   end if
+   if tType is "function" then
+      return tName & "(" & tList & ")"
+   end if
+   return tName && tList
+end ideAutocomplete_SignatureFromLine
+
+-- Returns the syntax of a built-in command or function from the dictionary,
+-- one form per line.  Looks in the database shipped with the IDE, then in
+-- the documentation cache (extensions and libraries).
+private function ideAutocomplete_DocSyntax pName, pKind
+   local tKey
+   put toLower(pName) & comma & pKind into tKey
+   if tKey is among the keys of sSyntaxCache then
+      return sSyntaxCache[tKey]
+   end if
+   
+   local tSyntax, tConnection, tPath
+   try
+      put revIDESpecialFolderPath("API") & slash & "api.sqlite" into tPath
+      if there is a file tPath then
+         put revOpenDatabase("sqlite", tPath) into tConnection
+         if tConnection is a number then
+            put ideAutocomplete_DocSyntaxFrom(tConnection, pName, pKind) into tSyntax
+            revCloseDatabase tConnection
+         end if
+      end if
+   catch tError
+   end try
+   if tSyntax is empty then
+      try
+         ideDocsInitialize
+         put the result into tConnection
+         if tConnection is a number then
+            put ideAutocomplete_DocSyntaxFrom(tConnection, pName, pKind) into tSyntax
+         end if
+      catch tError
+      end try
+   end if
+   
+   put tSyntax into sSyntaxCache[tKey]
+   return tSyntax
+end ideAutocomplete_DocSyntax
+
+private function ideAutocomplete_DocSyntaxFrom pConnection, pName, pKind
+   -- pName has already been checked to be a plain identifier
+   local tCursor, tData, tEntryA, tSyntax, tForm, tCount, tIndex
+   put revQueryDatabase(pConnection, "SELECT entry_data FROM dictionary_data WHERE entry_name = '" & pName & \
+         "' COLLATE NOCASE AND entry_type = '" & pKind & "' AND library_name NOT LIKE '%Builder'") into tCursor
+   if tCursor is not a number then
+      return empty
+   end if
+   if not revQueryIsAtEnd(tCursor) then
+      get revDatabaseColumnNamed(tCursor, "entry_data", "tData")
+      put arrayDecode(tData) into tEntryA
+   end if
+   revCloseCursor tCursor
+   
+   if tEntryA["syntax"] is not an array then
+      return empty
+   end if
+   put 0 into tCount
+   repeat with tIndex = 1 to the number of elements of tEntryA["syntax"]
+      put tEntryA["syntax"][tIndex] into tForm
+      replace return with space in tForm
+      -- for a function, the form with brackets is the one being typed
+      if tForm is empty or (pKind is "function" and "(" is not in tForm) then
+         next repeat
+      end if
+      put tForm & return after tSyntax
+      add 1 to tCount
+      if tCount >= kMaxHintLines then
+         exit repeat
+      end if
+   end repeat
+   delete the last char of tSyntax
+   return tSyntax
+end ideAutocomplete_DocSyntaxFrom
+
+private command ideAutocomplete_CreateHint
+   if there is a stack kHintName then
+      delete stack kHintName
+   end if
+   create invisible stack kHintName
+   set the style of stack kHintName to "palette"
+   set the decorations of stack kHintName to empty
+   set the resizable of stack kHintName to false
+   
+   create field "hint" in card 1 of stack kHintName
+   set the lockText of field "hint" of stack kHintName to true
+   try
+      set the traversalOn of field "hint" of stack kHintName to false
+   catch tErr
+   end try
+   set the dontWrap of field "hint" of stack kHintName to true
+   set the showBorder of field "hint" of stack kHintName to true
+   set the vScrollbar of field "hint" of stack kHintName to false
+   set the hScrollbar of field "hint" of stack kHintName to false
+   set the textSize of field "hint" of stack kHintName to 12
+   set the margins of field "hint" of stack kHintName to 6
+end ideAutocomplete_CreateHint
+
+-- Shows pText just above the line being typed, starting over the name of the
+-- handler being called (char pNameChar of pField).  For a handler, the
+-- parameter being typed (number pArgument) is picked out in bold.
+private command ideAutocomplete_ShowHint pEditorId, pField, pText, pArgument, pNameChar
+   if there is not a stack kHintName then
+      ideAutocomplete_CreateHint
+      put false into sHintShowing
+   end if
+   
+   local tHint
+   put the long id of field "hint" of stack kHintName into tHint
+   if the text of tHint is not pText then
+      set the text of tHint to pText
+   end if
+   set the textStyle of char 1 to -1 of tHint to "plain"
+   
+   -- One line with no optional parts is a handler's own declaration: its
+   -- parameters are separated by commas and can be counted off.  Dictionary
+   -- syntax ([optional], {a | b}) cannot, so it is left plain.
+   if the number of lines of pText is 1 and "[" is not in pText and "{" is not in pText \
+         and "<" is not in pText then
+      local tListStart, tSkip, tComma, tParamStart, tParamEnd, tCount
+      put offset("(", pText) into tListStart
+      if tListStart is 0 then
+         put offset(space, pText) into tListStart
+      end if
+      put tListStart + 1 into tParamStart
+      put 0 into tCount
+      repeat
+         add 1 to tCount
+         put offset(",", pText, tParamStart - 1) into tComma
+         if tComma is 0 then
+            put the number of chars of pText into tParamEnd
+            if the last char of pText is ")" then
+               subtract 1 from tParamEnd
+            end if
+         else
+            put tParamStart - 1 + tComma - 1 into tParamEnd
+         end if
+         if tCount is pArgument then
+            set the textStyle of char tParamStart to tParamEnd of tHint to "bold"
+            exit repeat
+         end if
+         if tComma is 0 then exit repeat
+         put tParamEnd + 3 into tParamStart
+      end repeat
+   end if
+   
+   -- Size to fit
+   local tWidth, tHeight
+   put the formattedWidth of tHint + 4 into tWidth
+   put the formattedHeight of tHint into tHeight
+   set the width of stack kHintName to tWidth
+   set the height of stack kHintName to tHeight
+   set the rect of tHint to 0, 0, tWidth, tHeight
+   
+   -- Above the line, starting over the name of the handler
+   local tNameRect, tLoc, tX, tY, tScreenRect
+   put the formattedRect of char pNameChar of pField into tNameRect
+   if tNameRect is empty then
+      ideAutocomplete_HideHint
+      exit ideAutocomplete_ShowHint
+   end if
+   put ideAutocomplete_GlobalLoc(pField, item 1 of tNameRect, item 2 of tNameRect) into tLoc
+   put item 1 of tLoc into tX
+   put item 2 of tLoc - tHeight - 2 into tY
+   put ideAutocomplete_ScreenRectFor(pEditorId, item 1 of tLoc, item 2 of tLoc) into tScreenRect
+   if tX + tWidth > item 3 of tScreenRect then
+      put item 3 of tScreenRect - tWidth into tX
+   end if
+   if tX < item 1 of tScreenRect then
+      put item 1 of tScreenRect into tX
+   end if
+   if tY < item 2 of tScreenRect then
+      -- no room above: go below the line instead
+      put item 2 of tLoc + (item 4 of tNameRect - item 2 of tNameRect) + 2 into tY
+   end if
+   set the topLeft of stack kHintName to tX, tY
+   
+   -- Same care as the completion list: showing a window stirs up focus
+   -- changes that must neither take the keyboard nor dismiss what is shown.
+   put true into sSuppressCancel
+   if sHintShowing is not true then
+      show stack kHintName
+      put true into sHintShowing
+      if the topLeft of stack kHintName is not (tX,tY) then
+         set the topLeft of stack kHintName to tX, tY
+      end if
+   end if
+   ideAutocomplete_RefocusEditor pEditorId
+   if the platform contains "win" then
+      send "ideAutocomplete_ClearSuppressCancel" to me in 150 milliseconds
+   else
+      send "ideAutocomplete_ClearSuppressCancel" to me in 0 milliseconds
+   end if
+   
+   cancel sHintWatchTimer
+   put 0 into sHintFocusMisses
+   send "ideAutocomplete_WatchHint" to me in kHintWatchInterval milliseconds
+   put the result into sHintWatchTimer
+end ideAutocomplete_ShowHint
+
+private command ideAutocomplete_HideHint
+   cancel sHintWatchTimer
+   if sHintShowing is true then
+      hide stack kHintName
+   end if
+   put false into sHintShowing
+end ideAutocomplete_HideHint
+
+-- Not private: timer-fired sends cannot reach private handlers.
+-- Keeps a showing hint in step with the caret.  Nothing tells the library
+-- when the caret is moved by a click or an arrow key, so while a hint is up
+-- this looks every so often: the hint goes when the caret leaves the call
+-- (another line, or past its closing bracket), when the script is scrolled,
+-- or when the caret goes to another field; and it is redrawn when the caret
+-- moves to another parameter.  Moving the mouse does not disturb it.
+command ideAutocomplete_WatchHint
+   if sHintShowing is not true then
+      exit ideAutocomplete_WatchHint
+   end if
+   if sHintField is empty or there is not a sHintField then
+      ideAutocomplete_HideHint
+      exit ideAutocomplete_WatchHint
+   end if
+   if the vScroll of sHintField is not sHintScroll then
+      ideAutocomplete_HideHint
+      exit ideAutocomplete_WatchHint
+   end if
+   
+   -- The caret can leave the editor for an instant when a popup is shown or
+   -- clicked, so only two looks in a row without it count.
+   local tFocused
+   try
+      put the long id of the selectedField into tFocused
+   catch tError
+      put empty into tFocused
+   end try
+   if tFocused is the long id of sHintField then
+      put 0 into sHintFocusMisses
+   else
+      add 1 to sHintFocusMisses
+      if sHintFocusMisses >= 2 then
+         ideAutocomplete_HideHint
+         exit ideAutocomplete_WatchHint
+      end if
+   end if
+   
+   -- An edit brings its own update; this is for a caret moved without one.
+   if sUpdatePending is not true and word 2 of the selectedChunk of sHintField is not sHintCaret then
+      ideAutocomplete_UpdateHint sHintEditorId, sHintObjectId, sHintField
+      -- (that has either hidden the hint or shown it again, restarting this)
+      exit ideAutocomplete_WatchHint
+   end if
+   
+   send "ideAutocomplete_WatchHint" to me in kHintWatchInterval milliseconds
+   put the result into sHintWatchTimer
+end ideAutocomplete_WatchHint
 
 --------------------------------------------------------------------------------
 -- Private: popup creation
