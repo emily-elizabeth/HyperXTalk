@@ -35,6 +35,8 @@ on preOpenStack
       showScheme
    end if
    set the loc of me to the screenLoc
+   -- a script-only stack starts out invisible
+   set the visible of me to true
 end preOpenStack
 
 on closeStackRequest
