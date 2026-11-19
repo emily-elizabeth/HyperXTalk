@@ -1915,8 +1915,8 @@ static void MCInterfaceThemeNotify(MCStack *p_owner)
 			if (p_owner == nil)
 				t_affected = t_stack -> isidestack();
 			else
-				t_affected = !t_stack -> isidestack() &&
-								(t_stack == p_owner || t_stack -> getparent() == p_owner);
+				t_affected = t_stack == p_owner ||
+								(!t_stack -> isidestack() && t_stack -> getparent() == p_owner);
 			if (t_affected)
 				MCscreen -> delaymessage(t_stack -> getcurcard(), MCM_theme_changed);
 		}
@@ -1937,8 +1937,14 @@ static const MCAppColorTheme *MCInterfaceThemeForObject(MCObject *p_object)
 	if (t_stack == nil)
 		return nil;
 
+	// An IDE stack takes the IDE's theme, unless it has been given a theme of
+	// its own (the theme editor previews the colours being edited that way).
 	if (t_stack -> isidestack())
+	{
+		if (t_stack -> getapptheme() != nil)
+			return t_stack -> getapptheme();
 		return s_ide_theme_in_use ? &s_ide_theme : nil;
+	}
 
 	while (t_stack != nil)
 	{

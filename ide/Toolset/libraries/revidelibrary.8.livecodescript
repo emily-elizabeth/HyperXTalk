@@ -2449,29 +2449,66 @@ elsewhere, so where it or the folding column would not stand out from the
 background, the keyword colour or the gutter's text colour is used instead.
 **/
 function revIDESchemeInterfaceTheme pName
-   local tFile, tText, tLine, tKey, tKeys, tTheme, tEditor, tIdentifier, tAccent, tColor
+   local tFile
    if pName is empty or pName is "default" then return empty
    put revIDESchemeFile(pName) into tFile
    if tFile is empty then return empty
-   
-   put "foregroundColor,backgroundColor,hiliteColor,borderColor,topColor,bottomColor," & \
-         "shadowColor,focusColor,fieldColor,hiliteTextColor" into tKeys
-   put URL ("file:" & tFile) into tText
+   return revIDESchemeInterfaceThemeFromText(URL ("file:" & tFile))
+end revIDESchemeInterfaceTheme
+
+/**
+The keys of the interface colours a scheme can set
+
+Returns (String): The keys, comma-delimited, in the order the theme editor
+shows them
+**/
+function revIDESchemeInterfaceKeys
+   return "foregroundColor,backgroundColor,fieldColor,hiliteColor,hiliteTextColor,borderColor," & \
+         "topColor,bottomColor,shadowColor,focusColor"
+end revIDESchemeInterfaceKeys
+
+/**
+The interface colours a scheme sets explicitly
+
+pText (String): The text of a scheme file
+Returns (Array): The colours of its "interface <key> <color>" lines, keyed by
+<key>, without any derived colours
+**/
+function revIDESchemeExplicitInterfaceColors pText
+   local tLine, tKey, tColor, tColors
+   replace CRLF with LF in pText
+   replace numToCodepoint(13) with LF in pText
+   repeat for each line tLine in pText
+      if word 1 of tLine is not "interface" then next repeat
+      put word 3 of tLine into tColor
+      if not __schemeColorIsValid(tColor) then next repeat
+      repeat for each item tKey in revIDESchemeInterfaceKeys()
+         if tKey is word 2 of tLine then
+            put tColor into tColors[tKey]
+            exit repeat
+         end if
+      end repeat
+   end repeat
+   return tColors
+end revIDESchemeExplicitInterfaceColors
+
+/**
+The interface colours of a scheme, given its text
+
+pText (String): The text of a scheme file
+Returns (Array): The colours, keyed as the lightTheme and darkTheme properties
+expect them: those the scheme sets, and those derived from its script editor
+colours (see revIDESchemeInterfaceTheme)
+**/
+function revIDESchemeInterfaceThemeFromText pText
+   local tText, tLine, tTheme, tEditor, tIdentifier, tAccent
+   put pText into tText
    replace CRLF with LF in tText
    replace numToCodepoint(13) with LF in tText
+   put revIDESchemeExplicitInterfaceColors(tText) into tTheme
    
    repeat for each line tLine in tText
       switch word 1 of tLine
-         case "interface"
-            put word 3 of tLine into tColor
-            if not __schemeColorIsValid(tColor) then break
-            repeat for each item tKey in tKeys
-               if tKey is word 2 of tLine then
-                  put tColor into tTheme[tKey]
-                  exit repeat
-               end if
-            end repeat
-            break
          case "editor"
             put word 3 of tLine into tEditor[toLower(word 2 of tLine)]
             break
@@ -2497,7 +2534,21 @@ function revIDESchemeInterfaceTheme pName
          tEditor["foldingbackground"] & return & tEditor["gutterforeground"] & return & \
          tEditor["foldingforeground"] & return & tIdentifier
    return tTheme
-end revIDESchemeInterfaceTheme
+end revIDESchemeInterfaceThemeFromText
+
+/**
+Opens the theme editor
+
+pScheme (String): The name of the scheme to edit; if empty or "Default", the
+editor opens on the scheme it last showed
+**/
+command revIDEOpenThemeEditor pScheme
+   if pScheme is among the items of "Default,None,Custom" then put empty into pScheme
+   go stack "revThemeEditor" as modeless
+   if pScheme is not empty then
+      dispatch "themeEditorEdit" to stack "revThemeEditor" with pScheme
+   end if
+end revIDEOpenThemeEditor
 
 private function __schemeColorIsValid pColor
    local tPart
@@ -2572,7 +2623,7 @@ pSlot (String): "light" or "dark"
 Returns (String): "Default", the schemes for that appearance and "Custom", one per line
 **/
 function revIDEStackThemeOptions pSlot
-   return "Default" & return & revIDESchemeNames(pSlot) & return & "Custom"
+   return "Default" & return & revIDESchemeNames(pSlot) & return & "Custom" & return & "Edit themes…"
 end revIDEStackThemeOptions
 
 private function __stackThemesMatch pLeft, pRight
@@ -2622,6 +2673,11 @@ pValue (String): "Default" to remove the theme, leaving the system colours, or t
 **/
 command revIDESetStackThemeProperty pObject, pProperty, pValue
    local tTheme
+   if pValue is "Edit themes…" then
+      # not a choice of theme: open the editor on the stack's present scheme
+      send "revIDEOpenThemeEditor" && quote & revIDEGetStackThemeProperty(pObject, pProperty) & quote to me in 0 milliseconds
+      exit revIDESetStackThemeProperty
+   end if
    if pValue is "Custom" then exit revIDESetStackThemeProperty
    if pValue is "Default" or pValue is "None" then
       put empty into pValue
