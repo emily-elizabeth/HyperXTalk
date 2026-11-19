@@ -124,6 +124,10 @@ private command buildInterface
    makeButton "Save", "Save", "316,17,386,41"
    makeButton "SaveAs", "Save As…", "392,17,482,41"
    makeButton "Revert", "Revert", "488,17,558,41"
+   set the toolTip of button "Revert" to "Discard the changes made since the scheme was last saved"
+   -- "Restore Bundled…" for a copy of a bundled scheme, "Delete…" for a scheme
+   -- of the user's own; see showScheme
+   makeButton "Remove", "Delete…", "574,17,714,41"
    makeLabel "Info", empty, "16,50,884,72", "left"
    makeLabel "ColoursHeading", "Interface colours", "16,74,300,94", "left"
    set the textStyle of field "ColoursHeading" to "bold"
@@ -265,6 +269,15 @@ private function schemeIsBundled
    return not (revIDESchemeFile(sScheme) begins with revEnvironmentUserColorSchemesPath())
 end schemeIsBundled
 
+-- The path of the scheme of this name that is bundled with the IDE, or empty
+-- if there is none (the scheme is one the user made).
+private function bundledSchemeFile pName
+   local tFile
+   put revIDESpecialFolderPath("Toolset") & "/resources/supporting_files/schemes/" & pName & ".scheme" into tFile
+   if there is a file tFile then return tFile
+   return empty
+end bundledSchemeFile
+
 private command showScheme
    local tTheme, tKey, tInfo, tValue, tError
    lock screen
@@ -309,8 +322,19 @@ private command showScheme
    end switch
    if schemeIsBundled() then
       put " Bundled with the IDE: saving writes a copy to your Schemes folder, which then takes its place." after tInfo
+      set the label of button "Remove" of me to "Delete…"
+      set the enabled of button "Remove" of me to false
+      set the toolTip of button "Remove" of me to "A scheme bundled with the IDE cannot be deleted"
+   else if bundledSchemeFile(sScheme) is not empty then
+      put " Your copy, in your Schemes folder, of a scheme bundled with the IDE." after tInfo
+      set the label of button "Remove" of me to "Restore Bundled…"
+      set the enabled of button "Remove" of me to true
+      set the toolTip of button "Remove" of me to "Move your copy to the Trash and go back to the scheme as bundled with the IDE"
    else
       put " In your Schemes folder." after tInfo
+      set the label of button "Remove" of me to "Delete…"
+      set the enabled of button "Remove" of me to true
+      set the toolTip of button "Remove" of me to "Move this scheme to the Trash"
    end if
    set the text of field "Info" of me to tInfo
 
@@ -370,6 +394,9 @@ on mouseUp
       case "Revert"
          loadScheme sScheme
          break
+      case "Remove"
+         removeScheme
+         break
       default
          pass mouseUp
    end switch
@@ -425,6 +452,58 @@ private command saveScheme pName
    -- if the IDE is using this scheme as its theme, show the change at once
    revIDEApplyThemePreference
 end saveScheme
+
+-- Removes the user's file for the scheme being edited. If the scheme is also
+-- bundled with the IDE that restores the bundled version; otherwise the scheme
+-- is gone. The file is moved to the Trash where there is one, so it can be
+-- got back.
+private command removeScheme
+   local tFile, tBundled, tTrash, tTarget, tName
+   if schemeIsBundled() then exit removeScheme
+   put revIDESchemeFile(sScheme) into tFile
+   put (bundledSchemeFile(sScheme) is not empty) into tBundled
+   put sScheme into tName
+   
+   if tBundled then
+      answer warning "Restore" && quote & tName & quote && "as bundled with the IDE?" & return & return & \
+            "Your copy, with any changes you made to it in this editor or in the Script Colour Editor, will be moved to the Trash." \
+            with "Cancel" or "Restore"
+      if it is not "Restore" then
+         exit removeScheme
+      end if
+   else
+      answer warning "Delete the scheme" && quote & tName & quote & "?" & return & return & \
+            "It will be moved to the Trash. Stacks that were given this theme keep their colours." \
+            with "Cancel" or "Delete"
+      if it is not "Delete" then exit removeScheme
+   end if
+   
+   put specialFolderPath("home") & "/.Trash" into tTrash
+   if the platform is "MacOS" and there is a folder tTrash then
+      put tTrash & slash & tName & ".scheme" into tTarget
+      if there is a file tTarget then
+         put tTrash & slash & tName && the seconds & ".scheme" into tTarget
+      end if
+      rename file tFile to tTarget
+   else
+      delete file tFile
+   end if
+   if there is a file tFile then
+      answer error "The scheme could not be removed:" && the result
+      exit removeScheme
+   end if
+   
+   put false into sDirty
+   put empty into sScheme
+   populateSchemeMenu
+   if tBundled then
+      loadScheme tName
+   else
+      loadScheme line 1 of revIDESchemeNames()
+   end if
+   -- the IDE may have been using the scheme as its theme
+   revIDEApplyThemePreference
+end removeScheme
 
 private command saveSchemeAs
    local tName
