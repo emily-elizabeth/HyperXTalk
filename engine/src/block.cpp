@@ -1275,7 +1275,9 @@ void MCBlock::draw(MCDC *dc, coord_t x, coord_t lx, coord_t cx, int2 y, findex_t
 		// page and cannot be read on a dark one. Where the link colour in use
 		// is still that default and the field's background is dark (dark
 		// mode, or a dark theme), draw a lighter blue or violet instead. A
-		// link colour the developer chose is left alone.
+		// link colour the developer chose is left alone. A theme's linkColor
+		// takes the place of the default wherever it is set.
+		static MCColor s_theme_link;
 		static MCColor s_dark_link = { 0x6666, 0xADAD, 0xFFFF };
 		static MCColor s_dark_visited = { 0xC2C2, 0x9D9D, 0xF0F0 };
 		bool t_default_link = t_foreground_color == &a -> color &&
@@ -1285,10 +1287,13 @@ void MCBlock::draw(MCDC *dc, coord_t x, coord_t lx, coord_t cx, int2 y, findex_t
 				a -> visitedcolor . blue == 0x8038;
 		if (t_default_link || t_default_visited)
 		{
+			extern bool MCInterfaceThemeLookupLinkColor(MCObject *p_object, MCColor& r_color);
 			MCColor t_page;
 			MCPatternRef t_page_pattern = nil;
 			int2 t_page_x, t_page_y;
-			if (f -> getforecolor(DI_BACK, False, True, t_page, t_page_pattern,
+			if (t_default_link && MCInterfaceThemeLookupLinkColor(f, s_theme_link))
+				t_foreground_color = &s_theme_link;
+			else if (f -> getforecolor(DI_BACK, False, True, t_page, t_page_pattern,
 								  t_page_x, t_page_y, dc -> gettype(), f) &&
 				MCBlockHiliteTakesWhiteText(t_page))
 				t_foreground_color = t_default_link ? &s_dark_link : &s_dark_visited;

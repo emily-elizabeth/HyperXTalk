@@ -159,6 +159,10 @@ static NSColor *MCMacThemeAccentColor(const MCThemeDrawInfo *p_info)
 // with its saturation and brightness moved by the same amount the theme
 // accent differs from the system's, scaled by how much accent the pixel holds,
 // so anti-aliased edges blend as they did.
+//
+// AppKit draws the tick, the radio dot and the menu arrows in white, which
+// cannot be seen on a pale accent. Where the theme's accent is a light colour
+// the white inside the accent-filled part is drawn dark instead.
 static void MCMacThemeRGBToHSV(double r, double g, double b, double& h, double& s, double& v)
 {
     double t_max = fmax(r, fmax(g, b));
@@ -213,6 +217,42 @@ static void MCMacThemeRetintAccent(MCImageBitmap *p_bitmap, const MCThemeDrawInf
     MCMacThemeRGBToHSV(p_info->accent_red, p_info->accent_green, p_info->accent_blue,
                        t_new_h, t_new_s, t_new_v);
 
+    // A pale accent (one that takes black text, by the same measure as a
+    // label on a highlight) needs a dark tick. The white to darken is that
+    // within the bounds of the solidly accent-coloured pixels.
+    auto t_linear = [](double c) { return c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4); };
+    bool t_pale = 0.2126 * t_linear(p_info->accent_red) + 0.7152 * t_linear(p_info->accent_green) +
+                  0.0722 * t_linear(p_info->accent_blue) > 0.30;
+    uint32_t t_left = UINT32_MAX, t_top = UINT32_MAX, t_right = 0, t_bottom = 0;
+    if (t_pale)
+    {
+        for (uint32_t y = 0; y < p_bitmap->height; y++)
+        {
+            uint32_t *t_row = (uint32_t *)((uint8_t *)p_bitmap->data + y * p_bitmap->stride);
+            for (uint32_t x = 0; x < p_bitmap->width; x++)
+            {
+                uint8_t t_r8, t_g8, t_b8, t_a8;
+                MCGPixelUnpackNative(t_row[x], t_r8, t_g8, t_b8, t_a8);
+                if (t_a8 < 128)
+                    continue;
+
+                double t_alpha = t_a8 / 255.0;
+                double t_h, t_s, t_v;
+                MCMacThemeRGBToHSV(fmin(1.0, t_r8 / 255.0 / t_alpha), fmin(1.0, t_g8 / 255.0 / t_alpha),
+                                   fmin(1.0, t_b8 / 255.0 / t_alpha), t_h, t_s, t_v);
+                double t_hue_gap = fabs(t_h - t_sys_h);
+                if (t_hue_gap > 180.0)
+                    t_hue_gap = 360.0 - t_hue_gap;
+                if (t_s < 0.6 * t_sys_s || t_hue_gap > 40.0)
+                    continue;
+
+                t_left = MCMin(t_left, x); t_right = MCMax(t_right, x);
+                t_top = MCMin(t_top, y); t_bottom = MCMax(t_bottom, y);
+            }
+        }
+    }
+    const double t_ink = 0.10;
+
     for (uint32_t y = 0; y < p_bitmap->height; y++)
     {
         uint32_t *t_row = (uint32_t *)((uint8_t *)p_bitmap->data + y * p_bitmap->stride);
@@ -222,6 +262,8 @@ static void MCMacThemeRetintAccent(MCImageBitmap *p_bitmap, const MCThemeDrawInf
             MCGPixelUnpackNative(t_row[x], t_r8, t_g8, t_b8, t_a8);
             if (t_a8 == 0)
                 continue;
+
+            bool t_inside = t_pale && x >= t_left && x <= t_right && y >= t_top && y <= t_bottom;
 
             // the buffer holds premultiplied colour
             double t_alpha = t_a8 / 255.0;
@@ -234,14 +276,27 @@ static void MCMacThemeRetintAccent(MCImageBitmap *p_bitmap, const MCThemeDrawInf
             double t_hue_gap = fabs(t_h - t_sys_h);
             if (t_hue_gap > 180.0)
                 t_hue_gap = 360.0 - t_hue_gap;
-            if (t_s < 0.12 || t_hue_gap > 40.0)
+            bool t_is_accent = t_s >= 0.12 && t_hue_gap <= 40.0;
+            // the white of a tick, and its edges that blend into the accent
+            bool t_is_tick = t_inside && t_v > 0.70 && (t_is_accent || t_s < 0.12);
+            if (!t_is_accent && !t_is_tick)
                 continue;
 
             // how much of this pixel is accent, from none to all
             double t_share = fmin(1.0, t_s / t_sys_s);
-            t_s = fmax(0.0, fmin(1.0, t_s * (t_new_s / t_sys_s)));
-            t_v = fmax(0.0, fmin(1.0, t_v + (t_new_v - t_sys_v) * t_share));
-            MCMacThemeHSVToRGB(t_new_h, t_s, t_v, t_r, t_g, t_b);
+            if (t_is_tick && t_share < 0.85)
+            {
+                // the rest of it is tick: accent and ink in those shares
+                t_r = p_info->accent_red * t_share + t_ink * (1.0 - t_share);
+                t_g = p_info->accent_green * t_share + t_ink * (1.0 - t_share);
+                t_b = p_info->accent_blue * t_share + t_ink * (1.0 - t_share);
+            }
+            else
+            {
+                t_s = fmax(0.0, fmin(1.0, t_s * (t_new_s / t_sys_s)));
+                t_v = fmax(0.0, fmin(1.0, t_v + (t_new_v - t_sys_v) * t_share));
+                MCMacThemeHSVToRGB(t_new_h, t_s, t_v, t_r, t_g, t_b);
+            }
 
             t_row[x] = MCGPixelPackNative((uint8_t)lrint(t_r * t_alpha * 255.0),
                                           (uint8_t)lrint(t_g * t_alpha * 255.0),
@@ -1103,7 +1158,16 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                             [t_arrow moveToPoint:NSMakePoint(t_ax - 3.5, t_ay - 2)];
                             [t_arrow lineToPoint:NSMakePoint(t_ax, t_ay + 2)];
                             [t_arrow lineToPoint:NSMakePoint(t_ax + 3.5, t_ay - 2)];
-                            [[NSColor whiteColor] setStroke];
+                            // HXT themes: a dark chevron on a pale theme accent
+                            NSColor *t_chevron_ink = [NSColor whiteColor];
+                            if (p_info != nullptr && p_info->has_accent)
+                            {
+                                auto t_lin = [](double c) { return c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4); };
+                                if (0.2126 * t_lin(p_info->accent_red) + 0.7152 * t_lin(p_info->accent_green) +
+                                    0.0722 * t_lin(p_info->accent_blue) > 0.30)
+                                    t_chevron_ink = [NSColor colorWithSRGBRed:0.10 green:0.10 blue:0.10 alpha:1.0];
+                            }
+                            [t_chevron_ink setStroke];
                             [t_arrow stroke];
                         }
                     }];

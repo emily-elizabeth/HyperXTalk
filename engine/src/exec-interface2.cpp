@@ -1803,7 +1803,12 @@ void MCInterfaceSetPreferredAppearance(MCExecContext& ctxt, intenum_t p_value)
 // that from the system without looking at the owners of the field, so the
 // theme's backgroundColor does not reach it. hiliteTextColor is the colour of
 // selected text, used while the selection is drawn in the theme's hiliteColor.
-// Any other key is ignored.
+// linkColor is the colour of link text, where the stack's link colour is still
+// the engine's default. Any other key is ignored.
+//
+// A theme that sets backgroundColor but not topColor, bottomColor or
+// shadowColor gets those three worked out from its background, so 3D edges and
+// drop shadows suit the theme and are not left in the system's colours.
 //
 // There are two kinds of theme, kept apart:
 //
@@ -1823,13 +1828,13 @@ enum { kMCInterfaceThemeLight = 0, kMCInterfaceThemeDark = 1 };
 // Indexed by the DI_* colour index (DI_FORE = 0 ... DI_FOCUS = 7), then the
 // colours that have no DI_* index. The order is part of the stack file format:
 // add new colours at the end.
-enum { kMCInterfaceThemeFieldColor = 8, kMCInterfaceThemeHiliteTextColor = 9, kMCInterfaceThemeColorCount = 10 };
+enum { kMCInterfaceThemeFieldColor = 8, kMCInterfaceThemeHiliteTextColor = 9, kMCInterfaceThemeLinkColor = 10, kMCInterfaceThemeColorCount = 11 };
 
 static const char *s_theme_keys[kMCInterfaceThemeColorCount] =
 {
 	"foregroundColor", "backgroundColor", "hiliteColor", "borderColor",
 	"topColor", "bottomColor", "shadowColor", "focusColor",
-	"fieldColor", "hiliteTextColor",
+	"fieldColor", "hiliteTextColor", "linkColor",
 };
 
 struct MCAppColorTheme
@@ -2077,6 +2082,49 @@ void MCInterfaceThemeSuspend(bool p_suspend)
 		s_theme_suspended--;
 }
 
+static double MCInterfaceThemeLinearChannel(uint2 p_channel);
+
+// p_color mixed with white (p_towards_white) or black, by p_amount (0 .. 1).
+static void MCInterfaceThemeMix(const MCColor& p_color, bool p_towards_white, double p_amount, MCColor& r_color)
+{
+	double t_target = p_towards_white ? 65535.0 : 0.0;
+	r_color . red = (uint2)(p_color . red + (t_target - p_color . red) * p_amount + 0.5);
+	r_color . green = (uint2)(p_color . green + (t_target - p_color . green) * p_amount + 0.5);
+	r_color . blue = (uint2)(p_color . blue + (t_target - p_color . blue) * p_amount + 0.5);
+}
+
+// The 3D edge and shadow colours for a theme that has a background but does
+// not set them: a lighter top edge, a darker bottom edge and a darker shadow,
+// each a step away from the background that suits how light or dark it is.
+static bool MCInterfaceThemeDeriveEdgeColor(const MCAppColorTheme *p_theme, int p_slot, uint2 p_index, MCColor& r_color)
+{
+	if (p_index != DI_TOP && p_index != DI_BOTTOM && p_index != DI_SHADOW)
+		return false;
+
+	if (!p_theme -> has_color[p_slot][DI_BACK])
+		return false;
+
+	const MCColor& t_back = p_theme -> colors[p_slot][DI_BACK];
+	double t_luminance = 0.2126 * MCInterfaceThemeLinearChannel(t_back . red) +
+							0.7152 * MCInterfaceThemeLinearChannel(t_back . green) +
+							0.0722 * MCInterfaceThemeLinearChannel(t_back . blue);
+	bool t_dark = t_luminance <= 0.30;
+
+	switch (p_index)
+	{
+		case DI_TOP:
+			MCInterfaceThemeMix(t_back, true, t_dark ? 0.16 : 0.60, r_color);
+			break;
+		case DI_BOTTOM:
+			MCInterfaceThemeMix(t_back, false, t_dark ? 0.40 : 0.22, r_color);
+			break;
+		default:
+			MCInterfaceThemeMix(t_back, false, t_dark ? 0.60 : 0.40, r_color);
+			break;
+	}
+	return true;
+}
+
 bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_index, MCColor& r_color)
 {
 	if (s_theme_suspended != 0)
@@ -2090,11 +2138,20 @@ bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_index, MCColor& r_c
 		return false;
 
 	int t_slot = MCInterfaceThemeCurrentSlot();
-	if (t_slot < 0 || !t_theme -> has_color[t_slot][p_index])
+	if (t_slot < 0)
 		return false;
+
+	if (!t_theme -> has_color[t_slot][p_index])
+		return MCInterfaceThemeDeriveEdgeColor(t_theme, t_slot, p_index, r_color);
 
 	r_color = t_theme -> colors[t_slot][p_index];
 	return true;
+}
+
+// The colour of link text, for a stack whose link colour is the default.
+bool MCInterfaceThemeLookupLinkColor(MCObject *p_object, MCColor& r_color)
+{
+	return MCInterfaceThemeLookupColor(p_object, kMCInterfaceThemeLinkColor, r_color);
 }
 
 // The background of a bordered field with no backgroundColor of its own.

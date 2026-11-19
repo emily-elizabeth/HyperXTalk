@@ -78,7 +78,13 @@ A scheme sets an interface colour with a line of the form
 
 where `key` is one of `foregroundColor`, `backgroundColor`, `hiliteColor`,
 `borderColor`, `topColor`, `bottomColor`, `shadowColor`, `focusColor`,
-`fieldColor` and `hiliteTextColor`. The script editor ignores these lines.
+`fieldColor`, `hiliteTextColor` and `linkColor`. The script editor ignores
+these lines.
+
+`linkColor` is the colour of link text in a stack whose link colour is still
+the engine's default. Without it, links keep the default blue, lightened on
+a dark background. `topColor`, `bottomColor` and `shadowColor` need not be
+set: the engine works them out from `backgroundColor`.
 
 Colours a scheme does not set are taken from its editor colours:
 `backgroundColor` from `gutterbackground`, `fieldColor` from `background`,

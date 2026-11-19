@@ -2437,8 +2437,8 @@ A scheme sets an interface colour with a line of the form
     interface <key> <red,green,blue>
 
 where <key> is one of foregroundColor, backgroundColor, hiliteColor,
-borderColor, topColor, bottomColor, shadowColor, focusColor, fieldColor and
-hiliteTextColor. The script editor ignores these lines.
+borderColor, topColor, bottomColor, shadowColor, focusColor, fieldColor,
+hiliteTextColor and linkColor. The script editor ignores these lines.
 
 Colours the scheme does not set are taken from its script editor colours where
 there is a natural match: backgroundColor from the gutter background,
@@ -2464,7 +2464,7 @@ shows them
 **/
 function revIDESchemeInterfaceKeys
    return "foregroundColor,backgroundColor,fieldColor,hiliteColor,hiliteTextColor,borderColor," & \
-         "topColor,bottomColor,shadowColor,focusColor"
+         "linkColor,topColor,bottomColor,shadowColor,focusColor"
 end revIDESchemeInterfaceKeys
 
 /**

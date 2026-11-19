@@ -81,6 +81,8 @@ private function keyLabel pKey
          return "Text on highlight"
       case "borderColor"
          return "Borders"
+      case "linkColor"
+         return "Link text"
       case "topColor"
          return "3D top edge"
       case "bottomColor"
@@ -323,7 +325,7 @@ private command showScheme
          put sExplicit[tKey] into tValue
       else if tTheme[tKey] is not empty then
          put tTheme[tKey] && "(derived)" into tValue
-      else if tKey is "hiliteTextColor" then
+      else if tKey is among the items of "hiliteTextColor,linkColor,topColor,bottomColor,shadowColor" then
          put "automatic" into tValue
       else
          put "system colour" into tValue

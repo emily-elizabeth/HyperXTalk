@@ -1871,7 +1871,17 @@ void MCButton::drawtabs(MCDC *dc, MCRectangle &srect)
                     // standard inactive-tab appearance in dark Aqua.
                     if (MCappisactive)
                     {
-                        dc->setforeground(dc->getwhite());
+                        // HXT themes: the selected tab is filled with the
+                        // theme's accent, so its label is the colour that can
+                        // be read on that (dark on a pale accent).
+                        extern bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_di, MCColor& r_color);
+                        extern bool MCInterfaceThemeLookupTextOnHilite(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color);
+                        MCColor t_tab_accent, t_tab_label;
+                        if (MCInterfaceThemeLookupColor(this, DI_HILITE, t_tab_accent) &&
+                            MCInterfaceThemeLookupTextOnHilite(this, t_tab_accent, t_tab_label))
+                            dc->setforeground(t_tab_label);
+                        else
+                            dc->setforeground(dc->getwhite());
                     }
                     else if (
 #if defined(__arm64__) || defined(__aarch64__)
