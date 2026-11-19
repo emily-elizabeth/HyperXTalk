@@ -734,7 +734,8 @@ Summary:    Returns a colour of the app theme in use.
 
 Name:       The name of the colour: "backgroundColor", "foregroundColor",
             "hiliteColor", "borderColor", "topColor", "bottomColor",
-            "shadowColor", "focusColor", "fieldColor" or "hiliteTextColor".
+            "shadowColor", "focusColor", "fieldColor", "hiliteTextColor" or
+            "linkColor".
 
 Returns:    The colour, or nothing if the theme has no colour of that name.
 

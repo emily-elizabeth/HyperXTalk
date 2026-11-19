@@ -1,0 +1,50 @@
+Name: themeChanged
+
+Type: message
+
+Syntax: themeChanged
+
+Summary:
+Sent to the <current card> of a <stack> when its <lightTheme> or <darkTheme>
+is set.
+
+Associations: card
+
+Introduced: 0.9.16
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+on themeChanged
+   -- colors worked out by script are worked out again
+   set the backgroundColor of graphic "Banner" to \
+         the effective hiliteColor of this stack
+   pass themeChanged
+end themeChanged
+
+Description:
+Handle the <themeChanged> <message> if a script keeps colors that depend on
+the stack's theme and has to work them out again when the theme changes.
+
+Most stacks do not need it. Objects with no colors of their own are redrawn
+in the new theme by the engine, and so are widgets that read their colors
+while painting. The message is for controls that paint colors once and keep
+them, such as a control that draws into an image, or sets the colors of its
+parts by script. The Data Grid uses it to draw its rows again.
+
+The message is sent to the current card of the stack whose <lightTheme> or
+<darkTheme> was set, and to the current card of each of its open substacks,
+after the handler that set the property has finished. It is sent whenever
+the property is set, including when the theme is removed by setting it to
+<empty>, and whichever appearance is in use at the time.
+
+The message is not sent when the system changes between light and dark mode.
+A stack with both themes changes its colors then, so a handler that keeps
+theme colors should handle the <systemAppearanceChanged> message as well.
+
+References: lightTheme (property), darkTheme (property),
+systemAppearanceChanged (message), systemAppearance (property),
+effective (keyword), empty (constant), stack (object),
+message (glossary), current card (glossary)

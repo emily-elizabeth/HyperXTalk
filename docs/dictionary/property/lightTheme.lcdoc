@@ -1,0 +1,114 @@
+Name: lightTheme
+
+Type: property
+
+Syntax: set the lightTheme of <stack> to <themeArray>
+Syntax: get the lightTheme of <stack>
+Syntax: set the lightTheme to <themeArray>
+
+Summary:
+Specifies the colors a <stack> and everything on it are drawn in while the
+application is in light mode.
+
+Associations: stack
+
+Introduced: 0.9.16
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Example:
+local tTheme
+put "30,30,46" into tTheme["backgroundColor"]
+put "24,24,37" into tTheme["fieldColor"]
+put "205,214,244" into tTheme["foregroundColor"]
+put "203,166,247" into tTheme["hiliteColor"]
+set the lightTheme of this stack to tTheme
+
+Example:
+-- go back to the system's colors in light mode
+set the lightTheme of this stack to empty
+
+Example:
+-- change one color of the theme a stack already has
+local tTheme
+put the lightTheme of this stack into tTheme
+put "255,121,198" into tTheme["hiliteColor"]
+set the lightTheme of this stack to tTheme
+
+Value (array):
+An <array> of colors, keyed by the name of the color. Each value is a color
+reference: an RGB triplet such as "30,30,46", a color name or an HTML-style
+color such as "#1E1E2E". The property always reports RGB triplets. A key that
+is missing or <empty> leaves that color to the system. Keys other than those
+listed below are ignored. The value is <empty> if the stack has no theme for
+light mode.
+
+Description:
+Use the <lightTheme> property to give a stack its own colors for light mode,
+without setting color properties on its objects and without any script that
+runs when the appearance changes. The <darkTheme> property does the same for
+dark mode. A stack that sets both follows the system from one set of
+colors to the other by itself, in the IDE and in a standalone.
+
+The keys of the array are:
+
+- "backgroundColor": the background of the window and of controls
+- "foregroundColor": text and lines
+- "fieldColor": the background of a bordered field that has no
+  <backgroundColor> of its own
+- "hiliteColor": selected text, selected list lines and the accent of
+  controls (a default button, a progress bar, a checked checkbox, a
+  selected tab)
+- "hiliteTextColor": text drawn on the "hiliteColor". If it is not set the
+  engine uses black or white, whichever can be read on the highlight
+- "borderColor": borders
+- "linkColor": link text, while the stack's <linkColor> is still the
+  engine's default. If it is not set, links keep the default blue, drawn
+  lighter on a dark background
+- "topColor", "bottomColor" and "shadowColor": the edges of 3D controls and
+  the drop shadow of shadowed ones. If "backgroundColor" is set and these
+  are not, the engine works them out from the background
+- "focusColor": the outline of the focused control
+
+A theme color is used only where nothing else sets that color: an object
+whose own color property is set, or that inherits one from its group, card
+or stack, keeps it. The theme takes the place of the system's default
+colors, so the <effective> color properties of an object report the theme's
+colors.
+
+The theme applies to the stack and to its substacks that have no theme of
+their own. It is saved in the stack file, so a standalone needs neither the
+IDE nor a script to use it. A stack file with a theme can be opened by an
+engine that has no support for themes; that engine ignores the theme.
+
+Which of the two themes is in use is decided by the <systemAppearance>, so
+it follows the <preferredAppearance> too. While Windows is using a high
+contrast theme (the <systemAppearance> is "custom") neither is used and the
+system's colors are kept.
+
+Setting the property redraws the stack and sends a <themeChanged> message to
+its current card, and to the current card of each of its open substacks.
+Controls drawn by the operating system follow the theme where the platform
+allows it: on macOS, buttons, menus and tabs are drawn in the light or dark
+style that suits the theme's background, and their accent is the theme's
+"hiliteColor".
+
+Widgets take part in the same way. A widget that reads its colors while
+painting (with `my foreground paint`, `my background color` and so on in
+LiveCode Builder) gets the theme's colors, and the widgets that come with
+the IDE do so. The Data Grid follows the theme for any color that has not
+been set on the grid.
+
+Without an object (`the lightTheme`), the property is the theme of the IDE's own
+windows. It applies only to the IDE's stacks, never to the stacks being
+worked on, and is not saved by the engine: the IDE sets it from its
+Appearance preferences. In a standalone it has no effect.
+
+References: darkTheme (property), themeChanged (message),
+systemAppearance (property), preferredAppearance (property),
+systemAppearanceChanged (message), backgroundColor (property),
+foregroundColor (property), hiliteColor (property), borderColor (property),
+focusColor (property), linkColor (property), effective (keyword),
+empty (constant), array (glossary), stack (object)
