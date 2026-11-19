@@ -702,16 +702,32 @@ end handler
 ----------
 
 ----------
+-- HXT themes: the graph has no background of its own, so its axes, grid and
+-- labels are drawn in the text colour that applies to the widget: one set on
+-- it or inherited, then the stack theme's, then the system's. That keeps them
+-- readable on a dark window, where the fixed black they used to use was not.
+-- pAlpha is the opacity, from 0 to 1.
+private handler inkColor(in pAlpha as Number) returns Color
+	variable tInk as optional Color
+	put my foreground color into tInk
+	if tInk is nothing then
+		return color [0, 0, 0, pAlpha]
+	end if
+	variable tColor as Color
+	put tInk into tColor
+	return color [the red of tColor, the green of tColor, the blue of tColor, pAlpha]
+end handler
+
 -- this handler returns a paint
 public handler getPaint(pLocation, pType) returns Paint
 	if pLocation is "grid" then
 		if pType is "fill" then
 			return solid paint with stringToColor("248,248,248")
 		else if pType is "stroke" then
-			return solid paint with stringToColor("0,0,0,50")
+			return solid paint with inkColor(50 / 255)
 		end if
 	else if pLocation is "axis" and pType is "stroke" then
-		return solid paint with stringToColor("0,0,0,150")
+		return solid paint with inkColor(150 / 255)
 	end if
 
 	return solid paint with stringToColor("255,100,200")
@@ -1097,7 +1113,7 @@ private handler drawGraph() returns nothing
 		if the number of elements in mColors >= tGraphLine - 1 then
 			put element tGraphLine - 1 of mColors into tColour
 		else
-			put stringToColor("0,0,0") into tColour
+			put inkColor(1) into tColour
 		end if
 		set the paint of this canvas to solid paint with tColour
 		
@@ -1214,14 +1230,13 @@ private handler drawHilited() returns nothing
 	set the stroke width of this canvas to 1
 	set the dashes of this canvas to [4,4]
 	
-	variable tColor as String
-	if mHilitedCoordinatesColor is "" then
-		put "0,0,0" into tColor
+	-- an unset highlight colour, or one still at the black default, follows
+	-- the text colour as the axes do
+	if mHilitedCoordinatesColor is "" or mHilitedCoordinatesColor is "0,0,0,255" then
+		set the paint of this canvas to solid paint with inkColor(1)
 	else
-		put mHilitedCoordinatesColor into tColor
-	end if 
-	
-	set the paint of this canvas to solid paint with stringToColor(tColor)
+		set the paint of this canvas to solid paint with stringToColor(mHilitedCoordinatesColor)
+	end if
 	
 	variable tPointX as Real
 	variable tPointY as Real
