@@ -651,7 +651,22 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
                     && !(flags & F_DISABLED) && isstdbtn && getstyleint(flags) == F_STANDARD
                     && (state & CS_SHOW_DEFAULT)
                     && rect.height <= 24 && MCappisactive)
-                    setforeground(dc, DI_BACK, False, True);
+                {
+                    // HXT themes: the default button is filled with the accent
+                    // colour, which under a theme is the theme's highlight, so
+                    // its label is chosen to read on that. With no theme it is
+                    // white on the system accent. (It used to take the
+                    // background colour, which a theme makes dark.)
+                    extern bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_di, MCColor& r_color);
+                    extern bool MCInterfaceThemeLookupTextOnHilite(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color);
+                    MCColor t_accent, t_default_label;
+                    if (MCInterfaceThemeLookupColor(this, DI_HILITE, t_accent) &&
+                        MCInterfaceThemeLookupTextOnHilite(this, t_accent, t_default_label))
+                        dc->setforeground(t_default_label);
+                    else
+                        dc->setforeground(dc->getwhite());
+                    dc->setfillstyle(FillSolid, nil, 0, 0);
+                }
                 // PM-2014-11-26: [[ Bug 14070 ]] [Removed code] Make sure text color in menuButton inverts when hilited
          
 #endif

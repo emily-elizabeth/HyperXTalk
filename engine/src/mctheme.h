@@ -74,8 +74,6 @@ enum Widget_Type {
     WTHEME_TYPE_SLIDER_TRACK_HORIZONTAL,
     WTHEME_TYPE_SLIDER_THUMB_HORIZONTAL,
     WTHEME_TYPE_SLIDER_THUMB_VERTICAL,
-    WTHEME_TYPE_SLIDER_FILL_VERTICAL,
-    WTHEME_TYPE_SLIDER_FILL_HORIZONTAL,
     WTHEME_TYPE_TOOLTIP,
     WTHEME_TYPE_MENUITEMHIGHLIGHT,
     WTHEME_TYPE_GROUP_FRAME,
@@ -202,7 +200,9 @@ typedef struct MCWidgetInfo
 	Widget_Part part;
 	Widget_DataType datatype;
 	void *data;
-	MCObject *whichobject;
+	// HXT themes: starts as nil so that a theme can tell whether a caller
+	// supplied the object (getwidgetthemeinfo sets it) before reading it.
+	MCObject *whichobject = nullptr;
 	//optional object to be passed along with widget info
 }
 MCWidgetInfo;
