@@ -1803,11 +1803,56 @@ end handler
 --------------------------------------------------------------------------------
 
 constant kOverlayOpacity is 0.1
+
+-- One sRGB colour channel (0 .. 1) as a linear-light value.
+private handler linearChannel(in pChannel as Number) returns Number
+	if pChannel <= 0.03928 then
+		return pChannel / 12.92
+	end if
+	return ((pChannel + 0.055) / 1.055) ^ 2.4
+end handler
+
+-- The colour a selected row is filled with: the widget's own highlight if the
+-- developer chose one, otherwise the stack theme's, otherwise whatever
+-- highlight applies to the widget.
+private handler highlightColor() returns Color
+	variable tOwn as optional Color
+	put my own highlight color into tOwn
+	if isDefaultColor(tOwn, kHXTLightHighlightColor) then
+		variable tThemeColor as optional Color
+		put the theme color "hiliteColor" into tThemeColor
+		if tThemeColor is not nothing then
+			return tThemeColor
+		end if
+	end if
+	variable tEffective as optional Color
+	put my highlight color into tEffective
+	if tEffective is nothing then
+		return stringToColor(kHXTLightHighlightColor)
+	end if
+	return tEffective
+end handler
+
+-- The paint for the text and icons of a selected row: black or white,
+-- whichever reads on the highlight, by its relative luminance. The same rule
+-- as selected text in a field (white at a luminance of 0.30 or less).
+private handler selectedContentPaint() returns Paint
+	variable tFill as Color
+	variable tLuminance as Number
+	put highlightColor() into tFill
+	put 0.2126 * linearChannel(the red of tFill) + \
+		0.7152 * linearChannel(the green of tFill) + \
+		0.0722 * linearChannel(the blue of tFill) into tLuminance
+	if tLuminance <= 0.30 then
+		return solid paint with color [1, 1, 1]
+	end if
+	return solid paint with color [0, 0, 0]
+end handler
 private handler paintIcon(in pPath as Path, in pHover as Boolean, in pSelected as Boolean)
 	if pSelected is pHover then
 		set the paint of this canvas to appearancePaint("foreground")
 	else if pSelected then
-		set the paint of this canvas to my background paint
+		set the paint of this canvas to selectedContentPaint()
 	else if pHover then
 		set the paint of this canvas to appearancePaint("highlight")
 	end if
@@ -1862,7 +1907,7 @@ private handler paintText(in pText as String, in pAlignment as String, in pRect 
 	end if
 
 	if pSelected then
-		set the paint of this canvas to my background paint
+		set the paint of this canvas to selectedContentPaint()
 	else
 		set the paint of this canvas to appearancePaint("foreground")
 	end if
