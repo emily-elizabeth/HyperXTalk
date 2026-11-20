@@ -23,11 +23,6 @@ function buildSrcLibrary {
 	# copy the relevant files to the thirdparty directory
 	cp -r ${BUILDDIR}/${ARCHIVE_DESTINATION}/lib/*.h ${THIRD_PARTY_FILE_DIRECTORY}
 	cp -r ${BUILDDIR}/${ARCHIVE_DESTINATION}/lib/*.c ${THIRD_PARTY_FILE_DIRECTORY}
-#	cp ${BUILDDIR}/${ARCHIVE_DESTINATION}/build/*.h ${THIRD_PARTY_FILE_DIRECTORY} # config.h and zipconf.h
-#	rm ${THIRD_PARTY_FILE_DIRECTORY}/zip_dirent.c
-#	cp -r  ${THIRD_PARTY_FILE_DIRECTORY}/hxt_zip_dirent.c ${THIRD_PARTY_FILE_DIRECTORY}/zip_dirent.c
-#	cp -r  ${THIRD_PARTY_FILE_DIRECTORY}/hxt_zip_hash.c ${THIRD_PARTY_FILE_DIRECTORY}/zip_hash.c
-#	cp -r  ${THIRD_PARTY_FILE_DIRECTORY}/hxt_config.h ${THIRD_PARTY_FILE_DIRECTORY}/config.h
 
 	# copy config.h and zipconfig.h from archive/build to revzip folder
 	cp ${BUILDDIR}/${ARCHIVE_DESTINATION}/build/*.h ../../revzip/src
