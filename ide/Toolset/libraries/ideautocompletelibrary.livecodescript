@@ -348,6 +348,7 @@ private command ideAutocomplete_EnsureBuiltinWords
    put functionNames() & return & propertyNames() after tListsA["value"]
    put functionNames() after tListsA["function"]
    put propertyNames() after tListsA["property"]
+   put ideAutocomplete_StandardMessages() after tListsA["message"]
    
    local tKind, tKeywordsA
    put tQuietA into tKeywordsA
@@ -398,6 +399,45 @@ end ideAutocomplete_EnsureBuiltinWords
 
 -- Returns the entries in a dictionary database that can appear in script, one
 -- per line as name, tab, type.
+-- The messages the engine sends, for when the dictionary cannot be read (a
+-- development build without the documentation database, for one): the
+-- engine can list its commands, functions and properties but not these.
+private function ideAutocomplete_StandardMessages
+   local tNames
+   put "appleEvent,arrowKey,backspaceKey,cancelButtonClicked,closeBackground,closeCard," & \
+         "closeControl,closeField,closeStack,closeStackRequest,commandKeyDown," & \
+         "controlKeyDown,copyKey,currentTimeChanged,cutKey,deleteAudioclip," & \
+         "deleteBackground,deleteButton,deleteCard,deleteEPS,deleteField,deleteGraphic," & \
+         "deleteGroup,deleteImage,deleteKey,deletePlayer,deleteScrollbar,deleteStack," & \
+         "deleteVideoclip,deleteWidget,desktopChanged,dragDrop,dragEnd,dragEnter," & \
+         "dragLeave,dragMove,dragStart,editScript,enterInField,enterKey,errorDialog," & \
+         "escapeKey,exitField,fieldValidationFailed,focusIn,focusOut,functionKey,help," & \
+         "iconifyStack,IDChanged,idle,keyDown,keyUp,libraryStack,linkClicked," & \
+         "listenTimeoutExpired,mainStackChanged,menuPick,mouseDoubleDown,mouseDoubleUp," & \
+         "mouseDown,mouseDownInBackdrop,mouseEnter,mouseLeave,mouseMove,mouseRelease," & \
+         "mouseStillDown,mouseUp,mouseUpInBackdrop,mouseWithin,moveControl,moveStack," & \
+         "moveStopped,msgChanged,nameChanged,newAudioclip,newBackground,newButton,newCard," & \
+         "newEPS,newField,newGraphic,newGroup,newImage,newPlayer,newScrollbar,newStack," & \
+         "newTool,newVideoclip,newWidget,notificationClicked,notificationPermissionDenied," & \
+         "notificationPermissionGranted,objectSelectionEnded,objectSelectionStarted," & \
+         "openBackground,openCard,openControl,openField,openStack,optionKeyDown," & \
+         "passwordToggleClicked,pasteKey,playPaused,playStarted,playStopped," & \
+         "preOpenBackground,preOpenCard,preOpenControl,preOpenStack,queryRecordChanged," & \
+         "rawKeyDown,rawKeyUp,relaunch,releaseStack,reloadStack,resizeControl,resizeStack," & \
+         "resume,resumeStack,returnInField,returnKey,revEndXMLNode,revStartXMLData," & \
+         "revStartXMLNode,revXMLEndTree,revXMLStartTree,saveStackRequest,savingStandalone," & \
+         "scriptExecutionError,scrollbarBeginning,scrollbarDrag,scrollbarEnd," & \
+         "scrollbarLineDec,scrollbarLineInc,scrollbarPageDec,scrollbarPageInc," & \
+         "selectedObjectChanged,selectionChanged,shutdown,shutdownRequest,signal," & \
+         "socketClosed,socketError,socketTimeout,standaloneSaved,startup,statusIconClick," & \
+         "statusIconDoubleClick,statusIconMenuOpening,statusIconMenuPick,suspend," & \
+         "suspendStack,systemAppearanceChanged,tabKey,textChanged,themeChanged," & \
+         "toolbarHidden,toolbarItemClicked,toolbarShown,undoChanged,undoKey," & \
+         "unIconifyStack,unrecognizedVoiceCommand,voiceCommand,wakeWordDetected" into tNames
+   replace comma with return in tNames
+   return tNames
+end ideAutocomplete_StandardMessages
+
 private function ideAutocomplete_DocNames pConnection
    if pConnection is not a number then
       return empty
