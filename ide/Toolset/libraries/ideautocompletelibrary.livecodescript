@@ -483,6 +483,11 @@ end ideAutocomplete_RefreshPathHandlers
 private function ideAutocomplete_ScriptHandlers pField
    local tScript, tNames, tName, tType
    put the text of pField into tScript
+   -- A line of a block comment can begin "on the ..." or "after any ...":
+   -- take those out first, or "the" and "any" turn up as handlers.
+   if tScript contains "/*" then
+      put replaceText(tScript, "(?s)/\*.*?\*/", empty) into tScript
+   end if
    filter lines of tScript with regex pattern \
          "(?i)^\s*(private\s+)?(on|command|function|getprop|setprop|before|after)\s+[A-Za-z_]"
    repeat for each line tLine in tScript
@@ -493,7 +498,9 @@ private function ideAutocomplete_ScriptHandlers pField
          put word 1 of tLine into tType
          put word 2 of tLine into tName
       end if
-      if matchText(tName, "^([A-Za-z_][A-Za-z0-9_]*)", tName) then
+      -- (a keyword is no handler's name: this is a continued line such as
+      -- "after the last item", not a declaration)
+      if matchText(tName, "^([A-Za-z_][A-Za-z0-9_]*)", tName) and not sQuietWordsA[toLower(tName)] then
          if tType is among the items of "function,getprop,setprop" then
             put tName & return after tNames["value"]
          else
@@ -504,23 +511,211 @@ private function ideAutocomplete_ScriptHandlers pField
    return tNames
 end ideAutocomplete_ScriptHandlers
 
--- Returns the name of the handler the caret is in, given the script text up
--- to the caret: the one "end", "exit" and "pass" refer to.
-private function ideAutocomplete_EnclosingHandler pScript
-   filter lines of pScript with regex pattern \
-         "(?i)^\s*(private\s+)?(on|command|function|getprop|setprop|before|after)\s+[A-Za-z_]"
-   local tLine, tName
-   put the last line of pScript into tLine
-   if word 1 of tLine is "private" then
-      put word 3 of tLine into tName
+-- Splits pScript, the script up to the caret, into lines (rLinesA, 1 to
+-- rCount, without the unfinished line the caret is on) and returns the number
+-- of the line declaring the handler the caret is in, or 0 if it is in none.
+private function ideAutocomplete_HandlerStart pScript, @rLinesA, @rCount
+   put "x" after pScript
+   delete the last line of pScript
+   put pScript into rLinesA
+   split rLinesA by return
+   put the number of lines of pScript into rCount
+   
+   local tIndex, tWord
+   repeat with tIndex = rCount down to 1
+      put word 1 of rLinesA[tIndex] into tWord
+      if tWord is "private" then
+         put word 2 of rLinesA[tIndex] into tWord
+      end if
+      if tWord is among the items of "on,command,function,getProp,setProp,before,after" then
+         return tIndex
+      end if
+      if tWord is "end" and word 2 of rLinesA[tIndex] is not among the items of "if,repeat,switch,try" then
+         -- the end of an earlier handler: the caret is between handlers
+         return 0
+      end if
+   end repeat
+   return 0
+end ideAutocomplete_HandlerStart
+
+-- Returns the name declared by a handler's first line
+private function ideAutocomplete_HandlerName pLine
+   local tName
+   if word 1 of pLine is "private" then
+      put word 3 of pLine into tName
    else
-      put word 2 of tLine into tName
+      put word 2 of pLine into tName
    end if
    if matchText(tName, "^([A-Za-z_][A-Za-z0-9_]*)", tName) then
       return tName
    end if
    return empty
-end ideAutocomplete_EnclosingHandler
+end ideAutocomplete_HandlerName
+
+-- Returns the blocks (if, repeat, switch, try) still open at the caret, given
+-- the script up to it: one per line, innermost last.  rHandler is given the
+-- name of the handler the caret is in, or empty if it is in none.
+private function ideAutocomplete_OpenBlocks pScript, @rHandler
+   local tLinesA, tCount, tStart
+   put empty into rHandler
+   put ideAutocomplete_HandlerStart(pScript, tLinesA, tCount) into tStart
+   if tStart is 0 then
+      return empty
+   end if
+   put ideAutocomplete_HandlerName(tLinesA[tStart]) into rHandler
+   
+   -- Follow the blocks opened and closed between the handler's first line
+   -- and the caret.  tOpen is the list of blocks open, one per line with the
+   -- innermost last.
+   local tOpen, tIndex, tLine, tFirst, tDepth, tOpens
+   repeat with tIndex = tStart + 1 to tCount
+      put tLinesA[tIndex] into tLine
+      put word 1 of tLine into tFirst
+      put empty into tOpens
+      switch tFirst
+         case "repeat"
+         case "switch"
+         case "try"
+            put toLower(tFirst) into tOpens
+            break
+         case "if"
+            -- only an "if" whose line ends in "then" opens a block
+            if the last word of tLine is "then" then
+               put "if" into tOpens
+            end if
+            break
+         case "else"
+            if the number of words of tLine is 1 or \
+                  (word 2 of tLine is "if" and the last word of tLine is "then") then
+               -- "else" on its own continues a block; after a one-line
+               -- "if x then y" it starts one
+               if line -1 of tOpen is not "if" then
+                  put "if" into tOpens
+               end if
+            else if line -1 of tOpen is "if" then
+               -- "else doThis" finishes the if without an "end if"
+               put line 1 to -2 of tOpen into tOpen
+            end if
+            break
+         case "end"
+            if word 2 of tLine is among the items of "if,repeat,switch,try" then
+               -- close the nearest block of that kind, and any left open in it
+               put the number of lines of tOpen into tDepth
+               repeat while tDepth > 0 and line tDepth of tOpen is not word 2 of tLine
+                  subtract 1 from tDepth
+               end repeat
+               if tDepth > 0 then
+                  put line 1 to (tDepth - 1) of tOpen into tOpen
+               end if
+            end if
+            break
+      end switch
+      if tOpens is not empty then
+         if tOpen is empty then
+            put tOpens into tOpen
+         else
+            put return & tOpens after tOpen
+         end if
+      end if
+   end repeat
+   
+   return tOpen
+end ideAutocomplete_OpenBlocks
+
+-- Returns what can follow end, exit, pass or next (pKeyword) at the caret,
+-- given the script up to it, one per line:
+--   end    the innermost block still open (if, repeat, switch, try), or the
+--          handler's name once every block is closed
+--   exit   "repeat" inside a loop, and the handler's name
+--   next   "repeat" inside a loop
+--   pass   the handler's name
+private function ideAutocomplete_BlockWords pKeyword, pScript
+   local tOpen, tName
+   put ideAutocomplete_OpenBlocks(pScript, tName) into tOpen
+   if tName is empty then
+      return empty
+   end if
+   switch pKeyword
+      case "end"
+         if tOpen is not empty then
+            return line -1 of tOpen
+         end if
+         return tName
+      case "exit"
+         if "repeat" is among the lines of tOpen then
+            return "repeat" & return & tName
+         end if
+         return tName
+      case "next"
+         if "repeat" is among the lines of tOpen then
+            return "repeat"
+         end if
+         return empty
+      case "pass"
+         return tName
+   end switch
+   return empty
+end ideAutocomplete_BlockWords
+
+-- Returns the variables that can be used at the caret, given the script up
+-- to it, one per line: the handler's parameters and the variables it has
+-- declared or put something into so far, then the locals, globals and
+-- constants declared at the top level of the script.
+private function ideAutocomplete_Variables pScript
+   local tLinesA, tCount, tStart, tNames, tName, tLine, tFirst, tItem, tIndex
+   put ideAutocomplete_HandlerStart(pScript, tLinesA, tCount) into tStart
+   
+   if tStart > 0 then
+      -- parameters
+      local tParams
+      if matchText(tLinesA[tStart], "(?i)^\s*(?:private\s+)?[a-z]+\s+[A-Za-z_][A-Za-z0-9_]*(.*)$", tParams) then
+         replace "(" with space in tParams
+         replace ")" with space in tParams
+         replace "@" with empty in tParams
+         repeat for each item tItem in tParams
+            if matchText(tItem, "^\s*([A-Za-z_][A-Za-z0-9_]*)", tName) then
+               put tName & return after tNames
+            end if
+         end repeat
+      end if
+      
+      -- declared, or simply used as somewhere to put something
+      repeat with tIndex = tStart + 1 to tCount
+         put tLinesA[tIndex] into tLine
+         put word 1 of tLine into tFirst
+         if tFirst is among the items of "local,global,constant" then
+            repeat for each item tItem in word 2 to -1 of tLine
+               if matchText(tItem, "^\s*([A-Za-z_][A-Za-z0-9_]*)", tName) then
+                  put tName & return after tNames
+               end if
+            end repeat
+         else if tFirst is "repeat" then
+            if matchText(tLine, "(?i)^\s*repeat\s+with\s+([A-Za-z_][A-Za-z0-9_]*)\s*=", tName) or \
+                  matchText(tLine, "(?i)^\s*repeat\s+for\s+each\s+[a-z]+\s+([A-Za-z_][A-Za-z0-9_]*)\s+in\s", tName) then
+               put tName & return after tNames
+            end if
+         else if matchText(tLine, "(?i)\s(?:into|after|before)\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?:\[.*)?$", tName) then
+            -- (not "into it", "into msg", "into field ...": keywords are quiet)
+            if not sQuietWordsA[toLower(tName)] then
+               put tName & return after tNames
+            end if
+         end if
+      end repeat
+   end if
+   
+   -- Top-level declarations start in the first column; a handler's own are
+   -- indented.
+   filter lines of pScript with regex pattern "(?i)^(local|global|constant)\s"
+   repeat for each line tLine in pScript
+      repeat for each item tItem in word 2 to -1 of tLine
+         if matchText(tItem, "^\s*([A-Za-z_][A-Za-z0-9_]*)", tName) then
+            put tName & return after tNames
+         end if
+      end repeat
+   end repeat
+   
+   return ideAutocomplete_MergeWords(tNames, empty)
+end ideAutocomplete_Variables
 
 -- Returns true if the word being typed is inside a comment.  pBefore is the
 -- line up to the word, pPreceding a stretch of script up to the same point.
@@ -553,7 +748,7 @@ end ideAutocomplete_InComment
 -- to the word being typed:
 --   "command"   at the start of a statement (line start, after then, else or ;)
 --   "message"   after on, before or after
---   "handler"   after end, exit or pass
+--   "handler"   after end, exit, pass or next starting a statement
 --   "property"  after "set the"
 --   "the"       after "the" anywhere else: a property or a built-in function
 --   "type"      after "is a", "is an", "is not a", "is not an"
@@ -568,9 +763,25 @@ private function ideAutocomplete_Context pBefore
       if word 1 of pBefore is among the items of "on,before,after" then
          return "message"
       end if
-      if word 1 of pBefore is among the items of "end,exit,pass" then
-         return "handler"
-      end if
+   end if
+   
+   -- end, exit, pass and next may also follow then, else or ; on the same
+   -- line ("if x = 9 then exit repeat"): look at the statement, not the line
+   local tStatement, tSeparator, tAt, tSkip, tFrom
+   put 1 into tFrom
+   repeat for each item tSeparator in " then , else ,;"
+      put 0 into tSkip
+      repeat
+         put offset(tSeparator, pBefore, tSkip) into tAt
+         if tAt is 0 then exit repeat
+         add tAt to tSkip
+         put max(tFrom, tSkip + the number of chars of tSeparator) into tFrom
+      end repeat
+   end repeat
+   put char tFrom to -1 of pBefore into tStatement
+   if the number of words of tStatement is 1 and \
+         word 1 of tStatement is among the items of "end,exit,pass,next" then
+      return "handler"
    end if
    if the last word of pBefore is among the items of "then,else" or \
          the last char of word -1 of pBefore is ";" then
@@ -598,6 +809,18 @@ private function ideAutocomplete_HumpsEnabled
    put the tPropName of stack "revPreferences" into tValue
    return tValue is not false
 end ideAutocomplete_HumpsEnabled
+
+-- Returns pWords without any that are quiet (keywords, operators ...)
+private function ideAutocomplete_WithoutQuietWords pWords
+   local tKept, tLine
+   repeat for each line tLine in pWords
+      if tLine is not empty and not sQuietWordsA[toLower(tLine)] then
+         put tLine & return after tKept
+      end if
+   end repeat
+   delete the last char of tKept
+   return tKept
+end ideAutocomplete_WithoutQuietWords
 
 -- Returns the regex a word must match to complete pToken.  The first letter
 -- must start the word; each later letter either follows on directly or starts
@@ -715,29 +938,32 @@ command ideAutocomplete_DoUpdate
    dispatch "getCaretToken" to pEditorId
    local tToken
    put the result into tToken
-   
-   if the number of chars of tToken < kMinChars or \
-         not matchText(tToken, "^[A-Za-z_][A-Za-z0-9_]*$") then
+   if tToken is not empty and not matchText(tToken, "^[A-Za-z_][A-Za-z0-9_]*$") then
       ideAutocomplete_HidePopup
       exit ideAutocomplete_DoUpdate
    end if
    
-   -- A keyword typed in full (into, the, it): nothing to complete
-   ideAutocomplete_EnsureBuiltinWords
-   if sQuietWordsA[toLower(tToken)] then
-      ideAutocomplete_HidePopup
-      exit ideAutocomplete_DoUpdate
-   end if
-   
-   -- Only complete when the caret sits at the end of the word being typed,
-   -- and not inside a string literal.
+   -- Only complete when the caret sits at the end of the word being typed.
+   -- With nothing typed yet, only directly after a space (see below for the
+   -- few places where that is enough to offer something).
    local tCursor, tTokenStart, tBefore
    put word 2 of the selectedChunk of tField into tCursor
-   put tCursor - the number of chars of tToken into tTokenStart
-   if tTokenStart < 1 or the text of char tTokenStart to (tCursor - 1) of tField is not tToken then
+   if tCursor is not a number then
       ideAutocomplete_HidePopup
       exit ideAutocomplete_DoUpdate
    end if
+   put tCursor - the number of chars of tToken into tTokenStart
+   if tToken is empty then
+      if tCursor < 2 or the text of char (tCursor - 1) of tField is not space then
+         ideAutocomplete_HidePopup
+         exit ideAutocomplete_DoUpdate
+      end if
+   else if tTokenStart < 1 or the text of char tTokenStart to (tCursor - 1) of tField is not tToken then
+      ideAutocomplete_HidePopup
+      exit ideAutocomplete_DoUpdate
+   end if
+   
+   -- ... and not inside a string literal
    local tPreceding
    put empty into tBefore
    if tTokenStart > 1 then
@@ -752,8 +978,37 @@ command ideAutocomplete_DoUpdate
       ideAutocomplete_HidePopup
       exit ideAutocomplete_DoUpdate
    end if
+   set the itemDelimiter to comma
    -- ... nor inside a comment
    if ideAutocomplete_InComment(tBefore, tPreceding) then
+      ideAutocomplete_HidePopup
+      exit ideAutocomplete_DoUpdate
+   end if
+   
+   -- What can be completed depends on where in the line the word is: a
+   -- command only ever starts a statement and a function never does.
+   local tContext, tContainer
+   put ideAutocomplete_Context(tBefore) into tContext
+   -- "put x into", "put x after", "put x before": a container comes next
+   put false into tContainer
+   if tContext is "value" and the number of words of tBefore >= 2 then
+      put the last word of tBefore is among the items of "into,after,before" into tContainer
+   end if
+   
+   -- Normally two letters must be typed before anything is offered.  After
+   -- end, exit, pass and next the choice is so narrow, and after into, after
+   -- and before so relevant (the variables in reach), that the space is enough.
+   if tContext is not "handler" and not tContainer and the number of chars of tToken < kMinChars then
+      ideAutocomplete_HidePopup
+      exit ideAutocomplete_DoUpdate
+   end if
+   
+   -- A keyword typed in full (into, it, me): nothing to complete.  Not after
+   -- "the", though, where a property is being typed and "for" is merely the
+   -- start of "foreColor".
+   ideAutocomplete_EnsureBuiltinWords
+   if tToken is not empty and sQuietWordsA[toLower(tToken)] and \
+         tContext is not among the items of "the,property" then
       ideAutocomplete_HidePopup
       exit ideAutocomplete_DoUpdate
    end if
@@ -766,19 +1021,16 @@ command ideAutocomplete_DoUpdate
       ideAutocomplete_RefreshPathHandlers pObjectId
    end if
    
-   -- What can be completed depends on where in the line the word is: a
-   -- command only ever starts a statement and a function never does.
-   local tContext, tScriptHandlers, tHandlers, tBuiltins
-   put ideAutocomplete_Context(tBefore) into tContext
-   put ideAutocomplete_ScriptHandlers(tField) into tScriptHandlers
+   local tScriptHandlers, tHandlers, tBuiltins, tVariables
    switch tContext
       case "message"
          -- on, before, after: the name of a message
          put sBuiltinWords["message"] into tBuiltins
          break
       case "handler"
-         -- end, exit, pass: only ever the handler the caret is in
-         put ideAutocomplete_EnclosingHandler(the text of char 1 to tTokenStart of tField) into tHandlers
+         -- end, exit, pass, next: the handler or block the caret is in
+         -- (the keyword is the word just before the one being typed)
+         put ideAutocomplete_BlockWords(word -1 of tBefore, the text of char 1 to (tTokenStart - 1) of tField) into tHandlers
          break
       case "property"
          -- set the ...: a property
@@ -793,21 +1045,41 @@ command ideAutocomplete_DoUpdate
          put "array,boolean,color,date,integer,number,point,rect" into tBuiltins
          replace comma with return in tBuiltins
          break
+      case "value"
+         -- the variables in reach come first, then function handlers
+         put ideAutocomplete_Variables(the text of char 1 to (tTokenStart - 1) of tField) into tVariables
+         put ideAutocomplete_ScriptHandlers(tField) into tScriptHandlers
+         put tVariables & return & tScriptHandlers["value"] & return & sPathHandlers[tRuggedId]["value"] into tHandlers
+         put sBuiltinWords["value"] into tBuiltins
+         break
       default
+         put ideAutocomplete_ScriptHandlers(tField) into tScriptHandlers
          put tScriptHandlers[tContext] & return & sPathHandlers[tRuggedId][tContext] into tHandlers
          put sBuiltinWords[tContext] into tBuiltins
+         if tContext is "command" then
+            -- "break" only means something inside a switch
+            local tOpenBlocks, tInHandler
+            put ideAutocomplete_OpenBlocks(the text of char 1 to (tTokenStart - 1) of tField, tInHandler) into tOpenBlocks
+            if "switch" is not among the lines of tOpenBlocks then
+               filter lines of tBuiltins without "break"
+            end if
+         end if
    end switch
+   
+   -- Whatever a script or the message path may throw up, a keyword is never
+   -- a command or a function ("the", "and", "after" ...)
+   if tContext is among the items of "command,value" then
+      put ideAutocomplete_WithoutQuietWords(tHandlers) into tHandlers
+   end if
    
    -- "put x after msg" and "put x before msg" are everyday debugging lines, so
    -- after those two words the message box is offered.  ("after" or "before"
    -- as the first word of a line declares a handler instead.)
    local tOfferMessageBox
    put false into tOfferMessageBox
-   if tContext is "value" and the number of words of tBefore >= 2 then
-      if the last word of tBefore is "after" or the last word of tBefore is "before" then
-         put true into tOfferMessageBox
-         put return & "message box" after tBuiltins
-      end if
+   if tContainer and the last word of tBefore is not "into" then
+      put true into tOfferMessageBox
+      put return & "message box" after tBuiltins
    end if
    
    -- Two letters are enough for a hump match where the choice is small: "oc"
@@ -826,11 +1098,22 @@ command ideAutocomplete_DoUpdate
    end if
    
    local tMatches
-   put ideAutocomplete_Matches(tToken, tHandlers, tBuiltins, tHumpsFrom) into tMatches
+   if tToken is not empty then
+      put ideAutocomplete_Matches(tToken, tHandlers, tBuiltins, tHumpsFrom) into tMatches
+   else if tContext is "handler" then
+      -- straight after the space: the handler or block, as worked out above
+      put tHandlers into tMatches
+   else
+      -- straight after into, after or before: the variables in reach
+      put line 1 to kMaxCompletions of tVariables into tMatches
+      if tMatches is not empty and tOfferMessageBox then
+         put return & "message box" after tMatches
+      end if
+   end if
    
    -- "ms" is the start of "msg": offer the message box for that too, spelled
    -- out, since "msg" itself is too short to be worth picking from a list.
-   if tOfferMessageBox and "msg" begins with tToken and \
+   if tToken is not empty and tOfferMessageBox and "msg" begins with tToken and \
          "message box" is not among the lines of tMatches then
       put "message box" & return before tMatches
       if the last char of tMatches is return then
@@ -1044,6 +1327,10 @@ private function ideAutocomplete_Signature pName, pKind, pField, pRuggedId
    -- 3. a built-in.  Short commands (put, set, get) and keywords are typed
    -- far too often to want their syntax every time.
    if the number of chars of pName <= 3 or sQuietWordsA[toLower(pName)] then
+      return empty
+   end if
+   -- Nor do declarations: anyone typing "local" knows what follows it.
+   if pName is among the items of "local,global,constant" then
       return empty
    end if
    return ideAutocomplete_DocSyntax(pName, pKind)
@@ -1532,7 +1819,13 @@ private command ideAutocomplete_GetCaretScreenPos pEditorId, @rX, @rY, @rLineHei
    -- formattedRect gives the card position of the first character of the
    -- word, which stays right with wrapped lines, folded code and scrolling.
    local tCardX, tCardY, tTokenRect
-   if sSavedTokenStart > 0 then
+   if sSavedToken is empty and sSavedTokenStart > 1 then
+      -- nothing typed yet: line up with the caret, just after the space
+      put the formattedRect of char (sSavedTokenStart - 1) of tField into tTokenRect
+      if tTokenRect is not empty then
+         put item 3 of tTokenRect into item 1 of tTokenRect
+      end if
+   else if sSavedTokenStart > 0 then
       put the formattedRect of char sSavedTokenStart of tField into tTokenRect
    end if
    if tTokenRect is not empty then
@@ -1629,7 +1922,9 @@ private command ideAutocomplete_AcceptCompletion pEditorId
 
    -- Use the caret position snapshotted when the popup was shown.
    -- Re-querying here would fail if a popup click moved OS focus off the editor.
-   if sSavedToken is empty then
+   -- (sSavedToken is empty when the list came up straight after a space: the
+   -- completion is then simply inserted at the caret.)
+   if sSavedTokenStart is not a number or sSavedTokenStart < 1 then
       ideAutocomplete_HidePopup
       exit ideAutocomplete_AcceptCompletion
    end if
