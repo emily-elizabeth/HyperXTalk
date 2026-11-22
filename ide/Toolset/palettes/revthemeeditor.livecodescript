@@ -342,6 +342,9 @@ private command showScheme
       set the enabled of button ("clear_" & tKey) of me to (sExplicit[tKey] is not empty)
    end repeat
 
+   -- keep the sample list showing a selected line, whatever was clicked
+   set the hilitedLine of field "SampleList" of me to 2
+
    -- the window previews the colours whichever appearance the system is in
    try
       do "set the lightTheme of me to tTheme"
