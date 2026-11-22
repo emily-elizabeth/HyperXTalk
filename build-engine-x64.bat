@@ -99,6 +99,16 @@ if not defined MSBUILD (
     echo ERROR: MSBuild.exe not found. Install Visual Studio 2019 Build Tools with C++ workload.
     exit /b 1
 )
+
+:: The steps further down find the Visual Studio root by walking up from the
+:: default MSBuild.exe, so keep that path before switching.
+set "MSBUILD_DEFAULT=%MSBUILD%"
+
+:: Prefer the 64-bit MSBuild when it is installed.  Bin\MSBuild.exe is a
+:: 32-bit process, and on Windows on ARM it selects the 32-bit compiler, which
+:: runs out of heap space (C1060) compiling icudata-minimal.cpp.
+set "MSBUILD64=%MSBUILD:\Bin\MSBuild.exe=\Bin\amd64\MSBuild.exe%"
+if exist "%MSBUILD64%" set "MSBUILD=%MSBUILD64%"
 echo Using MSBuild: %MSBUILD%
 
 :: ----------------------------------------------------------
@@ -160,7 +170,7 @@ if exist "%WV2_LIB%" (
 
 :: Find CL.exe and lib.exe for the revsecurity step below (still needed).
 set "FIND_CLEXE_PS1=%TEMP%\hxt_find_clexe.ps1"
-echo $p = '%MSBUILD%'                                                    > "%FIND_CLEXE_PS1%"
+echo $p = '%MSBUILD_DEFAULT%'                                                    > "%FIND_CLEXE_PS1%"
 echo $p = Split-Path -Parent $p                                         >> "%FIND_CLEXE_PS1%"
 echo $p = Split-Path -Parent $p                                         >> "%FIND_CLEXE_PS1%"
 echo $p = Split-Path -Parent $p                                         >> "%FIND_CLEXE_PS1%"
@@ -179,7 +189,7 @@ set "LIB_EXE=%CL_EXE:cl.exe=lib.exe%"
 
 :: Set up the VS environment (include/lib paths) by calling vcvarsall.bat x64.
 set "FIND_VCVARS_PS1=%TEMP%\hxt_find_vcvars.ps1"
-echo $p = '%MSBUILD%'                                    > "%FIND_VCVARS_PS1%"
+echo $p = '%MSBUILD_DEFAULT%'                                    > "%FIND_VCVARS_PS1%"
 echo $p = Split-Path -Parent $p                         >> "%FIND_VCVARS_PS1%"
 echo $p = Split-Path -Parent $p                         >> "%FIND_VCVARS_PS1%"
 echo $p = Split-Path -Parent $p                         >> "%FIND_VCVARS_PS1%"
@@ -1062,8 +1072,14 @@ echo.
 :: __EnsureExternal "revzip" to package .lcm files into zips).
 :: libz and libzip must exist in Debug\lib\ first.
 :: ----------------------------------------------------------
-echo Building server-revxml.dll (Debug — for extension packaging) ...
+echo Building server-revxml.dll (Debug -- for extension packaging) ...
 echo Building server-revxml.dll ... >> "%LOGFILE%"
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVXML_SERVER% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo WARNING: server-revxml.dll Debug build failed -- extension packaging may fail.
+) else (
+    echo server-revxml.dll OK.
+)
 set "VCXPROJ_LIBZIP=build-win-x86_64\hyperxtalk\thirdparty\libzip\libzip.vcxproj"
 "%MSBUILD%" %TOOLSET% %VCXPROJ_LIBZIP% /t:Rebuild /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 ( echo WARNING: libzip Debug build failed -- server-revzip may not link. )
@@ -1218,4 +1234,14 @@ if exist "%BROWSER_LCB%" (
     if exist "%BROWSER_PKG_DBG%\module.lcm" (
         echo Browser widget compiled OK.
     ) else (
-        echo WARNING: brow
+        echo WARNING: browser widget compilation failed -- skipping.
+    )
+) else (
+    echo WARNING: browser.lcb not found -- skipping browser widget compilation.
+)
+
+echo.
+echo Build finished: %DATE% %TIME%
+echo Build finished: %DATE% %TIME% >> "%LOGFILE%"
+echo Engine: %DBG_OUT%\HyperXTalk.exe
+endlocal

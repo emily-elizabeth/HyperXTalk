@@ -5,6 +5,72 @@ group: advanced
 
 Copyright © 2015-2019 LiveCode Ltd., Edinburgh, UK
 
+## Building with the batch scripts
+
+This is the route the Windows CI job follows (`build-windows` in
+`.github/workflows/build.yml`), and it builds a 64-bit Debug engine and IDE.
+The sections after this one describe the older Cygwin-based build and are kept
+for reference.
+
+### What to install
+
+- **Visual Studio 2019 or later** with the *Desktop development with C++*
+  workload. On anything newer than 2019, also tick these under *Individual
+  components*, because the projects are generated for the v142 toolset:
+  - MSVC v142 - VS 2019 C++ x64/x86 build tools
+  - C++ ATL for v142 build tools (x86 & x64)
+- **Git for Windows**
+- **Perl**, on the `PATH` (for example Strawberry Perl: `scoop install perl`)
+- **Python 3**, runnable as both `python` and `python3`. The python.org
+  installer only provides `python.exe`; `scoop install python` provides both.
+- **winflexbison3** (`choco install winflexbison3`)
+- **MySQL and PostgreSQL** from [Scoop](https://scoop.sh):
+  `scoop install mysql postgresql`. The setup scripts look for them in Scoop's
+  folder. Install Scoop from a non-administrator PowerShell.
+
+The Microsoft Speech SDK 5.1 is optional; without it `configure.bat` prints a
+warning and `revspeech` is not built.
+
+On Windows on ARM, add `--arch 64bit` to the Scoop installs: the build produces
+x64 binaries, so the libraries it links must be x64 too.
+
+### One-off preparation
+
+Run these from the top of the checkout, in PowerShell.
+
+Fetch the WebView2 SDK:
+
+    Invoke-WebRequest "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/1.0.3912.50" -OutFile "$env:TEMP\webview2.zip"
+    Expand-Archive "$env:TEMP\webview2.zip" -DestinationPath "packages\Microsoft.Web.WebView2.1.0.3912.50" -Force
+
+Put the Windows versions of the cairo and pixman headers in place:
+
+    copy thirdparty\libcairo\src\config.h.win32 thirdparty\libcairo\src\config.h
+    copy thirdparty\libcairo\subprojects\pixman-0.43.4\pixman\pixman-version.h.win32 thirdparty\libcairo\subprojects\pixman-0.43.4\pixman\pixman-version.h
+
+`thirdparty\libcairo\src\cairo-features.h` is committed with the macOS feature
+set and has to be replaced with the Windows one; copy the contents from the
+*Prepare cairo-features.h for Windows* step of the CI workflow. Do not commit
+the changed file.
+
+Copy the database client libraries out of Scoop:
+
+    .\setup-mysql-win.bat
+    .\setup-pgsql-win.bat
+
+### Building
+
+    .\configure.bat
+    .\build-thirdparty-x64.bat
+    .\build-engine-x64.bat
+
+The engine is written to `build-win-x86_64\hyperxtalk\Debug\HyperXTalk.exe`.
+Each script writes a log next to itself (`build-thirdparty-x64.log`,
+`build-engine-x64.log`).
+
+`build-engine-x64.bat` creates a `shared_intermediate` folder at the root of
+the drive the checkout is on; the generated sources live there.
+
 ## Dependencies
 
 The Windows build scripts currently don't have any ability to auto-discover tools, so you need to **install all of the build dependencies to their default locations**.
