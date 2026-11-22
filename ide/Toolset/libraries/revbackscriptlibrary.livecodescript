@@ -71,11 +71,11 @@ private command __ForwardAppearanceChangeToDataGrids pStack, pMode, pWindowColor
    end repeat
 end __ForwardAppearanceChangeToDataGrids
 
-## HXT dark mode: LCB widgets cannot read the system appearance themselves
-## (script-object access is blocked in their paint and property handlers), so
-## the IDE pushes it to the widgets that support it. Called by the front
-## script when a stack opens, by newWidget below, and by the appearance-change
-## handler above.
+## HXT dark mode: the widgets that support it work out their colours from the
+## system appearance and the stack's theme when they paint, so all the IDE has
+## to do is tell them to paint again. Called by the front script when a stack
+## opens, by newWidget below, and by the appearance-change handler above.
+## pMode is no longer used.
 command revHXTPushAppearanceToWidgets pStack, pMode
    if pMode is empty then put the systemAppearance into pMode
    if not exists(pStack) then exit revHXTPushAppearanceToWidgets
@@ -96,7 +96,12 @@ constant kHXTAppearanceAwareWidgets = "com.livecode.widget.segmented,com.livecod
 private command __HXTPushAppearanceToWidget pWidget, pMode
    try
       if the kind of pWidget is among the items of kHXTAppearanceAwareWidgets then
-         set the hxtAppearance of pWidget to pMode
+         -- The widgets read the system appearance and the stack's theme
+         -- themselves when they paint. Setting the property to a mode would
+         -- pin the widget to it, and it would then stay light or dark after
+         -- the system changed; setting it to empty clears any pinned mode
+         -- and makes the widget paint again.
+         set the hxtAppearance of pWidget to empty
       end if
    catch tError
       -- an older widget module without the property must not break anything
