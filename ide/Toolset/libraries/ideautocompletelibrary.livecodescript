@@ -15,6 +15,7 @@ local sBuiltinWords
 local sQuietWordsA
 local sBuiltinFromDocs
 local sBuiltinBuiltAt
+local sBuiltinBuilds
 
 -- Message path handler names: ruggedId -> ["command"] and ["value"], each a
 -- return-separated list (see ideAutocomplete_KindOfHandler).  Refreshed
@@ -83,6 +84,8 @@ constant kMaxHintLines = 4
 -- How often (ms) a showing hint checks that the caret is still in its call
 constant kHintWatchInterval = 250
 constant kMinChars = 2
+-- How many times the word lists are built while waiting for the dictionary
+constant kMaxWordListBuilds = 4
 constant kMaxCompletions = 50
 constant kMaxVisible = 10
 constant kPopupWidth = 220
@@ -286,8 +289,11 @@ private command ideAutocomplete_EnsureBuiltinWords
    if sBuiltinFromDocs is true then
       exit ideAutocomplete_EnsureBuiltinWords
    end if
-   -- The dictionary may not be ready early in startup: retry now and then.
-   if sBuiltinWords is an array and the seconds - sBuiltinBuiltAt < 10 then
+   -- The dictionary may not be ready early in startup: retry now and then,
+   -- but not for ever.  Some builds have no dictionary at all, and building
+   -- the lists again every few seconds makes for a pause as you type.
+   if sBuiltinWords is an array and \
+         (sBuiltinBuilds >= kMaxWordListBuilds or the seconds - sBuiltinBuiltAt < 10) then
       exit ideAutocomplete_EnsureBuiltinWords
    end if
    
@@ -395,6 +401,7 @@ private command ideAutocomplete_EnsureBuiltinWords
    put tQuietA into sQuietWordsA
    put (tDocCount > 1000) into sBuiltinFromDocs
    put the seconds into sBuiltinBuiltAt
+   add 1 to sBuiltinBuilds
 end ideAutocomplete_EnsureBuiltinWords
 
 -- Returns the entries in a dictionary database that can appear in script, one
