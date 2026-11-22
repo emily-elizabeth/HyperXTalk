@@ -1182,7 +1182,7 @@ command ideAutocomplete_DoUpdate
    
    -- "ms" is the start of "msg": offer the message box for that too, spelled
    -- out, since "msg" itself is too short to be worth picking from a list.
-   if tOfferMessageBox and "msg" begins with tToken and \
+   if tToken is not empty and tOfferMessageBox and "msg" begins with tToken and \
          "message box" is not among the lines of tMatches then
       put "message box" & return before tMatches
       if the last char of tMatches is return then
