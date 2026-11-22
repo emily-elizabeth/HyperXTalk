@@ -93,6 +93,8 @@ constant kItemHeight = 18
 -- How long (ms) to wait before hiding the popup after a cancel event.
 -- Increase this if the popup disappears before you can click an item.
 constant kHideDelay = 400
+-- Where the list and the hint wait, out of sight, on Windows
+constant kParkedLoc = "-20000,-20000"
 
 --------------------------------------------------------------------------------
 -- Library lifecycle
@@ -1597,11 +1599,8 @@ private command ideAutocomplete_ShowHint pEditorId, pField, pText, pArgument, pN
    -- changes that must neither take the keyboard nor dismiss what is shown.
    put true into sSuppressCancel
    if sHintShowing is not true then
-      show stack kHintName
+      ideAutocomplete_RevealWindow kHintName, tX, tY
       put true into sHintShowing
-      if the topLeft of stack kHintName is not (tX,tY) then
-         set the topLeft of stack kHintName to tX, tY
-      end if
    end if
    ideAutocomplete_RefocusEditor pEditorId
    if the platform contains "win" then
@@ -1619,7 +1618,7 @@ end ideAutocomplete_ShowHint
 private command ideAutocomplete_HideHint
    cancel sHintWatchTimer
    if sHintShowing is true then
-      hide stack kHintName
+      ideAutocomplete_ConcealWindow kHintName
    end if
    put false into sHintShowing
 end ideAutocomplete_HideHint
@@ -1777,13 +1776,8 @@ private command ideAutocomplete_ShowPopup pEditorId, pMatches
    -- additional async focus events, so we keep the flag set longer there.
    put true into sSuppressCancel
    if not sPopupShowing then
-      show stack kPopupName
+      ideAutocomplete_RevealWindow kPopupName, tX, tY
       put true into sPopupShowing
-      -- Some window managers place a window themselves when it is first
-      -- mapped, ignoring where it was put while hidden: position it again.
-      if the topleft of stack kPopupName is not (tX,tY) then
-         set the topleft of stack kPopupName to tX, tY
-      end if
    end if
 
    -- Return keyboard focus to the script editor so the user can keep typing.
@@ -1799,11 +1793,44 @@ end ideAutocomplete_ShowPopup
 private command ideAutocomplete_HidePopup
    cancel sHideTimer
    if sPopupShowing then
-      hide stack kPopupName
+      ideAutocomplete_ConcealWindow kPopupName
       put false into sPopupShowing
    end if
    put empty into sCurrentEditorId
 end ideAutocomplete_HidePopup
+
+-- Puts the list or the hint on screen at pX,pY, and takes it off again.
+--
+-- On Windows a window is activated when it is shown, which takes the title
+-- bar highlight from the script editor until focus is handed back: a flicker
+-- every time the list appears.  Moving a window does not activate it, so
+-- there the window is shown once, out of sight, and from then on is moved
+-- into place and back out instead of being shown and hidden.
+private command ideAutocomplete_RevealWindow pName, pX, pY
+   if the platform contains "win" then
+      if not the visible of stack pName then
+         set the topLeft of stack pName to kParkedLoc
+         show stack pName
+      end if
+      set the topLeft of stack pName to pX, pY
+      exit ideAutocomplete_RevealWindow
+   end if
+   
+   show stack pName
+   -- Some window managers place a window themselves when it is first
+   -- mapped, ignoring where it was put while hidden: position it again.
+   if the topLeft of stack pName is not (pX,pY) then
+      set the topLeft of stack pName to pX, pY
+   end if
+end ideAutocomplete_RevealWindow
+
+private command ideAutocomplete_ConcealWindow pName
+   if the platform contains "win" then
+      set the topLeft of stack pName to kParkedLoc
+   else
+      hide stack pName
+   end if
+end ideAutocomplete_ConcealWindow
 
 --------------------------------------------------------------------------------
 -- Private: focus management
