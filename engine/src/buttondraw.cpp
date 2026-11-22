@@ -16,6 +16,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include "prefix.h"
 
+#include <math.h>
+
 #include "globdefs.h"
 #include "filedefs.h"
 #include "objdefs.h"
@@ -69,6 +71,15 @@ static bool MCButtonThemePaintsBezel(MCObject *p_object)
 	extern bool MCInterfaceThemeBackgroundIsDark(MCObject *p_object, bool& r_dark);
 	bool t_dark;
 	return IsNativeWin() && MCInterfaceThemeBackgroundIsDark(p_object, t_dark);
+}
+
+// The relative luminance (0 .. 1) of a colour.
+static double MCButtonColorLuminance(const MCColor& p_color)
+{
+	double t_channels[3] = { p_color . red / 65535.0, p_color . green / 65535.0, p_color . blue / 65535.0 };
+	for (int i = 0; i < 3; i++)
+		t_channels[i] = t_channels[i] <= 0.04045 ? t_channels[i] / 12.92 : pow((t_channels[i] + 0.055) / 1.055, 2.4);
+	return 0.2126 * t_channels[0] + 0.7152 * t_channels[1] + 0.0722 * t_channels[2];
 }
 
 // The colour of a disabled label on such a bezel: the theme's text colour
@@ -516,11 +527,39 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 					MCPatternRef t_fill_pattern = nil;
 					int2 t_fill_x, t_fill_y;
 					if (getforecolor(DI_HILITE, False, False, t_fill, t_fill_pattern,
-					                 t_fill_x, t_fill_y, dc -> gettype(), this) &&
-					    MCInterfaceThemeLookupTextOnHilite(this, t_fill, t_label))
+					                 t_fill_x, t_fill_y, dc -> gettype(), this))
 					{
-						dc->setforeground(t_label);
-						dc->setfillstyle(FillSolid, nil, 0, 0);
+						bool t_have_label = MCInterfaceThemeLookupTextOnHilite(this, t_fill, t_label);
+
+						// With no theme the label keeps its colour unless it
+						// cannot be read on the fill (black on the saturated
+						// blue highlight of Windows, say): then it too is
+						// black or white, whichever reads.
+						if (!t_have_label)
+						{
+							MCColor t_text;
+							MCPatternRef t_text_pattern = nil;
+							int2 t_text_x, t_text_y;
+							if (getforecolor(DI_FORE, False, False, t_text, t_text_pattern,
+							                 t_text_x, t_text_y, dc -> gettype(), this))
+							{
+								double t_fill_luminance = MCButtonColorLuminance(t_fill);
+								double t_text_luminance = MCButtonColorLuminance(t_text);
+								double t_lighter = t_fill_luminance > t_text_luminance ? t_fill_luminance : t_text_luminance;
+								double t_darker = t_fill_luminance > t_text_luminance ? t_text_luminance : t_fill_luminance;
+								if ((t_lighter + 0.05) / (t_darker + 0.05) < 3.0)
+								{
+									t_label . red = t_label . green = t_label . blue = t_fill_luminance <= 0.30 ? 0xFFFF : 0;
+									t_have_label = true;
+								}
+							}
+						}
+
+						if (t_have_label)
+						{
+							dc->setforeground(t_label);
+							dc->setfillstyle(FillSolid, nil, 0, 0);
+						}
 					}
 				}
 			}
@@ -1642,6 +1681,9 @@ void MCButton::drawtabs(MCDC *dc, MCRectangle &srect)
 						dc->setlineatts(0, LineSolid, CapButt, JoinBevel);
 						dc->drawline(tabpanelrect.x, tabpanelrect.y,
 						             tabpanelrect.x + tabpanelrect.width - 1, tabpanelrect.y);
+						// on Windows the pane has an outline all round
+						if (IsNativeWin())
+							dc->drawrect(tabpanelrect, false);
 					}
 				}
 				else
