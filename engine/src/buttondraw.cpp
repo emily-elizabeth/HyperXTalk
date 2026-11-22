@@ -686,7 +686,13 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 				}
 				uint2 fontstyle;
 				fontstyle = gettextstyle();
-				if ((flags & F_DISABLED) != 0 && !t_themed_menu && MClook == LF_WIN95)
+				// HXT colour themes: a disabled label on a bezel painted in the
+				// theme's colours is drawn once, in the faded text colour
+				// already set. The embossed pair below uses the 3D edge
+				// colours, which a theme derives from its background and
+				// which cannot be read as text on it.
+				bool t_theme_disabled = (flags & F_DISABLED) != 0 && MCButtonThemePaintsBezel(this);
+				if ((flags & F_DISABLED) != 0 && !t_themed_menu && MClook == LF_WIN95 && !t_theme_disabled)
 				{
 					drawlabel(dc, sx + 1 + loff, sy + 1 + loff, twidth, shadowrect, line, fontstyle, t_mnemonic);
 					if (getstyleint(flags) == F_MENU && menumode == WM_CASCADE)
@@ -729,7 +735,7 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 
 				if (getstyleint(flags) == F_MENU && menumode == WM_CASCADE && !t_themed_menu)
 					drawcascade(dc, shadowrect); // draw arrow in text color
-				if ((flags & F_DISABLED && MClook == LF_WIN95) || t_themed_menu)
+				if ((flags & F_DISABLED && MClook == LF_WIN95 && !t_theme_disabled) || t_themed_menu)
 					setforeground(dc, DI_TOP, False);
 				sy += fheight;
 				
