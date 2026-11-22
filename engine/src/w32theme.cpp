@@ -820,6 +820,160 @@ static MCColor s_dark_tab_unsel_bg()   { MCColor c = {0x2828, 0x2828, 0x2828}; r
 static MCColor s_dark_pane_bg()        { MCColor c = {0x2d2d, 0x2d2d, 0x2d2d}; return c; }  // #2D2D2D pane fill
 static MCColor s_dark_group_border()   { MCColor c = {0x5050, 0x5050, 0x5050}; return c; }  // #505050 group border
 
+// ── HXT colour themes ──────────────────────────────────────────────────────────
+// The colours the controls below are painted in when they are painted by hand
+// and not by UxTheme. That happens in dark mode (UxTheme has no dark controls),
+// and whenever the object being drawn has a colour theme with a background:
+// UxTheme's light controls would not suit a themed window, whatever mode
+// Windows is in. For a themed object the colours are worked out from the
+// theme; otherwise they are the fixed dark-mode colours above.
+extern bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_di, MCColor& r_color);
+extern bool MCInterfaceThemeLookupFieldColor(MCObject *p_object, MCColor& r_color);
+extern bool MCInterfaceThemeLookupTextOnHilite(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color);
+
+struct MCWinControlPalette
+{
+	bool themed;          // the colours come from a colour theme
+	bool dark;            // the background is a dark one
+	MCColor ctrl;         // button face
+	MCColor ctrl_hover;
+	MCColor ctrl_press;
+	MCColor ctrl_dis;
+	MCColor border;
+	MCColor accent;       // focus ring, tick, progress, default button
+	MCColor on_accent;    // a mark drawn on the accent
+	MCColor field;
+	MCColor field_border;
+	MCColor tab_sel;
+	MCColor tab_unsel;
+	MCColor pane;
+	MCColor group_border;
+	MCColor track;        // scrollbar and progress bar track
+	MCColor thumb;        // scrollbar thumb and arrows
+};
+
+// p_from moved towards p_to by p_amount (0 .. 1).
+static MCColor s_mix_color(const MCColor& p_from, const MCColor& p_to, double p_amount)
+{
+	MCColor c;
+	c . red = (uint2)(p_from . red + ((double)p_to . red - (double)p_from . red) * p_amount + 0.5);
+	c . green = (uint2)(p_from . green + ((double)p_to . green - (double)p_from . green) * p_amount + 0.5);
+	c . blue = (uint2)(p_from . blue + ((double)p_to . blue - (double)p_from . blue) * p_amount + 0.5);
+	return c;
+}
+
+static bool s_color_is_dark(const MCColor& p_color)
+{
+	double t_luma = (0.2126 * p_color . red + 0.7152 * p_color . green + 0.0722 * p_color . blue) / 65535.0;
+	return t_luma < 0.55;
+}
+
+// False if the control should be left to UxTheme: no theme, and light mode.
+static bool s_get_control_palette(const MCWidgetInfo& winfo, MCWinControlPalette& r_pal)
+{
+	MCColor t_white = {0xffff, 0xffff, 0xffff};
+	MCColor t_black = {0x0000, 0x0000, 0x0000};
+
+	MCColor t_bg;
+	if (winfo . whichobject != nil &&
+	    MCInterfaceThemeLookupColor(winfo . whichobject, DI_BACK, t_bg))
+	{
+		bool t_dark = s_color_is_dark(t_bg);
+
+		MCColor t_fg;
+		if (!MCInterfaceThemeLookupColor(winfo . whichobject, DI_FORE, t_fg))
+			t_fg = t_dark ? t_white : t_black;
+
+		r_pal . themed = true;
+		r_pal . dark = t_dark;
+		r_pal . ctrl = s_mix_color(t_bg, t_white, t_dark ? 0.10 : 0.55);
+		r_pal . ctrl_hover = s_mix_color(t_bg, t_white, t_dark ? 0.17 : 0.80);
+		r_pal . ctrl_press = s_mix_color(t_bg, t_black, t_dark ? 0.20 : 0.10);
+		r_pal . ctrl_dis = s_mix_color(r_pal . ctrl, t_bg, 0.60);
+		if (!MCInterfaceThemeLookupColor(winfo . whichobject, DI_BORDER, r_pal . border))
+			r_pal . border = s_mix_color(t_bg, t_fg, 0.35);
+		if (!MCInterfaceThemeLookupColor(winfo . whichobject, DI_HILITE, r_pal . accent))
+		{
+			MCColor t_accent = {0x0000, 0x7878, 0xd4d4};
+			r_pal . accent = t_accent;
+		}
+		if (!MCInterfaceThemeLookupTextOnHilite(winfo . whichobject, r_pal . accent, r_pal . on_accent))
+			r_pal . on_accent = t_white;
+		if (!MCInterfaceThemeLookupFieldColor(winfo . whichobject, r_pal . field))
+			r_pal . field = t_dark ? s_mix_color(t_bg, t_black, 0.20) : s_mix_color(t_bg, t_white, 0.70);
+		r_pal . field_border = r_pal . border;
+		r_pal . tab_sel = r_pal . ctrl;
+		r_pal . tab_unsel = s_mix_color(t_bg, t_black, t_dark ? 0.12 : 0.05);
+		r_pal . pane = t_bg;
+		r_pal . group_border = r_pal . border;
+		r_pal . track = t_dark ? s_mix_color(t_bg, t_white, 0.06) : s_mix_color(t_bg, t_black, 0.06);
+		r_pal . thumb = s_mix_color(t_bg, t_fg, 0.40);
+		return true;
+	}
+
+	if (!MCplatformIsDarkMode())
+		return false;
+
+	MCColor t_dark_track = {0x2b2b, 0x2b2b, 0x2b2b};
+	MCColor t_dark_thumb = {0x6e6e, 0x6e6e, 0x6e6e};
+	r_pal . themed = false;
+	r_pal . dark = true;
+	r_pal . ctrl = s_dark_ctrl_bg();
+	r_pal . ctrl_hover = s_dark_ctrl_bg_hover();
+	r_pal . ctrl_press = s_dark_ctrl_bg_press();
+	r_pal . ctrl_dis = s_dark_ctrl_bg_dis();
+	r_pal . border = s_dark_ctrl_border();
+	r_pal . accent = s_dark_ctrl_focus();
+	r_pal . on_accent = t_white;
+	r_pal . field = s_dark_field_bg();
+	r_pal . field_border = s_dark_field_border();
+	r_pal . tab_sel = s_dark_tab_sel_bg();
+	r_pal . tab_unsel = s_dark_tab_unsel_bg();
+	r_pal . pane = s_dark_pane_bg();
+	r_pal . group_border = s_dark_group_border();
+	r_pal . track = t_dark_track;
+	r_pal . thumb = t_dark_thumb;
+	return true;
+}
+
+// A small filled triangle in the middle of p_rect. p_direction: 0 up, 1 down,
+// 2 left, 3 right.
+static void s_fill_arrow(MCDC *dc, const MCRectangle& p_rect, int p_direction)
+{
+	int2 t_cx = p_rect . x + p_rect . width / 2;
+	int2 t_cy = p_rect . y + p_rect . height / 2;
+	int2 t_size = (p_rect . width < p_rect . height ? p_rect . width : p_rect . height) / 4;
+	if (t_size < 2)
+		t_size = 2;
+
+	MCPoint t_points[3];
+	switch (p_direction)
+	{
+	case 0:
+		t_points[0] . x = t_cx - t_size; t_points[0] . y = t_cy + t_size / 2;
+		t_points[1] . x = t_cx + t_size; t_points[1] . y = t_cy + t_size / 2;
+		t_points[2] . x = t_cx;          t_points[2] . y = t_cy - t_size / 2 - 1;
+		break;
+	case 1:
+		t_points[0] . x = t_cx - t_size; t_points[0] . y = t_cy - t_size / 2;
+		t_points[1] . x = t_cx + t_size; t_points[1] . y = t_cy - t_size / 2;
+		t_points[2] . x = t_cx;          t_points[2] . y = t_cy + t_size / 2 + 1;
+		break;
+	case 2:
+		t_points[0] . x = t_cx + t_size / 2;     t_points[0] . y = t_cy - t_size;
+		t_points[1] . x = t_cx + t_size / 2;     t_points[1] . y = t_cy + t_size;
+		t_points[2] . x = t_cx - t_size / 2 - 1; t_points[2] . y = t_cy;
+		break;
+	default:
+		t_points[0] . x = t_cx - t_size / 2;     t_points[0] . y = t_cy - t_size;
+		t_points[1] . x = t_cx - t_size / 2;     t_points[1] . y = t_cy + t_size;
+		t_points[2] . x = t_cx + t_size / 2 + 1; t_points[2] . y = t_cy;
+		break;
+	}
+	dc->setfillstyle(FillSolid, nil, 0, 0);
+	dc->fillpolygon(t_points, 3);
+}
+
 Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCRectangle &drect)
 {
 	HANDLE htheme = GetTheme(winfo.type);
@@ -953,7 +1107,11 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 	// tabs, or group boxes — it always renders a light-mode appearance regardless
 	// of AllowDarkModeForWindow / SetPreferredAppMode.  In dark mode we skip
 	// UxTheme entirely and paint the controls manually with Fluent dark colours.
-	if (MCplatformIsDarkMode())
+	//
+	// HXT colour themes: the same hand painting is used, in the theme's
+	// colours, for an object that has a colour theme, in light mode too.
+	MCWinControlPalette t_pal;
+	if (s_get_control_palette(winfo, t_pal))
 	{
 		bool t_dark_handled = true;
 		switch (winfo.type)
@@ -967,26 +1125,42 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 		case WTHEME_TYPE_OPTIONBUTTONARROW:
 		case WTHEME_TYPE_OPTIONBUTTONTEXT:
 		{
+			// The arrow of an option menu sits on the face already painted
+			// for the menu as a whole.
+			if (winfo.type == WTHEME_TYPE_OPTIONBUTTONARROW)
+			{
+				dc->setforeground((winfo.state & WTHEME_STATE_DISABLED) ? t_pal . border : t_pal . thumb);
+				s_fill_arrow(dc, trect, 1);
+				break;
+			}
+
 			MCColor t_bg;
 			if (winfo.state & WTHEME_STATE_DISABLED)
-				t_bg = s_dark_ctrl_bg_dis();
+				t_bg = t_pal . ctrl_dis;
 			else if (winfo.state & WTHEME_STATE_PRESSED || winfo.state & WTHEME_STATE_HILITED)
-				t_bg = s_dark_ctrl_bg_press();
+				t_bg = t_pal . ctrl_press;
 			else if (winfo.state & WTHEME_STATE_HOVER)
-				t_bg = s_dark_ctrl_bg_hover();
+				t_bg = t_pal . ctrl_hover;
 			else
-				t_bg = s_dark_ctrl_bg();
+				t_bg = t_pal . ctrl;
 			dc->setforeground(t_bg);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
 			dc->fillrect(trect);
 			// Border: use focus-ring colour when focused, standard border otherwise
 			MCColor t_border;
 			if (winfo.state & WTHEME_STATE_HASFOCUS)
-				t_border = s_dark_ctrl_focus();
+				t_border = t_pal . accent;
+			else if (t_pal . themed && (winfo.state & WTHEME_STATE_HASDEFAULT) && !(winfo.state & WTHEME_STATE_DISABLED))
+				t_border = t_pal . accent;
 			else
-				t_border = s_dark_ctrl_border();
+				t_border = t_pal . border;
 			dc->setforeground(t_border);
 			dc->drawrect(trect, false);
+			if (winfo.type == WTHEME_TYPE_COMBOBUTTON)
+			{
+				dc->setforeground((winfo.state & WTHEME_STATE_DISABLED) ? t_pal . border : t_pal . thumb);
+				s_fill_arrow(dc, trect, 1);
+			}
 			break;
 		}
 
@@ -994,25 +1168,29 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 		case WTHEME_TYPE_CHECKBOX:
 		{
 			// Draw the indicator box in dark colours
+			bool t_checked = (winfo.state & WTHEME_STATE_HILITED) != 0;
+			bool t_enabled = (winfo.state & WTHEME_STATE_DISABLED) == 0;
 			MCColor t_bg;
-			if (winfo.state & WTHEME_STATE_DISABLED)
-				t_bg = s_dark_ctrl_bg_dis();
+			if (!t_enabled)
+				t_bg = t_pal . ctrl_dis;
+			else if (t_checked)
+				t_bg = t_pal . accent;
 			else
-				t_bg = s_dark_field_bg();
+				t_bg = t_pal . field;
 			dc->setforeground(t_bg);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
 			dc->fillrect(trect);
 			MCColor t_border;
-			if (winfo.state & WTHEME_STATE_HASFOCUS)
-				t_border = s_dark_ctrl_focus();
+			if ((winfo.state & WTHEME_STATE_HASFOCUS) || (t_checked && t_enabled))
+				t_border = t_pal . accent;
 			else
-				t_border = s_dark_ctrl_border();
+				t_border = t_pal . border;
 			dc->setforeground(t_border);
 			dc->drawrect(trect, false);
-			// If checked, draw a simple check mark using the focus / accent colour
-			if (winfo.state & WTHEME_STATE_HILITED)
+			// If checked, draw a simple check mark in a colour that shows on the box
+			if (t_checked)
 			{
-				MCColor t_check = s_dark_ctrl_focus();
+				MCColor t_check = t_enabled ? t_pal . on_accent : t_pal . border;
 				dc->setforeground(t_check);
 				// Two line segments forming a "tick": left→mid-low→top-right
 				int2 cx = trect.x + trect.width / 2;
@@ -1030,28 +1208,28 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 		{
 			MCColor t_bg;
 			if (winfo.state & WTHEME_STATE_DISABLED)
-				t_bg = s_dark_ctrl_bg_dis();
+				t_bg = t_pal . ctrl_dis;
 			else
-				t_bg = s_dark_field_bg();
+				t_bg = t_pal . field;
 			dc->setforeground(t_bg);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
-			dc->fillrect(trect);
+			dc->fillarc(trect, 0, 360, false);
 			MCColor t_border;
 			if (winfo.state & WTHEME_STATE_HASFOCUS)
-				t_border = s_dark_ctrl_focus();
+				t_border = t_pal . accent;
 			else
-				t_border = s_dark_ctrl_border();
+				t_border = t_pal . border;
 			dc->setforeground(t_border);
 			dc->drawarc(trect, 0, 360);
 			// If selected, draw a small filled dot in the centre
 			if (winfo.state & WTHEME_STATE_HILITED)
 			{
-				MCColor t_dot = s_dark_ctrl_focus();
+				MCColor t_dot = t_pal . accent;
 				dc->setforeground(t_dot);
 				dc->setfillstyle(FillSolid, nil, 0, 0);
 				int2 inset = trect.width / 4;
 				MCRectangle dot = MCU_reduce_rect(trect, inset);
-				dc->fillrect(dot);
+				dc->fillarc(dot, 0, 360, false);
 			}
 			break;
 		}
@@ -1063,7 +1241,7 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 		case WTHEME_TYPE_COMBOFRAME:
 		{
 			// Draw the outer border; the fill is drawn separately as TEXTFIELD_FILL.
-			dc->setforeground(s_dark_field_border());
+			dc->setforeground(t_pal . field_border);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
 			dc->drawrect(trect, false);
 			break;
@@ -1072,7 +1250,7 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 		case WTHEME_TYPE_TEXTFIELD_FILL:
 		{
 			// Fill the content interior of the text field.
-			dc->setforeground(s_dark_field_bg());
+			dc->setforeground(t_pal . field);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
 			dc->fillrect(crect);
 			break;
@@ -1083,13 +1261,13 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 		{
 			MCColor t_bg;
 			if (winfo.state & WTHEME_STATE_HILITED)
-				t_bg = s_dark_tab_sel_bg();
+				t_bg = t_pal . tab_sel;
 			else
-				t_bg = s_dark_tab_unsel_bg();
+				t_bg = t_pal . tab_unsel;
 			dc->setforeground(t_bg);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
 			dc->fillrect(trect);
-			dc->setforeground(s_dark_ctrl_border());
+			dc->setforeground(t_pal . border);
 			dc->drawrect(trect, false);
 			break;
 		}
@@ -1097,10 +1275,10 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 		// ── Tab pane ──────────────────────────────────────────────────────
 		case WTHEME_TYPE_TABPANE:
 		{
-			dc->setforeground(s_dark_pane_bg());
+			dc->setforeground(t_pal . pane);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
 			dc->fillrect(trect);
-			dc->setforeground(s_dark_ctrl_border());
+			dc->setforeground(t_pal . border);
 			dc->drawrect(trect, false);
 			break;
 		}
@@ -1109,7 +1287,7 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 		case WTHEME_TYPE_GROUP_FRAME:
 		case WTHEME_TYPE_SECONDARYGROUP_FRAME:
 		{
-			dc->setforeground(s_dark_group_border());
+			dc->setforeground(t_pal . group_border);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
 			dc->drawrect(trect, false);
 			break;
@@ -1119,7 +1297,119 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 		case WTHEME_TYPE_GROUP_FILL:
 		case WTHEME_TYPE_SECONDARYGROUP_FILL:
 		{
-			dc->setforeground(s_dark_pane_bg());
+			dc->setforeground(t_pal . pane);
+			dc->setfillstyle(FillSolid, nil, 0, 0);
+			dc->fillrect(trect);
+			break;
+		}
+
+		// ── Scrollbar ─────────────────────────────────────────────────────
+		case WTHEME_TYPE_SCROLLBAR_TRACK_VERTICAL:
+		case WTHEME_TYPE_SCROLLBAR_TRACK_HORIZONTAL:
+		{
+			dc->setforeground(t_pal . track);
+			dc->setfillstyle(FillSolid, nil, 0, 0);
+			dc->fillrect(trect);
+			break;
+		}
+
+		case WTHEME_TYPE_SCROLLBAR_BUTTON_UP:
+		case WTHEME_TYPE_SCROLLBAR_BUTTON_DOWN:
+		case WTHEME_TYPE_SCROLLBAR_BUTTON_LEFT:
+		case WTHEME_TYPE_SCROLLBAR_BUTTON_RIGHT:
+		{
+			dc->setforeground(t_pal . track);
+			dc->setfillstyle(FillSolid, nil, 0, 0);
+			dc->fillrect(trect);
+			if (winfo.state & WTHEME_STATE_DISABLED)
+				dc->setforeground(t_pal . border);
+			else
+				dc->setforeground(t_pal . thumb);
+			s_fill_arrow(dc, trect,
+			             winfo.type == WTHEME_TYPE_SCROLLBAR_BUTTON_UP ? 0 :
+			             winfo.type == WTHEME_TYPE_SCROLLBAR_BUTTON_DOWN ? 1 :
+			             winfo.type == WTHEME_TYPE_SCROLLBAR_BUTTON_LEFT ? 2 : 3);
+			break;
+		}
+
+		case WTHEME_TYPE_SCROLLBAR_THUMB_VERTICAL:
+		case WTHEME_TYPE_SCROLLBAR_THUMB_HORIZONTAL:
+		{
+			dc->setforeground(t_pal . track);
+			dc->setfillstyle(FillSolid, nil, 0, 0);
+			dc->fillrect(trect);
+			if (trect . width > 0 && trect . height > 0)
+			{
+				// a bar narrower than the track, with rounded ends
+				MCRectangle t_bar = trect;
+				if (winfo.type == WTHEME_TYPE_SCROLLBAR_THUMB_VERTICAL)
+				{
+					if (t_bar . width > 8) { t_bar . x += 3; t_bar . width -= 6; }
+				}
+				else
+				{
+					if (t_bar . height > 8) { t_bar . y += 3; t_bar . height -= 6; }
+				}
+				MCColor t_thumb = t_pal . thumb;
+				if (winfo.state & (WTHEME_STATE_PRESSED | WTHEME_STATE_HOVER))
+					t_thumb = s_mix_color(t_pal . thumb, t_pal . accent, 0.35);
+				dc->setforeground(t_thumb);
+				uint2 t_radius = (t_bar . width < t_bar . height ? t_bar . width : t_bar . height) / 2;
+				dc->fillroundrect(t_bar, t_radius);
+			}
+			break;
+		}
+
+		case WTHEME_TYPE_SCROLLBAR_GRIPPER_VERTICAL:
+		case WTHEME_TYPE_SCROLLBAR_GRIPPER_HORIZONTAL:
+			// the thumb has no grip marks
+			break;
+
+		// ── Spin (small scrollbar) buttons ────────────────────────────────
+		case WTHEME_TYPE_SPIN:
+		{
+			MCColor t_bg;
+			if (winfo.state & WTHEME_STATE_DISABLED)
+				t_bg = t_pal . ctrl_dis;
+			else if (winfo.state & WTHEME_STATE_PRESSED)
+				t_bg = t_pal . ctrl_press;
+			else
+				t_bg = t_pal . ctrl;
+			dc->setforeground(t_bg);
+			dc->setfillstyle(FillSolid, nil, 0, 0);
+			dc->fillrect(trect);
+			dc->setforeground(t_pal . border);
+			dc->drawrect(trect, false);
+			if (winfo.state & WTHEME_STATE_DISABLED)
+				dc->setforeground(t_pal . border);
+			else
+				dc->setforeground(t_pal . thumb);
+			s_fill_arrow(dc, trect,
+			             winfo.part == WTHEME_PART_SPIN_ARROW_UP ? 0 :
+			             winfo.part == WTHEME_PART_SPIN_ARROW_DOWN ? 1 :
+			             winfo.part == WTHEME_PART_SPIN_ARROW_LEFT ? 2 : 3);
+			break;
+		}
+
+		// ── Progress bar ──────────────────────────────────────────────────
+		case WTHEME_TYPE_PROGRESSBAR_HORIZONTAL:
+		case WTHEME_TYPE_PROGRESSBAR_VERTICAL:
+		{
+			dc->setforeground(t_pal . track);
+			dc->setfillstyle(FillSolid, nil, 0, 0);
+			dc->fillrect(trect);
+			dc->setforeground(t_pal . border);
+			dc->drawrect(trect, false);
+			break;
+		}
+
+		case WTHEME_TYPE_PROGRESSBAR_CHUNK:
+		case WTHEME_TYPE_PROGRESSBAR_CHUNK_VERTICAL:
+		{
+			if (winfo.state & WTHEME_STATE_DISABLED)
+				dc->setforeground(t_pal . border);
+			else
+				dc->setforeground(t_pal . accent);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
 			dc->fillrect(trect);
 			break;
@@ -1267,8 +1557,16 @@ Boolean MCNativeTheme::drawslider(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 	}
 
 	memset(&twinfo, 0, sizeof(MCWidgetInfo));
+	twinfo . whichobject = winfo . whichobject;
 
 	bool t_dark     = MCplatformIsDarkMode();
+
+	// HXT colour themes: a themed slider takes its light or dark look from the
+	// theme's background, and its filled part from the theme's accent.
+	MCWinControlPalette t_slider_pal;
+	bool t_slider_themed = s_get_control_palette(winfo, t_slider_pal) && t_slider_pal . themed;
+	if (t_slider_themed)
+		t_dark = t_slider_pal . dark;
 	bool t_disabled = (winfo.state & WTHEME_STATE_DISABLED) != 0;
 	bool t_hover    = (winfo.state & WTHEME_STATE_HOVER)    != 0;
 	bool t_pressed  = (winfo.state & WTHEME_STATE_PRESSED)  != 0;
@@ -1288,6 +1586,7 @@ Boolean MCNativeTheme::drawslider(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 			if (t_dark) { MCColor c = {0x4040, 0x5858, 0x7878}; t_blue = c; }
 			else         { MCColor c = {0x9898, 0xb8b8, 0xd8d8}; t_blue = c; }  // desaturated blue
 		}
+		else if (t_slider_themed) t_blue = t_slider_pal . accent;
 		else { MCColor c = {0x0000, 0x7878, 0xd4d4}; t_blue = c; }  // #0078D4
 		dc->setforeground(t_blue);
 		dc->setfillstyle(FillSolid, nil, 0, 0);
@@ -1373,6 +1672,7 @@ Boolean MCNativeTheme::drawscrollcontrols(MCDC *dc, const MCWidgetInfo &winfo, c
 		sbpartdefaultstate |= WTHEME_STATE_CONTROL_HOVER;
 	
 	memset(&twinfo,0,sizeof(MCWidgetInfo)); //clear widget info
+	twinfo . whichobject = winfo . whichobject;
 
 	bool t_vertical;
 	t_vertical = (winfo . attributes & WTHEME_ATT_SBVERTICAL) != 0;
