@@ -243,6 +243,38 @@ echo dbmysql OK.
 
 echo.
 :: ----------------------------------------------------------
+:: Build the database library (revdb.dll) and the SQLite driver.
+::
+:: A development IDE loads both from the Debug folder, next to the
+:: engine.  Without revdb.dll there are no database commands at all
+:: (so dbmysql.dll above cannot be used either), and the IDE stores
+:: its Dictionary in SQLite: its start-up step "Building Dictionary"
+:: fails with "revOpenDatabases" not found.
+:: ----------------------------------------------------------
+set VCXPROJ_LIBSQLITE=build-win-x86_64\hyperxtalk\thirdparty\libsqlite\libsqlite.vcxproj
+set VCXPROJ_DBSQLITE=build-win-x86_64\hyperxtalk\revdb\dbsqlite.vcxproj
+set VCXPROJ_REVDB=build-win-x86_64\hyperxtalk\revdb\external-revdb.vcxproj
+
+echo Building libsqlite ...
+echo Building libsqlite ... >> "%LOGFILE%"
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSQLITE% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+if errorlevel 1 ( echo LIBSQLITE BUILD FAILED. See %LOGFILE% & exit /b 1 )
+echo libsqlite OK.
+
+echo Building dbsqlite (SQLite database driver) ...
+echo Building dbsqlite ... >> "%LOGFILE%"
+"%MSBUILD%" %TOOLSET% %VCXPROJ_DBSQLITE% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+if errorlevel 1 ( echo DBSQLITE BUILD FAILED. See %LOGFILE% & exit /b 1 )
+echo dbsqlite OK.
+
+echo Building revdb (database library) ...
+echo Building revdb ... >> "%LOGFILE%"
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVDB% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+if errorlevel 1 ( echo REVDB BUILD FAILED. See %LOGFILE% & exit /b 1 )
+echo revdb OK.
+
+echo.
+:: ----------------------------------------------------------
 :: Build libffi (x64 must use include_win64 so FFI_DEFAULT_ABI = FFI_WIN64 = 1,
 :: matching what libffi.lib expects; using include_win32 gave FFI_MS_CDECL = 5
 :: which caused ffi_prep_cif to return FFI_BAD_ABI and throw "unexpected libffi failure").
