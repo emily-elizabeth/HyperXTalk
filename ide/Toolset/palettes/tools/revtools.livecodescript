@@ -769,6 +769,7 @@ on mouseEnter
       # We are hovering over a tool
       set the loc of graphic "tool_hover" of group "contents" to the loc of the target
       show graphic "tool_hover" of group "contents" 
+      toolTintRunEditTools
    end if
 end mouseEnter
 
@@ -776,9 +777,10 @@ on mouseLeave
    if the cDisabled of the target is true then exit mouseLeave
    try
       if word 1 of the target is "widget" then
-         set the foregroundColor of the target to "100,100,100"
+         set the foregroundColor of the target to toolIconColor()
       else
          hide graphic "tool_hover" of group "contents" 
+         toolTintRunEditTools
          if the cTool of the target is empty then
             set the coloroverlay of the target to empty
          end if
@@ -1324,8 +1326,9 @@ end toolChromeIsDark
 
 -- The run and edit tools have small black icons, which cannot be seen on a
 -- dark palette. There they are drawn in the light icon colour, by a colour
--- overlay. The selected tool sits on the light highlight square, so it keeps
--- its black icon; a disabled tool keeps the overlay toolDisable gave it.
+-- overlay. The selected tool sits on the light highlight square, and a tool
+-- the mouse is over sits on the light hover square, so those keep the black
+-- icon; a disabled tool keeps the overlay toolDisable gave it.
 command toolTintRunEditTools
    local tTool, tDark, tSelected
    put toolChromeIsDark() into tDark
@@ -1336,6 +1339,12 @@ command toolTintRunEditTools
       if there is a graphic "tool_hilite" of me then
          if the visible of graphic "tool_hilite" of me and \
                the loc of graphic "tool_hilite" of me is the loc of button tTool of me then
+            put true into tSelected
+         end if
+      end if
+      if there is a graphic "tool_hover" of me then
+         if the visible of graphic "tool_hover" of me and \
+               the loc of graphic "tool_hover" of me is the loc of button tTool of me then
             put true into tSelected
          end if
       end if
