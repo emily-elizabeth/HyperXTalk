@@ -214,7 +214,16 @@ on revInternal__openStack
       
       if tSuccess and not revEnvironmentIsInstalled() then
          hxtInternal__setSplashStatus "Building Dictionary..."
-         revInternal__BuildDictionary
+         -- A failure here (for example a development build without the
+         -- database library) must not stop the start-up: the final steps
+         -- install the front script and shortcuts libraries, without which
+         -- double-clicking and right-clicking objects do nothing.
+         local tDictionaryError
+         try
+            revInternal__BuildDictionary
+         catch tDictionaryError
+            revInternal__Log "Error", "Building Dictionary failed:" && tDictionaryError
+         end try
          put true into tSuccess
       end if
       
