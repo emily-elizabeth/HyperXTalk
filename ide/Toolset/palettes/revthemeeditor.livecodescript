@@ -160,6 +160,8 @@ private command buildInterface
       create graphic "swatch_" & tKey
       set the style of it to "rectangle"
       set the rect of it to r(174, tTop + 3, 214, tTop + 25)
+      -- the template graphic may carry an effect left by something else
+      set the colorOverlay of it to empty
       set the opaque of it to true
       set the lineSize of it to 1
       makeLabel "value_" & tKey, empty, r(222, tTop + 4, 372, tTop + 24), "left"

@@ -14285,13 +14285,18 @@ end revIDEGenerateDictionaryHTML
 local sNamesToColorsA, sColorsToNamesA
 
 private on __fetchNamesToColors
-   local tColorRGB
+   local tColorRGB, tOldOverlay
    
+   -- The template graphic is only borrowed to turn names into RGB values.
+   -- Put its overlay back afterwards, or every graphic created from then on
+   -- is tinted with the last colour in the list (YellowGreen).
+   put the colorOverlay of the templateGraphic into tOldOverlay
    repeat for each line tColorName in the colorNames
    	  set the colorOverlay["color"] of the templateGraphic to tColorName
    	  put the colorOverlay["color"] of the templateGraphic into tColorRGB
   		put tColorRGB into sNamesToColorsA[tColorName]
    end repeat
+   set the colorOverlay of the templateGraphic to tOldOverlay
 end __fetchNamesToColors
 
 private on __fetchColorsToNames
