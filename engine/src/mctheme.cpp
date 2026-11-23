@@ -260,14 +260,18 @@ static void MCThemeFillRoundedFace(MCDC *dc, const MCRectangle& p_rect, const MC
 		dc->drawrect(p_rect, false);
 		return;
 	}
+	// Antialiased, or the corners come out as chamfers. fillroundrect takes
+	// the corner's diameter, hence the doubling.
+	dc->setquality(QUALITY_SMOOTH);
 	dc->setforeground(p_border);
-	dc->fillroundrect(p_rect, p_radius);
+	dc->fillroundrect(p_rect, p_radius * 2);
 	dc->setforeground(p_face);
-	dc->fillroundrect(MCU_reduce_rect(p_rect, 1), p_radius - 1);
+	dc->fillroundrect(MCU_reduce_rect(p_rect, 1), (p_radius - 1) * 2);
+	dc->setquality(QUALITY_DEFAULT);
 }
 
 // The corner radius of buttons, option menus and tabs.
-#define kMCThemedControlRadius 5
+#define kMCThemedControlRadius 4
 
 // Paints the control described by winfo into p_rect. False if this kind of
 // control is not painted here, in which case the native theme should draw it.
@@ -349,12 +353,14 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 			// top right.
 			int2 cx = p_rect.x + p_rect.width / 2;
 			int2 cy = p_rect.y + p_rect.height / 2;
+			dc->setquality(QUALITY_SMOOTH);
 			dc->setlineatts(2, LineSolid, CapRound, JoinRound);
 			dc->drawline(p_rect.x + 4,               cy,
 			             cx - 1,                    p_rect.y + p_rect.height - 5);
 			dc->drawline(cx - 1,                    p_rect.y + p_rect.height - 5,
 			             p_rect.x + p_rect.width - 4, p_rect.y + 4);
 			dc->setlineatts(0, LineSolid, CapButt, JoinBevel);
+			dc->setquality(QUALITY_DEFAULT);
 		}
 		break;
 	}
@@ -375,6 +381,7 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 		else
 			t_border = p_pal . border;
 		dc->setfillstyle(FillSolid, nil, 0, 0);
+		dc->setquality(QUALITY_SMOOTH);
 		dc->setforeground(t_border);
 		dc->fillarc(p_rect, 0, 360, false);
 		dc->setforeground(t_bg);
@@ -389,6 +396,7 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 			MCRectangle dot = MCU_reduce_rect(p_rect, inset);
 			dc->fillarc(dot, 0, 360, false);
 		}
+		dc->setquality(QUALITY_DEFAULT);
 		break;
 	}
 
@@ -531,8 +539,12 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 			if (winfo.state & (WTHEME_STATE_PRESSED | WTHEME_STATE_HOVER))
 				t_thumb = MCThemeMixColor(p_pal . thumb, p_pal . accent, 0.35);
 			dc->setforeground(t_thumb);
-			uint2 t_radius = (t_bar . width < t_bar . height ? t_bar . width : t_bar . height) / 2;
+			// fillroundrect takes the corner's diameter: the bar's
+			// thickness gives fully rounded ends
+			uint2 t_radius = t_bar . width < t_bar . height ? t_bar . width : t_bar . height;
+			dc->setquality(QUALITY_SMOOTH);
 			dc->fillroundrect(t_bar, t_radius);
+			dc->setquality(QUALITY_DEFAULT);
 		}
 		break;
 	}
@@ -648,7 +660,9 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 		{
 			dc->setforeground(t_fill ? p_pal . accent : MCThemeMixColor(p_pal . track, p_pal . thumb, 0.35));
 			dc->setfillstyle(FillSolid, nil, 0, 0);
-			dc->fillroundrect(t_groove, 2);
+			dc->setquality(QUALITY_SMOOTH);
+			dc->fillroundrect(t_groove, 4);
+			dc->setquality(QUALITY_DEFAULT);
 		}
 		break;
 	}
@@ -671,11 +685,13 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 				t_knob_color = p_pal . ctrl_dis;
 			else
 				t_knob_color = p_pal . dark ? p_pal . thumb : p_pal . ctrl;
-			dc->setforeground(t_knob_color);
 			dc->setfillstyle(FillSolid, nil, 0, 0);
-			dc->fillarc(t_knob, 0, 360, false);
+			dc->setquality(QUALITY_SMOOTH);
 			dc->setforeground((winfo.state & (WTHEME_STATE_PRESSED | WTHEME_STATE_HOVER)) ? p_pal . accent : p_pal . border);
-			dc->drawarc(t_knob, 0, 360);
+			dc->fillarc(t_knob, 0, 360, false);
+			dc->setforeground(t_knob_color);
+			dc->fillarc(MCU_reduce_rect(t_knob, 1), 0, 360, false);
+			dc->setquality(QUALITY_DEFAULT);
 		}
 		break;
 	}
