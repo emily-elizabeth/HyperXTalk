@@ -371,12 +371,12 @@ private command showScheme
       put " Your copy, in your Schemes folder, of a scheme bundled with the IDE." after tInfo
       set the label of button "Remove" of me to "Restore Bundled…"
       set the enabled of button "Remove" of me to true
-      set the toolTip of button "Remove" of me to "Move your copy to the Trash and go back to the scheme as bundled with the IDE"
+      set the toolTip of button "Remove" of me to removalPhrase("Move your copy to the Trash", "Delete your copy") && "and go back to the scheme as bundled with the IDE"
    else
       put " In your Schemes folder." after tInfo
       set the label of button "Remove" of me to "Delete…"
       set the enabled of button "Remove" of me to true
-      set the toolTip of button "Remove" of me to "Move this scheme to the Trash"
+      set the toolTip of button "Remove" of me to removalPhrase("Move this scheme to the Trash", "Delete this scheme. It cannot be got back")
    end if
    set the text of field "Info" of me to tInfo
 
@@ -526,6 +526,27 @@ private command saveScheme pName
    revIDEApplyThemePreference
 end saveScheme
 
+-- The folder a removed scheme is moved to, or empty where there is none the
+-- editor can use: only macOS has one at a fixed place. Elsewhere the file is
+-- deleted, and the wording says so.
+private function trashFolder
+   local tTrash
+   put specialFolderPath("home") & "/.Trash" into tTrash
+   if the platform is "MacOS" and there is a folder tTrash then
+      return tTrash
+   end if
+   return empty
+end trashFolder
+
+-- pTrashed where a removed scheme goes to the Trash, pDeleted where it is
+-- deleted outright.
+private function removalPhrase pTrashed, pDeleted
+   if trashFolder() is not empty then
+      return pTrashed
+   end if
+   return pDeleted
+end removalPhrase
+
 -- Removes the user's file for the scheme being edited. If the scheme is also
 -- bundled with the IDE that restores the bundled version; otherwise the scheme
 -- is gone. The file is moved to the Trash where there is one, so it can be
@@ -539,20 +560,20 @@ private command removeScheme
    
    if tBundled then
       answer warning "Restore" && quote & tName & quote && "as bundled with the IDE?" & return & return & \
-            "Your copy, with any changes you made to it in this editor or in the Script Colour Editor, will be moved to the Trash." \
+            "Your copy, with any changes you made to it in this editor or in the Script Colour Editor," && removalPhrase("will be moved to the Trash.", "will be deleted and cannot be got back.") \
             with "Cancel" or "Restore"
       if it is not "Restore" then
          exit removeScheme
       end if
    else
       answer warning "Delete the scheme" && quote & tName & quote & "?" & return & return & \
-            "It will be moved to the Trash. Stacks that were given this theme keep their colours." \
+            removalPhrase("It will be moved to the Trash.", "It will be deleted and cannot be got back.") && "Stacks that were given this theme keep their colours." \
             with "Cancel" or "Delete"
       if it is not "Delete" then exit removeScheme
    end if
    
-   put specialFolderPath("home") & "/.Trash" into tTrash
-   if the platform is "MacOS" and there is a folder tTrash then
+   put trashFolder() into tTrash
+   if tTrash is not empty then
       put tTrash & slash & tName & ".scheme" into tTarget
       if there is a file tTarget then
          put tTrash & slash & tName && the seconds & ".scheme" into tTarget
