@@ -892,16 +892,16 @@ bool MCNativeLayerX11::doPaint(MCGContextRef p_context)
     if (t_w <= 0 || t_h <= 0)
         return false;
 
-    // On HiDPI displays (GDK_SCALE > 1), gtk_widget_draw() asks WebKit to render
-    // at gdk_window_get_scale_factor() × the widget's logical size.  With a 1×
-    // cairo surface this clips the CSS viewport to 1/scale of the page width.
-    // Fix: allocate a physical-resolution surface (t_w*scale × t_h*scale) and
-    // set its device_scale so cairo user coordinates stay in logical pixels.
-    // gtk_widget_draw then fills the full physical surface correctly.
-    // MCGContextDrawImage scales the result back down to m_rect dimensions.
-    GdkDisplay *t_dpy2 = gdk_display_get_default();
-    GdkMonitor *t_mon2 = t_dpy2 ? gdk_display_get_primary_monitor(t_dpy2) : NULL;
-    int t_scale = (t_mon2 ? gdk_monitor_get_scale_factor(t_mon2) : 1);
+    // On HiDPI displays (GDK scale factor > 1) WebKit renders the page at
+    // scale × the widget's logical size.  Allocate a physical-resolution
+    // surface (t_w*scale × t_h*scale) and set its device_scale so cairo user
+    // coordinates stay in logical pixels; MCGContextDrawImage scales the
+    // result back down to m_rect dimensions.
+    //
+    // Ask the browser widget for its scale factor: that is the value WebKit
+    // itself uses for the view's device scale, so the two always agree
+    // (the primary monitor's factor can differ on a multi-monitor setup).
+    int t_scale = gtk_widget_get_scale_factor(m_browser_widget);
     if (t_scale < 1) t_scale = 1;
 
     int t_pw = t_w * t_scale;   // physical pixel width
@@ -943,7 +943,22 @@ bool MCNativeLayerX11::doPaint(MCGContextRef p_context)
             G_OBJECT(m_browser_widget), "hxt-snapshot");
         if (t_snap)
         {
+            // webkit_web_view_get_snapshot() returns the visible viewport at
+            // device resolution (logical size × WebKit's device scale factor)
+            // as a plain image surface with no cairo device scale set.  Pasting
+            // it 1:1 into t_surf, whose user space is logical pixels, draws it
+            // scale× too large and shows only the top-left 1/scale of the page
+            // (upstream issue 589: page "zoomed in" at 125%+ display scaling).
+            // Map the snapshot's pixel extents onto the widget's logical rect
+            // instead.  When the snapshot matches t_pw × t_ph this is a 1:1
+            // copy; a stale snapshot from before a resize is stretched to fit
+            // until the next one arrives (at most 250 ms later).
+            int t_snap_w = cairo_image_surface_get_width(t_snap);
+            int t_snap_h = cairo_image_surface_get_height(t_snap);
+
             cairo_t *t_cr2 = cairo_create(t_surf);
+            if (t_snap_w > 0 && t_snap_h > 0)
+                cairo_scale(t_cr2, (double)t_w / t_snap_w, (double)t_h / t_snap_h);
             cairo_set_source_surface(t_cr2, t_snap, 0, 0);
             cairo_paint(t_cr2);
             cairo_destroy(t_cr2);
