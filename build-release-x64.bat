@@ -1117,4 +1117,14 @@ for %%F in (dbmysql.dll dbodbc.dll dbpostgresql.dll dbsqlite.dll) do (
 :: libmysql.dll and OpenSSL DLLs (MySQL runtime deps)
 for %%F in (libmysql.dll libssl-3-x64.dll libcrypto-3-x64.dll) do (
     if exist "%OUTDIR%\%%F" (
-        copy /Y "%OUTDIR%\%%F" "%~dp0%RT%\Externals\Database Drivers
+        copy /Y "%OUTDIR%\%%F" "%~dp0%RT%\Externals\Database Drivers\%%F" > nul
+        echo   %%F staged to %RT%\Externals\Database Drivers\
+    )
+)
+
+echo Runtime staging complete.
+echo Runtime staging complete. >> "%LOGFILE%"
+
+echo.
+echo Build complete.
+echo Build complete. >> "%LOGFILE%"
