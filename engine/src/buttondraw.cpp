@@ -62,15 +62,16 @@ extern "C" __attribute__((weak)) bool MCplatformIsDarkMode(void) { return false;
 #endif
 
 // MW-2011-09-06: [[ Redraw ]] Added 'sprite' option - if true, ink and opacity are not set.
-// HXT colour themes: on Windows the engine paints the bezel of a button, and
-// the tabs of a tabbed button, itself in colours worked out from the object's
-// colour theme (see s_get_control_palette in w32theme.cpp). The label then
+// HXT colour themes: on Windows and GTK the engine paints the bezel of a
+// button, and the tabs of a tabbed button, itself in colours worked out from
+// the object's colour theme (see s_get_control_palette in w32theme.cpp and
+// MCThemeDrawThemedControl in mctheme.cpp). The label then
 // takes the theme's text colour, not the system's. True if that applies.
 static bool MCButtonThemePaintsBezel(MCObject *p_object)
 {
 	extern bool MCInterfaceThemeBackgroundIsDark(MCObject *p_object, bool& r_dark);
 	bool t_dark;
-	return IsNativeWin() && MCInterfaceThemeBackgroundIsDark(p_object, t_dark);
+	return (IsNativeWin() || IsNativeGTK()) && MCInterfaceThemeBackgroundIsDark(p_object, t_dark);
 }
 
 // The relative luminance (0 .. 1) of a colour.

@@ -2106,6 +2106,8 @@ void MCNativeTheme::drawSlider(MCDC *dc, const MCWidgetInfo &winfo,
 	}
 
 	memset(&twinfo, 0, sizeof(MCWidgetInfo));
+	// HXT themes: the parts are painted for the same object as the whole
+	twinfo.whichobject = winfo.whichobject;
 	bool t_vertical = (winfo.attributes & WTHEME_ATT_SBVERTICAL) != 0;
 	bool t_disabled = (winfo.state & WTHEME_STATE_DISABLED) != 0;
 
@@ -2174,6 +2176,8 @@ void MCNativeTheme::drawScrollbar(MCDC *dc, const MCWidgetInfo &winfo,
 
 	uint4 sbpartdefaultstate = winfo.state & WTHEME_STATE_DISABLED ? WTHEME_STATE_DISABLED : WTHEME_STATE_CLEAR;
 	memset(&twinfo, 0, sizeof(MCWidgetInfo));	//clear widget info
+	// HXT themes: the parts are painted for the same object as the whole
+	twinfo.whichobject = winfo.whichobject;
 
 	// Crux needs the track to be the same size as the actual scroll bar, so we
 	// paint that first.
@@ -2325,6 +2329,34 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo & winfo,
 
 	if (rect.width <= 0 || rect.height <= 0)
 		return False;
+
+	// HXT colour themes: GTK draws in the system's colours, which do not suit
+	// an object whose stack has a colour theme, so such a control is painted
+	// in the theme's colours instead. Controls made of parts (scrollbar,
+	// slider, progress bar, combo box) carry on below and come back here for
+	// each part.
+	if (winfo.type != WTHEME_TYPE_SLIDER && winfo.type != WTHEME_TYPE_SCROLLBAR &&
+	    winfo.type != WTHEME_TYPE_PROGRESSBAR && winfo.type != WTHEME_TYPE_COMBO)
+	{
+		MCThemedControlPalette t_pal;
+		if (MCThemeGetThemedControlPalette(winfo.whichobject, t_pal))
+		{
+			MCRectangle t_paint_rect = crect;
+			if (winfo.type == WTHEME_TYPE_CHECKBOX || winfo.type == WTHEME_TYPE_RADIOBUTTON)
+			{
+				// The rect is the indicator plus its spacing, the full height
+				// of the button: paint a square indicator in the middle of it.
+				uint2 t_size = t_paint_rect.width < t_paint_rect.height ? t_paint_rect.width : t_paint_rect.height;
+				if (t_size > 16)
+					t_size = 16;
+				t_paint_rect.x += (t_paint_rect.width - t_size) / 2;
+				t_paint_rect.y += (t_paint_rect.height - t_size) / 2;
+				t_paint_rect.width = t_paint_rect.height = t_size;
+			}
+			if (MCThemeDrawThemedControl(dc, winfo, t_paint_rect, t_pal))
+				return True;
+		}
+	}
 	
 	// -- tperry 15-11-2025: GTK3 - create/resize offscreen window as needed
 	if (gtkpix_offscreen == NULL || gtkpixrect.width != rect.width || gtkpixrect.height != rect.height)
