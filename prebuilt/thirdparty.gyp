@@ -1528,17 +1528,8 @@
 					},
 				],
 				[
-					'toolset_os == "linux"',
-					{
-						'platform_include_dirs':
-						[
-							'<@(libffi_public_headers_darwin_osx_dir)',
-						],
-					},
-				],
-				[
 					'toolset_os == "win"',
-					{							
+					{
 						'conditions':
 						[
 							[

@@ -404,6 +404,7 @@
 						'sources':
 						[
 							'<@(libffi_linux_arm64_source_files)',
+							'<@(libffi_generic_sources)',
 						],
 					},
 				],
