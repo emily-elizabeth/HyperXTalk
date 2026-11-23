@@ -50,7 +50,7 @@ BUILDBOT_PLATFORM_TRIPLES = (
 )
 
 KNOWN_PLATFORMS = (
-    'linux-x86', 'linux-x86_64', 'linux-armv6hf', 'linux-armv7', 'linux-armv7l',
+    'linux-x86', 'linux-x86_64', 'linux-armv6hf', 'linux-armv7', 'linux-armv7l', 'linux-arm64',
     'android-armv6', 'android-armv7', 'android-arm64', 'android-x86', 'android-x86_64',
     'mac', 'ios', 
     'win-x86', 'win-x86_64', 
@@ -128,6 +128,8 @@ def guess_platform():
     if system == 'Linux':
         if re.match('^(x|i.?)86$', arch) is not None:
             return 'linux-x86'
+        elif arch in ('aarch64', 'arm64'):
+            return 'linux-arm64'
         else:
             return 'linux-' + arch
     if system == 'Windows':

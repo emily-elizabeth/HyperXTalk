@@ -9,9 +9,9 @@ function fetchUrl {
 	DOWNLOADED=0
 
 	# Download using an HTTP client of some variety
-	if $(which curl 1>/dev/null 2>/dev/null) ; then
+	if which curl >/dev/null 2>&1 ; then
 		curl --fail -L "${URL}" -o "${SAVEPATH}"
-	elif $(which wget 1>/dev/null 2>/dev/null) ; then
+	elif which wget >/dev/null 2>&1 ; then
 		wget "${URL}" -O "${SAVEPATH}"
 	else
 		# Perl as a last resort (useful for Cygwin)
