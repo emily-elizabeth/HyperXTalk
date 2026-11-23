@@ -1273,15 +1273,18 @@ void MCScriptEndDefinitionGroupInModule(MCScriptModuleBuilderRef self, uindex_t&
     if (!self -> valid)
         return;
     
-    if (!MCMemoryNew((MCScriptDefinitionGroupDefinition *&)self -> module . definitions[t_index]))
+    // Allocate into a correctly-typed local and then store it. Writing through
+    // a (MCScriptDefinitionGroupDefinition *&) cast of the MCScriptDefinition *
+    // slot violates strict aliasing, and GCC on arm64 reordered the read-back
+    // ahead of the store, leaving t_group null.
+    MCScriptDefinitionGroupDefinition *t_group;
+    if (!MCMemoryNew(t_group))
     {
         self -> valid = false;
         return;
     }
-    
-    MCScriptDefinitionGroupDefinition *t_group;
-    t_group = (MCScriptDefinitionGroupDefinition *)self -> module . definitions[t_index];
-    
+    self -> module . definitions[t_index] = t_group;
+
     t_group -> kind = kMCScriptDefinitionKindDefinitionGroup;
     t_group -> handler_count = self -> current_handler_group_size;
     t_group -> handlers = self -> current_handler_group;
