@@ -27,6 +27,8 @@ topColor
 topPattern												
 bottomColor												
 bottomPattern												
+scrollbarForeColor												
+scrollbarBackColor												
 shadowColor												
 shadowPattern												
 customProperties												
