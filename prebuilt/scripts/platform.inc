@@ -21,6 +21,9 @@ case $(uname -m) in
 	i*86)
 		HOST_ARCH=i386
 		;;
+	aarch64|arm64)
+		HOST_ARCH=arm64
+		;;
 esac
 
 if [ -z "${XCODEBUILD}" ] ; then
@@ -132,9 +135,13 @@ function setCCForTarget {
 			if [ "${ARCH}" == "x86_64" ] ; then
 				CC="${CC_BASE} -m64 ${CC_FLAGS}"
 				CXX="${CXX_BASE} -m64 ${CC_FLAGS}"
-			elif [ "$1" == "x86" ] ; then
+			elif [ "${ARCH}" == "x86" ] ; then
 				CC="${CC_BASE} -m32 ${CC_FLAGS}"
 				CXX="${CXX_BASE} -m32 ${CC_FLAGS}"
+			elif [ "${ARCH}" == "arm64" ] ; then
+				# -mrelax-relocations is an x86 assembler option; not valid for arm64
+				CC="${CC_BASE} -fPIC"
+				CXX="${CXX_BASE} -fPIC"
 			fi
 			;;
 		android)

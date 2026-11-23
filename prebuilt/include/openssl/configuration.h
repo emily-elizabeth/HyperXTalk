@@ -195,7 +195,7 @@ extern "C" {
 #endif
 
 /* clang-format off */
-# define RC4_INT unsigned int
+# define RC4_INT unsigned char
 /* clang-format on */
 
 #if defined(OPENSSL_NO_COMP) || (defined(OPENSSL_NO_BROTLI) && defined(OPENSSL_NO_ZSTD) && defined(OPENSSL_NO_ZLIB))

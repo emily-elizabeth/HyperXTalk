@@ -12,6 +12,9 @@ function readVersion {
 	local LIBNAME=$1
 	local LIBNAME_LC=$(tr "[:upper:]" "[:lower:]" <<< $LIBNAME)
 
+	if [ ! -f "${script_dir}/../versions/${LIBNAME_LC}" ] ; then
+		return
+	fi
 	local VERSION=$(head --lines=1 "${script_dir}/../versions/${LIBNAME_LC}")
 	eval ${LIBNAME}_VERSION='"${VERSION}"'
 	export ${LIBNAME}_VERSION="${VERSION}"
