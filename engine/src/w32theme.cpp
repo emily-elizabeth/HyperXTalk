@@ -1113,6 +1113,51 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
 	MCWinControlPalette t_pal;
 	if (s_get_control_palette(winfo, t_pal))
 	{
+		// For an object with a colour theme, buttons, checkboxes, radio
+		// buttons and tabs are painted by the code shared with the GTK theme
+		// (mctheme.cpp), which rounds and antialiases them. Everything else,
+		// and all of unthemed dark mode, is painted below as before.
+		if (t_pal . themed)
+		{
+			switch (winfo.type)
+			{
+			case WTHEME_TYPE_PUSHBUTTON:
+			case WTHEME_TYPE_BEVELBUTTON:
+			case WTHEME_TYPE_RECTANGLE_BUTTON:
+			case WTHEME_TYPE_PULLDOWN:
+			case WTHEME_TYPE_COMBOBUTTON:
+			case WTHEME_TYPE_OPTIONBUTTONTEXT:
+			case WTHEME_TYPE_CHECKBOX:
+			case WTHEME_TYPE_RADIOBUTTON:
+			case WTHEME_TYPE_TAB:
+			{
+				MCThemedControlPalette t_shared;
+				t_shared . themed = true;
+				t_shared . dark = t_pal . dark;
+				t_shared . ctrl = t_pal . ctrl;
+				t_shared . ctrl_hover = t_pal . ctrl_hover;
+				t_shared . ctrl_press = t_pal . ctrl_press;
+				t_shared . ctrl_dis = t_pal . ctrl_dis;
+				t_shared . border = t_pal . border;
+				t_shared . accent = t_pal . accent;
+				t_shared . on_accent = t_pal . on_accent;
+				t_shared . field = t_pal . field;
+				t_shared . field_border = t_pal . field_border;
+				t_shared . tab_sel = t_pal . tab_sel;
+				t_shared . tab_unsel = t_pal . tab_unsel;
+				t_shared . pane = t_pal . pane;
+				t_shared . group_border = t_pal . group_border;
+				t_shared . track = t_pal . track;
+				t_shared . thumb = t_pal . thumb;
+				if (MCThemeDrawThemedControl(dc, winfo, trect, t_shared))
+					return True;
+				break;
+			}
+			default:
+				break;
+			}
+		}
+
 		bool t_dark_handled = true;
 		switch (winfo.type)
 		{

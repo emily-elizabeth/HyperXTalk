@@ -252,7 +252,7 @@ static void MCThemeFillArrow(MCDC *dc, const MCRectangle& p_rect, int p_directio
 static void MCThemeFillRoundedFace(MCDC *dc, const MCRectangle& p_rect, const MCColor& p_border, const MCColor& p_face, uint2 p_radius)
 {
 	dc->setfillstyle(FillSolid, nil, 0, 0);
-	if (p_rect . width < 2 * p_radius + 2 || p_rect . height < 2 * p_radius + 2)
+	if (p_radius < 2 || p_rect . width < 2 * p_radius + 2 || p_rect . height < 2 * p_radius + 2)
 	{
 		dc->setforeground(p_face);
 		dc->fillrect(p_rect);
@@ -315,7 +315,8 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 			t_border = p_pal . accent;
 		else
 			t_border = p_pal . border;
-		MCThemeFillRoundedFace(dc, p_rect, t_border, t_bg, kMCThemedControlRadius);
+		// a rectangle button keeps its square corners
+		MCThemeFillRoundedFace(dc, p_rect, t_border, t_bg, winfo.type == WTHEME_TYPE_RECTANGLE_BUTTON ? 0 : kMCThemedControlRadius);
 		if (winfo.type == WTHEME_TYPE_COMBOBUTTON)
 		{
 			dc->setforeground((winfo.state & WTHEME_STATE_DISABLED) ? p_pal . border : p_pal . thumb);
