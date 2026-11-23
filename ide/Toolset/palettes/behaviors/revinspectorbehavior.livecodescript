@@ -810,6 +810,19 @@ on systemAppearanceChanged pMode, pWindowColor, pTextColor
    if tFgColor is not a color then put the systemTextColor into tFgColor
    if tFgColor is not a color then put revIDEColor("text_1") into tFgColor
 
+   -- An IDE theme for the current appearance wins over the system's colours
+   -- (revIDEWindowColor gives the theme's colour, or the system's if none).
+   -- The engine sends this message with the system's window colour, so
+   -- without this a live light/dark switch put the inspector back in the
+   -- plain system colour while the other palettes kept the theme.
+   local tThemeColor
+   try
+      put revIDEWindowColor("background") into tThemeColor
+      if tThemeColor is a color then put tThemeColor into tBgColor
+      put revIDEWindowColor("text") into tThemeColor
+      if tThemeColor is a color then put tThemeColor into tFgColor
+   end try
+
    set the cInspectorBackgroundColor of stack "revPreferences" to tBgColor
    set the backgroundColor of this stack to tBgColor
    set the backgroundColor of this card to tBgColor

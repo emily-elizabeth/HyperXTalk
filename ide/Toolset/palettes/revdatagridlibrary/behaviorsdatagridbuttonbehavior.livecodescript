@@ -3,6 +3,7 @@ local sDataArray         -- Multi-dimensional array
 local sIndexSequencing -- sDataArray indexes in order they should appear
 
 local sInit -- Has control been opened once before?
+local sAppearanceSettleMessage
 local sControlIsOpen
 
 constant kDefaultDimmedHiliteColor = "212,212,212"
@@ -9041,6 +9042,32 @@ end _ApplyAppearanceDefaults
 ## appearance and redraws the rows.
 on systemAppearanceChanged pMode, pWindowColor, pTextColor
    if not sInit then exit systemAppearanceChanged
+   _RepaintForAppearance
+   ## Rebuild the rows shortly afterwards. On Linux the repaint above could
+   ## leave rows, or the selected row's hilite, in the previous appearance's
+   ## colours after a live switch, and only ResetList put them right. So once
+   ## the switch has settled the defaults are applied again and the row
+   ## controls rebuilt, which is what ResetList does; the scroll position and
+   ## the selection are kept.
+   if sAppearanceSettleMessage is not empty then
+      cancel sAppearanceSettleMessage
+   end if
+   send "dgAppearanceSettled" to me in 300 milliseconds
+   put the result into sAppearanceSettleMessage
+end systemAppearanceChanged
+
+
+on dgAppearanceSettled
+   put empty into sAppearanceSettleMessage
+   if not sInit then exit dgAppearanceSettled
+   lock screen
+   _ApplyAppearanceDefaults
+   dgResetList
+   unlock screen
+end dgAppearanceSettled
+
+
+private command _RepaintForAppearance
    lock screen
    _ApplyAppearanceDefaults
    ## RefreshList only recolours a row it re-lays out, so rows that did not
@@ -9052,7 +9079,7 @@ on systemAppearanceChanged pMode, pWindowColor, pTextColor
    _list.UpdateAlternatingRowColors
    RefreshList
    unlock screen
-end systemAppearanceChanged
+end _RepaintForAppearance
 
 
 ## Sent by the engine to the card when the theme of the stack changes (the
