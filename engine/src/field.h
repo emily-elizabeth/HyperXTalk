@@ -270,6 +270,27 @@ private:
     // MM-2014-08-11: [[ Bug 13149 ]] Used to flag if a recompute is required during the next draw.
     bool m_recompute : 1;
 
+    // Scrollbar custom colours — stored on the field so they survive scrollbar
+    // recreation and work even before a scrollbar object is created.
+    MCColor m_scrollbar_fore_color;
+    bool    m_scrollbar_fore_set;
+    MCColor m_scrollbar_back_color;
+    bool    m_scrollbar_back_set;
+
+    // Accessors for scrollbardraw.cpp (inline so no extra compile unit needed).
+public:
+    bool getScrollbarForeColor(MCColor& r_color) const
+    {
+        if (m_scrollbar_fore_set) { r_color = m_scrollbar_fore_color; return true; }
+        return false;
+    }
+    bool getScrollbarBackColor(MCColor& r_color) const
+    {
+        if (m_scrollbar_back_set) { r_color = m_scrollbar_back_color; return true; }
+        return false;
+    }
+private:
+
     // Spell checking: array of misspelled word ranges in field character coords.
     // Rebuilt by updateSpellingErrors() whenever text changes and m_spell_check is true.
     struct MCSpellError { findex_t start; findex_t end; };
@@ -711,6 +732,10 @@ public:
 	void SetVScrollbar(MCExecContext& ctxt, bool setting);
 	void GetScrollbarWidth(MCExecContext& ctxt, uinteger_t& r_width);
 	void SetScrollbarWidth(MCExecContext& ctxt, uinteger_t p_width);
+	void GetScrollbarForeColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color);
+	void SetScrollbarForeColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color);
+	void GetScrollbarBackColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color);
+	void SetScrollbarBackColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color);
 	void GetFormattedWidth(MCExecContext& ctxt, integer_t& r_width);
 	void GetFormattedHeight(MCExecContext& ctxt, integer_t& r_height);
 	void GetListBehavior(MCExecContext& ctxt, bool& r_setting);
