@@ -1408,6 +1408,10 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
             [t_scroller setFloatValue:(float)t_pos];
             [t_scroller setKnobProportion:t_proportion];
 #pragma clang diagnostic pop
+            // The scroller is not in a window, so without this it draws in
+            // the app's appearance whatever the current drawing appearance
+            // is, and a themed stack got a light track on a dark theme.
+            [t_scroller setAppearance:t_appearance];
 
             [t_appearance performAsCurrentDrawingAppearance:^{
                 CGContextSaveGState(t_cgcontext);
@@ -1722,8 +1726,10 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
         {
             [t_appearance performAsCurrentDrawingAppearance:^{
                 // Determine if we're in dark mode
+                // t_appearance, not the app's: a themed stack whose theme is
+                // dark while the system is light (or the reverse) forces it.
                 NSAppearanceName t_best =
-                    [MCMacEffectiveAppearance()
+                    [t_appearance
                         bestMatchFromAppearancesWithNames:
                             @[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]];
                 bool t_is_dark = [t_best isEqualToString:NSAppearanceNameDarkAqua];
