@@ -9060,9 +9060,18 @@ end systemAppearanceChanged
 on dgAppearanceSettled
    put empty into sAppearanceSettleMessage
    if not sInit then exit dgAppearanceSettled
+   ## dgResetList clears the selection along with its other caches, so it is
+   ## put back afterwards. It is restored directly, not through
+   ## dgHilitedIndexes, which would scroll the selection into view.
+   local tHilitedIndexes
+   put sHilitedIndexes into tHilitedIndexes
    lock screen
    _ApplyAppearanceDefaults
    dgResetList
+   if tHilitedIndexes is not empty then
+      put tHilitedIndexes into sHilitedIndexes
+      _HiliteIndexesInVisibleControls
+   end if
    unlock screen
 end dgAppearanceSettled
 
@@ -9175,7 +9184,10 @@ private function _GetHiliteColor
    else
       put the dgProps["hilite color"] of me into theColor
       if theColor is empty then
-         put the hiliteColor into theColor
+         ## HXT themes: the stack theme's highlight if it has one, otherwise
+         ## the system's. The text over it ("hilited text color") is chosen
+         ## for the theme's highlight, so the row must be drawn in it too.
+         put _GetEffectiveColor("hilite color") into theColor
       end if
    end if
    return theColor
