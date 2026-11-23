@@ -58,7 +58,13 @@ private:
 
     // MW-2014-06-20: [[ ClipsToRect ]] If true, group acts like lockLocation set, but can be resized.
     bool m_clips_to_rect : 1;
-    
+
+    // Scrollbar custom colours — stored on the group.
+    MCColor m_scrollbar_fore_color;
+    bool    m_scrollbar_fore_set;
+    MCColor m_scrollbar_back_color;
+    bool    m_scrollbar_back_set;
+
 	static uint2 labeloffset;
 	static MCPropertyInfo kProperties[];
 	static MCObjectPropertyTable kPropertyTable;
@@ -293,6 +299,22 @@ public:
 	void SetVScrollbar(MCExecContext& ctxt, bool setting);
 	void GetScrollbarWidth(MCExecContext& ctxt, integer_t& r_width);
 	void SetScrollbarWidth(MCExecContext& ctxt, integer_t p_width);
+	void GetScrollbarForeColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color);
+	void SetScrollbarForeColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color);
+	void GetScrollbarBackColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color);
+	void SetScrollbarBackColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color);
+
+	// Inline accessors for scrollbardraw.cpp.
+	bool getScrollbarForeColor(MCColor& r_color) const
+	{
+		if (m_scrollbar_fore_set) { r_color = m_scrollbar_fore_color; return true; }
+		return false;
+	}
+	bool getScrollbarBackColor(MCColor& r_color) const
+	{
+		if (m_scrollbar_back_set) { r_color = m_scrollbar_back_color; return true; }
+		return false;
+	}
 	void GetFormattedLeft(MCExecContext& ctxt, integer_t& r_left);
 	void GetFormattedHeight(MCExecContext& ctxt, integer_t& r_height);
 	void GetFormattedTop(MCExecContext& ctxt, integer_t& r_top);
