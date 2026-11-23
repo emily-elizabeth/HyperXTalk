@@ -62,7 +62,12 @@ case "${PLATFORM}" in
 		PREBUILT_LIBS="openssl curl icu libz libzip libgif libjpeg libpng libcairo libfreetype libiodbc"
 		;;
 	linux)
-		PREBUILT_LIBS="openssl curl icu libz libzip libgif libjpeg libpng libwebp libcairo libfreetype libiodbc"
+		# Only openssl, curl and icu produce libraries the Linux build links.
+		# The other build-*.sh scripts refresh the vendored source under
+		# thirdparty/ (overwriting it) rather than producing a library; those
+		# libraries are built from thirdparty via gyp, and cairo with
+		# use_prebuilt_thirdparty links the system -lcairo.
+		PREBUILT_LIBS="openssl curl icu"
 		;;
 	emscripten)
 		PREBUILT_LIBS="icu libz libzip libgif libjpeg libpng libwebp libcairo libfreetype libiodbc"

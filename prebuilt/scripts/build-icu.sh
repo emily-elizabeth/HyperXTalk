@@ -161,7 +161,7 @@ echo "PLATFORM = ${PLATFORM}, ARCH = ${ARCH} HOST_ARCH = ${HOST_ARCH}"
 			;;
 		linux)
 			CONFIG_TYPE="Linux"
-			if [ "${ARCH}" == "x86_64" ] ; then
+			if [ "${ARCH}" == "x86_64" -o "${ARCH}" == "arm64" ] ; then
 				CONFIG_TYPE+=" --with-library-bits=64"
 			elif [ "${ARCH}" == "armv6hf" ] ; then
 				CONFIG_TYPE+=" --host=arm-rpi-linux-gnueabihf --with-cross-build=${HOST_ICU_DIR}"
