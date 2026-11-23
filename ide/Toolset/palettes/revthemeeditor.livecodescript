@@ -376,7 +376,7 @@ private command showScheme
       put " In your Schemes folder." after tInfo
       set the label of button "Remove" of me to "Delete…"
       set the enabled of button "Remove" of me to true
-      set the toolTip of button "Remove" of me to removalPhrase("Move this scheme to the Trash", "Delete this scheme. It cannot be got back")
+      set the toolTip of button "Remove" of me to removalPhrase("Move this scheme to the Trash", "Delete this scheme. This cannot be undone")
    end if
    set the text of field "Info" of me to tInfo
 
@@ -550,7 +550,7 @@ end removalPhrase
 -- Removes the user's file for the scheme being edited. If the scheme is also
 -- bundled with the IDE that restores the bundled version; otherwise the scheme
 -- is gone. The file is moved to the Trash where there is one, so it can be
--- got back.
+-- recovered.
 private command removeScheme
    local tFile, tBundled, tTrash, tTarget, tName
    if schemeIsBundled() then exit removeScheme
@@ -560,14 +560,14 @@ private command removeScheme
    
    if tBundled then
       answer warning "Restore" && quote & tName & quote && "as bundled with the IDE?" & return & return & \
-            "Your copy, with any changes you made to it in this editor or in the Script Colour Editor," && removalPhrase("will be moved to the Trash.", "will be deleted and cannot be got back.") \
+            "Your copy, with any changes you made to it in this editor or in the Script Colour Editor," && removalPhrase("will be moved to the Trash.", "will be deleted. This cannot be undone.") \
             with "Cancel" or "Restore"
       if it is not "Restore" then
          exit removeScheme
       end if
    else
       answer warning "Delete the scheme" && quote & tName & quote & "?" & return & return & \
-            removalPhrase("It will be moved to the Trash.", "It will be deleted and cannot be got back.") && "Stacks that were given this theme keep their colours." \
+            removalPhrase("It will be moved to the Trash.", "This cannot be undone.") && "Stacks that were given this theme keep their colours." \
             with "Cancel" or "Delete"
       if it is not "Delete" then exit removeScheme
    end if
