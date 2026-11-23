@@ -329,13 +329,17 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 		{
 			MCColor t_check = t_enabled ? p_pal . on_accent : p_pal . border;
 			dc->setforeground(t_check);
-			// Two line segments forming a "tick": left→mid-low→top-right
+			// Two line segments forming a tick, two pixels thick so that it
+			// reads at this size: left, down to the low middle, up to the
+			// top right.
 			int2 cx = p_rect.x + p_rect.width / 2;
 			int2 cy = p_rect.y + p_rect.height / 2;
-			dc->drawline(p_rect.x + 2,               cy - 1,
-			             cx - 1,                    p_rect.y + p_rect.height - 3);
-			dc->drawline(cx - 1,                    p_rect.y + p_rect.height - 3,
-			             p_rect.x + p_rect.width - 3, p_rect.y + 2);
+			dc->setlineatts(2, LineSolid, CapRound, JoinRound);
+			dc->drawline(p_rect.x + 4,               cy,
+			             cx - 1,                    p_rect.y + p_rect.height - 5);
+			dc->drawline(cx - 1,                    p_rect.y + p_rect.height - 5,
+			             p_rect.x + p_rect.width - 4, p_rect.y + 4);
+			dc->setlineatts(0, LineSolid, CapButt, JoinBevel);
 		}
 		break;
 	}
@@ -348,16 +352,18 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 			t_bg = p_pal . ctrl_dis;
 		else
 			t_bg = p_pal . field;
-		dc->setforeground(t_bg);
-		dc->setfillstyle(FillSolid, nil, 0, 0);
-		dc->fillarc(p_rect, 0, 360, false);
+		// The outline is a filled disc with a smaller one on top: a stroked
+		// circle this small comes out as an octagon.
 		MCColor t_border;
 		if (winfo.state & WTHEME_STATE_HASFOCUS)
 			t_border = p_pal . accent;
 		else
 			t_border = p_pal . border;
+		dc->setfillstyle(FillSolid, nil, 0, 0);
 		dc->setforeground(t_border);
-		dc->drawarc(p_rect, 0, 360);
+		dc->fillarc(p_rect, 0, 360, false);
+		dc->setforeground(t_bg);
+		dc->fillarc(MCU_reduce_rect(p_rect, 1), 0, 360, false);
 		// If selected, draw a small filled dot in the centre
 		if (winfo.state & WTHEME_STATE_HILITED)
 		{
