@@ -246,6 +246,29 @@ static void MCThemeFillArrow(MCDC *dc, const MCRectangle& p_rect, int p_directio
 	dc->fillpolygon(t_points, 3);
 }
 
+// A control face with rounded corners: a rounded rectangle in the border
+// colour with a slightly smaller one in the face colour on top, which gives a
+// smooth outline where a stroked one would be ragged at this size.
+static void MCThemeFillRoundedFace(MCDC *dc, const MCRectangle& p_rect, const MCColor& p_border, const MCColor& p_face, uint2 p_radius)
+{
+	dc->setfillstyle(FillSolid, nil, 0, 0);
+	if (p_rect . width < 2 * p_radius + 2 || p_rect . height < 2 * p_radius + 2)
+	{
+		dc->setforeground(p_face);
+		dc->fillrect(p_rect);
+		dc->setforeground(p_border);
+		dc->drawrect(p_rect, false);
+		return;
+	}
+	dc->setforeground(p_border);
+	dc->fillroundrect(p_rect, p_radius);
+	dc->setforeground(p_face);
+	dc->fillroundrect(MCU_reduce_rect(p_rect, 1), p_radius - 1);
+}
+
+// The corner radius of buttons, option menus and tabs.
+#define kMCThemedControlRadius 5
+
 // Paints the control described by winfo into p_rect. False if this kind of
 // control is not painted here, in which case the native theme should draw it.
 bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRectangle& p_rect, const MCThemedControlPalette& p_pal)
@@ -280,9 +303,6 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 			t_bg = p_pal . ctrl_hover;
 		else
 			t_bg = p_pal . ctrl;
-		dc->setforeground(t_bg);
-		dc->setfillstyle(FillSolid, nil, 0, 0);
-		dc->fillrect(p_rect);
 		// Border: use focus-ring colour when focused, standard border otherwise
 		MCColor t_border;
 		if (winfo.state & WTHEME_STATE_HASFOCUS)
@@ -291,8 +311,7 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 			t_border = p_pal . accent;
 		else
 			t_border = p_pal . border;
-		dc->setforeground(t_border);
-		dc->drawrect(p_rect, false);
+		MCThemeFillRoundedFace(dc, p_rect, t_border, t_bg, kMCThemedControlRadius);
 		if (winfo.type == WTHEME_TYPE_COMBOBUTTON)
 		{
 			dc->setforeground((winfo.state & WTHEME_STATE_DISABLED) ? p_pal . border : p_pal . thumb);
@@ -314,16 +333,12 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 			t_bg = p_pal . accent;
 		else
 			t_bg = p_pal . field;
-		dc->setforeground(t_bg);
-		dc->setfillstyle(FillSolid, nil, 0, 0);
-		dc->fillrect(p_rect);
 		MCColor t_border;
 		if ((winfo.state & WTHEME_STATE_HASFOCUS) || (t_checked && t_enabled))
 			t_border = p_pal . accent;
 		else
 			t_border = p_pal . border;
-		dc->setforeground(t_border);
-		dc->drawrect(p_rect, false);
+		MCThemeFillRoundedFace(dc, p_rect, t_border, t_bg, 3);
 		// If checked, draw a simple check mark in a colour that shows on the box
 		if (t_checked)
 		{
@@ -415,11 +430,22 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 			t_bg = p_pal . tab_sel;
 		else
 			t_bg = p_pal . tab_unsel;
-		dc->setforeground(t_bg);
-		dc->setfillstyle(FillSolid, nil, 0, 0);
-		dc->fillrect(p_rect);
-		dc->setforeground(p_pal . border);
-		dc->drawrect(p_rect, false);
+		// Rounded at the top, square where the tab meets the pane: a rounded
+		// face, then the lower half squared off over it.
+		MCThemeFillRoundedFace(dc, p_rect, p_pal . border, t_bg, kMCThemedControlRadius);
+		if (p_rect . width > 2 * kMCThemedControlRadius + 2 && p_rect . height > 2 * kMCThemedControlRadius + 2)
+		{
+			MCRectangle t_lower = p_rect;
+			t_lower . y += p_rect . height / 2;
+			t_lower . height = p_rect . height - p_rect . height / 2;
+			dc->setforeground(p_pal . border);
+			dc->fillrect(t_lower);
+			t_lower . x += 1;
+			t_lower . width -= 2;
+			t_lower . height -= 1;
+			dc->setforeground(t_bg);
+			dc->fillrect(t_lower);
+		}
 		break;
 	}
 
@@ -578,11 +604,7 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 			t_bg = p_pal . ctrl_hover;
 		else
 			t_bg = p_pal . ctrl;
-		dc->setforeground(t_bg);
-		dc->setfillstyle(FillSolid, nil, 0, 0);
-		dc->fillrect(p_rect);
-		dc->setforeground((winfo.state & WTHEME_STATE_HASFOCUS) ? p_pal . accent : p_pal . border);
-		dc->drawrect(p_rect, false);
+		MCThemeFillRoundedFace(dc, p_rect, (winfo.state & WTHEME_STATE_HASFOCUS) ? p_pal . accent : p_pal . border, t_bg, kMCThemedControlRadius);
 		MCRectangle t_arrow = p_rect;
 		if (t_arrow . width > 22)
 		{
@@ -661,11 +683,7 @@ bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRecta
 	// ── Small scrollbar (stepper) drawn as one control (GTK) ──────────
 	case WTHEME_TYPE_SMALLSCROLLBAR:
 	{
-		dc->setforeground((winfo.state & WTHEME_STATE_DISABLED) ? p_pal . ctrl_dis : p_pal . ctrl);
-		dc->setfillstyle(FillSolid, nil, 0, 0);
-		dc->fillrect(p_rect);
-		dc->setforeground(p_pal . border);
-		dc->drawrect(p_rect, false);
+		MCThemeFillRoundedFace(dc, p_rect, p_pal . border, (winfo.state & WTHEME_STATE_DISABLED) ? p_pal . ctrl_dis : p_pal . ctrl, 3);
 		dc->setforeground((winfo.state & WTHEME_STATE_DISABLED) ? p_pal . border : p_pal . thumb);
 		MCRectangle t_first = p_rect, t_second = p_rect;
 		if (winfo.attributes & WTHEME_ATT_SBVERTICAL)
