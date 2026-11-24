@@ -442,29 +442,39 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 				                            || ((state & CS_ARMED && flags & F_ARM_FILL) && flags & F_OPAQUE && ((MClook != LF_WIN95 && !MCaqua)))
 				                            || style != F_STANDARD), False);
 
-				// A button the engine fills with the highlight colour (a
-				// highlighted rectangle or round-rect button, say) keeps its
-				// ordinary text colour, which can be unreadable on the fill:
-				// black on the saturated blue highlight of Windows. Where
-				// the two do not contrast, the label is drawn black or
-				// white, whichever reads. A button with a text colour of
-				// its own, or a bezel drawn by the system, is left alone.
+				// A button the engine fills itself keeps its ordinary text
+				// colour, which can be unreadable on the fill. That happens
+				// with the highlight colour of a highlighted button (black
+				// on the saturated blue highlight of Windows), and with a
+				// background colour set on the button when the default text
+				// colour follows the system appearance (white on yellow in
+				// dark mode). Where the two do not contrast, the label is
+				// drawn black or white, whichever reads. A button with a
+				// text colour of its own, or a bezel drawn by the system, is
+				// left alone.
 				bool t_system_bezel = isstdbtn && noback && MCcurtheme != NULL;
 				if (!t_system_bezel && MCcurtheme != NULL && style == F_MENU &&
 				    (menumode == WM_OPTION || menumode == WM_COMBO || menumode == WM_PULLDOWN) &&
 				    !getcindex(DI_BACK, i) && !getpindex(DI_BACK, i))
 					t_system_bezel = true;
-				if (!t_system_bezel && (flags & F_OPAQUE) && loff == 0 &&
-				    (flags & F_SHOW_ICON || !indicator) &&
-				    ((state & CS_HILITED && flags & F_HILITE_FILL) ||
-				     (state & CS_ARMED && flags & F_ARM_FILL)) &&
+				// Whether the fill is the highlight colour, or a background
+				// colour (not a pattern) set on the button itself.
+				bool t_hilite_fill = loff == 0 && (flags & F_SHOW_ICON || !indicator) &&
+				                     ((state & CS_HILITED && flags & F_HILITE_FILL) ||
+				                      (state & CS_ARMED && flags & F_ARM_FILL));
+				bool t_back_fill = !t_hilite_fill &&
+				                   !(state & CS_ARMED && !(flags & F_SHOW_BORDER)) &&
+				                   !(macoption && state & CS_SUBMENU) &&
+				                   getcindex(DI_BACK, i) && !getpindex(DI_BACK, i);
+				if (!t_system_bezel && (flags & F_OPAQUE) &&
+				    (t_hilite_fill || t_back_fill) &&
 				    !getcindex(DI_FORE, i))
 				{
 					MCColor t_fill, t_text;
 					MCPatternRef t_fill_pattern = nil;
 					MCPatternRef t_text_pattern = nil;
 					int2 t_fill_x, t_fill_y, t_text_x, t_text_y;
-					if (getforecolor(DI_HILITE, False, False, t_fill, t_fill_pattern,
+					if (getforecolor(t_hilite_fill ? DI_HILITE : DI_BACK, False, False, t_fill, t_fill_pattern,
 					                 t_fill_x, t_fill_y, dc -> gettype(), this) &&
 					    getforecolor(DI_FORE, False, False, t_text, t_text_pattern,
 					                 t_text_x, t_text_y, dc -> gettype(), this))
