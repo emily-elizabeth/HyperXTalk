@@ -37,7 +37,7 @@ set VCXPROJ_LIBZ=build-win-x86_64\hyperxtalk\thirdparty\libz\libz.vcxproj
 set VCXPROJ_LIBGIF=build-win-x86_64\hyperxtalk\thirdparty\libgif\libgif.vcxproj
 set VCXPROJ_LIBPNG=build-win-x86_64\hyperxtalk\thirdparty\libpng\libpng.vcxproj
 set VCXPROJ_LIBJPEG=build-win-x86_64\hyperxtalk\thirdparty\libjpeg\libjpeg.vcxproj
-set VCXPROJ_LIBPCRE=build-win-x86_64\hyperxtalk\thirdparty\libpcre\libpcre.vcxproj
+set VCXPROJ_LIBPCRE2=build-win-x86_64\hyperxtalk\thirdparty\libpcre2\libpcre2.vcxproj
 set VCXPROJ_LIBCAIRO=build-win-x86_64\hyperxtalk\thirdparty\libcairo\libcairo.vcxproj
 set VCXPROJ_LIBZIP=build-win-x86_64\hyperxtalk\thirdparty\libzip\libzip.vcxproj
 set VCXPROJ_LIBSKIA=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia.vcxproj
@@ -293,7 +293,7 @@ echo.
 :: Build thirdparty libs in Release.
 ::
 :: These must be Release-compiled to avoid pulling in debug-CRT
-:: symbols (_CrtDbgReport from Skia, _chvalidator from libpcre)
+:: symbols (_CrtDbgReport from Skia, _chvalidator from libpcre2)
 :: and HyperXTalk debug macros (__MCAssert etc. from libGraphics)
 :: when linking the Release engine.
 ::
@@ -323,10 +323,10 @@ echo Building libjpeg (Release) ...
 if errorlevel 1 ( echo LIBJPEG BUILD FAILED. See %LOGFILE% & exit /b 1 )
 echo libjpeg OK.
 
-echo Building libpcre (Release) ...
-"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBPCRE%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
-if errorlevel 1 ( echo LIBPCRE BUILD FAILED. See %LOGFILE% & exit /b 1 )
-echo libpcre OK.
+echo Building libpcre2 (Release) ...
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBPCRE2%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
+if errorlevel 1 ( echo LIBPCRE2 BUILD FAILED. See %LOGFILE% & exit /b 1 )
+echo libpcre2 OK.
 
 echo Building libcairo (Release) ...
 "%MSBUILD%" %TOOLSET% %VCXPROJ_LIBCAIRO%  "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Release /p:Platform=x64 /p:BuildProjectReferences=false /v:minimal /nologo >> "%LOGFILE%" 2>&1
@@ -403,7 +403,7 @@ if not exist "%LC_COMPILE_DBG%" (
 :: Bootstrap missing Release\lib entries from Debug\lib.
 ::
 :: Many thirdparty and toolchain static libs (libgif, libpng,
-:: libjpeg, libskia variants, libz, libpcre, libcairo, libzip,
+:: libjpeg, libskia variants, libz, libpcre2, libcairo, libzip,
 :: ICU, OpenSSL, grts, lc-compile-lib-target, libcompile-target,
 :: libGraphics, stdscript …) are only available in Debug\lib.
 :: They are built from source by vcxproj files whose full Release

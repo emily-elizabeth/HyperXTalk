@@ -20,7 +20,7 @@ set VCXPROJ_LIBGIF=build-win-x86_64\hyperxtalk\thirdparty\libgif\libgif.vcxproj
 set VCXPROJ_LIBJPEG=build-win-x86_64\hyperxtalk\thirdparty\libjpeg\libjpeg.vcxproj
 set VCXPROJ_LIBPNG=build-win-x86_64\hyperxtalk\thirdparty\libpng\libpng.vcxproj
 set VCXPROJ_LIBWEBP=build-win-x86_64\hyperxtalk\thirdparty\libwebp\libwebp.vcxproj
-set VCXPROJ_LIBPCRE=build-win-x86_64\hyperxtalk\thirdparty\libpcre\libpcre.vcxproj
+set VCXPROJ_LIBPCRE2=build-win-x86_64\hyperxtalk\thirdparty\libpcre2\libpcre2.vcxproj
 set VCXPROJ_LIBEXPAT=build-win-x86_64\hyperxtalk\thirdparty\libexpat\libexpat.vcxproj
 set VCXPROJ_LIBSKIA=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia.vcxproj
 set VCXPROJ_LIBSKIA_OPT_NONE=build-win-x86_64\hyperxtalk\thirdparty\libskia\libskia_opt_none.vcxproj
@@ -725,7 +725,7 @@ echo kernel-development OK.
 echo.
 :: ----------------------------------------------------------
 :: Build graphics/rendering dependency libs (leaf → trunk order):
-::   libgif, libjpeg, libpng, libpcre, libexpat → libskia (+ opts)
+::   libgif, libjpeg, libpng, libpcre2, libexpat → libskia (+ opts)
 ::   → libGraphics → stdscript
 :: These are ProjectReference inputs for development.vcxproj and must
 :: exist in Debug\lib\ before the engine link step.
@@ -750,10 +750,10 @@ echo Building libwebp ... >> "%LOGFILE%"
 "%MSBUILD%" %TOOLSET% %VCXPROJ_LIBWEBP% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 ( echo ERROR: libwebp failed. & exit /b 1 )
 
-echo Building libpcre ...
-echo Building libpcre ... >> "%LOGFILE%"
-"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBPCRE% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
-if %ERRORLEVEL% NEQ 0 ( echo ERROR: libpcre failed. & exit /b 1 )
+echo Building libpcre2 ...
+echo Building libpcre2 ... >> "%LOGFILE%"
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBPCRE2% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+if %ERRORLEVEL% NEQ 0 ( echo ERROR: libpcre2 failed. & exit /b 1 )
 
 echo Building libexpat ...
 echo Building libexpat ... >> "%LOGFILE%"

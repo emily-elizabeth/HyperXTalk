@@ -57,7 +57,7 @@
 				'../prebuilt/libcurl.gyp:libcurl',
 				'../prebuilt/libopenssl.gyp:libopenssl',
 
-				'../thirdparty/libpcre/libpcre.gyp:libpcre',
+				'../thirdparty/libpcre2/libpcre2.gyp:libpcre2',
 				'../thirdparty/libjpeg/libjpeg.gyp:libjpeg',
 				'../thirdparty/libgif/libgif.gyp:libgif',
 				'../thirdparty/libpng/libpng.gyp:libpng',

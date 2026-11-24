@@ -20,185 +20,121 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "parsedef.h"
 #include "regex.h"
 
-#include "pcre.h"
 
-#define pcre16_free free
+// The regular expression library is PCRE2, built for 16-bit code units
+// (PCRE2_CODE_UNIT_WIDTH=16 is defined by the build), which is the form
+// MCStringRef exposes its Unicode contents in.
+#include "pcre2.h"
 
-
-
-
-extern "C"
-{
-	/* Options defined by POSIX. */
-
+/* Compile flags. */
 #define REG_ICASE     0x01
 #define REG_NEWLINE   0x02
+/* Match flags. */
 #define REG_NOTBOL    0x04
 #define REG_NOTEOL    0x08
-	/* Extensions used by the global matching code. */
 #define REG_NOTEMPTY_ATSTART 0x10
 #define REG_ANCHORED         0x20
-
-	/* These are not used by PCRE, but by defining them we make it easier
-	to slot PCRE into existing programs that make POSIX calls. */
-
+/* Not used, but kept for the callers that pass it. */
 #define REG_EXTENDED  0
-#define REG_NOSUB     0
 
-	/* Error values. Not all these are relevant or used by the wrapper. */
-
-	enum {
-	    REG_ASSERT = 1,  /* internal error ? */
-	    REG_BADBR,       /* invalid repeat counts in {} */
-	    REG_BADPAT,      /* pattern error */
-	    REG_BADRPT,      /* ? * + invalid */
-	    REG_EBRACE,      /* unbalanced {} */
-	    REG_EBRACK,      /* unbalanced [] */
-	    REG_ECOLLATE,    /* collation error - not relevant */
-	    REG_ECTYPE,      /* bad class */
-	    REG_EESCAPE,     /* bad escape sequence */
-	    REG_EMPTY,       /* empty expression */
-	    REG_EPAREN,      /* unbalanced () */
-	    REG_ERANGE,      /* bad range inside [] */
-	    REG_ESIZE,       /* expression too big */
-	    REG_ESPACE,      /* failed to get memory */
-	    REG_ESUBREG,     /* bad back reference */
-	    REG_INVARG,      /* bad argument */
-	    REG_NOMATCH,     /* match failed */
-	    REG_ELIMIT       /* match abandoned: too many steps */
-	};
-}   /* extern "C" */
-
-static int eint[] =
+/* Status values returned by regcomp and regexec. */
+enum
 {
-	REG_EESCAPE, /* "\\ at end of pattern" */
-	REG_EESCAPE, /* "\\c at end of pattern" */
-	REG_EESCAPE, /* "unrecognized character follows \\" */
-	REG_BADBR,   /* "numbers out of order in {} quantifier" */
-	REG_BADBR,   /* "number too big in {} quantifier" */
-	REG_EBRACK,  /* "missing terminating ] for character class" */
-	REG_ECTYPE,  /* "invalid escape sequence in character class" */
-	REG_ERANGE,  /* "range out of order in character class" */
-	REG_BADRPT,  /* "nothing to repeat" */
-	REG_BADRPT,  /* "operand of unlimited repeat could match the empty string" */
-	REG_ASSERT,  /* "internal error: unexpected repeat" */
-	REG_BADPAT,  /* "unrecognized character after (?" */
-	REG_ESIZE,   /* "too many capturing parenthesized sub-patterns" */
-	REG_EPAREN,  /* "missing )" */
-	REG_ESUBREG, /* "back reference to non-existent subpattern" */
-	REG_INVARG,  /* "erroffset passed as NULL" */
-	REG_INVARG,  /* "unknown option bit(s) set" */
-	REG_EPAREN,  /* "missing ) after comment" */
-	REG_ESIZE,   /* "too many sets of parentheses" */
-	REG_ESIZE,   /* "regular expression too large" */
-	REG_ESPACE,  /* "failed to get memory" */
-	REG_EPAREN,  /* "unmatched brackets" */
-	REG_ASSERT,  /* "internal error: code overflow" */
-	REG_BADPAT,  /* "unrecognized character after (?<" */
-	REG_BADPAT,  /* "lookbehind assertion is not fixed length" */
-	REG_BADPAT,  /* "malformed number after (?(" */
-	REG_BADPAT,  /* "conditional group containe more than two branches" */
-	REG_BADPAT,  /* "assertion expected after (?(" */
-	REG_BADPAT,  /* "(?p must be followed by )" */
-	REG_ECTYPE,  /* "unknown POSIX class name" */
-	REG_BADPAT,  /* "POSIX collating elements are not supported" */
-	REG_INVARG,  /* "this version of PCRE is not compiled with PCRE_UTF8 support" */
-	REG_BADPAT,  /* "characters with values > 255 are not yet supported in classes" */
-	REG_BADPAT,  /* "character value in \x{...} sequence is too large" */
-	REG_BADPAT,   /* "invalid condition (?(0)" */
-	REG_BADPAT,  /* "\\C not allowed in lookbehind assertion" */
-	REG_EESCAPE, /* "PCRE does not support \\L, \\l, \\N, \\U, or \\u" */
-	REG_BADPAT,  /* "number after (?C is > 255" */
-	REG_BADPAT,  /* "closing ) for (?C expected" */
-	REG_BADPAT,  /* "recursive call could loop indefinitely" */
-	REG_BADPAT,  /* "unrecognized character after (?P" */
-	REG_BADPAT,  /* "syntax error after (?P" */
-	REG_BADPAT,  /* "two named groups have the same name" */
-	REG_BADPAT,  /* "invalid UTF-8 string" */
-	REG_BADPAT,  /* "support for \\P, \\p, and \\X has not been compiled" */
-	REG_BADPAT,  /* "malformed \\P or \\p sequence" */
-	REG_BADPAT,  /* "unknown property name after \\P or \\p" */
-	REG_BADPAT,  /* subpattern name is too long (maximum 32 characters) */
-	REG_BADPAT,  /* too many named subpatterns (maximum 10,000) */
-	REG_BADPAT,  /* repeated subpattern is too long */
-	REG_BADPAT   /* octal value is greater than \377 (not in UTF-8 mode) */
+	REG_ASSERT = 1,  /* internal error */
+	REG_BADPAT,      /* pattern error */
+	REG_ESPACE,      /* failed to get memory */
+	REG_INVARG,      /* bad argument */
+	REG_NOMATCH,     /* match failed */
+	REG_ELIMIT       /* match abandoned: too many steps */
 };
 
-/* The most steps (internal calls of PCRE's match function) one match may take
-before it is abandoned. */
+static const char *pstring[] =
+{
+	"",                       /* REG_OKAY   */
+	"internal error",         /* REG_ASSERT */
+	"pattern error",          /* REG_BADPAT */
+	"failed to get memory",   /* REG_ESPACE */
+	"bad argument",           /* REG_INVARG */
+	"match failed",           /* REG_NOMATCH */
+	"match limit exceeded"    /* REG_ELIMIT */
+};
+
+/* The most steps (internal calls of PCRE2's match function) one match may
+take before it is abandoned, so that a pattern with runaway backtracking
+gives up rather than running for an unbounded time. This is PCRE2's own
+default, set here so that it does not depend on how the library was
+configured. */
 #define REGEX_MATCH_LIMIT 10000000
 
-/* Table of texts corresponding to POSIX error codes */
+/* The most memory, in kibibytes, the backtracking of one match may use. */
+#define REGEX_HEAP_LIMIT (256 * 1024)
 
-static const char *pstring[] =
-    {
-        "",                                /* Dummy for value 0 */
-        "internal error",                  /* REG_ASSERT */
-        "invalid repeat counts in {}",     /* BADBR      */
-        "pattern error",                   /* BADPAT     */
-        "? * + invalid",                   /* BADRPT     */
-        "unbalanced {}",                   /* EBRACE     */
-        "unbalanced []",                   /* EBRACK     */
-        "collation error - not relevant",  /* ECOLLATE   */
-        "bad class",                       /* ECTYPE     */
-        "bad escape sequence",             /* EESCAPE    */
-        "empty expression",                /* EMPTY      */
-        "unbalanced ()",                   /* EPAREN     */
-        "bad range inside []",             /* ERANGE     */
-        "expression too big",              /* ESIZE      */
-        "failed to get memory",            /* ESPACE     */
-        "bad back reference",              /* ESUBREG    */
-        "bad argument",                    /* INVARG     */
-        "match failed",                    /* NOMATCH    */
-        "match limit exceeded"             /* ELIMIT     */
-    };
+/*************************************************
+*         Shared PCRE2 contexts and store        *
+*************************************************/
+
+/* These are created on first use and kept for the life of the process. The
+match data block has room for NSUBEXP pairs of offsets, which is all that a
+regexp can hold. */
+
+static pcre2_compile_context *s_lenient_compile_context = NULL;
+static pcre2_match_context *s_match_context = NULL;
+static pcre2_match_data *s_match_data = NULL;
+
+static bool regex_initialize(void)
+{
+	if (s_lenient_compile_context == NULL)
+	{
+		s_lenient_compile_context = pcre2_compile_context_create(NULL);
+		if (s_lenient_compile_context == NULL)
+			return false;
+		
+		// See regcomp for when this is used.
+		pcre2_set_compile_extra_options(s_lenient_compile_context, PCRE2_EXTRA_BAD_ESCAPE_IS_LITERAL);
+	}
+	
+	if (s_match_context == NULL)
+	{
+		s_match_context = pcre2_match_context_create(NULL);
+		if (s_match_context == NULL)
+			return false;
+		
+		pcre2_set_match_limit(s_match_context, REGEX_MATCH_LIMIT);
+		pcre2_set_heap_limit(s_match_context, REGEX_HEAP_LIMIT);
+	}
+	
+	if (s_match_data == NULL)
+	{
+		s_match_data = pcre2_match_data_create(NSUBEXP, NULL);
+		if (s_match_data == NULL)
+			return false;
+	}
+	
+	return true;
+}
 
 /*************************************************
 *          Translate error code to string        *
 *************************************************/
 
-size_t
-regerror(int errcode, const regex_t *preg, MCStringRef &errbuf)
+static void regerror(int errcode, MCStringRef &errbuf)
 {
-	const char *message, *addmessage;
-	size_t length, addlength;
-
-	message = (errcode >= (int)(sizeof(pstring)/sizeof(char *)))
+	const char *message;
+	message = (errcode < 0 || errcode >= (int)(sizeof(pstring)/sizeof(char *)))
 	          ? "unknown error code" : pstring[errcode];
-	length = strlen(message) + 1;
-
-	addmessage = " at offset ";
-	addlength = (preg != NULL && (int)preg->re_erroffset != -1)
-	            ? strlen(addmessage) + 6 : 0;
 	
-	
-    if (addlength > 0)
-    {
-        MCAutoStringRef t_error_string;
-        MCStringFormat(&t_error_string, "%s%s%-6d", message, addmessage, (int)preg->re_erroffset);
-        MCValueAssign(errbuf, *t_error_string);
-
-    }
-    else
-    {
-		if (errbuf != nil)
-			MCValueRelease(errbuf);
-        /* UNCHECKED */ MCStringCreateWithNativeChars((const char_t *) message, strlen(message), errbuf);
-    }
-	
-	return length + addlength;
+	if (errbuf != nil)
+		MCValueRelease(errbuf);
+	/* UNCHECKED */ MCStringCreateWithNativeChars((const char_t *) message, strlen(message), errbuf);
 }
-
-
-
 
 /*************************************************
 *           Free store held by a regex           *
 *************************************************/
 
-void regfree(regex_t *preg)
+static void regfree(regex_t *preg)
 {
-	(pcre16_free)(preg->re_pcre);
+	pcre2_code_free((pcre2_code *)preg->re_pcre);
 }
 
 /*************************************************
@@ -212,158 +148,196 @@ Arguments:
   cflags      compilation flags
  
 Returns:      0 on success
-              various non-zero codes on failure
+              a non-zero status on failure, in which case re_errorcode and
+              re_erroffset hold PCRE2's error code and the offset in the
+              pattern at which the error was found
 */
 
-int regcomp(regex_t *preg, MCStringRef pattern, int cflags)
+static int regcomp(regex_t *preg, MCStringRef pattern, int cflags)
 {
-	const char *errorptr = NULL;
-	int erroffset = 0;
 	int errorcode = 0;
-	int options = 0;
+	PCRE2_SIZE erroffset = 0;
+	uint32_t options = 0;
+	
+	preg->re_pcre = NULL;
+	preg->re_nsub = 0;
+	preg->re_errorcode = 0;
+	preg->re_erroffset = 0;
+	
+	if (!regex_initialize())
+		return REG_ESPACE;
 
 	if ((cflags & REG_ICASE) != 0)
-		options |= PCRE_CASELESS;
+		options |= PCRE2_CASELESS;
 	if ((cflags & REG_NEWLINE) != 0)
-		options |= PCRE_MULTILINE;
+		options |= PCRE2_MULTILINE;
 
 	// AL-2014-08-20: [[ Bug 13186 ]] Ensure pattern string doesn't get
 	// permanently converted to UTF-16
 	MCAutoStringRef t_temp;
-	/* UNCHECKED */ MCStringMutableCopy(pattern, &t_temp);
+	if (!MCStringMutableCopy(pattern, &t_temp))
+		return REG_ESPACE;
 
-	// SN-2014-01-14: [[ libpcre update ]]
-	preg->re_pcre = pcre16_compile2((PCRE_SPTR16)MCStringGetCharPtr(*t_temp),
-									 options,
-									 &errorcode,
-									 &errorptr,
-									 &erroffset,
-									 NULL);
-	preg->re_erroffset = erroffset;
-	preg->re_errormsg = NULL;
+	// PCRE 8.x, which the engine used before, accepted two things that PCRE2
+	// rejects. So that patterns written for the old library still compile
+	// and mean what they did, each is put right and the compile tried again:
+	//
+	//   - A backslash followed by a letter with no special meaning (such as
+	//     \j) was taken as that letter. The compile is repeated with an
+	//     option that allows this - but only after that particular error,
+	//     as the option would otherwise hide mistakes the old library also
+	//     reported, such as an unknown \p{...} property.
+	//
+	//   - In a character class, a hyphen after an escape such as \d or \w
+	//     that cannot begin a range (as in [\w-.]) was taken as a literal
+	//     hyphen. PCRE2 reports the position just after the hyphen, so the
+	//     hyphen is escaped in the working copy of the pattern.
+	//
+	// If the pattern still fails, the error reported is the first one, whose
+	// offset refers to the pattern as it was written.
+	pcre2_compile_context *t_context = NULL;
+	for (int t_attempt = 0; ; t_attempt++)
+	{
+		int t_errorcode = 0;
+		PCRE2_SIZE t_erroffset = 0;
+		preg->re_pcre = pcre2_compile((PCRE2_SPTR)MCStringGetCharPtr(*t_temp),
+									  MCStringGetLength(*t_temp),
+									  options,
+									  &t_errorcode,
+									  &t_erroffset,
+									  t_context);
+		if (preg->re_pcre != NULL)
+			break;
+		
+		if (t_attempt == 0)
+		{
+			errorcode = t_errorcode;
+			erroffset = t_erroffset;
+		}
+		
+		if (t_attempt >= 32)
+			break;
+		
+		if (t_errorcode == PCRE2_ERROR_UNKNOWN_ESCAPE && t_context == NULL)
+		{
+			t_context = s_lenient_compile_context;
+			continue;
+		}
+		
+		if (t_errorcode == PCRE2_ERROR_CLASS_INVALID_RANGE &&
+			t_erroffset >= 1 && t_erroffset <= MCStringGetLength(*t_temp) &&
+			MCStringGetCharAtIndex(*t_temp, (uindex_t)t_erroffset - 1) == '-' &&
+			MCStringInsert(*t_temp, (uindex_t)t_erroffset - 1, MCSTR("\\")))
+			continue;
+		
+		break;
+	}
 
 	if (preg->re_pcre == NULL)
 	{
-		preg->re_errormsg = errorptr;
-		// The eint table is indexed by PCRE's compile error code (which
-		// starts at 1), not by the offset of the error in the pattern. Any
-		// code beyond the end of the table is reported as a bad pattern.
-		if (errorcode < 1 || errorcode > (int)(sizeof(eint) / sizeof(eint[0])))
-			return REG_BADPAT;
-		return eint[errorcode - 1];
+		preg->re_errorcode = errorcode;
+		preg->re_erroffset = erroffset;
+		return errorcode == PCRE2_ERROR_NOMEMORY ? REG_ESPACE : REG_BADPAT;
 	}
 
 	/* UNCHECKED */ preg->re_pattern = MCValueRetain(pattern);
 	preg->re_flags = cflags;
 
-	// SN-2014-01-10: [[ libpcre udpate ]] pcre_info() is deprecated,
-	// must be replaced with pcre_fullinfo()
-	return pcre16_fullinfo((const pcre16 *)preg->re_pcre,
-							NULL,
-							PCRE_INFO_CAPTURECOUNT,
-							&preg->re_nsub);
+	uint32_t t_capture_count = 0;
+	if (pcre2_pattern_info((const pcre2_code *)preg->re_pcre,
+						   PCRE2_INFO_CAPTURECOUNT,
+						   &t_capture_count) != 0)
+	{
+		MCValueRelease(preg->re_pattern);
+		pcre2_code_free((pcre2_code *)preg->re_pcre);
+		preg->re_pcre = NULL;
+		return REG_ASSERT;
+	}
+	preg->re_nsub = t_capture_count;
+	
+	return REG_OKAY;
 }
 
 /*************************************************
 *              Match a regular expression        *
 *************************************************/
 
-/* Unfortunately, PCRE requires 3 ints of working space for each captured
-substring, so we have to get and release working store instead of just using
-the POSIX structures as was done in earlier releases when PCRE needed only 2
-ints. */
-
 /* The 'startoffset' argument is the code unit index within 'string' at which
 matching begins. The whole of 'string' is still visible to the pattern, so
 anchors, word boundaries and lookbehinds see the text before 'startoffset'.
-Returned offsets are relative to the start of 'string'. */
+Returned offsets are relative to the start of 'string'. Groups that took no
+part in the match, and slots beyond the pattern's groups, are set to -1. */
 
-int regexec(regex_t *preg, const unichar_t *string, int len, int startoffset,
-            size_t nmatch, regmatch_t pmatch[], int eflags)
+static int regexec(regex_t *preg, const unichar_t *string, int len, int startoffset,
+				   size_t nmatch, regmatch_t pmatch[], int eflags)
 {
 	int rc;
-	int options = 0;
-	int *ovector = NULL;
+	uint32_t options = 0;
 
 	if ((eflags & REG_NOTBOL) != 0)
-		options |= PCRE_NOTBOL;
+		options |= PCRE2_NOTBOL;
 	if ((eflags & REG_NOTEOL) != 0)
-		options |= PCRE_NOTEOL;
+		options |= PCRE2_NOTEOL;
 	if ((eflags & REG_NOTEMPTY_ATSTART) != 0)
-		options |= PCRE_NOTEMPTY_ATSTART;
+		options |= PCRE2_NOTEMPTY_ATSTART;
 	if ((eflags & REG_ANCHORED) != 0)
-		options |= PCRE_ANCHORED;
+		options |= PCRE2_ANCHORED;
 
-	// Bound the work a single match may do, so that a pattern with runaway
-	// backtracking gives up rather than running for an unbounded time. The
-	// value is PCRE's own default, set here so that it does not depend on how
-	// the library was configured.
-	pcre16_extra extra;
-	memset(&extra, 0, sizeof(extra));
-	extra.flags = PCRE_EXTRA_MATCH_LIMIT;
-	extra.match_limit = REGEX_MATCH_LIMIT;
+	if (!regex_initialize())
+		return REG_ESPACE;
+	
+	if (nmatch > NSUBEXP)
+		nmatch = NSUBEXP;
 
-	preg->re_erroffset = (size_t)(-1);   /* Only has meaning after compile */
-	if (nmatch > 0)
-	{
-		ovector = (int *)malloc(sizeof(int) * nmatch * 3);
-		if (ovector == NULL)
-			return REG_ESPACE;
-	}
-
-	// [[ libprce update ]] SN-2014-01-14: now handles unicode-encoded input
-	rc = pcre16_exec((const pcre16 *)preg->re_pcre,
-					  &extra,
-					  (PCRE_SPTR16)string,
-					  len,
-					  startoffset,
-					  options,
-					  ovector,
-					  nmatch * 3);
+	rc = pcre2_match((const pcre2_code *)preg->re_pcre,
+					 (PCRE2_SPTR)string,
+					 (PCRE2_SIZE)len,
+					 (PCRE2_SIZE)startoffset,
+					 options,
+					 s_match_data,
+					 s_match_context);
 
 	if (rc == 0)
-		rc = nmatch;    /* All captured slots were filled in */
+		rc = (int)nmatch;    /* All captured slots were filled in */
 
 	if (rc >= 0)
 	{
-		int i;
-		for (i = 0 ; i < rc ; i++)
+		PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(s_match_data);
+		size_t i;
+		for (i = 0 ; i < (size_t)rc && i < nmatch ; i++)
 		{
-			pmatch[i].rm_so = ovector[i*2];
-			pmatch[i].rm_eo = ovector[i*2+1];
+			if (ovector[i*2] == PCRE2_UNSET || ovector[i*2+1] == PCRE2_UNSET)
+				pmatch[i].rm_so = pmatch[i].rm_eo = -1;
+			else
+			{
+				pmatch[i].rm_so = (regoff_t)ovector[i*2];
+				pmatch[i].rm_eo = (regoff_t)ovector[i*2+1];
+			}
 		}
-		if (ovector != NULL)
-			free(ovector);
-		for (; i < (int)nmatch; i++)
+		for (; i < nmatch; i++)
 			pmatch[i].rm_so = pmatch[i].rm_eo = -1;
-		return 0;
+		return REG_OKAY;
 	}
-	else
+
+	switch(rc)
 	{
-		if (ovector != NULL)
-			free(ovector);
-		switch(rc)
-		{
-		case PCRE_ERROR_NOMATCH:
-			return REG_NOMATCH;
-		case PCRE_ERROR_NULL:
-			return REG_INVARG;
-		case PCRE_ERROR_BADOPTION:
-			return REG_INVARG;
-		case PCRE_ERROR_BADMAGIC:
-			return REG_INVARG;
-		case PCRE_ERROR_BADOFFSET:
-			return REG_INVARG;
-		case PCRE_ERROR_UNKNOWN_NODE:
-			return REG_ASSERT;
-		case PCRE_ERROR_NOMEMORY:
-			return REG_ESPACE;
-		case PCRE_ERROR_MATCHLIMIT:
-		case PCRE_ERROR_RECURSIONLIMIT:
-			return REG_ELIMIT;
-		default:
-			return REG_ASSERT;
-		}
+	case PCRE2_ERROR_NOMATCH:
+		return REG_NOMATCH;
+	case PCRE2_ERROR_MATCHLIMIT:
+	case PCRE2_ERROR_DEPTHLIMIT:
+	case PCRE2_ERROR_HEAPLIMIT:
+		return REG_ELIMIT;
+	case PCRE2_ERROR_NOMEMORY:
+		return REG_ESPACE;
+	case PCRE2_ERROR_NULL:
+	case PCRE2_ERROR_BADOPTION:
+	case PCRE2_ERROR_BADMAGIC:
+	case PCRE2_ERROR_BADMODE:
+	case PCRE2_ERROR_BADOFFSET:
+	case PCRE2_ERROR_BADUTFOFFSET:
+		return REG_INVARG;
+	default:
+		return REG_ASSERT;
 	}
 }
 
@@ -424,16 +398,22 @@ regexp *MCR_compile(MCStringRef exp, bool casesensitive)
 		{
 			// Report PCRE's own description of what is wrong with the pattern
 			// and where, falling back on the general message for the code.
-			MCAutoStringRef t_message;
-			if (re->re_errormsg != NULL &&
-				MCStringFormat(&t_message, "%s at offset %d", re->re_errormsg, (int)re->re_erroffset))
+			PCRE2_UCHAR t_buffer[256];
+			int t_buffer_length = 0;
+			if (re->re_errorcode != 0)
+				t_buffer_length = pcre2_get_error_message(re->re_errorcode, t_buffer, sizeof(t_buffer) / sizeof(t_buffer[0]));
+			
+			MCAutoStringRef t_description, t_message;
+			if (t_buffer_length > 0 &&
+				MCStringCreateWithChars((const unichar_t *)t_buffer, t_buffer_length, &t_description) &&
+				MCStringFormat(&t_message, "%@ at offset %d", *t_description, (int)re->re_erroffset))
 			{
 				if (regexperror != nil)
 					MCValueRelease(regexperror);
 				regexperror = t_message . Take();
 			}
 			else
-				regerror(status, nil, regexperror);
+				regerror(status, regexperror);
 			delete re;
 			return(nil);
 		}
@@ -486,7 +466,7 @@ int MCR_exec(regexp *prog, MCStringRef string, MCRange p_range, uindex_t p_start
 	MCAutoStringRef t_uni_string;
 	if (!MCStringUnicodeCopy(string, &t_uni_string))
 	{
-		regerror(REG_ESPACE, NULL, regexperror);
+		regerror(REG_ESPACE, regexperror);
 		return 0;
 	}
 	
@@ -519,7 +499,7 @@ int MCR_exec(regexp *prog, MCStringRef string, MCRange p_range, uindex_t p_start
 		if (status == REG_ELIMIT && r_status != nil)
 			*r_status = kMCRegexExecLimit;
 		//MCValueRelease(regexperror);
-		regerror(status, NULL, regexperror);
+		regerror(status, regexperror);
 		return(0);
 	}
 	if (r_status != nil)
@@ -531,23 +511,13 @@ int MCR_exec(regexp *prog, MCStringRef string, MCRange p_range, uindex_t p_start
 // a one character advance must not stop between the two.
 static bool MCR_crlf_is_newline(regexp *prog)
 {
-	unsigned long int t_options = 0;
-	if (pcre16_fullinfo((const pcre16 *)prog->rexp->re_pcre, NULL, PCRE_INFO_OPTIONS, &t_options) != 0)
+	uint32_t t_newline = 0;
+	if (pcre2_pattern_info((const pcre2_code *)prog->rexp->re_pcre, PCRE2_INFO_NEWLINE, &t_newline) != 0)
 		return false;
 	
-	unsigned long int t_newline = t_options & (PCRE_NEWLINE_CR | PCRE_NEWLINE_LF | PCRE_NEWLINE_CRLF | PCRE_NEWLINE_ANY | PCRE_NEWLINE_ANYCRLF);
-	if (t_newline == 0)
-	{
-		// The pattern does not say, so the library's built-in default applies.
-		int t_default = 0;
-		if (pcre16_config(PCRE_CONFIG_NEWLINE, &t_default) != 0)
-			return false;
-		return t_default == -1 || t_default == -2 || t_default == 3338;
-	}
-	
-	return t_newline == PCRE_NEWLINE_ANY ||
-			t_newline == PCRE_NEWLINE_CRLF ||
-			t_newline == PCRE_NEWLINE_ANYCRLF;
+	return t_newline == PCRE2_NEWLINE_ANY ||
+			t_newline == PCRE2_NEWLINE_CRLF ||
+			t_newline == PCRE2_NEWLINE_ANYCRLF;
 }
 
 bool MCR_exec_next(regexp *prog, MCStringRef p_string, uindex_t& x_offset, bool& x_after_empty, int& r_status)
@@ -622,9 +592,8 @@ uindex_t MCR_groupcount(regexp *prog)
 
 uindex_t MCR_namecount(regexp *prog)
 {
-	int t_count = 0;
-	if (pcre16_fullinfo((const pcre16 *)prog->rexp->re_pcre, NULL, PCRE_INFO_NAMECOUNT, &t_count) != 0 ||
-		t_count < 0)
+	uint32_t t_count = 0;
+	if (pcre2_pattern_info((const pcre2_code *)prog->rexp->re_pcre, PCRE2_INFO_NAMECOUNT, &t_count) != 0)
 		return 0;
 	return (uindex_t)t_count;
 }
@@ -636,14 +605,14 @@ bool MCR_copyname(regexp *prog, uindex_t p_index, uindex_t& r_group, MCNameRef& 
 	
 	// Each entry of the 16-bit name table is the group number in one code
 	// unit followed by the zero-terminated name.
-	int t_entry_size = 0;
-	PCRE_SPTR16 t_table = NULL;
-	if (pcre16_fullinfo((const pcre16 *)prog->rexp->re_pcre, NULL, PCRE_INFO_NAMEENTRYSIZE, &t_entry_size) != 0 ||
-		pcre16_fullinfo((const pcre16 *)prog->rexp->re_pcre, NULL, PCRE_INFO_NAMETABLE, &t_table) != 0 ||
+	uint32_t t_entry_size = 0;
+	PCRE2_SPTR t_table = NULL;
+	if (pcre2_pattern_info((const pcre2_code *)prog->rexp->re_pcre, PCRE2_INFO_NAMEENTRYSIZE, &t_entry_size) != 0 ||
+		pcre2_pattern_info((const pcre2_code *)prog->rexp->re_pcre, PCRE2_INFO_NAMETABLE, &t_table) != 0 ||
 		t_table == NULL || t_entry_size < 2)
 		return false;
 	
-	PCRE_SPTR16 t_entry = t_table + p_index * t_entry_size;
+	PCRE2_SPTR t_entry = t_table + p_index * t_entry_size;
 	
 	uindex_t t_name_length = 0;
 	while (t_name_length < (uindex_t)(t_entry_size - 1) && t_entry[1 + t_name_length] != 0)

@@ -19,7 +19,7 @@ echo "=== Compiling native-layer-x11.cpp ==="
 # Flags extracted from build-linux-x86_64/hyperxtalk/engine/kernel.target.mk
 DEFS=(
     -DHAVE_CONFIG_H=1
-    -DPCRE_STATIC=1
+    -DPCRE2_STATIC=1
     -DPCRE2_CODE_UNIT_WIDTH=16
     -DHAVE___THREAD
     -D_FILE_OFFSET_BITS=64
@@ -58,7 +58,7 @@ INCS=(
     -I"$REPO/libgraphics/include"
     -I"$REPO/libscript/include"
     -I"$REPO/libbrowser/include"
-    -I"$REPO/thirdparty/libpcre/include"
+    -I"$REPO/thirdparty/libpcre2/include"
     -I"$REPO/thirdparty/libjpeg/include"
     -I"$REPO/thirdparty/libpng/include"
     -I"$REPO/prebuilt/include"
@@ -189,7 +189,7 @@ c++ "${LDFLAGS[@]}" \
     "$OBJ/libscript/libScript.a" \
     "$OBJ/libscript/stdscript.a" \
     "$OBJ/libbrowser/libbrowser.a" \
-    "$OBJ/thirdparty/libpcre/libpcre.a" \
+    "$OBJ/thirdparty/libpcre2/libpcre2.a" \
     "$OBJ/thirdparty/libopenssl/libopenssl_stubs.a" \
     -Wl,--end-group \
     "${LIBS[@]}"

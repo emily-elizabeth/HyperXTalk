@@ -1120,12 +1120,12 @@
 			{
 				'include_dirs':
 				[
-					'../thirdparty/libpcre/include',
+					'../thirdparty/libpcre2/include',
 				],
 
 				'defines':
 				[
-					'PCRE_STATIC=1',
+					'PCRE2_STATIC=1',
 				],
 			},
 
@@ -1143,13 +1143,13 @@
 									{
 										'libraries':
 										[
-											'lib/mac/libpcre.a',
+											'lib/mac/libpcre2.a',
 										],
 									},
 									{
 										'libraries':
 										[
-											'-lpcre',
+											'-lpcre2-16',
 										],
 									},
 								],
@@ -1161,7 +1161,7 @@
 						{
 							'libraries':
 							[
-								'lib/ios/$(SDK_NAME)/libpcre.a',
+								'lib/ios/$(SDK_NAME)/libpcre2.a',
 							],
 						},
 					],
@@ -1170,7 +1170,7 @@
 						{
 							'libraries':
 							[
-								'-lpcre',
+								'-lpcre2-16',
 							],
 						},
 					],
@@ -1184,7 +1184,7 @@
 									{
 										'libraries':
 										[
-											'-lpcre',
+											'-lpcre2-16',
 										],
 									},
 								],
@@ -1196,7 +1196,7 @@
 						{							
 							'libraries':
 							[
-								'-llibpcre',
+								'-llibpcre2',
 							],
 						},
 					],
@@ -1205,7 +1205,7 @@
 						{
 							'libraries':
 							[
-								'-lpcre',
+								'-lpcre2-16',
 							],
 						},
 					],

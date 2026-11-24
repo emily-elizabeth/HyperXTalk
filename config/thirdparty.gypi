@@ -13,6 +13,7 @@
 		'use_system_libmysql%':		0,
 		'use_system_libopenssl%':	0,
 		'use_system_libpcre%':		0,
+		'use_system_libpcre2%':		0,
 		'use_system_libpng%':		0,
 		'use_system_libpq%':		0,
 		'use_system_libskia%':		0,

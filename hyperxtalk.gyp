@@ -230,7 +230,7 @@
 					'thirdparty/libpng/libpng.gyp:libpng',
 					'thirdparty/libgif/libgif.gyp:libgif',
 					'thirdparty/libjpeg/libjpeg.gyp:libjpeg',
-					'thirdparty/libpcre/libpcre.gyp:libpcre',
+					'thirdparty/libpcre2/libpcre2.gyp:libpcre2',
 
 					'thirdparty/libskia/libskia.gyp:libskia',
 					'thirdparty/libskia/libskia.gyp:libskia_opt_none',
