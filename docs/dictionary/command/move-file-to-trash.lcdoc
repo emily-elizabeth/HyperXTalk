@@ -1,0 +1,57 @@
+Name: move file to trash
+
+Type: command
+
+Syntax: move file <pathname> to trash
+
+Summary:
+Moves a <file> to the system Trash or Recycle Bin.
+
+Introduced: 1.0.0
+
+OS: mac, windows, linux
+
+Platforms: desktop
+
+Security: disk
+
+Example:
+move file "/Users/me/Desktop/old-notes.txt" to trash
+
+Example:
+move file (tFilePath) to trash
+if the result is not empty then
+   answer "Could not move file to trash: " & the result
+end if
+
+Parameters:
+pathname:
+Specifies the name and location of the file. If you specify a name but
+not a location, the engine looks for the file in the defaultFolder.
+
+The result:
+If the file does not exist or cannot be moved to the trash for any
+reason, the result is set to "can't delete that file".
+
+Description:
+Use the <move file to trash> <command> to remove a file in a way that
+allows the user to recover it later. Unlike <delete file>, this command
+does not permanently remove the file — it moves it to the platform's
+Trash or Recycle Bin, from which the user can restore or permanently
+delete it at their discretion.
+
+On macOS, the file is moved using the system's standard trash mechanism,
+which correctly handles files on external volumes.
+
+On Windows, the file is sent to the Recycle Bin using the shell's file
+operation API.
+
+On Linux, the command first attempts to use `gio trash` if available.
+If `gio` is not found, it falls back to the XDG Trash specification,
+moving the file to `~/.local/share/Trash/files/` and writing the
+corresponding `.trashinfo` metadata file.
+
+References: move folder to trash (command), delete file (command),
+delete folder (command), file (keyword), command (glossary)
+
+Tags: file system
