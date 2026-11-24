@@ -14264,7 +14264,15 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
       -- the return value rather than thrown as a LiveCode runtime error.
       -- The command form "shell cmd" can abort the caller on failure.
       local tCpResult
-      put shell("cp -a " & quote & tDocsBase & quote & " " & quote & tHtmlViewerDest & quote) into tCpResult
+      if the platform is "Win32" then
+         -- Windows has no cp: without this the folder was never copied and
+         -- the Dictionary opened as a bare page with no styles, scripts or
+         -- entries. revCopyFolder uses xcopy there.
+         revCopyFolder tDocsBase, tHtmlViewerDest
+         put the result into tCpResult
+      else
+         put shell("cp -a " & quote & tDocsBase & quote & " " & quote & tHtmlViewerDest & quote) into tCpResult
+      end if
    end if
 
    local tDocsCSSFolder, tDocsJSFolder, tDataPath

@@ -101,6 +101,8 @@ MCPropertyInfo MCField::kProperties[] =
 	DEFINE_RW_OBJ_PROPERTY(P_HSCROLLBAR, Bool, MCField, HScrollbar)
 	DEFINE_RW_OBJ_PROPERTY(P_VSCROLLBAR, Bool, MCField, VScrollbar)
 	DEFINE_RW_OBJ_PROPERTY(P_SCROLLBAR_WIDTH, UInt16, MCField, ScrollbarWidth)
+	DEFINE_RW_OBJ_NON_EFFECTIVE_CUSTOM_PROPERTY(P_SCROLLBAR_FORE_COLOR, InterfaceNamedColor, MCField, ScrollbarForeColor)
+	DEFINE_RW_OBJ_NON_EFFECTIVE_CUSTOM_PROPERTY(P_SCROLLBAR_BACK_COLOR, InterfaceNamedColor, MCField, ScrollbarBackColor)
 	DEFINE_RO_OBJ_PROPERTY(P_FORMATTED_WIDTH, Int16, MCField, FormattedWidth)
 	DEFINE_RO_OBJ_PROPERTY(P_FORMATTED_HEIGHT, Int16, MCField, FormattedHeight)
 	DEFINE_RW_OBJ_PROPERTY(P_LIST_BEHAVIOR, Bool, MCField, ListBehavior)
@@ -286,6 +288,12 @@ MCField::MCField()
     // MM-2014-08-11: [[ Bug 13149 ]] Used to flag if a recompute is required during the next draw.
     m_recompute = false;
 
+    // Scrollbar custom colour state.
+    m_scrollbar_fore_set = false;
+    m_scrollbar_back_set = false;
+    MCMemoryClear(&m_scrollbar_fore_color, sizeof(m_scrollbar_fore_color));
+    MCMemoryClear(&m_scrollbar_back_color, sizeof(m_scrollbar_back_color));
+
     // Spell checking.
     m_spell_errors = nil;
     m_spell_error_count = 0;
@@ -386,6 +394,12 @@ MCField::MCField(const MCField &fref) : MCControl(fref)
 
     // MM-2014-08-11: [[ Bug 13149 ]] Used to flag if a recompute is required during the next draw.
     m_recompute = false;
+
+    // Copy scrollbar custom colours from source.
+    m_scrollbar_fore_color = fref.m_scrollbar_fore_color;
+    m_scrollbar_fore_set   = fref.m_scrollbar_fore_set;
+    m_scrollbar_back_color = fref.m_scrollbar_back_color;
+    m_scrollbar_back_set   = fref.m_scrollbar_back_set;
 
     // Spell checking — copy constructor does not inherit error state.
     m_spell_errors = nil;
@@ -2756,6 +2770,8 @@ MCRectangle MCField::_cancelButtonIconRect() const
 #define FIELD_EXTRA_HINTTEXT        (1 << 5)
 #define FIELD_EXTRA_PASSWORDTOGGLE  (1 << 6)
 #define FIELD_EXTRA_CANCELBUTTON    (1 << 7)
+#define FIELD_EXTRA_SCROLLBAR_FORE_COLOR (1 << 8)
+#define FIELD_EXTRA_SCROLLBAR_BACK_COLOR (1 << 9)
 
 IO_stat MCField::extendedsave(MCObjectOutputStream& p_stream, uint4 p_part, uint32_t p_version)
 {
@@ -2815,6 +2831,18 @@ IO_stat MCField::extendedsave(MCObjectOutputStream& p_stream, uint4 p_part, uint
         t_size += sizeof(uint8_t);
     }
 
+    if (m_scrollbar_fore_set)
+    {
+        t_flags |= FIELD_EXTRA_SCROLLBAR_FORE_COLOR;
+        t_size += 3 * sizeof(uint16_t);
+    }
+
+    if (m_scrollbar_back_set)
+    {
+        t_flags |= FIELD_EXTRA_SCROLLBAR_BACK_COLOR;
+        t_size += 3 * sizeof(uint16_t);
+    }
+
 	IO_stat t_stat;
 	t_stat = p_stream . WriteTag(t_flags, t_size);
 
@@ -2858,6 +2886,12 @@ IO_stat MCField::extendedsave(MCObjectOutputStream& p_stream, uint4 p_part, uint
     {
         t_stat = p_stream . WriteU8(m_cancel_button ? 1 : 0);
     }
+
+    if (t_stat == IO_NORMAL && (t_flags & FIELD_EXTRA_SCROLLBAR_FORE_COLOR))
+        t_stat = p_stream . WriteColor(m_scrollbar_fore_color);
+
+    if (t_stat == IO_NORMAL && (t_flags & FIELD_EXTRA_SCROLLBAR_BACK_COLOR))
+        t_stat = p_stream . WriteColor(m_scrollbar_back_color);
 
     if (t_stat == IO_NORMAL)
 		t_stat = MCObject::extendedsave(p_stream, p_part, p_version);
@@ -2973,6 +3007,20 @@ IO_stat MCField::extendedload(MCObjectInputStream& p_stream, uint32_t p_version,
                 m_cancel_button = (t_value != 0);
         }
 
+        if (t_stat == IO_NORMAL && (t_flags & FIELD_EXTRA_SCROLLBAR_FORE_COLOR) != 0)
+        {
+            t_stat = checkloadstat(p_stream . ReadColor(m_scrollbar_fore_color));
+            if (t_stat == IO_NORMAL)
+                m_scrollbar_fore_set = true;
+        }
+
+        if (t_stat == IO_NORMAL && (t_flags & FIELD_EXTRA_SCROLLBAR_BACK_COLOR) != 0)
+        {
+            t_stat = checkloadstat(p_stream . ReadColor(m_scrollbar_back_color));
+            if (t_stat == IO_NORMAL)
+                m_scrollbar_back_set = true;
+        }
+
         if (t_stat == IO_NORMAL)
             t_stat = checkloadstat(p_stream . Skip(t_length));
         
@@ -3003,7 +3051,9 @@ IO_stat MCField::save(IO_handle stream, uint4 p_part, bool p_force_ext, uint32_t
                       keyboard_type != kMCInterfaceKeyboardTypeNone ||
                       return_key_type != kMCInterfaceReturnKeyTypeNone ||
                       m_password_field ||
-                      !MCStringIsEmpty(m_hint_text);
+                      !MCStringIsEmpty(m_hint_text) ||
+                      m_scrollbar_fore_set ||
+                      m_scrollbar_back_set;
     
     if ((stat = MCObject::save(stream, p_part, t_has_extension || p_force_ext, p_version)) != IO_NORMAL)
 		return stat;
