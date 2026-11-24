@@ -209,7 +209,8 @@ Returns:      0 on success
 int regcomp(regex_t *preg, MCStringRef pattern, int cflags)
 {
 	const char *errorptr;
-	int erroffset;
+	int erroffset = 0;
+	int errorcode = 0;
 	int options = 0;
 
 	if ((cflags & REG_ICASE) != 0)
@@ -223,15 +224,23 @@ int regcomp(regex_t *preg, MCStringRef pattern, int cflags)
 	/* UNCHECKED */ MCStringMutableCopy(pattern, &t_temp);
 
 	// SN-2014-01-14: [[ libpcre update ]]
-	preg->re_pcre = pcre16_compile((PCRE_SPTR16)MCStringGetCharPtr(*t_temp),
-									options,
-									&errorptr,
-									&erroffset,
-									NULL);
+	preg->re_pcre = pcre16_compile2((PCRE_SPTR16)MCStringGetCharPtr(*t_temp),
+									 options,
+									 &errorcode,
+									 &errorptr,
+									 &erroffset,
+									 NULL);
 	preg->re_erroffset = erroffset;
 
 	if (preg->re_pcre == NULL)
-		return eint[erroffset];
+	{
+		// The eint table is indexed by PCRE's compile error code (which
+		// starts at 1), not by the offset of the error in the pattern. Any
+		// code beyond the end of the table is reported as a bad pattern.
+		if (errorcode < 1 || errorcode > (int)(sizeof(eint) / sizeof(eint[0])))
+			return REG_BADPAT;
+		return eint[errorcode - 1];
+	}
 
 	/* UNCHECKED */ preg->re_pattern = MCValueRetain(pattern);
 	preg->re_flags = cflags;
@@ -253,8 +262,13 @@ substring, so we have to get and release working store instead of just using
 the POSIX structures as was done in earlier releases when PCRE needed only 2
 ints. */
 
-int regexec(regex_t *preg, const unichar_t *string, int len, size_t nmatch,
-            regmatch_t pmatch[], int eflags)
+/* The 'startoffset' argument is the code unit index within 'string' at which
+matching begins. The whole of 'string' is still visible to the pattern, so
+anchors, word boundaries and lookbehinds see the text before 'startoffset'.
+Returned offsets are relative to the start of 'string'. */
+
+int regexec(regex_t *preg, const unichar_t *string, int len, int startoffset,
+            size_t nmatch, regmatch_t pmatch[], int eflags)
 {
 	int rc;
 	int options = 0;
@@ -278,7 +292,7 @@ int regexec(regex_t *preg, const unichar_t *string, int len, size_t nmatch,
 					  NULL,
 					  (PCRE_SPTR16)string,
 					  len,
-					  0,
+					  startoffset,
 					  options,
 					  ovector,
 					  nmatch * 3);
@@ -313,6 +327,8 @@ int regexec(regex_t *preg, const unichar_t *string, int len, size_t nmatch,
 		case PCRE_ERROR_BADOPTION:
 			return REG_INVARG;
 		case PCRE_ERROR_BADMAGIC:
+			return REG_INVARG;
+		case PCRE_ERROR_BADOFFSET:
 			return REG_INVARG;
 		case PCRE_ERROR_UNKNOWN_NODE:
 			return REG_ASSERT;
@@ -409,7 +425,11 @@ regexp *MCR_compile(MCStringRef exp, bool casesensitive)
 	return treg;
 }
 
-int MCR_exec(regexp *prog, MCStringRef string, MCRange p_range)
+// p_start is the code unit index, relative to the start of p_range, at which
+// matching begins. Text in p_range before p_start remains visible to anchors,
+// word boundaries and lookbehinds. The offsets stored in prog->matchinfo are
+// relative to the start of p_range.
+int MCR_exec(regexp *prog, MCStringRef string, MCRange p_range, uindex_t p_start)
 {
 	int status;
 	int flags = 0;
@@ -424,11 +444,16 @@ int MCR_exec(regexp *prog, MCStringRef string, MCRange p_range)
 		return 0;
 	}
 	
+	// A start beyond the end of the range can never match.
+	if (p_start > p_range . length)
+		return 0;
+	
 	// AL-2014-06-25: [[ Bug 12676 ]] Ensure string is not unnativized by MCR_exec
 	// AL-2015-02-05: [[ Bug 14504 ]] Now that 'CanBeNative' flag is preserved, we can just use MCStringGetCharPtr here.
 	status = regexec(prog->rexp,
 					 MCStringGetCharPtr(*t_uni_string) + p_range . offset,
 					 p_range . length,
+					 (int)p_start,
 					 NSUBEXP,
 					 prog->matchinfo,
 					 flags);
