@@ -517,22 +517,32 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 				// highlight need not suit. Under a theme the label is black
 				// or white, whichever reads on the fill, unless the button
 				// has a text colour of its own.
+				//
+				// The fill can also be a background colour (not a pattern)
+				// set on the button itself. The default text colour follows
+				// the system appearance, so it need not read on that either
+				// (white on yellow in dark mode).
 				extern bool MCInterfaceThemeLookupTextOnHilite(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color);
-				if (!t_system_bezel && !t_theme_bezel && (flags & F_OPAQUE) && loff == 0 &&
-				    (flags & F_SHOW_ICON || !indicator) &&
-				    ((state & CS_HILITED && flags & F_HILITE_FILL) ||
-				     (state & CS_ARMED && flags & F_ARM_FILL)) &&
+				bool t_hilite_fill = loff == 0 && (flags & F_SHOW_ICON || !indicator) &&
+				                     ((state & CS_HILITED && flags & F_HILITE_FILL) ||
+				                      (state & CS_ARMED && flags & F_ARM_FILL));
+				bool t_back_fill = !t_hilite_fill &&
+				                   !(state & CS_ARMED && !(flags & F_SHOW_BORDER)) &&
+				                   !(macoption && state & CS_SUBMENU) &&
+				                   getcindex(DI_BACK, i) && !getpindex(DI_BACK, i);
+				if (!t_system_bezel && !t_theme_bezel && (flags & F_OPAQUE) &&
+				    (t_hilite_fill || t_back_fill) &&
 				    !getcindex(DI_FORE, i))
 				{
 					MCColor t_fill, t_label;
 					MCPatternRef t_fill_pattern = nil;
 					int2 t_fill_x, t_fill_y;
-					if (getforecolor(DI_HILITE, False, False, t_fill, t_fill_pattern,
+					if (getforecolor(t_hilite_fill ? DI_HILITE : DI_BACK, False, False, t_fill, t_fill_pattern,
 					                 t_fill_x, t_fill_y, dc -> gettype(), this))
 					{
-						bool t_have_label = MCInterfaceThemeLookupTextOnHilite(this, t_fill, t_label);
+						bool t_have_label = t_hilite_fill && MCInterfaceThemeLookupTextOnHilite(this, t_fill, t_label);
 
-						// With no theme the label keeps its colour unless it
+						// Otherwise the label keeps its colour unless it
 						// cannot be read on the fill (black on the saturated
 						// blue highlight of Windows, say): then it too is
 						// black or white, whichever reads.
