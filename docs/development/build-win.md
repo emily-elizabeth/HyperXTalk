@@ -23,10 +23,28 @@ for reference.
 - **Perl**, on the `PATH` (for example Strawberry Perl: `scoop install perl`)
 - **Python 3**, runnable as both `python` and `python3`. The python.org
   installer only provides `python.exe`; `scoop install python` provides both.
-- **winflexbison3** (`choco install winflexbison3`)
+- **winflexbison3** (`choco install winflexbison3`). The build calls
+  `win_flex.exe` and `win_bison.exe` by name, so they have to be on the `PATH`.
 - **MySQL and PostgreSQL** from [Scoop](https://scoop.sh):
   `scoop install mysql postgresql`. The setup scripts look for them in Scoop's
-  folder. Install Scoop from a non-administrator PowerShell.
+  folder.
+
+The two package managers need different kinds of PowerShell:
+
+- Chocolatey, like the Visual Studio installer, needs an administrator
+  PowerShell (right-click, *Run as administrator*).
+- Scoop is meant to be installed and used from an ordinary, non-administrator
+  PowerShell, and its installer stops if it is run as administrator.
+
+On an ordinary Windows account, including one that is a member of
+Administrators, PowerShell opens without administrator rights and both are
+available. If every PowerShell you open is an administrator one (the built-in
+`Administrator` account, or User Account Control turned off), install Scoop
+with:
+
+    iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
+
+The build scripts themselves do not need administrator rights.
 
 The Microsoft Speech SDK 5.1 is optional; without it `configure.bat` prints a
 warning and `revspeech` is not built.
