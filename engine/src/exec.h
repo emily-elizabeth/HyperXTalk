@@ -2017,6 +2017,7 @@ void MCStringsEvalCodepointProperty(MCExecContext& ctxt, MCStringRef p_text, MCS
 void MCStringsEvalLength(MCExecContext& ctxt, MCStringRef p_string, integer_t& r_length);
 
 void MCStringsEvalMatchText(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCStringRef* r_results, uindex_t p_result_count, bool& r_match);
+void MCStringsEvalMatchAll(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCArrayRef& r_matches);
 void MCStringsEvalMatchChunk(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCStringRef* r_results, uindex_t p_result_count, bool& r_match);
 void MCStringsEvalReplaceText(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCStringRef p_replacement, MCStringRef& r_result);
 

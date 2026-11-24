@@ -778,6 +778,112 @@ void MCStringsEvalMatchText(MCExecContext& ctxt, MCStringRef p_string, MCStringR
     ctxt.Throw();
 }
 
+// matchAll(string, pattern) returns every match of the pattern as a numbered
+// array. Each element is itself an array: key 0 is the whole match, keys 1
+// upwards are the capture groups and each named group is also stored under
+// its name. A group that took no part in a match is empty.
+void MCStringsEvalMatchAll(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCArrayRef& r_matches)
+{
+    regexp* t_compiled = nil;
+    
+    if (!MCStringsCompilePattern(p_pattern, t_compiled, true /* casesensitive */))
+    {
+        ctxt.LegacyThrow(EE_MATCHALL_BADPATTERN);
+        return;
+    }
+    
+    bool t_success = true;
+    
+    /* PCRE works on 16-bit units, so take the Unicode copy once here rather
+     * than have each call to MCR_exec make its own. */
+    MCAutoStringRef t_unicode_string;
+    MCAutoArrayRef t_matches;
+    t_success = MCStringUnicodeCopy(p_string, &t_unicode_string) &&
+                    MCArrayCreateMutable(&t_matches);
+    
+    // Fetch the named groups once, as they are the same for every match.
+    uindex_t t_group_count = MCR_groupcount(t_compiled);
+    uindex_t t_name_count = MCR_namecount(t_compiled);
+    MCAutoNameRefArray t_names;
+    MCAutoArray<uindex_t> t_name_groups;
+    if (t_success)
+        t_success = t_names . New(t_name_count) &&
+                        t_name_groups . New(t_name_count);
+    for (uindex_t i = 0; t_success && i < t_name_count; i++)
+        t_success = MCR_copyname(t_compiled, i, t_name_groups[i], t_names[i]);
+    
+    uindex_t t_offset = 0;
+    bool t_after_empty = false;
+    int t_status = kMCRegexExecNoMatch;
+    index_t t_match_count = 0;
+    
+    while (t_success &&
+           MCR_exec_next(t_compiled, *t_unicode_string, t_offset, t_after_empty, t_status))
+    {
+        MCAutoArrayRef t_match;
+        t_success = MCArrayCreateMutable(&t_match);
+        
+        MCAutoStringRefArray t_groups;
+        if (t_success)
+            t_success = t_groups . New(t_group_count);
+        
+        for (uindex_t i = 0; t_success && i < t_group_count; i++)
+        {
+            regoff_t t_start = t_compiled->matchinfo[i].rm_so;
+            regoff_t t_end = t_compiled->matchinfo[i].rm_eo;
+            if (t_start != -1 && t_end >= t_start)
+                t_success = MCStringCopySubstring(p_string, MCRangeMake(t_start, t_end - t_start), t_groups[i]);
+            else
+                t_groups[i] = MCValueRetain(kMCEmptyString);
+            
+            if (t_success)
+                t_success = MCArrayStoreValueAtIndex(*t_match, i, t_groups[i]);
+        }
+        
+        // When a name is shared by several groups (the (?J) option or a
+        // branch reset), the group that took part in the match is the one
+        // the name refers to.
+        for (uindex_t i = 0; t_success && i < t_name_count; i++)
+        {
+            uindex_t t_group = t_name_groups[i];
+            if (t_group >= t_group_count)
+                continue;
+            
+            MCValueRef t_existing;
+            if (t_compiled->matchinfo[t_group].rm_so == -1 &&
+                MCArrayFetchValue(*t_match, false, t_names[i], t_existing))
+                continue;
+            
+            t_success = MCArrayStoreValue(*t_match, false, t_names[i], t_groups[t_group]);
+        }
+        
+        if (t_success)
+            t_success = MCArrayStoreValueAtIndex(*t_matches, ++t_match_count, *t_match);
+    }
+    
+    delete t_compiled;
+    
+    if (!t_success)
+    {
+        ctxt.Throw();
+        return;
+    }
+    
+    if (t_status == kMCRegexExecLimit)
+    {
+        ctxt.LegacyThrow(EE_MATCHALL_MATCHLIMIT);
+        return;
+    }
+    
+    if (t_status != kMCRegexExecNoMatch)
+    {
+        ctxt.LegacyThrow(EE_MATCHALL_FAILED);
+        return;
+    }
+    
+    r_matches = t_matches . Take();
+}
+
 void MCStringsEvalMatchChunk(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCStringRef* r_results, uindex_t p_result_count, bool& r_match)
 {
     regexp* t_compiled = nil;

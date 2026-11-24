@@ -436,6 +436,7 @@ enum Functions {
     F_MAC_TO_ISO,
     F_MACHINE,
     F_MAIN_STACKS,
+    F_MATCH_ALL,
     F_MATCH_CHUNK,
     F_MATCH_TEXT,
     F_MATRIX_MULTIPLY,

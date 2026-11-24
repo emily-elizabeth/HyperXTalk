@@ -1265,6 +1265,7 @@ const LT factor_table[] =
         {"markerpoints", TT_PROPERTY, P_MARKER_POINTS},
         {"maskdata", TT_PROPERTY, P_MASK_DATA},
         {"maskpixmapid", TT_PROPERTY, P_MASK_PIXMAP_ID},
+        {"matchall", TT_FUNCTION, F_MATCH_ALL},
         {"matchchunk", TT_FUNCTION, F_MATCH_CHUNK},
         {"matches", TT_BINOP, O_MATCHES},
         {"matchtext", TT_FUNCTION, F_MATCH_TEXT},

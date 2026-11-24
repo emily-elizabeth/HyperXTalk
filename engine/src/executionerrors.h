@@ -961,6 +961,10 @@ EE_UNREGISTERVOICECOMMAND_BADPHRASE, // "unregisterVoiceCommand: error evaluatin
 EE_STARTLISTENING_BADLANGUAGE, // "startListening: error evaluating language expression"
 EE_SETWAKEWORD_BADWORD, // "setWakeWord: error evaluating word expression"
 EE_SETWAKEWORD_BADTIMEOUT, // "setWakeWord: error evaluating timeout expression"
+EE_MATCHALL_BADSOURCE, // "matchAll: error in source expression"
+EE_MATCHALL_BADPATTERN, // "matchAll: error in pattern expression"
+EE_MATCHALL_MATCHLIMIT, // "matchAll: pattern needs too many steps to match"
+EE_MATCHALL_FAILED, // "matchAll: error matching pattern"
 };
 
 extern const char *MCexecutionerrors;

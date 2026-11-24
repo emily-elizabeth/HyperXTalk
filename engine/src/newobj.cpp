@@ -629,6 +629,8 @@ MCExpression *MCN_new_function(int2 which)
 		t_new_function = new MCMacToIso; break;
 	case F_MAIN_STACKS:
 		t_new_function = new MCMainStacks; break;
+	case F_MATCH_ALL:
+		t_new_function = new MCMatchAll; break;
 	case F_MATCH_CHUNK:
 		t_new_function = new MCMatchChunk; break;
 	case F_MATCH_TEXT:

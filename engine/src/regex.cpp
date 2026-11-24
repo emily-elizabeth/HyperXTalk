@@ -35,6 +35,9 @@ extern "C"
 #define REG_NEWLINE   0x02
 #define REG_NOTBOL    0x04
 #define REG_NOTEOL    0x08
+	/* Extensions used by the global matching code. */
+#define REG_NOTEMPTY_ATSTART 0x10
+#define REG_ANCHORED         0x20
 
 	/* These are not used by PCRE, but by defining them we make it easier
 	to slot PCRE into existing programs that make POSIX calls. */
@@ -61,7 +64,8 @@ extern "C"
 	    REG_ESPACE,      /* failed to get memory */
 	    REG_ESUBREG,     /* bad back reference */
 	    REG_INVARG,      /* bad argument */
-	    REG_NOMATCH      /* match failed */
+	    REG_NOMATCH,     /* match failed */
+	    REG_ELIMIT       /* match abandoned: too many steps */
 	};
 }   /* extern "C" */
 
@@ -120,6 +124,10 @@ static int eint[] =
 	REG_BADPAT   /* octal value is greater than \377 (not in UTF-8 mode) */
 };
 
+/* The most steps (internal calls of PCRE's match function) one match may take
+before it is abandoned. */
+#define REGEX_MATCH_LIMIT 10000000
+
 /* Table of texts corresponding to POSIX error codes */
 
 static const char *pstring[] =
@@ -141,7 +149,8 @@ static const char *pstring[] =
         "failed to get memory",            /* ESPACE     */
         "bad back reference",              /* ESUBREG    */
         "bad argument",                    /* INVARG     */
-        "match failed"                     /* NOMATCH    */
+        "match failed",                    /* NOMATCH    */
+        "match limit exceeded"             /* ELIMIT     */
     };
 
 /*************************************************
@@ -278,6 +287,19 @@ int regexec(regex_t *preg, const unichar_t *string, int len, int startoffset,
 		options |= PCRE_NOTBOL;
 	if ((eflags & REG_NOTEOL) != 0)
 		options |= PCRE_NOTEOL;
+	if ((eflags & REG_NOTEMPTY_ATSTART) != 0)
+		options |= PCRE_NOTEMPTY_ATSTART;
+	if ((eflags & REG_ANCHORED) != 0)
+		options |= PCRE_ANCHORED;
+
+	// Bound the work a single match may do, so that a pattern with runaway
+	// backtracking gives up rather than running for an unbounded time. The
+	// value is PCRE's own default, set here so that it does not depend on how
+	// the library was configured.
+	pcre16_extra extra;
+	memset(&extra, 0, sizeof(extra));
+	extra.flags = PCRE_EXTRA_MATCH_LIMIT;
+	extra.match_limit = REGEX_MATCH_LIMIT;
 
 	preg->re_erroffset = (size_t)(-1);   /* Only has meaning after compile */
 	if (nmatch > 0)
@@ -289,7 +311,7 @@ int regexec(regex_t *preg, const unichar_t *string, int len, int startoffset,
 
 	// [[ libprce update ]] SN-2014-01-14: now handles unicode-encoded input
 	rc = pcre16_exec((const pcre16 *)preg->re_pcre,
-					  NULL,
+					  &extra,
 					  (PCRE_SPTR16)string,
 					  len,
 					  startoffset,
@@ -334,6 +356,9 @@ int regexec(regex_t *preg, const unichar_t *string, int len, int startoffset,
 			return REG_ASSERT;
 		case PCRE_ERROR_NOMEMORY:
 			return REG_ESPACE;
+		case PCRE_ERROR_MATCHLIMIT:
+		case PCRE_ERROR_RECURSIONLIMIT:
+			return REG_ELIMIT;
 		default:
 			return REG_ASSERT;
 		}
@@ -429,10 +454,18 @@ regexp *MCR_compile(MCStringRef exp, bool casesensitive)
 // matching begins. Text in p_range before p_start remains visible to anchors,
 // word boundaries and lookbehinds. The offsets stored in prog->matchinfo are
 // relative to the start of p_range.
-int MCR_exec(regexp *prog, MCStringRef string, MCRange p_range, uindex_t p_start)
+int MCR_exec(regexp *prog, MCStringRef string, MCRange p_range, uindex_t p_start, uint32_t p_options, int *r_status)
 {
 	int status;
 	int flags = 0;
+	
+	if ((p_options & kMCRegexExecNotEmptyAtStart) != 0)
+		flags |= REG_NOTEMPTY_ATSTART;
+	if ((p_options & kMCRegexExecAnchored) != 0)
+		flags |= REG_ANCHORED;
+	
+	if (r_status != nil)
+		*r_status = kMCRegexExecError;
 	
 	// Make sure we take a copy of the string to ensure it is Unicode.
 	// Otherwise, subsequent uses of 'string' will follow much slower
@@ -446,7 +479,11 @@ int MCR_exec(regexp *prog, MCStringRef string, MCRange p_range, uindex_t p_start
 	
 	// A start beyond the end of the range can never match.
 	if (p_start > p_range . length)
+	{
+		if (r_status != nil)
+			*r_status = kMCRegexExecNoMatch;
 		return 0;
+	}
 	
 	// AL-2014-06-25: [[ Bug 12676 ]] Ensure string is not unnativized by MCR_exec
 	// AL-2015-02-05: [[ Bug 14504 ]] Now that 'CanBeNative' flag is preserved, we can just use MCStringGetCharPtr here.
@@ -462,13 +499,149 @@ int MCR_exec(regexp *prog, MCStringRef string, MCRange p_range, uindex_t p_start
 	{
 		if (status == REG_NOMATCH)
 		{
+			if (r_status != nil)
+				*r_status = kMCRegexExecNoMatch;
 			return (0);
 		}
+		if (status == REG_ELIMIT && r_status != nil)
+			*r_status = kMCRegexExecLimit;
 		//MCValueRelease(regexperror);
 		regerror(status, NULL, regexperror);
 		return(0);
 	}
+	if (r_status != nil)
+		*r_status = kMCRegexExecMatched;
 	return (1);
+}
+
+// Returns true if the pattern treats CR LF as a single newline, in which case
+// a one character advance must not stop between the two.
+static bool MCR_crlf_is_newline(regexp *prog)
+{
+	unsigned long int t_options = 0;
+	if (pcre16_fullinfo((const pcre16 *)prog->rexp->re_pcre, NULL, PCRE_INFO_OPTIONS, &t_options) != 0)
+		return false;
+	
+	unsigned long int t_newline = t_options & (PCRE_NEWLINE_CR | PCRE_NEWLINE_LF | PCRE_NEWLINE_CRLF | PCRE_NEWLINE_ANY | PCRE_NEWLINE_ANYCRLF);
+	if (t_newline == 0)
+	{
+		// The pattern does not say, so the library's built-in default applies.
+		int t_default = 0;
+		if (pcre16_config(PCRE_CONFIG_NEWLINE, &t_default) != 0)
+			return false;
+		return t_default == -1 || t_default == -2 || t_default == 3338;
+	}
+	
+	return t_newline == PCRE_NEWLINE_ANY ||
+			t_newline == PCRE_NEWLINE_CRLF ||
+			t_newline == PCRE_NEWLINE_ANYCRLF;
+}
+
+bool MCR_exec_next(regexp *prog, MCStringRef p_string, uindex_t& x_offset, bool& x_after_empty, int& r_status)
+{
+	uindex_t t_length = MCStringGetLength(p_string);
+	
+	for (;;)
+	{
+		uint32_t t_options = 0;
+		if (x_after_empty)
+		{
+			// The previous match was empty. Nothing more can be found after
+			// an empty match at the very end; otherwise first look for a
+			// non-empty match starting at the same place.
+			if (x_offset >= t_length)
+			{
+				r_status = kMCRegexExecNoMatch;
+				return false;
+			}
+			t_options = kMCRegexExecNotEmptyAtStart | kMCRegexExecAnchored;
+		}
+		
+		if (MCR_exec(prog, p_string, MCRangeMake(0, t_length), x_offset, t_options, &r_status) != 0)
+		{
+			regoff_t t_start = prog->matchinfo[0].rm_so;
+			regoff_t t_end = prog->matchinfo[0].rm_eo;
+			
+			// A match that ends before it starts (possible with \K inside a
+			// lookaround), or before the place the search began, cannot be
+			// stepped past safely.
+			if (t_start < 0 || t_end < t_start || (uindex_t)t_end < x_offset)
+			{
+				r_status = kMCRegexExecError;
+				return false;
+			}
+			
+			x_offset = (uindex_t)t_end;
+			x_after_empty = (t_start == t_end);
+			return true;
+		}
+		
+		// A failure, or no match from an ordinary search, ends the iteration.
+		if (r_status != kMCRegexExecNoMatch || !x_after_empty)
+			return false;
+		
+		// There was no non-empty match at the place of the last empty one, so
+		// move on by one character - taking care not to stop inside a
+		// surrogate pair or (when it counts as one newline) a CR LF - and
+		// search normally from there.
+		unichar_t t_char = MCStringGetCharAtIndex(p_string, x_offset);
+		uindex_t t_advance = 1;
+		if (x_offset + 1 < t_length)
+		{
+			unichar_t t_next = MCStringGetCharAtIndex(p_string, x_offset + 1);
+			if (t_char >= 0xD800 && t_char <= 0xDBFF && t_next >= 0xDC00 && t_next <= 0xDFFF)
+				t_advance = 2;
+			else if (t_char == '\r' && t_next == '\n' && MCR_crlf_is_newline(prog))
+				t_advance = 2;
+		}
+		x_offset += t_advance;
+		x_after_empty = false;
+	}
+}
+
+uindex_t MCR_groupcount(regexp *prog)
+{
+	size_t t_count = prog->rexp->re_nsub + 1;
+	if (t_count > NSUBEXP)
+		t_count = NSUBEXP;
+	return (uindex_t)t_count;
+}
+
+uindex_t MCR_namecount(regexp *prog)
+{
+	int t_count = 0;
+	if (pcre16_fullinfo((const pcre16 *)prog->rexp->re_pcre, NULL, PCRE_INFO_NAMECOUNT, &t_count) != 0 ||
+		t_count < 0)
+		return 0;
+	return (uindex_t)t_count;
+}
+
+bool MCR_copyname(regexp *prog, uindex_t p_index, uindex_t& r_group, MCNameRef& r_name)
+{
+	if (p_index >= MCR_namecount(prog))
+		return false;
+	
+	// Each entry of the 16-bit name table is the group number in one code
+	// unit followed by the zero-terminated name.
+	int t_entry_size = 0;
+	PCRE_SPTR16 t_table = NULL;
+	if (pcre16_fullinfo((const pcre16 *)prog->rexp->re_pcre, NULL, PCRE_INFO_NAMEENTRYSIZE, &t_entry_size) != 0 ||
+		pcre16_fullinfo((const pcre16 *)prog->rexp->re_pcre, NULL, PCRE_INFO_NAMETABLE, &t_table) != 0 ||
+		t_table == NULL || t_entry_size < 2)
+		return false;
+	
+	PCRE_SPTR16 t_entry = t_table + p_index * t_entry_size;
+	
+	uindex_t t_name_length = 0;
+	while (t_name_length < (uindex_t)(t_entry_size - 1) && t_entry[1 + t_name_length] != 0)
+		t_name_length++;
+	
+	MCAutoStringRef t_name;
+	if (!MCStringCreateWithChars((const unichar_t *)(t_entry + 1), t_name_length, &t_name))
+		return false;
+	
+	r_group = t_entry[0];
+	return MCNameCreate(*t_name, r_name);
 }
 
 void MCR_free(regex_t *preg)

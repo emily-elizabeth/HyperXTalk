@@ -1079,6 +1079,20 @@ public:
 	virtual void eval_ctxt(MCExecContext &, MCExecValue &);
 };
 
+class MCMatchAll : public MCFunction
+{
+	MCExpression *source;
+	MCExpression *pattern;
+public:
+	MCMatchAll()
+	{
+		source = pattern = NULL;
+	}
+	virtual ~MCMatchAll();
+	virtual Parse_stat parse(MCScriptPoint &, Boolean the);
+	virtual void eval_ctxt(MCExecContext &, MCExecValue &);
+};
+
 class MCMatchChunk : public MCMatch
 {
 public:

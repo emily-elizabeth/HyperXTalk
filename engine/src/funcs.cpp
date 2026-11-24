@@ -1323,6 +1323,51 @@ Parse_stat MCParams::parse(MCScriptPoint &sp, Boolean the)
 	return MCFunction::parse(sp, the);
 }
 
+MCMatchAll::~MCMatchAll()
+{
+	delete source;
+	delete pattern;
+}
+
+Parse_stat MCMatchAll::parse(MCScriptPoint &sp, Boolean the)
+{
+	if (get2params(sp, &source, &pattern) != PS_NORMAL)
+	{
+		MCperror->add(PE_MATCHALL_BADPARAM, sp);
+		return PS_ERROR;
+	}
+	return PS_NORMAL;
+}
+
+void MCMatchAll::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
+{
+    MCAutoValueRef t_source_valueref;
+    if (!ctxt . EvalExprAsValueRef(source, EE_MATCHALL_BADSOURCE, &t_source_valueref))
+        return;
+    
+    // As for matchText and matchChunk, binary data is matched byte for byte
+    // rather than being converted from the native text encoding.
+    MCAutoStringRef t_source;
+    bool t_success;
+    if (MCValueGetTypeCode(*t_source_valueref) == kMCValueTypeCodeData)
+        t_success = MCStringCreateUnicodeStringFromData((MCDataRef)*t_source_valueref, false, &t_source);
+    else
+        t_success = ctxt . ConvertToString(*t_source_valueref, &t_source);
+    
+    if (!t_success)
+    {
+        ctxt . LegacyThrow(EE_MATCHALL_BADSOURCE);
+        return;
+    }
+    
+    MCAutoStringRef t_pattern;
+    if (!ctxt . EvalExprAsStringRef(pattern, EE_MATCHALL_BADPATTERN, &t_pattern))
+        return;
+    
+    MCStringsEvalMatchAll(ctxt, *t_source, *t_pattern, r_value . arrayref_value);
+    r_value . type = kMCExecValueTypeArrayRef;
+}
+
 MCReplaceText::~MCReplaceText()
 {
 	delete source;
