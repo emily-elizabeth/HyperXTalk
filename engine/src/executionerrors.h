@@ -965,6 +965,8 @@ EE_MATCHALL_BADSOURCE, // "matchAll: error in source expression"
 EE_MATCHALL_BADPATTERN, // "matchAll: error in pattern expression"
 EE_MATCHALL_MATCHLIMIT, // "matchAll: pattern needs too many steps to match"
 EE_MATCHALL_FAILED, // "matchAll: error matching pattern"
+EE_REPLACETEXT_MATCHLIMIT, // "replaceText: pattern needs too many steps to match"
+EE_REPLACETEXT_FAILED, // "replaceText: error matching pattern"
 };
 
 extern const char *MCexecutionerrors;

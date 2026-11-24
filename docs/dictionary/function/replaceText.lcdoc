@@ -29,6 +29,16 @@ Example:
 -- escape RegEx metacharacter using backslash
 put replaceText ( "ABC|DEV" , "\|" , CR )
 
+Example:
+-- reuse the text of parenthesized groups in the replacement
+put replaceText("John Smith", "(\w+) (\w+)", "$2, $1")
+-- returns "Smith, John"
+
+Example:
+-- refer to named groups by name
+put replaceText("2026-11-24", "(?<y>\d+)-(?<m>\d+)-(?<d>\d+)", "${d}/${m}/${y}")
+-- returns "24/11/2026"
+
 Parameters:
 stringToChange (string): A container reference or literal value.
 
@@ -50,6 +60,34 @@ The <replaceText> function replaces all the occurrences of the
 matching substring is found, the <replaceText> function replaces all of
 them. 
 
+The search for each match begins where the previous match ended. The
+text before that point is still taken into account: "^" matches only at
+the real start of the <stringToChange> (or of a line, with the "(?m)"
+option), and "\b" and lookbehind assertions see the characters that
+precede the match. A <matchExpression> that can match no characters,
+such as "x*", is replaced at each position where it matches nothing.
+
+The <replacementString> can refer to the text matched by the
+parenthesized groups of the <matchExpression>:
+
+- "$1" or "\1" is the text of the first group, "$2" or "\2" the second,
+  and so on. A two-digit number is used if the <matchExpression> has a
+  group of that number.
+- "$0" or "\0" is the whole of the matched text.
+- "${1}" is the same as "$1", and is useful when a digit follows: 
+  "${1}0" is the first group followed by a zero.
+- "${name}" is the text of the group named with "(?<name>...)".
+
+A group that took no part in the match is replaced by nothing. A
+reference to a group number or name that the <matchExpression> does not
+have is not a reference: it is left in the result as it is written. To
+put a "$" or "\" into the result where it would otherwise begin a
+reference, write "\$" or "\\".
+
+If the <matchExpression> is not valid, or matching it needs so many
+steps that it is abandoned (which can happen with nested repeats such as
+"(a+)+$"), the function throws an error.
+
 The <replaceText> function is not as fast as the <replace> <command>,
 but is more flexible because you can search for any text that matches a
 <regular expression>.
@@ -67,7 +105,15 @@ the <matchExpression> to make the match case-insensitive.)
 > For more information on <regular expressions> see the Perl documentation  
 > at http://perldoc.perl.org/perlre.html .
 
-References: replace (command), filter (command), command (glossary),
+Changes:
+In version 0.9.16 the search for each match takes the preceding text
+into account, matches of no characters are replaced, and the
+<replacementString> can refer to groups. Before that, "^", "\b" and
+lookbehinds were tested as if each search began a new string,
+replacement stopped at the first match of no characters, and "$1", "\1",
+"\$" and "\\" in the <replacementString> were ordinary text.
+
+References: replace (command), filter (command), matchAll (function), command (glossary),
 regular expression (glossary), property (glossary), string (keyword),
 caseSensitive (property)
 
