@@ -104,7 +104,7 @@ setProp dvHilite[pHiliteColor] pBoolean
    if pBoolean then
       set the foregroundColor of field "type" of me to revIDEColor("dataView_TextHiliteColor")
       set the foregroundColor of field "name" of me to  revIDEColor("dataView_TextHiliteColor")
-      set the foregroundColor of field "scriptLines" of me to  revIDEColor("text_1")
+      set the foregroundColor of field "scriptLines" of me to  revIDEColor("dataView_badgeTextHiliteColor")
       set the backgroundColor of field "scriptLines" of me to  revIDEColor("dataView_TextHiliteColor")
       set the colorOverlay["color"] of button "typeIcon" of me to revIDEColor("dataView_TextHiliteColor")
       set the foregroundColor of me to revIDEColor("dataView_disclosureIconHiliteColor")

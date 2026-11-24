@@ -2741,11 +2741,20 @@ private function __ideThemeColor pTag
       case "dataView_alternateHiliteColor"
       case "dataView_scriptBackgroundColor"
          return tHilite
+      case "text_3"
       case "dataView_TextHiliteColor"
       case "dataView_disclosureIconHiliteColor"
+         # text_3 is text drawn on the highlight colour (the Project Browser's
+         # script line badges), so it is chosen the same way.
          if tHilite is empty then return empty
          if __schemeLuminance(tHilite) <= 0.30 then return "255,255,255"
          return "0,0,0"
+      case "dataView_badgeTextHiliteColor"
+         # Badge text on a selected row, where the badge is filled with
+         # dataView_TextHiliteColor: the opposite of that colour.
+         if tHilite is empty then return empty
+         if __schemeLuminance(tHilite) <= 0.30 then return "0,0,0"
+         return "255,255,255"
       case "propertyInspector_multiValueBackground"
          if tHilite is empty then return empty
          return __ideThemeMix(tField, tHilite, 30)
@@ -3014,7 +3023,10 @@ function revIDEColor pTag
             return "160,160,160"
             break
          case "text_3"
-            return "120,120,120"
+            // text_3 is text drawn on dataView_hiliteColor (the Project
+            // Browser's script line badges), as in light mode; a mid grey
+            // was unreadable on the highlight blue.
+            return "255,255,255"
             break
          case "dataView_rowColor"
             return "36,36,38"
@@ -3077,6 +3089,11 @@ function revIDEColor pTag
          break
       case "dataView_TextHiliteColor"
          return "255,255,255"
+         break
+      case "dataView_badgeTextHiliteColor"
+         // Badge text on a selected row, where the badge is filled with
+         // dataView_TextHiliteColor (white in light and dark alike).
+         return "0,0,0"
          break
       case "dataView_scriptBackgroundColor"
          return "34,154,206"
