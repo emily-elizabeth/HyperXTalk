@@ -609,17 +609,24 @@ if not exist "%STARTUP_CPP%" (
     exit /b 1
 )
 echo bootstrap-startupstack.cpp copied OK.
+:startup_done
 :: Also mirror to the project-local path that build-release-x64.bat expects.
 :: When development.vcxproj is built standalone (not from the solution),
 :: $(obj) resolves to empty so shared_intermediate lands at D:\shared_intermediate.
 :: build-release-x64.bat looks in the project-relative location:
 ::   build-win-x86_64\hyperxtalk\engine\Debug\x64\obj\shared_intermediate\src\
-:: Copy there so both find it.
+:: Copy there so both find it.  This runs whichever way startupstack.cpp was
+:: produced: generated above, or copied from the bootstrap file.
 set "LOCAL_DBG_SHARED=%~dp0build-win-x86_64\hyperxtalk\engine\Debug\x64\obj\shared_intermediate\src"
 if not exist "%LOCAL_DBG_SHARED%" mkdir "%LOCAL_DBG_SHARED%"
 copy /Y "%STARTUP_CPP%" "%LOCAL_DBG_SHARED%\startupstack.cpp" >nul
+if not exist "%LOCAL_DBG_SHARED%\startupstack.cpp" goto startup_mirror_failed
 echo startupstack.cpp mirrored to project-local Debug shared_intermediate.
-:startup_done
+goto startup_mirror_done
+:startup_mirror_failed
+echo WARNING: could not copy startupstack.cpp to %LOCAL_DBG_SHARED%
+echo          build-release-x64.bat will not find it there.
+:startup_mirror_done
 
 echo.
 :: ----------------------------------------------------------
