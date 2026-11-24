@@ -733,6 +733,16 @@ bool MCStringsCompilePattern(MCStringRef p_pattern, regexp*& r_compiled, bool ca
     return r_compiled != nil;    
 }
 
+// A pattern failed to compile: leave the regex library's description of what
+// is wrong with it (and where) in 'the result', and throw p_error.
+static void MCStringsThrowBadPattern(MCExecContext& ctxt, Exec_errors p_error)
+{
+    MCAutoStringRef t_message;
+    MCR_copyerror(&t_message);
+    ctxt.SetTheResultToValue(*t_message);
+    ctxt.LegacyThrow(p_error);
+}
+
 //////////
 
 void MCStringsEvalMatchText(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCStringRef* r_results, uindex_t p_result_count, bool& r_match)
@@ -741,7 +751,7 @@ void MCStringsEvalMatchText(MCExecContext& ctxt, MCStringRef p_string, MCStringR
 
     if (!MCStringsCompilePattern(p_pattern, t_compiled, true /* casesensitive */))
     {
-        ctxt.LegacyThrow(EE_MATCH_BADPATTERN);
+        MCStringsThrowBadPattern(ctxt, EE_MATCH_BADPATTERN);
         return;
     }
     
@@ -799,17 +809,55 @@ struct MCStringsRegexNames
     }
 };
 
+// Make the value matchAllChunks stores for one group: an array holding the
+// character positions of the first and last characters of the range, as
+// matchChunk reports them. An empty range has an end one less than its start.
+// A group that took no part in the match (p_range.offset of UINDEX_MAX) has
+// both empty.
+static bool MCStringsCreateRegexChunk(MCStringRef p_string, MCRange p_range, MCArrayRef& r_chunk)
+{
+    MCAutoArrayRef t_chunk;
+    if (!MCArrayCreateMutable(&t_chunk))
+        return false;
+    
+    if (p_range . offset == UINDEX_MAX)
+    {
+        if (!MCArrayStoreValue(*t_chunk, false, MCNAME("start"), kMCEmptyString) ||
+            !MCArrayStoreValue(*t_chunk, false, MCNAME("end"), kMCEmptyString))
+            return false;
+    }
+    else
+    {
+        MCRange t_char_range;
+        MCStringUnmapIndices(p_string, kMCCharChunkTypeGrapheme, p_range, t_char_range);
+        
+        MCAutoNumberRef t_start, t_end;
+        if (!MCNumberCreateWithUnsignedInteger(t_char_range . offset + 1, &t_start) ||
+            !MCNumberCreateWithUnsignedInteger(t_char_range . offset + t_char_range . length, &t_end) ||
+            !MCArrayStoreValue(*t_chunk, false, MCNAME("start"), *t_start) ||
+            !MCArrayStoreValue(*t_chunk, false, MCNAME("end"), *t_end))
+            return false;
+    }
+    
+    r_chunk = t_chunk . Take();
+    return true;
+}
+
 // matchAll(string, pattern) returns every match of the pattern as a numbered
 // array. Each element is itself an array: key 0 is the whole match, keys 1
 // upwards are the capture groups and each named group is also stored under
 // its name. A group that took no part in a match is empty.
-void MCStringsEvalMatchAll(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCArrayRef& r_matches)
+//
+// matchAllChunks (p_chunks true) returns the same structure, but in place of
+// the text of each match or group there is an array with its "start" and
+// "end" character positions.
+void MCStringsEvalMatchAll(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, bool p_chunks, MCArrayRef& r_matches)
 {
     regexp* t_compiled = nil;
     
     if (!MCStringsCompilePattern(p_pattern, t_compiled, true /* casesensitive */))
     {
-        ctxt.LegacyThrow(EE_MATCHALL_BADPATTERN);
+        MCStringsThrowBadPattern(ctxt, EE_MATCHALL_BADPATTERN);
         return;
     }
     
@@ -839,7 +887,7 @@ void MCStringsEvalMatchAll(MCExecContext& ctxt, MCStringRef p_string, MCStringRe
         MCAutoArrayRef t_match;
         t_success = MCArrayCreateMutable(&t_match);
         
-        MCAutoStringRefArray t_groups;
+        MCAutoValueRefArray t_groups;
         if (t_success)
             t_success = t_groups . New(t_group_count);
         
@@ -847,8 +895,21 @@ void MCStringsEvalMatchAll(MCExecContext& ctxt, MCStringRef p_string, MCStringRe
         {
             regoff_t t_start = t_compiled->matchinfo[i].rm_so;
             regoff_t t_end = t_compiled->matchinfo[i].rm_eo;
-            if (t_start != -1 && t_end >= t_start)
-                t_success = MCStringCopySubstring(p_string, MCRangeMake(t_start, t_end - t_start), t_groups[i]);
+            bool t_took_part = t_start != -1 && t_end >= t_start;
+            if (p_chunks)
+            {
+                MCArrayRef t_chunk = nil;
+                t_success = MCStringsCreateRegexChunk(p_string,
+                                                      t_took_part ? MCRangeMake(t_start, t_end - t_start) : MCRangeMake(UINDEX_MAX, 0),
+                                                      t_chunk);
+                t_groups[i] = t_chunk;
+            }
+            else if (t_took_part)
+            {
+                MCStringRef t_text = nil;
+                t_success = MCStringCopySubstring(p_string, MCRangeMake(t_start, t_end - t_start), t_text);
+                t_groups[i] = t_text;
+            }
             else
                 t_groups[i] = MCValueRetain(kMCEmptyString);
             
@@ -900,13 +961,92 @@ void MCStringsEvalMatchAll(MCExecContext& ctxt, MCStringRef p_string, MCStringRe
     r_matches = t_matches . Take();
 }
 
+// splitText(string, pattern) cuts the string wherever the pattern matches and
+// returns the pieces between the matches as a numbered array. A match of no
+// characters splits between two characters, but not at either end of the
+// string or directly after another match, so it never produces an empty piece.
+void MCStringsEvalSplitText(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCArrayRef& r_pieces)
+{
+    regexp* t_compiled = nil;
+    
+    if (!MCStringsCompilePattern(p_pattern, t_compiled, true /* casesensitive */))
+    {
+        MCStringsThrowBadPattern(ctxt, EE_SPLITTEXT_BADPATTERN);
+        return;
+    }
+    
+    MCAutoStringRef t_unicode_string;
+    MCAutoArrayRef t_pieces;
+    bool t_success = MCStringUnicodeCopy(p_string, &t_unicode_string) &&
+                        MCArrayCreateMutable(&t_pieces);
+    
+    uindex_t t_length = MCStringGetLength(p_string);
+    uindex_t t_piece_start = 0;
+    uindex_t t_offset = 0;
+    bool t_after_empty = false;
+    int t_status = kMCRegexExecNoMatch;
+    index_t t_piece_count = 0;
+    
+    // An empty string has no pieces.
+    while (t_success && t_length > 0 &&
+           MCR_exec_next(t_compiled, *t_unicode_string, t_offset, t_after_empty, t_status))
+    {
+        uindex_t t_start = t_compiled->matchinfo[0].rm_so;
+        uindex_t t_end = t_compiled->matchinfo[0].rm_eo;
+        
+        if (t_start == t_end && (t_start == t_piece_start || t_start >= t_length))
+            continue;
+        if (t_start < t_piece_start)
+            continue;
+        
+        MCAutoStringRef t_piece;
+        t_success = MCStringCopySubstring(p_string, MCRangeMakeMinMax(t_piece_start, t_start), &t_piece) &&
+                        MCArrayStoreValueAtIndex(*t_pieces, ++t_piece_count, *t_piece);
+        t_piece_start = t_end;
+    }
+    
+    delete t_compiled;
+    
+    if (!t_success)
+    {
+        ctxt.Throw();
+        return;
+    }
+    
+    if (t_length > 0 && t_status == kMCRegexExecLimit)
+    {
+        ctxt.LegacyThrow(EE_SPLITTEXT_MATCHLIMIT);
+        return;
+    }
+    
+    if (t_length > 0 && t_status != kMCRegexExecNoMatch)
+    {
+        ctxt.LegacyThrow(EE_SPLITTEXT_FAILED);
+        return;
+    }
+    
+    // Whatever follows the last match is the final piece.
+    if (t_length > 0)
+    {
+        MCAutoStringRef t_piece;
+        if (!MCStringCopySubstring(p_string, MCRangeMakeMinMax(t_piece_start, t_length), &t_piece) ||
+            !MCArrayStoreValueAtIndex(*t_pieces, ++t_piece_count, *t_piece))
+        {
+            ctxt.Throw();
+            return;
+        }
+    }
+    
+    r_pieces = t_pieces . Take();
+}
+
 void MCStringsEvalMatchChunk(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCStringRef* r_results, uindex_t p_result_count, bool& r_match)
 {
     regexp* t_compiled = nil;
     
     if (!MCStringsCompilePattern(p_pattern, t_compiled, true /* casesensitive */))
     {
-        ctxt.LegacyThrow(EE_MATCH_BADPATTERN);
+        MCStringsThrowBadPattern(ctxt, EE_MATCH_BADPATTERN);
         return;
     }
 
@@ -1110,7 +1250,7 @@ void MCStringsEvalReplaceText(MCExecContext& ctxt, MCStringRef p_string, MCStrin
 
     if (!MCStringsCompilePattern(p_pattern, t_compiled, true /* casesensitive */))
     {
-        ctxt.LegacyThrow(EE_REPLACETEXT_BADPATTERN);
+        MCStringsThrowBadPattern(ctxt, EE_REPLACETEXT_BADPATTERN);
         return;
     }
     

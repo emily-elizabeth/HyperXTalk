@@ -67,6 +67,10 @@ the <regularExpression> to make the match case-insensitive.)
 > <call|called>. The <matchChunk> <function(control structure)>, unlike
 > the <put> <command>, does not create them automatically.
 
+If the <regularExpression> is not a valid <regular expression>, an error is thrown and
+a description of what is wrong with it, and where (for example "missing
+) at offset 3"), is placed in the result.
+
 By default a <regular expression> works on text one UTF-16 code unit at
 a time and treats only ASCII characters as letters and digits. Two
 switches, written at the very start of the <regularExpression>, change

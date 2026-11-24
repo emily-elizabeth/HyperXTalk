@@ -1,0 +1,90 @@
+Name: splitText
+
+Type: function
+
+Syntax: splitText(<string>, <regularExpression>)
+
+Summary:
+<return|Returns> an <array> of the pieces of a <string> that lie between
+the matches of a <regular expression>.
+
+Introduced: 0.9.16
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+local tParts
+put splitText("apples, pears;plums", "\s*[,;]\s*") into tParts
+-- tParts[1] is "apples", tParts[2] is "pears", tParts[3] is "plums"
+
+Example:
+-- Split on any run of whitespace
+put splitText(tLine, "\s+") into tWords
+
+Example:
+-- Split before each capital letter, keeping the letters
+put splitText("oneTwoThree", "(?=[A-Z])") into tParts
+-- tParts[1] is "one", tParts[2] is "Two", tParts[3] is "Three"
+
+Parameters:
+string (string):
+The text to split.
+
+regularExpression:
+Any expression that evaluates to a regular expression. Each match of it
+is a place where the <string> is cut.
+
+Returns (array):
+The <splitText> <function> returns a numerically keyed <array> of the
+pieces of the <string>, in order. The text matched by the
+<regularExpression> is not part of any piece. If the <string> is empty,
+the <function> returns empty.
+
+Description:
+Use the <splitText> <function> to break a <string> into pieces where the
+delimiter is a pattern rather than a fixed character, which is what the
+<split> <command> requires.
+
+If the <regularExpression> does not match anywhere, the <array> has one
+element holding the whole <string>.
+
+Two matches with nothing between them, or a match at the very start or
+end of the <string>, give an empty piece: splitting "a,,b" on "," gives
+"a", empty and "b".
+
+A <regularExpression> that matches no characters, such as an empty
+pattern or a lookahead, cuts the <string> between two characters without
+removing anything. Such a match is ignored at the start and end of the
+<string> and directly after another match, so it never produces an empty
+piece. Splitting on an empty pattern gives the individual characters.
+
+The search for each match begins where the previous match ended, but the
+text before that point is still taken into account: "^" matches only at
+the real start of the <string> (or of a line, with the "(?m)" option),
+and "\b" and lookbehind assertions see the characters that precede the
+match.
+
+The <string> and <regularExpression> are always <case-sensitive>,
+regardless of the setting of the <caseSensitive> <property>. (If you
+need to make a <case-insensitive> comparison, use "(?i)" at the start of
+the <regularExpression> to make the match case-insensitive.)
+
+By default a <regular expression> works on text one UTF-16 code unit at
+a time and treats only ASCII characters as letters and digits. Write
+"(*UTF)" and "(*UCP)" at the very start of the <regularExpression> to
+change this; see the <matchText> <function> for details.
+
+If the <regularExpression> is not valid, the <function> throws an error
+and a description of what is wrong with it, and where, is placed in
+the result. The <function> also throws an error if matching needs so
+many steps that it is abandoned (which can happen with nested repeats
+such as "(a+)+$").
+
+References: split (command), filter (command), matchAll (function),
+matchText (function), replaceText (function),
+array (glossary), regular expression (glossary),
+case-sensitive (glossary), case-insensitive (glossary),
+return (glossary), function (glossary), string (keyword),
+caseSensitive (property)

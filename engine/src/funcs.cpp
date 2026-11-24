@@ -1364,7 +1364,37 @@ void MCMatchAll::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
     if (!ctxt . EvalExprAsStringRef(pattern, EE_MATCHALL_BADPATTERN, &t_pattern))
         return;
     
-    MCStringsEvalMatchAll(ctxt, *t_source, *t_pattern, r_value . arrayref_value);
+    MCStringsEvalMatchAll(ctxt, *t_source, *t_pattern, chunks, r_value . arrayref_value);
+    r_value . type = kMCExecValueTypeArrayRef;
+}
+
+MCSplitText::~MCSplitText()
+{
+	delete source;
+	delete pattern;
+}
+
+Parse_stat MCSplitText::parse(MCScriptPoint &sp, Boolean the)
+{
+	if (get2params(sp, &source, &pattern) != PS_NORMAL)
+	{
+		MCperror->add(PE_SPLITTEXT_BADPARAM, sp);
+		return PS_ERROR;
+	}
+	return PS_NORMAL;
+}
+
+void MCSplitText::eval_ctxt(MCExecContext &ctxt, MCExecValue &r_value)
+{
+    MCAutoStringRef t_source;
+    if (!ctxt . EvalExprAsStringRef(source, EE_SPLITTEXT_BADSOURCE, &t_source))
+        return;
+    
+    MCAutoStringRef t_pattern;
+    if (!ctxt . EvalExprAsStringRef(pattern, EE_SPLITTEXT_BADPATTERN, &t_pattern))
+        return;
+    
+    MCStringsEvalSplitText(ctxt, *t_source, *t_pattern, r_value . arrayref_value);
     r_value . type = kMCExecValueTypeArrayRef;
 }
 

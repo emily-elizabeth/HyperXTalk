@@ -31,6 +31,8 @@ typedef struct
 	void *re_pcre;
 	size_t re_nsub;
 	size_t re_erroffset;
+	// PCRE's own description of a compile error (a static string), or NULL.
+	const char *re_errormsg;
 	// JS-2013-07-01: [[ EnhancedFilter ]] The pattern associated with the compiled
 	//   regexp (used by the cache).
 	MCStringRef re_pattern;

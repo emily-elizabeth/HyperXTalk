@@ -631,6 +631,8 @@ MCExpression *MCN_new_function(int2 which)
 		t_new_function = new MCMainStacks; break;
 	case F_MATCH_ALL:
 		t_new_function = new MCMatchAll; break;
+	case F_MATCH_ALL_CHUNKS:
+		t_new_function = new MCMatchAllChunks; break;
 	case F_MATCH_CHUNK:
 		t_new_function = new MCMatchChunk; break;
 	case F_MATCH_TEXT:
@@ -840,6 +842,8 @@ MCExpression *MCN_new_function(int2 which)
 		t_new_function = new MCSound; break;
 	case F_SPECIAL_FOLDER_PATH:
 		t_new_function = new MCSpecialFolderPath; break;
+	case F_SPLIT_TEXT:
+		t_new_function = new MCSplitText; break;
 	case F_SQRT:
 		t_new_function = new MCSqrt; break;
 	case F_STACKS:

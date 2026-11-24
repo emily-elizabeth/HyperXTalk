@@ -217,7 +217,7 @@ Returns:      0 on success
 
 int regcomp(regex_t *preg, MCStringRef pattern, int cflags)
 {
-	const char *errorptr;
+	const char *errorptr = NULL;
 	int erroffset = 0;
 	int errorcode = 0;
 	int options = 0;
@@ -240,9 +240,11 @@ int regcomp(regex_t *preg, MCStringRef pattern, int cflags)
 									 &erroffset,
 									 NULL);
 	preg->re_erroffset = erroffset;
+	preg->re_errormsg = NULL;
 
 	if (preg->re_pcre == NULL)
 	{
+		preg->re_errormsg = errorptr;
 		// The eint table is indexed by PCRE's compile error code (which
 		// starts at 1), not by the offset of the error in the pattern. Any
 		// code beyond the end of the table is reported as a bad pattern.
@@ -420,7 +422,18 @@ regexp *MCR_compile(MCStringRef exp, bool casesensitive)
 		status = regcomp(re, exp, flags);
 		if (status != REG_OKAY)
 		{
-			regerror(status, nil, regexperror);
+			// Report PCRE's own description of what is wrong with the pattern
+			// and where, falling back on the general message for the code.
+			MCAutoStringRef t_message;
+			if (re->re_errormsg != NULL &&
+				MCStringFormat(&t_message, "%s at offset %d", re->re_errormsg, (int)re->re_erroffset))
+			{
+				if (regexperror != nil)
+					MCValueRelease(regexperror);
+				regexperror = t_message . Take();
+			}
+			else
+				regerror(status, nil, regexperror);
 			delete re;
 			return(nil);
 		}

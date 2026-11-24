@@ -1,0 +1,79 @@
+Name: matchAllChunks
+
+Type: function
+
+Syntax: matchAllChunks(<string>, <regularExpression>)
+
+Summary:
+<return|Returns> an <array> of the character positions of every match of
+a <regular expression> in the specified <string>.
+
+Introduced: 0.9.16
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+local tMatches
+put matchAllChunks("a1 b22 c333", "[a-z]([0-9]+)") into tMatches
+-- tMatches[2][0]["start"] is 4, tMatches[2][0]["end"] is 6    (b22)
+-- tMatches[2][1]["start"] is 5, tMatches[2][1]["end"] is 6    (22)
+
+Example:
+-- Colour every number in a field red
+local tMatches, tMatch
+put matchAllChunks(the text of field "Report", "[0-9]+") into tMatches
+repeat for each element tMatch in tMatches
+   set the textColor of char tMatch[0]["start"] to tMatch[0]["end"] \
+         of field "Report" to "red"
+end repeat
+
+Parameters:
+string (string):
+The text to search.
+
+regularExpression:
+Any expression that evaluates to a regular expression.
+
+Returns (array):
+The <matchAllChunks> <function> returns a numerically keyed <array> with
+one element for each match, in the order the matches occur in the
+<string>. Each element is itself an <array>: key 0 describes the whole
+match, key 1 the first parenthesized group, key 2 the second, and so on.
+Each of those is an <array> with two keys, "start" and "end", holding
+the positions of the first and last characters of the matched text. If
+nothing matches, the <function> returns empty.
+
+Description:
+Use the <matchAllChunks> <function> to find where every match of a
+pattern lies in a <string>. It is to the <matchChunk> <function> what
+the <matchAll> <function> is to <matchText>: it finds every match rather
+than only the first, and reports character positions rather than the
+matched text.
+
+The positions are those a char <chunk> expression uses, so
+
+    char tMatch[0]["start"] to tMatch[0]["end"] of tString
+
+is the text of the match.
+
+Every parenthesized group of the <regularExpression> has a key in every
+match. For a group that took no part in a particular match, such as an
+optional group, "start" and "end" are both empty. A named group, written
+"(?<name>...)", is stored under its name as well as under its number.
+
+For a match of no characters, "end" is one less than "start", and
+"start" is the position of the character the match lies in front of.
+
+The matches found, the way the search moves on after each one, the
+handling of case and of Unicode, and the errors thrown are the same as
+for the <matchAll> <function>.
+
+>*Note:* At most 49 parenthesized groups are returned for each match.
+
+References: filter (command), matchAll (function),
+matchChunk (function), matchText (function), replaceText (function),
+splitText (function), array (glossary), chunk (glossary),
+regular expression (glossary), return (glossary), function (glossary),
+string (keyword)
