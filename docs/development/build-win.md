@@ -14,43 +14,38 @@ for reference.
 
 ### What to install
 
-- **Visual Studio 2019 or later** with the *Desktop development with C++*
-  workload. On anything newer than 2019, also tick these under *Individual
-  components*, because the projects are generated for the v142 toolset:
-  - MSVC v142 - VS 2019 C++ x64/x86 build tools
-  - C++ ATL for v142 build tools (x86 & x64)
-- **Git for Windows**
-- **Perl**, on the `PATH` (for example Strawberry Perl: `scoop install perl`)
-- **Python 3**, runnable as both `python` and `python3`. The python.org
-  installer only provides `python.exe`; `scoop install python` provides both.
-- **winflexbison3** (`choco install winflexbison3`). The build calls
-  `win_flex.exe` and `win_bison.exe` by name, so they have to be on the `PATH`.
-- **MySQL and PostgreSQL** from [Scoop](https://scoop.sh):
-  `scoop install mysql postgresql`. The setup scripts look for them in Scoop's
-  folder.
+1. **Visual Studio 2019 or later** with the *Desktop development with C++*
+   workload. On anything newer than 2019, also tick these under *Individual
+   components*, because the projects are generated for the v142 toolset:
+   - MSVC v142 - VS 2019 C++ x64/x86 build tools
+   - C++ ATL for v142 build tools (x86 & x64)
 
-The two package managers need different kinds of PowerShell:
+2. **Git for Windows**
 
-- Chocolatey, like the Visual Studio installer, needs an administrator
-  PowerShell (right-click, *Run as administrator*).
-- Scoop is meant to be installed and used from an ordinary, non-administrator
-  PowerShell, and its installer stops if it is run as administrator.
+3. **Flex and Bison**, with [Chocolatey](https://chocolatey.org), from an
+   administrator PowerShell:
 
-On an ordinary Windows account, including one that is a member of
-Administrators, PowerShell opens without administrator rights and both are
-available. If every PowerShell you open is an administrator one (the built-in
-`Administrator` account, or User Account Control turned off), install Scoop
-with:
+       choco install winflexbison3
+
+4. **Perl, Python, MySQL and PostgreSQL**, with [Scoop](https://scoop.sh),
+   from an ordinary (non-administrator) PowerShell:
+
+       scoop install perl python mysql postgresql
+
+   On Windows on ARM use `scoop install --arch 64bit ...` instead: the build
+   produces x64 binaries, so the libraries it links must be x64 too.
+
+Scoop will not install from an administrator PowerShell. If that is the only
+kind you can open, install it with:
 
     iex "& {$(irm get.scoop.sh)} -RunAsAdmin"
 
-The build scripts themselves do not need administrator rights.
+Perl and Python can come from elsewhere, as long as `perl`, `python` and
+`python3` all run from the `PATH`. The python.org installer does not provide
+`python3`.
 
 The Microsoft Speech SDK 5.1 is optional; without it `configure.bat` prints a
 warning and `revspeech` is not built.
-
-On Windows on ARM, add `--arch 64bit` to the Scoop installs: the build produces
-x64 binaries, so the libraries it links must be x64 too.
 
 ### One-off preparation
 
