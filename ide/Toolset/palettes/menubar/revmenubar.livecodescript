@@ -29,6 +29,7 @@ on preOpenStack
 end preOpenStack
 
 on closeStackRequest
+	compact stack "revPreferences"
    revIDEQuit
 end closeStackRequest
 
@@ -3428,6 +3429,7 @@ end systemAppearanceChanged
 
 
 private function isColorDark pColor
+   local tRed, tGreen, tBlue, tLuminance
    -- pColor: any LC color string "R,G,B" (0-255)
    -- Returns true if the colour reads as dark
    put item 1 of pColor into tRed
