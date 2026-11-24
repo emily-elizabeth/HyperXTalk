@@ -664,7 +664,7 @@
 			});
 		}
 		tText = addHtmlEntityEscapes(tText);
-		tText = tText.replace(kSpanStartRegex, "<span style='background-color: yellow;'>");
+		tText = tText.replace(kSpanStartRegex, "<span class='lcdoc_search_hit'>");
 		tText = tText.replace(kSpanEndRegex, "</span>");
 		return tText;
 	}
