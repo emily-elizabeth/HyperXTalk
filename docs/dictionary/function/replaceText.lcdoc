@@ -84,6 +84,21 @@ have is not a reference: it is left in the result as it is written. To
 put a "$" or "\" into the result where it would otherwise begin a
 reference, write "\$" or "\\".
 
+By default a <regular expression> works on text one UTF-16 code unit at
+a time and treats only ASCII characters as letters and digits. Two
+switches, written at the very start of the <matchExpression>, change
+this:
+
+- "(*UTF)" makes "." and character classes treat a character outside the
+  Basic Multilingual Plane, such as an emoji, as one character rather
+  than two, and allows Unicode property classes such as "\p{Greek}".
+- "(*UCP)" makes "\w", "\d", "\s", "\b" and the "(?i)" option follow
+  Unicode rules, so that accented and non-Latin letters count as
+  letters.
+
+They can be combined, and must come before anything else, including
+"(?i)": for example "(*UTF)(*UCP)(?i)\w+".
+
 If the <matchExpression> is not valid, or matching it needs so many
 steps that it is abandoned (which can happen with nested repeats such as
 "(a+)+$"), the function throws an error.
