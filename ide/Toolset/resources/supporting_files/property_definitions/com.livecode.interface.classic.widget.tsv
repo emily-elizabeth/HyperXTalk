@@ -12,6 +12,11 @@ behavior
 customProperties												
 ink							srcCopy					
 blendLevel							0	0,100				
+dropShadow												
+innerShadow												
+outerGlow												
+innerGlow												
+colorOverlay												
 lockLoc							false					
 width							no_default					
 height							no_default					

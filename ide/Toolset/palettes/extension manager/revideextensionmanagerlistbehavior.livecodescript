@@ -71,16 +71,36 @@ on setUpExtensionList
    put the long id of group "extensionRow" of card "templates" of this stack into theStylesA["extension"]
    
    set the viewProp["row style templates"] of group "extensionList" of card "list" of this stack to theStylesA
-   set the viewProp["hilite color"] of group "extensionList" of card "list" of this stack to ideColorGet("pb_line_selected")
    set the viewProp["background color"] of group "extensionList" of card "list" of this stack to empty
-   
-   set the viewProp["row color"] of group "extensionList" of card "list" of this stack to revIDEColor("dataView_rowColor")
-   set the viewProp["alternate row color"] of group "extensionList" of card "list" of this stack to revIDEColor("dataView_rowAlternateColor")        
+   hxtApplyListColors
    
    set the viewProp["fixed row height"] of group "extensionList" of card "list" of this stack to "true"
    set the viewProp["row height"] of group "extensionList" of card "list" of this stack to 41
    set the viewProp["cache"] of group "extensionList" of card "list" of this stack to "none"
 end setUpExtensionList
+
+-- HXT dark mode: the row and hilite colours come from revIDEColor, which
+-- follows the current appearance, so they are applied here rather than only
+-- when the list is first set up, and again when the appearance changes.
+command hxtApplyListColors
+   -- Setting "hilite color" makes the data view re-hilite every visible row,
+   -- which repaints each row's background with the row colours and runs the
+   -- row's dvHilite (its text and icon colours), so set it last.
+   set the viewProp["row color"] of group "extensionList" of card "list" of this stack to revIDEColor("dataView_rowColor")
+   set the viewProp["alternate row color"] of group "extensionList" of card "list" of this stack to revIDEColor("dataView_rowAlternateColor")
+   set the viewProp["hilite color"] of group "extensionList" of card "list" of this stack to ideColorGet("pb_line_selected")
+end hxtApplyListColors
+
+on systemAppearanceChanged pMode, pWindowColor, pTextColor
+   -- Re-colour the rows for the new appearance without closing and reopening
+   -- the stack. Applying the list colours re-hilites every visible row in
+   -- place, so the selection is kept. Deferred so that it runs after the
+   -- palette frame behaviour further along the message path, whose
+   -- systemAppearanceChanged recolours every widget on the card, including
+   -- the rows' icons, with a single generic colour.
+   send "hxtApplyListColors" to me in 0 milliseconds
+   pass systemAppearanceChanged
+end systemAppearanceChanged
 
 function NumberOfRows
    # return the number of rows in the data view

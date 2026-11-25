@@ -259,3 +259,12 @@ div.business:before {
 	overflow-y: auto;
 	max-height: 85vh;
 }
+
+/* A search term found in an entry's syntax or synonyms. The text is forced
+   to black, including any syntax-colouring span inside it, so that it stays
+   readable on the yellow in dark mode, where code text is light. */
+.lcdoc_search_hit,
+.lcdoc_search_hit * {
+	background-color: yellow;
+	color: #000 !important;
+}

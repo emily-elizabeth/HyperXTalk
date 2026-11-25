@@ -2678,7 +2678,21 @@ struct MCMacDesktop: public MCSystemInterface, public MCMacSystemService
         return True;
     }
 	
-	virtual Boolean RenameFileOrFolder(MCStringRef p_old_name, MCStringRef p_new_name)
+		virtual Boolean MoveFileToTrash(MCStringRef p_path)
+    {
+        MCAutoStringRefAsUTF8String t_path;
+        if (!t_path.Lock(p_path))
+            return False;
+        NSString *t_ns_path = [NSString stringWithUTF8String:*t_path];
+        if (t_ns_path == nil)
+            return False;
+        NSURL *t_url = [NSURL fileURLWithPath:t_ns_path];
+        NSError *t_error = nil;
+        BOOL t_ok = [[NSFileManager defaultManager] trashItemAtURL:t_url resultingItemURL:nil error:&t_error];
+        return t_ok ? True : False;
+    }
+
+virtual Boolean RenameFileOrFolder(MCStringRef p_old_name, MCStringRef p_new_name)
     {
         MCAutoStringRefAsUTF8String t_old_name, t_new_name;
         
@@ -5331,3 +5345,17 @@ bool MCS_get_browsers(MCStringRef &r_browsers)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+void MCS_show_in_finder(MCExecContext &ctxt, MCStringRef p_path)
+{
+    MCAutoStringRefAsCFString t_cf_path;
+    /* UNCHECKED */ t_cf_path.Lock(p_path);
+
+    NSURL *t_url = [NSURL fileURLWithPath:(NSString *)*t_cf_path];
+    if (t_url == nil)
+    {
+        ctxt.SetTheResultToStaticCString("could not create URL");
+        return;
+    }
+
+    [[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs:@[t_url]];
+}

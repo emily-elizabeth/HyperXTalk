@@ -657,6 +657,25 @@ Boolean MCS_unlink(MCStringRef p_path)
 	return MCsystem -> DeleteFile(*t_native_path);
 }
 
+Boolean MCS_movefiletotrash(MCStringRef p_path)
+{
+	MCAutoStringRef t_resolved_path;
+	MCAutoStringRef t_native_path;
+
+	if (!MCS_resolvepath(p_path, &t_resolved_path))
+	{
+		return False;
+	}
+
+	if (!MCS_pathtonative(*t_resolved_path, &t_native_path))
+	{
+		return False;
+	}
+
+	Boolean t_result = MCsystem -> MoveFileToTrash(*t_native_path);
+	return t_result;
+}
+
 Boolean MCS_backup(MCStringRef p_old_name, MCStringRef p_new_name)
 {
     MCAutoStringRef t_old_resolved, t_new_resolved;

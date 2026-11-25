@@ -28,6 +28,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "stack.h"
 #include "card.h"
 #include "field.h"
+#include "group.h"
 #include "scrolbar.h"
 #include "mcerror.h"
 #include "param.h"
@@ -69,6 +70,80 @@ void MCScrollbar::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bo
 			dirty = dc -> getclip();
 		}
 	}
+
+	// -- Custom colour draw path -------------------------------------------------------
+	// When scrollbarForeColor / scrollbarBackColor are set on the parent field,
+	// bypass the native-theme path so the custom colours actually take effect.
+	// On macOS the native theme intercepts every scrollbar draw before any
+	// DI_FORE / DI_BACK code is reached.  We store the colours directly on the
+	// MCField (not on the embedded scrollbar) so they survive scrollbar
+	// recreation and work regardless of creation order.
+	// compute_thumb() still delegates to the native theme for the thumb rect,
+	// so proportional scrolling and hit-testing are unaffected.
+	{
+		bool t_has_fore = false;
+		bool t_has_back = false;
+		MCColor t_fore_color, t_back_color;
+
+		// 1. Standalone scrollbar — check own stored colours first.
+		t_has_fore = getCustomForeColor(t_fore_color);
+		t_has_back = getCustomBackColor(t_back_color);
+
+		// 2. Embedded scrollbar — read from parent field or group.
+		if (!t_has_fore && !t_has_back && parent.IsValid())
+		{
+			if (parent->gettype() == CT_FIELD)
+			{
+				MCField *t_field = static_cast<MCField *>(parent.operator->());
+				t_has_fore = t_field->getScrollbarForeColor(t_fore_color);
+				t_has_back = t_field->getScrollbarBackColor(t_back_color);
+			}
+			else if (parent->gettype() == CT_GROUP)
+			{
+				MCGroup *t_group = static_cast<MCGroup *>(parent.operator->());
+				t_has_fore = t_group->getScrollbarForeColor(t_fore_color);
+				t_has_back = t_group->getScrollbarBackColor(t_back_color);
+			}
+		}
+
+		if ((t_has_fore || t_has_back) && !(flags & F_PROGRESS) && !(flags & F_SCALE))
+		{
+			MCRectangle t_bar   = compute_bar();
+			MCRectangle t_thumb = compute_thumb(thumbpos);
+
+			dc->setfillstyle(FillSolid, nil, 0, 0);
+
+			// Determine orientation and short dimension for corner radii.
+			bool t_is_vert = (getstyleint(flags) == F_VERTICAL);
+			uint2 t_bar_radius   = (uint2)((t_is_vert ? t_bar.width  : t_bar.height)  / 2);
+			uint2 t_thumb_radius = (uint2)((t_is_vert ? t_thumb.width : t_thumb.height) / 2);
+
+			// Track -- back colour; fall back to grey; drawn as a rounded rect.
+			if (t_has_back)
+				dc->setforeground(t_back_color);
+			else
+				dc->setforeground(dc->getgray());
+			dc->fillroundrect(t_bar, t_bar_radius);
+
+			// Thumb -- fore colour; fall back to dark grey; drawn as a pill.
+			// Only draw the thumb when there is something to scroll; when thumbsize
+			// covers the full range compute_thumb() fills the whole bar, which would
+			// paint the entire track in the thumb colour.
+			if (t_thumb.width > 0 && t_thumb.height > 0 && thumbsize < fabs(endvalue - startvalue))
+			{
+				if (t_has_fore)
+					dc->setforeground(t_fore_color);
+				else
+					dc->setforeground(dc->getblack());
+				dc->fillroundrect(t_thumb, t_thumb_radius);
+			}
+
+			if (!p_isolated)
+				dc->end();
+			return;
+		}
+	}
+	// -- End custom colour draw path ----------------------------------------------------
 
 	MCWidgetInfo winfo;
 	winfo.type = (Widget_Type)getwidgetthemetype();
@@ -244,7 +319,15 @@ void MCScrollbar::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bo
 							}
 							else
 								if (parent->gettype() == CT_FIELD)
-									parent->getparent()->setforeground(dc, DI_BACK, False);
+								{
+									// Use the scrollbar's own backColor if set, otherwise
+									// fall back to the field's parent (legacy behaviour).
+									uint2 t_ci;
+									if (getcindex(DI_BACK, t_ci))
+										setforeground(dc, DI_BACK, False);
+									else
+										parent->getparent()->setforeground(dc, DI_BACK, False);
+								}
 								else
 									setforeground(dc, DI_BACK, False);
 						else
@@ -803,7 +886,14 @@ void MCScrollbar::drawvalue(MCDC *dc, MCRectangle &thumb)
 	int32_t fascent, fdescent;
 	fascent = MCFontGetAscent(m_font);
 	fdescent = MCFontGetDescent(m_font);
-	if (rect.height - thumb.height > fascent)
+	// For vertical scrollbars the value label sits to the right of the track, so
+	// the relevant free space is the height not occupied by the thumb.  For
+	// horizontal the label sits below/above the track and the relevant free space
+	// is the width not occupied by the thumb.
+	int32_t t_free_space = (getstyleint(flags) == F_VERTICAL)
+	    ? (rect.height - thumb.height)
+	    : (rect.width  - thumb.width);
+	if (t_free_space > fascent)
 	{
 		MCAutoStringRef t_data;
 		/* UNCHECKED */ MCU_r8tos(thumbpos, nffw, nftrailing, nfforce, &t_data);
@@ -811,7 +901,17 @@ void MCScrollbar::drawvalue(MCDC *dc, MCRectangle &thumb)
         uint2 tw = MCFontMeasureText(m_font, *t_data, getstack() -> getdevicetransform());
 		if (getstyleint(flags) == F_VERTICAL)
 		{
-			uint2 sx = thumb.x + thumb.width + ((rect.width - thumb.width - tw) >> 1);
+			// Centre the label in the text-area column that sits to the right of the
+			// bar track.  Use signed 32-bit arithmetic throughout: if the text is
+			// wider than the reserved column the expression would otherwise underflow
+			// when stored in uint2, silently placing the text far off-screen.
+			int32_t t_text_x = (int32_t)(thumb.x + thumb.width);
+			int32_t t_text_w = (int32_t)(rect.x + rect.width) - t_text_x;
+			int32_t sx = t_text_x + ((t_text_w - (int32_t)tw) / 2);
+			if (sx < t_text_x)
+				sx = t_text_x;
+			if (sx + (int32_t)tw > (int32_t)(rect.x + rect.width))
+				sx = (int32_t)(rect.x + rect.width) - (int32_t)tw;
 			uint2 sy = thumb.y + ((thumb.height + fascent) >> 1);
 			setforeground(dc, DI_FORE, False);
             dc -> drawtext(sx, sy, *t_data, m_font, false, kMCDrawTextNoBreak);

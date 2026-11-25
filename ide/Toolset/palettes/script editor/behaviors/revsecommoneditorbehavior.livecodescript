@@ -19,9 +19,9 @@ end ideAutocompleteIsEnabled
 -- stack is not yet loaded.
 --------------------------------------------------------------------------------
 
-command ideAutocompleteCancelFind pEditorId
+command ideAutocompleteCancelFind pEditorId, pImmediate
    if there is a stack "ideautocompletelibrary" then
-      dispatch "ideAutocompleteCancelFind" to stack "ideautocompletelibrary" with pEditorId
+      dispatch "ideAutocompleteCancelFind" to stack "ideautocompletelibrary" with pEditorId, pImmediate
    end if
 end ideAutocompleteCancelFind
 
@@ -52,6 +52,14 @@ command ideAutocompleteHandleTab pEditorId, pObjectId, @pPlaceholders, @pEditPla
    end if
    return true
 end ideAutocompleteHandleTab
+
+command ideAutocompleteHandleReturn pEditorId
+   if there is a stack "ideautocompletelibrary" then
+      dispatch "ideAutocompleteHandleReturn" to stack "ideautocompletelibrary" with pEditorId
+      if it is "handled" then return the result
+   end if
+   return true
+end ideAutocompleteHandleReturn
 
 command ideAutocompleteHandleArrow pEditorId, pKeyName, pObjectId, @pPlaceholders, @pEditPlaceholder, @pEditChunks
    if there is a stack "ideautocompletelibrary" then
@@ -1559,7 +1567,7 @@ end exitField
 
 on escapeKey
    if ideAutocompleteIsEnabled() then
-      ideAutocompleteCancelFind the long id of me
+      ideAutocompleteCancelFind the long id of me, true
    end if
    pass escapeKey
 end escapeKey
@@ -1789,7 +1797,12 @@ on returnInField
    end if
    
    if ideAutocompleteIsEnabled() then
-      ideAutocompleteCancelFind the long id of me
+      -- Return accepts a completion picked with the arrow keys
+      ideAutocompleteHandleReturn the long id of me
+      if the result is false then
+         exit returnInField
+      end if
+      ideAutocompleteCancelFind the long id of me, true
    end if
    
    local tFrom, tTo

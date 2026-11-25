@@ -30,17 +30,15 @@ Description:
 Use the <randomBytes> function to generate cryptographic-quality random
 data. 
 
-The <randomBytes> function returns <byteCount> random bytes using the
-OpenSSL library's random data generator to do so.
+The <randomBytes> function returns <byteCount> random bytes from the
+operating system's cryptographic random source (arc4random on macOS and
+iOS, /dev/urandom on Linux and Android, CryptGenRandom on Windows). It
+does not depend on the security (OpenSSL) library.
 
 The random data is derived from non-predictable sources where possible,
 meaning that it can (for the most part) be considered truly random. This
 is contrast to the <random> function which uses a pseudo-random number
 generator and <randomSeed> value.
-
->*Note:* Make sure the security library is included when building
-> applications that use this function as a standalone. If the library
-> cannot be found at runtime, the function with throw an error.
 
 References: random (function), randomSeed (property)
 

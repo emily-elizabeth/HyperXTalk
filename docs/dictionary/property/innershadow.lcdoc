@@ -9,7 +9,7 @@ Syntax: set the innerShadow[<propertyName>] of object to <propertyValue>
 Summary:
 Specifies the inner shadow to use for an object.
 
-Associations: field, button, graphic, scrollbar, player, image
+Associations: field, button, graphic, scrollbar, player, image, widget
 
 Introduced: 1.0.0
 

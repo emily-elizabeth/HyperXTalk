@@ -13444,8 +13444,12 @@ private function revIDEGetExtensionDocsData pAPI
       put tFolder & slash & "api.lcdoc" into tSourceAPI
       if there is a file tSourceAPI then
          if tSource is empty then
+            # With no source to regenerate it from, the api.lcdoc is the
+            # source: copy it across when the cached copy is missing or
+            # older than it (an external in a folder ships its docs this way)
             put false into tNeedUpdate
-            if there is no file tAPIDoc then
+            if there is no file tAPIDoc or \
+                  revIDEIsFilesetStale(tSourceAPI, tAPIDoc, false, tError) is true then
                revIDESetUTF8FileContents tAPIDoc, revIDEUTF8FileContents(tSourceAPI)
             end if
          else if tNeedUpdate then
@@ -13990,7 +13994,15 @@ on revIDEGenerateDictionaryHTML pWhich, pInitialLibrary, pInitialEntryName, pIni
       -- the return value rather than thrown as a LiveCode runtime error.
       -- The command form "shell cmd" can abort the caller on failure.
       local tCpResult
-      put shell("cp -a " & quote & tDocsBase & quote & " " & quote & tHtmlViewerDest & quote) into tCpResult
+      if the platform is "Win32" then
+         -- Windows has no cp: without this the folder was never copied and
+         -- the Dictionary opened as a bare page with no styles, scripts or
+         -- entries. revCopyFolder uses xcopy there.
+         revCopyFolder tDocsBase, tHtmlViewerDest
+         put the result into tCpResult
+      else
+         put shell("cp -a " & quote & tDocsBase & quote & " " & quote & tHtmlViewerDest & quote) into tCpResult
+      end if
    end if
 
    local tDocsCSSFolder, tDocsJSFolder, tDataPath

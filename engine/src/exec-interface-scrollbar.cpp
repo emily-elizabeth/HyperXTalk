@@ -250,6 +250,21 @@ void MCScrollbar::SetStartValue(MCExecContext& ctxt, MCStringRef p_value)
 		flags |= F_HAS_VALUES;
 		MCValueAssign(startstring, p_value);
 	}
+	// AL-2026: [[ Bug ]] Re-apply signed direction to lineinc/pageinc.
+	// SetLineInc/SetPageInc negate these for reversed ranges, but that is not
+	// re-done when startValue or endValue changes and flips the range direction.
+	// Without this, SM_PAGEDEC/SM_PAGEINC use the wrong sign and track-clicks
+	// either snap the thumb to the opposite end or do nothing at all.
+	if (startvalue < endvalue)
+	{
+		lineinc = fabs(lineinc);
+		pageinc = fabs(pageinc);
+	}
+	else
+	{
+		lineinc = -fabs(lineinc);
+		pageinc = -fabs(pageinc);
+	}
 	update(thumbpos, MCM_scrollbar_drag);
 	Redraw();
 }
@@ -281,6 +296,18 @@ void MCScrollbar::SetEndValue(MCExecContext& ctxt, MCStringRef p_value)
 	{
 		flags |= F_HAS_VALUES;
 		MCValueAssign(endstring, p_value);
+	}
+	// AL-2026: [[ Bug ]] Re-apply signed direction to lineinc/pageinc (same as
+	// SetStartValue above - see comment there).
+	if (startvalue < endvalue)
+	{
+		lineinc = fabs(lineinc);
+		pageinc = fabs(pageinc);
+	}
+	else
+	{
+		lineinc = -fabs(lineinc);
+		pageinc = -fabs(pageinc);
 	}
 	update(thumbpos, MCM_scrollbar_drag);
 	Redraw();
@@ -320,4 +347,60 @@ MCPlatformControlType MCScrollbar::getcontroltype()
         t_type = kMCPlatformControlTypeSpinArrows;
     
     return t_type;
+}
+
+// ── scrollbarForeColor / scrollbarBackColor for standalone MCScrollbar ────────
+
+void MCScrollbar::GetScrollbarForeColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color)
+{
+    if (m_custom_fore_set)
+    {
+        r_color.color = m_custom_fore_color;
+        r_color.name  = nil;
+        ctxt.FormatLegacyColor(m_custom_fore_color, r_color.name);
+    }
+    else
+    {
+        MCMemoryClear(&r_color, sizeof(r_color));
+        r_color.name = MCValueRetain(kMCEmptyString);
+    }
+}
+
+void MCScrollbar::SetScrollbarForeColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color)
+{
+    if (p_color.name != nil && MCStringIsEmpty(p_color.name))
+        m_custom_fore_set = false;
+    else
+    {
+        m_custom_fore_color = p_color.color;
+        m_custom_fore_set   = true;
+    }
+    layer_redrawall();
+}
+
+void MCScrollbar::GetScrollbarBackColor(MCExecContext& ctxt, MCInterfaceNamedColor& r_color)
+{
+    if (m_custom_back_set)
+    {
+        r_color.color = m_custom_back_color;
+        r_color.name  = nil;
+        ctxt.FormatLegacyColor(m_custom_back_color, r_color.name);
+    }
+    else
+    {
+        MCMemoryClear(&r_color, sizeof(r_color));
+        r_color.name = MCValueRetain(kMCEmptyString);
+    }
+}
+
+void MCScrollbar::SetScrollbarBackColor(MCExecContext& ctxt, const MCInterfaceNamedColor& p_color)
+{
+    if (p_color.name != nil && MCStringIsEmpty(p_color.name))
+        m_custom_back_set = false;
+    else
+    {
+        m_custom_back_color = p_color.color;
+        m_custom_back_set   = true;
+    }
+    layer_redrawall();
 }

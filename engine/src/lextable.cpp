@@ -1628,6 +1628,8 @@ const LT factor_table[] =
         {"scripttextsize", TT_PROPERTY, P_SCRIPT_TEXT_SIZE},		
         {"scroll", TT_PROPERTY, P_VSCROLL},
         {"scrollbar", TT_CHUNK, CT_SCROLLBAR},
+        {"scrollbarbackcolor", TT_PROPERTY, P_SCROLLBAR_BACK_COLOR},
+        {"scrollbarforecolor", TT_PROPERTY, P_SCROLLBAR_FORE_COLOR},
         {"scrollbars", TT_CLASS, CT_SCROLLBAR},
         {"scrollbarwidth", TT_PROPERTY, P_SCROLLBAR_WIDTH},
         {"sec", TT_FUNCTION, F_SECONDS},
@@ -2155,6 +2157,8 @@ const static LT show_table[] =
         {"cards", TT_UNDEFINED, SO_CARD},
         {"cd", TT_UNDEFINED, SO_CARD},
         {"cds", TT_UNDEFINED, SO_CARD},
+        {"explorer", TT_UNDEFINED, SO_IN_FINDER},
+        {"finder", TT_UNDEFINED, SO_IN_FINDER},
         {"groups", TT_UNDEFINED, SO_GROUPS},
         {"marked", TT_UNDEFINED, SO_MARKED},
         {"menubar", TT_UNDEFINED, SO_MENU},
@@ -2291,6 +2295,7 @@ const static LT there_table[] =
         {"file", TT_UNDEFINED, TM_FILE},
         {"folder", TT_UNDEFINED, TM_DIRECTORY},
         {"process", TT_UNDEFINED, TM_PROCESS},
+        {"trash", TT_UNDEFINED, TM_TRASH},
         {"url", TT_UNDEFINED, TM_URL},
         {"worker", TT_UNDEFINED, TM_WORKER}
     };

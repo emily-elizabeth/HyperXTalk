@@ -26,6 +26,12 @@ on editorInitialize
    end if
 end editorInitialize
 
+// The popup stays open when another object is selected, and goes on to
+// edit that object's effect.
+getProp editorPopupFollows
+   return true
+end editorPopupFollows
+
 on editorUpdate
    lock screen
    local tValue, tEffective, tEnabled, tProperty

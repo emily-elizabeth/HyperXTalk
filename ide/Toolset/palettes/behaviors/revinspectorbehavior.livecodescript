@@ -611,8 +611,44 @@ on inspectorChanged
    # Layout
    inspectorLayout true
    
+   # Deal with any popup the editors just deleted left open
+   inspectorPopupsReconcile
+   
    unlock screen
 end inspectorChanged
+
+# An editor's popup (the settings of a graphic effect, say) can outlive its
+# editor when the inspector is rebuilt for another object. Hand each such
+# popup of this inspector to the new editor of the same property, so that it
+# goes on to show and change the newly inspected object, or close it if the
+# rebuilt inspector has no such editor.
+private command inspectorPopupsReconcile
+   local tStack, tTarget, tProperty, tAdopted, tRow, tRowID
+   repeat for each line tStack in the openStacks
+      if not (tStack begins with "revPropertyPopup ") then next repeat
+      put the editorTarget of stack tStack into tTarget
+      if tTarget is empty or exists(tTarget) then next repeat
+      if not (tTarget ends with ("of" && the name of me)) then next repeat
+      
+      put word 2 to -1 of tStack into tProperty
+      put false into tAdopted
+      if there is a group "inspector" of me then
+         repeat with tRow = 1 to the number of groups of group "inspector" of me
+            put the long id of group tRow of group "inspector" of me into tRowID
+            if there is a group tProperty of tRowID then
+               dispatch "editorAdoptPopup" to group tProperty of tRowID
+               if it is "handled" then
+                  put true into tAdopted
+                  exit repeat
+               end if
+            end if
+         end repeat
+      end if
+      if not tAdopted then
+         delete stack tStack
+      end if
+   end repeat
+end inspectorPopupsReconcile
 
 # Sent when the user changes the section
 on inspectorSectionChanged pSection
@@ -688,6 +724,13 @@ on inspectorClear
          delete group 1 of card 1 of me
       else
          dispatch "rowFinalize" to group 2 of card 1 of me
+         # The rows are inside the scrolling "inspector" group, so they
+         # have to be finalized too: that is what closes an editor's popup
+         # (the graphic effect panel, say) before its editor is deleted.
+         local tRow
+         repeat with tRow = 1 to the number of groups of group 2 of card 1 of me
+            dispatch "rowFinalize" to group tRow of group 2 of card 1 of me
+         end repeat
          delete group 2 of card 1 of me
       end if
    end repeat

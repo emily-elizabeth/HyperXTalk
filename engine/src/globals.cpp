@@ -129,7 +129,6 @@ Window MClastvideowindow = DNULL ;
 #endif
 
 Boolean MCuseXft = True;
-Boolean MCuseESD = False ;
 
 MCStringRef *MCstacknames = NULL;
 int2 MCnstacks = 0;

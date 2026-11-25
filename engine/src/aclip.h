@@ -65,8 +65,6 @@ private:
 	uint2 loudness;
 	static MCStack *mstack;
 	static Boolean supported;
-	static uint4 curindex;
-	static real8 endtime;
 	static Boolean looping;
 	static IO_handle dstream;
 	

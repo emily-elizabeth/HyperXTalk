@@ -1364,6 +1364,12 @@ private command revInternal__SetupExternals
       end repeat
    end if
    
+   -- An external in a folder of its own, with its documentation beside it
+   -- (see revEnvironmentExternalFolders)
+   repeat for each line tFolder in revEnvironmentExternalFolders()
+      put revInternal__ExternalBinariesInFolder(tFolder, tExtension) after tExternals
+   end repeat
+   
    set the folder to tOldFolder
    
    filter tExternals with ("*." & tExtension)
@@ -1386,6 +1392,67 @@ private command revInternal__SetupExternals
    
    revInternal__Log "Leave", "Externals Setup"
 end revInternal__SetupExternals
+
+-- The binaries for this platform in a folder external: those directly in
+-- the folder, one file per platform as the Ext folder held them, or failing
+-- that those in a code/<processor>-<platform> folder as an extension carries
+-- them (a universal-mac folder serves on macOS when there is none for the
+-- processor). Returns one path per line, each ending in a return.
+private function revInternal__ExternalBinariesInFolder pFolder, pExtension
+   local tBinaries
+   put revInternal__FilesWithExtension(pFolder, pExtension) into tBinaries
+   if tBinaries is not empty then
+      return tBinaries
+   end if
+   
+   local tPlatform
+   switch the platform
+      case "MacOS"
+         put "mac" into tPlatform
+         break
+      case "Win32"
+         put "win32" into tPlatform
+         break
+      default
+         put toLower(the platform) into tPlatform
+         break
+   end switch
+   
+   local tCodeFolder, tUniversalFolder
+   put pFolder & "/code" into tCodeFolder
+   if there is no folder tCodeFolder then
+      return empty
+   end if
+   set the itemDelimiter to "-"
+   repeat for each line tFolder in folders(tCodeFolder)
+      if item 2 of tFolder is not tPlatform then
+         next repeat
+      end if
+      if item 1 of tFolder is the processor then
+         put revInternal__FilesWithExtension(tCodeFolder & slash & tFolder, pExtension) \
+               after tBinaries
+      else if item 1 of tFolder is "universal" and the platform is "MacOS" then
+         put tCodeFolder & slash & tFolder into tUniversalFolder
+      end if
+   end repeat
+   if tBinaries is empty and tUniversalFolder is not empty then
+      put revInternal__FilesWithExtension(tUniversalFolder, pExtension) into tBinaries
+   end if
+   return tBinaries
+end revInternal__ExternalBinariesInFolder
+
+-- The full paths of the files in pFolder with the extension pExtension, one
+-- per line, each ending in a return. Folders are included because a macOS
+-- .bundle is a folder.
+private function revInternal__FilesWithExtension pFolder, pExtension
+   local tFiles, tPaths
+   put files(pFolder) & return & folders(pFolder) into tFiles
+   filter tFiles with ("*." & pExtension)
+   repeat for each line tFile in tFiles
+      put pFolder & slash & tFile & return after tPaths
+   end repeat
+   return tPaths
+end revInternal__FilesWithExtension
 
 private command revInternal__SetupStackFiles
    revInternal__Log "Enter", "Stack Files Setup"
@@ -2157,6 +2224,39 @@ end revEnvironmentUserPluginsPath
 function revEnvironmentUserExternalsPath
   return sCustomizationPath & "/Externals"
 end revEnvironmentUserExternalsPath
+
+-- An external may live in a folder of its own, like an extension, with its
+-- documentation beside it: Externals/<name>/<name>.bundle (.dll, .so on the
+-- other platforms) or Externals/<name>/code/<processor>-<platform>/<name>.bundle,
+-- and Externals/<name>/api.lcdoc. This lists such folders in the Externals
+-- folder (the binaries folder when running from source) and in the user
+-- externals folder, for the externals loader and the Dictionary. A .bundle is
+-- itself a folder but a loose external, and the Database Drivers and Legacy
+-- subfolders hold the database drivers and the legacy revdb external rather
+-- than externals of their own, so all three are left out.
+function revEnvironmentExternalFolders
+   local tParents, tFolders
+   if revEnvironmentIsInstalled() then
+      put revEnvironmentExternalsPath() into tParents
+   else
+      put revEnvironmentBinariesPath() into tParents
+   end if
+   put return & revEnvironmentUserExternalsPath() after tParents
+   repeat for each line tParent in tParents
+      if there is no folder tParent then
+         next repeat
+      end if
+      repeat for each line tFolder in folders(tParent)
+         if tFolder begins with "." or tFolder ends with ".bundle" or \
+               tFolder is "Database Drivers" or tFolder is "Legacy" then
+            next repeat
+         end if
+         put tParent & slash & tFolder & return after tFolders
+      end repeat
+   end repeat
+   delete the last char of tFolders
+   return tFolders
+end revEnvironmentExternalFolders
 
 function revEnvironmentUserColorSchemesPath
    return sCustomizationPath & "/Schemes"
