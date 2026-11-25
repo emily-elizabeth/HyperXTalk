@@ -2516,8 +2516,10 @@ function revIDEPlatformVersion
 end revIDEPlatformVersion
 
 function revIDEColor pTag
+	local tColor
+	lock screen
    if pTag is "edition_color" then
-      return revEnvironmentEditionProperty("color")
+      put revEnvironmentEditionProperty("color") into tColor
    end if
 
    // HXT dark mode: return dark-appropriate values for the IDE palette
@@ -2526,108 +2528,113 @@ function revIDEColor pTag
    if the systemAppearance is "dark" then
       switch pTag
          case "text_1"
-            return "230,230,230"
+            put "230,230,230" into tColor
             break
          case "text_2"
-            return "160,160,160"
+            put "160,160,160" into tColor
             break
          case "text_3"
-            return "120,120,120"
+            put "120,120,120" into tColor
             break
          case "dataView_rowColor"
-            return "36,36,38"
+            put "36,36,38" into tColor
             break
          case "dataView_rowAlternateColor"
-            return "44,44,46"
+            put "44,44,46" into tColor
             break
          case "dataView_hiliteColor"
-            return "10,95,175"
+            put "10,95,175" into tColor
             break
          case "dataView_alternateHiliteColor"
-            return "8,80,150"
+            put "8,80,150" into tColor
             break
          case "dataView_TextHiliteColor"
-            return "255,255,255"
+            put "255,255,255" into tColor
             break
          case "dataView_scriptBackgroundColor"
-            return "8,80,150"
+            put "8,80,150" into tColor
             break
          case "dataView_scriptErrorBackgroundColor"
-            return "255,0,0"
+            put "255,0,0" into tColor
             break
          case "dataView_disclosureIconColor"
-            return "180,180,180"
+            put "180,180,180" into tColor
             break
          case "dataView_disclosureIconHiliteColor"
-            return "230,230,230"
+            put "230,230,230" into tColor
             break
          case "palette_background"
-            return the systemWindowColor
+            put the systemWindowColor into tColor
             break
          case "propertyInspector_multiValueBackground"
-            return "55,60,70"
+            put "55,60,70" into tColor
             break
       end switch
       // fall through to ideColorGet() for any tag not overridden above
-   end if
+   else
 
    switch pTag
       case "text_1"
-         return "0,0,0"
+         put "0,0,0" into tColor
          break
       case "text_2"
-         return "125,125,125"
+         put "125,125,125" into tColor
          break
       case "text_3"
-         return "255,255,255"
+         put "255,255,255" into tColor
          break
       case "dataView_rowColor"
-         return "255,255,255"
+         put "255,255,255" into tColor
          break
       case "dataView_rowAlternateColor"
-         return "238,238,238"
+         put "238,238,238" into tColor
          break
       case "dataView_hiliteColor"
-         return "48,160,209"
+         put "48,160,209" into tColor
          break
       case "dataView_alternateHiliteColor"
-         return "34,154,206"
+         put "34,154,206" into tColor
          break
       case "dataView_TextHiliteColor"
-         return "255,255,255"
+         put "255,255,255" into tColor
          break
       case "dataView_scriptBackgroundColor"
-         return "34,154,206"
+         put "34,154,206" into tColor
          break
       case "dataView_scriptErrorBackgroundColor"
-         return "255,0,0"
+         put "255,0,0" into tColor
          break
       case "dataView_disclosureIconColor"
-         return "99,99,99"
+         put "99,99,99" into tColor
          break
       case "dataView_disclosureIconHiliteColor"
-         return "216,216,216"
+         put "216,216,216" into tColor
          break
       case "palette_background"
          if the platform is "Win32" then
-            return "240,240,240"
+            put "240,240,240" into tColor
          else if the systemWindowColor is a color then
             // HXT dark mode: use the live system window colour. The effective
             // backgroundColor of "this stack" is unreliable while an appearance
             // change is being processed - the stack may still carry the explicit
             // dark colour it was given in dark mode, which left the property
             // inspector dark with dark text after switching back to light.
-            return the systemWindowColor
+            put the systemWindowColor into tColor
          else
-            return the effective backgroundColor of this stack
+            put the effective backgroundColor of this stack into tColor
          end if
          break
       case "propertyInspector_multiValueBackground"
-         return "200,206,215"
+         put "200,206,215" into tColor
          break
    end switch
+	end if
 
-   return ideColorGet(pTag)
+	if tColor is empty then
+   put ideColorGet(pTag) into tColor
+	end if
+	unlock screen
+	return tColor
 end revIDEColor
 
 function revIDETextSize
@@ -4682,7 +4689,10 @@ on revIDESetPaletteRectPreference pStackName
    local tRect
    put the rect of stack pStackName into tRect
    replace " " with "_" in pStackName
-   revIDESetPreference "palette_rect_" & pStackName, tRect
+	if pStackName begins with "/tmp" then
+	else
+   		revIDESetPreference "palette_rect_" & pStackName, tRect
+	end if
 end revIDESetPaletteRectPreference
 
 function revIDEGetPaletteRectPreference pStackName
@@ -4705,6 +4715,14 @@ on revIDEClearPaletteRects
          revIDESetPreference tPreference, "0" 
       end if
    end repeat
+	put the customproperties of stack "revPreferences" into tPreferenceNames
+	put the keys of tPreferenceNames into tKeys
+	repeat for each line tPreference in tKeys
+		if tPreference begins with "palette_rect_/tmp" then
+			delete variable tPreferenceNames[tPreference]
+		end if
+	end repeat
+	set the customproperties of stack "revPreferences" to tPreferenceNames
 end revIDEClearPaletteRects
 
 private function revIDEPaletteBarHeight pStackID
