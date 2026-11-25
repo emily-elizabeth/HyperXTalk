@@ -8951,7 +8951,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
    delete variable tProps["id"]
    delete variable tProps["script"]
    -- showName is a boolean that gets mangled by SanitizeArray (boolean false becomes
-   -- the string "false", which jsonExport quotes as a JSON string rather than a boolean).
+   -- the string "false").
    -- Save it explicitly so it survives the JSON round-trip correctly.
    -- Not all control types support showName, so guard with a key existence check.
    if "showName" is among the keys of tProps then
@@ -9089,7 +9089,7 @@ on revIDEProjectSerializeControl pControlID, pMediaFolder, pScriptsFolder, @rObj
       local tWidgetData
       export pControlID to array tWidgetData
       -- Store widgetData as arrayEncode/base64 to preserve LCB List vs Array type
-      -- information through the JSON round-trip. lcb_JsonExport loses this distinction,
+      -- information through the JSON round-trip. JSON loses this distinction,
       -- causing type errors (e.g. segmented control mSegmentNames expecting a List).
       put base64Encode(arrayEncode(tWidgetData)) into rObj["widgetDataEncoded"]
       put tWidgetData["$kind"] into rObj["widgetKind"]

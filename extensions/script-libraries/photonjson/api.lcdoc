@@ -188,7 +188,7 @@ Name: ArrayToJSON
 
 Type: function
 
-Syntax: ArrayToJSON(<pArray>,<pForceRootType>,<pPretty>)
+Syntax: ArrayToJSON(<pArray>,<pForceRootType>,<pPretty>,<pIndentSize>)
 
 Summary: Format a LC array into UTF-8 encoded json data.
 
@@ -199,6 +199,8 @@ pArray: The array to be formatted
 pForceRootType: The type to force values to.
 
 pPretty: Set to true to format the resulting JSON data nicely.
+
+pIndentSize: The number of spaces per indent level when pPretty is true. The default is 2.
 
 Returns: JSON data.
 
@@ -273,7 +275,7 @@ Name: JSONStringify
 
 Type: function
 
-Syntax: JSONStringify(<pArray>,<pForceRootType>,<pPretty>)
+Syntax: JSONStringify(<pArray>,<pForceRootType>,<pPretty>,<pIndentSize>)
 
 Summary: Format a LC array into UTF-8 encoded json data.
 
@@ -284,6 +286,8 @@ pArray: The array to be formatted
 pForceRootType: The type to force values to.
 
 pPretty: Set to true to format the resulting JSON data nicely.
+
+pIndentSize: The number of spaces per indent level when pPretty is true. The default is 2.
 
 Returns: JSON data.
 
@@ -314,3 +318,80 @@ array. It parses <pJsonString> and returns resulting array.
 
 
 
+
+Name: JsonExport
+
+Type: function
+
+Syntax: JsonExport(<pValue>,<pPretty>,<pHowManySpaces>,<pShouldExpandBraces>)
+
+Summary: Export a value as JSON text.
+
+Parameters: 
+
+pValue: The value to export: an array, a string, a number or a boolean.
+
+pPretty: Set to true to format the resulting JSON nicely.
+
+pHowManySpaces: The number of spaces per indent level when pPretty is true. The default is 4.
+
+pShouldExpandBraces: Accepted so that existing calls keep working, and ignored.
+
+Returns: JSON text.
+
+Description:
+<JsonExport> keeps scripts written for the earlier JSON libraries working.
+An array is written as a JSON object or list, as <JSONStringify> does. Any
+other value is written as a JSON string, number, true, false or null.
+
+Unlike <JSONStringify>, which returns UTF-8 encoded data, <JsonExport>
+returns text. Encode it as UTF-8 before writing it to a binary file.
+
+The earlier <JsonExport> wrote the values true and false as JSON strings.
+They are now written as JSON booleans.
+
+
+
+
+Name: JsonExportPretty
+
+Type: function
+
+Syntax: JsonExportPretty(<pValue>,<pPretty>)
+
+Summary: Export a value as JSON text, optionally formatted.
+
+Parameters: 
+
+pValue: The value to export: an array, a string, a number or a boolean.
+
+pPretty: Set to true to format the resulting JSON nicely.
+
+Returns: JSON text.
+
+Description:
+<JsonExportPretty> is the same as <JsonExport> with its first two parameters.
+
+
+
+
+Name: JsonImport
+
+Type: function
+
+Syntax: JsonImport(<pJson>)
+
+Summary: Parse JSON text into a value.
+
+Parameters: 
+
+pJson: JSON text, or UTF-8 encoded JSON data.
+
+Returns: An array for a JSON object or list; otherwise the string, number or boolean. Empty for null, for an empty object and for an empty list.
+
+Description:
+<JsonImport> keeps scripts written for the earlier JSON libraries working.
+An object or list is parsed as <JSONParser> does. Unlike <JSONParser>,
+JSON that is a single string, number, true, false or null is returned as
+that value, and an empty object or list is returned as empty rather than
+as an array with one empty element.

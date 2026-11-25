@@ -172,6 +172,7 @@ Parameters:
 pArray (Array): The array to be formatted
 pForceRootType (String): The type to force values to.
 pPretty (Boolean): Set to true to format the resulting JSON data nicely.
+pIndentSize (Integer): The number of spaces per indent level when pPretty is true. The default is 2.
 
 Returns (String): JSON data.
 
@@ -180,8 +181,8 @@ Synonyms: JSONStringify
 Description:
 Format a LC array into UTF-8 encoded json data.
 */
-function ArrayToJSON pArray, pForceRootType, pPretty
-   return JSONStringify(pArray, pForceRootType, pPretty)
+function ArrayToJSON pArray, pForceRootType, pPretty, pIndentSize
+   return JSONStringify(pArray, pForceRootType, pPretty, pIndentSize)
 end ArrayToJSON
 
 
@@ -237,6 +238,105 @@ Format a LC array into UTF-8 encoded json data.
 function jsonFromArray pArray
    return JSONStringify(pArray)
 end jsonFromArray
+
+
+/* HYPERXTALK COMPATIBILITY
+
+JsonExport and JsonImport were provided by the jsonexport script library and
+the JSON LCB library, both now replaced by PhotonJSON. These two functions keep
+existing scripts working. They are not part of upstream PhotonJSON. */
+
+
+/**
+Summary: Export a value as JSON text.
+
+Parameters:
+pValue: The value to export: an array, a string, a number or a boolean.
+pPretty (Boolean): Set to true to format the resulting JSON nicely.
+pHowManySpaces (Integer): The number of spaces per indent level when pPretty is true. The default is 4.
+pShouldExpandBraces (Boolean): Accepted so that existing calls keep working, and ignored.
+
+Returns (String): JSON text.
+
+Description:
+<JsonExport> keeps scripts written for the earlier JSON libraries working.
+An array is written as a JSON object or list, as <JSONStringify> does. Any
+other value is written as a JSON string, number, true, false or null.
+
+Unlike <JSONStringify>, which returns UTF-8 encoded data, <JsonExport>
+returns text. Encode it as UTF-8 before writing it to a binary file.
+
+The earlier <JsonExport> wrote the values true and false as JSON strings.
+They are now written as JSON booleans.
+*/
+function JsonExport pValue, pPretty, pHowManySpaces, pShouldExpandBraces
+   local tJson, tWrapper
+
+   if pValue is an array then
+      if pPretty is true then
+         if pHowManySpaces is not an integer then put 4 into pHowManySpaces
+         return JSONStringify(pValue, empty, true, pHowManySpaces)
+      end if
+      return textDecode(JSONStringify(pValue), "UTF-8")
+   end if
+
+   # A value that is not an array: write it as the only element of a list,
+   # which escapes it as any other value, and take the brackets off.
+   put pValue into tWrapper[1]
+   put textDecode(JSONStringify(tWrapper), "UTF-8") into tJson
+   if tJson is "[]" then return quote & quote
+   return char 2 to -2 of tJson
+end JsonExport
+
+
+/**
+Summary: Export a value as JSON text, optionally formatted.
+
+Parameters:
+pValue: The value to export: an array, a string, a number or a boolean.
+pPretty (Boolean): Set to true to format the resulting JSON nicely.
+
+Returns (String): JSON text.
+
+Description:
+<JsonExportPretty> is the same as <JsonExport> with its first two parameters.
+*/
+function JsonExportPretty pValue, pPretty
+   return JsonExport(pValue, pPretty)
+end JsonExportPretty
+
+
+/**
+Summary: Parse JSON text into a value.
+
+Parameters:
+pJson (String): JSON text, or UTF-8 encoded JSON data.
+
+Returns: An array for a JSON object or list; otherwise the string, number or boolean. Empty for null, for an empty object and for an empty list.
+
+Description:
+<JsonImport> keeps scripts written for the earlier JSON libraries working.
+An object or list is parsed as <JSONParser> does. Unlike <JSONParser>,
+JSON that is a single string, number, true, false or null is returned as
+that value, and an empty object or list is returned as empty rather than
+as an array with one empty element.
+*/
+function JsonImport pJson
+   local tText, tResult
+
+   put _jsonTextFromInput(pJson) into tText
+   put word 1 to -1 of tText into tText
+   if tText is empty then return empty
+
+   if char 1 of tText is "{" or char 1 of tText is "[" then
+      if replaceText(tText, "\s", empty) is among the items of "{},[]" then return empty
+      return JSONParser(pJson)
+   end if
+
+   put JSONParser("[" & tText & "]") into tResult
+   if tResult is not an array then return empty
+   return tResult[1]
+end JsonImport
 
 
 /* CORE DECLARATIONS */
@@ -408,13 +508,14 @@ Parameters:
 pArray (Array): The array to be formatted
 pForceRootType (String): The type to force values to.
 pPretty (Boolean): Set to true to format the resulting JSON data nicely.
+pIndentSize (Integer): The number of spaces per indent level when pPretty is true. The default is 2.
 
 Returns (String): JSON data.
 
 Description:
 Format a LC array into UTF-8 encoded json data.
 */
-function JSONStringify pArray, pForceRootType, pPretty
+function JSONStringify pArray, pForceRootType, pPretty, pIndentSize
    local tJsonString = "[", tIsNumeric = true, tKeys = "", tEndChar = "]"
 
    add 1 to sRecursionCounter
@@ -462,7 +563,10 @@ function JSONStringify pArray, pForceRootType, pPretty
       put _cleaningNonPrintableChars(tJsonString) into tJsonString
 
       # Pretty
-      if pPretty then return _jsonPrettyCompact(tJsonString, 2, pForceRootType)
+      if pPretty then
+         if pIndentSize is not an integer or pIndentSize < 0 or pIndentSize > 10 then put 2 into pIndentSize
+         return _jsonPrettyCompact(tJsonString, pIndentSize, pForceRootType)
+      end if
 
       # tJsonString holds the UTF-8 bytes of the document one native character
       # per byte (see _jsonString); hand them back as binary data
