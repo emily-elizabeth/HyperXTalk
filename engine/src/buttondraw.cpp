@@ -16,6 +16,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include "prefix.h"
 
+#include <math.h>
+
 #include "globdefs.h"
 #include "filedefs.h"
 #include "objdefs.h"
@@ -58,6 +60,15 @@ extern "C" __attribute__((weak)) bool MCplatformIsDarkMode(void) { return false;
 // implementation from w32dcs.cpp so no stub is needed there.
 extern "C" __attribute__((weak)) bool MCplatformIsDarkMode(void) { return false; }
 #endif
+
+// The relative luminance (0 .. 1) of a colour.
+static double MCButtonColorLuminance(const MCColor& p_color)
+{
+	double t_channels[3] = { p_color . red / 65535.0, p_color . green / 65535.0, p_color . blue / 65535.0 };
+	for (int i = 0; i < 3; i++)
+		t_channels[i] = t_channels[i] <= 0.04045 ? t_channels[i] / 12.92 : pow((t_channels[i] + 0.055) / 1.055, 2.4);
+	return 0.2126 * t_channels[0] + 0.7152 * t_channels[1] + 0.0722 * t_channels[2];
+}
 
 // MW-2011-09-06: [[ Redraw ]] Added 'sprite' option - if true, ink and opacity are not set.
 void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool p_sprite)
@@ -426,9 +437,62 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 				(MClook != LF_MOTIF && style == F_MENU && flags & F_OPAQUE && state & CS_ARMED && !(flags & F_SHOW_BORDER)))
 				setforeground(dc, DI_PSEUDO_BUTTON_TEXT_SEL, False, True);
 			else
+			{
 				setforeground(dc, DI_FORE, ((state & CS_HILITED && flags & F_HILITE_FILL)
 				                            || ((state & CS_ARMED && flags & F_ARM_FILL) && flags & F_OPAQUE && ((MClook != LF_WIN95 && !MCaqua)))
 				                            || style != F_STANDARD), False);
+
+				// A button the engine fills itself keeps its ordinary text
+				// colour, which can be unreadable on the fill. That happens
+				// with the highlight colour of a highlighted button (black
+				// on the saturated blue highlight of Windows), and with a
+				// background colour set on the button when the default text
+				// colour follows the system appearance (white on yellow in
+				// dark mode). Where the two do not contrast, the label is
+				// drawn black or white, whichever reads. A button with a
+				// text colour of its own, or a bezel drawn by the system, is
+				// left alone.
+				bool t_system_bezel = isstdbtn && noback && MCcurtheme != NULL;
+				if (!t_system_bezel && MCcurtheme != NULL && style == F_MENU &&
+				    (menumode == WM_OPTION || menumode == WM_COMBO || menumode == WM_PULLDOWN) &&
+				    !getcindex(DI_BACK, i) && !getpindex(DI_BACK, i))
+					t_system_bezel = true;
+				// Whether the fill is the highlight colour, or a background
+				// colour (not a pattern) set on the button itself.
+				bool t_hilite_fill = loff == 0 && (flags & F_SHOW_ICON || !indicator) &&
+				                     ((state & CS_HILITED && flags & F_HILITE_FILL) ||
+				                      (state & CS_ARMED && flags & F_ARM_FILL));
+				bool t_back_fill = !t_hilite_fill &&
+				                   !(state & CS_ARMED && !(flags & F_SHOW_BORDER)) &&
+				                   !(macoption && state & CS_SUBMENU) &&
+				                   getcindex(DI_BACK, i) && !getpindex(DI_BACK, i);
+				if (!t_system_bezel && (flags & F_OPAQUE) &&
+				    (t_hilite_fill || t_back_fill) &&
+				    !getcindex(DI_FORE, i))
+				{
+					MCColor t_fill, t_text;
+					MCPatternRef t_fill_pattern = nil;
+					MCPatternRef t_text_pattern = nil;
+					int2 t_fill_x, t_fill_y, t_text_x, t_text_y;
+					if (getforecolor(t_hilite_fill ? DI_HILITE : DI_BACK, False, False, t_fill, t_fill_pattern,
+					                 t_fill_x, t_fill_y, dc -> gettype(), this) &&
+					    getforecolor(DI_FORE, False, False, t_text, t_text_pattern,
+					                 t_text_x, t_text_y, dc -> gettype(), this))
+					{
+						double t_fill_luminance = MCButtonColorLuminance(t_fill);
+						double t_text_luminance = MCButtonColorLuminance(t_text);
+						double t_lighter = t_fill_luminance > t_text_luminance ? t_fill_luminance : t_text_luminance;
+						double t_darker = t_fill_luminance > t_text_luminance ? t_text_luminance : t_fill_luminance;
+						if ((t_lighter + 0.05) / (t_darker + 0.05) < 3.0)
+						{
+							MCColor t_label;
+							t_label . red = t_label . green = t_label . blue = t_fill_luminance <= 0.30 ? 0xFFFF : 0;
+							dc->setforeground(t_label);
+							dc->setfillstyle(FillSolid, nil, 0, 0);
+						}
+					}
+				}
+			}
         }
 		}
 
