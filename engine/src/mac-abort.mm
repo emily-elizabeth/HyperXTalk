@@ -324,8 +324,22 @@ void MCPlatformEnableAbortKey(void)
 
 bool MCPlatformGetAbortKeyPressed(void)
 {
-    // MW-2014-04-23: [[ Bug 12163 ]] If the abortKey hasn't been checked
-    //   recently, then tickle the event queue so that we suppress the SPOD.
+	// Worker threads run on background OS threads.  The event-queue peek below
+	// calls [NSApp nextEventMatchingMask:], which is AppKit-main-thread-only.
+	// Calling it from a worker thread throws an NSException that terminates the
+	// process.  Workers have no interactive abort-key concept, so return early
+	// using the existing s_abort_key_pressed flag (volatile, safe to read from
+	// any thread) and skip the event-peek entirely.
+	if (![NSThread isMainThread])
+	{
+		if (!s_abort_key_pressed)
+			return false;
+		s_abort_key_pressed = false;
+		return true;
+	}
+
+	// MW-2014-04-23: [[ Bug 12163 ]] If the abortKey hasn't been checked
+	//   recently, then tickle the event queue so that we suppress the SPOD.
 	if (!s_abort_key_checked && MCMacPlatformIsEventCheckingEnabled())
 	{
 		NSDisableScreenUpdates();
