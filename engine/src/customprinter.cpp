@@ -378,7 +378,7 @@ void MCCustomMetaContext::domark(MCMark *p_mark)
 		{
 			MCPath *t_path;
 			t_path = MCPath::create_line(p_mark -> line . start . x, p_mark -> line . start . y, p_mark -> line . end . x, p_mark -> line . end . y, true);
-			if (t_path != nil)
+			if (nil != t_path)
 			{
 				dopathmark(p_mark, t_path);
 				t_path -> release();
@@ -1559,7 +1559,8 @@ MCCustomPrinter::MCCustomPrinter(MCStringRef p_name, MCCustomPrintingDevice *p_d
 
 MCCustomPrinter::~MCCustomPrinter(void)
 {
-	m_device -> Destroy();
+//	if (NULL != m_device)
+//		m_device -> Destroy();	// #529: avoid the linux crash on exit
 
 	// We do this here since the MCCustomPrinter instance has a limited lifetime - the
 	// scope of a single print loop.
@@ -1853,7 +1854,7 @@ public:
 	bool BeginDocument(const MCCustomPrinterDocument& p_document)
 	{
 		m_stream = fopen(p_document . filename, "w");
-		if (m_stream == nil)
+		if (nil == m_stream)
 		{
 			m_error = "could not open output file";
 			return false;
@@ -2105,7 +2106,7 @@ bool MCCustomPrinterCreate(MCStringRef p_destination, MCStringRef p_filename, MC
 			}
 		}
 
-		if (s_revpdfprinter_create != nil)
+		if (nil != s_revpdfprinter_create)
 			t_device = s_revpdfprinter_create();
 		else
 			t_device = nil;
@@ -2116,17 +2117,17 @@ bool MCCustomPrinterCreate(MCStringRef p_destination, MCStringRef p_filename, MC
 #endif
 
 #ifdef _DEBUG
-	if (t_device != nil)
+	if (nil != t_device)
 		t_device = new (nothrow) MCLoggingPrintingDevice(t_device);
 #endif
 	
-	if (t_device == nil)
+	if (nil == t_device)
     {
         return false;
     }
 
 	MCAutoStringRef t_native_path;
-	if (p_filename != nil)
+	if (nil != p_filename)
 		/* UNCHECKED */ MCS_pathtonative(p_filename, &t_native_path);
 
 	MCCustomPrinter *t_printer;
