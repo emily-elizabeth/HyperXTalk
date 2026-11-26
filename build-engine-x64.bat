@@ -1233,18 +1233,6 @@ if not exist "%DBG_OUT%\server-community.exe" (
 
 if not exist "%PACKAGED_EXT_DBG%" mkdir "%PACKAGED_EXT_DBG%"
 
-:: Build yyjson native DLL (required by json.lcb for JSON import on Windows)
-echo Building yyjson native DLL...
-set "VCXPROJ_YYJSON=%~dp0build-win-x86_64\hyperxtalk\extensions\libraries\json\yyjson\yyjson-build.vcxproj"
-"%MSBUILD%" %TOOLSET% "%VCXPROJ_YYJSON%" "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /p:Configuration=Debug /p:Platform=x64 /v:minimal /nologo >> "%LOGFILE%" 2>&1
-if %ERRORLEVEL% NEQ 0 (
-    echo WARNING: yyjson build failed -- JSON import extension may not work. See %LOGFILE%
-) else (
-    if not exist "%PACKAGED_EXT_DBG%\com.hyperxtalk.library.json\code\x86_64-win32" mkdir "%PACKAGED_EXT_DBG%\com.hyperxtalk.library.json\code\x86_64-win32"
-    copy /Y "%DBG_OUT%\yyjson.dll" "%PACKAGED_EXT_DBG%\com.hyperxtalk.library.json\code\x86_64-win32\yyjson.dll" >> "%LOGFILE%" 2>&1
-    echo yyjson.dll OK.
-)
-
 "%DBG_OUT%\server-community.exe" "%EXT_UTILS%" buildlcbextensions "%~dp0ide-support\revdocsparser.livecodescript" "%PACKAGED_EXT_DBG%" false "%LC_COMPILE%" "%LCI_DIR%" "" "%~dp0extensions\modules\widget-utils\widget-utils.lcb" "%~dp0extensions\modules\scriptitems\scriptitems.lcb" "%~dp0extensions\libraries\canvas\canvas.lcb" "%~dp0extensions\libraries\iconsvg\iconsvg.lcb" "%~dp0extensions\libraries\json\json.lcb" "%~dp0extensions\libraries\objectrepository\objectrepository.lcb" "%~dp0extensions\libraries\ini\ini.lcb" "%~dp0extensions\libraries\timezone\timezone.lcb" "%~dp0extensions\widgets\svgpath\svgpath.lcb" "%~dp0extensions\widgets\clock\clock.lcb" "%~dp0extensions\widgets\graph\graph.lcb" "%~dp0extensions\widgets\header\header.lcb" "%~dp0extensions\widgets\iconpicker\iconpicker.lcb" "%~dp0extensions\widgets\navbar\navbar.lcb" "%~dp0extensions\widgets\paletteactions\paletteactions.lcb" "%~dp0extensions\widgets\segmented\segmented.lcb" "%~dp0extensions\widgets\switchbutton\switchbutton.lcb" "%~dp0extensions\widgets\treeview\treeview.lcb" "%~dp0extensions\widgets\colorswatch\colorswatch.lcb" "%~dp0extensions\widgets\gradientrampeditor\gradientrampeditor.lcb" "%~dp0extensions\widgets\tile\tile.lcb" "%~dp0extensions\widgets\spinner\spinner.lcb" > "%EXT_LOG_DBG%" 2>&1
 set EXT_DBG_ERR=%ERRORLEVEL%
 type "%EXT_LOG_DBG%"
