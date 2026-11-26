@@ -99,7 +99,7 @@ function setCCForTarget {
 			# OSX options
 			PLATFORM_DEVELOPER="${XCODE_DEVELOPER}/Platforms/MacOSX.platform/Developer"
 			SDK="$(ls ${PLATFORM_DEVELOPER}/SDKs/ | grep MacOSX | sort -V | tail -1)"
-			OSXMIN="11.0"
+			OSXMIN="12.0"
 #			SDK="MacOSX13.1.sdk"
 #			OSXGCCVERSION=4.2
 #			OSXMIN="13.1"

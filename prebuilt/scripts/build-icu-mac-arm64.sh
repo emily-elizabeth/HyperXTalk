@@ -68,7 +68,7 @@ tar -xf "${ICU_TGZ}" -C "${BUILD_BASE}"
 
 # ── 2. Configure & build ──────────────────────────────────────────────────────
 SDK="$(xcrun --sdk macosx --show-sdk-path)"
-MACOS_MIN="11.0"
+MACOS_MIN="12.0"
 
 ICU_CONFIGURE_FLAGS=(
     "--disable-shared"
