@@ -204,6 +204,11 @@ static void MCWorkerDeliverCallbackNow(MCWorkerCallback *t_cb)
 
     MCExecContext t_ctxt;
     t_ctxt.SetWorkerIt(t_it_ref);
+    // Ensure MCECptr->GetObject() is non-null while this callback is active.
+    // MCExecContext's default constructor zeroes m_object; any code path that
+    // calls MCECptr->GetObject()->GetHandle() (e.g. MCExecContext::GetObjectHandle
+    // in exec.cpp) would otherwise dereference null and crash.
+    t_ctxt.SetObject(t_target_stack);
     MCEngineExecDispatch(t_ctxt, HT_MESSAGE, t_cb->message, &t_target, t_first);
 
     delete t_it_ref;
@@ -433,6 +438,9 @@ void MCWorker::RunLoop()
 
         MCExecContext t_ctxt;
         t_ctxt.SetWorkerIt(t_it_ref);
+        // Same null-object guard as MCWorkerDeliverCallbackNow: set m_object so
+        // that MCECptr->GetObject()->GetHandle() is safe inside the handler.
+        t_ctxt.SetObject(m_stack);
         MCEngineExecDispatch(t_ctxt, HT_MESSAGE, t_msg->message,
                              &t_target, t_first);
 
