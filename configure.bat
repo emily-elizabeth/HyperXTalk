@@ -50,6 +50,25 @@ IF %ERRORLEVEL% NEQ 0 (
   SET python=python
 )
 
+REM The gyp files run perl and python3 by those names. Run each one, rather
+REM than looking for it with WHERE, because Windows ships a python3.exe stub
+REM that only opens the Microsoft Store. config.py also accepts a perl in
+REM C:\perl64\bin or C:\perl\bin.
+perl -e "1" 1>NUL 2>NUL
+IF %ERRORLEVEL% NEQ 0 IF NOT EXIST C:\perl64\bin\perl.exe IF NOT EXIST C:\perl\bin\perl.exe (
+  ECHO >&2 Error: could not run perl. Install Strawberry Perl and make sure perl.exe is on the PATH
+  IF NOT DEFINED CI PAUSE
+  EXIT /B 1
+)
+
+python3 -c "pass" 1>NUL 2>NUL
+IF %ERRORLEVEL% NEQ 0 (
+  ECHO >&2 Error: could not run python3. The python.org installer only provides python.exe;
+  ECHO >&2 copy it to python3.exe in the same folder, or install Python with Scoop
+  IF NOT DEFINED CI PAUSE
+  EXIT /B 1
+)
+
 REM Attempt to locate the Microsoft Speech SDK v5.1
 IF EXIST "%programfiles(x86)%\Microsoft Speech SDK 5.1\*" (
   SET extra_options=%extra_options% -Dms_speech_sdk5="%programfiles(x86)%/Microsoft Speech SDK 5.1"

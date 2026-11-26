@@ -99,6 +99,16 @@ if not defined MSBUILD (
     echo ERROR: MSBuild.exe not found. Install Visual Studio 2019 Build Tools with C++ workload.
     exit /b 1
 )
+
+:: The steps further down find the Visual Studio root by walking up from the
+:: default MSBuild.exe, so keep that path before switching.
+set "MSBUILD_DEFAULT=%MSBUILD%"
+
+:: Prefer the 64-bit MSBuild when it is installed.  Bin\MSBuild.exe is a
+:: 32-bit process, and on Windows on ARM it selects the 32-bit compiler, which
+:: runs out of heap space (C1060) compiling icudata-minimal.cpp.
+set "MSBUILD64=%MSBUILD:\Bin\MSBuild.exe=\Bin\amd64\MSBuild.exe%"
+if exist "%MSBUILD64%" set "MSBUILD=%MSBUILD64%"
 echo Using MSBuild: %MSBUILD%
 
 :: ----------------------------------------------------------
@@ -160,7 +170,7 @@ if exist "%WV2_LIB%" (
 
 :: Find CL.exe and lib.exe for the revsecurity step below (still needed).
 set "FIND_CLEXE_PS1=%TEMP%\hxt_find_clexe.ps1"
-echo $p = '%MSBUILD%'                                                    > "%FIND_CLEXE_PS1%"
+echo $p = '%MSBUILD_DEFAULT%'                                                    > "%FIND_CLEXE_PS1%"
 echo $p = Split-Path -Parent $p                                         >> "%FIND_CLEXE_PS1%"
 echo $p = Split-Path -Parent $p                                         >> "%FIND_CLEXE_PS1%"
 echo $p = Split-Path -Parent $p                                         >> "%FIND_CLEXE_PS1%"
@@ -179,7 +189,7 @@ set "LIB_EXE=%CL_EXE:cl.exe=lib.exe%"
 
 :: Set up the VS environment (include/lib paths) by calling vcvarsall.bat x64.
 set "FIND_VCVARS_PS1=%TEMP%\hxt_find_vcvars.ps1"
-echo $p = '%MSBUILD%'                                    > "%FIND_VCVARS_PS1%"
+echo $p = '%MSBUILD_DEFAULT%'                                    > "%FIND_VCVARS_PS1%"
 echo $p = Split-Path -Parent $p                         >> "%FIND_VCVARS_PS1%"
 echo $p = Split-Path -Parent $p                         >> "%FIND_VCVARS_PS1%"
 echo $p = Split-Path -Parent $p                         >> "%FIND_VCVARS_PS1%"
@@ -230,6 +240,38 @@ if errorlevel 1 (
     exit /b 1
 )
 echo dbmysql OK.
+
+echo.
+:: ----------------------------------------------------------
+:: Build the database library (revdb.dll) and the SQLite driver.
+::
+:: A development IDE loads both from the Debug folder, next to the
+:: engine.  Without revdb.dll there are no database commands at all
+:: (so dbmysql.dll above cannot be used either), and the IDE stores
+:: its Dictionary in SQLite: its start-up step "Building Dictionary"
+:: fails with "revOpenDatabases" not found.
+:: ----------------------------------------------------------
+set VCXPROJ_LIBSQLITE=build-win-x86_64\hyperxtalk\thirdparty\libsqlite\libsqlite.vcxproj
+set VCXPROJ_DBSQLITE=build-win-x86_64\hyperxtalk\revdb\dbsqlite.vcxproj
+set VCXPROJ_REVDB=build-win-x86_64\hyperxtalk\revdb\external-revdb.vcxproj
+
+echo Building libsqlite ...
+echo Building libsqlite ... >> "%LOGFILE%"
+"%MSBUILD%" %TOOLSET% %VCXPROJ_LIBSQLITE% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+if errorlevel 1 ( echo LIBSQLITE BUILD FAILED. See %LOGFILE% & exit /b 1 )
+echo libsqlite OK.
+
+echo Building dbsqlite (SQLite database driver) ...
+echo Building dbsqlite ... >> "%LOGFILE%"
+"%MSBUILD%" %TOOLSET% %VCXPROJ_DBSQLITE% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+if errorlevel 1 ( echo DBSQLITE BUILD FAILED. See %LOGFILE% & exit /b 1 )
+echo dbsqlite OK.
+
+echo Building revdb (database library) ...
+echo Building revdb ... >> "%LOGFILE%"
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVDB% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+if errorlevel 1 ( echo REVDB BUILD FAILED. See %LOGFILE% & exit /b 1 )
+echo revdb OK.
 
 echo.
 :: ----------------------------------------------------------
@@ -567,17 +609,24 @@ if not exist "%STARTUP_CPP%" (
     exit /b 1
 )
 echo bootstrap-startupstack.cpp copied OK.
+:startup_done
 :: Also mirror to the project-local path that build-release-x64.bat expects.
 :: When development.vcxproj is built standalone (not from the solution),
 :: $(obj) resolves to empty so shared_intermediate lands at D:\shared_intermediate.
 :: build-release-x64.bat looks in the project-relative location:
 ::   build-win-x86_64\hyperxtalk\engine\Debug\x64\obj\shared_intermediate\src\
-:: Copy there so both find it.
+:: Copy there so both find it.  This runs whichever way startupstack.cpp was
+:: produced: generated above, or copied from the bootstrap file.
 set "LOCAL_DBG_SHARED=%~dp0build-win-x86_64\hyperxtalk\engine\Debug\x64\obj\shared_intermediate\src"
 if not exist "%LOCAL_DBG_SHARED%" mkdir "%LOCAL_DBG_SHARED%"
 copy /Y "%STARTUP_CPP%" "%LOCAL_DBG_SHARED%\startupstack.cpp" >nul
+if not exist "%LOCAL_DBG_SHARED%\startupstack.cpp" goto startup_mirror_failed
 echo startupstack.cpp mirrored to project-local Debug shared_intermediate.
-:startup_done
+goto startup_mirror_done
+:startup_mirror_failed
+echo WARNING: could not copy startupstack.cpp to %LOCAL_DBG_SHARED%
+echo          build-release-x64.bat will not find it there.
+:startup_mirror_done
 
 echo.
 :: ----------------------------------------------------------
@@ -1062,8 +1111,14 @@ echo.
 :: __EnsureExternal "revzip" to package .lcm files into zips).
 :: libz and libzip must exist in Debug\lib\ first.
 :: ----------------------------------------------------------
-echo Building server-revxml.dll (Debug — for extension packaging) ...
+echo Building server-revxml.dll (Debug -- for extension packaging) ...
 echo Building server-revxml.dll ... >> "%LOGFILE%"
+"%MSBUILD%" %TOOLSET% %VCXPROJ_REVXML_SERVER% /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo WARNING: server-revxml.dll Debug build failed -- extension packaging may fail.
+) else (
+    echo server-revxml.dll OK.
+)
 set "VCXPROJ_LIBZIP=build-win-x86_64\hyperxtalk\thirdparty\libzip\libzip.vcxproj"
 "%MSBUILD%" %TOOLSET% %VCXPROJ_LIBZIP% /t:Rebuild /p:Configuration=Debug /p:Platform=x64 /p:BuildProjectReferences=false "/p:SolutionDir=%~dp0build-win-x86_64\hyperxtalk\\" /v:minimal /nologo >> "%LOGFILE%" 2>&1
 if %ERRORLEVEL% NEQ 0 ( echo WARNING: libzip Debug build failed -- server-revzip may not link. )
@@ -1218,4 +1273,14 @@ if exist "%BROWSER_LCB%" (
     if exist "%BROWSER_PKG_DBG%\module.lcm" (
         echo Browser widget compiled OK.
     ) else (
-        echo WARNING: brow
+        echo WARNING: browser widget compilation failed -- skipping.
+    )
+) else (
+    echo WARNING: browser.lcb not found -- skipping browser widget compilation.
+)
+
+echo.
+echo Build finished: %DATE% %TIME%
+echo Build finished: %DATE% %TIME% >> "%LOGFILE%"
+echo Engine: %DBG_OUT%\HyperXTalk.exe
+endlocal

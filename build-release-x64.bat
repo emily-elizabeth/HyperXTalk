@@ -129,6 +129,16 @@ if not defined MSBUILD (
     echo ERROR: MSBuild.exe not found. Install Visual Studio 2019+ with C++ workload.
     exit /b 1
 )
+
+:: A step further down finds the Visual Studio root by walking up from the
+:: default MSBuild.exe, so keep that path before switching.
+set "MSBUILD_DEFAULT=%MSBUILD%"
+
+:: Prefer the 64-bit MSBuild when it is installed.  Bin\MSBuild.exe is a
+:: 32-bit process, and on Windows on ARM it selects the 32-bit compiler, which
+:: runs out of heap space (C1060) compiling icudata-minimal.cpp.
+set "MSBUILD64=%MSBUILD:\Bin\MSBuild.exe=\Bin\amd64\MSBuild.exe%"
+if exist "%MSBUILD64%" set "MSBUILD=%MSBUILD64%"
 echo Using MSBuild: %MSBUILD%
 
 :: ----------------------------------------------------------
@@ -673,7 +683,7 @@ echo.
 :: finding the x64-hosted x64 compiler tools directory.
 :: ----------------------------------------------------------
 set "FIND_CLEXE_PS1_REL=%TEMP%\hxt_find_clexe_rel.ps1"
-echo $p = '%MSBUILD%'                                                    > "%FIND_CLEXE_PS1_REL%"
+echo $p = '%MSBUILD_DEFAULT%'                                                    > "%FIND_CLEXE_PS1_REL%"
 echo $p = Split-Path -Parent $p                                         >> "%FIND_CLEXE_PS1_REL%"
 echo $p = Split-Path -Parent $p                                         >> "%FIND_CLEXE_PS1_REL%"
 echo $p = Split-Path -Parent $p                                         >> "%FIND_CLEXE_PS1_REL%"
@@ -1117,4 +1127,14 @@ for %%F in (dbmysql.dll dbodbc.dll dbpostgresql.dll dbsqlite.dll) do (
 :: libmysql.dll and OpenSSL DLLs (MySQL runtime deps)
 for %%F in (libmysql.dll libssl-3-x64.dll libcrypto-3-x64.dll) do (
     if exist "%OUTDIR%\%%F" (
-        copy /Y "%OUTDIR%\%%F" "%~dp0%RT%\Externals\Database Drivers
+        copy /Y "%OUTDIR%\%%F" "%~dp0%RT%\Externals\Database Drivers\%%F" > nul
+        echo   %%F staged to %RT%\Externals\Database Drivers\
+    )
+)
+
+echo Runtime staging complete.
+echo Runtime staging complete. >> "%LOGFILE%"
+
+echo.
+echo Build complete.
+echo Build complete. >> "%LOGFILE%"
