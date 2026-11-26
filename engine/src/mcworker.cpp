@@ -160,9 +160,27 @@ void MCWorkerMessageFree(MCWorkerMessage *p_msg)
 // belt-and-suspenders in case some other code path calls us while nested.
 static void MCWorkerDeliverCallbackNow(MCWorkerCallback *t_cb)
 {
-    // Look up the target stack by name; it may have been closed since the
-    // callback was posted.
+    // Look up the target stack.  Fast path: by name (works for every named
+    // stack).  Fallback: walk all live stacks and compare raw pointers — this
+    // handles unnamed stacks (e.g. the home stack) whose name is empty and
+    // therefore can't be found by findstackname().
     MCStack *t_target_stack = MCdispatcher->findstackname(t_cb->target_name);
+
+    if (t_target_stack == nullptr && t_cb->target_stack_ptr != nullptr)
+    {
+        // Verify that target_stack_ptr is still alive by scanning the stack
+        // list.  foreachstack() covers top-level stacks and their sub-stacks.
+        struct StackFindCtx { MCStack *needle; bool found; };
+        StackFindCtx t_find = { t_cb->target_stack_ptr, false };
+        MCdispatcher->foreachstack([](MCStack *p_stack, void *p_ctx) -> bool {
+            StackFindCtx *t_ctx = static_cast<StackFindCtx *>(p_ctx);
+            if (p_stack == t_ctx->needle) { t_ctx->found = true; return false; }
+            return true; // keep searching
+        }, &t_find);
+        if (t_find.found)
+            t_target_stack = t_cb->target_stack_ptr;
+    }
+
     if (t_target_stack == nullptr)
     {
         MCWorkerParamsFree(t_cb->params, t_cb->param_count);
@@ -736,11 +754,13 @@ void MCWorkerExecDispatchToCaller(MCExecContext &ctxt,
         ctxt.LegacyThrow(EE_NO_MEMORY);
         return;
     }
-    // Capture the caller's name for use at delivery time (on the main thread).
-    // We store a name rather than a raw pointer so MCdispatcher->findstackname()
-    // can verify the stack still exists — findstackid() fails for stacks whose
-    // obj_id is 0 (not explicitly assigned).
-    t_cb->target_name = MCValueRetain(t_worker->GetCurrentCaller()->getname());
+    // Capture the caller stack for use at delivery time (on the main thread).
+    // We store both the name (for the fast findstackname() path) and the raw
+    // pointer (as a fallback for unnamed stacks such as the home stack, whose
+    // name is empty and therefore can't be found by findstackname()).
+    MCStack *t_caller_stack = t_worker->GetCurrentCaller();
+    t_cb->target_name      = MCValueRetain(t_caller_stack->getname());
+    t_cb->target_stack_ptr = t_caller_stack;
     t_cb->message     = MCValueRetain(p_message);
     t_cb->params      = t_params;
     t_cb->param_count = t_count;

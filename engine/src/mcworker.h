@@ -64,8 +64,12 @@ void             MCWorkerMessageFree(MCWorkerMessage *p_msg);
 
 struct MCWorkerCallback
 {
-    MCNameRef       target_name;   // retained name of the calling stack; looked
-                                   // up via MCdispatcher->findstackname() on delivery
+    MCNameRef       target_name;      // retained name of the calling stack;
+                                      // used for the fast-path findstackname() lookup
+    MCStack        *target_stack_ptr; // raw pointer to the calling stack — used as
+                                      // a fallback when target_name is empty (unnamed
+                                      // stacks such as the home stack).  Verified to
+                                      // still be live via foreachstack() before use.
     MCNameRef       message;
     MCWorkerParam  *params;
     uint32_t        param_count;
