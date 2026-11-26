@@ -61,7 +61,7 @@ is the text of the match.
 Every parenthesized group of the <regularExpression> has a key in every
 match. For a group that took no part in a particular match, such as an
 optional group, "start" and "end" are both empty. A named group, written
-"(?<name>...)", is stored under its name as well as under its number.
+"(?&lt;name&gt;...)", is stored under its name as well as under its number.
 
 For a match of no characters, "end" is one less than "start", and
 "start" is the position of the character the match lies in front of.

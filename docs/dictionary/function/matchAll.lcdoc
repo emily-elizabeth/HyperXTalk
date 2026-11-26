@@ -28,7 +28,7 @@ put the number of elements in matchAll(tText, "\w+") into tWordCount
 Example:
 -- Named groups are also available by name
 local tPairs, tPair
-put matchAll("width=80;height=24", "(?<key>\w+)=(?<value>\w+)") into tPairs
+put matchAll("width=80;height=24", "(?&lt;key&gt;\w+)=(?&lt;value&gt;\w+)") into tPairs
 repeat for each element tPair in tPairs
    put tPair["key"] && "is" && tPair["value"] & return after tReport
 end repeat
@@ -61,7 +61,7 @@ Every parenthesized group of the <regularExpression> has a key in every
 match. A group that took no part in a particular match, such as an
 optional group, is empty.
 
-A named group, written "(?<name>...)", is stored under its name as well
+A named group, written "(?&lt;name&gt;...)", is stored under its name as well
 as under its number.
 
 A pattern that can match no characters, such as "a*", produces an empty

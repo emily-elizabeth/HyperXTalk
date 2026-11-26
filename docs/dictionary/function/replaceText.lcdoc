@@ -36,7 +36,7 @@ put replaceText("John Smith", "(\w+) (\w+)", "$2, $1")
 
 Example:
 -- refer to named groups by name
-put replaceText("2026-11-24", "(?<y>\d+)-(?<m>\d+)-(?<d>\d+)", "${d}/${m}/${y}")
+put replaceText("2026-11-24", "(?&lt;y&gt;\d+)-(?&lt;m&gt;\d+)-(?&lt;d&gt;\d+)", "${d}/${m}/${y}")
 -- returns "24/11/2026"
 
 Parameters:
@@ -76,7 +76,7 @@ parenthesized groups of the <matchExpression>:
 - "$0" or "\0" is the whole of the matched text.
 - "${1}" is the same as "$1", and is useful when a digit follows: 
   "${1}0" is the first group followed by a zero.
-- "${name}" is the text of the group named with "(?<name>...)".
+- "${name}" is the text of the group named with "(?&lt;name&gt;...)".
 
 A group that took no part in the match is replaced by nothing. A
 reference to a group number or name that the <matchExpression> does not
