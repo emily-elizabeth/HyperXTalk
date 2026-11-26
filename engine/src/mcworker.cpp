@@ -22,6 +22,7 @@ extern void __MCValueDrainPoolForThread(void);
 #include "globals.h"
 #include "dispatch.h"
 #include "stack.h"
+#include "card.h"
 #include "object.h"
 #include "param.h"
 #include "exec.h"
@@ -190,9 +191,16 @@ static void MCWorkerDeliverCallbackNow(MCWorkerCallback *t_cb)
         }
     }
 
-    // Dispatch the callback on the main thread.
+    // Dispatch to the current card of the target stack so the callback follows
+    // the normal card → stack → home-stack message hierarchy.  Dispatching to
+    // the stack object directly would skip any handlers on cards or controls.
+    MCCard   *t_cur_card    = t_target_stack->getcurcard();
+    MCObject *t_dispatch_to = (t_cur_card != nullptr)
+                               ? static_cast<MCObject *>(t_cur_card)
+                               : static_cast<MCObject *>(t_target_stack);
+
     MCObjectPtr t_target;
-    t_target.object  = t_target_stack;
+    t_target.object  = t_dispatch_to;
     t_target.part_id = 0;
 
     // MCEngineExecDispatch writes to 'it' after every dispatch.  This context
@@ -208,7 +216,7 @@ static void MCWorkerDeliverCallbackNow(MCWorkerCallback *t_cb)
     // MCExecContext's default constructor zeroes m_object; any code path that
     // calls MCECptr->GetObject()->GetHandle() (e.g. MCExecContext::GetObjectHandle
     // in exec.cpp) would otherwise dereference null and crash.
-    t_ctxt.SetObject(t_target_stack);
+    t_ctxt.SetObject(t_dispatch_to);
     MCEngineExecDispatch(t_ctxt, HT_MESSAGE, t_cb->message, &t_target, t_first);
 
     delete t_it_ref;
