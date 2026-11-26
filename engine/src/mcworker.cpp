@@ -226,31 +226,34 @@ static void MCWorkerDeliverCallbackNow(MCWorkerCallback *t_cb)
 
 // MCNotify entry point for worker callbacks.
 //
-// The s_safe_dispatch_depth guard in notify.cpp ensures this is never called
-// re-entrantly from within a safe-notification dispatch (e.g. from the modal
-// event loop that 'answer' runs).  Pending safe notifications — including
-// subsequent worker callbacks — stay in s_safe_notifications and are delivered
-// by the outer MCNotifyDispatch call once the modal dialog closes.
+// This function is queued in s_safe_notifications by the worker thread via
+// MCNotifyPush(..., safe=true).  It is therefore only ever called from within
+// MCNotifyDispatch's safe-notification drain loop, which tracks its own
+// re-entrancy depth in s_safe_dispatch_depth (notify.cpp).
 //
-// The MCnexecutioncontexts check below is belt-and-suspenders protection
-// against hypothetical other re-entrancy paths.
+// Re-entrancy safety is already provided by notify.cpp:
+//   - While we are running (s_safe_dispatch_depth >= 1), any inner call to
+//     MCNotifyDispatch(true) -- e.g. from an 'answer' modal dialog opened by
+//     the callback handler -- sees s_safe_dispatch_depth > 0 and skips the
+//     safe list entirely.  Pending safe notifications (including further
+//     worker callbacks) stay queued and are delivered once the outer dispatch
+//     loop resumes.
+//   - During 'wait with messages', the event loop calls MCNotifyDispatch(true)
+//     while MCnexecutioncontexts > 0 (a handler is still on the call stack).
+//     s_safe_dispatch_depth correctly tracks that re-entrancy, so the callback
+//     is delivered at the right time without any additional MCnexecutioncontexts
+//     guard here.
+//
+// A previous version of this function checked MCnexecutioncontexts > 0 and
+// re-queued the callback to s_safe_notifications if true.  That caused an
+// infinite tight loop inside MCNotifyDispatchList when the main thread was in
+// a 'wait with messages' loop (re-push -> while-loop picks it up immediately
+// -> re-push -> ...), hanging the engine with the spinning beachball of death.
+// The check was also logically redundant: notify.cpp's s_safe_dispatch_depth
+// already provides the correct protection.
 void MCWorkerDeliverCallback(void *p_opaque)
 {
     MCWorkerCallback *t_cb = static_cast<MCWorkerCallback *>(p_opaque);
-
-    if (MCnexecutioncontexts > 0)
-    {
-        // The main thread is currently executing a script handler.  We cannot
-        // deliver the callback inline without risking re-entrant dispatch, so
-        // re-queue it as a safe notification.  It will be delivered once the
-        // execution context returns to the top level (e.g. after the calling
-        // handler exits, or on the next event-loop iteration outside a handler).
-        // This preserves 'dispatch ... to caller' semantics instead of silently
-        // dropping the message.
-        MCNotifyPush(MCWorkerDeliverCallback, t_cb, false, true);
-        return;
-    }
-
     MCWorkerDeliverCallbackNow(t_cb);
 }
 
