@@ -56,9 +56,11 @@ back to the stack that initiated the call.
 Workers persist until explicitly removed with <destroy worker> or
 <delete worker>.
 
->*Note:* Workers run synchronously within the same engine thread. They
-> do not provide true concurrency, but they do provide clean separation
-> of script contexts and message routing.
+>*Note:* Each worker runs on its own OS thread, providing true concurrency
+> independent of the main engine thread. Script contexts and message routing
+> are fully isolated between workers and the main thread. Use
+> <dispatch to worker> for fire-and-forget calls and <dispatch to caller>
+> for results to be returned asynchronously to the calling stack.
 
 References: destroy worker (command), delete worker (command),
 dispatch to worker (command), dispatch to caller (command),

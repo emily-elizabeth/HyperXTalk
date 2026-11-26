@@ -42,8 +42,11 @@ Arrays are valid arguments.
 
 Description:
 Use <dispatch to worker> to invoke a handler in a named worker's script.
-The worker's handler runs synchronously — execution in the calling script
-pauses until the worker handler completes or passes the message.
+Dispatch to a worker is non-blocking (fire-and-forget): execution in the
+calling script continues immediately after the command. The worker handler
+runs concurrently on its own OS thread. To receive results, use
+<dispatch to caller> inside the worker and handle the returned message in
+a handler on the calling stack.
 
 The <dispatch> command's standard <it> behaviour applies: after the call,
 <it> is set to "handled", "unhandled", or "passed" depending on whether

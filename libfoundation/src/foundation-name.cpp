@@ -20,6 +20,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include "foundation-string-hash.h"
 
+#include <mutex>
+
 ////////////////////////////////////////////////////////////////////////////////
 
 MC_DLLEXPORT_DEF MCNameRef kMCEmptyName;
@@ -31,6 +33,11 @@ MC_DLLEXPORT_DEF MCNameRef kMCFalseName;
 static MCNameRef *s_name_table;
 static uindex_t s_name_table_occupancy;
 static uindex_t s_name_table_capacity;
+
+// Mutex protecting all accesses to the global name table.
+// Using recursive_mutex because __MCNameDestroy can call MCValueRelease on
+// names that belong to the same equivalence class, re-entering this lock.
+static std::recursive_mutex s_name_table_mutex;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -232,6 +239,7 @@ MC_DLLEXPORT_DEF
 bool MCNameCreate(MCStringRef p_string, MCNameRef& r_name)
 {
 	__MCAssertIsString(p_string);
+	std::lock_guard<std::recursive_mutex> t_lock(s_name_table_mutex);
 
 	if (p_string -> char_count == 0 && kMCEmptyName != nil)
 	{
@@ -348,6 +356,7 @@ bool MCNameCreate(MCStringRef p_string, MCNameRef& r_name)
 MC_DLLEXPORT_DEF
 bool MCNameCreateWithIndex(index_t p_index, MCNameRef& r_name)
 {
+    std::lock_guard<std::recursive_mutex> t_lock(s_name_table_mutex);
     char_t t_chars[11];
     uindex_t t_char_count;
     __MCNameIndexToNativeChars(p_index, t_chars, t_char_count);
@@ -469,6 +478,7 @@ bool MCNameCreateAndRelease(MCStringRef p_string, MCNameRef& r_name)
 MC_DLLEXPORT_DEF
 MCNameRef MCNameLookupCaseless(MCStringRef p_string)
 {
+	std::lock_guard<std::recursive_mutex> t_lock(s_name_table_mutex);
 	// Compute the hash of the characters, up to case.
 	hash_t t_hash;
 	t_hash = MCStringHash(p_string, kMCStringOptionCompareCaseless);
@@ -506,6 +516,7 @@ MCNameRef MCNameLookupCaseless(MCStringRef p_string)
 
 MCNameRef MCNameLookupIndex(index_t p_index)
 {
+    std::lock_guard<std::recursive_mutex> t_lock(s_name_table_mutex);
     char_t t_chars[11];
     uindex_t t_char_count;
     __MCNameIndexToNativeChars(p_index, t_chars, t_char_count);
@@ -594,6 +605,7 @@ bool MCNameIsEqualTo(MCNameRef self, MCNameRef p_other_name, MCStringOptions p_o
 
 void __MCNameDestroy(__MCName *self)
 {
+	std::lock_guard<std::recursive_mutex> t_lock(s_name_table_mutex);
 	uindex_t t_index;
 	t_index = __MCNameGetHash(self) & (s_name_table_capacity - 1);
 

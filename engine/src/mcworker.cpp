@@ -240,12 +240,14 @@ void MCWorkerDeliverCallback(void *p_opaque)
 
     if (MCnexecutioncontexts > 0)
     {
-        // Should not normally happen thanks to the s_safe_dispatch_depth guard
-        // in notify.cpp.  If it does, drop rather than risk nested modal dialogs.
-        MCWorkerParamsFree(t_cb->params, t_cb->param_count);
-        MCValueRelease(t_cb->target_name);
-        MCValueRelease(t_cb->message);
-        delete t_cb;
+        // The main thread is currently executing a script handler.  We cannot
+        // deliver the callback inline without risking re-entrant dispatch, so
+        // re-queue it as a safe notification.  It will be delivered once the
+        // execution context returns to the top level (e.g. after the calling
+        // handler exits, or on the next event-loop iteration outside a handler).
+        // This preserves 'dispatch ... to caller' semantics instead of silently
+        // dropping the message.
+        MCNotifyPush(MCWorkerDeliverCallback, t_cb, false, true);
         return;
     }
 

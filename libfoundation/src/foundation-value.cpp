@@ -130,8 +130,10 @@ MCValueRef MCValueRetain(MCValueRef p_value)
 	MCAssert(self != nil);
     __MCAssertIsValue(self);
     
-	MCAssert(self -> references != UINT32_MAX);
-	self -> references += 1;
+	// Use an atomic increment so concurrent retain/release from worker threads
+	// cannot race on the reference count.
+	MCAssert(__atomic_load_n(&self -> references, __ATOMIC_RELAXED) != UINT32_MAX);
+	__atomic_fetch_add(&self -> references, 1u, __ATOMIC_RELAXED);
 
 	return self;
 }
@@ -146,15 +148,15 @@ void MCValueRelease(MCValueRef p_value)
     
     __MCAssertIsValue(self);
         
-    uint32_t t_new_references;
-    t_new_references = self -> references - 1;
-    if (t_new_references == 0)
+    // Atomically decrement the reference count with release ordering so that
+    // any writes this thread has made to the object are visible to whichever
+    // thread performs the final release.  An acquire fence before the
+    // destructor ensures we see all writes from every prior releaser.
+    if (__atomic_fetch_sub(&self -> references, 1u, __ATOMIC_RELEASE) == 1)
     {
+        __atomic_thread_fence(__ATOMIC_ACQUIRE);
         __MCValueDestroy(self);
-        return;
     }
-    
-    self -> references = t_new_references;
     return;
 }
 
