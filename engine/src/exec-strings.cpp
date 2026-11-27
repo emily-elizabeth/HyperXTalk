@@ -733,6 +733,16 @@ bool MCStringsCompilePattern(MCStringRef p_pattern, regexp*& r_compiled, bool ca
     return r_compiled != nil;    
 }
 
+// A pattern failed to compile: leave the regex library's description of what
+// is wrong with it (and where) in 'the result', and throw p_error.
+static void MCStringsThrowBadPattern(MCExecContext& ctxt, Exec_errors p_error)
+{
+    MCAutoStringRef t_message;
+    MCR_copyerror(&t_message);
+    ctxt.SetTheResultToValue(*t_message);
+    ctxt.LegacyThrow(p_error);
+}
+
 //////////
 
 void MCStringsEvalMatchText(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCStringRef* r_results, uindex_t p_result_count, bool& r_match)
@@ -741,7 +751,7 @@ void MCStringsEvalMatchText(MCExecContext& ctxt, MCStringRef p_string, MCStringR
 
     if (!MCStringsCompilePattern(p_pattern, t_compiled, true /* casesensitive */))
     {
-        ctxt.LegacyThrow(EE_MATCH_BADPATTERN);
+        MCStringsThrowBadPattern(ctxt, EE_MATCH_BADPATTERN);
         return;
     }
     
@@ -778,13 +788,265 @@ void MCStringsEvalMatchText(MCExecContext& ctxt, MCStringRef p_string, MCStringR
     ctxt.Throw();
 }
 
+// The named groups of a compiled pattern, fetched once per call.
+struct MCStringsRegexNames
+{
+    MCAutoNameRefArray names;
+    MCAutoArray<uindex_t> groups;
+    uindex_t count = 0;
+    
+    bool Fetch(regexp *p_compiled)
+    {
+        count = MCR_namecount(p_compiled);
+        if (count == 0)
+            return true;
+        if (!names . New(count) || !groups . New(count))
+            return false;
+        for (uindex_t i = 0; i < count; i++)
+            if (!MCR_copyname(p_compiled, i, groups[i], names[i]))
+                return false;
+        return true;
+    }
+};
+
+// Make the value matchAllChunks stores for one group: an array holding the
+// character positions of the first and last characters of the range, as
+// matchChunk reports them. An empty range has an end one less than its start.
+// A group that took no part in the match (p_range.offset of UINDEX_MAX) has
+// both empty.
+static bool MCStringsCreateRegexChunk(MCStringRef p_string, MCRange p_range, MCArrayRef& r_chunk)
+{
+    MCAutoArrayRef t_chunk;
+    if (!MCArrayCreateMutable(&t_chunk))
+        return false;
+    
+    if (p_range . offset == UINDEX_MAX)
+    {
+        if (!MCArrayStoreValue(*t_chunk, false, MCNAME("start"), kMCEmptyString) ||
+            !MCArrayStoreValue(*t_chunk, false, MCNAME("end"), kMCEmptyString))
+            return false;
+    }
+    else
+    {
+        MCRange t_char_range;
+        MCStringUnmapIndices(p_string, kMCCharChunkTypeGrapheme, p_range, t_char_range);
+        
+        MCAutoNumberRef t_start, t_end;
+        if (!MCNumberCreateWithUnsignedInteger(t_char_range . offset + 1, &t_start) ||
+            !MCNumberCreateWithUnsignedInteger(t_char_range . offset + t_char_range . length, &t_end) ||
+            !MCArrayStoreValue(*t_chunk, false, MCNAME("start"), *t_start) ||
+            !MCArrayStoreValue(*t_chunk, false, MCNAME("end"), *t_end))
+            return false;
+    }
+    
+    r_chunk = t_chunk . Take();
+    return true;
+}
+
+// matchAll(string, pattern) returns every match of the pattern as a numbered
+// array. Each element is itself an array: key 0 is the whole match, keys 1
+// upwards are the capture groups and each named group is also stored under
+// its name. A group that took no part in a match is empty.
+//
+// matchAllChunks (p_chunks true) returns the same structure, but in place of
+// the text of each match or group there is an array with its "start" and
+// "end" character positions.
+void MCStringsEvalMatchAll(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, bool p_chunks, MCArrayRef& r_matches)
+{
+    regexp* t_compiled = nil;
+    
+    if (!MCStringsCompilePattern(p_pattern, t_compiled, true /* casesensitive */))
+    {
+        MCStringsThrowBadPattern(ctxt, EE_MATCHALL_BADPATTERN);
+        return;
+    }
+    
+    bool t_success = true;
+    
+    /* PCRE works on 16-bit units, so take the Unicode copy once here rather
+     * than have each call to MCR_exec make its own. */
+    MCAutoStringRef t_unicode_string;
+    MCAutoArrayRef t_matches;
+    t_success = MCStringUnicodeCopy(p_string, &t_unicode_string) &&
+                    MCArrayCreateMutable(&t_matches);
+    
+    // Fetch the named groups once, as they are the same for every match.
+    uindex_t t_group_count = MCR_groupcount(t_compiled);
+    MCStringsRegexNames t_names;
+    if (t_success)
+        t_success = t_names . Fetch(t_compiled);
+    
+    uindex_t t_offset = 0;
+    bool t_after_empty = false;
+    int t_status = kMCRegexExecNoMatch;
+    index_t t_match_count = 0;
+    
+    while (t_success &&
+           MCR_exec_next(t_compiled, *t_unicode_string, t_offset, t_after_empty, t_status))
+    {
+        MCAutoArrayRef t_match;
+        t_success = MCArrayCreateMutable(&t_match);
+        
+        MCAutoValueRefArray t_groups;
+        if (t_success)
+            t_success = t_groups . New(t_group_count);
+        
+        for (uindex_t i = 0; t_success && i < t_group_count; i++)
+        {
+            regoff_t t_start = t_compiled->matchinfo[i].rm_so;
+            regoff_t t_end = t_compiled->matchinfo[i].rm_eo;
+            bool t_took_part = t_start != -1 && t_end >= t_start;
+            if (p_chunks)
+            {
+                MCArrayRef t_chunk = nil;
+                t_success = MCStringsCreateRegexChunk(p_string,
+                                                      t_took_part ? MCRangeMake(t_start, t_end - t_start) : MCRangeMake(UINDEX_MAX, 0),
+                                                      t_chunk);
+                t_groups[i] = t_chunk;
+            }
+            else if (t_took_part)
+            {
+                MCStringRef t_text = nil;
+                t_success = MCStringCopySubstring(p_string, MCRangeMake(t_start, t_end - t_start), t_text);
+                t_groups[i] = t_text;
+            }
+            else
+                t_groups[i] = MCValueRetain(kMCEmptyString);
+            
+            if (t_success)
+                t_success = MCArrayStoreValueAtIndex(*t_match, i, t_groups[i]);
+        }
+        
+        // When a name is shared by several groups (the (?J) option or a
+        // branch reset), the group that took part in the match is the one
+        // the name refers to.
+        for (uindex_t i = 0; t_success && i < t_names . count; i++)
+        {
+            uindex_t t_group = t_names . groups[i];
+            if (t_group >= t_group_count)
+                continue;
+            
+            MCValueRef t_existing;
+            if (t_compiled->matchinfo[t_group].rm_so == -1 &&
+                MCArrayFetchValue(*t_match, false, t_names . names[i], t_existing))
+                continue;
+            
+            t_success = MCArrayStoreValue(*t_match, false, t_names . names[i], t_groups[t_group]);
+        }
+        
+        if (t_success)
+            t_success = MCArrayStoreValueAtIndex(*t_matches, ++t_match_count, *t_match);
+    }
+    
+    delete t_compiled;
+    
+    if (!t_success)
+    {
+        ctxt.Throw();
+        return;
+    }
+    
+    if (t_status == kMCRegexExecLimit)
+    {
+        ctxt.LegacyThrow(EE_MATCHALL_MATCHLIMIT);
+        return;
+    }
+    
+    if (t_status != kMCRegexExecNoMatch)
+    {
+        ctxt.LegacyThrow(EE_MATCHALL_FAILED);
+        return;
+    }
+    
+    r_matches = t_matches . Take();
+}
+
+// splitText(string, pattern) cuts the string wherever the pattern matches and
+// returns the pieces between the matches as a numbered array. A match of no
+// characters splits between two characters, but not at either end of the
+// string or directly after another match, so it never produces an empty piece.
+void MCStringsEvalSplitText(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCArrayRef& r_pieces)
+{
+    regexp* t_compiled = nil;
+    
+    if (!MCStringsCompilePattern(p_pattern, t_compiled, true /* casesensitive */))
+    {
+        MCStringsThrowBadPattern(ctxt, EE_SPLITTEXT_BADPATTERN);
+        return;
+    }
+    
+    MCAutoStringRef t_unicode_string;
+    MCAutoArrayRef t_pieces;
+    bool t_success = MCStringUnicodeCopy(p_string, &t_unicode_string) &&
+                        MCArrayCreateMutable(&t_pieces);
+    
+    uindex_t t_length = MCStringGetLength(p_string);
+    uindex_t t_piece_start = 0;
+    uindex_t t_offset = 0;
+    bool t_after_empty = false;
+    int t_status = kMCRegexExecNoMatch;
+    index_t t_piece_count = 0;
+    
+    // An empty string has no pieces.
+    while (t_success && t_length > 0 &&
+           MCR_exec_next(t_compiled, *t_unicode_string, t_offset, t_after_empty, t_status))
+    {
+        uindex_t t_start = t_compiled->matchinfo[0].rm_so;
+        uindex_t t_end = t_compiled->matchinfo[0].rm_eo;
+        
+        if (t_start == t_end && (t_start == t_piece_start || t_start >= t_length))
+            continue;
+        if (t_start < t_piece_start)
+            continue;
+        
+        MCAutoStringRef t_piece;
+        t_success = MCStringCopySubstring(p_string, MCRangeMakeMinMax(t_piece_start, t_start), &t_piece) &&
+                        MCArrayStoreValueAtIndex(*t_pieces, ++t_piece_count, *t_piece);
+        t_piece_start = t_end;
+    }
+    
+    delete t_compiled;
+    
+    if (!t_success)
+    {
+        ctxt.Throw();
+        return;
+    }
+    
+    if (t_length > 0 && t_status == kMCRegexExecLimit)
+    {
+        ctxt.LegacyThrow(EE_SPLITTEXT_MATCHLIMIT);
+        return;
+    }
+    
+    if (t_length > 0 && t_status != kMCRegexExecNoMatch)
+    {
+        ctxt.LegacyThrow(EE_SPLITTEXT_FAILED);
+        return;
+    }
+    
+    // Whatever follows the last match is the final piece.
+    if (t_length > 0)
+    {
+        MCAutoStringRef t_piece;
+        if (!MCStringCopySubstring(p_string, MCRangeMakeMinMax(t_piece_start, t_length), &t_piece) ||
+            !MCArrayStoreValueAtIndex(*t_pieces, ++t_piece_count, *t_piece))
+        {
+            ctxt.Throw();
+            return;
+        }
+    }
+    
+    r_pieces = t_pieces . Take();
+}
+
 void MCStringsEvalMatchChunk(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCStringRef* r_results, uindex_t p_result_count, bool& r_match)
 {
     regexp* t_compiled = nil;
     
     if (!MCStringsCompilePattern(p_pattern, t_compiled, true /* casesensitive */))
     {
-        ctxt.LegacyThrow(EE_MATCH_BADPATTERN);
+        MCStringsThrowBadPattern(ctxt, EE_MATCH_BADPATTERN);
         return;
     }
 
@@ -835,13 +1097,160 @@ void MCStringsEvalMatchChunk(MCExecContext& ctxt, MCStringRef p_string, MCString
 
 //////////
 
+// Work out which capture group, if any, the text at p_index of a replacement
+// string refers to. The forms are $n, \n and ${n} (n being one or two digits)
+// and ${name}. A number only counts as a reference if the pattern has a group
+// of that number, and a name only if the pattern defines it; anything else is
+// left for the caller to copy as ordinary text. On success r_length is the
+// number of characters the reference occupies.
+static bool MCStringsParseRegexReference(MCStringRef p_replacement, uindex_t p_index, regexp *p_compiled, uindex_t p_group_count, MCStringsRegexNames& p_names, uindex_t& r_group, uindex_t& r_length)
+{
+    uindex_t t_length = MCStringGetLength(p_replacement);
+    unichar_t t_char = MCStringGetCharAtIndex(p_replacement, p_index);
+    if ((t_char != '$' && t_char != '\\') || p_index + 1 >= t_length)
+        return false;
+    
+    unichar_t t_next = MCStringGetCharAtIndex(p_replacement, p_index + 1);
+    if (t_next >= '0' && t_next <= '9')
+    {
+        // Prefer a two digit group number when the pattern has such a group,
+        // otherwise take a single digit.
+        uindex_t t_group = t_next - '0';
+        if (p_index + 2 < t_length)
+        {
+            unichar_t t_second = MCStringGetCharAtIndex(p_replacement, p_index + 2);
+            if (t_second >= '0' && t_second <= '9' &&
+                t_group * 10 + (t_second - '0') < p_group_count)
+            {
+                r_group = t_group * 10 + (t_second - '0');
+                r_length = 3;
+                return true;
+            }
+        }
+        if (t_group < p_group_count)
+        {
+            r_group = t_group;
+            r_length = 2;
+            return true;
+        }
+        return false;
+    }
+    
+    if (t_char != '$' || t_next != '{')
+        return false;
+    
+    uindex_t t_close = p_index + 2;
+    while (t_close < t_length && MCStringGetCharAtIndex(p_replacement, t_close) != '}')
+        t_close++;
+    if (t_close >= t_length || t_close == p_index + 2)
+        return false;
+    
+    MCRange t_inner = MCRangeMakeMinMax(p_index + 2, t_close);
+    
+    // ${n}
+    bool t_numeric = t_inner . length <= 2;
+    uindex_t t_number = 0;
+    for (uindex_t i = 0; t_numeric && i < t_inner . length; i++)
+    {
+        unichar_t t_digit = MCStringGetCharAtIndex(p_replacement, t_inner . offset + i);
+        if (t_digit >= '0' && t_digit <= '9')
+            t_number = t_number * 10 + (t_digit - '0');
+        else
+            t_numeric = false;
+    }
+    if (t_numeric)
+    {
+        if (t_number >= p_group_count)
+            return false;
+        r_group = t_number;
+        r_length = t_close - p_index + 1;
+        return true;
+    }
+    
+    // ${name}. When several groups share the name, use the one that took
+    // part in this match (or the first, if none did).
+    bool t_found = false;
+    for (uindex_t i = 0; i < p_names . count; i++)
+    {
+        uindex_t t_group = p_names . groups[i];
+        if (t_group >= p_group_count ||
+            !MCStringSubstringIsEqualTo(p_replacement, t_inner, MCNameGetString(p_names . names[i]), kMCStringOptionCompareExact))
+            continue;
+        
+        if (!t_found || p_compiled->matchinfo[t_group].rm_so != -1)
+            r_group = t_group;
+        t_found = true;
+        if (p_compiled->matchinfo[t_group].rm_so != -1)
+            break;
+    }
+    if (!t_found)
+        return false;
+    
+    r_length = t_close - p_index + 1;
+    return true;
+}
+
+// Append the replacement for the current match to x_target, substituting any
+// group references. "\$" and "\\" give a literal "$" and "\".
+static bool MCStringsAppendRegexReplacement(MCStringRef x_target, MCStringRef p_replacement, MCStringRef p_source, regexp *p_compiled, uindex_t p_group_count, MCStringsRegexNames& p_names)
+{
+    uindex_t t_length = MCStringGetLength(p_replacement);
+    uindex_t t_literal_start = 0;
+    uindex_t t_index = 0;
+    
+    while (t_index < t_length)
+    {
+        unichar_t t_char = MCStringGetCharAtIndex(p_replacement, t_index);
+        if (t_char != '$' && t_char != '\\')
+        {
+            t_index++;
+            continue;
+        }
+        
+        if (t_char == '\\' && t_index + 1 < t_length)
+        {
+            unichar_t t_next = MCStringGetCharAtIndex(p_replacement, t_index + 1);
+            if (t_next == '\\' || t_next == '$')
+            {
+                if (!MCStringAppendSubstring(x_target, p_replacement, MCRangeMakeMinMax(t_literal_start, t_index)) ||
+                    !MCStringAppendChar(x_target, t_next))
+                    return false;
+                t_index += 2;
+                t_literal_start = t_index;
+                continue;
+            }
+        }
+        
+        uindex_t t_group, t_reference_length;
+        if (!MCStringsParseRegexReference(p_replacement, t_index, p_compiled, p_group_count, p_names, t_group, t_reference_length))
+        {
+            t_index++;
+            continue;
+        }
+        
+        if (!MCStringAppendSubstring(x_target, p_replacement, MCRangeMakeMinMax(t_literal_start, t_index)))
+            return false;
+        
+        regoff_t t_start = p_compiled->matchinfo[t_group].rm_so;
+        regoff_t t_end = p_compiled->matchinfo[t_group].rm_eo;
+        if (t_start != -1 && t_end > t_start &&
+            !MCStringAppendSubstring(x_target, p_source, MCRangeMake(t_start, t_end - t_start)))
+            return false;
+        
+        t_index += t_reference_length;
+        t_literal_start = t_index;
+    }
+    
+    return MCStringAppendSubstring(x_target, p_replacement, MCRangeMakeMinMax(t_literal_start, t_length));
+}
+
 void MCStringsEvalReplaceText(MCExecContext& ctxt, MCStringRef p_string, MCStringRef p_pattern, MCStringRef p_replacement, MCStringRef& r_result)
 {
     regexp* t_compiled = nil;
 
     if (!MCStringsCompilePattern(p_pattern, t_compiled, true /* casesensitive */))
     {
-        ctxt.LegacyThrow(EE_REPLACETEXT_BADPATTERN);
+        MCStringsThrowBadPattern(ctxt, EE_REPLACETEXT_BADPATTERN);
         return;
     }
     
@@ -861,40 +1270,68 @@ void MCStringsEvalReplaceText(MCExecContext& ctxt, MCStringRef p_string, MCStrin
     MCAutoStringRef t_result;
     t_success = MCStringCreateMutable(0, &t_result);
     
-    uindex_t t_source_length = MCStringGetLength(p_string);
-    uindex_t t_source_offset = 0;
+    // The replacement only needs scanning for group references if it has a
+    // character that could start one.
+    uindex_t t_ignored;
+    bool t_plain_replacement =
+            !MCStringFirstIndexOfChar(p_replacement, '$', 0, kMCStringOptionCompareExact, t_ignored) &&
+            !MCStringFirstIndexOfChar(p_replacement, '\\', 0, kMCStringOptionCompareExact, t_ignored);
     
-    while (t_success && t_source_offset < t_source_length && MCR_exec(t_compiled, *t_unicode_string, MCRangeMakeMinMax(t_source_offset, MCStringGetLength(p_string))))
+    uindex_t t_group_count = MCR_groupcount(t_compiled);
+    MCStringsRegexNames t_names;
+    if (t_success && !t_plain_replacement)
+        t_success = t_names . Fetch(t_compiled);
+    
+    uindex_t t_source_length = MCStringGetLength(p_string);
+    
+    // The whole string is searched each time, from where the previous match
+    // ended, so that ^, \b and lookbehinds see the text before that point.
+    uindex_t t_copied_to = 0;
+    uindex_t t_offset = 0;
+    bool t_after_empty = false;
+    int t_status = kMCRegexExecNoMatch;
+    
+    while (t_success &&
+           MCR_exec_next(t_compiled, *t_unicode_string, t_offset, t_after_empty, t_status))
     {
         uindex_t t_start = t_compiled->matchinfo[0].rm_so;
         uindex_t t_end = t_compiled->matchinfo[0].rm_eo;
         
-        if (t_start == t_end)
-            break;
+        // Copy the text between the previous match and this one. (A match
+        // can begin before the end of the previous one only through \K in a
+        // lookbehind; such text has been copied already.)
+        if (t_start > t_copied_to)
+            t_success = MCStringAppendSubstring(*t_result, p_string, MCRangeMakeMinMax(t_copied_to, t_start));
         
-        // Copy the bit before the found match into the target buffer
-        MCAutoStringRef t_pre_match;
+        // Then the replacement in place of the match.
         if (t_success)
-            t_success = MCStringCopySubstring(p_string, MCRangeMake(t_source_offset, t_start), &t_pre_match) &&
-                MCStringAppend(*t_result, *t_pre_match);
+        {
+            if (t_plain_replacement)
+                t_success = MCStringAppend(*t_result, p_replacement);
+            else
+                t_success = MCStringsAppendRegexReplacement(*t_result, p_replacement, p_string, t_compiled, t_group_count, t_names);
+        }
         
-        // Copy the replacement string into the target buffer where the found match was
-        if (t_success)
-            t_success = MCStringAppend(*t_result, p_replacement);
-        
-        // Begin searching again after the end of the match
-        t_source_offset += t_end;
-        
-        if (MCStringGetCharAtIndex(p_pattern, 0) == '^')
-            break;
+        if (t_end > t_copied_to)
+            t_copied_to = t_end;
     }
     
 	delete t_compiled;
 	
-    MCAutoStringRef t_post_match;
+    if (t_success && t_status == kMCRegexExecLimit)
+    {
+        ctxt.LegacyThrow(EE_REPLACETEXT_MATCHLIMIT);
+        return;
+    }
+    
+    if (t_success && t_status != kMCRegexExecNoMatch)
+    {
+        ctxt.LegacyThrow(EE_REPLACETEXT_FAILED);
+        return;
+    }
+    
     if (t_success)
-        t_success = MCStringCopySubstring(p_string, MCRangeMakeMinMax(t_source_offset, t_source_length), &t_post_match) &&
-            MCStringAppend(*t_result, *t_post_match);
+        t_success = MCStringAppendSubstring(*t_result, p_string, MCRangeMakeMinMax(t_copied_to, t_source_length));
     
     if (t_success)
         t_success = MCStringCopy(*t_result, r_result);

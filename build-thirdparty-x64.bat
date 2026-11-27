@@ -37,7 +37,7 @@ call :build %BASE%\libgif\libgif.vcxproj
 call :build %BASE%\libjpeg\libjpeg.vcxproj
 call :build %BASE%\libpng\libpng.vcxproj
 call :build %BASE%\libwebp\libwebp.vcxproj
-call :build %BASE%\libpcre\libpcre.vcxproj
+call :build %BASE%\libpcre2\libpcre2.vcxproj
 call :build %BASE%\libskia\libskia.vcxproj
 call :build %BASE%\libskia\libskia_opt_none.vcxproj
 call :build %BASE%\libskia\libskia_opt_sse2.vcxproj

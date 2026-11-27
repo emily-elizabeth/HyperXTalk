@@ -9,7 +9,7 @@
 # Makefile.Mac.
 #
 # Then this script:
-#   - Builds libgif/libjpeg/libpng/libpcre via xcodebuild and installs them
+#   - Builds libgif/libjpeg/libpng/libpcre2 via xcodebuild and installs them
 #   - Supplies libcustomcrypto.a / libcustomssl.a from Homebrew openssl@3
 #     (engine now targets the 3.x symbol names directly; no compat shim)
 #   - Writes empty stub libpq.a and libmysql.a so the dbpostgresql /
@@ -33,8 +33,8 @@ DEBUG_OUT="${REPO_ROOT}/_build/mac/Debug"
 mkdir -p "${PREBUILT_LIB}"
 
 # ── 1. Extra thirdparty libs via xcodebuild ──────────────────────────────────
-echo "=== Building libgif libjpeg libpng libpcre ==="
-for LIB in libgif libjpeg libpng libpcre; do
+echo "=== Building libgif libjpeg libpng libpcre2 ==="
+for LIB in libgif libjpeg libpng libpcre2; do
     xcodebuild \
         -project "${REPO_ROOT}/build-mac/hyperxtalk/thirdparty/${LIB}/${LIB}.xcodeproj" \
         -configuration Debug \

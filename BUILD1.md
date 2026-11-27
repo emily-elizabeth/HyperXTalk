@@ -75,7 +75,7 @@ The scripts run in this order — the order matters (see the note below):
 
 1. `prebuilt/scripts/build-libffi-mac-arm64.sh` — vendored libffi → `prebuilt/lib/mac/libffi.a`.
 2. `prebuilt/scripts/build-libz-mac-arm64.sh` — zlib from `thirdparty/libz` → `prebuilt/lib/mac/libz.a`.
-3. `prebuilt/scripts/build-mac-extras.sh` — libgif, libjpeg, libpng, libpcre
+3. `prebuilt/scripts/build-mac-extras.sh` — libgif, libjpeg, libpng, libpcre2
    (xcodebuild); `libcustomcrypto`/`libcustomssl` (copied from Homebrew
    openssl@3); and stub `libpq.a`/`libmysql.a`.
 4. `prebuilt/scripts/build-libcairo-mac-arm64.sh` — cairo 1.18.4 (meson),

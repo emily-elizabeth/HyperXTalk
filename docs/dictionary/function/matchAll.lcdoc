@@ -1,0 +1,113 @@
+Name: matchAll
+
+Type: function
+
+Syntax: matchAll(<string>, <regularExpression>)
+
+Summary:
+<return|Returns> an <array> of every match of a <regular expression> in
+the specified <string>.
+
+Introduced: 0.9.16
+
+OS: mac, windows, linux
+
+Platforms: desktop, server
+
+Example:
+local tMatches
+put matchAll("a1 b22 c333", "[a-z]([0-9]+)") into tMatches
+-- tMatches[1][0] is "a1",  tMatches[1][1] is "1"
+-- tMatches[2][0] is "b22", tMatches[2][1] is "22"
+-- tMatches[3][0] is "c333", tMatches[3][1] is "333"
+
+Example:
+-- Count the words in a string
+put the number of elements in matchAll(tText, "\w+") into tWordCount
+
+Example:
+-- Named groups are also available by name
+local tPairs, tPair
+put matchAll("width=80;height=24", "(?&lt;key&gt;\w+)=(?&lt;value&gt;\w+)") into tPairs
+repeat for each element tPair in tPairs
+   put tPair["key"] && "is" && tPair["value"] & return after tReport
+end repeat
+
+Parameters:
+string (string):
+The text to search.
+
+regularExpression:
+Any expression that evaluates to a regular expression.
+
+Returns (array):
+The <matchAll> <function> returns a numerically keyed <array> with one
+element for each match, in the order the matches occur in the <string>.
+Each element is itself an <array>: key 0 holds the text of the whole
+match, key 1 the text matched by the first parenthesized group, key 2
+the second, and so on. If nothing matches, the <function> returns empty.
+
+Description:
+Use the <matchAll> <function> to find every place a pattern occurs in a
+<string>, rather than only the first as <matchText> and <matchChunk> do.
+
+The search for each match begins where the previous match ended, so
+matches do not overlap. The text before that point is still taken into
+account: "^" matches only at the real start of the <string> (or of a
+line, with the "(?m)" option), and "\b" and lookbehind assertions see
+the characters that precede the match.
+
+Every parenthesized group of the <regularExpression> has a key in every
+match. A group that took no part in a particular match, such as an
+optional group, is empty.
+
+A named group, written "(?&lt;name&gt;...)", is stored under its name as well
+as under its number.
+
+A pattern that can match no characters, such as "a*", produces an empty
+match at each position where nothing longer matches. After an empty
+match the search moves on by one character, so the <function> always
+finishes.
+
+The <string> and <regularExpression> are always <case-sensitive>,
+regardless of the setting of the <caseSensitive> <property>. (If you
+need to make a <case-insensitive> comparison, use "(?i)" at the start of
+the <regularExpression> to make the match case-insensitive.)
+
+By default a <regular expression> works on text one UTF-16 code unit at
+a time and treats only ASCII characters as letters and digits. Two
+switches, written at the very start of the <regularExpression>, change
+this:
+
+- "(*UTF)" makes "." and character classes treat a character outside the
+  Basic Multilingual Plane, such as an emoji, as one character rather
+  than two, and allows Unicode property classes such as "\p{Greek}".
+- "(*UCP)" makes "\w", "\d", "\s", "\b" and the "(?i)" option follow
+  Unicode rules, so that accented and non-Latin letters count as
+  letters.
+
+They can be combined, and must come before anything else, including
+"(?i)": for example "(*UTF)(*UCP)(?i)\w+".
+
+If the <regularExpression> is not valid, or matching it needs so many
+steps that it is abandoned (which can happen with nested repeats such as
+"(a+)+$"), the <function> throws an error.
+
+If the <regularExpression> is not a valid <regular expression>, an error is thrown and
+a description of what is wrong with it, and where (for example "missing closing
+parenthesis at offset 3"), is placed in the result.
+
+>*Note:* At most 49 parenthesized groups are returned for each match.
+
+>*Tip:* HyperXTalk implements <regular expression|regular expressions>
+> using the PCRE2 library. For detailed information about
+> <regular expression> elements you can use with this
+> <function(control structure)>, see the PCRE2 pattern documentation at
+> https://www.pcre.org/current/doc/html/pcre2pattern.html.
+
+References: filter (command), matchAllChunks (function),
+matchChunk (function),
+matchText (function), replaceText (function), array (glossary),
+regular expression (glossary), case-sensitive (glossary),
+case-insensitive (glossary), return (glossary), function (glossary),
+string (keyword), caseSensitive (property)

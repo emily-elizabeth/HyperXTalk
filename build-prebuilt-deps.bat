@@ -141,7 +141,7 @@ REM 7. Build thirdparty libraries from source
 REM ---------------------------------------------------------------------------
 ECHO.
 ECHO === Building Thirdparty libraries from source (Debug^|x64) ===
-ECHO This compiles: libz, libffi, libgif, libpng, libjpeg, libpcre, libskia, etc.
+ECHO This compiles: libz, libffi, libgif, libpng, libjpeg, libpcre2, libskia, etc.
 ECHO This may take 10-30 minutes...
 ECHO.
 

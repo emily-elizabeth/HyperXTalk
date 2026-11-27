@@ -79,7 +79,7 @@ IF NOT EXIST "%THIRDPARTY_BIN%\lib"     MKDIR "%THIRDPARTY_BIN%\lib"
 SET THIRDPARTY_LIB_DIR=build-%BUILD_PLATFORM%\hyperxtalk\%MODE%\lib
 
 SET SKIA_LIBS=skia skia_opt_arm skia_opt_avx skia_opt_hsw skia_opt_none skia_opt_sse2 skia_opt_sse3 skia_opt_sse41 skia_opt_sse42
-SET THIRDPARTY_LIBS=cairo ffi gif jpeg mysql pcre png pq sqlite xml xslt z zip %SKIA_LIBS%
+SET THIRDPARTY_LIBS=cairo ffi gif jpeg mysql pcre2 png pq sqlite xml xslt z zip %SKIA_LIBS%
 
 SET THIRDPARTY_FILES=
 

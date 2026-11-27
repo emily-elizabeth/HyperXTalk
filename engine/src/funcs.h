@@ -1079,6 +1079,47 @@ public:
 	virtual void eval_ctxt(MCExecContext &, MCExecValue &);
 };
 
+class MCMatchAll : public MCFunction
+{
+	MCExpression *source;
+	MCExpression *pattern;
+protected:
+	// If true, return the character positions of the matches, not their text.
+	bool chunks;
+public:
+	MCMatchAll()
+	{
+		source = pattern = NULL;
+		chunks = false;
+	}
+	virtual ~MCMatchAll();
+	virtual Parse_stat parse(MCScriptPoint &, Boolean the);
+	virtual void eval_ctxt(MCExecContext &, MCExecValue &);
+};
+
+class MCMatchAllChunks : public MCMatchAll
+{
+public:
+	MCMatchAllChunks()
+	{
+		chunks = true;
+	}
+};
+
+class MCSplitText : public MCFunction
+{
+	MCExpression *source;
+	MCExpression *pattern;
+public:
+	MCSplitText()
+	{
+		source = pattern = NULL;
+	}
+	virtual ~MCSplitText();
+	virtual Parse_stat parse(MCScriptPoint &, Boolean the);
+	virtual void eval_ctxt(MCExecContext &, MCExecValue &);
+};
+
 class MCMatchChunk : public MCMatch
 {
 public:

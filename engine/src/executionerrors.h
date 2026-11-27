@@ -961,6 +961,16 @@ EE_UNREGISTERVOICECOMMAND_BADPHRASE, // "unregisterVoiceCommand: error evaluatin
 EE_STARTLISTENING_BADLANGUAGE, // "startListening: error evaluating language expression"
 EE_SETWAKEWORD_BADWORD, // "setWakeWord: error evaluating word expression"
 EE_SETWAKEWORD_BADTIMEOUT, // "setWakeWord: error evaluating timeout expression"
+EE_MATCHALL_BADSOURCE, // "matchAll: error in source expression"
+EE_MATCHALL_BADPATTERN, // "matchAll: error in pattern expression"
+EE_MATCHALL_MATCHLIMIT, // "matchAll: pattern needs too many steps to match"
+EE_MATCHALL_FAILED, // "matchAll: error matching pattern"
+EE_REPLACETEXT_MATCHLIMIT, // "replaceText: pattern needs too many steps to match"
+EE_REPLACETEXT_FAILED, // "replaceText: error matching pattern"
+EE_SPLITTEXT_BADSOURCE, // "splitText: error in source expression"
+EE_SPLITTEXT_BADPATTERN, // "splitText: error in pattern expression"
+EE_SPLITTEXT_MATCHLIMIT, // "splitText: pattern needs too many steps to match"
+EE_SPLITTEXT_FAILED, // "splitText: error matching pattern"
 };
 
 extern const char *MCexecutionerrors;

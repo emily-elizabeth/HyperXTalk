@@ -626,6 +626,8 @@ PE_UNREGISTERVOICECOMMAND_BADPHRASE, // "unregisterVoiceCommand: bad phrase expr
 PE_STARTLISTENING_BADLANGUAGE, // "startListening: bad language expression"
 PE_SETWAKEWORD_BADWORD, // "setWakeWord: bad word expression"
 PE_SETWAKEWORD_BADTIMEOUT, // "setWakeWord: bad timeout expression"
+PE_MATCHALL_BADPARAM, // "matchAll: bad parameters"
+PE_SPLITTEXT_BADPARAM, // "splitText: bad parameters"
 };
 
 extern const char *MCparsingerrors;

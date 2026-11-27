@@ -1143,7 +1143,7 @@
 		'defines':
 		[
 			'HAVE_CONFIG_H=1',
-			'PCRE_STATIC=1',
+			'PCRE2_STATIC=1',
 			'PCRE2_CODE_UNIT_WIDTH=16',
 		],
 		'include_dirs':

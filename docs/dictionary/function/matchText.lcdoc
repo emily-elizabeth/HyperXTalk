@@ -72,6 +72,25 @@ regardless of the setting of the <caseSensitive> <property>. (If you
 need to make a <case-insensitive> comparison, use "(?i)" at the start of
 the <regularExpression> to make the match case-insensitive.)
 
+If the <regularExpression> is not a valid <regular expression>, an error is thrown and
+a description of what is wrong with it, and where (for example "missing closing
+parenthesis at offset 3"), is placed in the result.
+
+By default a <regular expression> works on text one UTF-16 code unit at
+a time and treats only ASCII characters as letters and digits. Two
+switches, written at the very start of the <regularExpression>, change
+this:
+
+- "(*UTF)" makes "." and character classes treat a character outside the
+  Basic Multilingual Plane, such as an emoji, as one character rather
+  than two, and allows Unicode property classes such as "\p{Greek}".
+- "(*UCP)" makes "\w", "\d", "\s", "\b" and the "(?i)" option follow
+  Unicode rules, so that accented and non-Latin letters count as
+  letters.
+
+They can be combined, and must come before anything else, including
+"(?i)": for example "(*UTF)(*UCP)(?i)\w+".
+
 >*Important:*  It is no longer necessary to create the variables in the
 > foundTextVarsList before the <matchText> function is called. These are
 > now created by the compiler, and will appear in the <localNames> of
@@ -86,10 +105,10 @@ substrings in the optional <foundTextVarsList>, which the <matchChunk>
 matched substrings.
 
 >*Tip:* HyperXTalk implements <regular expression|regular expressions>
-> compatible with the PCRE library. For detailed information about
+> using the PCRE2 library. For detailed information about
 > <regular expression> elements you can use with this
-> <function(control structure)>, see the PCRE pattern documentation at
-> http://www.pcre.org/original/doc/html/pcrepattern.html.
+> <function(control structure)>, see the PCRE2 pattern documentation at
+> https://www.pcre.org/current/doc/html/pcre2pattern.html.
 
 References: find (command), filter (command),
 function (control structure), matchChunk (function), value (function),
