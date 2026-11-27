@@ -61,6 +61,19 @@ extern "C" __attribute__((weak)) bool MCplatformIsDarkMode(void) { return false;
 extern "C" __attribute__((weak)) bool MCplatformIsDarkMode(void) { return false; }
 #endif
 
+// MW-2011-09-06: [[ Redraw ]] Added 'sprite' option - if true, ink and opacity are not set.
+// HXT colour themes: on Windows and GTK the engine paints the bezel of a
+// button, and the tabs of a tabbed button, itself in colours worked out from
+// the object's colour theme (see s_get_control_palette in w32theme.cpp and
+// MCThemeDrawThemedControl in mctheme.cpp). The label then
+// takes the theme's text colour, not the system's. True if that applies.
+static bool MCButtonThemePaintsBezel(MCObject *p_object)
+{
+	extern bool MCInterfaceThemeBackgroundIsDark(MCObject *p_object, bool& r_dark);
+	bool t_dark;
+	return (IsNativeWin() || IsNativeGTK()) && MCInterfaceThemeBackgroundIsDark(p_object, t_dark);
+}
+
 // The relative luminance (0 .. 1) of a colour.
 static double MCButtonColorLuminance(const MCColor& p_color)
 {
@@ -70,7 +83,26 @@ static double MCButtonColorLuminance(const MCColor& p_color)
 	return 0.2126 * t_channels[0] + 0.7152 * t_channels[1] + 0.0722 * t_channels[2];
 }
 
-// MW-2011-09-06: [[ Redraw ]] Added 'sprite' option - if true, ink and opacity are not set.
+// The colour of a disabled label on such a bezel: the theme's text colour
+// faded most of the way to its background.
+static bool MCButtonThemeDisabledTextColor(MCObject *p_object, MCColor& r_color)
+{
+	extern bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_di, MCColor& r_color);
+	MCColor t_fore, t_back;
+	if (!MCButtonThemePaintsBezel(p_object) ||
+	    !MCInterfaceThemeLookupColor(p_object, DI_BACK, t_back))
+		return false;
+	if (!MCInterfaceThemeLookupColor(p_object, DI_FORE, t_fore))
+	{
+		bool t_dark = (0.2126 * t_back . red + 0.7152 * t_back . green + 0.0722 * t_back . blue) / 65535.0 < 0.55;
+		t_fore . red = t_fore . green = t_fore . blue = t_dark ? 0xFFFF : 0;
+	}
+	r_color . red = (uint2)(t_fore . red + ((double)t_back . red - t_fore . red) * 0.55);
+	r_color . green = (uint2)(t_fore . green + ((double)t_back . green - t_fore . green) * 0.55);
+	r_color . blue = (uint2)(t_fore . blue + ((double)t_back . blue - t_fore . blue) * 0.55);
+	return true;
+}
+
 void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool p_sprite)
 {
 	MCRectangle dirty;
@@ -399,6 +431,7 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 
 		if (flags & F_DISABLED)
         {
+			MCColor t_theme_disabled_text;
 			if (MClook == LF_MOTIF)
 			{
 				setforeground(dc, DI_FORE, False);
@@ -409,6 +442,11 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 			else if (IsMacLF())
 			{
 				dc->setforeground(dc->getgray());
+				dc->setfillstyle(FillSolid, nil, 0, 0);
+			}
+			else if (MCButtonThemeDisabledTextColor(this, t_theme_disabled_text))
+			{
+				dc->setforeground(t_theme_disabled_text);
 				dc->setfillstyle(FillSolid, nil, 0, 0);
 			}
 			else if (IsNativeWin() && MCcurtheme->isdarkmodeactive())
@@ -424,7 +462,7 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
         }
 		else
         {
-			if (IsNativeWin() && MCcurtheme->isdarkmodeactive())
+			if (IsNativeWin() && MCcurtheme->isdarkmodeactive() && !MCButtonThemePaintsBezel(this))
 			{
 				// Dark-mode enabled button text: near-white over the dark
 				// (#373737 / #454545) button background.
@@ -438,27 +476,53 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 				setforeground(dc, DI_PSEUDO_BUTTON_TEXT_SEL, False, True);
 			else
 			{
-				setforeground(dc, DI_FORE, ((state & CS_HILITED && flags & F_HILITE_FILL)
-				                            || ((state & CS_ARMED && flags & F_ARM_FILL) && flags & F_OPAQUE && ((MClook != LF_WIN95 && !MCaqua)))
-				                            || style != F_STANDARD), False);
-
-				// A button the engine fills itself keeps its ordinary text
-				// colour, which can be unreadable on the fill. That happens
-				// with the highlight colour of a highlighted button (black
-				// on the saturated blue highlight of Windows), and with a
-				// background colour set on the button when the default text
-				// colour follows the system appearance (white on yellow in
-				// dark mode). Where the two do not contrast, the label is
-				// drawn black or white, whichever reads. A button with a
-				// text colour of its own, or a bezel drawn by the system, is
-				// left alone.
+				// HXT themes: when the system draws this button's bezel, the
+				// label must suit that bezel and not the app theme, so the
+				// theme's text colour is left out for it.
+				extern void MCInterfaceThemeSuspend(bool p_suspend);
 				bool t_system_bezel = isstdbtn && noback && MCcurtheme != NULL;
 				if (!t_system_bezel && MCcurtheme != NULL && style == F_MENU &&
 				    (menumode == WM_OPTION || menumode == WM_COMBO || menumode == WM_PULLDOWN) &&
 				    !getcindex(DI_BACK, i) && !getpindex(DI_BACK, i))
 					t_system_bezel = true;
-				// Whether the fill is the highlight colour, or a background
-				// colour (not a pattern) set on the button itself.
+				// on Windows a themed bezel is painted in the theme's colours
+				bool t_theme_bezel = t_system_bezel && MCButtonThemePaintsBezel(this);
+				if (t_theme_bezel)
+					t_system_bezel = false;
+				if (t_system_bezel)
+					MCInterfaceThemeSuspend(true);
+				setforeground(dc, DI_FORE, ((state & CS_HILITED && flags & F_HILITE_FILL)
+				                            || ((state & CS_ARMED && flags & F_ARM_FILL) && flags & F_OPAQUE && ((MClook != LF_WIN95 && !MCaqua)))
+				                            || style != F_STANDARD), False);
+				if (t_system_bezel)
+				{
+					MCInterfaceThemeSuspend(false);
+
+					// The bezel is drawn light or dark to suit the theme's
+					// background, so the label must be too: the system's
+					// text colour is for the system's own mode.
+					extern bool MCInterfaceThemeBackgroundIsDark(MCObject *p_object, bool& r_dark);
+					bool t_theme_dark;
+					if (!(flags & F_DISABLED) && MCInterfaceThemeBackgroundIsDark(this, t_theme_dark) &&
+					    t_theme_dark != MCcurtheme->isdarkmodeactive())
+					{
+						dc->setforeground(t_theme_dark ? dc->getwhite() : dc->getblack());
+						dc->setfillstyle(FillSolid, nil, 0, 0);
+					}
+				}
+
+				// HXT themes: a button filled with the highlight colour (a
+				// highlighted rectangle or round-rect button, say) had its
+				// label drawn in the ordinary text colour, which a theme's
+				// highlight need not suit. Under a theme the label is black
+				// or white, whichever reads on the fill, unless the button
+				// has a text colour of its own.
+				//
+				// The fill can also be a background colour (not a pattern)
+				// set on the button itself. The default text colour follows
+				// the system appearance, so it need not read on that either
+				// (white on yellow in dark mode).
+				extern bool MCInterfaceThemeLookupTextOnHilite(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color);
 				bool t_hilite_fill = loff == 0 && (flags & F_SHOW_ICON || !indicator) &&
 				                     ((state & CS_HILITED && flags & F_HILITE_FILL) ||
 				                      (state & CS_ARMED && flags & F_ARM_FILL));
@@ -466,27 +530,44 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 				                   !(state & CS_ARMED && !(flags & F_SHOW_BORDER)) &&
 				                   !(macoption && state & CS_SUBMENU) &&
 				                   getcindex(DI_BACK, i) && !getpindex(DI_BACK, i);
-				if (!t_system_bezel && (flags & F_OPAQUE) &&
+				if (!t_system_bezel && !t_theme_bezel && (flags & F_OPAQUE) &&
 				    (t_hilite_fill || t_back_fill) &&
 				    !getcindex(DI_FORE, i))
 				{
-					MCColor t_fill, t_text;
+					MCColor t_fill, t_label;
 					MCPatternRef t_fill_pattern = nil;
-					MCPatternRef t_text_pattern = nil;
-					int2 t_fill_x, t_fill_y, t_text_x, t_text_y;
+					int2 t_fill_x, t_fill_y;
 					if (getforecolor(t_hilite_fill ? DI_HILITE : DI_BACK, False, False, t_fill, t_fill_pattern,
-					                 t_fill_x, t_fill_y, dc -> gettype(), this) &&
-					    getforecolor(DI_FORE, False, False, t_text, t_text_pattern,
-					                 t_text_x, t_text_y, dc -> gettype(), this))
+					                 t_fill_x, t_fill_y, dc -> gettype(), this))
 					{
-						double t_fill_luminance = MCButtonColorLuminance(t_fill);
-						double t_text_luminance = MCButtonColorLuminance(t_text);
-						double t_lighter = t_fill_luminance > t_text_luminance ? t_fill_luminance : t_text_luminance;
-						double t_darker = t_fill_luminance > t_text_luminance ? t_text_luminance : t_fill_luminance;
-						if ((t_lighter + 0.05) / (t_darker + 0.05) < 3.0)
+						bool t_have_label = t_hilite_fill && MCInterfaceThemeLookupTextOnHilite(this, t_fill, t_label);
+
+						// Otherwise the label keeps its colour unless it
+						// cannot be read on the fill (black on the saturated
+						// blue highlight of Windows, say): then it too is
+						// black or white, whichever reads.
+						if (!t_have_label)
 						{
-							MCColor t_label;
-							t_label . red = t_label . green = t_label . blue = t_fill_luminance <= 0.30 ? 0xFFFF : 0;
+							MCColor t_text;
+							MCPatternRef t_text_pattern = nil;
+							int2 t_text_x, t_text_y;
+							if (getforecolor(DI_FORE, False, False, t_text, t_text_pattern,
+							                 t_text_x, t_text_y, dc -> gettype(), this))
+							{
+								double t_fill_luminance = MCButtonColorLuminance(t_fill);
+								double t_text_luminance = MCButtonColorLuminance(t_text);
+								double t_lighter = t_fill_luminance > t_text_luminance ? t_fill_luminance : t_text_luminance;
+								double t_darker = t_fill_luminance > t_text_luminance ? t_text_luminance : t_fill_luminance;
+								if ((t_lighter + 0.05) / (t_darker + 0.05) < 3.0)
+								{
+									t_label . red = t_label . green = t_label . blue = t_fill_luminance <= 0.30 ? 0xFFFF : 0;
+									t_have_label = true;
+								}
+							}
+						}
+
+						if (t_have_label)
+						{
 							dc->setforeground(t_label);
 							dc->setfillstyle(FillSolid, nil, 0, 0);
 						}
@@ -655,7 +736,13 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 				}
 				uint2 fontstyle;
 				fontstyle = gettextstyle();
-				if ((flags & F_DISABLED) != 0 && !t_themed_menu && MClook == LF_WIN95)
+				// HXT colour themes: a disabled label on a bezel painted in the
+				// theme's colours is drawn once, in the faded text colour
+				// already set. The embossed pair below uses the 3D edge
+				// colours, which a theme derives from its background and
+				// which cannot be read as text on it.
+				bool t_theme_disabled = (flags & F_DISABLED) != 0 && MCButtonThemePaintsBezel(this);
+				if ((flags & F_DISABLED) != 0 && !t_themed_menu && MClook == LF_WIN95 && !t_theme_disabled)
 				{
 					drawlabel(dc, sx + 1 + loff, sy + 1 + loff, twidth, shadowrect, line, fontstyle, t_mnemonic);
 					if (getstyleint(flags) == F_MENU && menumode == WM_CASCADE)
@@ -675,7 +762,22 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
                     && !(flags & F_DISABLED) && isstdbtn && getstyleint(flags) == F_STANDARD
                     && (state & CS_SHOW_DEFAULT)
                     && rect.height <= 24 && MCappisactive)
-                    setforeground(dc, DI_BACK, False, True);
+                {
+                    // HXT themes: the default button is filled with the accent
+                    // colour, which under a theme is the theme's highlight, so
+                    // its label is chosen to read on that. With no theme it is
+                    // white on the system accent. (It used to take the
+                    // background colour, which a theme makes dark.)
+                    extern bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_di, MCColor& r_color);
+                    extern bool MCInterfaceThemeLookupTextOnHilite(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color);
+                    MCColor t_accent, t_default_label;
+                    if (MCInterfaceThemeLookupColor(this, DI_HILITE, t_accent) &&
+                        MCInterfaceThemeLookupTextOnHilite(this, t_accent, t_default_label))
+                        dc->setforeground(t_default_label);
+                    else
+                        dc->setforeground(dc->getwhite());
+                    dc->setfillstyle(FillSolid, nil, 0, 0);
+                }
                 // PM-2014-11-26: [[ Bug 14070 ]] [Removed code] Make sure text color in menuButton inverts when hilited
          
 #endif
@@ -683,7 +785,7 @@ void MCButton::draw(MCDC *dc, const MCRectangle& p_dirty, bool p_isolated, bool 
 
 				if (getstyleint(flags) == F_MENU && menumode == WM_CASCADE && !t_themed_menu)
 					drawcascade(dc, shadowrect); // draw arrow in text color
-				if ((flags & F_DISABLED && MClook == LF_WIN95) || t_themed_menu)
+				if ((flags & F_DISABLED && MClook == LF_WIN95 && !t_theme_disabled) || t_themed_menu)
 					setforeground(dc, DI_TOP, False);
 				sy += fheight;
 				
@@ -1571,7 +1673,32 @@ void MCButton::drawtabs(MCDC *dc, MCRectangle &srect)
 				}
 				tabpanelwinfo.datatype = WTHEME_DATA_TABPANE;
 				tabpanelwinfo.data = &inf;
-				MCcurtheme->drawwidget(dc, tabpanelwinfo,tabpanelrect);
+				// HXT themes: with an app theme the pane takes the theme's
+				// background, so the area inside a tabbed button matches the
+				// rest of the window instead of the system's pane colour.
+				extern bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_di, MCColor& r_color);
+				MCColor t_theme_pane;
+				uint2 t_own;
+				if (!getcindex(DI_BACK, t_own) && !getpindex(DI_BACK, t_own) &&
+				    MCInterfaceThemeLookupColor(this, DI_BACK, t_theme_pane))
+				{
+					dc->setforeground(t_theme_pane);
+					dc->setfillstyle(FillSolid, nil, 0, 0);
+					dc->fillrect(tabpanelrect);
+					MCColor t_theme_border;
+					if (MCInterfaceThemeLookupColor(this, DI_BORDER, t_theme_border))
+					{
+						dc->setforeground(t_theme_border);
+						dc->setlineatts(0, LineSolid, CapButt, JoinBevel);
+						dc->drawline(tabpanelrect.x, tabpanelrect.y,
+						             tabpanelrect.x + tabpanelrect.width - 1, tabpanelrect.y);
+						// on Windows the pane has an outline all round
+						if (IsNativeWin())
+							dc->drawrect(tabpanelrect, false);
+					}
+				}
+				else
+					MCcurtheme->drawwidget(dc, tabpanelwinfo,tabpanelrect);
 			}
 			if (i + 1 == menuhistory)
 			{
@@ -1844,7 +1971,17 @@ void MCButton::drawtabs(MCDC *dc, MCRectangle &srect)
                     // standard inactive-tab appearance in dark Aqua.
                     if (MCappisactive)
                     {
-                        dc->setforeground(dc->getwhite());
+                        // HXT themes: the selected tab is filled with the
+                        // theme's accent, so its label is the colour that can
+                        // be read on that (dark on a pale accent).
+                        extern bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_di, MCColor& r_color);
+                        extern bool MCInterfaceThemeLookupTextOnHilite(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color);
+                        MCColor t_tab_accent, t_tab_label;
+                        if (MCInterfaceThemeLookupColor(this, DI_HILITE, t_tab_accent) &&
+                            MCInterfaceThemeLookupTextOnHilite(this, t_tab_accent, t_tab_label))
+                            dc->setforeground(t_tab_label);
+                        else
+                            dc->setforeground(dc->getwhite());
                     }
                     else if (
 #if defined(__arm64__) || defined(__aarch64__)
@@ -1869,6 +2006,12 @@ void MCButton::drawtabs(MCDC *dc, MCRectangle &srect)
 #endif
                     setforeground(dc, DI_PSEUDO_BUTTON_TEXT_SEL, False, True);
 			}
+			else if (MCButtonThemePaintsBezel(this))
+			{
+				// HXT colour themes: the tabs are painted in the theme's
+				// colours on Windows, so their labels are the theme's text.
+				setforeground(dc, DI_PSEUDO_BUTTON_TEXT, False);
+			}
 			else if (IsNativeWin() && MCcurtheme->isdarkmodeactive())
 			{
 				// Dark-mode tab text: near-white on the dark tab/pane background.
@@ -1877,7 +2020,29 @@ void MCButton::drawtabs(MCDC *dc, MCRectangle &srect)
 				dc->setfillstyle(FillSolid, nil, 0, 0);
 			}
 			else
+			{
+				// HXT themes: the system draws the tabs, so their labels keep
+				// the system's text colour.
+				extern void MCInterfaceThemeSuspend(bool p_suspend);
+				bool t_system_tabs = MCcurtheme != NULL && MCcurtheme->iswidgetsupported(WTHEME_TYPE_TAB);
+				if (t_system_tabs)
+					MCInterfaceThemeSuspend(true);
 				setforeground(dc, DI_PSEUDO_BUTTON_TEXT, False);
+				if (t_system_tabs)
+				{
+					MCInterfaceThemeSuspend(false);
+					// as for a push button: the tabs are drawn to suit the
+					// theme's background, so their labels are too
+					extern bool MCInterfaceThemeBackgroundIsDark(MCObject *p_object, bool& r_dark);
+					bool t_theme_dark;
+					if (MCInterfaceThemeBackgroundIsDark(this, t_theme_dark) &&
+					    t_theme_dark != MCcurtheme->isdarkmodeactive())
+					{
+						dc->setforeground(t_theme_dark ? dc->getwhite() : dc->getblack());
+						dc->setfillstyle(FillSolid, nil, 0, 0);
+					}
+				}
+			}
         // AL-2014-09-24: [[ Bug 13528 ]] Don't draw character indicating button is disabled
         dc -> drawtext_substring(textx, cury + yoffset, t_tab, t_range, m_font, false, kMCDrawTextNoBreak);
 		if ((disabled || flags & F_DISABLED) && MClook == LF_MOTIF)

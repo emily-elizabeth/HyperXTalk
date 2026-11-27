@@ -309,6 +309,10 @@ protected:
     MCStringLineEndingStyle m_line_encoding_style : 3;
 	
 	bool m_is_ide_stack : 1;
+
+	// HXT themes: the colours the stack's objects take when they have none of
+	// their own, in light and in dark appearance. nil if the stack has no theme.
+	struct MCAppColorTheme *m_app_theme;
 	
 	// IM-2014-05-27: [[ Bug 12321 ]] Indicate if we need to purge fonts when reopening the window
 	bool m_purge_fonts;
@@ -1289,6 +1293,14 @@ public:
 	void GetEffectiveDeferScreenUpdates(MCExecContext& ctxt, bool& r_value);
     void SetDecorations(MCExecContext& ctxt, const MCInterfaceDecoration& p_value);
     void GetDecorations(MCExecContext& ctxt, MCInterfaceDecoration& r_value);
+
+    // HXT themes
+    void GetLightTheme(MCExecContext& ctxt, MCArrayRef& r_value);
+    void SetLightTheme(MCExecContext& ctxt, MCArrayRef p_value);
+    void GetDarkTheme(MCExecContext& ctxt, MCArrayRef& r_value);
+    void SetDarkTheme(MCExecContext& ctxt, MCArrayRef p_value);
+    struct MCAppColorTheme *getapptheme(void) const { return m_app_theme; }
+    bool isidestack(void) const { return m_is_ide_stack; }
     
 	void GetCompositorTileSize(MCExecContext& ctxt, uinteger_t*& p_size);
 	void SetCompositorTileSize(MCExecContext& ctxt, uinteger_t* p_size);

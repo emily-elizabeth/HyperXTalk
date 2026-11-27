@@ -194,6 +194,109 @@ extern "C" MC_DLLEXPORT_DEF void MCWidgetGetMyName(MCStringRef& r_name)
 	r_name = MCValueRetain(MCNameGetString(MCWidgetGetHost(MCcurrentwidget) -> getname()));
 }
 
+// HXT: the appearance the app is being drawn in, as the systemAppearance
+// property gives it to script: "light", "dark" or "custom".
+extern "C" MC_DLLEXPORT_DEF void MCWidgetGetSystemAppearance(MCStringRef& r_appearance)
+{
+	MCSystemAppearance t_appearance = kMCSystemAppearanceLight;
+	if (MCscreen != nil)
+		MCscreen -> getsystemappearance(t_appearance);
+
+	switch (t_appearance)
+	{
+		case kMCSystemAppearanceDark:
+			r_appearance = MCValueRetain(MCSTR("dark"));
+			break;
+		case kMCSystemAppearanceCustom:
+			r_appearance = MCValueRetain(MCSTR("custom"));
+			break;
+		default:
+			r_appearance = MCValueRetain(MCSTR("light"));
+			break;
+	}
+}
+
+// HXT: one of the widget's colours, as a colour rather than a paint, so that a
+// widget can test or compare it while painting. p_own asks for the colour set
+// on the widget itself, and gives nothing when there is none; otherwise it is
+// the colour the widget resolves to (its own, an inherited one, the app theme's
+// or the system's), and nothing when that is a pattern.
+static void MCWidgetGetMyColorCommon(uinteger_t p_type, bool p_own, MCValueRef& r_color)
+{
+	if (!MCWidgetEnsureCurrentWidget())
+		return;
+
+	MCWidget *t_host;
+	t_host = MCWidgetGetHost(MCcurrentwidget);
+
+	uint2 t_index;
+	if (p_own && !t_host -> getcindex((uint2)p_type, t_index))
+	{
+		r_color = MCValueRetain(kMCNull);
+		return;
+	}
+
+	MCColor t_color;
+	MCPatternRef t_pattern = nil;
+	int2 x, y;
+	if (!t_host -> getforecolor((uint2)p_type, False, False, t_color, t_pattern, x, y,
+								CONTEXT_TYPE_SCREEN, t_host, False))
+	{
+		r_color = MCValueRetain(kMCNull);
+		return;
+	}
+
+	MCCanvasColorRef t_canvas_color;
+	if (!MCCanvasColorCreateWithRGBA(t_color . red / 65535.0f,
+									 t_color . green / 65535.0f,
+									 t_color . blue / 65535.0f,
+									 1.0f,
+									 t_canvas_color))
+		return;
+
+	r_color = t_canvas_color;
+}
+
+extern "C" MC_DLLEXPORT_DEF void MCWidgetGetMyColor(uinteger_t p_type, MCValueRef& r_color)
+{
+	MCWidgetGetMyColorCommon(p_type, false, r_color);
+}
+
+extern "C" MC_DLLEXPORT_DEF void MCWidgetGetMyOwnColor(uinteger_t p_type, MCValueRef& r_color)
+{
+	MCWidgetGetMyColorCommon(p_type, true, r_color);
+}
+
+// Defined in exec-interface2.cpp. Declared here, not inside the handler below,
+// so that it keeps its C++ linkage.
+extern bool MCInterfaceThemeLookupNamedColor(MCObject *p_object, MCStringRef p_name, MCColor& r_color);
+
+// HXT themes: a colour of the theme that applies to the widget (its stack's,
+// or the IDE's for a widget in an IDE stack), for the current appearance, or
+// nothing if there is no such colour.
+extern "C" MC_DLLEXPORT_DEF void MCWidgetGetThemeColor(MCStringRef p_name, MCValueRef& r_color)
+{
+	if (!MCWidgetEnsureCurrentWidget())
+		return;
+
+	MCColor t_color;
+	if (!MCInterfaceThemeLookupNamedColor(MCWidgetGetHost(MCcurrentwidget), p_name, t_color))
+	{
+		r_color = MCValueRetain(kMCNull);
+		return;
+	}
+
+	MCCanvasColorRef t_canvas_color;
+	if (!MCCanvasColorCreateWithRGBA(t_color . red / 65535.0f,
+									 t_color . green / 65535.0f,
+									 t_color . blue / 65535.0f,
+									 1.0f,
+									 t_canvas_color))
+		return;
+
+	r_color = t_canvas_color;
+}
+
 extern "C" MC_DLLEXPORT_DEF void MCWidgetGetMyBounds(MCCanvasRectangleRef& r_rect)
 {
     if (!MCWidgetEnsureCurrentWidget())

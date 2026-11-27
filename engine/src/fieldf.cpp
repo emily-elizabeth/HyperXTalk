@@ -1027,6 +1027,14 @@ void MCField::drawrect(MCDC *dc, const MCRectangle &dirty)
 		// MW-2008-07-23: [[ Bug ]] Previously the background wouldn't be repainted if
 		//   linkstart != NULL and this was the field containing it. This caused redraw
 		//   oddness on Windows, so have removed the clause.
+		// A stack with a colour theme supplies the field's colours in light and
+		// dark mode alike, so the fixed Windows dark-mode colours below must not
+		// replace them.
+		extern bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_di, MCColor& r_color);
+		MCColor t_theme_color;
+		bool t_stack_themed = MCInterfaceThemeLookupColor(this, DI_BACK, t_theme_color)
+				|| MCInterfaceThemeLookupColor(this, DI_FORE, t_theme_color);
+
 		if (flags & F_OPAQUE)
 		{
 			// MW-2010-07-20: Under GTK, field borders are actually 3 pixels, not 2. So
@@ -1042,7 +1050,7 @@ void MCField::drawrect(MCDC *dc, const MCRectangle &dirty)
 			// script editor with its preference colours) keep their own look.
 			uint2 t_ci;
 			bool t_has_explicit_back = getcindex(DI_BACK, t_ci) || getpindex(DI_BACK, t_ci);
-			if (IsNativeWin() && MCcurtheme && MCcurtheme->isdarkmodeactive() && !t_has_explicit_back)
+			if (IsNativeWin() && MCcurtheme && MCcurtheme->isdarkmodeactive() && !t_has_explicit_back && !t_stack_themed)
 			{
 				// Dark-mode field background: #1E1E1E (matches TEXTFIELD_FILL theme colour).
 				MCColor t_dark_bg = {0x1e1e, 0x1e1e, 0x1e1e};
@@ -1070,7 +1078,9 @@ void MCField::drawrect(MCDC *dc, const MCRectangle &dirty)
 		trect = MCU_intersect_rect(trect, textrect);
 		if (flags & F_FIXED_HEIGHT && (flags & F_SHOW_LINES || state & CS_SIZE))
 		{
-			if (IsNativeWin() && MCcurtheme && MCcurtheme->isdarkmodeactive())
+			if (t_stack_themed && MCInterfaceThemeLookupColor(this, DI_BORDER, t_theme_color))
+				dc->setforeground(t_theme_color);
+			else if (IsNativeWin() && MCcurtheme && MCcurtheme->isdarkmodeactive())
 			{
 				MCColor t_ruler = {0x5050, 0x5050, 0x5050};
 				dc->setforeground(t_ruler);
@@ -1101,7 +1111,7 @@ void MCField::drawrect(MCDC *dc, const MCRectangle &dirty)
 		// colours set via preferences), honour it; otherwise use near-white.
 		uint2 t_fi;
 		bool t_has_explicit_fore = getcindex(DI_FORE, t_fi) || getpindex(DI_FORE, t_fi);
-		if (IsNativeWin() && MCcurtheme && MCcurtheme->isdarkmodeactive() && !t_has_explicit_fore)
+		if (IsNativeWin() && MCcurtheme && MCcurtheme->isdarkmodeactive() && !t_has_explicit_fore && !t_stack_themed)
 		{
 			// Dark-mode field text: near-white so it's readable on the #1E1E1E background.
 			MCColor t_dark_text = {0xf3f3, 0xf3f3, 0xf3f3};

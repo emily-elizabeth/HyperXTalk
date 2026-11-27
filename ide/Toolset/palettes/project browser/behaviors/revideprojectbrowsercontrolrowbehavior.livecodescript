@@ -223,10 +223,10 @@ setProp dvHilite[pHiliteColor] pBoolean
    if pBoolean then
       set the foregroundColor of field "type" of me to revIDEColor("dataView_TextHiliteColor")
       set the foregroundColor of field "name" of me to  revIDEColor("dataView_TextHiliteColor")
-      set the foregroundColor of field "scriptLines" of me to  revIDEColor("text_1")
+      set the foregroundColor of field "scriptLines" of me to  revIDEColor("dataView_badgeTextHiliteColor")
       set the backgroundColor of field "scriptLines" of me to  revIDEColor("dataView_TextHiliteColor")
       repeat with i = 1 to 10
-         set the foregroundColor of grc ("behaviorScriptLines" & i) of me to revIDEColor("text_1")
+         set the foregroundColor of grc ("behaviorScriptLines" & i) of me to revIDEColor("dataView_badgeTextHiliteColor")
          put ("cBehaviorLongID" & i) into tCPName
          if exists(the tCPName of me) then
             set the backgroundColor of grc ("behaviorScriptLines" & i) of me to revIDEColor("dataView_TextHiliteColor")

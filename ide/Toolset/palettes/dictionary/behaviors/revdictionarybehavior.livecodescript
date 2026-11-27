@@ -26,7 +26,7 @@ on openStack
    set the width of me to tMinWidth
    set the minWidth of me to tMinWidth
    set the title of me to "Dictionary"
-   set the backColor of me to (the systemWindowColor)
+   set the backColor of me to revIDEWindowColor("window")
    if sTab is empty then
       put "api" into sTab
    end if

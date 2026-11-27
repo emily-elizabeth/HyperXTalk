@@ -23,6 +23,8 @@ cantAbort							false
 stackFiles												
 externals												
 behavior												
+lightTheme												
+darkTheme												
 foregroundColor												
 foregroundPattern												
 backgroundColor												

@@ -202,7 +202,9 @@ typedef struct MCWidgetInfo
 	Widget_Part part;
 	Widget_DataType datatype;
 	void *data;
-	MCObject *whichobject;
+	// HXT themes: starts as nil so that a theme can tell whether a caller
+	// supplied the object (getwidgetthemeinfo sets it) before reading it.
+	MCObject *whichobject = nullptr;
 	//optional object to be passed along with widget info
 }
 MCWidgetInfo;
@@ -217,6 +219,33 @@ typedef struct MCWidgetScrollBarInfo
 	double lineinc;
 }
 MCWidgetScrollbarInfo;
+
+// HXT colour themes: the colours a control is painted in for an object that
+// has a colour theme, and the painting itself (mctheme.cpp).
+struct MCThemedControlPalette
+{
+	bool themed;          // always true: kept for parity with the Windows copy
+	bool dark;            // the background is a dark one
+	MCColor ctrl;         // button face
+	MCColor ctrl_hover;
+	MCColor ctrl_press;
+	MCColor ctrl_dis;
+	MCColor border;
+	MCColor accent;       // focus ring, tick, progress, default button
+	MCColor on_accent;    // a mark drawn on the accent
+	MCColor field;
+	MCColor field_border;
+	MCColor tab_sel;
+	MCColor tab_unsel;
+	MCColor pane;
+	MCColor group_border;
+	MCColor track;        // scrollbar and progress bar track
+	MCColor thumb;        // scrollbar thumb and arrows
+};
+
+// False if p_object has no colour theme with a background colour.
+bool MCThemeGetThemedControlPalette(MCObject *p_object, MCThemedControlPalette& r_pal);
+bool MCThemeDrawThemedControl(MCDC *dc, const MCWidgetInfo& winfo, const MCRectangle& p_rect, const MCThemedControlPalette& p_pal);
 
 
 typedef struct _MCWidgetTabPaneInfo

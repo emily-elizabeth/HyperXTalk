@@ -1695,6 +1695,12 @@ enum Properties {
     // MERG-2015-10-11: [[ DocumentFilename ]] Property tag for documentFilename
     P_DOCUMENT_FILENAME,
     
+    // HXT: colour themes used while the appearance is light / dark. With no
+    // object they are the IDE's theme; of a stack they are that stack's.
+    // (These must come before P_FIRST_ARRAY_PROP to be usable both ways.)
+    P_LIGHT_THEME,
+    P_DARK_THEME,
+
     // ARRAY STYLE PROPERTIES
 	P_FIRST_ARRAY_PROP,
     P_CUSTOM_KEYS = P_FIRST_ARRAY_PROP,

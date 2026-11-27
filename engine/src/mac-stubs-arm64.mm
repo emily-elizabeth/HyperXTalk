@@ -123,7 +123,187 @@ struct MCThemeDrawInfo
             bool   horizontal;   // true = horizontal orientation
         } scrollbar;
     };
+    // HXT themes: where the object being drawn has a theme with a highlight
+    // colour, that colour is used in place of the system accent for the parts
+    // this file paints itself (default button, pulldown, progress bar, slider).
+    bool  has_accent;
+    float accent_red, accent_green, accent_blue;
+    // HXT themes: 1 to draw in the light appearance, 2 in the dark one, 0 to
+    // follow the system. Set from the theme's background so that a control
+    // suits the window it is on rather than the system's mode.
+    int   forced_appearance;
 };
+
+// The accent colour for a draw: the theme's, if the info carries one, or the
+// user's system accent.
+static NSColor *MCMacThemeAccentColor(const MCThemeDrawInfo *p_info)
+{
+    if (p_info != nullptr && p_info->has_accent)
+        return [NSColor colorWithSRGBRed:p_info->accent_red
+                                   green:p_info->accent_green
+                                    blue:p_info->accent_blue
+                                   alpha:1.0];
+    NSColor *t_accent = [NSColor controlAccentColor];
+    if (t_accent == nil)
+        t_accent = [NSColor systemBlueColor];
+    return t_accent;
+}
+
+// HXT themes: AppKit draws checkboxes, radio buttons and the arrows of an
+// option menu itself, in the accent colour from System Settings, and offers no
+// way to ask for another. So after such a control has been drawn into its
+// off-screen buffer, the pixels that carry the system accent are given the
+// theme's accent instead. A pixel counts as accent if it is clearly coloured
+// and its hue is close to the system accent's; greys, the white tick and the
+// bezel are left as they are. Each such pixel takes the theme accent's hue,
+// with its saturation and brightness moved by the same amount the theme
+// accent differs from the system's, scaled by how much accent the pixel holds,
+// so anti-aliased edges blend as they did.
+//
+// AppKit draws the tick, the radio dot and the menu arrows in white, which
+// cannot be seen on a pale accent. Where the theme's accent is a light colour
+// the white inside the accent-filled part is drawn dark instead.
+static void MCMacThemeRGBToHSV(double r, double g, double b, double& h, double& s, double& v)
+{
+    double t_max = fmax(r, fmax(g, b));
+    double t_min = fmin(r, fmin(g, b));
+    double t_delta = t_max - t_min;
+    v = t_max;
+    s = t_max <= 0.0 ? 0.0 : t_delta / t_max;
+    if (t_delta <= 0.0)
+        h = 0.0;
+    else if (t_max == r)
+        h = 60.0 * fmod((g - b) / t_delta, 6.0);
+    else if (t_max == g)
+        h = 60.0 * ((b - r) / t_delta + 2.0);
+    else
+        h = 60.0 * ((r - g) / t_delta + 4.0);
+    if (h < 0.0)
+        h += 360.0;
+}
+
+static void MCMacThemeHSVToRGB(double h, double s, double v, double& r, double& g, double& b)
+{
+    double t_c = v * s;
+    double t_x = t_c * (1.0 - fabs(fmod(h / 60.0, 2.0) - 1.0));
+    double t_m = v - t_c;
+    double t_r = 0.0, t_g = 0.0, t_b = 0.0;
+    if (h < 60.0)       { t_r = t_c; t_g = t_x; }
+    else if (h < 120.0) { t_r = t_x; t_g = t_c; }
+    else if (h < 180.0) { t_g = t_c; t_b = t_x; }
+    else if (h < 240.0) { t_g = t_x; t_b = t_c; }
+    else if (h < 300.0) { t_r = t_x; t_b = t_c; }
+    else                { t_r = t_c; t_b = t_x; }
+    r = t_r + t_m; g = t_g + t_m; b = t_b + t_m;
+}
+
+static void MCMacThemeRetintAccent(MCImageBitmap *p_bitmap, const MCThemeDrawInfo *p_info)
+{
+    if (p_bitmap == nil || p_info == nullptr || !p_info->has_accent)
+        return;
+
+    NSColor *t_system = [[NSColor controlAccentColor] colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
+    if (t_system == nil)
+        return;
+
+    double t_sys_h, t_sys_s, t_sys_v;
+    MCMacThemeRGBToHSV([t_system redComponent], [t_system greenComponent], [t_system blueComponent],
+                       t_sys_h, t_sys_s, t_sys_v);
+    // a grey system accent (Graphite) cannot be told from the bezel
+    if (t_sys_s < 0.15)
+        return;
+
+    double t_new_h, t_new_s, t_new_v;
+    MCMacThemeRGBToHSV(p_info->accent_red, p_info->accent_green, p_info->accent_blue,
+                       t_new_h, t_new_s, t_new_v);
+
+    // A pale accent (one that takes black text, by the same measure as a
+    // label on a highlight) needs a dark tick. The white to darken is that
+    // within the bounds of the solidly accent-coloured pixels.
+    auto t_linear = [](double c) { return c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4); };
+    bool t_pale = 0.2126 * t_linear(p_info->accent_red) + 0.7152 * t_linear(p_info->accent_green) +
+                  0.0722 * t_linear(p_info->accent_blue) > 0.30;
+    uint32_t t_left = UINT32_MAX, t_top = UINT32_MAX, t_right = 0, t_bottom = 0;
+    if (t_pale)
+    {
+        for (uint32_t y = 0; y < p_bitmap->height; y++)
+        {
+            uint32_t *t_row = (uint32_t *)((uint8_t *)p_bitmap->data + y * p_bitmap->stride);
+            for (uint32_t x = 0; x < p_bitmap->width; x++)
+            {
+                uint8_t t_r8, t_g8, t_b8, t_a8;
+                MCGPixelUnpackNative(t_row[x], t_r8, t_g8, t_b8, t_a8);
+                if (t_a8 < 128)
+                    continue;
+
+                double t_alpha = t_a8 / 255.0;
+                double t_h, t_s, t_v;
+                MCMacThemeRGBToHSV(fmin(1.0, t_r8 / 255.0 / t_alpha), fmin(1.0, t_g8 / 255.0 / t_alpha),
+                                   fmin(1.0, t_b8 / 255.0 / t_alpha), t_h, t_s, t_v);
+                double t_hue_gap = fabs(t_h - t_sys_h);
+                if (t_hue_gap > 180.0)
+                    t_hue_gap = 360.0 - t_hue_gap;
+                if (t_s < 0.6 * t_sys_s || t_hue_gap > 40.0)
+                    continue;
+
+                t_left = MCMin(t_left, x); t_right = MCMax(t_right, x);
+                t_top = MCMin(t_top, y); t_bottom = MCMax(t_bottom, y);
+            }
+        }
+    }
+    const double t_ink = 0.10;
+
+    for (uint32_t y = 0; y < p_bitmap->height; y++)
+    {
+        uint32_t *t_row = (uint32_t *)((uint8_t *)p_bitmap->data + y * p_bitmap->stride);
+        for (uint32_t x = 0; x < p_bitmap->width; x++)
+        {
+            uint8_t t_r8, t_g8, t_b8, t_a8;
+            MCGPixelUnpackNative(t_row[x], t_r8, t_g8, t_b8, t_a8);
+            if (t_a8 == 0)
+                continue;
+
+            bool t_inside = t_pale && x >= t_left && x <= t_right && y >= t_top && y <= t_bottom;
+
+            // the buffer holds premultiplied colour
+            double t_alpha = t_a8 / 255.0;
+            double t_r = fmin(1.0, t_r8 / 255.0 / t_alpha);
+            double t_g = fmin(1.0, t_g8 / 255.0 / t_alpha);
+            double t_b = fmin(1.0, t_b8 / 255.0 / t_alpha);
+
+            double t_h, t_s, t_v;
+            MCMacThemeRGBToHSV(t_r, t_g, t_b, t_h, t_s, t_v);
+            double t_hue_gap = fabs(t_h - t_sys_h);
+            if (t_hue_gap > 180.0)
+                t_hue_gap = 360.0 - t_hue_gap;
+            bool t_is_accent = t_s >= 0.12 && t_hue_gap <= 40.0;
+            // the white of a tick, and its edges that blend into the accent
+            bool t_is_tick = t_inside && t_v > 0.70 && (t_is_accent || t_s < 0.12);
+            if (!t_is_accent && !t_is_tick)
+                continue;
+
+            // how much of this pixel is accent, from none to all
+            double t_share = fmin(1.0, t_s / t_sys_s);
+            if (t_is_tick && t_share < 0.85)
+            {
+                // the rest of it is tick: accent and ink in those shares
+                t_r = p_info->accent_red * t_share + t_ink * (1.0 - t_share);
+                t_g = p_info->accent_green * t_share + t_ink * (1.0 - t_share);
+                t_b = p_info->accent_blue * t_share + t_ink * (1.0 - t_share);
+            }
+            else
+            {
+                t_s = fmax(0.0, fmin(1.0, t_s * (t_new_s / t_sys_s)));
+                t_v = fmax(0.0, fmin(1.0, t_v + (t_new_v - t_sys_v) * t_share));
+                MCMacThemeHSVToRGB(t_new_h, t_s, t_v, t_r, t_g, t_b);
+            }
+
+            t_row[x] = MCGPixelPackNative((uint8_t)lrint(t_r * t_alpha * 255.0),
+                                          (uint8_t)lrint(t_g * t_alpha * 255.0),
+                                          (uint8_t)lrint(t_b * t_alpha * 255.0), t_a8);
+        }
+    }
+}
 
 // ── Forward declarations ────────────────────────────────────────────────
 extern CGBitmapInfo MCGPixelFormatToCGBitmapInfo(uint32_t p_pixel_format, bool p_alpha);
@@ -499,6 +679,25 @@ Boolean MCNativeTheme::drawwidget(MCDC *dc, const MCWidgetInfo &winfo, const MCR
     t_info.state       = winfo.state;
     t_info.attributes  = winfo.attributes;
 
+    // HXT themes: carry the theme's highlight along as the accent colour.
+    if (winfo.whichobject != nil)
+    {
+        extern bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_di, MCColor& r_color);
+        MCColor t_theme_accent;
+        if (MCInterfaceThemeLookupColor(winfo.whichobject, DI_HILITE, t_theme_accent))
+        {
+            t_info.has_accent   = true;
+            t_info.accent_red   = t_theme_accent.red / 65535.0f;
+            t_info.accent_green = t_theme_accent.green / 65535.0f;
+            t_info.accent_blue  = t_theme_accent.blue / 65535.0f;
+        }
+
+        extern bool MCInterfaceThemeBackgroundIsDark(MCObject *p_object, bool& r_dark);
+        bool t_theme_dark;
+        if (MCInterfaceThemeBackgroundIsDark(winfo.whichobject, t_theme_dark))
+            t_info.forced_appearance = t_theme_dark ? 2 : 1;
+    }
+
     switch (winfo.type)
     {
         // ── Buttons ──────────────────────────────────────────────────
@@ -788,6 +987,10 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
     // Sync the dummy window's appearance here so NSCell rendering uses the
     // modern flat style instead of falling back to the old Aqua gradient.
     NSAppearance *t_appearance = MCMacEffectiveAppearance();
+    if (p_info != nullptr && p_info->forced_appearance == 1)
+        t_appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
+    else if (p_info != nullptr && p_info->forced_appearance == 2)
+        t_appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
     if (t_appearance == nil)
         t_appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
     [t_view.window setAppearance:t_appearance];
@@ -933,7 +1136,7 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                         
                         // Accent-colored rounded rectangle for chevron (right side, inset)
                         if (!t_disabled) {
-                            NSColor *t_accent = [NSColor controlAccentColor];
+                            NSColor *t_accent = MCMacThemeAccentColor(p_info);
                             if (t_accent == nil) {
                                 t_accent = [NSColor systemBlueColor];
                             }
@@ -955,7 +1158,16 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                             [t_arrow moveToPoint:NSMakePoint(t_ax - 3.5, t_ay - 2)];
                             [t_arrow lineToPoint:NSMakePoint(t_ax, t_ay + 2)];
                             [t_arrow lineToPoint:NSMakePoint(t_ax + 3.5, t_ay - 2)];
-                            [[NSColor whiteColor] setStroke];
+                            // HXT themes: a dark chevron on a pale theme accent
+                            NSColor *t_chevron_ink = [NSColor whiteColor];
+                            if (p_info != nullptr && p_info->has_accent)
+                            {
+                                auto t_lin = [](double c) { return c <= 0.04045 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4); };
+                                if (0.2126 * t_lin(p_info->accent_red) + 0.7152 * t_lin(p_info->accent_green) +
+                                    0.0722 * t_lin(p_info->accent_blue) > 0.30)
+                                    t_chevron_ink = [NSColor colorWithSRGBRed:0.10 green:0.10 blue:0.10 alpha:1.0];
+                            }
+                            [t_chevron_ink setStroke];
                             [t_arrow stroke];
                         }
                     }];
@@ -970,7 +1182,7 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                     
                     // Resolve accent color
                     NSColor *t_accent = nil;
-                    NSColor *t_candidate = [NSColor controlAccentColor];
+                    NSColor *t_candidate = MCMacThemeAccentColor(p_info);
                     if (t_candidate != nil) {
                         t_accent = [t_candidate colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
                     }
@@ -1055,7 +1267,7 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                         NSColor *t_accent = nil;
                         
                         // Try controlAccentColor first (macOS 10.14+)
-                        NSColor *t_candidate = [NSColor controlAccentColor];
+                        NSColor *t_candidate = MCMacThemeAccentColor(p_info);
                         if (t_candidate != nil) {
                             t_accent = [t_candidate colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
                         }
@@ -1196,6 +1408,10 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
             [t_scroller setFloatValue:(float)t_pos];
             [t_scroller setKnobProportion:t_proportion];
 #pragma clang diagnostic pop
+            // The scroller is not in a window, so without this it draws in
+            // the app's appearance whatever the current drawing appearance
+            // is, and a themed stack got a light track on a dark theme.
+            [t_scroller setAppearance:t_appearance];
 
             [t_appearance performAsCurrentDrawingAppearance:^{
                 CGContextSaveGState(t_cgcontext);
@@ -1246,7 +1462,7 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
             
             // Use NSBezierPath for proper dynamic accent color support
             [t_appearance performAsCurrentDrawingAppearance:^{
-                NSColor *t_accent = [NSColor controlAccentColor];
+                NSColor *t_accent = MCMacThemeAccentColor(p_info);
                 NSColor *t_track_color = [NSColor colorWithCalibratedWhite:0.75 alpha:1.0];
                 NSColor *t_thumb_color = [NSColor whiteColor];
                 NSColor *t_thumb_border = [NSColor colorWithCalibratedWhite:0.5 alpha:1.0];
@@ -1380,7 +1596,7 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                         t_fill_rect = NSMakeRect(t_track.origin.x, t_track.origin.y + t_height * (1 - t_fraction), t_width, t_height * t_fraction);
                     }
                     
-                    NSColor *t_accent = [NSColor controlAccentColor];
+                    NSColor *t_accent = MCMacThemeAccentColor(p_info);
                     NSBezierPath *t_fill_path = [NSBezierPath bezierPathWithRoundedRect:t_fill_rect xRadius:2.5 yRadius:2.5];
                     [t_accent setFill];
                     [t_fill_path fill];
@@ -1411,7 +1627,7 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                     {
                         // Active window: fill with the user's accent colour.
                         NSColor *t_accent =
-                            [[NSColor controlAccentColor]
+                            [MCMacThemeAccentColor(p_info)
                                 colorUsingColorSpace:[NSColorSpace sRGBColorSpace]]
                             ?: [NSColor systemBlueColor];
 
@@ -1510,8 +1726,10 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
         {
             [t_appearance performAsCurrentDrawingAppearance:^{
                 // Determine if we're in dark mode
+                // t_appearance, not the app's: a themed stack whose theme is
+                // dark while the system is light (or the reverse) forces it.
                 NSAppearanceName t_best =
-                    [MCMacEffectiveAppearance()
+                    [t_appearance
                         bestMatchFromAppearancesWithNames:
                             @[NSAppearanceNameAqua, NSAppearanceNameDarkAqua]];
                 bool t_is_dark = [t_best isEqualToString:NSAppearanceNameDarkAqua];
@@ -1583,7 +1801,7 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
                 bool t_is_down_pressed = (p_info->part == WTHEME_PART_ARROW_INC);
                 
                 // Get accent color for pressed state
-                NSColor *t_accent = [NSColor controlAccentColor];
+                NSColor *t_accent = MCMacThemeAccentColor(p_info);
                 NSColor *t_arrow_color = t_disabled ? [[NSColor disabledControlTextColor] colorWithAlphaComponent:0.5] : [NSColor controlTextColor];
                 
                 if (t_is_whole_stepper) {
@@ -1757,6 +1975,13 @@ bool MCThemeDraw(MCGContextRef p_context, MCThemeDrawType p_type, MCThemeDrawInf
 
     [NSGraphicsContext restoreGraphicsState];
     CGContextRelease(t_cgcontext);
+
+    // HXT themes: give AppKit-drawn accent parts the theme's accent colour.
+    if (p_type == THEME_DRAW_TYPE_BUTTON && p_info->has_accent &&
+        (p_info->widget_type == WTHEME_TYPE_CHECKBOX ||
+         p_info->widget_type == WTHEME_TYPE_RADIOBUTTON ||
+         p_info->widget_type == WTHEME_TYPE_OPTIONBUTTON))
+        MCMacThemeRetintAccent(t_bitmap, p_info);
 
     // ── Blit rendered pixels → MCGContext ────────────────────────────
     // t_dst_mcg is the widget's logical rect in MCGContext space.

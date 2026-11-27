@@ -1358,6 +1358,9 @@ on revIDEInitialiseIDELibrary
    ## Initialise property library
    revIDEPropertyLibraryInitialise
    
+   ## Apply the IDE theme preference
+   revIDEApplyThemePreference
+   
    ideSubscribe "ideExtensionsChanged"
    ideSubscribe "ideDesktopChanged"
 end revIDEInitialiseIDELibrary
@@ -2351,6 +2354,488 @@ command revIDEApplyAppearancePreference
    end try
 end revIDEApplyAppearancePreference
 
+/**
+The folders searched for scheme files
+
+Description:
+Returns the folders that hold "<name>.scheme" files, one per line: the user's
+Schemes folder first, then the schemes bundled with the IDE. The same files
+serve the script editor and the IDE theme.
+**/
+function revIDESchemeFolders
+   return revEnvironmentUserColorSchemesPath() & return & \
+         revIDESpecialFolderPath("Toolset") & "/resources/supporting_files/schemes"
+end revIDESchemeFolders
+
+/**
+The path of a scheme file
+
+pName (String): The name of the scheme, without the ".scheme" extension
+Returns (String): The path of the file, or empty if there is no such scheme
+**/
+function revIDESchemeFile pName
+   local tFolder
+   if pName is empty or pName contains slash then return empty
+   repeat for each line tFolder in revIDESchemeFolders()
+      if there is a file (tFolder & slash & pName & ".scheme") then
+         return tFolder & slash & pName & ".scheme"
+      end if
+   end repeat
+   return empty
+end revIDESchemeFile
+
+/**
+The names of the schemes suitable for an appearance
+
+pAppearance (String): "light" or "dark", or empty for every scheme
+Returns (String): The scheme names, one per line, sorted
+
+Description:
+A scheme declares its appearance with an "editor appearance light|dark" line.
+A scheme with no such line is listed for both appearances.
+**/
+function revIDESchemeNames pAppearance
+   local tFolder, tFile, tName, tNames, tText, tLine, tDeclared
+   repeat for each line tFolder in revIDESchemeFolders()
+      if there is no folder tFolder then next repeat
+      repeat for each line tFile in files(tFolder)
+         if not (tFile ends with ".scheme") then next repeat
+         put char 1 to -8 of tFile into tName
+         if tName is empty or tNames[tName] then next repeat
+         if pAppearance is not empty then
+            put empty into tDeclared
+            put URL ("file:" & tFolder & slash & tFile) into tText
+            repeat for each line tLine in tText
+               if word 1 of tLine is "editor" and word 2 of tLine is "appearance" then
+                  put word 3 of tLine into tDeclared
+                  exit repeat
+               end if
+            end repeat
+            if tDeclared is among the items of "light,dark" and tDeclared is not pAppearance then
+               next repeat
+            end if
+         end if
+         put true into tNames[tName]
+      end repeat
+   end repeat
+   put the keys of tNames into tNames
+   sort lines of tNames
+   return tNames
+end revIDESchemeNames
+
+/**
+The interface colours of a scheme
+
+pName (String): The name of the scheme
+Returns (Array): The colours, keyed as the lightTheme and darkTheme properties
+expect them, or empty if the scheme is "default", is missing or has no usable
+colours
+
+Description:
+A scheme sets an interface colour with a line of the form
+
+    interface <key> <red,green,blue>
+
+where <key> is one of foregroundColor, backgroundColor, hiliteColor,
+borderColor, topColor, bottomColor, shadowColor, focusColor, fieldColor,
+hiliteTextColor and linkColor. The script editor ignores these lines.
+
+Colours the scheme does not set are taken from its script editor colours where
+there is a natural match: backgroundColor from the gutter background,
+fieldColor from the editor background, foregroundColor from the identifier
+colour, hiliteColor from the selection and borderColor from the folding
+column. An editor's selection is usually too faint to serve as a highlight
+elsewhere, so where it or the folding column would not stand out from the
+background, the keyword colour or the gutter's text colour is used instead.
+**/
+function revIDESchemeInterfaceTheme pName
+   local tFile
+   if pName is empty or pName is "default" then return empty
+   put revIDESchemeFile(pName) into tFile
+   if tFile is empty then return empty
+   return revIDESchemeInterfaceThemeFromText(URL ("file:" & tFile))
+end revIDESchemeInterfaceTheme
+
+/**
+The keys of the interface colours a scheme can set
+
+Returns (String): The keys, comma-delimited, in the order the theme editor
+shows them
+**/
+function revIDESchemeInterfaceKeys
+   return "foregroundColor,backgroundColor,fieldColor,hiliteColor,hiliteTextColor,borderColor," & \
+         "linkColor,topColor,bottomColor,shadowColor,focusColor"
+end revIDESchemeInterfaceKeys
+
+/**
+The interface colours a scheme sets explicitly
+
+pText (String): The text of a scheme file
+Returns (Array): The colours of its "interface <key> <color>" lines, keyed by
+<key>, without any derived colours
+**/
+function revIDESchemeExplicitInterfaceColors pText
+   local tLine, tKey, tColor, tColors
+   replace CRLF with LF in pText
+   replace numToCodepoint(13) with LF in pText
+   repeat for each line tLine in pText
+      if word 1 of tLine is not "interface" then next repeat
+      put word 3 of tLine into tColor
+      if not __schemeColorIsValid(tColor) then next repeat
+      repeat for each item tKey in revIDESchemeInterfaceKeys()
+         if tKey is word 2 of tLine then
+            put tColor into tColors[tKey]
+            exit repeat
+         end if
+      end repeat
+   end repeat
+   return tColors
+end revIDESchemeExplicitInterfaceColors
+
+/**
+The interface colours of a scheme, given its text
+
+pText (String): The text of a scheme file
+Returns (Array): The colours, keyed as the lightTheme and darkTheme properties
+expect them: those the scheme sets, and those derived from its script editor
+colours (see revIDESchemeInterfaceTheme)
+**/
+function revIDESchemeInterfaceThemeFromText pText
+   local tText, tLine, tTheme, tEditor, tIdentifier, tAccent
+   put pText into tText
+   replace CRLF with LF in tText
+   replace numToCodepoint(13) with LF in tText
+   put revIDESchemeExplicitInterfaceColors(tText) into tTheme
+   
+   repeat for each line tLine in tText
+      switch word 1 of tLine
+         case "editor"
+            put word 3 of tLine into tEditor[toLower(word 2 of tLine)]
+            break
+         case "class"
+            if word 2 of tLine is "identifier" then put word 4 of tLine into tIdentifier
+            if word 2 of tLine is "keyword" then put word 4 of tLine into tAccent
+            break
+      end switch
+   end repeat
+   
+   __schemeDerive tTheme, "backgroundColor", tEditor["gutterbackground"], tEditor["background"]
+   __schemeDerive tTheme, "fieldColor", tEditor["background"]
+   __schemeDerive tTheme, "foregroundColor", tIdentifier
+   
+   # A script editor's selection and folding column are often the same colour
+   # as its gutter, which would leave highlights and borders invisible against
+   # the window. Such a colour is passed over for one that stands out.
+   local tAgainst
+   put tTheme["backgroundColor"] & return & tTheme["fieldColor"] into tAgainst
+   __schemeDeriveDistinct tTheme, "hiliteColor", tAgainst, 2, \
+         tEditor["selection"] & return & tAccent & return & tEditor["findhighlight"] & return & tIdentifier
+   __schemeDeriveDistinct tTheme, "borderColor", tAgainst, 1.3, \
+         tEditor["foldingbackground"] & return & tEditor["gutterforeground"] & return & \
+         tEditor["foldingforeground"] & return & tIdentifier
+   return tTheme
+end revIDESchemeInterfaceThemeFromText
+
+/**
+Opens the theme editor
+
+pScheme (String): The name of the scheme to edit; if empty or "Default", the
+editor shows the scheme it last showed, or the first it lists
+pAppearance (String): "light" or "dark" to list only the schemes for that
+appearance, as the menu the editor was opened from does; empty to leave the
+list as it is
+**/
+command revIDEOpenThemeEditor pScheme, pAppearance
+   if pScheme is among the items of "Default,None,Custom" then put empty into pScheme
+   go stack "revThemeEditor" as modeless
+   dispatch "themeEditorShow" to stack "revThemeEditor" with pScheme, pAppearance
+end revIDEOpenThemeEditor
+
+private function __schemeColorIsValid pColor
+   local tPart
+   if the number of items of pColor is not 3 then return false
+   repeat for each item tPart in pColor
+      if tPart is not an integer or tPart < 0 or tPart > 255 then return false
+   end repeat
+   return true
+end __schemeColorIsValid
+
+private command __schemeDerive @xTheme, pKey, pFirst, pSecond
+   if xTheme[pKey] is not empty then exit __schemeDerive
+   if __schemeColorIsValid(pFirst) then
+      put pFirst into xTheme[pKey]
+   else if __schemeColorIsValid(pSecond) then
+      put pSecond into xTheme[pKey]
+   end if
+end __schemeDerive
+
+# The first of the candidate colours, one per line, that is valid and has a
+# contrast ratio of at least pMinimum with every colour in pAgainst becomes
+# xTheme[pKey], unless it is set.
+private command __schemeDeriveDistinct @xTheme, pKey, pAgainst, pMinimum, pCandidates
+   local tCandidate, tOther, tDistinct
+   if xTheme[pKey] is not empty then exit __schemeDeriveDistinct
+   repeat for each line tCandidate in pCandidates
+      if not __schemeColorIsValid(tCandidate) then next repeat
+      put true into tDistinct
+      repeat for each line tOther in pAgainst
+         if __schemeColorIsValid(tOther) and __schemeContrast(tCandidate, tOther) < pMinimum then
+            put false into tDistinct
+            exit repeat
+         end if
+      end repeat
+      if tDistinct then
+         put tCandidate into xTheme[pKey]
+         exit __schemeDeriveDistinct
+      end if
+   end repeat
+end __schemeDeriveDistinct
+
+# The relative luminance of a colour, from 0 (black) to 1 (white).
+private function __schemeLuminance pColor
+   local tChannel, tValue, tTotal, tIndex
+   put 0 into tTotal
+   put 0 into tIndex
+   repeat for each item tChannel in pColor
+      add 1 to tIndex
+      put tChannel / 255 into tValue
+      if tValue <= 0.03928 then
+         put tValue / 12.92 into tValue
+      else
+         put ((tValue + 0.055) / 1.055) ^ 2.4 into tValue
+      end if
+      add tValue * item tIndex of "0.2126,0.7152,0.0722" to tTotal
+   end repeat
+   return tTotal
+end __schemeLuminance
+
+# The contrast ratio of two colours, from 1 (the same) to 21 (black on white).
+private function __schemeContrast pFirst, pSecond
+   local tFirst, tSecond
+   put __schemeLuminance(pFirst) into tFirst
+   put __schemeLuminance(pSecond) into tSecond
+   return (max(tFirst, tSecond) + 0.05) / (min(tFirst, tSecond) + 0.05)
+end __schemeContrast
+
+/**
+The choices offered for a stack's theme in the property inspector
+
+pSlot (String): "light" or "dark"
+Returns (String): "Default", the schemes for that appearance and "Custom", one per line
+**/
+function revIDEStackThemeOptions pSlot
+   return "Default" & return & revIDESchemeNames(pSlot) & return & "Custom" & return & "Edit themes…"
+end revIDEStackThemeOptions
+
+private function __stackThemesMatch pLeft, pRight
+   local tKey
+   if the number of lines of the keys of pLeft is not the number of lines of the keys of pRight then return false
+   repeat for each key tKey in pLeft
+      if pLeft[tKey] is not pRight[tKey] then return false
+   end repeat
+   return true
+end __stackThemesMatch
+
+/**
+The scheme a stack's theme was taken from
+
+pObject (String): The long id of a stack
+pProperty (String): "lightTheme" or "darkTheme"
+Returns (String): "Default" if the stack has no theme for that appearance, the
+name of the scheme it was set from, or "Custom" if its colours match no
+remembered scheme
+
+Description:
+A stack stores its theme's colours, not the name of a scheme, so that it needs
+no scheme file when it runs. The property inspector remembers the scheme name
+in the stack's cREVGeneral custom property set for display only.
+**/
+function revIDEGetStackThemeProperty pObject, pProperty
+   local tTheme, tName, tError
+   try
+      do "put the" && pProperty && "of pObject into tTheme"
+   catch tError
+      return "Default"
+   end try
+   if tTheme is not an array then return "Default"
+   put the cREVGeneral[pProperty & "Scheme"] of pObject into tName
+   if tName is not empty and __stackThemesMatch(tTheme, revIDESchemeInterfaceTheme(tName)) then
+      return tName
+   end if
+   return "Custom"
+end revIDEGetStackThemeProperty
+
+/**
+Sets a stack's theme from a scheme
+
+pObject (String): The long id of a stack
+pProperty (String): "lightTheme" or "darkTheme"
+pValue (String): "Default" to remove the theme, leaving the system colours, or the name of a scheme
+**/
+command revIDESetStackThemeProperty pObject, pProperty, pValue
+   local tTheme
+   if pValue is "Edit themes…" then
+      # not a choice of theme: open the editor on the stack's present scheme
+      local tAppearance
+      if pProperty is "darkTheme" then
+         put "dark" into tAppearance
+      else
+         put "light" into tAppearance
+      end if
+      send "revIDEOpenThemeEditor" && quote & revIDEGetStackThemeProperty(pObject, pProperty) & quote & comma & quote & tAppearance & quote to me in 0 milliseconds
+      exit revIDESetStackThemeProperty
+   end if
+   if pValue is "Custom" then exit revIDESetStackThemeProperty
+   if pValue is "Default" or pValue is "None" then
+      put empty into pValue
+   else
+      put revIDESchemeInterfaceTheme(pValue) into tTheme
+      if tTheme is not an array then
+         exit revIDESetStackThemeProperty
+      end if
+   end if
+   do "set the" && pProperty && "of pObject to tTheme"
+   set the cREVGeneral[pProperty & "Scheme"] of pObject to pValue
+end revIDESetStackThemeProperty
+
+# The IDE's themes, as applied by revIDEApplyThemePreference: sIDEThemes["light"]
+# and sIDEThemes["dark"] are each an array of interface colours, or empty.
+local sIDEThemes
+
+# A colour pPercent of the way from pFrom to pTo.
+private function __ideThemeMix pFrom, pTo, pPercent
+   local tIndex, tMixed
+   repeat with tIndex = 1 to 3
+      put round(item tIndex of pFrom + (item tIndex of pTo - item tIndex of pFrom) * pPercent / 100) into item tIndex of tMixed
+   end repeat
+   return tMixed
+end __ideThemeMix
+
+# The IDE theme's colour for one of revIDEColor's tags, or empty if there is
+# no IDE theme for the current appearance or the theme has nothing for the tag.
+private function __ideThemeColor pTag
+   local tTheme, tText, tBack, tField, tHilite
+   put sIDEThemes[the systemAppearance] into tTheme
+   if tTheme is not an array then return empty
+   put tTheme["foregroundColor"] into tText
+   put tTheme["backgroundColor"] into tBack
+   put tTheme["fieldColor"] into tField
+   put tTheme["hiliteColor"] into tHilite
+   if tField is empty then put tBack into tField
+   if tText is empty or tBack is empty then return empty
+   
+   switch pTag
+      case "text_1"
+         return tText
+      case "text_2"
+         return __ideThemeMix(tText, tBack, 40)
+      case "palette_background"
+         return tBack
+      case "dataView_rowColor"
+         return tField
+      case "dataView_rowAlternateColor"
+         return __ideThemeMix(tField, tText, 6)
+      case "dataView_disclosureIconColor"
+         return __ideThemeMix(tText, tBack, 30)
+      case "dataView_hiliteColor"
+      case "dataView_alternateHiliteColor"
+      case "dataView_scriptBackgroundColor"
+         return tHilite
+      case "text_3"
+      case "dataView_TextHiliteColor"
+      case "dataView_disclosureIconHiliteColor"
+         # text_3 is text drawn on the highlight colour (the Project Browser's
+         # script line badges), so it is chosen the same way.
+         if tHilite is empty then return empty
+         if __schemeLuminance(tHilite) <= 0.30 then return "255,255,255"
+         return "0,0,0"
+      case "dataView_badgeTextHiliteColor"
+         # Badge text on a selected row, where the badge is filled with
+         # dataView_TextHiliteColor: the opposite of that colour.
+         if tHilite is empty then return empty
+         if __schemeLuminance(tHilite) <= 0.30 then return "0,0,0"
+         return "255,255,255"
+      case "propertyInspector_multiValueBackground"
+         if tHilite is empty then return empty
+         return __ideThemeMix(tField, tHilite, 30)
+   end switch
+   return empty
+end __ideThemeColor
+
+/**
+The window or text colour an IDE window should use
+
+pWhich (String): "window" or "text"
+Returns (String): The IDE theme's background or text colour if an IDE theme is
+chosen for the current appearance, otherwise the system's window or text colour
+
+Description:
+IDE windows that set their own colours use this in place of the
+systemWindowColor and the systemTextColor, so that they follow the IDE theme.
+**/
+function revIDEWindowColor pWhich
+   local tTheme, tColor
+   put sIDEThemes[the systemAppearance] into tTheme
+   if pWhich is "text" then
+      put tTheme["foregroundColor"] into tColor
+      if tColor is empty then
+         put the systemTextColor into tColor
+      end if
+   else
+      put tTheme["backgroundColor"] into tColor
+      if tColor is empty then
+         put the systemWindowColor into tColor
+      end if
+   end if
+   return tColor
+end revIDEWindowColor
+
+# The IDE's palettes set some colours themselves, from revIDEColor, when the
+# appearance changes. Send them the same message so they pick up a new theme.
+private command __ideThemeRefreshPalettes
+   local tStack, tTheme, tBack, tText, tError
+   put sIDEThemes[the systemAppearance] into tTheme
+   put tTheme["backgroundColor"] into tBack
+   put tTheme["foregroundColor"] into tText
+   if tBack is empty then put the systemWindowColor into tBack
+   if tText is empty then put the systemTextColor into tText
+   repeat for each line tStack in the openStacks
+      try
+         if revIDEStackIsIDEStack(the long id of stack tStack) then
+            dispatch "systemAppearanceChanged" to this card of stack tStack \
+                  with the systemAppearance, tBack, tText
+         end if
+      catch tError
+      end try
+   end repeat
+end __ideThemeRefreshPalettes
+
+/**
+Applies the IDE's theme preferences to the engine
+
+Description:
+Reads the "cIDEThemeLight" and "cIDEThemeDark" preferences, each the name of a
+scheme or "default", and sets the engine's lightTheme and darkTheme from them.
+These themes colour the IDE's own windows only; a stack's theme is stored with
+the stack. "default" leaves the IDE with the system colours. The properties are
+set through "do" so this library still runs on engines that do not have them.
+**/
+command revIDEApplyThemePreference
+   local tLight, tDark, tError
+   put revIDESchemeInterfaceTheme(revIDEGetPreference("cIDEThemeLight")) into tLight
+   put revIDESchemeInterfaceTheme(revIDEGetPreference("cIDEThemeDark")) into tDark
+   try
+      do "set the lightTheme to tLight"
+      do "set the darkTheme to tDark"
+   catch tError
+      -- engine without the theme properties
+      exit revIDEApplyThemePreference
+   end try
+   put tLight into sIDEThemes["light"]
+   put tDark into sIDEThemes["dark"]
+   __ideThemeRefreshPalettes
+end revIDEApplyThemePreference
+
 function revIDEGetPreference pPreferenceName
    local tValue
    
@@ -2520,6 +3005,12 @@ function revIDEColor pTag
       return revEnvironmentEditionProperty("color")
    end if
 
+   # An IDE theme, when one is chosen for the current appearance, supplies
+   # the palette colours in place of the built-in ones below.
+   local tThemed
+   put __ideThemeColor(pTag) into tThemed
+   if tThemed is not empty then return tThemed
+
    // HXT dark mode: return dark-appropriate values for the IDE palette
    // colors when the OS is in dark appearance. Light-mode path below is
    // left byte-identical to the pre-dark-mode behavior.
@@ -2532,7 +3023,10 @@ function revIDEColor pTag
             return "160,160,160"
             break
          case "text_3"
-            return "120,120,120"
+            // text_3 is text drawn on dataView_hiliteColor (the Project
+            // Browser's script line badges), as in light mode; a mid grey
+            // was unreadable on the highlight blue.
+            return "255,255,255"
             break
          case "dataView_rowColor"
             return "36,36,38"
@@ -2595,6 +3089,11 @@ function revIDEColor pTag
          break
       case "dataView_TextHiliteColor"
          return "255,255,255"
+         break
+      case "dataView_badgeTextHiliteColor"
+         // Badge text on a selected row, where the badge is filled with
+         // dataView_TextHiliteColor (white in light and dark alike).
+         return "0,0,0"
          break
       case "dataView_scriptBackgroundColor"
          return "34,154,206"
@@ -8563,6 +9062,13 @@ on revIDEProjectSerializeStack pStackName, pMediaFolder, pScriptsFolder, @rObj
    put the menubar of stack pStackName into rObj["menubar"]
    put the backgroundColor of stack pStackName into rObj["backgroundColor"]
    put the foregroundColor of stack pStackName into rObj["foregroundColor"]
+   -- HXT themes: the stack's light and dark colour themes (arrays of colours;
+   -- left out when the stack has none)
+   local tTheme
+   put the lightTheme of stack pStackName into tTheme
+   if tTheme is an array then put tTheme into rObj["lightTheme"]
+   put the darkTheme of stack pStackName into tTheme
+   if tTheme is an array then put tTheme into rObj["darkTheme"]
    put the shadow of stack pStackName into rObj["shadow"]
    put the textFont of stack pStackName into rObj["textFont"]
    put the textSize of stack pStackName into rObj["textSize"]
@@ -9639,6 +10145,12 @@ on revIDEProjectReconstructStack pStackNode, pFolderPath, pParentStackName, @pDe
    end if
    if pStackNode["foregroundColor"] is not empty then
       set the foregroundColor of stack tNewStackName to pStackNode["foregroundColor"]
+   end if
+   if pStackNode["lightTheme"] is an array then
+      set the lightTheme of stack tNewStackName to pStackNode["lightTheme"]
+   end if
+   if pStackNode["darkTheme"] is an array then
+      set the darkTheme of stack tNewStackName to pStackNode["darkTheme"]
    end if
    if pStackNode["shadow"] is not empty then
       set the shadow of stack tNewStackName to (pStackNode["shadow"] is "true")

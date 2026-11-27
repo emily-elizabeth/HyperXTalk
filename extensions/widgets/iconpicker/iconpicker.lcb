@@ -149,18 +149,13 @@ constant kMinRows is 3
 
 
 -- HXT dark mode -------------------------------------------------------------
--- The IDE writes the metadata default colours onto a new widget as explicit
--- properties, so "my ... paint" never follows the system appearance. The IDE
--- pushes "dark" or "light" into hxtAppearance (when a stack opens, when a
--- widget is created and when the appearance changes; a standalone's own
--- systemAppearanceChanged handler should do the same). While dark, a colour
--- that is unset or still the light default is swapped for a dark default; a
--- colour the developer chose is kept. Widgets cannot run script and may only
--- read their own properties from handlers the engine dispatches unrestricted
--- (OnOpen, OnTimer), never from OnPaint, OnCreate, OnLoad, OnSave or a
--- property handler, so the state below is cached.
-private variable mIsDark as Boolean
-
+-- This widget has no colour properties of its own. Its icons and labels are
+-- drawn in the stack theme's text colour if the stack has a theme, otherwise
+-- in a light or dark default for the appearance, worked out at paint time.
+--
+-- mAppearance is the hxtAppearance property: "light" or "dark" when something
+-- has set it, which overrides the system appearance, and empty otherwise.
+private variable mAppearance as String
 
 /**
 Summary: The appearance the widget draws in: "dark" or "light".
@@ -169,60 +164,53 @@ Syntax: set the hxtAppearance of <widget> to <pMode>
 Syntax: get the hxtAppearance of <widget>
 
 Parameters:
-pMode (string): "dark" or "light"
+pMode (string): "dark" or "light", or empty to follow the system
 
 Description:
-The <hxtAppearance> property tells the widget which appearance to draw its
-built-in default colours in. It is not saved with the widget and is not shown
-in the property inspector. The IDE sets it when a stack opens, when a widget
-is created and when the system appearance changes; in a standalone the
-developer's <systemAppearanceChanged> handler should set it. Colours the
-developer has changed from their defaults are not affected.
+The widget follows the system appearance and the theme of its stack by
+itself. Set the <hxtAppearance> property only to make it draw its built-in
+default colours for one appearance regardless of the system; set it to empty
+to follow the system again. It is not saved with the widget and is not shown
+in the property inspector.
 **/
 property hxtAppearance get getHxtAppearance set setHxtAppearance
 metadata hxtAppearance.user_visible is "false"
 
 -- Module variables start unassigned and reading one throws a runtime error,
--- so give the appearance state safe values before anything can paint.
+-- so give the appearance state a safe value before anything can paint.
 private handler resetAppearanceState() returns nothing
-	put false into mIsDark
+	put "" into mAppearance
 end handler
 
--- Re-read whether this widget's own colours are still the defaults. Touches
--- the script object: only call from OnOpen / OnTimer.
-private handler updateAppearance() returns nothing
-	-- this widget has no colour properties; nothing to refresh
+-- True if the widget should draw its dark defaults. A value set through
+-- hxtAppearance wins; otherwise the engine says.
+private handler isDark() returns Boolean
+	if mAppearance is not "" then
+		return mAppearance is "dark"
+	end if
+	return the system appearance is "dark"
 end handler
 
-public handler OnOpen()
-	updateAppearance()
-end handler
-
--- Sent when a group, card or stack property above the widget changes. May
--- arrive inside a restricted dispatch, so defer the re-read to OnTimer.
+-- Sent when a group, card or stack property above the widget changes.
 public handler OnParentPropertyChanged()
-	schedule timer in 0 seconds
-end handler
-
--- Deferred refresh (see setHxtAppearance / OnParentPropertyChanged).
-public handler OnTimer()
-	updateAppearance()
 	redraw all
 end handler
 
 private handler getHxtAppearance() returns String
-	if mIsDark then
+	if isDark() then
 		return "dark"
 	end if
 	return "light"
 end handler
 
 private handler setHxtAppearance(in pMode as String) returns nothing
-	put pMode is "dark" into mIsDark
-	-- Repaint now with the cached flags (the engine defers the timer while the
-	-- pointer tool is active), then refresh the flags from OnTimer.
+	if pMode is "dark" or pMode is "light" then
+		put pMode into mAppearance
+	else
+		-- anything else (empty, "system") goes back to following the system
+		put "" into mAppearance
+	end if
 	redraw all
-	schedule timer in 0 seconds
 end handler
 -- end HXT dark mode ---------------------------------------------------------
 
@@ -697,7 +685,12 @@ end handler
 
 -- HXT dark mode: icon and label colour for the current appearance
 private handler iconPaint() returns Paint
-	if mIsDark then
+	variable tThemeColor as optional Color
+	put the theme color "foregroundColor" into tThemeColor
+	if tThemeColor is not nothing then
+		return solid paint with tThemeColor
+	end if
+	if isDark() then
 		return solid paint with color [230/255, 230/255, 230/255]
 	end if
 	return solid paint with color kIconColor
@@ -714,7 +707,7 @@ private handler getPaint(pLocation, pType) returns Paint
 		end if
 	else if pLocation is "scrollbar" then
 		if pType is "fill" then
-			if mIsDark then
+			if isDark() then
 				return solid paint with stringToColor("255,255,255,70")
 			end if
 			return solid paint with stringToColor("0,0,0,50")

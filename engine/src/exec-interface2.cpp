@@ -64,6 +64,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "stackfileformat.h"
 
 #include "exec-interface.h"
+#include "objectstream.h"
 #include "resolution.h"
 
 #include "scriptpt.h"
@@ -1784,6 +1785,633 @@ void MCInterfaceSetPreferredAppearance(MCExecContext& ctxt, intenum_t p_value)
 	s_preferred_appearance = p_value;
 	MCplatformSetPreferredAppearance((int)p_value);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// HXT colour themes
+//
+// A theme is a pair of colour tables, one used while the appearance is light
+// and one while it is dark. Script sees each as an array keyed by the name of
+// the colour property it stands in for (backgroundColor, foregroundColor,
+// hiliteColor, borderColor, topColor, bottomColor, shadowColor, focusColor).
+// An object with no colour of its own, and none to inherit, takes the colour
+// from the theme before it falls back to the system colour (see
+// MCObject::getforecolor).
+//
+// Two more keys have no colour property of their own. fieldColor is the
+// background of a bordered field that has no backgroundColor: the engine takes
+// that from the system without looking at the owners of the field, so the
+// theme's backgroundColor does not reach it. hiliteTextColor is the colour of
+// selected text, used while the selection is drawn in the theme's hiliteColor.
+// linkColor is the colour of link text, where the stack's link colour is still
+// the engine's default. Any other key is ignored.
+//
+// A theme that sets backgroundColor but not topColor, bottomColor or
+// shadowColor gets those three worked out from its background, so 3D edges and
+// drop shadows suit the theme and are not left in the system's colours.
+//
+// There are two kinds of theme, kept apart:
+//
+//   the lightTheme / the darkTheme of stack <s>
+//       A stack's own theme. It is saved with the stack and applies to that
+//       stack and to its substacks that have none of their own.
+//
+//   the lightTheme / the darkTheme   (no object)
+//       The IDE's theme. It applies only to the IDE's own stacks and is not
+//       saved by the engine; the IDE keeps it in its preferences.
+//
+// So a stack being worked on never takes the IDE's theme, and the IDE never
+// takes a stack's.
+
+enum { kMCInterfaceThemeLight = 0, kMCInterfaceThemeDark = 1 };
+
+// Indexed by the DI_* colour index (DI_FORE = 0 ... DI_FOCUS = 7), then the
+// colours that have no DI_* index. The order is part of the stack file format:
+// add new colours at the end.
+enum { kMCInterfaceThemeFieldColor = 8, kMCInterfaceThemeHiliteTextColor = 9, kMCInterfaceThemeLinkColor = 10, kMCInterfaceThemeColorCount = 11 };
+
+static const char *s_theme_keys[kMCInterfaceThemeColorCount] =
+{
+	"foregroundColor", "backgroundColor", "hiliteColor", "borderColor",
+	"topColor", "bottomColor", "shadowColor", "focusColor",
+	"fieldColor", "hiliteTextColor", "linkColor",
+};
+
+struct MCAppColorTheme
+{
+	MCColor colors[2][kMCInterfaceThemeColorCount];
+	bool has_color[2][kMCInterfaceThemeColorCount];
+};
+
+// The IDE's theme.
+static MCAppColorTheme s_ide_theme;
+static bool s_ide_theme_in_use = false;
+
+static bool MCInterfaceThemeIsEmpty(const MCAppColorTheme *p_theme)
+{
+	for (int t_slot = 0; t_slot < 2; t_slot++)
+		for (int i = 0; i < kMCInterfaceThemeColorCount; i++)
+			if (p_theme -> has_color[t_slot][i])
+				return false;
+	return true;
+}
+
+static MCAppColorTheme *MCInterfaceThemeCreate(void)
+{
+	MCAppColorTheme *t_theme = new (nothrow) MCAppColorTheme;
+	if (t_theme != nil)
+		memset(t_theme, 0, sizeof(MCAppColorTheme));
+	return t_theme;
+}
+
+MCAppColorTheme *MCInterfaceThemeCopy(const MCAppColorTheme *p_theme)
+{
+	if (p_theme == nil)
+		return nil;
+
+	MCAppColorTheme *t_theme = MCInterfaceThemeCreate();
+	if (t_theme != nil)
+		*t_theme = *p_theme;
+	return t_theme;
+}
+
+void MCInterfaceThemeFree(MCAppColorTheme *p_theme)
+{
+	delete p_theme;
+}
+
+static void MCInterfaceThemeRedrawAll(void)
+{
+	if (MCstacks == nil)
+		return;
+
+	MCStacknode *t_node = MCstacks -> topnode();
+	MCStacknode *t_first = t_node;
+	while (t_node != nil)
+	{
+		MCStack *t_stack = t_node -> getstack();
+		if (t_stack != nil && t_stack -> getcurcard() != nil)
+			t_stack -> dirtyall();
+		t_node = t_node -> next();
+		if (t_node == t_first)
+			break;
+	}
+
+	MCRedrawDirtyScreen();
+}
+
+// Tells the stacks a theme change affects that it has happened, by queueing
+// themeChanged to their current cards. Controls that paint colours once and
+// keep them (a Data Grid's rows, for example) use it to paint them again.
+// p_owner is the stack whose theme changed, or nil for the IDE's theme.
+static void MCInterfaceThemeNotify(MCStack *p_owner)
+{
+	if (MCstacks == nil)
+		return;
+
+	MCStacknode *t_node = MCstacks -> topnode();
+	MCStacknode *t_first = t_node;
+	while (t_node != nil)
+	{
+		MCStack *t_stack = t_node -> getstack();
+		if (t_stack != nil && t_stack -> getcurcard() != nil)
+		{
+			bool t_affected;
+			if (p_owner == nil)
+				t_affected = t_stack -> isidestack();
+			else
+				t_affected = t_stack == p_owner ||
+								(!t_stack -> isidestack() && t_stack -> getparent() == p_owner);
+			if (t_affected)
+				MCscreen -> delaymessage(t_stack -> getcurcard(), MCM_theme_changed);
+		}
+		t_node = t_node -> next();
+		if (t_node == t_first)
+			break;
+	}
+}
+
+// The theme that applies to an object: the IDE's for an IDE stack, otherwise
+// that of its stack or of the nearest stack above that has one.
+static const MCAppColorTheme *MCInterfaceThemeForObject(MCObject *p_object)
+{
+	if (p_object == nil)
+		return nil;
+
+	MCStack *t_stack = p_object -> getstack();
+	if (t_stack == nil)
+		return nil;
+
+	// An IDE stack takes the IDE's theme, unless it has been given a theme of
+	// its own (the theme editor previews the colours being edited that way).
+	if (t_stack -> isidestack())
+	{
+		if (t_stack -> getapptheme() != nil)
+			return t_stack -> getapptheme();
+		return s_ide_theme_in_use ? &s_ide_theme : nil;
+	}
+
+	while (t_stack != nil)
+	{
+		if (t_stack -> getapptheme() != nil)
+			return t_stack -> getapptheme();
+
+		MCObject *t_parent = t_stack -> getparent();
+		if (t_parent != nil && t_parent -> gettype() == CT_STACK)
+			t_stack = (MCStack *)t_parent;
+		else
+			break;
+	}
+
+	return nil;
+}
+
+// One slot (light or dark) of a theme as an array for script. p_theme may be nil.
+static void MCInterfaceThemeGetSlot(MCExecContext& ctxt, const MCAppColorTheme *p_theme, int p_slot, MCArrayRef& r_value)
+{
+	MCAutoArrayRef t_array;
+	if (!MCArrayCreateMutable(&t_array))
+	{
+		ctxt . Throw();
+		return;
+	}
+
+	for (int i = 0; p_theme != nil && i < kMCInterfaceThemeColorCount; i++)
+	{
+		if (!p_theme -> has_color[p_slot][i])
+			continue;
+
+		const MCColor& t_color = p_theme -> colors[p_slot][i];
+		MCNewAutoNameRef t_key;
+		MCAutoStringRef t_string;
+		if (!MCNameCreateWithNativeChars((const char_t *)s_theme_keys[i], strlen(s_theme_keys[i]), &t_key) ||
+			!MCStringFormat(&t_string, "%d,%d,%d", t_color . red >> 8, t_color . green >> 8, t_color . blue >> 8) ||
+			!MCArrayStoreValue(*t_array, false, *t_key, *t_string))
+		{
+			ctxt . Throw();
+			return;
+		}
+	}
+
+	r_value = MCValueRetain(*t_array);
+}
+
+// Replace one slot of a theme from an array. Nothing changes if a colour is bad.
+static bool MCInterfaceThemeSetSlot(MCExecContext& ctxt, MCAppColorTheme& x_theme, int p_slot, MCArrayRef p_value)
+{
+	MCColor t_colors[kMCInterfaceThemeColorCount];
+	bool t_has_color[kMCInterfaceThemeColorCount];
+
+	for (int i = 0; i < kMCInterfaceThemeColorCount; i++)
+	{
+		t_has_color[i] = false;
+
+		if (p_value == nil)
+			continue;
+
+		MCNewAutoNameRef t_key;
+		if (!MCNameCreateWithNativeChars((const char_t *)s_theme_keys[i], strlen(s_theme_keys[i]), &t_key))
+		{
+			ctxt . Throw();
+			return false;
+		}
+
+		MCValueRef t_value;
+		if (!MCArrayFetchValue(p_value, false, *t_key, t_value))
+			continue;
+
+		MCAutoStringRef t_string;
+		if (!ctxt . ConvertToString(t_value, &t_string))
+		{
+			ctxt . LegacyThrow(EE_OBJECT_BADCOLOR);
+			return false;
+		}
+
+		// An empty entry is the same as no entry.
+		if (MCStringIsEmpty(*t_string))
+			continue;
+
+		if (!MCscreen -> parsecolor(*t_string, t_colors[i]))
+		{
+			ctxt . LegacyThrow(EE_OBJECT_BADCOLOR);
+			return false;
+		}
+
+		t_has_color[i] = true;
+	}
+
+	for (int i = 0; i < kMCInterfaceThemeColorCount; i++)
+	{
+		x_theme . colors[p_slot][i] = t_colors[i];
+		x_theme . has_color[p_slot][i] = t_has_color[i];
+	}
+
+	return true;
+}
+
+// The slot of a theme that matches the current appearance, or -1 for neither:
+// "custom" (a high contrast theme on Windows) keeps the system colours.
+static int MCInterfaceThemeCurrentSlot(void)
+{
+	if (MCscreen == nil)
+		return -1;
+
+	MCSystemAppearance t_appearance = kMCSystemAppearanceLight;
+	MCscreen -> getsystemappearance(t_appearance);
+
+	if (t_appearance == kMCSystemAppearanceDark)
+		return kMCInterfaceThemeDark;
+	if (t_appearance == kMCSystemAppearanceLight)
+		return kMCInterfaceThemeLight;
+	return -1;
+}
+
+// Called by MCObject::getforecolor when neither the object nor anything above
+// it has the colour set. p_index is one of DI_FORE ... DI_FOCUS, or one of the
+// extra theme colours.
+// While this is non-zero the theme is not consulted. A control that the system
+// draws (a push button's bezel, for example) uses it while it fetches its text
+// colour, so the label keeps the system colour that suits the system's bezel.
+static int s_theme_suspended = 0;
+
+void MCInterfaceThemeSuspend(bool p_suspend)
+{
+	if (p_suspend)
+		s_theme_suspended++;
+	else if (s_theme_suspended > 0)
+		s_theme_suspended--;
+}
+
+static double MCInterfaceThemeLinearChannel(uint2 p_channel);
+
+// p_color mixed with white (p_towards_white) or black, by p_amount (0 .. 1).
+static void MCInterfaceThemeMix(const MCColor& p_color, bool p_towards_white, double p_amount, MCColor& r_color)
+{
+	double t_target = p_towards_white ? 65535.0 : 0.0;
+	r_color . red = (uint2)(p_color . red + (t_target - p_color . red) * p_amount + 0.5);
+	r_color . green = (uint2)(p_color . green + (t_target - p_color . green) * p_amount + 0.5);
+	r_color . blue = (uint2)(p_color . blue + (t_target - p_color . blue) * p_amount + 0.5);
+}
+
+// The 3D edge and shadow colours for a theme that has a background but does
+// not set them: a lighter top edge, a darker bottom edge and a darker shadow,
+// each a step away from the background that suits how light or dark it is.
+static bool MCInterfaceThemeDeriveEdgeColor(const MCAppColorTheme *p_theme, int p_slot, uint2 p_index, MCColor& r_color)
+{
+	if (p_index != DI_TOP && p_index != DI_BOTTOM && p_index != DI_SHADOW)
+		return false;
+
+	if (!p_theme -> has_color[p_slot][DI_BACK])
+		return false;
+
+	const MCColor& t_back = p_theme -> colors[p_slot][DI_BACK];
+	double t_luminance = 0.2126 * MCInterfaceThemeLinearChannel(t_back . red) +
+							0.7152 * MCInterfaceThemeLinearChannel(t_back . green) +
+							0.0722 * MCInterfaceThemeLinearChannel(t_back . blue);
+	bool t_dark = t_luminance <= 0.30;
+
+	switch (p_index)
+	{
+		case DI_TOP:
+			MCInterfaceThemeMix(t_back, true, t_dark ? 0.16 : 0.60, r_color);
+			break;
+		case DI_BOTTOM:
+			MCInterfaceThemeMix(t_back, false, t_dark ? 0.40 : 0.22, r_color);
+			break;
+		default:
+			MCInterfaceThemeMix(t_back, false, t_dark ? 0.60 : 0.40, r_color);
+			break;
+	}
+	return true;
+}
+
+bool MCInterfaceThemeLookupColor(MCObject *p_object, uint2 p_index, MCColor& r_color)
+{
+	if (s_theme_suspended != 0)
+		return false;
+
+	if (p_index >= kMCInterfaceThemeColorCount)
+		return false;
+
+	const MCAppColorTheme *t_theme = MCInterfaceThemeForObject(p_object);
+	if (t_theme == nil)
+		return false;
+
+	int t_slot = MCInterfaceThemeCurrentSlot();
+	if (t_slot < 0)
+		return false;
+
+	if (!t_theme -> has_color[t_slot][p_index])
+		return MCInterfaceThemeDeriveEdgeColor(t_theme, t_slot, p_index, r_color);
+
+	r_color = t_theme -> colors[t_slot][p_index];
+	return true;
+}
+
+// The colour of link text, for a stack whose link colour is the default.
+bool MCInterfaceThemeLookupLinkColor(MCObject *p_object, MCColor& r_color)
+{
+	return MCInterfaceThemeLookupColor(p_object, kMCInterfaceThemeLinkColor, r_color);
+}
+
+// The background of a bordered field with no backgroundColor of its own.
+bool MCInterfaceThemeLookupFieldColor(MCObject *p_object, MCColor& r_color)
+{
+	return MCInterfaceThemeLookupColor(p_object, kMCInterfaceThemeFieldColor, r_color);
+}
+
+// The colour of selected text, given the colour the selection is drawn in. It
+// only applies while that is the theme's own hiliteColor, so a hiliteColor set
+// on a field keeps the engine's usual choice of text colour.
+bool MCInterfaceThemeLookupHiliteTextColor(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color)
+{
+	MCColor t_theme_hilite;
+	if (!MCInterfaceThemeLookupColor(p_object, DI_HILITE, t_theme_hilite))
+		return false;
+
+	if (t_theme_hilite . red != p_hilite . red ||
+		t_theme_hilite . green != p_hilite . green ||
+		t_theme_hilite . blue != p_hilite . blue)
+		return false;
+
+	return MCInterfaceThemeLookupColor(p_object, kMCInterfaceThemeHiliteTextColor, r_color);
+}
+
+// One 16-bit sRGB colour channel as a linear-light value.
+static double MCInterfaceThemeLinearChannel(uint2 p_channel)
+{
+	double t_value = p_channel / 65535.0;
+	if (t_value <= 0.03928)
+		return t_value / 12.92;
+	return pow((t_value + 0.055) / 1.055, 2.4);
+}
+
+// The colour for a label drawn on a control that is filled with p_hilite
+// (a highlighted button, say), for an object that has a theme: the theme's
+// hiliteTextColor if p_hilite is the theme's highlight and it has one,
+// otherwise black or white by the relative luminance of p_hilite (white at
+// 0.30 or less, as for selected text in a field). False if the object has no
+// theme, in which case the caller keeps its usual colour.
+bool MCInterfaceThemeLookupTextOnHilite(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color)
+{
+	if (s_theme_suspended != 0)
+		return false;
+
+	const MCAppColorTheme *t_theme = MCInterfaceThemeForObject(p_object);
+	int t_slot = MCInterfaceThemeCurrentSlot();
+	if (t_theme == nil || t_slot < 0)
+		return false;
+
+	bool t_any = false;
+	for (uint2 i = 0; i < kMCInterfaceThemeColorCount && !t_any; i++)
+		t_any = t_theme -> has_color[t_slot][i];
+	if (!t_any)
+		return false;
+
+	if (MCInterfaceThemeLookupHiliteTextColor(p_object, p_hilite, r_color))
+		return true;
+
+	double t_luminance = 0.2126 * MCInterfaceThemeLinearChannel(p_hilite . red) +
+							0.7152 * MCInterfaceThemeLinearChannel(p_hilite . green) +
+							0.0722 * MCInterfaceThemeLinearChannel(p_hilite . blue);
+	uint2 t_level = t_luminance <= 0.30 ? 0xFFFF : 0;
+	r_color . red = r_color . green = r_color . blue = t_level;
+	return true;
+}
+
+// Whether the background an object's theme gives it is a dark one. False if
+// the object has no theme, or its theme sets no background, for the current
+// appearance. System-drawn controls use this to draw themselves, and to pick
+// their label colour, to suit the theme and not the system's light or dark
+// mode: a light theme shown while the system is in dark mode would otherwise
+// get dark-mode bezels with white labels on a pale window.
+bool MCInterfaceThemeBackgroundIsDark(MCObject *p_object, bool& r_dark)
+{
+	MCColor t_back;
+	if (!MCInterfaceThemeLookupColor(p_object, DI_BACK, t_back))
+		return false;
+
+	double t_luminance = 0.2126 * MCInterfaceThemeLinearChannel(t_back . red) +
+							0.7152 * MCInterfaceThemeLinearChannel(t_back . green) +
+							0.0722 * MCInterfaceThemeLinearChannel(t_back . blue);
+	r_dark = t_luminance <= 0.30;
+	return true;
+}
+
+// A theme colour by the name of its key, for widgets ("the theme color" in
+// LCB). False if the theme in use has no such colour.
+bool MCInterfaceThemeLookupNamedColor(MCObject *p_object, MCStringRef p_name, MCColor& r_color)
+{
+	for (uint2 i = 0; i < kMCInterfaceThemeColorCount; i++)
+		if (MCStringIsEqualToCString(p_name, s_theme_keys[i], kMCStringOptionCompareCaseless))
+			return MCInterfaceThemeLookupColor(p_object, i, r_color);
+
+	return false;
+}
+
+// Saving a stack's theme. For each of the light and dark slots: a 16 bit mask
+// of the colours present (bit n is colour n of s_theme_keys), then each of
+// those colours in turn.
+
+uint32_t MCInterfaceThemeMeasure(const MCAppColorTheme *p_theme)
+{
+	uint32_t t_size = 0;
+	for (int t_slot = 0; t_slot < 2; t_slot++)
+	{
+		t_size += 2;
+		for (int i = 0; i < kMCInterfaceThemeColorCount; i++)
+			if (p_theme -> has_color[t_slot][i])
+				t_size += 6;
+	}
+	return t_size;
+}
+
+IO_stat MCInterfaceThemeSave(MCObjectOutputStream& p_stream, const MCAppColorTheme *p_theme)
+{
+	IO_stat t_stat = IO_NORMAL;
+	for (int t_slot = 0; t_stat == IO_NORMAL && t_slot < 2; t_slot++)
+	{
+		uint16_t t_mask = 0;
+		for (int i = 0; i < kMCInterfaceThemeColorCount; i++)
+			if (p_theme -> has_color[t_slot][i])
+				t_mask |= (uint16_t)(1U << i);
+
+		t_stat = p_stream . WriteU16(t_mask);
+		for (int i = 0; t_stat == IO_NORMAL && i < kMCInterfaceThemeColorCount; i++)
+			if (p_theme -> has_color[t_slot][i])
+				t_stat = p_stream . WriteColor(p_theme -> colors[t_slot][i]);
+	}
+	return t_stat;
+}
+
+IO_stat MCInterfaceThemeLoad(MCObjectInputStream& p_stream, MCAppColorTheme*& x_theme)
+{
+	MCAppColorTheme *t_theme = MCInterfaceThemeCreate();
+	if (t_theme == nil)
+		return IO_ERROR;
+
+	IO_stat t_stat = IO_NORMAL;
+	for (int t_slot = 0; t_stat == IO_NORMAL && t_slot < 2; t_slot++)
+	{
+		uint16_t t_mask = 0;
+		t_stat = p_stream . ReadU16(t_mask);
+
+		// A colour this engine does not know (from a later one) is read and dropped.
+		for (int i = 0; t_stat == IO_NORMAL && i < 16; i++)
+		{
+			if ((t_mask & (1U << i)) == 0)
+				continue;
+
+			MCColor t_color;
+			t_stat = p_stream . ReadColor(t_color);
+			if (t_stat == IO_NORMAL && i < kMCInterfaceThemeColorCount)
+			{
+				t_theme -> colors[t_slot][i] = t_color;
+				t_theme -> has_color[t_slot][i] = true;
+			}
+		}
+	}
+
+	if (t_stat != IO_NORMAL || MCInterfaceThemeIsEmpty(t_theme))
+	{
+		MCInterfaceThemeFree(t_theme);
+		t_theme = nil;
+	}
+
+	MCInterfaceThemeFree(x_theme);
+	x_theme = t_theme;
+	return t_stat;
+}
+
+// The IDE's theme: the lightTheme / the darkTheme with no object.
+
+static void MCInterfaceSetIdeTheme(MCExecContext& ctxt, int p_slot, MCArrayRef p_value)
+{
+	if (!MCInterfaceThemeSetSlot(ctxt, s_ide_theme, p_slot, p_value))
+		return;
+
+	s_ide_theme_in_use = !MCInterfaceThemeIsEmpty(&s_ide_theme);
+	MCInterfaceThemeRedrawAll();
+}
+
+void MCInterfaceGetLightTheme(MCExecContext& ctxt, MCArrayRef& r_value)
+{
+	MCInterfaceThemeGetSlot(ctxt, &s_ide_theme, kMCInterfaceThemeLight, r_value);
+}
+
+void MCInterfaceSetLightTheme(MCExecContext& ctxt, MCArrayRef p_value)
+{
+	MCInterfaceSetIdeTheme(ctxt, kMCInterfaceThemeLight, p_value);
+}
+
+void MCInterfaceGetDarkTheme(MCExecContext& ctxt, MCArrayRef& r_value)
+{
+	MCInterfaceThemeGetSlot(ctxt, &s_ide_theme, kMCInterfaceThemeDark, r_value);
+}
+
+void MCInterfaceSetDarkTheme(MCExecContext& ctxt, MCArrayRef p_value)
+{
+	MCInterfaceSetIdeTheme(ctxt, kMCInterfaceThemeDark, p_value);
+}
+
+// A stack's theme: the lightTheme / the darkTheme of stack <s>.
+
+static void MCInterfaceSetStackTheme(MCExecContext& ctxt, MCAppColorTheme*& x_theme, int p_slot, MCArrayRef p_value)
+{
+	MCAppColorTheme t_new_theme;
+	if (x_theme != nil)
+		t_new_theme = *x_theme;
+	else
+		memset(&t_new_theme, 0, sizeof(MCAppColorTheme));
+
+	if (!MCInterfaceThemeSetSlot(ctxt, t_new_theme, p_slot, p_value))
+		return;
+
+	if (MCInterfaceThemeIsEmpty(&t_new_theme))
+	{
+		MCInterfaceThemeFree(x_theme);
+		x_theme = nil;
+	}
+	else
+	{
+		if (x_theme == nil)
+			x_theme = MCInterfaceThemeCreate();
+		if (x_theme == nil)
+		{
+			ctxt . Throw();
+			return;
+		}
+		*x_theme = t_new_theme;
+	}
+
+	MCInterfaceThemeRedrawAll();
+}
+
+void MCStack::GetLightTheme(MCExecContext& ctxt, MCArrayRef& r_value)
+{
+	MCInterfaceThemeGetSlot(ctxt, m_app_theme, kMCInterfaceThemeLight, r_value);
+}
+
+void MCStack::SetLightTheme(MCExecContext& ctxt, MCArrayRef p_value)
+{
+	MCInterfaceSetStackTheme(ctxt, m_app_theme, kMCInterfaceThemeLight, p_value);
+	if (!ctxt . HasError())
+		MCInterfaceThemeNotify(this);
+}
+
+void MCStack::GetDarkTheme(MCExecContext& ctxt, MCArrayRef& r_value)
+{
+	MCInterfaceThemeGetSlot(ctxt, m_app_theme, kMCInterfaceThemeDark, r_value);
+}
+
+void MCStack::SetDarkTheme(MCExecContext& ctxt, MCArrayRef p_value)
+{
+	MCInterfaceSetStackTheme(ctxt, m_app_theme, kMCInterfaceThemeDark, p_value);
+	if (!ctxt . HasError())
+		MCInterfaceThemeNotify(this);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 void MCInterfaceGetSystemWindowColor(MCExecContext& ctxt, MCStringRef& r_value)
 {

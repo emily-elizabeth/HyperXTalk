@@ -1302,13 +1302,27 @@ end moveStack
 -- current (or supplied) appearance mode.  "dark" → light grey so icons are
 -- visible on dark chrome; anything else → medium grey for light chrome.
 function toolIconColor pMode
-   if pMode is empty then put the systemAppearance into pMode
-   if pMode is "dark" then
+   -- The palette can be dark in light mode and light in dark mode when the
+   -- IDE has a colour theme, so the choice is made from its background.
+   if toolChromeIsDark() then
       return "200,200,200"
    else
       return "100,100,100"
    end if
 end toolIconColor
+
+-- Whether the palette's background is a dark one: dark mode, or a dark IDE
+-- theme.
+private function toolChromeIsDark
+   local tColor
+   try
+      put revIDEWindowColor("background") into tColor
+   end try
+   if the number of items of tColor is not 3 then
+      return (the systemAppearance is "dark")
+   end if
+   return (0.2126 * item 1 of tColor + 0.7152 * item 2 of tColor + 0.0722 * item 3 of tColor) < 140
+end toolChromeIsDark
 
 -- The run and edit tools have small black icons, which cannot be seen on a
 -- dark palette. There they are drawn in the light icon colour, by a colour
@@ -1317,7 +1331,7 @@ end toolIconColor
 -- icon; a disabled tool keeps the overlay toolDisable gave it.
 command toolTintRunEditTools
    local tTool, tDark, tSelected
-   put (the systemAppearance is "dark") into tDark
+   put toolChromeIsDark() into tDark
    repeat for each item tTool in "com.livecode.tool.Browse,com.livecode.tool.Pointer"
       if there is not a button tTool of me then next repeat
       if the cDisabled of button tTool of me is true then next repeat

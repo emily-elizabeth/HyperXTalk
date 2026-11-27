@@ -154,7 +154,7 @@ command hxtApplyAppearance
 
    set the backgroundColor of me to tRowColor
    //set the foregroundColor of me to tTextColor  // HXT
-   set the foregroundColor of me to (the systemTextColor)
+   set the foregroundColor of me to revIDEWindowColor("text")
    if there is a group "objectList" of me then
       set the backgroundColor of group "objectList" of me to tRowColor
       try

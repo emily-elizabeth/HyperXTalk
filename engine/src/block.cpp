@@ -42,6 +42,9 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include "stackfileformat.h"
 
+// Defined below: true if text on this colour should be white.
+static bool MCBlockHiliteTakesWhiteText(const MCColor& p_hilite);
+
 #define IMAGE_BLOCK_LEADING  2
 static MCRectangle
 MCBlockMakeRectangle(double x, double y,
@@ -1267,6 +1270,34 @@ void MCBlock::draw(MCDC *dc, coord_t x, coord_t lx, coord_t cx, int2 y, findex_t
 			else
 				t_foreground_color = &a -> color;
 		ull = a->underline;
+
+		// HXT: the engine's default link colours were chosen for a white
+		// page and cannot be read on a dark one. Where the link colour in use
+		// is still that default and the field's background is dark (dark
+		// mode, or a dark theme), draw a lighter blue or violet instead. A
+		// link colour the developer chose is left alone. A theme's linkColor
+		// takes the place of the default wherever it is set.
+		static MCColor s_theme_link;
+		static MCColor s_dark_link = { 0x6666, 0xADAD, 0xFFFF };
+		static MCColor s_dark_visited = { 0xC2C2, 0x9D9D, 0xF0F0 };
+		bool t_default_link = t_foreground_color == &a -> color &&
+				a -> color . red == 0 && a -> color . green == 0 && a -> color . blue == 0xEFBE;
+		bool t_default_visited = t_foreground_color == &a -> visitedcolor &&
+				a -> visitedcolor . red == 0x5144 && a -> visitedcolor . green == 0x1861 &&
+				a -> visitedcolor . blue == 0x8038;
+		if (t_default_link || t_default_visited)
+		{
+			extern bool MCInterfaceThemeLookupLinkColor(MCObject *p_object, MCColor& r_color);
+			MCColor t_page;
+			MCPatternRef t_page_pattern = nil;
+			int2 t_page_x, t_page_y;
+			if (t_default_link && MCInterfaceThemeLookupLinkColor(f, s_theme_link))
+				t_foreground_color = &s_theme_link;
+			else if (f -> getforecolor(DI_BACK, False, True, t_page, t_page_pattern,
+								  t_page_x, t_page_y, dc -> gettype(), f) &&
+				MCBlockHiliteTakesWhiteText(t_page))
+				t_foreground_color = t_default_link ? &s_dark_link : &s_dark_visited;
+		}
 	}
 
 	// MM-2013-11-05: [[ Bug 11547 ]] We now pack alpha values into pixels meaning we shouldn't check against MAXUNIT4. Not sure why this check was here previously.
@@ -2367,14 +2398,35 @@ static bool MCBlockHiliteTakesWhiteText(const MCColor& p_hilite)
     return t_luminance <= 0.30;
 }
 
+// HXT themes: the colour of selected text in a field whose stack has a colour
+// theme: the theme's hiliteTextColor if the selection is drawn in the theme's
+// hiliteColor and it has one, otherwise black or white by the luminance of
+// the highlight. Without this, Windows and Linux used the system's selected
+// text colour, which is pale and cannot be read on a pale theme highlight.
+static bool MCBlockGetThemeSelectedTextColor(MCField *f, MCDC *dc, MCColor& r_color)
+{
+    extern bool MCInterfaceThemeLookupTextOnHilite(MCObject *p_object, const MCColor& p_hilite, MCColor& r_color);
+
+    MCColor t_hilite;
+    MCPatternRef t_pattern = nil;
+    int2 t_x = 0, t_y = 0;
+    if (!f->getforecolor(DI_HILITE, False, True, t_hilite, t_pattern, t_x, t_y, dc->gettype(), f))
+        return false;
+
+    return MCInterfaceThemeLookupTextOnHilite(f, t_hilite, r_color);
+}
+
 void MCBlock::setcolorforselectedtext(MCDC* dc, MCColor* p_color)
 {
     MCField* f = parent->getparent();
+    MCColor t_theme_color;
     
     if (p_color != nil)
         dc->setforeground(*p_color);
     else if (flags & F_HAS_COLOR)
         dc->setforeground(*atts -> color);
+    else if (MCBlockGetThemeSelectedTextColor(f, dc, t_theme_color))
+        dc->setforeground(t_theme_color);
     else if (!IsMacLF()) // TODO: if platform reverses selected text
         f->setforeground(dc, DI_PSEUDO_TEXT_COLOR_SEL_BACK, False, True, true);
     else

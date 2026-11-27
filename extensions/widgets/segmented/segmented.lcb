@@ -114,6 +114,7 @@ widget com.livecode.widget.segmented
 use com.livecode.canvas
 use com.livecode.widget
 use com.livecode.engine
+use com.livecode.math
 use com.livecode.library.iconsvg
 use com.livecode.library.widgetutils
 use com.livecode.library.scriptitems
@@ -160,10 +161,12 @@ pMode (string): "dark" or "light"
 Description:
 The <hxtAppearance> property tells the widget which appearance to draw its
 built-in default colours in. It is not saved with the widget and is not shown
-in the property inspector. The IDE sets it when a stack opens, when a widget
-is created and when the system appearance changes; in a standalone the
-developer's <systemAppearanceChanged> handler should set it. Colours the
-developer has changed from their defaults are not affected.
+in the property inspector. The widget follows the system appearance by itself,
+in the IDE and in a standalone, so there is normally no need to set it; set it
+to "dark" or "light" to hold the widget in one appearance, and to empty to
+follow the system again. The IDE sets it when a stack opens, when a widget is
+created and when the system appearance changes. Colours the developer has
+changed from their defaults are not affected.
 **/
 property hxtAppearance get getHxtAppearance set setHxtAppearance
 metadata hxtAppearance.user_visible is "false"
@@ -232,20 +235,27 @@ private variable mSelectedLabelColor as optional Color
 
 private variable mIsHorizontal as Boolean
 
--- HXT dark mode -------------------------------------------------------------
+-- HXT appearance and themes ---------------------------------------------------
 -- The IDE writes the metadata default colours onto a new widget as explicit
 -- properties, so "my background paint" and friends never follow the system
--- appearance. While the appearance is dark, a colour that is unset or still
--- the light default is swapped for a dark default; a colour the developer
--- chose is left alone. Refreshed on every paint so live switching works.
-private variable mIsDark as Boolean
-private variable mBackgroundIsDefault as Boolean
-private variable mForegroundIsDefault as Boolean
-private variable mBorderIsDefault as Boolean
+-- appearance or the app theme. A colour that is unset or still the light
+-- default therefore comes from the app theme if it has one (the theme color),
+-- and otherwise from a built-in light or dark default; a colour the developer
+-- chose is left alone.
+--
+-- Everything is read from the engine while painting: the widget's own colours
+-- (my own ... color), the theme (the theme color) and the appearance (the
+-- system appearance). Nothing is cached and the script object is not read, so
+-- a change shows at the next paint, in either tool, with no script.
+--
+-- mAppearance is the hxtAppearance property: "light" or "dark" when something
+-- has set it (the IDE does), which then wins, or empty to follow the system.
+private variable mAppearance as String
 
 constant kLightBackgroundColor is "244,244,244"
 constant kLightForegroundColor is "0,0,0"
 constant kLightBorderColor is "109,109,109"
+constant kLightHiliteColor is "10,95,244"
 constant kDarkBackgroundColor is "58,58,60"
 constant kDarkForegroundColor is "230,230,230"
 constant kDarkBorderColor is "90,90,92"
@@ -472,55 +482,152 @@ handler hintUpper(in pBound as Number) returns Number
 end handler
 
 -- HXT dark mode: module variables start unassigned and reading one throws a
--- runtime error, so give the appearance state safe values before any paint
--- or property read can happen (OnCreate / OnLoad run before OnOpen).
+-- runtime error, so give the appearance state a safe value before any paint
+-- or property read can happen.
 private handler resetAppearanceState() returns nothing
-	put false into mIsDark
-	put true into mBackgroundIsDefault
-	put true into mForegroundIsDefault
-	put true into mBorderIsDefault
+	put "" into mAppearance
 end handler
 
--- HXT dark mode: re-read whether this widget's own colours are still the
--- defaults. The appearance itself is not read here: a widget cannot run
--- script reliably, so the IDE (or the developer's own handler in a standalone)
--- pushes it in through the hxtAppearance property. This touches the script
--- object, so it may only run from handlers the engine dispatches unrestricted
--- (OnOpen, OnTimer, OnParentPropertyChanged) - never from OnPaint, OnCreate,
--- OnLoad, OnSave or a property handler, where the engine throws.
-private handler updateAppearance() returns nothing
-	put isDefaultColor("backgroundColor", kLightBackgroundColor) into mBackgroundIsDefault
-	put isDefaultColor("foregroundColor", kLightForegroundColor) into mForegroundIsDefault
-	put isDefaultColor("borderColor", kLightBorderColor) into mBorderIsDefault
+-- The colour set on the widget itself for "background", "foreground",
+-- "border" or "highlight", or nothing if it has none.
+private handler ownColor(in pWhich as String) returns optional Color
+	if pWhich is "background" then
+		return my own background color
+	else if pWhich is "foreground" then
+		return my own foreground color
+	else if pWhich is "border" then
+		return my own border color
+	end if
+	return my own highlight color
 end handler
 
--- HXT dark mode: true if the widget's own (explicit) colour property is unset
--- or still equal to the light-mode default written by the IDE on creation.
-private handler isDefaultColor(in pProperty as String, in pLightDefault as String) returns Boolean
-	variable tExplicit as optional any
-	put property pProperty of my script object into tExplicit
-	if tExplicit is nothing then
+-- True if a colour of the widget's own is missing, or is still the light
+-- default the IDE writes onto a new widget.
+private handler isDefaultColor(in pOwn as optional Color, in pLightDefault as String) returns Boolean
+	if pOwn is nothing then
 		return true
 	end if
-	if tExplicit is a string then
-		variable tValue as String
-		put tExplicit into tValue
-		return tValue is "" or tValue is pLightDefault
-	end if
-	return false
+	variable tOwn as Color
+	variable tDefault as Color
+	put pOwn into tOwn
+	put stringToColor(pLightDefault) into tDefault
+	return the abs of (the red of tOwn - the red of tDefault) < 0.003 and \
+		the abs of (the green of tOwn - the green of tDefault) < 0.003 and \
+		the abs of (the blue of tOwn - the blue of tDefault) < 0.003
 end handler
 
--- HXT dark mode: the paint to use for "background", "foreground" or "border",
--- substituting a dark default in dark mode where the developer chose nothing.
--- Safe to call from OnPaint: it only uses the cached flags above.
+-- One sRGB colour channel (0 .. 1) as a linear-light value.
+private handler linearChannel(in pChannel as Number) returns Number
+	if pChannel <= 0.04045 then
+		return pChannel / 12.92
+	end if
+	return ((pChannel + 0.055) / 1.055) ^ 2.4
+end handler
+
+-- Black or white, whichever suits text on a fill of the given colour.
+-- This is the engine's rule for selected text in a field: white when the
+-- relative luminance of the fill is 0.30 or below, black above that.
+private handler labelColorOnFill(in pFill as Color) returns Color
+	variable tLuminance as Number
+	put 0.2126 * linearChannel(the red of pFill) + \
+		0.7152 * linearChannel(the green of pFill) + \
+		0.0722 * linearChannel(the blue of pFill) into tLuminance
+	if tLuminance <= 0.30 then
+		return color [1, 1, 1]
+	end if
+	return color [0, 0, 0]
+end handler
+
+-- The colour of the label of a selected segment. A colour the developer set
+-- is used as it is. White is the default the IDE writes onto a new widget, so
+-- it counts as unset: the label then takes the app theme's selected text
+-- colour if the highlight is the theme's, and otherwise black or white by the
+-- brightness of the highlight.
+private handler selectedLabelColor() returns Color
+	if mSelectedLabelColor is not nothing then
+		variable tSet as Color
+		put mSelectedLabelColor into tSet
+		if the red of tSet < 1 or the green of tSet < 1 or the blue of tSet < 1 then
+			return tSet
+		end if
+	end if
+
+	variable tHilite as optional Color
+	put nothing into tHilite
+	if isDefaultColor(my own highlight color, kLightHiliteColor) then
+		put the theme color "hiliteColor" into tHilite
+		if tHilite is not nothing then
+			variable tThemeLabel as optional Color
+			put the theme color "hiliteTextColor" into tThemeLabel
+			if tThemeLabel is not nothing then
+				return tThemeLabel
+			end if
+		end if
+	end if
+	if tHilite is nothing then
+		-- the colour "my highlight paint" draws with
+		put my highlight color into tHilite
+	end if
+	if tHilite is nothing then
+		return color kDefaultSelectedLabelColor
+	end if
+	return labelColorOnFill(tHilite)
+end handler
+
+-- HXT appearance: true if the widget should draw its dark defaults. A value
+-- set through hxtAppearance wins; otherwise the engine says.
+private handler isDark() returns Boolean
+	if mAppearance is not "" then
+		return mAppearance is "dark"
+	end if
+	return the system appearance is "dark"
+end handler
+
+-- HXT appearance and themes: the paint to use for "background", "foreground",
+-- "border" or "highlight". Where the developer chose nothing, the app theme's
+-- colour is used if it has one, then a dark default in dark mode.
 private handler appearancePaint(in pWhich as String) returns Paint
-	if mIsDark then
-		if pWhich is "background" and mBackgroundIsDefault then
-			return solid paint with stringToColor(kDarkBackgroundColor)
-		else if pWhich is "foreground" and mForegroundIsDefault then
-			return solid paint with stringToColor(kDarkForegroundColor)
-		else if pWhich is "border" and mBorderIsDefault then
-			return solid paint with stringToColor(kDarkBorderColor)
+	variable tLightDefault as String
+	variable tThemeKey as String
+	variable tDarkDefault as String
+	if pWhich is "background" then
+		put kLightBackgroundColor into tLightDefault
+		put "backgroundColor" into tThemeKey
+		put kDarkBackgroundColor into tDarkDefault
+	else if pWhich is "foreground" then
+		put kLightForegroundColor into tLightDefault
+		put "foregroundColor" into tThemeKey
+		put kDarkForegroundColor into tDarkDefault
+	else if pWhich is "border" then
+		put kLightBorderColor into tLightDefault
+		put "borderColor" into tThemeKey
+		put kDarkBorderColor into tDarkDefault
+	else
+		put kLightHiliteColor into tLightDefault
+		put "hiliteColor" into tThemeKey
+		put "" into tDarkDefault
+	end if
+
+	if isDefaultColor(ownColor(pWhich), tLightDefault) then
+		-- a segment colour the developer chose, with the label colour left
+		-- alone: black or white, whichever reads on that colour
+		if pWhich is "foreground" then
+			variable tOwnBackground as optional Color
+			put my own background color into tOwnBackground
+			if not isDefaultColor(tOwnBackground, kLightBackgroundColor) then
+				variable tFill as Color
+				put tOwnBackground into tFill
+				return solid paint with labelColorOnFill(tFill)
+			end if
+		end if
+
+		variable tThemeColor as optional Color
+		put the theme color tThemeKey into tThemeColor
+		if tThemeColor is not nothing then
+			return solid paint with tThemeColor
+		end if
+		if tDarkDefault is not "" and isDark() then
+			return solid paint with stringToColor(tDarkDefault)
 		end if
 	end if
 
@@ -528,42 +635,34 @@ private handler appearancePaint(in pWhich as String) returns Paint
 		return my background paint
 	else if pWhich is "foreground" then
 		return my foreground paint
-	else
+	else if pWhich is "border" then
 		return my border paint
+	else
+		return my highlight paint
 	end if
 end handler
 
-public handler OnOpen()
-	updateAppearance()
-end handler
-
--- Sent when a group, card or stack property above the widget changes. This
--- can arrive while the engine is inside a restricted dispatch, so defer the
--- re-read to OnTimer rather than touching the script object here.
+-- Sent when a group, card or stack property above the widget changes, which
+-- may change an inherited colour.
 public handler OnParentPropertyChanged()
-	schedule timer in 0 seconds
-end handler
-
--- Deferred refresh (see setHxtAppearance / OnParentPropertyChanged).
-public handler OnTimer()
-	updateAppearance()
 	redraw all
 end handler
 
 private handler getHxtAppearance() returns String
-	if mIsDark then
+	if isDark() then
 		return "dark"
 	end if
 	return "light"
 end handler
 
 private handler setHxtAppearance(in pMode as String) returns nothing
-	put pMode is "dark" into mIsDark
-	-- Repaint now with the cached default-colour flags (the engine defers the
-	-- timer while the pointer tool is active), then refresh those flags from
-	-- OnTimer, since property handlers run with script-object access blocked.
+	if pMode is "dark" or pMode is "light" then
+		put pMode into mAppearance
+	else
+		-- anything else (empty, "system") goes back to following the system
+		put "" into mAppearance
+	end if
 	redraw all
-	schedule timer in 0 seconds
 end handler
 
 private handler drawSegments() returns nothing
@@ -587,7 +686,7 @@ private handler drawSegments() returns nothing
 		put mSegmentSelected[tSegmentIndex] into tIsIn
 
 		if tIsIn then
-			set the paint of this canvas to my highlight paint
+			set the paint of this canvas to appearancePaint("highlight")
 		else
 			set the paint of this canvas to appearancePaint("background")
 		end if
@@ -638,12 +737,7 @@ private handler drawSegments() returns nothing
 		restore state of this canvas
 
 		if tIsIn then
-			if mSelectedLabelColor is nothing then
-				-- set the paint of the label of the selected segment(s)
-				set the paint of this canvas to solid paint with color kDefaultSelectedLabelColor
-			else
-				set the paint of this canvas to solid paint with mSelectedLabelColor
-			end if
+			set the paint of this canvas to solid paint with selectedLabelColor()
 		else
 			set the paint of this canvas to appearancePaint("foreground")
 		end if	

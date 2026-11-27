@@ -650,3 +650,4 @@ extern MCNameRef MCN_font_tooltip;          // Tooltip text
 extern MCNameRef MCN_font_system;           // Anything else not covered above
 
 extern MCNameRef MCM_system_appearance_changed;
+extern MCNameRef MCM_theme_changed;

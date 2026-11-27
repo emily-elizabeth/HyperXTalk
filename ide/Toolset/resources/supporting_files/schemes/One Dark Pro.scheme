@@ -41,3 +41,11 @@ editor placeholder 44,49,60
 editor executionline 44,49,60
 editor defaulthandlertext 127,132,142
 editor appearance dark
+interface foregroundColor 171,178,191
+interface backgroundColor 33,37,43
+interface fieldColor 40,44,52
+interface hiliteColor 77,120,204
+interface hiliteTextColor 255,255,255
+interface borderColor 24,26,31
+interface linkColor 97,175,239
+interface focusColor 82,139,255
