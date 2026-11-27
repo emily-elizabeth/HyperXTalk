@@ -1104,8 +1104,13 @@ Exec_stat _MCEngineExecDoDispatch(MCExecContext &ctxt, int p_handler_type, MCNam
 	MCECptr = &ctxt;
 	Exec_stat t_stat;
 	t_stat = ES_NOT_HANDLED;
+	// Only add scripted-handler frames to the debug context list.  Wrapper
+	// contexts (e.g. the MCExecContext created by MCWorkerDeliverCallbackNow
+	// to dispatch a callback) carry no handler pointer; including them makes
+	// MCdebugcontext potentially point at a null-handler frame and crash in
+	// MCDebuggingGetDebugContext / MCDebuggingGetExecutionContexts.
 	Boolean added = False;
-	if (MCnexecutioncontexts < MAX_CONTEXTS)
+	if (MCnexecutioncontexts < MAX_CONTEXTS && ctxt.GetHandler() != NULL)
 	{
 		MCexecutioncontexts[MCnexecutioncontexts++] = &ctxt;
 		added = True;
