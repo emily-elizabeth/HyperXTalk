@@ -63,6 +63,7 @@ on openStack
    --   set the foreColor of me to (the systemTextColor)
    
    --   set the visible of me to true
+   toolTintRunEditTools
    unlock screen
 end openStack
 
@@ -132,6 +133,7 @@ on ideToolChanged
          end if
          set the loc of graphic "tool_hilite" of group "contents" to the loc of tControlID
          show graphic "tool_hilite" of group "contents" 
+         toolTintRunEditTools
          exit ideToolChanged
       end if
    end repeat
@@ -767,6 +769,7 @@ on mouseEnter
       # We are hovering over a tool
       set the loc of graphic "tool_hover" of group "contents" to the loc of the target
       show graphic "tool_hover" of group "contents" 
+      toolTintRunEditTools
    end if
 end mouseEnter
 
@@ -774,9 +777,10 @@ on mouseLeave
    if the cDisabled of the target is true then exit mouseLeave
    try
       if word 1 of the target is "widget" then
-         set the foregroundColor of the target to "100,100,100"
+         set the foregroundColor of the target to toolIconColor()
       else
          hide graphic "tool_hover" of group "contents" 
+         toolTintRunEditTools
          if the cTool of the target is empty then
             set the coloroverlay of the target to empty
          end if
@@ -928,6 +932,7 @@ on toolEnable pWhich
       set the coloroverlay of button pWhich of me to empty
       set the cDisabled of button pWhich of me to false
       enable button pWhich of me
+      toolTintRunEditTools
    else
       set the cDisabled of widget pWhich of me to false
       set the foregroundColor of widget pWhich of me to toolIconColor(the systemAppearance)
@@ -1304,3 +1309,42 @@ function toolIconColor pMode
       return "100,100,100"
    end if
 end toolIconColor
+
+-- The run and edit tools have small black icons, which cannot be seen on a
+-- dark palette. There they are drawn in the light icon colour, by a colour
+-- overlay. The selected tool sits on the light highlight square, and a tool
+-- the mouse is over sits on the light hover square, so those keep the black
+-- icon; a disabled tool keeps the overlay toolDisable gave it.
+command toolTintRunEditTools
+   local tTool, tDark, tSelected
+   put (the systemAppearance is "dark") into tDark
+   repeat for each item tTool in "com.livecode.tool.Browse,com.livecode.tool.Pointer"
+      if there is not a button tTool of me then next repeat
+      if the cDisabled of button tTool of me is true then next repeat
+      put false into tSelected
+      if there is a graphic "tool_hilite" of me then
+         if the visible of graphic "tool_hilite" of me and \
+               the loc of graphic "tool_hilite" of me is the loc of button tTool of me then
+            put true into tSelected
+         end if
+      end if
+      if there is a graphic "tool_hover" of me then
+         if the visible of graphic "tool_hover" of me and \
+               the loc of graphic "tool_hover" of me is the loc of button tTool of me then
+            put true into tSelected
+         end if
+      end if
+      if tDark and not tSelected then
+         set the colorOverlay["color"] of button tTool of me to toolIconColor()
+         set the colorOverlay["blendMode"] of button tTool of me to "normal"
+         set the colorOverlay["opacity"] of button tTool of me to 255
+      else
+         set the colorOverlay of button tTool of me to empty
+      end if
+   end repeat
+end toolTintRunEditTools
+
+on systemAppearanceChanged
+   toolTintRunEditTools
+   pass systemAppearanceChanged
+end systemAppearanceChanged

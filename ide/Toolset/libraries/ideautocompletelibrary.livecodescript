@@ -1170,26 +1170,6 @@ command ideAutocomplete_DoUpdate
       end if
    end if
    
-   -- "ms" is the start of "msg": offer the message box for that too, spelled
-   -- out, since "msg" itself is too short to be worth picking from a list.
-   if tToken is not empty and tOfferMessageBox and "msg" begins with tToken and \
-         "message box" is not among the lines of tMatches then
-      put "message box" & return before tMatches
-      if the last char of tMatches is return then
-         delete the last char of tMatches
-      end if
-   end if
-   
-   -- "ms" is the start of "msg": offer the message box for that too, spelled
-   -- out, since "msg" itself is too short to be worth picking from a list.
-   if tToken is not empty and tOfferMessageBox and "msg" begins with tToken and \
-         "message box" is not among the lines of tMatches then
-      put "message box" & return before tMatches
-      if the last char of tMatches is return then
-         delete the last char of tMatches
-      end if
-   end if
-   
    -- Nothing to show, or the only match is exactly the token already typed
    set the caseSensitive to true
    if tMatches is empty or tMatches is tToken then
