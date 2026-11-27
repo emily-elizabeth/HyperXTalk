@@ -80,6 +80,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "platform.h"
 #endif
 
+#include "mcworker.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 
 uint1 MCObject::dashlist[2] = {4, 4};
@@ -1178,6 +1180,21 @@ Exec_stat MCObject::handle(Handler_type htype, MCNameRef mess, MCParameter *para
 	{
 		if (stat == ES_PASS || stat == ES_NOT_HANDLED)
 		{
+			// Guard: on a worker thread, never propagate a message beyond
+			// the worker's own backing stack.  The worker's MCStack has
+			// its parent set to the home stack so that the !parent guard
+			// at the top of MCObject::message() is satisfied, but actually
+			// executing main-thread handlers from a worker thread would
+			// crash the engine (MCscreen calls, debug hooks, UI access).
+			// Allow propagation within the worker's own object hierarchy
+			// (e.g. group → card → stack); only block the upward leap
+			// from the worker's backing stack to a main-thread parent.
+			if (MCWorkerGetCurrent() != nullptr)
+			{
+				MCWorker *t_worker = MCWorkerGetCurrent();
+				if (parent->getstack() != t_worker->GetStack()->getstack())
+					return stat;
+			}
 			Exec_stat oldstat = stat;
 			stat = parent->handle(htype, mess, params, this);
 			if (oldstat == ES_PASS && stat == ES_NOT_HANDLED)

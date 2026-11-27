@@ -205,7 +205,10 @@ void MCDebuggingGetDebugContext(MCExecContext& ctxt, MCStringRef& r_value)
     // Don't display the handler name if the stack script is not available
     if (MCexecutioncontexts[MCdebugcontext]->GetObject()->getstack()->iskeyed())
     {
-        if (t_success)
+        // Guard against null handler (e.g. a callback-dispatch frame created by
+        // MCWorkerDeliverCallbackNow, which has no scripted handler).  The same
+        // guard already exists in MCDebuggingGetExecutionContexts (Bug 12125).
+        if (t_success && MCexecutioncontexts[MCdebugcontext]->GetHandler() != NULL)
             t_success = MCListAppend(*t_list, MCexecutioncontexts[MCdebugcontext]->GetHandler()->getname());
 
         if (t_success)

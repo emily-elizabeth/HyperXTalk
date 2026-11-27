@@ -22,6 +22,7 @@ extern void __MCValueDrainPoolForThread(void);
 #include "globals.h"
 #include "dispatch.h"
 #include "stack.h"
+#include "card.h"
 #include "object.h"
 #include "param.h"
 #include "exec.h"
@@ -159,9 +160,27 @@ void MCWorkerMessageFree(MCWorkerMessage *p_msg)
 // belt-and-suspenders in case some other code path calls us while nested.
 static void MCWorkerDeliverCallbackNow(MCWorkerCallback *t_cb)
 {
-    // Look up the target stack by name; it may have been closed since the
-    // callback was posted.
+    // Look up the target stack.  Fast path: by name (works for every named
+    // stack).  Fallback: walk all live stacks and compare raw pointers — this
+    // handles unnamed stacks (e.g. the home stack) whose name is empty and
+    // therefore can't be found by findstackname().
     MCStack *t_target_stack = MCdispatcher->findstackname(t_cb->target_name);
+
+    if (t_target_stack == nullptr && t_cb->target_stack_ptr != nullptr)
+    {
+        // Verify that target_stack_ptr is still alive by scanning the stack
+        // list.  foreachstack() covers top-level stacks and their sub-stacks.
+        struct StackFindCtx { MCStack *needle; bool found; };
+        StackFindCtx t_find = { t_cb->target_stack_ptr, false };
+        MCdispatcher->foreachstack([](MCStack *p_stack, void *p_ctx) -> bool {
+            StackFindCtx *t_ctx = static_cast<StackFindCtx *>(p_ctx);
+            if (p_stack == t_ctx->needle) { t_ctx->found = true; return false; }
+            return true; // keep searching
+        }, &t_find);
+        if (t_find.found)
+            t_target_stack = t_cb->target_stack_ptr;
+    }
+
     if (t_target_stack == nullptr)
     {
         MCWorkerParamsFree(t_cb->params, t_cb->param_count);
@@ -190,9 +209,16 @@ static void MCWorkerDeliverCallbackNow(MCWorkerCallback *t_cb)
         }
     }
 
-    // Dispatch the callback on the main thread.
+    // Dispatch to the current card of the target stack so the callback follows
+    // the normal card → stack → home-stack message hierarchy.  Dispatching to
+    // the stack object directly would skip any handlers on cards or controls.
+    MCCard   *t_cur_card    = t_target_stack->getcurcard();
+    MCObject *t_dispatch_to = (t_cur_card != nullptr)
+                               ? static_cast<MCObject *>(t_cur_card)
+                               : static_cast<MCObject *>(t_target_stack);
+
     MCObjectPtr t_target;
-    t_target.object  = t_target_stack;
+    t_target.object  = t_dispatch_to;
     t_target.part_id = 0;
 
     // MCEngineExecDispatch writes to 'it' after every dispatch.  This context
@@ -204,6 +230,11 @@ static void MCWorkerDeliverCallbackNow(MCWorkerCallback *t_cb)
 
     MCExecContext t_ctxt;
     t_ctxt.SetWorkerIt(t_it_ref);
+    // Ensure MCECptr->GetObject() is non-null while this callback is active.
+    // MCExecContext's default constructor zeroes m_object; any code path that
+    // calls MCECptr->GetObject()->GetHandle() (e.g. MCExecContext::GetObjectHandle
+    // in exec.cpp) would otherwise dereference null and crash.
+    t_ctxt.SetObject(t_dispatch_to);
     MCEngineExecDispatch(t_ctxt, HT_MESSAGE, t_cb->message, &t_target, t_first);
 
     delete t_it_ref;
@@ -226,29 +257,34 @@ static void MCWorkerDeliverCallbackNow(MCWorkerCallback *t_cb)
 
 // MCNotify entry point for worker callbacks.
 //
-// The s_safe_dispatch_depth guard in notify.cpp ensures this is never called
-// re-entrantly from within a safe-notification dispatch (e.g. from the modal
-// event loop that 'answer' runs).  Pending safe notifications — including
-// subsequent worker callbacks — stay in s_safe_notifications and are delivered
-// by the outer MCNotifyDispatch call once the modal dialog closes.
+// This function is queued in s_safe_notifications by the worker thread via
+// MCNotifyPush(..., safe=true).  It is therefore only ever called from within
+// MCNotifyDispatch's safe-notification drain loop, which tracks its own
+// re-entrancy depth in s_safe_dispatch_depth (notify.cpp).
 //
-// The MCnexecutioncontexts check below is belt-and-suspenders protection
-// against hypothetical other re-entrancy paths.
+// Re-entrancy safety is already provided by notify.cpp:
+//   - While we are running (s_safe_dispatch_depth >= 1), any inner call to
+//     MCNotifyDispatch(true) -- e.g. from an 'answer' modal dialog opened by
+//     the callback handler -- sees s_safe_dispatch_depth > 0 and skips the
+//     safe list entirely.  Pending safe notifications (including further
+//     worker callbacks) stay queued and are delivered once the outer dispatch
+//     loop resumes.
+//   - During 'wait with messages', the event loop calls MCNotifyDispatch(true)
+//     while MCnexecutioncontexts > 0 (a handler is still on the call stack).
+//     s_safe_dispatch_depth correctly tracks that re-entrancy, so the callback
+//     is delivered at the right time without any additional MCnexecutioncontexts
+//     guard here.
+//
+// A previous version of this function checked MCnexecutioncontexts > 0 and
+// re-queued the callback to s_safe_notifications if true.  That caused an
+// infinite tight loop inside MCNotifyDispatchList when the main thread was in
+// a 'wait with messages' loop (re-push -> while-loop picks it up immediately
+// -> re-push -> ...), hanging the engine with the spinning beachball of death.
+// The check was also logically redundant: notify.cpp's s_safe_dispatch_depth
+// already provides the correct protection.
 void MCWorkerDeliverCallback(void *p_opaque)
 {
     MCWorkerCallback *t_cb = static_cast<MCWorkerCallback *>(p_opaque);
-
-    if (MCnexecutioncontexts > 0)
-    {
-        // Should not normally happen thanks to the s_safe_dispatch_depth guard
-        // in notify.cpp.  If it does, drop rather than risk nested modal dialogs.
-        MCWorkerParamsFree(t_cb->params, t_cb->param_count);
-        MCValueRelease(t_cb->target_name);
-        MCValueRelease(t_cb->message);
-        delete t_cb;
-        return;
-    }
-
     MCWorkerDeliverCallbackNow(t_cb);
 }
 
@@ -428,6 +464,9 @@ void MCWorker::RunLoop()
 
         MCExecContext t_ctxt;
         t_ctxt.SetWorkerIt(t_it_ref);
+        // Same null-object guard as MCWorkerDeliverCallbackNow: set m_object so
+        // that MCECptr->GetObject()->GetHandle() is safe inside the handler.
+        t_ctxt.SetObject(m_stack);
         MCEngineExecDispatch(t_ctxt, HT_MESSAGE, t_msg->message,
                              &t_target, t_first);
 
@@ -715,11 +754,13 @@ void MCWorkerExecDispatchToCaller(MCExecContext &ctxt,
         ctxt.LegacyThrow(EE_NO_MEMORY);
         return;
     }
-    // Capture the caller's name for use at delivery time (on the main thread).
-    // We store a name rather than a raw pointer so MCdispatcher->findstackname()
-    // can verify the stack still exists — findstackid() fails for stacks whose
-    // obj_id is 0 (not explicitly assigned).
-    t_cb->target_name = MCValueRetain(t_worker->GetCurrentCaller()->getname());
+    // Capture the caller stack for use at delivery time (on the main thread).
+    // We store both the name (for the fast findstackname() path) and the raw
+    // pointer (as a fallback for unnamed stacks such as the home stack, whose
+    // name is empty and therefore can't be found by findstackname()).
+    MCStack *t_caller_stack = t_worker->GetCurrentCaller();
+    t_cb->target_name      = MCValueRetain(t_caller_stack->getname());
+    t_cb->target_stack_ptr = t_caller_stack;
     t_cb->message     = MCValueRetain(p_message);
     t_cb->params      = t_params;
     t_cb->param_count = t_count;

@@ -20,6 +20,8 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 
 #include "foundation-string-hash.h"
 
+#include <mutex>
+
 ////////////////////////////////////////////////////////////////////////////////
 
 MC_DLLEXPORT_DEF MCNameRef kMCEmptyName;
@@ -31,6 +33,11 @@ MC_DLLEXPORT_DEF MCNameRef kMCFalseName;
 static MCNameRef *s_name_table;
 static uindex_t s_name_table_occupancy;
 static uindex_t s_name_table_capacity;
+
+// Mutex protecting all accesses to the global name table.
+// Using recursive_mutex because __MCNameDestroy can call MCValueRelease on
+// names that belong to the same equivalence class, re-entering this lock.
+static std::recursive_mutex s_name_table_mutex;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -232,6 +239,7 @@ MC_DLLEXPORT_DEF
 bool MCNameCreate(MCStringRef p_string, MCNameRef& r_name)
 {
 	__MCAssertIsString(p_string);
+	std::lock_guard<std::recursive_mutex> t_lock(s_name_table_mutex);
 
 	if (p_string -> char_count == 0 && kMCEmptyName != nil)
 	{
@@ -275,14 +283,27 @@ bool MCNameCreate(MCStringRef p_string, MCNameRef& r_name)
 
 	// Now search within the equivalence class for one with the same string and
 	// return immediately if we find a match.
+	//
+	// Skip entries whose reference count is 0: they are concurrently being
+	// destroyed by __MCNameDestroy (MCValueRelease dropped the count to 0
+	// outside the lock before __MCNameDestroy could acquire it), so they
+	// must not be reused.
 	__MCName *t_name;
 	for(t_name = t_key_name; t_name != nil && __MCNameGetKey(t_name) == t_key_name; t_name = __MCNameGetNext(t_name))
 		if (MCStringIsEqualTo(p_string, t_name -> string, kMCStringOptionCompareExact))
 		{
+			if (t_name -> references == 0)
+				break; // concurrently being destroyed; create a fresh entry instead
 			t_name -> references += 1;
 			r_name = t_name;
 			return true;
 		}
+
+	// Also treat a dying key (references == 0) as "no class found": adding
+	// a new member to it would increment a count that is already committed
+	// to 0, corrupting the table when __MCNameDestroy tries to remove it.
+	if (t_key_name != nil && t_key_name -> references == 0)
+		t_key_name = nil;
 
 	// We haven't found an exact match, so we create a new name...
 	bool t_success;
@@ -348,6 +369,7 @@ bool MCNameCreate(MCStringRef p_string, MCNameRef& r_name)
 MC_DLLEXPORT_DEF
 bool MCNameCreateWithIndex(index_t p_index, MCNameRef& r_name)
 {
+    std::lock_guard<std::recursive_mutex> t_lock(s_name_table_mutex);
     char_t t_chars[11];
     uindex_t t_char_count;
     __MCNameIndexToNativeChars(p_index, t_chars, t_char_count);
@@ -376,6 +398,9 @@ bool MCNameCreateWithIndex(index_t p_index, MCNameRef& r_name)
             __MCNameGetKey(t_key_name) == t_key_name &&
             MCStringIsEqualToNativeChars(t_key_name -> string, t_chars, t_char_count, kMCStringOptionCompareExact))
         {
+            // Skip dying entries (see MCNameCreate for the full explanation).
+            if (t_key_name -> references == 0)
+                break;
             t_key_name -> references += 1;
             r_name = t_key_name;
             return true;
@@ -469,6 +494,7 @@ bool MCNameCreateAndRelease(MCStringRef p_string, MCNameRef& r_name)
 MC_DLLEXPORT_DEF
 MCNameRef MCNameLookupCaseless(MCStringRef p_string)
 {
+	std::lock_guard<std::recursive_mutex> t_lock(s_name_table_mutex);
 	// Compute the hash of the characters, up to case.
 	hash_t t_hash;
 	t_hash = MCStringHash(p_string, kMCStringOptionCompareCaseless);
@@ -506,6 +532,7 @@ MCNameRef MCNameLookupCaseless(MCStringRef p_string)
 
 MCNameRef MCNameLookupIndex(index_t p_index)
 {
+    std::lock_guard<std::recursive_mutex> t_lock(s_name_table_mutex);
     char_t t_chars[11];
     uindex_t t_char_count;
     __MCNameIndexToNativeChars(p_index, t_chars, t_char_count);
@@ -594,6 +621,16 @@ bool MCNameIsEqualTo(MCNameRef self, MCNameRef p_other_name, MCStringOptions p_o
 
 void __MCNameDestroy(__MCName *self)
 {
+	std::lock_guard<std::recursive_mutex> t_lock(s_name_table_mutex);
+
+	// MCValueRelease decrements 'references' atomically OUTSIDE this lock.
+	// Between that decrement reaching 0 and us acquiring the lock here,
+	// MCNameCreate on another thread may have found the name still in the
+	// table and incremented 'references' back above 0, reviving the name.
+	// If so, skip the destroy — the name is in use again.
+	if (self->references != 0)
+		return;
+
 	uindex_t t_index;
 	t_index = __MCNameGetHash(self) & (s_name_table_capacity - 1);
 

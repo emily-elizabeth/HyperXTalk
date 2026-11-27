@@ -42,6 +42,7 @@ along with LiveCode.  If not see <http://www.gnu.org/licenses/>.  */
 #include "mode.h"
 #include "exec.h"
 #include "system.h"
+#include "mcworker.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -131,6 +132,10 @@ void MCB_setvalue(MCExecContext &ctxt, MCExecValue p_value, MCNameRef name)
 
 void MCB_setmsg(MCExecContext &ctxt, MCStringRef p_string)
 {
+    // MCsystem->Debug() and msgChanged are UI operations; must not run
+    // on a worker thread.
+    if (MCWorkerGetCurrent() != nullptr)
+        return;
     Exec_stat t_stat = ES_NOT_HANDLED;
     
     MCObject *t_target = nil;
@@ -208,6 +213,10 @@ Exec_stat MCB_message(MCExecContext &ctxt, MCNameRef mess, MCParameter *p)
 		MCtracewindow = ctxt.GetObject()->getw();
 	MCVariable *oldresult = MCresult;
 	/* UNCHECKED */ MCVariable::createwithname(MCNAME("MCdebugresult"), MCresult);
+	// Save MCtracereturn so nested MCB_message calls (e.g. MCB_done delivering
+	// traceDone inside the outer wait loop) cannot prematurely exit the outer
+	// wait by leaving MCtracereturn == True on return.
+	Boolean t_savedtracereturn = MCtracereturn;
 	MCtracereturn = False;
 	MCtraceabort = False;
 
@@ -253,6 +262,9 @@ Exec_stat MCB_message(MCExecContext &ctxt, MCNameRef mess, MCParameter *p)
 	MCU_restoreprops(sp);
 	MCexitall = exitall;
 	MCresultmode = t_oldresultmode;
+	// Restore: each MCB_message call owns its own wait-token; callers
+	// should not see the inner session's "Continue" as their own.
+	MCtracereturn = t_savedtracereturn;
 
 	return t_stat;
 }
@@ -307,6 +319,11 @@ Exec_stat MCB_prepmessage(MCExecContext &ctxt, MCNameRef mess, uint2 line, uint2
 
 void MCB_trace(MCExecContext &ctxt, uint2 line, uint2 pos)
 {
+    // Workers run on background threads; the debugger UI is main-thread-only.
+    // Skip all debug tracing when executing on a worker thread.
+    if (MCWorkerGetCurrent() != nullptr)
+        return;
+
 	uint2 i;
     
     // MW-2015-03-03: [[ Bug 13110 ]] If this is an internal handler as a result of do
@@ -338,6 +355,10 @@ void MCB_trace(MCExecContext &ctxt, uint2 line, uint2 pos)
 
 void MCB_break(MCExecContext &ctxt, uint2 line, uint2 pos)
 {
+    // Workers run on background threads; the debugger UI is main-thread-only.
+    if (MCWorkerGetCurrent() != nullptr)
+        return;
+
     // We hit a breakpoint - end all modal loops
     MCscreen->breakModalLoops();
     
@@ -348,6 +369,10 @@ bool s_in_trace_error = false;
 
 bool MCB_error(MCExecContext &ctxt, uint2 line, uint2 pos, uint2 id)
 {
+    // Workers run on background threads; the debugger UI is main-thread-only.
+    if (MCWorkerGetCurrent() != nullptr)
+        return false;
+
 	// An unhandled error has been thrown - end all modal loops
 	MCscreen->breakModalLoops();
 
@@ -369,11 +394,18 @@ bool MCB_error(MCExecContext &ctxt, uint2 line, uint2 pos, uint2 id)
 
 void MCB_done(MCExecContext &ctxt)
 {
+	// traceDone is a debug-UI callback — must not fire on worker threads.
+	if (MCWorkerGetCurrent() != nullptr)
+		return;
 	MCB_message(ctxt, MCM_trace_done, NULL);
 }
 
 void MCB_setvar(MCExecContext &ctxt, MCValueRef p_value, MCNameRef name)
 {
+	// Variable-watch callbacks call MCB_message → MCscreen->wait();
+	// that must not happen on a worker thread.
+	if (MCWorkerGetCurrent() != nullptr)
+		return;
 	Boolean added = False;
 	if (MCnexecutioncontexts < MAX_CONTEXTS)
 	{
@@ -395,6 +427,9 @@ void MCB_setvar(MCExecContext &ctxt, MCValueRef p_value, MCNameRef name)
 
 void MCB_setvalue(MCExecContext &ctxt, MCExecValue p_value, MCNameRef name)
 {
+	// Same reason as MCB_setvar — debug UI must not be touched from workers.
+	if (MCWorkerGetCurrent() != nullptr)
+		return;
 	Boolean added = False;
 	if (MCnexecutioncontexts < MAX_CONTEXTS)
 	{
